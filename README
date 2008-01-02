@@ -1,0 +1,886 @@
+\mainpage Rice - Ruby Interface for C++ Extensions
+
+
+\section intro Introduction
+
+Rice is a C++ interface to Ruby's C API.  It provides a type-safe and
+exception-safe interface in order to make embedding Ruby and writing
+Ruby extensions with C++ easier.  It is similar to boost::python in many
+ways, but also attempts to provide an object-oriented interface to all
+of the Ruby C API.
+
+\example map/map.cpp
+\example enum/enum.cpp
+\example inheritance/animals.cpp
+
+Wrapping a class in pure C++ has never been simpler:
+
+\code
+  #include "rice/Class.hpp"
+  #include "rice/Data_Type.hpp"
+  #include <iostream>
+
+  using namespace Rice;
+
+  class Foo
+  {
+  public:
+    void foo() { std::cout << "FOO!" << std::endl; }
+  };
+
+  Data_Type<Foo> rb_cFoo;
+
+  extern "C"
+  void Init_Foo()
+  {
+    rb_cFoo = define_class("Foo")
+      .define_constructor(Constructor<Foo>)
+      .define_method("foo", &Foo::foo);
+  }
+\endcode
+
+Here we have a simple Ruby extension.  The usual Init_ function is
+present, declared with C linkage.  We proceed to define a class called
+"Foo", give it allocate and initialize methods, and an instance method
+called foo.  Additionally, conversions are automatically defined to
+convert the Foo class from a wrapped Ruby object to an opaque Foo*
+pointer.  Standard exceptions are automatically converted to Ruby
+exceptions, and we have the option of providing our own exception
+handlers to convert user-defined exception types.
+
+Plus there's much more to the library than just wrapping interfaces.
+Wrapper classes exist for many builtin types, e.g.:
+
+\code
+  #include "rice/Array.hpp"
+
+  using namespace Rice;
+
+  void foo()
+  {
+    Array a;
+    a.push(to_ruby(42));
+  }
+\endcode
+
+Take a look at the unit tests and examples for more ideas on what can be
+done with the library.
+
+
+\section tuturial Installation
+
+// TODO
+
+
+\section tuturial Tutorial
+
+\subsection geting_started Getting started
+
+Writing an extension with Rice is very similar to writing an extension
+with the C API.  For the remainder of this tutorial
+
+The first step is to create an extconf.rb file:
+
+\code
+  require 'mkmf'
+  create_makefile('test')
+  File.open('Makefile', 'a') do |makefile|
+    makefile.puts 'LDSHARED = $(CXX) -shared'
+  end
+\endcode
+
+Note the last three lines of the file; these are important.  They will
+ensure that the extension will be linked with standard C++ library.
+
+Next we create our extension and save it to test.cpp:
+
+\code
+  extern "C"
+  void Init_Test()
+  {
+  }
+\endcode
+
+Note the extern "C" line above.  This tells the compiler that the
+function Init_Test should have C linkage and calling convention.  This
+turns off name mangling so that the Ruby interpreter will be able to
+find the function (remember that Ruby is written in C, not C++).
+
+So far we haven't put anything into the extension, so it isn't
+particularly useful.  The next step is to define a class so we can add
+methods to it.
+
+
+\subsection classes Defining clases
+
+Defining a class in Rice is easy:
+
+\code
+  #include "rice/Class.hpp"
+
+  using namespace Rice;
+
+  extern "C"
+  void Init_Test()
+  {
+    Class rb_cTest = define_class("Test");
+  }
+\endcode
+
+This will create a class called Test that inherits from Object.  If we
+wanted to inherit from a different class, we could easily do so:
+
+\code
+  #include "rice/Class.hpp"
+
+  using namespace Rice;
+
+  extern "C"
+  void Init_Test()
+  {
+    Class rb_cMySocket = define_class("MySocket", rb_cIO);
+  }
+\endcode
+
+Note the prefix rb_c on the name of the class.  This is a convention
+that the Ruby interpreter and many extensions tend to use.  It signifies
+that this is a class and not some other type of object.  Some other
+naming conventions that are commonly used:
+
+\li rb_c variable name prefix for a Class
+\li rb_M variable name prefix for a Module
+\li rb_e variable name prefix for an Exception type
+\li rb_  function prefix for a function in the Ruby C API
+\li rb_f_ function prefix to differentiate between an API function that
+takes Ruby objects as arguments and one that takes C argument types
+\li rb_*_s_ indicates the function is a singleton function
+\li *_m suffix to indicate the function takes variable number of
+arguments
+
+
+Also note that we don't include "ruby.h" directly.  Rice has a wrapper
+for ruby.h that handles some compatibility issues across platforms and
+Ruby versions.  Always include Rice headers before including anything
+that might include "ruby.h".
+
+\subsection methods Defining methods
+
+Now let's add a method to our class:
+
+\code
+  #include "rice/Class.hpp"
+  #include "rice/String.hpp"
+
+  using namespace Rice;
+
+  Object test_hello(Object /* self */)
+  {
+    String str("hello, world");
+    return str;
+  }
+
+  extern "C"
+  void Init_Test()
+  {
+    Class rb_cTest =
+      define_class("Test")
+      .define_method("hello", test_hello);
+  }
+\endcode
+
+Here we add a method Test#hello that simply returns the string
+"Hello, World".  The method takes self as an implicit parameter, but
+isn't used, so we comment it out to prevent a compiler warning.
+
+We could also add an #initialize method to our class:
+
+\code
+  #include "rice/Class.hpp"
+  #include "rice/String.hpp"
+
+  using namespace Rice;
+
+  Object test_initialize(Object self)
+  {
+    self.iv_set("@foo", 42);
+  }
+
+  Object test_hello(Object /* self */)
+  {
+    String str("hello, world");
+    return str;
+  }
+
+  extern "C"
+  void Init_Test()
+  {
+    Class rb_cTest =
+      define_class("Test")
+      .define_method("initialize", test_initialize);
+      .define_method("hello", test_hello);
+  }
+\endcode
+
+The initialize method sets an instance variable @foo to the value 42.
+The number is automatically converted to a Fixnum before doing the
+assignment.
+
+Note that we're chaining calls on the Class object.  Most member
+functions in Module and Class return a reference to self, so we can
+chain as many calls as we want to define as many methods as we want.
+
+
+\subsection data_types Wrapping C++ Types
+
+It's useful to be able to define Ruby classes in a C++ style rather than
+using the Ruby API directly, but the real power Rice is in wrapping
+already-defined C++ types.
+
+Let's assume we have the following C++ class that we want to wrap:
+
+\code
+  class Test
+  {
+  public:
+    Test();
+    std::string hello();
+  };
+\endcode
+
+This is a C++ version of the Ruby class we just created in the previous
+section.  To wrap it:
+
+\code
+  #include "rice/Data_Type.hpp"
+  #include "rice/Constructor.hpp"
+
+  using namespace Rice;
+
+  extern "C"
+  void Init_Test()
+  {
+    Data_Type<Test> rb_cTest =
+      define_class<Test>("Test")
+      .define_constructor(Constructor<Test>())
+      .define_method("hello", &Test::hello);
+  }
+\endcode
+
+This example is similar to the one before, but we use Data_Type<> and
+the template version of define_class() instead of Class and the
+non-template version.  This creates a binding in the Rice library
+between the Ruby class Test and the C++ class Test, so that we pass
+member function pointers to define_method() and have conversions be done
+automatically.
+
+It's possible to write the conversion functions ourself (as we'll see
+below), but Rice does all the dirty work for us.
+
+
+\subsection conversions Type conversions
+
+Let's look again at our example class:
+
+\code
+  class Test
+  {
+  public:
+    Test();
+    std::string hello();
+  };
+\endcode
+
+When we wrote our class, we never wrote a single line of code to convert
+the std::string returned by hello() into a Ruby type.  Neverthless, the
+conversion works, and when we write:
+
+\code
+  test = Test.new
+  puts test.hello
+\end
+
+We get the expected result.
+
+Rice has two template conversion functions to convert between C++ and
+Ruby types:
+
+\code
+  template<typename T>
+  T from_ruby(Object x);
+
+  template<typename T>
+  Object to_ruby(T const & x);
+\endcode
+
+Rice has included by default specializations for many of the builtin
+types.  To define your own conversion, you can just write a
+specialization:
+
+\code
+  template<>
+  Foo from_ruby<Foo>(Object x)
+  {
+    // ...
+  }
+
+  template<>
+  Object to_ruby<Foo>(Foo const & x)
+  {
+    // ...
+  }
+\endcode
+
+The implementation of these functions would, of course, depend on the
+implementaion of Foo.
+
+
+\subsection data_conversions Conversions for wrapped C++ types
+
+Take another look at the wrapper we wrote for the Test class:
+
+\code
+  extern "C"
+  void Init_Test()
+  {
+    Data_Type<Test> rb_cTest =
+      define_class<Test>("Test")
+      .define_constructor(Constructor<Test>())
+      .define_method("hello", &Test::hello);
+  }
+\endcode
+
+When we called define_class<Test>, it created a Class for us and
+automatically registered the new Class with the type system, so that the
+calls:
+
+\code
+  Data_Object<Foo> obj(new Foo);
+  Foo * f = from_ruby<Foo *>(obj);
+  Foo const * f = from_ruby<Foo const *>(obj);
+\endcode
+
+work as expected.
+
+The Data_Object class here is analgous to Object, but for wrapped C++
+types (similar to the way we used Data_Type, above instead of Class).
+It inherits from Object, so any member functions we can call on an
+Object we can also call on a Data_Object:
+
+\code
+  Object object_id = obj.call("object_id");
+  std::cout << object_id << std::endl;
+\endcode
+
+The Data_Object class can be used to wrap a newly-created object:
+
+\code
+  Data_Object<Foo> foo(new Foo);
+\endcode 
+
+or to unwrap an already-created object:
+
+\code
+  VALUE obj = ...;
+  Data_Object<Foo> foo(obj);
+\endcode
+
+A Data_Object functions like a smart pointer:
+
+\code
+  Data_Object<Foo> foo(obj);
+  foo->foo();
+  std::cout << *foo << std::endl;
+\endcode
+ 
+Like a VALUE or an Object, data stored in a Data_Object will be marked
+by the garbage collector as long as the Data_Object is on the stack.
+
+
+\subsection exception Exceptions
+
+Suppose we added a member function to our example class that throws an
+exception:
+
+\code
+  class MyException
+    : public std::exception
+  {
+  };
+
+  class Test
+  {
+  public:
+    Test();
+    std::string hello();
+    void error();
+  };
+\endcode
+
+If we were to wrap this function:
+
+\code
+  extern "C"
+  void Init_Test()
+  {
+    Data_Type<Test> rb_cTest =
+      define_class<Test>("Test")
+      .define_constructor(Constructor<Test>())
+      .define_method("hello", &Test::hello)
+      .define_method("error", &Test::error);
+  }
+\endcode
+
+When we call error now from inside Ruby:
+
+\code
+  test = Test.new
+  test.error()
+\endcode
+
+We get an exception.  Rice will automatically convert any exception it
+catches into a Ruby exception.  But what if we wanted to use a custom
+eror message when we convert the exception, or what if we wanted to
+convert to a different type of exception?  We can write this:
+
+\code
+  extern "C"
+  void Init_Test()
+  {
+    Data_Type<Test> rb_cTest =
+      define_class<Test>("Test")
+      .add_handler<MyException>(handle_my_exception)
+      .define_constructor(Constructor<Test>())
+      .define_method("hello", &Test::hello)
+      .define_method("error", &Test::error);
+  }
+\endcode
+
+The handle_my_exception function need only rethrow the exception as a
+Rice::Exception:
+
+\code
+  void handle_my_exception(MyException const & ex)
+  {
+    throw Exception(rb_eRuntimeError, "Goodnight, moon");
+  }
+\endcode
+
+Internally whenever Rice catches a C++ or a Ruby exception, it converts
+it to an Exception object.  This object will later be re-raised as a
+Ruby exception when control is returned to the Ruby VM.
+
+Rice uses a similar class called Jump_Tag to handle symbols thrown by
+Ruby's throw/catch or other non-local jumps from inside the Ruby VM.
+
+
+\subsection builtin Builtin types
+
+You've seen this example:
+
+\code
+  Object object_id = obj.call("object_id");
+  std::cout << object_id << std::endl;
+\endcode
+
+Rice mimics the Ruby class hierarchy as closely as it can given that C++
+is statically typed.  In fact, the above code also works for Classes:
+
+\code
+  Class rb_cTest = define_class<Test>("Test");
+  Object object_id = rb_cTest.call("object_id");
+  std::cout << object_id << std::endl;
+\endcode
+
+Rice provides builtin wrappers for many builtin Ruby types, including:
+
+\li Object
+\li Module
+\li Class
+\li String
+\li Array
+\li Hash
+\li Struct
+\li Symbol
+\li Exception
+
+The Array and Hash types can even be iterated over the same way one
+would iterate over an STL container:
+
+\code
+  Array a;
+  a.push(to_ruby(42));
+  a.push(to_ruby(43));
+  a.push(to_ruby(44));
+  Array::iterator it = a.begin();
+  Array::iterator end = a.end();
+  for(; it != end; ++it)
+  {
+    std::cout << *it << std::endl;
+  }
+\endcode
+
+The usual STL algorithms should also work as expected.
+
+
+\subsection inheritance Inheritance
+
+Inheritance is a tricky problem to solve in extensions.  This is because
+wrapper functions for base classes typically don't know how to accept
+pointers to derived classes.  It is possible to write this logic, but
+the code is nontrivial.
+
+Forunately Rice handles this gracefully:
+
+\code
+  class Base
+  {
+  public:
+    virtual void foo();
+  };
+
+  class Derived
+    : public Base
+  {
+  };
+
+  extern "C"
+  void Init_Test()
+  {
+    Data_Type<Base> rb_cBase =
+      define_class<Base>("Base")
+      .define_method("foo", &Base::foo);
+    Data_Type<Derived> rb_cDerived =
+      define_class<Derived, Base>("Derived");
+  }
+\endcode
+
+The second template parameter to define_class indicates that Derived
+inherits from Base.
+
+Rice does not yet support multiple inheritance, but it is believed that
+this is doable through the use of mixins.
+
+
+\subsection overloading Overloaded functions
+
+If you try to create a member function pointer to an overloaded
+function, you will get an error.  So how do we wrap classes that have
+overloaded functions?
+
+Consider a class that uses this idiom for accessors:
+
+\code
+  class Container
+  {
+    size_t capacity(); // Get the capacity
+    void capacity(size_t cap); // Set the capacity
+  };
+\encode
+
+We can wrap this class by using typedefs:
+
+\code
+  extern "C"
+  void Init_Container()
+  {
+    typedef size_t (*Container::get_capacity)();
+    typedef void (*Container::set_capacity)(size_t);
+
+    Data_Type<Container> rb_cContainer =
+      define_class<Container>("Container")
+      .define_method("capacity", get_capacity(&Container::capacity))
+      .define_method("capacity=", set_capacity(&Container::capacity))
+  }
+\endcode
+
+A future version of Rice may provide a simplified interface for this.
+
+
+\subsection overloading User-defined type conversions
+
+Rice provides default conversions for many built-in types.  Sometimes,
+however, the default conversion is not their right conversion.  For
+example, consider a function:
+
+\code
+  void foo(char * x);
+\encode
+
+Is x a pointer to a single character or a pointer to the first character
+of a null-terminated string or a pointer to the first character of an
+array of char?
+
+Because the second case is the most common use case (a pointer to the
+first character of a C string), Rice provides a default conversion that
+treats a char * as a C string.  But suppose the above function takes a
+pointer to a char instead?
+
+If we write this:
+
+\comment : -- this comment is to satisfy vim syntax highlighting --
+
+\code
+  extern "C"
+  void Init_Test()
+  {
+    define_global_function("foo", foo);
+  }
+\endcode
+
+It will likely have the wrong behavior.
+
+// TODO
+
+
+\section motivation Motivation
+
+There are a number of common problems when writing C or C++ extensions
+for Ruby:
+
+\li Type safety.  It is easy to mix-up integral types such as ID and
+VALUE.  Some of the functions in the Ruby API are not consistent with
+which types they take (e.g. rb_const_defined takes an ID and
+rb_mod_remove_const takes a Symbol).
+
+\li DRY principle.  Specifying the number of arguments that each wrapped
+function takes is easy to get wrong.  Adding a new argument to the
+function means that the number of arguments passed to rb_define_method
+must also be updated.
+
+\li Type conversion.  There are many different functions to convert data
+to and from ruby types.  Many of them have different semantics or
+different forms.  For example, to convert a string, one might use the
+StringValue macro, but to convert a fixnum, one might use FIX2INT.
+Unwrapping previously wrapped C data uses yet another form.
+
+\li Exception safety.  It is imperative that C++ exceptions never make
+their way into C code, and it is also imperative that a Ruby exception
+never escape while there are objects on the stack with nontrivial
+destructors.  Rules for when it is okay to use which exceptions are
+difficult to get right, especially as code is maintained through time.
+
+\li Thread safety.  Because the Ruby interpreter is not threads-safe,
+the Ruby interpreter must not be run from more than one thread.
+Because of tricks the GC and scheduler play with the C stack, it's not
+enough to ensure that only one thread runs the interpreter at any
+given time; once the interpreter has been run from one thread, it must
+only ever be run from that thread in the future.  Additionally,
+because Ruby copies the stack when it switches threads, C++ code must
+be careful not to access objects in one Ruby thread that were created
+on the stack in another Ruby thread.
+
+\li C-based API.  The Ruby API is not always convenient for accessing
+Ruby data structurs such as Hash and Array, especially when writing C++
+code, as the interface for these containers is not consistent with
+standard containers.
+
+\li Calling convention.  Function pointers passed into the Ruby API must
+follow the C calling convention.  This means that it is not possible to
+pass a pointer to a template function or static member function (that
+is, it will work on some platforms, but isn't portable).
+
+\li Inheritance.  When wrapping C++ objects, it is easy to store a
+pointer to a derived class, but then methods in the base class must have
+knowledge of the derived class in order to unwrap the object.  It is
+possible to always store a pointer to the base class and then
+dynamic_cast the pointer to the derived type when necessary, but this
+can be slow and cumbersome, and it isn't likely to work with multiple
+inheritance.  A system that properly handles inheritance for all corner
+cases is nontrivial.
+
+\li Multiple inheritance.  C++ supports true multiple inheritance, but
+the Ruby object model uses single inheritance with mixins.  When
+wrapping a library whose public interface uses multiple inheritance,
+care must be taken in constructing the mapping.
+
+\li GC safety.  All live Ruby objects must be marked during the garbage
+collector's mark phase, otherwise they will be prematurely destroyed.
+The general rule is that object references stored on the heap should be
+either registered with rb_gc_register_address or marked by a data
+object's mark function; object references stored on the stack will be
+automatically marked, provided the Ruby interpreter was properly
+initialized at startup.
+
+\li Callbacks.  C implements callbacks via function pointers, while ruby
+typically implements callbacks via procs.  Writing an adapter function
+to call the proc is not difficult, but there is much opportunity for
+error (particularly with exception-safety).
+
+\li Data serialization.  By default data objects defined at the C layer
+are not marshalable.  The user must explicitly define functions to
+marshal the data member-by-member.
+
+Rice addresses these issues in many ways:
+
+\li Type safety.  Rice provides encapsulation for all builtin types,
+such as Object, Identifier, Class, Module, and String.  It
+automatically checks the dynamic type of an object before constructing
+an instance of a wrapper.
+
+\li DRY principle.  Rice uses introspection through the use of templates
+and function overloading to automatically determine the number and types
+of arguments to functions.  Default arguments must still be handled
+explicitly, however.
+
+\li Type conversions.  Rice provides cast-style to_ruby<> and
+from_ruby<> template functions to simplify explicit type conversions.
+Automatic type conversions for parameters and return values are
+generated for all wrapped functions.
+
+\li Exception safety.  Rice automatically converts common exceptions and
+provides a mechanism for converting user-defined exception types.  Rice
+also provides convenience functions for converting exceptions when
+calling back into ruby code.
+
+\li Thread safety.  Rice provides no mechanisms for dealing with thread
+safety.  Many common thread safety issues should be alleviated by YARV,
+which supports POSIX threads.
+
+\li C++-based API.  Rice provides an object-oriented C++-style API to
+most common functions in the Ruby C API.
+
+\li Calling convention.  Rice automatically uses C calling convention
+for all function pointers passed into the Ruby API.
+
+\li Inheritance.  Rice provides automatic conversion to the base class
+type when a wrapped member function is called on the base class.
+
+\li Multiple inheritance.  Rice provides no mechanism for multiple
+inheritance.  Multiple inheritance can be simulated mixins, though this
+is not yet as easy as it could be.
+
+\li GC safety.  Rice provides a handful of convenience classes for
+interacting with the garbage collector.  There are still basic rules
+which must be followed to ensure that objects get properly destroyed.
+
+\li Callbacks.  Rice provides a handful of convenience classes for
+dealing with callbacks.
+
+\li Data serialization.  Rice provides no mechanism for data
+serialization, but it is likely this may be added in a future release.
+
+
+\section what_not What Rice is Not
+
+There are a number projects which server similar functions to Rice.  Two
+such popular projects are SWIG and boost::python.  Rice has some
+distinct features which set it apart from both of these projects.
+
+Rice is not trying to replace SWIG.  Rice is not a generic wrapper
+interface generator.  Rice is a C++ library for interfacing with the
+Ruby C API.  This provides a very natural way for C++ programmers to
+wrap their C++ code, without having to learn a new domain-specific
+language.  However, there is no reason why SWIG and Rice could not work
+together; a SWIG module could be written to generate Rice code.  Such a
+module would combine the portability of SWIG with the maintainability of
+Rice (I have written extensions using both, and I have found Rice
+extensions to be more maintainable when the interface is constantly
+changing.  Your mileage may vary).
+
+Rice is also not trying to simply be a Ruby version of boost::python.
+Rice does use some of the same template tricks that boost::python uses,
+however there are some important distinctions.  First of all,
+boost::python attempts to create a declarative DSL in C++ using
+templates.  Rice is a wrapper around the Ruby C API and attempts to make
+its interface look like an OO version of the API; this means that class
+declarations look procedural rather than declarative.  Secondly, the
+Ruby object model is different from the python object model.  This is
+reflected in the interface to Rice; it mimics the Ruby object model at
+the C++ level.  Thirdly, Rice uses Ruby as a code generator; I find this
+to be much more readable than using the boost preprocessor library.
+
+
+\section history History
+
+Rice originated as a project to interface with C++-based trading
+software at Automated Trading Desk in Mount Pleasant, South Carolina.
+The Ruby bindings for Swig were at the time less mature than they are
+today, and did not suit the needs of the project.
+
+Excruby was written not as a wrapper for the Ruby API, but rather as a
+set of helper functions and classes for interfacing with the Ruby
+interpreter in an exception-safe manner.  Over the course of five years,
+the project grew into wrappers for pieces of the API, but the original
+helper functions remained as part of the public interface.
+
+This created confusion for the users of the library, because there were
+multiple ways of accomplishing most tasks -- directly through the C API,
+through a low-level wrapper around the C API, and through a high-level
+abstraction of the lower-level interfaces.
+
+Rice was then born in an attempt to clean up the interface.  Rice keeps
+the lower-level wrappers, but as an implementation detail; the public
+interface is truly a high-level abstraction around the Ruby C API.
+
+
+\section gc The GC
+
+\li Objects are not automatically registered with the garbage collector.
+
+\li If an Object is on the stack, it does not need to be registered with
+the garbage collector.
+
+\li If an Object is allocated on the heap or if it is a member of an
+object that might be allocated on the heap, use an
+Address_Registration_Guard to register the object with the garbage
+collector.
+
+\li If a reference counted object is being wrapped, or if another type
+of smart pointer is wrapped, ensure that only one mechanism is used to
+destroy the object.  In general, the smart pointer manage the allocation
+of the object, and Ruby should hold only a reference to the smart
+pointer.  When the garbage collector determines that it is time to clean
+up the object, the smart pointer will be destroyed, after which time the
+reference count may drop to 0, in which case the actual object will then
+be destroyed.
+
+
+\section embedding Embedding
+
+You can embed the Ruby interpter in your application by using the VM
+class:
+
+\code
+  int main(int argc, char * argv[])
+  {
+    Rice::VM vm(argc, argv);
+    vm.run()
+  }
+\endcode
+  
+If the VM is not initialized from main() -- from a callback, for example
+-- then you may need to initialize the stack whenever you use Rice or
+the Ruby API:
+
+\code
+  std::auto_ptr<Rice::VM> vm;
+  Rice::Object obj;
+
+  void some_application_extension_init()
+  {
+    vm.reset(new Rice::VM("some_application"));
+  }
+
+  void some_application_extension_callback()
+  {
+    // Need to initialize the stack here, because we don't know if
+    // we are at the same stack depth as when the VM was initialized
+    vm->init_stack();
+
+    // Now do some work...
+    obj->call("some_callback_function")
+  }
+\endcode
+
+Be aware that initializing the Ruby VM can cause a call to exit() if
+certain command-line options are specified.  This has two implications:
+
+  \li an application that constructs a Ruby VM may terminate
+  unexpectedly if the options passed to the interpreter are not tightly
+  controlled (a security issue), and
+
+  \li an application that constructs a Ruby VM should not have any
+  objects with nontrivial destructors on the stack when the VM is
+  created, otherwise those objects might not get correctly destructed.
+
+vim:ft=cpp:tw=72:ts=2:sw=2:fo=cqrtn:noci:si
