@@ -43,12 +43,13 @@ TESTCASE(test)
 
 TESTCASE(explicit_conversion_to_bool)
 {
-  ASSERT_EQUAL(true, bool(Object(Qtrue)));
-  Object o(INT2NUM(42)); // Workaround for g++ 3.3.3
-  ASSERT_EQUAL(true, bool(o));
-  ASSERT_EQUAL(false, bool(Object(Qfalse)));
-  ASSERT_EQUAL(false, bool(Object(Qnil)));
-  ASSERT_EQUAL(true, bool(Object(Qundef)));
+  // g++ 3.3.3 can't handle constructor-style inside the assert, which
+  // is why we use cast-style here.
+  ASSERT_EQUAL(true, (bool)Object(Qtrue));
+  ASSERT_EQUAL(true, (bool)Object(INT2NUM(42)));
+  ASSERT_EQUAL(false, (bool)Object(Qfalse));
+  ASSERT_EQUAL(false, (bool)Object(Qnil));
+  ASSERT_EQUAL(true, (bool)Object(Qundef));
 }
 
 TESTCASE(is_nil)
@@ -62,12 +63,13 @@ TESTCASE(is_nil)
 
 TESTCASE(implicit_conversion_to_value)
 {
-  ASSERT_EQUAL(Qtrue, VALUE(Object(Qtrue)));
-  Object o(INT2NUM(42)); // Workaround for g++ 3.3.3
-  ASSERT_EQUAL(INT2NUM(42), VALUE(o));
-  ASSERT_EQUAL(Qfalse, VALUE(Object(Qfalse)));
-  ASSERT_EQUAL(Qnil, VALUE(Object(Qnil)));
-  ASSERT_EQUAL(Qundef, VALUE(Object(Qundef)));
+  // g++ 3.3.3 can't handle constructor-style inside the assert, which
+  // is why we use cast-style here.
+  ASSERT_EQUAL(Qtrue, (VALUE)Object(Qtrue));
+  ASSERT_EQUAL(INT2NUM(42), (VALUE)Object(INT2NUM(42)));
+  ASSERT_EQUAL(Qfalse, (VALUE)Object(Qfalse));
+  ASSERT_EQUAL(Qnil, (VALUE)Object(Qnil));
+  ASSERT_EQUAL(Qundef, (VALUE)Object(Qundef));
 }
 
 TESTCASE(explicit_conversion_to_value)

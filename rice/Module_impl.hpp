@@ -27,6 +27,26 @@ protected: // TODO
   detail::Exception_Handler const * handler_;
 };
 
+/*! Necessary to work around a bug on gcc 3.3, which doesn't allow two
+ *  different template overloads in the same class.
+ */
+template<typename Base_T, typename Derived_T>
+class Module_intermediate_base
+{
+public:
+  //! Define a new data class under this module.
+  /*! The class with have a base class determined by Base_T (specifically,
+   *  Data_Type<Base_T>::klass).  Therefore, the type Base_T must already
+   *  have been registered using define_class<> or define_class_under<>.
+   *  \param T the C++ type of the wrapped class.
+   *  \return the new class.
+   */
+  template<typename T, typename T_Base_T>
+  Data_Type<T>
+  define_class(
+      char const * name);
+};
+
 /*! An intermediate base class so we can always return the most-derived
  *  type (Module, Class, Data_Type, ...) without having to re-implement
  *  each function for each derived class.
@@ -202,18 +222,6 @@ public:
    *  \return the new class.
    */
   template<typename T>
-  Data_Type<T>
-  define_class(
-      char const * name);
-
-  //! Define a new data class under this module.
-  /*! The class with have a base class determined by Base_T (specifically,
-   *  Data_Type<Base_T>::klass).  Therefore, the type Base_T must already
-   *  have been registered using define_class<> or define_class_under<>.
-   *  \param T the C++ type of the wrapped class.
-   *  \return the new class.
-   */
-  template<typename T, typename T_Base_T>
   Data_Type<T>
   define_class(
       char const * name);
