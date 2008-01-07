@@ -32,10 +32,12 @@ public:
   //! Destructor.
   virtual ~Data_Type_Base() = 0;
 
+  // Must be public to workaround gcc 3.3
+  typedef std::map<VALUE, detail::Abstract_Caster *> Casters;
+
 protected:
   virtual detail::Abstract_Caster * caster() const = 0;
 
-  typedef std::map<VALUE, detail::Abstract_Caster *> Casters;
   static Casters casters_;
 };
 
