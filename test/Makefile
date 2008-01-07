@@ -51,5 +51,6 @@ clean:
 
 CXXFLAGS+=-MMD
 
-include $(OBJS:%.o=%.d)
+-include $(UT_OBJS:%.o=%.d)
+-include $(VM_UT_OBJS:%.o=%.d)
 
