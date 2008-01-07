@@ -7,26 +7,59 @@
 #include "node.h"
 #include "env.h"
 
+// Every C function in ruby (pre-YARV) is stored like this:
+//
+// NODE_METHOD
+//   |- (u1) noex - method visibility
+//   +- (u2) body
+//      +- NODE_CFUNC
+//          |- (u1) cfnc - function to call
+//          +- (u2) argc - number of arguments
+//
+// We use the unused third member (u3) of the CFUNC node to store method
+// data.
+//
+// We could use the unused third member of the METHOD node, but then the
+// method data would not be copied when the method is aliased.  The
+// result then would be a segfault whenver the method is called.
+//
+// Using the third member of the METHOD node would also prevent adding
+// the method atomically (rather, the method would be added and then the
+// node later modified to contain the data).
+//
+// When the function is called, it can retrieve the defined data by
+// calling method_data().  We then do a lookup in the class to find the
+// node for the method's bdoy.  This is necessary, because there's no
+// way to get the node of a called function directly.  However, by using
+// the class's method table, we can do one lookup instead of two (one to
+// find the class data and another to find the method data).
+
 namespace
 {
 
-NODE * method_node(VALUE klass, ID id)
+NODE * get_method_node(VALUE klass, ID id)
 {
   union { VALUE value; RClass * ptr; } class_u = { klass };
   union { ID id; char * charp; } id_u = { id };
   char * node_charp;
   if (!st_lookup(class_u.ptr->m_tbl, id_u.charp, &node_charp))
   {
-    throw std::runtime_error("Could not determine method data");
+    throw std::runtime_error("Could not find method node");
   }
   union { char * charp; RNode * node; } node_u = { node_charp };
-  RNode * node = node_u.node;
+  return node_u.node;
+}
+
+NODE * get_method_body(VALUE klass, ID id)
+{
+  NODE * node = get_method_node(klass, id);
+
   if (!node->nd_body)
   {
-    throw std::runtime_error("Could not determine method data");
+    throw std::runtime_error("Method has no body");
   }
-  node = node->nd_body;
-  return node;
+
+  return node->nd_body;
 }
 
 } // namespace
@@ -34,24 +67,11 @@ NODE * method_node(VALUE klass, ID id)
 void * Rice::detail::
 method_data()
 {
-#if 0
-  // TODO: I think it should be possible (at least on Ruby 1.8.x and
-  // newer) to elimate the lookup and get the method's node directly,
-  // but I haven't yet been able to get that to work.
-  VALUE klass = ruby_frame->last_class;
-  ID id = ruby_frame->last_func;
-  RNode * node;
-  if(   !st_lookup(RCLASS(klass)->m_tbl, (char *)id, (char **)&node)
-     || !node->nd_body)
-  {
-    throw std::runtime_error("Could not determine method data");
-  }
-  node = node->nd_body;
+  NODE * node = get_method_node(
+      ruby_frame->last_class,
+      ruby_frame->last_func);
+
   return (void *)node->nd_entry;
-#else
-  NODE * node = method_node(ruby_frame->last_class, ruby_frame->last_func);
-  return (void *)node->nd_entry;
-#endif
 }
 
 void Rice::detail::
@@ -78,7 +98,7 @@ set_method_data(
     char const * name,
     void * data)
 {
-  NODE * node = method_node(klass, rb_intern(name));
+  NODE * node = get_method_node(klass, rb_intern(name));
   node->nd_entry = (global_entry *)data;
 }
 
