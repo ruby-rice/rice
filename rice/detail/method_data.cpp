@@ -67,7 +67,7 @@ NODE * get_method_body(VALUE klass, ID id)
 void * Rice::detail::
 method_data()
 {
-  NODE * node = get_method_node(
+  NODE * node = get_method_body(
       ruby_frame->last_class,
       ruby_frame->last_func);
 
@@ -98,7 +98,7 @@ set_method_data(
     char const * name,
     void * data)
 {
-  NODE * node = get_method_node(klass, rb_intern(name));
+  NODE * node = get_method_body(klass, rb_intern(name));
   node->nd_entry = (global_entry *)data;
 }
 
