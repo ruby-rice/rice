@@ -5,7 +5,7 @@
 
 Rice is a C++ interface to Ruby's C API.  It provides a type-safe and
 exception-safe interface in order to make embedding Ruby and writing
-Ruby extensions with C++ easier.  It is similar to boost::python in many
+Ruby extensions with C++ easier.  It is similar to Boost.Python in many
 ways, but also attempts to provide an object-oriented interface to all
 of the Ruby C API.
 
@@ -67,12 +67,12 @@ Take a look at the unit tests and examples for more ideas on what can be
 done with the library.
 
 
-\section tuturial Installation
+\section tutorial Installation
 
 // TODO
 
 
-\section tuturial Tutorial
+\section tutorial Tutorial
 
 \subsection geting_started Getting started
 
@@ -763,7 +763,7 @@ serialization, but it is likely this may be added in a future release.
 \section what_not What Rice is Not
 
 There are a number projects which server similar functions to Rice.  Two
-such popular projects are SWIG and boost::python.  Rice has some
+such popular projects are SWIG and Boost.Python.  Rice has some
 distinct features which set it apart from both of these projects.
 
 Rice is not trying to replace SWIG.  Rice is not a generic wrapper
@@ -777,17 +777,17 @@ Rice (I have written extensions using both, and I have found Rice
 extensions to be more maintainable when the interface is constantly
 changing.  Your mileage may vary).
 
-Rice is also not trying to simply be a Ruby version of boost::python.
-Rice does use some of the same template tricks that boost::python uses,
+Rice is also not trying to simply be a Ruby version of Boost.Python.
+Rice does use some of the same template tricks that Boost.Python uses,
 however there are some important distinctions.  First of all,
-boost::python attempts to create a declarative DSL in C++ using
+Boost.Python attempts to create a declarative DSL in C++ using
 templates.  Rice is a wrapper around the Ruby C API and attempts to make
 its interface look like an OO version of the API; this means that class
 declarations look procedural rather than declarative.  Secondly, the
 Ruby object model is different from the python object model.  This is
 reflected in the interface to Rice; it mimics the Ruby object model at
 the C++ level.  Thirdly, Rice uses Ruby as a code generator; I find this
-to be much more readable than using the boost preprocessor library.
+to be much more readable than using the Boost preprocessor library.
 
 
 \section history History
