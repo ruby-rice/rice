@@ -328,3 +328,23 @@ TESTCASE(define_class_under)
   ASSERT(!object.const_defined("Foo"));
 }
 
+TESTCASE(module_define_class)
+{
+  Class object(rb_cObject);
+  if(object.const_defined("Foo"))
+  {
+    object.remove_const("Foo");
+  }
+
+  Module math(rb_mMath);
+  if(math.const_defined("Foo"))
+  {
+    math.remove_const("Foo");
+  }
+
+  Class c = math.define_class("Foo");
+
+  ASSERT(c.is_a(rb_cClass));
+  ASSERT_EQUAL(c, math.const_get("Foo"));
+  ASSERT(!object.const_defined("Foo"));
+}

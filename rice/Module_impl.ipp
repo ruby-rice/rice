@@ -281,7 +281,7 @@ template<typename T>
 inline
 Rice::Data_Type<T>
 Rice::Module_impl<Base_T, Derived_T>::
-define_class(
+define_class_with_object_as_base(
     char const * name)
 {
   return Rice::define_class_under<T>(*this, name);
@@ -291,7 +291,7 @@ template<typename Base_T, typename Derived_T>
 template<typename T, typename T_Base_T>
 inline
 Rice::Data_Type<T>
-Rice::Module_intermediate_base<Base_T, Derived_T>::
+Rice::Module_impl<Base_T, Derived_T>::
 define_class(
     char const * name)
 {
