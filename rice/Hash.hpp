@@ -5,6 +5,7 @@
 #include "to_from_ruby_defn.hpp"
 #include "detail/ruby.hpp"
 #include "detail/st.hpp"
+#include "detail/remove_const.hpp"
 #include <iterator>
 
 namespace Rice
@@ -194,7 +195,7 @@ private:
   int bin_;
   st_table_entry * ptr_;
 
-  mutable Value_T tmp_;
+  mutable typename detail::remove_const<Value_T>::Type tmp_;
 };
 
 } // namespace Rice
