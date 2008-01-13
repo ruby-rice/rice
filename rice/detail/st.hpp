@@ -6,10 +6,21 @@
  * programs.
  */
 
+#include "ruby.hpp"
+
+// Ruby doesn't put extern "C" around st.h
+
 extern "C"
 {
 #include "st.h"
 }
+
+// Older versions of Ruby don't have proper signatures for the st_
+// functions
+
+#if RUBY_VERSION_CODE < 180
+
+typedef char * st_data_t;
 
 namespace Exc_Ruby
 {
@@ -18,15 +29,15 @@ namespace detail
 {
 
 extern "C" typedef int (*St_Insert_Signature)(
-    register st_table *table,
-    register char *key,
-    char *value);
-extern "C" typedef int (*St_Lookup_Signature)(
     st_table *table,
-    register char *key,
-    char **value); 
+    st_data_t key,
+    st_data_t * value);
+extern "C" typedef int (*St_Lookup_Signature)(
+    st_table * table,
+    st_data_t key,
+    st_data_t * value); 
 extern "C" typedef st_table* (*St_Init_Table_Signature)(
-    struct st_hash_type *type);
+    struct st_hash_type * type);
 
 #define st_insert(table, key, value) \
   ((::Exc_Ruby::detail::St_Insert_Signature)(st_insert))(table, key, value)
@@ -38,6 +49,8 @@ extern "C" typedef st_table* (*St_Init_Table_Signature)(
 } // namespace detail
 
 } // namespace Exc_Ruby
+
+#endif // RUBY_VERSION_CODE < 180
 
 #endif // Exc_Ruby___cpp__st__hpp_
 

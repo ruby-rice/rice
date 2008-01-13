@@ -40,13 +40,13 @@ namespace
 NODE * get_method_node(VALUE klass, ID id)
 {
   union { VALUE value; RClass * ptr; } class_u = { klass };
-  union { ID id; char * charp; } id_u = { id };
-  char * node_charp;
-  if (!st_lookup(class_u.ptr->m_tbl, id_u.charp, &node_charp))
+  union { ID id; st_data_t data; } id_u = { id };
+  st_data_t node_data;
+  if (!st_lookup(class_u.ptr->m_tbl, id_u.data, &node_data))
   {
     throw std::runtime_error("Could not find method node");
   }
-  union { char * charp; RNode * node; } node_u = { node_charp };
+  union { st_data_t data; RNode * node; } node_u = { node_data };
   return node_u.node;
 }
 
