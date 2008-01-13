@@ -29,7 +29,7 @@ namespace detail
 {
 
 extern "C" typedef int (*St_Insert_Signature)(
-    st_table *table,
+    st_table * table,
     st_data_t key,
     st_data_t * value);
 extern "C" typedef int (*St_Lookup_Signature)(
