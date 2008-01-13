@@ -257,23 +257,6 @@ Retval_T call(Identifier id, T1 arg1, T2 arg2, ...) const;
 Object call(Identifier id, T1 arg1, T2 arg2, ...) const;
 END
 ipp_template = <<END
-/*
-%(retval_template)
-inline Retval_T Rice::Object::
-call(Identifier id%(args)) const
-{
-  VALUE args[] = { %(convert_list) };
-  Object retval = protect(rb_funcall2, value(), id, %(j), args);
-  return from_ruby<Retval_T>(retval);
-}
-
-%(template)
-inline Rice::Object Rice::Object::
-call(Identifier id%(args)) const
-{
-  return call<Object>(%(arg_names));
-}
-*/
 
 %(template)
 inline Rice::Object Rice::Object::
@@ -284,9 +267,6 @@ call(Identifier id%(args)) const
 }
 END
 hpp_template = <<END
-// %(retval_template)
-// Retval_T call(Identifier id%(args)) const;
-
 %(template)
 Object call(Identifier id%(args)) const;
 
@@ -302,28 +282,23 @@ wrap_header(hpp_filename, nil, docstring, false, nil, nil, GENERATED_FILE_WARNIN
     for j in 0..MAX_ARGS do
       t_array = (1..j).to_a
       arg_list = t_array.map { |x| ", T#{x} arg#{x}" }
-      arg_names = t_array.map { |x| "arg#{x}" }.join(', ')
-      convert_list = t_array.map { |x| "to_ruby(arg#{x})" }.join(', ')
-      if j != 0 then
-        template = 'template<' + t_array.map { |x| "typename T#{x}" }.join(', ') + '>'
-        retval_template = 'template<typename Retval_T, ' + t_array.map { |x| "typename T#{x}" }.join(', ') + '>'
-      else
+      if j == 0 then
         template = ''
-        retval_template = 'template<typename Retval_T>'
+        convert_list = 'Qnil';
+      else
+        template = 'template<' + t_array.map { |x| "typename T#{x}" }.join(', ') + '>'
+        convert_list = t_array.map { |x| "to_ruby(arg#{x})" }.join(', ')
       end
       ipp.puts fill_template(ipp_template, {
         :args            => arg_list,
         :convert_list    => convert_list,
         :j               => j,
         :template        => template,
-        :retval_template => retval_template,
-        :arg_names       => arg_names,
       })
       ipp.puts
       hpp.puts fill_template(hpp_template, {
         :args            => arg_list,
         :template        => template,
-        :retval_template => retval_template,
       })
       hpp.puts
     end
