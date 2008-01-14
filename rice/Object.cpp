@@ -37,7 +37,7 @@ freeze()
 bool Rice::Object::
 is_frozen() const
 {
-  return OBJ_FROZEN(value());
+  return bool(OBJ_FROZEN(value()));
 }
 
 Rice::String Rice::Object::
@@ -79,7 +79,7 @@ is_a(Object klass) const
 bool Rice::Object::
 respond_to(Identifier id) const
 {
-  return rb_respond_to(*this, id);
+  return bool(rb_respond_to(*this, id));
 }
 
 bool Rice::Object::
