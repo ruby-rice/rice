@@ -228,7 +228,7 @@ float from_ruby<float>(Rice::Object x)
 {
   double d;
   Rice::protect(Rice::detail::num2dbl, x, &d);
-  return d;
+  return float(d);
 }
 
 template<>

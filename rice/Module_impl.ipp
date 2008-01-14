@@ -243,7 +243,7 @@ Rice::Module_impl<Base_T, Derived_T>::
 const_defined(Identifier name) const
 {
   int result = protect(rb_const_defined, *this, name);
-  return result;
+  return bool(result);
 }
 
 template<typename Base_T, typename Derived_T>
