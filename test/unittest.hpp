@@ -8,7 +8,7 @@
 #if defined(_MSC_VER)
 #define NOMINMAX
 #else
-using std::isnan;
+using namespace std;
 #endif
 
 #include <vector>
