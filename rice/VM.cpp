@@ -21,6 +21,7 @@ VM(int argc, char * argv[])
 Rice::VM::
 VM(std::vector<char *> const & args)
 {
+  check_not_initialized();
   init_stack();
   init(args.size(), const_cast<char * *>(&args[0]));
 }
@@ -53,14 +54,25 @@ run()
   ruby_run();
 }
 
-void Rice::VM::
-init(int argc, char * argv[])
+extern "C"
 {
-  if(ruby_scope)
+
+RUBY_EXTERN VALUE * rb_gc_stack_start;
+
+}
+
+void Rice::VM::
+check_not_initialized() const
+{
+  if(rb_gc_stack_start)
   {
     throw std::runtime_error("Only one VM allowed per application");
   }
+}
 
+void Rice::VM::
+init(int argc, char * argv[])
+{
   ruby_init();
   ruby_options(argc, argv);
 }

@@ -18,6 +18,7 @@ public:
   void run();
 
 private:
+  void check_not_initialized() const;
   void init(int argc, char * argv[]);
 };
 
