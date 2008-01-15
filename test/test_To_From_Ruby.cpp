@@ -206,9 +206,9 @@ TESTCASE(float_from_ruby)
       std::numeric_limits<float>::max(),
       from_ruby<float>(rb_float_new(std::numeric_limits<float>::max())));
   ASSERT(
-      std::isnan(from_ruby<float>(rb_float_new(std::numeric_limits<float>::quiet_NaN()))));
+      isnan(from_ruby<float>(rb_float_new(std::numeric_limits<float>::quiet_NaN()))));
   ASSERT(
-      std::isnan(from_ruby<float>(rb_float_new(std::numeric_limits<float>::signaling_NaN()))));
+      isnan(from_ruby<float>(rb_float_new(std::numeric_limits<float>::signaling_NaN()))));
   ASSERT_EQUAL(
       std::numeric_limits<float>::epsilon(),
       from_ruby<float>(rb_float_new(std::numeric_limits<float>::epsilon())));
@@ -247,9 +247,9 @@ TESTCASE(double_from_ruby)
       std::numeric_limits<double>::max(),
       from_ruby<double>(rb_float_new(std::numeric_limits<double>::max())));
   ASSERT(
-      std::isnan(from_ruby<double>(rb_float_new(std::numeric_limits<double>::quiet_NaN()))));
+      isnan(from_ruby<double>(rb_float_new(std::numeric_limits<double>::quiet_NaN()))));
   ASSERT(
-      std::isnan(from_ruby<double>(rb_float_new(std::numeric_limits<double>::signaling_NaN()))));
+      isnan(from_ruby<double>(rb_float_new(std::numeric_limits<double>::signaling_NaN()))));
   ASSERT_EQUAL(
       std::numeric_limits<double>::epsilon(),
       from_ruby<double>(rb_float_new(std::numeric_limits<double>::epsilon())));

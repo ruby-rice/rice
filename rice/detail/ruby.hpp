@@ -62,5 +62,12 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 #define RSTRING_PTR(str) RSTRING(str)->ptr
 #endif
 
+// ruby.h has a few defines that conflict with Visual Studio's STL
+#if defined(_MSC_VER)
+  #undef write
+  #undef read
+  #undef bind
+#endif
+
 #endif // Rice__detail__ruby__hpp_
 

@@ -1,6 +1,7 @@
 #include "VM.hpp"
 #include "detail/ruby.hpp"
-#include <env.h>
+#include "detail/env.hpp" 
+
 #include <stdexcept>
 
 Rice::VM::

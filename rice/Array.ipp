@@ -50,13 +50,13 @@ size() const
 }
 
 inline Rice::Object Rice::Array::
-operator[](ssize_t index) const
+operator[](ptrdiff_t index) const
 {
   return (*this)->ptr[position_of(index)];
 }
 
 inline Rice::Array::Proxy Rice::Array::
-operator[](ssize_t index)
+operator[](ptrdiff_t index)
 {
   return Proxy(*this, position_of(index));
 }
@@ -94,7 +94,7 @@ to_c_array()
 }
 
 inline size_t Rice::Array::
-position_of(ssize_t index) const
+position_of(ptrdiff_t index) const
 {
   if(index < 0)
   {

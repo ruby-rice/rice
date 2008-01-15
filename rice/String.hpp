@@ -53,7 +53,7 @@ public:
   /*! \param index the desired index.
    *  \return the character at the given index.
    */
-  char operator[](ssize_t index) const;
+  char operator[](ptrdiff_t index) const;
 
   //! Return a pointer to the beginning of the underlying C string.
   char const * c_str() const;

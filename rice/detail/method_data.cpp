@@ -1,11 +1,12 @@
 #include "method_data.hpp"
+
 #include "st.hpp"
 #include "ruby.hpp"
 
 #include <stdexcept>
 
-#include "node.h"
-#include "env.h"
+#include "env.hpp"
+#include "node.hpp"
 
 // Every C function in ruby (pre-YARV) is stored like this:
 //

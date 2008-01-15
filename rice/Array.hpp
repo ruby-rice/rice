@@ -59,7 +59,7 @@ public:
    *  index is out of bounds, this function has undefined behavior.
    *  \return the element at the given index.
    */
-  Object operator[](ssize_t index) const;
+  Object operator[](ptrdiff_t index) const;
 
 private:
   //! A helper class so array[index]=value can work.
@@ -72,7 +72,7 @@ public:
    *  index is out of bounds, this function has undefined behavior.
    *  \return the element at the given index.
    */
-  Proxy operator[](ssize_t index);
+  Proxy operator[](ptrdiff_t index);
 
   //! Push an element onto the end of the array
   /*! \param v an object to push onto the array.
@@ -109,7 +109,7 @@ private:
   template<typename Array_Ref_T, typename Value_T>
   class Iterator;
 
-  size_t position_of(ssize_t index) const;
+  size_t position_of(ptrdiff_t index) const;
 
 public:
   //! An iterator.

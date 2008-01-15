@@ -238,7 +238,7 @@ template<typename T>
 Rice::Enum<T> Rice::
 define_enum(
     char const * name,
-    Module module = rb_cObject)
+    Module module)
 {
   return Enum<T>(name, module);
 }

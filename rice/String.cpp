@@ -68,7 +68,7 @@ length() const
 }
 
 char Rice::String::
-operator[](ssize_t index) const
+operator[](ptrdiff_t index) const
 {
   return RSTRING_PTR(value())[index];
 }

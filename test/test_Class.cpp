@@ -93,7 +93,7 @@ void define_method_simple_helper(Object o)
 TESTCASE(define_method_simple)
 {
   Class c(anonymous_class());
-  c.define_method("foo", define_method_simple_helper);
+  c.define_method("foo", &define_method_simple_helper);
   Object o = c.call("new");
   define_method_simple_ok = false;
   o.call("foo");
@@ -103,7 +103,7 @@ TESTCASE(define_method_simple)
 TESTCASE(define_singleton_method_simple)
 {
   Class c(anonymous_class());
-  c.define_singleton_method("foo", define_method_simple_helper);
+  c.define_singleton_method("foo", &define_method_simple_helper);
   define_method_simple_ok = false;
   Object o = c.call("foo");
   ASSERT(define_method_simple_ok);
@@ -115,7 +115,7 @@ TESTCASE(define_module_function_simple)
   Class c(anonymous_class());
   ASSERT_EXCEPTION_CHECK(
       Exception,
-      c.define_module_function("foo", define_method_simple_helper),
+      c.define_module_function("foo", &define_method_simple_helper),
       ASSERT_EQUAL(
           Object(rb_eNoMethodError), // TODO: 1.6.x?
           Object(CLASS_OF(ex.value()))
@@ -138,7 +138,7 @@ void define_method_int_helper(Object o, int i)
 TESTCASE(define_method_int)
 {
   Class c(anonymous_class());
-  c.define_method("foo", define_method_int_helper);
+  c.define_method("foo", &define_method_int_helper);
   Object o = c.call("new");
   define_method_int_result = 0;
   o.call("foo", 42);
@@ -148,7 +148,7 @@ TESTCASE(define_method_int)
 TESTCASE(define_method_int_passed_two_args)
 {
   Class c(anonymous_class());
-  c.define_method("foo", define_method_int_helper);
+  c.define_method("foo", &define_method_int_helper);
   Object o = c.call("new");
   ASSERT_EXCEPTION_CHECK(
       Exception,
@@ -163,7 +163,7 @@ TESTCASE(define_method_int_passed_two_args)
 TESTCASE(define_method_int_passed_no_args)
 {
   Class c(anonymous_class());
-  c.define_method("foo", define_method_int_helper);
+  c.define_method("foo", &define_method_int_helper);
   Object o = c.call("new");
   ASSERT_EXCEPTION_CHECK(
       Exception,
@@ -206,7 +206,7 @@ Foo * from_ruby<Foo *>(Object x)
 TESTCASE(define_method_int_foo)
 {
   Class c(anonymous_class());
-  c.define_method("foo", define_method_int_foo_helper);
+  c.define_method("foo", &define_method_int_foo_helper);
   Object o = c.call("new");
   define_method_int_result = 0;
   Foo * foo = new Foo;

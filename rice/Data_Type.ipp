@@ -48,7 +48,7 @@ bind(Module const & klass)
   // GC shuts down.
   rb_gc_register_address(&klass_);
 
-  for(typename Instances::const_iterator it = unbound_instances().begin(),
+  for(typename Instances::iterator it = unbound_instances().begin(),
       end = unbound_instances().end();
       it != end;
       unbound_instances().erase(it++))

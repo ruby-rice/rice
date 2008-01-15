@@ -2,7 +2,7 @@
 #define Rice__ruby_Critical_Guard__ipp_
 
 #include "detail/ruby.hpp"
-#include <rubysig.h>
+#include "detail/rubysig.hpp"
 
 inline Rice::Critical_Guard::
 Critical_Guard()

@@ -5,6 +5,12 @@
  *  \brief A (very) simple unit test framework.
  */
 
+#if defined(_MSC_VER)
+#define NOMINMAX
+#else
+using std::isnan;
+#endif
+
 #include <vector>
 #include <string>
 #include <stdexcept>
@@ -130,51 +136,52 @@ public:
   }
 };
 
+
 // TODO: not sure how to append __LINE__ correctly here
-#define UNIQUE_NAME(prefix, name) \
+#define UNIQUE_SUITE_NAME(prefix, name) \
   prefix ## __ ## name \
 
 #define TESTSUITE(name) \
-  struct UNIQUE_NAME(testsuite_append, name) \
+  struct UNIQUE_SUITE_NAME(testsuite_append, name) \
   { \
-    UNIQUE_NAME(testsuite_append, name)() \
+    UNIQUE_SUITE_NAME(testsuite_append, name)() \
     { \
       new_test_suite(#name); \
     } \
-  } UNIQUE_NAME(testsuite_append__initializer, name)
+  } UNIQUE_SUITE_NAME(testsuite_append__initializer, name)
 
 #define TESTCASE(name) \
-  static void UNIQUE_NAME(test, name)(); \
+  static void UNIQUE_SUITE_NAME(test, name)(); \
   \
   namespace \
   { \
-    struct UNIQUE_NAME(test_append, name) \
+    struct UNIQUE_SUITE_NAME(test_append, name) \
     { \
-      UNIQUE_NAME(test_append, name)() \
+      UNIQUE_SUITE_NAME(test_append, name)() \
       { \
         test_suite().add_test_case( \
-            Test_Case(#name, & UNIQUE_NAME(test, name))); \
+            Test_Case(#name, & UNIQUE_SUITE_NAME(test, name))); \
       } \
-    } UNIQUE_NAME(test_append__initializer, name); \
+    } UNIQUE_SUITE_NAME(test_append__initializer, name); \
   } \
   \
-  static void UNIQUE_NAME(test, name)()
+  static void UNIQUE_SUITE_NAME(test, name)()
 
 #define TESTFIXTURE(name, type) \
-  static void UNIQUE_NAME(fixture ## __ ## name, type)(); \
+  static void UNIQUE_SUITE_NAME(fixture ## __ ## name, type)(); \
   \
   namespace \
   { \
-    struct UNIQUE_NAME(fixture_append ## __ ## name, type) \
+    struct UNIQUE_SUITE_NAME(fixture_append ## __ ## name, type) \
     { \
-      UNIQUE_NAME(fixture_append ## __ ## name, type)() \
+      UNIQUE_SUITE_NAME(fixture_append ## __ ## name, type)() \
       { \
-        test_suite().type(UNIQUE_NAME(fixture ## __ ## name, type)); \
+        test_suite().type(UNIQUE_SUITE_NAME(fixture ## __ ## name, type)); \
       } \
-    } UNIQUE_NAME(fixture_append__initializer ## __ ## name, type); \
+    } UNIQUE_SUITE_NAME(fixture_append__initializer ## __ ## name, type); \
   } \
   \
-  static void UNIQUE_NAME(fixture ## __ ## name, type)()
+  static void UNIQUE_SUITE_NAME(fixture ## __ ## name, type)()
 
 #define SETUP(name) TESTFIXTURE(name, setup)
 

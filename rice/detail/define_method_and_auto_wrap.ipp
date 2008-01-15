@@ -11,7 +11,7 @@ define_method_and_auto_wrap(
     VALUE klass,
     char const * name,
     Fun_T function,
-    Exception_Handler const * handler = 0)
+    Exception_Handler const * handler)
 {
   Wrapped_Function * f(wrap_function(function, handler));
   define_method_with_data(klass, name, f->func(), f->arity(), f);

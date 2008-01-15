@@ -10,6 +10,10 @@
 
 namespace Rice
 {
+	class Struct;
+
+//! Define a new Struct
+Struct define_struct();
 
 //! A wrapper for creating Struct classes.
 /*! The Struct class is used for creating new Classes.  Note that the
@@ -149,9 +153,6 @@ public:
 private:
   Struct type_;
 };
-
-//! Define a new Struct
-Struct define_struct();
 
 } // namespace Rice
 

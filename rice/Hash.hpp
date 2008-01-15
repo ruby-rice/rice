@@ -183,7 +183,7 @@ public:
   //! Inequality operator.
   bool operator!=(Iterator const & rhs) const;
 
-  template<typename Value_T_>
+  template<typename Hash_Ref_T_, typename Value_T_>
   friend class Hash::Iterator;
 
   //! Swap with another iterator of the same type.
