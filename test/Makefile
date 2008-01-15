@@ -1,14 +1,14 @@
 ruby_config = $(shell ruby -rrbconfig -e "puts Config::CONFIG['$(strip $1)']")
 RUBY_CFLAGS = -I$(call ruby_config, archdir)
 RUBY_LDFLAGS = -L$(call ruby_config, libdir) \
-               -L$(call ruby_config, archdir) \
-               -lruby $(call ruby_config, LIBS) \
                $(call ruby_config, LDFLAGS)
+RUBY_LIBS = -lruby $(call ruby_config, LIBS) \
 
 CPPFLAGS=$(RUBY_CFLAGS) -I..
 CXXFLAGS+=-fno-inline
 CXXFLAGS+= -g
-LDFLAGS+=$(RUBY_LDFLAGS) -L../rice -lrice
+LDFLAGS+=$(RUBY_LDFLAGS) 
+LIBS+=-L../rice -lrice $(RUBY_LIBS)
 
 UT_OBJS = \
 	unittest.o \
@@ -35,14 +35,14 @@ UT_OBJS = \
 all: unittest vm_unittest
 
 unittest: $(UT_OBJS) ../rice/librice.a
-	$(CXX) -o$@ $(UT_OBJS) $(LDFLAGS)
+	$(CXX) -o$@ $(UT_OBJS) $(LDFLAGS) $(LIBS)
 
 VM_UT_OBJS = \
 	unittest.o \
 	test_VM.o \
 	
 vm_unittest: $(VM_UT_OBJS) ../rice/librice.a
-	$(CXX) -o$@ $(VM_UT_OBJS) $(LDFLAGS)
+	$(CXX) -o$@ $(VM_UT_OBJS) $(LDFLAGS) $(LIBS)
 
 clean:
 	rm -f $(UT_OBJS) $(VM_UT_OBJS) unittest
