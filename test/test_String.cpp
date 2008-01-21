@@ -63,7 +63,7 @@ TESTCASE(format)
 TESTCASE(length)
 {
   String s("foo");
-  ASSERT_EQUAL(3, s.length());
+  ASSERT_EQUAL(3u, s.length());
 }
 
 TESTCASE(bracket)

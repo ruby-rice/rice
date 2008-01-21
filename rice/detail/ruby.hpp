@@ -6,10 +6,22 @@
  * versions.
  */
 
+#include <cmath>
+
+// missing.h that comes with the one-click installer doesn't properly
+// check for double-definition of isinf
+#ifdef isinf
+#define HAVE_ISINF
+#endif
+
 #include <ruby.h>
 
 // TODO: Is there a way to ensure that this is Ruby's version.h?
 #include <version.h>
+
+#ifdef WIN32
+#include "win32.hpp"
+#endif
 
 // This causes problems with certain C++ libraries
 #undef TYPE
@@ -20,9 +32,6 @@
 extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 
 // Fix Ruby RUBY_METHOD_FUNC from macro to typedef
-// TODO: Casting from a C++ function to an extern "C" function won't
-// result in correct behavior on all platforms.  I'm not sure what to do
-// about this.
 #if defined(RUBY_METHOD_FUNC)
 # undef RUBY_METHOD_FUNC
 # if RUBY_VERSION_CODE <= 166
@@ -32,7 +41,10 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 # endif
 #endif
 
-// Some functions have the wrong prototype on Ruby 1.6
+// Some functions have the wrong prototype on Ruby 1.6.  Casting from a
+// C++ function to an extern "C" function won't result in correct
+// behavior on all platforms.  Fortunately this has been fixed in newer
+// versions of Ruby.
 #if RUBY_VERSION_CODE < 170
   namespace Exc_Ruby
   {

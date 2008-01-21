@@ -287,7 +287,7 @@ TESTCASE(define_iterator)
   Object wrapped_container = Data_Wrap_Struct(
       c, 0, Default_Allocation_Strategy<Container>::free, container);
   Array a = wrapped_container.instance_eval("a = []; each() { |x| a << x }; a");
-  ASSERT_EQUAL(3, a.size());
+  ASSERT_EQUAL(3u, a.size());
   ASSERT_EQUAL(to_ruby(1), Object(a[0]));
   ASSERT_EQUAL(to_ruby(2), Object(a[1]));
   ASSERT_EQUAL(to_ruby(3), Object(a[2]));

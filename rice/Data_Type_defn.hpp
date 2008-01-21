@@ -8,6 +8,10 @@
 #include <map>
 #include <set>
 
+/*!
+ *  \example map/map.cpp
+ */
+
 namespace Rice
 {
 

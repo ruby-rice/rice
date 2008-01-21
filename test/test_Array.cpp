@@ -25,7 +25,7 @@ TESTCASE(construct_from_vector_of_int)
   v.push_back(6);
   v.push_back(42);
   Array a(v.begin(), v.end());
-  ASSERT_EQUAL(3, a.size());
+  ASSERT_EQUAL(3u, a.size());
   ASSERT_EQUAL(to_ruby(10), a[0]);
   ASSERT_EQUAL(to_ruby(6), a[1]);
   ASSERT_EQUAL(to_ruby(42), a[2]);
@@ -35,7 +35,7 @@ TESTCASE(construct_from_c_array)
 {
   int arr[] = { 10, 6, 42 };
   Array a(arr);
-  ASSERT_EQUAL(3, a.size());
+  ASSERT_EQUAL(3u, a.size());
   ASSERT_EQUAL(to_ruby(10), a[0]);
   ASSERT_EQUAL(to_ruby(6), a[1]);
   ASSERT_EQUAL(to_ruby(42), a[2]);
@@ -45,14 +45,14 @@ TESTCASE(construct_from_c_array)
 TESTCASE(push_no_items)
 {
   Array a;
-  ASSERT_EQUAL(0, a.size());
+  ASSERT_EQUAL(0u, a.size());
 }
 
 TESTCASE(push_one_item)
 {
   Array a;
   a.push(Rice::True);
-  ASSERT_EQUAL(1, a.size());
+  ASSERT_EQUAL(1u, a.size());
   ASSERT_EQUAL(Qtrue, a[0]);
 }
 
@@ -61,7 +61,7 @@ TESTCASE(push_two_items)
   Array a;
   a.push(to_ruby(42));
   a.push(to_ruby(43));
-  ASSERT_EQUAL(2, a.size());
+  ASSERT_EQUAL(2u, a.size());
   ASSERT_EQUAL(42, from_ruby<int>(a[0]));
   ASSERT_EQUAL(43, from_ruby<int>(a[1]));
 }
@@ -72,7 +72,7 @@ TESTCASE(push_three_items)
   a.push(to_ruby(42));
   a.push(to_ruby(43));
   a.push(to_ruby(44));
-  ASSERT_EQUAL(3, a.size());
+  ASSERT_EQUAL(3u, a.size());
   ASSERT_EQUAL(42, from_ruby<int>(a[0]));
   ASSERT_EQUAL(43, from_ruby<int>(a[1]));
   ASSERT_EQUAL(44, from_ruby<int>(a[2]));
@@ -82,7 +82,7 @@ TESTCASE(push_int)
 {
   Array a;
   a.push(42);
-  ASSERT_EQUAL(1, a.size());
+  ASSERT_EQUAL(1u, a.size());
   ASSERT_EQUAL(to_ruby(42), a[0]);
 }
 
@@ -114,7 +114,7 @@ TESTCASE(pop)
   a.push(to_ruby(43));
   a.push(to_ruby(44));
   VALUE result = a.pop();
-  ASSERT_EQUAL(2, a.size());
+  ASSERT_EQUAL(2u, a.size());
   ASSERT_EQUAL(42, from_ruby<int>(a[0]));
   ASSERT_EQUAL(43, from_ruby<int>(a[1]));
   ASSERT_EQUAL(44, from_ruby<int>(result));
@@ -127,7 +127,7 @@ TESTCASE(unshift)
   a.push(to_ruby(43));
   a.push(to_ruby(44));
   a.unshift(to_ruby(10));
-  ASSERT_EQUAL(4, a.size());
+  ASSERT_EQUAL(4u, a.size());
   ASSERT_EQUAL(10, from_ruby<int>(a[0]));
   ASSERT_EQUAL(42, from_ruby<int>(a[1]));
   ASSERT_EQUAL(43, from_ruby<int>(a[2]));
@@ -138,7 +138,7 @@ TESTCASE(unshift_int)
 {
   Array a;
   a.unshift(42);
-  ASSERT_EQUAL(1, a.size());
+  ASSERT_EQUAL(1u, a.size());
   ASSERT_EQUAL(to_ruby(42), a[0]);
 }
 
@@ -149,7 +149,7 @@ TESTCASE(shift)
   a.push(to_ruby(43));
   a.push(to_ruby(44));
   VALUE result = a.shift();
-  ASSERT_EQUAL(2, a.size());
+  ASSERT_EQUAL(2u, a.size());
   ASSERT_EQUAL(42, from_ruby<int>(result));
   ASSERT_EQUAL(43, from_ruby<int>(a[0]));
   ASSERT_EQUAL(44, from_ruby<int>(a[1]));
@@ -220,13 +220,12 @@ TESTCASE(iterate_and_call_member)
   std::vector<Object> v;
   for(int j = 0; it != end; ++j, ++it)
   {
-    int value = from_ruby<int>(*it);
     v.push_back(it->to_s());
   }
   ASSERT_EQUAL(42, from_ruby<int>(a[0]));
   ASSERT_EQUAL(43, from_ruby<int>(a[1]));
   ASSERT_EQUAL(44, from_ruby<int>(a[2]));
-  ASSERT_EQUAL(3, v.size());
+  ASSERT_EQUAL(3u, v.size());
   ASSERT_EQUAL(Object(a[0]).to_s(), v[0]);
   ASSERT_EQUAL(Object(a[1]).to_s(), v[1]);
   ASSERT_EQUAL(Object(a[2]).to_s(), v[2]);

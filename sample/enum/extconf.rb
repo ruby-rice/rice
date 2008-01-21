@@ -1,8 +1,7 @@
-require 'mkmf'
-$CFLAGS = '-g -Wall -I../..'
-create_makefile('sample_enum')
+require 'mkmf-rice'
 
-File.open('Makefile', 'a') do |mf|
-  mf.puts 'LDSHARED = $(CXX) -shared'
-end
+$CFLAGS = '-I../..'
+$LDFLAGS = '-L../../rice'
+have_library('rice') or raise "Could not find Rice library"
+create_makefile('sample_enum')
 

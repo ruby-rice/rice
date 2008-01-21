@@ -9,88 +9,38 @@ Ruby extensions with C++ easier.  It is similar to Boost.Python in many
 ways, but also attempts to provide an object-oriented interface to all
 of the Ruby C API.
 
-\example map/map.cpp
-\example enum/enum.cpp
-\example inheritance/animals.cpp
+What Rice gives you:
+\li A simple C++-based syntax for wrapping and defining classes
+\li Automatic conversion of exceptions between C++ and Ruby
+\li Smart pointers for handling garbage collection
+\li Wrappers for most builtin types to simplify calling code
 
-Wrapping a class in pure C++ has never been simpler:
+\section installation Installation
 
-\code
-  #include "rice/Class.hpp"
-  #include "rice/Data_Type.hpp"
-  #include <iostream>
-
-  using namespace Rice;
-
-  class Foo
-  {
-  public:
-    void foo() { std::cout << "FOO!" << std::endl; }
-  };
-
-  Data_Type<Foo> rb_cFoo;
-
-  extern "C"
-  void Init_Foo()
-  {
-    rb_cFoo = define_class("Foo")
-      .define_constructor(Constructor<Foo>)
-      .define_method("foo", &Foo::foo);
-  }
-\endcode
-
-Here we have a simple Ruby extension.  The usual Init_ function is
-present, declared with C linkage.  We proceed to define a class called
-"Foo", give it allocate and initialize methods, and an instance method
-called foo.  Additionally, conversions are automatically defined to
-convert the Foo class from a wrapped Ruby object to an opaque Foo*
-pointer.  Standard exceptions are automatically converted to Ruby
-exceptions, and we have the option of providing our own exception
-handlers to convert user-defined exception types.
-
-Plus there's much more to the library than just wrapping interfaces.
-Wrapper classes exist for many builtin types, e.g.:
+To install Rice, extract the tarball, then:
 
 \code
-  #include "rice/Array.hpp"
-
-  using namespace Rice;
-
-  void foo()
-  {
-    Array a;
-    a.push(to_ruby(42));
-  }
+  ./configure
+  make
+  sudo make install
 \endcode
-
-Take a look at the unit tests and examples for more ideas on what can be
-done with the library.
-
-
-\section tutorial Installation
-
-// TODO
-
 
 \section tutorial Tutorial
 
 \subsection geting_started Getting started
 
 Writing an extension with Rice is very similar to writing an extension
-with the C API.  For the remainder of this tutorial
+with the C API.
 
 The first step is to create an extconf.rb file:
 
 \code
-  require 'mkmf'
+  require 'mkmf-rice'
   create_makefile('test')
-  File.open('Makefile', 'a') do |makefile|
-    makefile.puts 'LDSHARED = $(CXX) -shared'
-  end
 \endcode
 
-Note the last three lines of the file; these are important.  They will
-ensure that the extension will be linked with standard C++ library.
+Note that we use mkmf-rice instead of mkmf.  This will ensure that the
+extension will be linked with standard C++ library.
 
 Next we create our extension and save it to test.cpp:
 
@@ -266,9 +216,9 @@ section.  To wrap it:
   }
 \endcode
 
-This example is similar to the one before, but we use Data_Type<> and
-the template version of define_class() instead of Class and the
-non-template version.  This creates a binding in the Rice library
+This example is similar to the one before, but we use Data_Type<>
+instead of Class and the template version of define_class() instead of
+the non-template version.  This creates a binding in the Rice library
 between the Ruby class Test and the C++ class Test, so that we pass
 member function pointers to define_method() and have conversions be done
 automatically.
@@ -297,7 +247,7 @@ conversion works, and when we write:
 \code
   test = Test.new
   puts test.hello
-\end
+\endcode
 
 We get the expected result.
 
@@ -313,8 +263,7 @@ Ruby types:
 \endcode
 
 Rice has included by default specializations for many of the builtin
-types.  To define your own conversion, you can just write a
-specialization:
+types.  To define your own conversion, you can write a specialization:
 
 \code
   template<>
@@ -331,7 +280,7 @@ specialization:
 \endcode
 
 The implementation of these functions would, of course, depend on the
-implementaion of Foo.
+implementation of Foo.
 
 
 \subsection data_conversions Conversions for wrapped C++ types
@@ -361,10 +310,11 @@ calls:
 
 work as expected.
 
-The Data_Object class here is analgous to Object, but for wrapped C++
-types (similar to the way we used Data_Type, above instead of Class).
-It inherits from Object, so any member functions we can call on an
-Object we can also call on a Data_Object:
+The Data_Object class is a wrapper for the Data_Wrap_Struct and the
+Data_Get_Struct macros in C extensions.  It can be used to wrap or
+unwrap any class that has been assigned to a Data_Type.  It inherits
+from Object, so any member functions we can call on an Object we can
+also call on a Data_Object:
 
 \code
   Object object_id = obj.call("object_id");
@@ -430,17 +380,18 @@ If we were to wrap this function:
   }
 \endcode
 
-When we call error now from inside Ruby:
+and call it from inside Ruby:
 
 \code
   test = Test.new
   test.error()
 \endcode
 
-We get an exception.  Rice will automatically convert any exception it
-catches into a Ruby exception.  But what if we wanted to use a custom
-eror message when we convert the exception, or what if we wanted to
-convert to a different type of exception?  We can write this:
+we would get an exception.  Rice will automatically convert any
+C++ exception it catches into a Ruby exception.  But what if we wanted
+to use a custom eror message when we convert the exception, or what if
+we wanted to convert to a different type of exception?  We can write
+this:
 
 \code
   extern "C"
@@ -463,6 +414,16 @@ Rice::Exception:
   {
     throw Exception(rb_eRuntimeError, "Goodnight, moon");
   }
+\endcode
+
+And what if we want to call Ruby code from C++?  These exceptions are
+also converted:
+
+\code
+  Object o;
+  o.call("some_function_that_raises", 42);
+
+  protect(rb_raise, rb_eRuntimeError, "some exception msg");
 \endcode
 
 Internally whenever Rice catches a C++ or a Ruby exception, it converts
@@ -519,7 +480,7 @@ would iterate over an STL container:
   }
 \endcode
 
-The usual STL algorithms should also work as expected.
+STL algorithms should also work as expected on Array and Hash containers.
 
 
 \subsection inheritance Inheritance
@@ -558,7 +519,7 @@ The second template parameter to define_class indicates that Derived
 inherits from Base.
 
 Rice does not yet support multiple inheritance, but it is believed that
-this is doable through the use of mixins.
+this is possible through the use of mixins.
 
 
 \subsection overloading Overloaded functions
@@ -575,7 +536,7 @@ Consider a class that uses this idiom for accessors:
     size_t capacity(); // Get the capacity
     void capacity(size_t cap); // Set the capacity
   };
-\encode
+\endcode
 
 We can wrap this class by using typedefs:
 
@@ -596,7 +557,7 @@ We can wrap this class by using typedefs:
 A future version of Rice may provide a simplified interface for this.
 
 
-\subsection overloading User-defined type conversions
+\subsection user_defined_conversions User-defined type conversions
 
 Rice provides default conversions for many built-in types.  Sometimes,
 however, the default conversion is not their right conversion.  For
@@ -604,7 +565,7 @@ example, consider a function:
 
 \code
   void foo(char * x);
-\encode
+\endcode
 
 Is x a pointer to a single character or a pointer to the first character
 of a null-terminated string or a pointer to the first character of an
@@ -629,8 +590,27 @@ If we write this:
 
 It will likely have the wrong behavior.
 
-// TODO
+To avoid this problem, it is necessary to write a wrapper function:
 
+\code
+  Object wrap_foo(Object o)
+  {
+    char c = from_ruby<char>(o);
+    foo(&c);
+    return to_ruby(c);
+  }
+  
+  extern "C"
+  void Init_Test()
+  {
+    define_global_function("foo", wrap_foo);
+  }
+\endcode
+
+Note that the out parameter is returned from wrap_foo, as Ruby does not
+have pass-by-variable-reference (it uses pass-by-object-reference).
+
+Future versions of Rice will have a cleaner way of dealing with this.
 
 \section motivation Motivation
 
@@ -746,8 +726,8 @@ for all function pointers passed into the Ruby API.
 type when a wrapped member function is called on the base class.
 
 \li Multiple inheritance.  Rice provides no mechanism for multiple
-inheritance.  Multiple inheritance can be simulated mixins, though this
-is not yet as easy as it could be.
+inheritance.  Multiple inheritance can be simulated via mixins, though
+this is not yet as easy as it could be.
 
 \li GC safety.  Rice provides a handful of convenience classes for
 interacting with the garbage collector.  There are still basic rules
@@ -827,12 +807,12 @@ collector.
 
 \li If a reference counted object is being wrapped, or if another type
 of smart pointer is wrapped, ensure that only one mechanism is used to
-destroy the object.  In general, the smart pointer manage the allocation
-of the object, and Ruby should hold only a reference to the smart
-pointer.  When the garbage collector determines that it is time to clean
-up the object, the smart pointer will be destroyed, after which time the
-reference count may drop to 0, in which case the actual object will then
-be destroyed.
+destroy the object.  In general, the smart pointer manages the
+allocation of the object, and Ruby should hold only a reference to the
+smart pointer.  When the garbage collector determines that it is time to
+clean up the object, the smart pointer will be destroyed, decrementing
+the reference count; when the reference count drops to 0, underlying
+object will be destroyed.
 
 
 \section embedding Embedding

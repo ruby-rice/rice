@@ -118,10 +118,10 @@ TESTCASE(unsigned_int_to_ruby)
 
 TESTCASE(unsigned_int_from_ruby)
 {
-  ASSERT_EQUAL(0, from_ruby<unsigned int>(UINT2NUM(0)));
-  ASSERT_EQUAL(1, from_ruby<unsigned int>(UINT2NUM(1)));
+  ASSERT_EQUAL(0u, from_ruby<unsigned int>(UINT2NUM(0)));
+  ASSERT_EQUAL(1u, from_ruby<unsigned int>(UINT2NUM(1)));
   ASSERT_EQUAL(
-      FIXNUM_MIN,
+      static_cast<unsigned int>(FIXNUM_MIN),
       from_ruby<unsigned int>(UINT2NUM(FIXNUM_MIN)));
   ASSERT_EQUAL(
       std::numeric_limits<unsigned int>::min(),
@@ -148,10 +148,10 @@ TESTCASE(unsigned_long_to_ruby)
 
 TESTCASE(unsigned_long_from_ruby)
 {
-  ASSERT_EQUAL(0, from_ruby<unsigned long>(ULONG2NUM(0)));
-  ASSERT_EQUAL(1, from_ruby<unsigned long>(ULONG2NUM(1)));
+  ASSERT_EQUAL(0u, from_ruby<unsigned long>(ULONG2NUM(0)));
+  ASSERT_EQUAL(1u, from_ruby<unsigned long>(ULONG2NUM(1)));
   ASSERT_EQUAL(
-      FIXNUM_MIN,
+      static_cast<unsigned long>(FIXNUM_MIN),
       from_ruby<unsigned long>(ULONG2NUM(FIXNUM_MIN)));
   ASSERT_EQUAL(
       std::numeric_limits<unsigned long>::min(),

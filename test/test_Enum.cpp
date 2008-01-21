@@ -44,7 +44,7 @@ TESTCASE(each)
 {
   Enum<Color> rb_cColor = define_color_enum();
   Array a = protect(rb_eval_string, "a = []; Color.each { |x| a << x }; a");
-  ASSERT_EQUAL(3, a.size());
+  ASSERT_EQUAL(3u, a.size());
   ASSERT_EQUAL(RED, from_ruby<Color>(a[0]));
   ASSERT_EQUAL(BLACK, from_ruby<Color>(a[1]));
   ASSERT_EQUAL(GREEN, from_ruby<Color>(a[2]));

@@ -7,6 +7,10 @@
 #include "to_from_ruby_defn.hpp"
 #include "Identifier.hpp"
 
+/*!
+ *  \example inheritance/animals.cpp
+ */
+
 namespace Rice
 {
 

@@ -16,7 +16,7 @@ namespace Rice
  *  \code
  *    Array a;
  *    a.push(String("some string"));
- *    a.push(to_ruby(42));
+ *    a.push(42);
  *  \endcode
  */
 class Array

@@ -53,15 +53,15 @@ TESTCASE(assignment)
 TESTCASE(size)
 {
   Hash h;
-  ASSERT_EQUAL(0, h.size());
+  ASSERT_EQUAL(0u, h.size());
   h[1] = 5;
-  ASSERT_EQUAL(1, h.size());
+  ASSERT_EQUAL(1u, h.size());
   h[6] = 9;
-  ASSERT_EQUAL(2, h.size());
+  ASSERT_EQUAL(2u, h.size());
   h[42] = 42;
-  ASSERT_EQUAL(3, h.size());
+  ASSERT_EQUAL(3u, h.size());
   h[6] = 1;
-  ASSERT_EQUAL(3, h.size());
+  ASSERT_EQUAL(3u, h.size());
 }
 
 TESTCASE(bracket)
@@ -97,7 +97,7 @@ TESTCASE(construct_vector_from_hash_iterators)
   h[6] = 1;
   std::vector<Hash::Entry> v(h.begin(), h.end());
   std::sort(v.begin(), v.end());
-  ASSERT_EQUAL(3, v.size());
+  ASSERT_EQUAL(3u, v.size());
   ASSERT_EQUAL(v[0].key, to_ruby(1));
   ASSERT_EQUAL(v[1].key, to_ruby(6));
   ASSERT_EQUAL(v[2].key, to_ruby(42));
@@ -127,7 +127,7 @@ TESTCASE(iterate)
     v.push_back(*it);
   }
   std::sort(v.begin(), v.end());
-  ASSERT_EQUAL(3, v.size());
+  ASSERT_EQUAL(3u, v.size());
   ASSERT_EQUAL(v[0].key, to_ruby(1));
   ASSERT_EQUAL(v[1].key, to_ruby(6));
   ASSERT_EQUAL(v[2].key, to_ruby(42));
@@ -157,7 +157,7 @@ TESTCASE(const_iterate)
     v.push_back(*it);
   }
   std::sort(v.begin(), v.end());
-  ASSERT_EQUAL(3, v.size());
+  ASSERT_EQUAL(3u, v.size());
   ASSERT_EQUAL(v[0].key, to_ruby(1));
   ASSERT_EQUAL(v[1].key, to_ruby(6));
   ASSERT_EQUAL(v[2].key, to_ruby(42));
@@ -187,7 +187,7 @@ TESTCASE(iterate_and_change)
     it->second = j;
     m[from_ruby<int>(it->first)] = j;
   }
-  ASSERT_EQUAL(3, m.size());
+  ASSERT_EQUAL(3u, m.size());
   ASSERT_EQUAL(to_ruby(m[1]), h[1]);
   ASSERT_EQUAL(to_ruby(m[6]), h[6]);
   ASSERT_EQUAL(to_ruby(m[42]), h[42]);

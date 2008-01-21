@@ -20,6 +20,10 @@ struct Default_Enum_Traits
   static long as_long(Enum_T value);
 };
 
+/*!
+ *  \example enum/sample_enum.cpp
+ */
+
 //! A wrapper for enumerated types.
 /*! Provides a simple type-safe wrapper for enumerated types.  At the
  *  ruby level, the class will have convenience methods for iterating
@@ -38,8 +42,6 @@ struct Default_Enum_Traits
  *      .define_value("Blue", Blue)
  *      .initialize("Color");
  *  \endcode
- *
- *  \example enum/enum.cpp
  */
 template<typename Enum_T, typename Enum_Traits = Default_Enum_Traits<Enum_T> >
 class Enum

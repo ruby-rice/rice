@@ -1,0 +1,8 @@
+rice/Makefile.am - should include files and sources be searched for or
+explicitly listed?
+pkgconfig support?
+why does doxygen check for perl?
+don't append -I../rice to CPPFLAGS when building tests (shouldn't depend
+on relative location within build tree)
+print ruby config options as they are found
+should PACKAGE_NAME et al be put into config.hpp?

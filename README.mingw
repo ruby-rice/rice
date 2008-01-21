@@ -1,0 +1,8 @@
+Assuming you are using the one-click installer, you can build against it
+using mingw by configuring with the following command:
+
+  $ CPPFLAGS=-D_MSC_VER=1200 LIBS=-lmsvcp60 ./configure 
+
+Rice includes a number of customizations to allow it to work in this
+configuration.  See [ruby-core:8264] for more details.
+

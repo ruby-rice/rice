@@ -1,0 +1,131 @@
+require 'mkmf'
+require 'rbconfig'
+
+# 
+# A script to override some defaults in mkmf.rb for C++ code
+# compilation.
+#
+# If this looks like a big hack, that's because it is.
+#
+
+def init_mkmf_rice(config = CONFIG)
+  # Set some defaults that we got from autoconf -- they're more likely
+  # to be correct than what Ruby was built with
+  $CXX = "@CXX@"
+  $LIBS = "@RUBY_LIBS@"
+  $LIBRUBYARG = "@RUBY_LIBRUBYARG@"
+  $LIBRUBYARG_STATIC = "@RUBY_LIBRUBYARG_STATIC@"
+  $RICE_CPPFLAGS = "@RICE_CPPFLAGS@"
+
+  $RICE_USING_MINGW32 = @RICE_USING_MINGW32@
+
+  # Ruby < 1.8.6 does not have $DEFLIBPATH
+  $DEFLIBPATH ||= []
+
+  $CPPFLAGS << " #{$RICE_CPPFLAGS}"
+
+  # Turn on debugging and verbose warnings by default on compilers that
+  # support it
+  $CXXFLAGS = ''
+  if $CXX == 'g++'
+    $CXXFLAGS << ' -Wall -g'
+  end
+
+  # Fix-up the linker used for confidence tests
+  TRY_LINK.sub!(/^#{Regexp.quote("$(CC)")}/, $CXX)
+  TRY_LINK.sub!(/^#{config['CC']}/, $CXX)
+  TRY_LINK.sub!(/#{Regexp.quote("$(CFLAGS)")}/, "$(CXXFLAGS)")
+
+  # Set $LDSHARED_CXX to the linker to be used for C++ libraries (usually
+  # the C++ compiler itself)
+  case config['target_os']
+  when 'darwin'
+    $LDSHARED_CXX = \
+      replace_cc_with_cxx(config['LDSHARED']) + \
+      ' -read_only_relocs suppress'
+  when 'mswin32'
+    if $RICE_USING_MINGW32 then
+      init_rice_mkmf_cross_compile_mingw2_for_vc6
+    end
+  else
+    $LDSHARED_CXX = \
+      replace_cc_with_cxx(config['LDSHARED'])
+  end
+
+  # Make sure -lruby comes after -lrice (necessary on some
+  # platforms)
+  LINK_SO.gsub!(
+      /^(LIBS\s*=\s*)(#{Regexp.quote($LIBRUBYARG)})\s+(.*)\s+(#{$LIBS})$/,
+      '\1\3\2 \4')
+end
+
+def replace_cc_with_cxx(str)
+  return str.sub(
+      /^(cc|\$\(CC\)|#{CONFIG['CC']})(?=\s)/,
+      $CXX)
+end
+
+def init_rice_mkmf_cross_compile_mingw2_for_vc6
+  $LDSHARED_CXX = "#{$CXX} -shared -s"
+  $OBJEXT = 'o'
+  $DLDFLAGS.gsub!(/^-link.*\.pdb$/, '')
+
+  constants = {
+    :TRY_LINK =>
+      "#{$LDSHARED_CXX} -oconftest $(INCFLAGS) $(CPPFLAGS) " + \
+      "$(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) " + \
+      "$(LOCAL_LIBS) $(LIBS)",
+    :LINK_SO =>
+      "#{$LDSHARED_CXX} $(DLDFLAGS) $(LIBPATH) -o$@ " + \
+      "$(OBJS) $(LOCAL_LIBS) $(LIBS)",
+    :LIBARG =>
+        '-l%s',
+    :LIBPATHFLAG =>
+        ' -L %s',
+    :COMPILE_RULES =>
+        %w[.%s.%s:],
+    :RULE_SUBST =>
+        '%s',
+    :COMPILE_CXX =>
+        '$(CXX) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) -c $<',
+    :OUTFLAG =>
+        '-o',
+  }
+
+  constants.each do |name, value|
+    Object.instance_eval { remove_const name }
+    Object.const_set(name, value)
+  end
+end
+
+class Object
+  alias_method :configuration_orig, :configuration
+  def configuration(srcdir)
+    configuration = configuration_orig(srcdir)
+    configuration.each do |config|
+      # Make sure we link the extension using the C++ compiler
+      config.gsub!(/^LDSHARED\s*=.*$/, "LDSHARED = #{$LDSHARED_CXX}")
+
+      # Make sure set the C++ flags correctly
+      config.gsub!(/^CXXFLAGS\s*=.*$/, "CXXFLAGS = $(CFLAGS) #{$CXXFLAGS}")
+    end
+    configuration << "\nCXX = #{$CXX}"
+    return configuration
+  end
+
+  alias_method :link_command_orig, :link_command
+  def link_command(ldflags, opt='', libpath=$DEFLIBPATH|$LIBPATH)
+    link_command = link_command_orig(ldflags, opt, libpath)
+    return Config::expand(
+        link_command,
+        'CXXFLAGS' => "#{$CXXFLAGS}")
+  end
+
+  alias_method :create_header_orig, :create_header
+  def create_header(header = 'extconf.hpp')
+    create_header_orig(header)
+  end
+end
+
+init_mkmf_rice
+
