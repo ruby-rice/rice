@@ -51,12 +51,6 @@ def init_mkmf_rice(config = CONFIG)
     $LDSHARED_CXX = \
       replace_cc_with_cxx(config['LDSHARED'])
   end
-
-  # Make sure -lruby comes after -lrice (necessary on some
-  # platforms)
-  LINK_SO.gsub!(
-      /^(LIBS\s*=\s*)(#{Regexp.quote($LIBRUBYARG)})\s+(.*)\s+(#{$LIBS})$/,
-      '\1\3\2 \4')
 end
 
 def replace_cc_with_cxx(str)
@@ -124,6 +118,67 @@ class Object
   alias_method :create_header_orig, :create_header
   def create_header(header = 'extconf.hpp')
     create_header_orig(header)
+  end
+
+  alias_method :create_makefile_orig, :create_makefile
+  def create_makefile(target, srcprefix = nil)
+    makefile_creator = RiceMakefileCreator.new
+    makefile_creator.create_makefile(target, srcprefix)
+  end
+end
+
+class RiceMakefileCreator
+  def create_makefile(target, srcprefix)
+    create_makefile_orig(target, srcprefix)
+  end
+
+  class MakefileWriter
+    def self.new(file, mode)
+      file = super(file, mode)
+      if block_given? then
+        begin
+          yield file
+        ensure
+          file.close if not file.closed?
+        end
+      else
+        return file
+      end
+    end
+
+    def initialize(file, mode)
+      @file = File.open(file, mode)
+    end
+
+    def print(*strings)
+      strings.each do |string|
+        # Make sure -lruby comes after -lrice (necessary on some
+        # platforms)
+        string = string.to_s.gsub(/^(LIBS\s*=\s*)(#{Regexp.quote($LIBRUBYARG)})\s+(.*)\s+(#{$LIBS})$/, '\1\3\2 \4')
+        @file.print(string)
+      end
+    end
+
+    def printf(format, *args)
+      @file.printf(format, *args)
+    end
+
+    def close
+      @file.close
+    end
+
+    def closed?
+      return @file.closed?
+    end
+  end
+
+  def open(file, mode, &block)
+    # Intercept makefile output using the MakefileWriter
+    if file == 'Makefile' then
+      return MakefileWriter.new(file, mode, &block)
+    else
+      return super(file, mode, &block)
+    end
   end
 end
 
