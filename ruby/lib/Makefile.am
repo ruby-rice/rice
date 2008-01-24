@@ -1,3 +1,3 @@
-rubydir = $(prefix)/@RUBY_SITELIBDIR@
+rubydir = @RUBY_SITELIBDIR@
 
 ruby_DATA = mkmf-rice.rb

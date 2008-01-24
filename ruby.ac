@@ -5,9 +5,19 @@ AC_DEFUN([RB_INIT_RUBY], [
 
 AC_ARG_WITH(
     ruby,
-    [  --with-ruby=PATH        The path to the ruby interpreter [[ruby]] ],
+    AC_HELP_STRING(
+     --with-ruby=PATH,
+     [ path to the ruby interpreter [[ruby]] ]),
     [ RUBY=$withval ],
     [ RUBY=ruby ])
+AC_ARG_WITH(
+    ruby_sitelibdir,
+    AC_HELP_STRING(
+     --with-ruby-sitelibdir=PATH,
+     [ path to install ruby scripts [[auto-detect]] ]),
+    [ ruby_sitelibdir=$withval ],
+    [ ruby_sitelibdir=NONE ])
+
 AC_SUBST(RUBY)
 
 RUBY_CONFIG_ARCHDIR=`RUBY_CONFIG(archdir)`
@@ -34,9 +44,22 @@ AC_SUBST(RUBY_LIBRUBYARG)
 RUBY_LIBRUBYARG_STATIC="${RUBY_CONFIG_LIBRUBYARG_STATIC}"
 AC_SUBST(RUBY_LIBRUBYARG_STATIC)
 
-RUBY_SITELIBDIR=`$RUBY -rrbconfig \
--e "include Config; \
-puts CONFIG[['sitelibdir']].sub(CONFIG[['prefix']], '')"`
+dnl If the user specified a prefix, then use it, otherwise defalut to
+dnl the configured sitelibdir
+if test "x${ruby_sitelibdir}x" != "xNONEx"
+then
+  RUBY_SITELIBDIR="${ruby_sitelibdir}"
+else
+  if test "x${prefix}x" = "xNONEx"
+  then
+    RUBY_SITELIBDIR=`RUBY_CONFIG(sitelibdir)`
+  else
+    sitelibdir_no_prefix=`$RUBY -rrbconfig \
+    -e "include Config; \
+    puts CONFIG[['sitelibdir']].sub(CONFIG[['prefix']], '')"`
+    RUBY_SITELIBDIR="${prefix}/${sitelibdir_no_prefix}"
+  fi
+fi
 AC_SUBST(RUBY_SITELIBDIR)
 
 dnl The fourth parameter to AC_CHECK_HEADER keeps autoconf from
