@@ -1,4 +1,11 @@
 require 'mkmf'
+
+# Make sure that archflags does not include ppc if we're 
+# on Intel x86 processor on Mac
+if `uname` =~ /darwin/i && `uname -p` =~ /i\d86/
+  ENV["ARCHFLAGS"] = "-arch i386"
+end
+
 require 'rbconfig'
 
 # 
