@@ -88,16 +88,21 @@ detail/default_allocation_func.hpp \
 detail/default_allocation_func.ipp \
 detail/define_method_and_auto_wrap.hpp \
 detail/define_method_and_auto_wrap.ipp \
+detail/env.hpp \
 detail/from_ruby.hpp \
 detail/from_ruby.ipp \
 detail/method_data.hpp \
+detail/node.hpp \
 detail/object_call.hpp \
 detail/object_call.ipp \
 detail/protect.hpp \
+detail/remove_const.hpp \
 detail/ruby.hpp \
+detail/rubysig.hpp \
 detail/st.hpp \
 detail/to_ruby.hpp \
 detail/to_ruby.ipp \
+detail/win32.hpp \
 detail/wrap_function.hpp \
 detail/wrap_function.ipp
 
