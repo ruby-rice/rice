@@ -11,6 +11,9 @@ AC_PROG_RANLIB
 RICE_CPPFLAGS="$CPPFLAGS"
 AC_SUBST(RICE_CPPFLAGS)
 
+RICE_LDFLAGS="$LDFLAGS"
+AC_SUBST(RICE_LDFLAGS)
+
 AC_MINGW32
 if test x"${MINGW32}"x = xyesx; then
   RICE_USING_MINGW32="true"
@@ -41,3 +44,5 @@ AC_CONFIG_FILES(Makefile rice/Makefile test/Makefile sample/Makefile
                 ruby/Makefile ruby/lib/Makefile ruby/lib/mkmf-rice.rb)
 AC_OUTPUT
 
+dnl Work around a bug in older versions of Rubygems
+chmod +x install-sh

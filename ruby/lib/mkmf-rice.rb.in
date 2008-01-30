@@ -23,13 +23,16 @@ def init_mkmf_rice(config = CONFIG)
   $LIBRUBYARG = "@RUBY_LIBRUBYARG@"
   $LIBRUBYARG_STATIC = "@RUBY_LIBRUBYARG_STATIC@"
   $RICE_CPPFLAGS = "@RICE_CPPFLAGS@"
+  $RICE_LDFLAGS = "@RICE_LDFLAGS@"
+  $RICE_PREFIX = "@prefix@"
 
   $RICE_USING_MINGW32 = @RICE_USING_MINGW32@
 
   # Ruby < 1.8.6 does not have $DEFLIBPATH
   $DEFLIBPATH ||= []
 
-  $CPPFLAGS << " #{$RICE_CPPFLAGS}"
+  $CPPFLAGS << " #{$RICE_CPPFLAGS} -I#{$RICE_PREFIX}/include"
+  $LDFLAGS << " #{$RICE_LDFLAGS} -L#{$RICE_PREFIX}/lib"
 
   # Turn on debugging and verbose warnings by default on compilers that
   # support it
