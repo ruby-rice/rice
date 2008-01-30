@@ -88,5 +88,7 @@ of the Ruby C API.
   ]
 
   s.extra_rdoc_files = [ 'README' ]
+
+  s.require_paths = [ 'ruby/lib' ]
 end
 
