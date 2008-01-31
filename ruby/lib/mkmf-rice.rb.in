@@ -61,6 +61,9 @@ def init_mkmf_rice(config = CONFIG)
     $LDSHARED_CXX = \
       replace_cc_with_cxx(config['LDSHARED'])
   end
+
+  # Link against the rice library by default
+  have_library('rice') or raise 
 end
 
 def replace_cc_with_cxx(str)
