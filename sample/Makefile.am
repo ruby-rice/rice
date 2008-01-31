@@ -1,4 +1,5 @@
 RUBY_EXTCONF_OPTIONS = -I../../ruby/lib
+EXTCONF_OPTIONS = --with-cppflags="-I../.." --with-ldflags="-L../../rice"
 
 EXTRA_DIST = \
 	enum/extconf.rb \
@@ -11,14 +12,14 @@ EXTRA_DIST = \
 	inheritance/animals.cpp \
 	inheritance/test.rb
 
-enum/Makefile: enum/extconf.rb ../config.status
-	@RUBY@ $(RUBY_EXTCONF_OPTIONS) -C enum extconf.rb
+enum/Makefile: enum/extconf.rb ../config.status ../ruby/lib/mkmf-rice.rb
+	@RUBY@ $(RUBY_EXTCONF_OPTIONS) -C enum extconf.rb $(EXTCONF_OPTIONS)
 
-map/Makefile: map/extconf.rb ../config.status
-	@RUBY@ $(RUBY_EXTCONF_OPTIONS) -C map extconf.rb
+map/Makefile: map/extconf.rb ../config.status ../ruby/lib/mkmf-rice.rb
+	@RUBY@ $(RUBY_EXTCONF_OPTIONS) -C map extconf.rb $(EXTCONF_OPTIONS)
 
-inheritance/Makefile: inheritance/extconf.rb ../config.status
-	@RUBY@ $(RUBY_EXTCONF_OPTIONS) -C inheritance extconf.rb
+inheritance/Makefile: inheritance/extconf.rb ../config.status ../ruby/lib/mkmf-rice.rb
+	@RUBY@ $(RUBY_EXTCONF_OPTIONS) -C inheritance extconf.rb $(EXTCONF_OPTIONS)
 
 all: enum/Makefile map/Makefile inheritance/Makefile all_extensions
 
