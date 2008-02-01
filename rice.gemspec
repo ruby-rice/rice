@@ -82,10 +82,8 @@ of the Ruby C API.
 
   s.extensions = 'configure'
 
-	# Globbed for Windows files
-  test_files = [
-    'test/unittest(\.exe)+',
-    'test/vm_unittest(\.exe)+',
+  s.test_files = [
+    'test/test_rice.rb',
   ]
 
 	s.test_files = test_files.collect { |p| Dir.glob(p) }.flatten
