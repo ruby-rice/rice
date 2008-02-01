@@ -82,10 +82,13 @@ of the Ruby C API.
 
   s.extensions = 'configure'
 
-  s.test_files = [
-    'test/unittest',
-    'test/vm_unittest',
+	# Globbed for Windows files
+  test_files = [
+    'test/unittest(\.exe)+',
+    'test/vm_unittest(\.exe)+',
   ]
+
+	s.test_files = test_files.collect { |p| Dir.glob(p) }.flatten
 
   s.extra_rdoc_files = [ 'README' ]
 

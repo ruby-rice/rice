@@ -1,7 +1,7 @@
 #!/bin/sh
 rm -f configure
 find . -name 'Makefile.in' | xargs rm -f
-autoreconf --install --symlink --verbose
+autoreconf --install --verbose
 touch rice/config.hpp.in
 ruby post-autoconf.rb
 ruby post-automake.rb
