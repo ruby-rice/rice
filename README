@@ -17,13 +17,28 @@ What Rice gives you:
 
 \section installation Installation
 
-To install Rice, extract the tarball, then:
+There are two ways to install Rice. You can download the tarball from the project
+page:
+
+\code
+  http://rubyforge.org/projects/rice
+\endcode
+
+extract it and:
 
 \code
   ./configure
   make
   sudo make install
 \endcode
+
+or you can install via RubyGems
+
+\code
+  gem install rice
+\endcode
+
+Note to Windows users: Rice is only known to properly compile and run under Cygwin and Mingw. 
 
 \section tutorial Tutorial
 
