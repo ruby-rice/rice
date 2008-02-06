@@ -1,3 +1,22 @@
+require 'rake/gempackagetask'
+
+task :default => :test
+
+desc "Build Rice locally"
+task :build do 
+  sh "bootstrap"
+  sh "configure"
+  sh "make"
+end
+
+desc "Run unit tests" 
+task :test do
+  cd "test" do
+    ruby "test_rice.rb"
+  end
+end
+
+
 spec = Gem::Specification.new do |s|
   s.name = 'rice'
   s.version = '1.0.0'
@@ -86,10 +105,12 @@ of the Ruby C API.
     'test/test_rice.rb',
   ]
 
-	s.test_files = test_files.collect { |p| Dir.glob(p) }.flatten
-
   s.extra_rdoc_files = [ 'README' ]
 
   s.require_paths = [ 'ruby/lib' ]
 end
 
+Rake::GemPackageTask.new(spec) do |pkg|
+  pkg.need_zip = true
+  pkg.need_tar = true
+end
