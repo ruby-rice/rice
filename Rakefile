@@ -1,28 +1,46 @@
 require 'rake/gempackagetask'
+require 'rake/contrib/sshpublisher'
+require 'yaml'
+require 'rubyforge'
+
+PROJECT_NAME = "rice"
+RICE_VERSION = "1.0.0"
+PROJECT_WEB_PATH = "/var/www/gforge-projects/rice"
 
 task :default => :test
 
-desc "Build Rice locally"
+desc "Build Rice locally. Delete the top level Makefile to force this to run"
 task :build do 
-  sh "bootstrap"
-  sh "configure"
-  sh "make"
+  if !File.exist?("Makefile")
+    sh "bootstrap"
+    sh "configure"
+    sh "make"
+  end
 end
 
 desc "Run unit tests" 
-task :test do
+task :test => :build do
   cd "test" do
     ruby "test_rice.rb"
   end
 end
 
+desc "Upload documentation to the website. Requires rubyforge gem" 
+task :upload_web => :build do
+  sh "make doc"
+
+  config = YAML.load(File.read(File.expand_path("~/.rubyforge/user-config.yml")))
+  host = "#{config["username"]}@rubyforge.org"
+
+  Rake::SshDirPublisher.new(host, PROJECT_WEB_PATH, "doc/html").upload
+end
 
 spec = Gem::Specification.new do |s|
-  s.name = 'rice'
-  s.version = '1.0.0'
+  s.name = PROJECT_NAME
+  s.version = RICE_VERSION
   s.summary = 'Ruby Interface for C++ Extensions'
   s.homepage = 'http://rice.rubyforge.org/'
-  s.rubyforge_project = 'rice'
+  s.rubyforge_project = PROJECT_NAME
   s.author = 'Paul Brannan'
   s.email = 'curlypaul924@gmail.com'
 
@@ -114,3 +132,28 @@ Rake::GemPackageTask.new(spec) do |pkg|
   pkg.need_zip = true
   pkg.need_tar = true
 end
+
+desc "Create a new release to Rubyforge" 
+task :release => :package do
+  rf = RubyForge.new
+  puts "Logging into rubyforge"
+  rf.login
+
+  pkg = "pkg/#{PROJECT_NAME}-#{RICE_VERSION}"
+
+  c = rf.userconfig
+
+  files = [
+    "#{pkg}.tgz",
+    "#{pkg}.zip",
+    "#{pkg}.gem"
+  ]
+
+  puts "Releasing #{PROJECT_NAME} v. #{RICE_VERSION}"
+  begin
+    rf.add_release spec.rubyforge_project, PROJECT_NAME, RICE_VERSION, *files
+  rescue
+    puts "You may not be configured with rubyforge. Please run `rubyforge setup && rubyforge config` and try running this task again"
+  end
+end
+
