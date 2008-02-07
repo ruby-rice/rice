@@ -56,9 +56,12 @@ of the Ruby C API.
     # Documentation
     'COPYING',
     'README',
+    'README.mingw',
 
     # Doxygen
     'Doxyfile',
+    'doxygen.ac',
+    'doxygen.am',
 
     # Autoconf
     'bootstrap',
@@ -152,8 +155,9 @@ task :release => :package do
   puts "Releasing #{PROJECT_NAME} v. #{RICE_VERSION}"
   begin
     rf.add_release spec.rubyforge_project, PROJECT_NAME, RICE_VERSION, *files
-  rescue
+  rescue => ex
     puts "You may not be configured with rubyforge. Please run `rubyforge setup && rubyforge config` and try running this task again"
+    puts "Error is #{ex.inspect}"
   end
 end
 
