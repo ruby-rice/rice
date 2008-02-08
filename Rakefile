@@ -156,7 +156,7 @@ task :release => :package do
   begin
     rf.add_release spec.rubyforge_project, PROJECT_NAME, RICE_VERSION, *files
   rescue => ex
-    puts "You may not be configured with rubyforge. Please run `rubyforge setup && rubyforge config` and try running this task again"
+    puts "You may not be configured with rubyforge. Please run `rubyforge config` and run this task again."
     puts "Error is #{ex.inspect}"
   end
 end
