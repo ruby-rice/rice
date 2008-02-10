@@ -25,10 +25,13 @@ task :test => :build do
   end
 end
 
-desc "Upload documentation to the website. Requires rubyforge gem" 
-task :upload_web => :build do
+desc "Build the documentation" 
+task :doc do
   sh "make doc"
+end
 
+desc "Upload documentation to the website. Requires rubyforge gem" 
+task :upload_web => [:build, :doc] do
   config = YAML.load(File.read(File.expand_path("~/.rubyforge/user-config.yml")))
   host = "#{config["username"]}@rubyforge.org"
 
@@ -79,6 +82,7 @@ of the Ruby C API.
     'ruby.ac',
 
     # Makefiles
+    'Rakefile',
     'Makefile.am',
     'Makefile.in',
     'rice/Makefile.am',
@@ -91,9 +95,6 @@ of the Ruby C API.
     'sample/Makefile.in',
     'test/Makefile.am',
     'test/Makefile.in',
-
-    # Gem spec
-    'rice.gemspec',
 
     # C++ source files
     'rice/*.?pp',
