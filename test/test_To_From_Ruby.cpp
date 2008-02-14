@@ -31,12 +31,6 @@ TESTCASE(int_to_ruby)
   ASSERT_EQUAL(INT2NUM(-1), to_ruby((int)-1).value());
   ASSERT_EQUAL(INT2NUM(1), to_ruby((int)1).value());
   ASSERT_EQUAL(
-      INT2NUM(FIXNUM_MAX),
-      to_ruby(FIXNUM_MAX).value());
-  ASSERT_EQUAL(
-      INT2NUM(FIXNUM_MIN),
-      to_ruby(FIXNUM_MIN).value());
-  ASSERT_EQUAL(
       Object(INT2NUM(std::numeric_limits<int>::min())),
       to_ruby(std::numeric_limits<int>::min()));
   ASSERT_EQUAL(
@@ -49,12 +43,6 @@ TESTCASE(int_from_ruby)
   ASSERT_EQUAL(0, from_ruby<int>(INT2NUM(0)));
   ASSERT_EQUAL(-1, from_ruby<int>(INT2NUM(-1)));
   ASSERT_EQUAL(1, from_ruby<int>(INT2NUM(1)));
-  ASSERT_EQUAL(
-      FIXNUM_MIN,
-      from_ruby<int>(INT2NUM(FIXNUM_MIN)));
-  ASSERT_EQUAL(
-      FIXNUM_MAX,
-      from_ruby<int>(INT2NUM(FIXNUM_MAX)));
   ASSERT_EQUAL(
       std::numeric_limits<int>::min(),
       from_ruby<int>(INT2NUM(std::numeric_limits<int>::min())));
@@ -106,9 +94,6 @@ TESTCASE(unsigned_int_to_ruby)
   ASSERT_EQUAL(UINT2NUM(0), to_ruby((unsigned int)0).value());
   ASSERT_EQUAL(UINT2NUM(1), to_ruby((unsigned int)1).value());
   ASSERT_EQUAL(
-      UINT2NUM(FIXNUM_MAX),
-      to_ruby(FIXNUM_MAX).value());
-  ASSERT_EQUAL(
       Object(UINT2NUM(std::numeric_limits<unsigned int>::min())),
       to_ruby(std::numeric_limits<unsigned int>::min()));
   ASSERT_EQUAL(
@@ -120,9 +105,6 @@ TESTCASE(unsigned_int_from_ruby)
 {
   ASSERT_EQUAL(0u, from_ruby<unsigned int>(UINT2NUM(0)));
   ASSERT_EQUAL(1u, from_ruby<unsigned int>(UINT2NUM(1)));
-  ASSERT_EQUAL(
-      static_cast<unsigned int>(FIXNUM_MIN),
-      from_ruby<unsigned int>(UINT2NUM(FIXNUM_MIN)));
   ASSERT_EQUAL(
       std::numeric_limits<unsigned int>::min(),
       from_ruby<unsigned int>(UINT2NUM(std::numeric_limits<unsigned int>::min())));
