@@ -110,3 +110,5 @@ includedir = ${prefix}/include/rice
 
 AM_CPPFLAGS = @RUBY_CPPFLAGS@
 
+AM_CXXFLAGS = @RUBY_CXXFLAGS@
+

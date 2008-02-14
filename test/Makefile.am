@@ -32,6 +32,9 @@ AM_CPPFLAGS = \
 	-I.. \
 	$(RUBY_CPPFLAGS)
 
+AM_CXXLAGS = \
+	$(RUBY_CXXFLAGS)
+
 AM_LDFLAGS = \
 	$(RUBY_LDFLAGS) \
 	-L../rice
@@ -40,5 +43,4 @@ LIBS = \
 	-lrice \
 	$(RUBY_LIBS) \
 	$(RUBY_LIBRUBYARG)
-
 
