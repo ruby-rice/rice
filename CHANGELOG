@@ -1,0 +1,5 @@
+1.0.1
+
+* -fPIC during compiling for better compiler portability
+
+* Fixed tarball and gem, they were missing aclocal.m4
