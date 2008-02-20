@@ -122,7 +122,7 @@ public:
   //! Explictly return the Ruby type.
   /*! \return the ruby class to which the type is bound.
    */
-  static Module klass() { return klass_; }
+  static Module klass();
 
   //! Assignment operator which takes a Module
   /*! \param klass must be the class to which this data type is already

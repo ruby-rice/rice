@@ -1,10 +1,35 @@
 template<typename T>
-Rice::Object Rice::detail::to_ruby_<T>::
-convert(T const & x)
+Rice::Object
+Rice::detail::to_ruby_<T>::
+convert(T & x)
 {
-  // Should produce a compile-time error
-  enum { no_to_ruby_conversion_defined = -1 };
-  char x_[no_to_ruby_conversion_defined];
-  return Qnil;
-}
+  if(Data_Type<T>::is_bound())
+  {
+    Data_Object<T> obj(&x);
+    return obj;
+  }
+  else
+  {
+    std::string s("Unable to convert ");
+    s += demangle(typeid(T *).name());
+    throw std::invalid_argument(s.c_str());
+  }
+}   
 
+template<typename T>
+Rice::Object
+Rice::detail::to_ruby_<T *>::
+convert(T * x)
+{
+  if(Data_Type<T>::is_bound())
+  {
+    Data_Object<T> obj(x);
+    return obj;
+  }
+  else
+  {
+    std::string s("Unable to convert ");
+    s += demangle(typeid(T *).name());
+    throw std::invalid_argument(s.c_str());
+  }
+}
