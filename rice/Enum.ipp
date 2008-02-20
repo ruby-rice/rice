@@ -158,7 +158,7 @@ inspect(Object self)
 {
   return String::format(
       "#<%s::%s>",
-      String(self.class_of().mod_name()).c_str(),
+      String(self.class_of().name()).c_str(),
       String(to_s(self)).c_str());
 }
 
@@ -168,8 +168,8 @@ compare(Object lhs, Object rhs)
 {
   if(lhs.class_of() != rhs.class_of())
   {
-    String lhs_name(lhs.class_of().mod_name());
-    String rhs_name(rhs.class_of().mod_name());
+    String lhs_name(lhs.class_of().name());
+    String rhs_name(rhs.class_of().name());
     rb_raise(
         rb_eTypeError,
         "Cannot compare %s to %s",

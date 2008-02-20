@@ -12,6 +12,7 @@ Struct.cpp \
 Symbol.cpp \
 VM.cpp \
 detail/check_ruby_type.cpp \
+detail/demangle.cpp \
 detail/method_data.cpp \
 detail/protect.cpp
 
@@ -88,6 +89,7 @@ detail/default_allocation_func.hpp \
 detail/default_allocation_func.ipp \
 detail/define_method_and_auto_wrap.hpp \
 detail/define_method_and_auto_wrap.ipp \
+detail/demangle.hpp \
 detail/env.hpp \
 detail/from_ruby.hpp \
 detail/from_ruby.ipp \

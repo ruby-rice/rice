@@ -11,6 +11,7 @@ namespace Rice
 
 class Array;
 class Class;
+class String;
 
 //! A helper for defining a Module and its methods.
 /*! This class provides a C++-style interface to ruby's Module class and
@@ -32,7 +33,7 @@ public:
   Module(VALUE v);
 
   //! Return the name of the module.
-  Object mod_name() const;
+  String name() const;
 
   //! Swap with another Module.
   void swap(Module & other);

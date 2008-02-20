@@ -2,27 +2,9 @@
 #define Rice__detail__from_ruby__ipp_
 
 #include "../Data_Type.hpp"
+#include "../String.hpp"
+#include "demangle.hpp"
 #include <typeinfo>
-
-#if 0
-namespace Rice
-{
-  namespace detail
-  {
-    template<typename T>
-    struct unpointer
-    {
-      // can't unpointer a non-pointer
-    };
-
-    template<typename T>
-    struct unpointer<T *>
-    {
-      typedef T type;
-    };
-  }
-}
-#endif
 
 template<typename T>
 T Rice::detail::from_ruby_<T>::
@@ -34,9 +16,11 @@ convert(Rice::Object x)
   }
   else
   {
-    std::string s("No conversion defined for ");
-    s += typeid(T).name();
-    throw std::runtime_error(s.c_str());
+    std::string s("Unable to convert ");
+    s += x.class_of().name().c_str();
+    s += " to ";
+    s += demangle(typeid(T).name());
+    throw std::invalid_argument(s.c_str());
   }
 }
 
@@ -50,9 +34,11 @@ convert(Rice::Object x)
   }
   else
   {
-    std::string s("No conversion defined for ");
-    s += typeid(T).name();
-    throw std::runtime_error(s.c_str());
+    std::string s("Unable to convert ");
+    s += x.class_of().name().c_str();
+    s += " to ";
+    s += demangle(typeid(T *).name());
+    throw std::invalid_argument(s.c_str());
   }
 }
 

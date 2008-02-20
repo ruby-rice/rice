@@ -248,6 +248,6 @@ TESTCASE(remove_const)
 TESTCASE(mod_name_anonymous)
 {
   Module m(anonymous_module());
-  ASSERT_EQUAL(String(""), m.mod_name());
+  ASSERT_EQUAL(String(""), m.name());
 }
 

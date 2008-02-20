@@ -2,7 +2,8 @@
 #define Rice__String__hpp_
 
 #include "Identifier.hpp"
-#include "Builtin_Object.hpp"
+#include "Builtin_Object_defn.hpp"
+#include "to_from_ruby_defn.hpp"
 #include "detail/ruby.hpp"
 #include <string>
 

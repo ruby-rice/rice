@@ -1,5 +1,6 @@
 #include "Module.hpp"
 #include "Symbol.hpp"
+#include "String.hpp"
 #include "Array.hpp"
 #include "Exception.hpp"
 #include "protect.hpp"
@@ -23,8 +24,8 @@ Module(VALUE v)
   }
 }
 
-Rice::Object Rice::Module::
-mod_name() const
+Rice::String Rice::Module::
+name() const
 {
   return rb_mod_name(*this);
 }
