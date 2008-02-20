@@ -3,6 +3,7 @@
 
 #include "protect.hpp"
 #include "to_from_ruby.hpp"
+#include "Builtin_Object.hpp"
 #include "Exception.hpp"
 #include <algorithm>
 

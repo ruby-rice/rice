@@ -1,4 +1,5 @@
 #include "String.hpp"
+#include "Builtin_Object.hpp"
 #include "protect.hpp"
 #include "detail/ruby.hpp"
 
