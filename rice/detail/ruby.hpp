@@ -14,10 +14,20 @@
 #define HAVE_ISINF
 #endif
 
+// TODO: Is there a way to ensure that this is Ruby's version.h?
+#define RUBY_EXTERN extern "C"
+#include <version.h>
+
+// workaround for ruby 1.8.4, which defines eaccess and shouldn't
+#if RUBY_VERSION_CODE <= 184
+#define eaccess ruby_eaccess
+#endif
+
 #include <ruby.h>
 
-// TODO: Is there a way to ensure that this is Ruby's version.h?
-#include <version.h>
+#if RUBY_VERSION_CODE <= 184
+#undef eaccess
+#endif
 
 #ifdef WIN32
 #include "win32.hpp"
