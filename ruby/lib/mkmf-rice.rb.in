@@ -31,6 +31,9 @@ def init_mkmf_rice(config = CONFIG)
   # Ruby < 1.8.6 does not have $DEFLIBPATH
   $DEFLIBPATH ||= []
 
+  # Ruby 1.8.6 uses $preload without setting it
+  $preload ||= nil
+
   $CPPFLAGS << " #{$RICE_CPPFLAGS} -I#{$RICE_PREFIX}/include"
   $LDFLAGS << " #{$RICE_LDFLAGS} -L#{$RICE_PREFIX}/lib"
 
@@ -174,6 +177,10 @@ class RiceMakefileCreator
 
     def printf(format, *args)
       @file.printf(format, *args)
+    end
+
+    def puts(*strings)
+      print strings.map { |s| "#{s}\n" }
     end
 
     def close
