@@ -1,3 +1,5 @@
+#include "../Data_Object.hpp"
+
 template<typename T>
 Rice::Object
 Rice::detail::to_ruby_<T>::
