@@ -1,5 +1,6 @@
 #include "unittest.hpp"
 #include "rice/Class.hpp"
+#include "rice/Constructor.hpp"
 #include "rice/protect.hpp"
 #include "rice/Exception.hpp"
 #include "rice/Array.hpp"
@@ -347,4 +348,26 @@ TESTCASE(module_define_class)
   ASSERT(c.is_a(rb_cClass));
   ASSERT_EQUAL(c, math.const_get("Foo"));
   ASSERT(!object.const_defined("Foo"));
+}
+
+namespace {
+  class BaseClass {
+    public:
+      BaseClass() { }
+  };
+}
+
+TESTCASE(subclassing)
+{
+  Module m = define_module("Testing");
+  define_class_under<BaseClass>(m, "BaseClass").
+    define_constructor(Constructor<BaseClass>());
+
+  // Not sure how to make this a true failure case. If the subclassing
+  // doesn't work, Ruby will throw an error:
+  // 
+  //    in `new': wrong instance allocation
+  //
+  m.instance_eval("class NewClass < Testing::BaseClass; end;");
+  m.instance_eval("n = NewClass.new");
 }
