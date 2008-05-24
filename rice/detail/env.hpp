@@ -6,6 +6,8 @@
  * not have extern "C"
  */
 
+// TODO: Won't work on ruby 1.9
+
 extern "C" {
   #include "env.h"
 }
