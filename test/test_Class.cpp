@@ -47,8 +47,7 @@ TESTCASE(include_module)
   Array expected_ancestors;
   expected_ancestors.push(c);
   expected_ancestors.push(Module(rb_mEnumerable));
-  expected_ancestors.push(Module(rb_cObject));
-  expected_ancestors.push(Module(rb_mKernel));
+  expected_ancestors += Array(Class(rb_cObject).ancestors());
   ASSERT_EQUAL(expected_ancestors, ancestors);
 }
 
