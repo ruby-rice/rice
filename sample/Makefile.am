@@ -1,4 +1,10 @@
-RUBY_EXTCONF_OPTIONS = -I../../ruby/lib
+# TODO: This is sort of a hack to get the samples to build on 1.9.
+# On 1.8, -I is left untouched until after -C changes the directory, so
+# the directory is relative to the sample dir.
+# On 1.9, -I is canonicalized before -C is executed, so the directory is
+# relative to the current dir.
+RUBY_EXTCONF_OPTIONS = -I../../ruby/lib -I../ruby/lib
+
 EXTCONF_OPTIONS = --with-cppflags="-I../.." --with-ldflags="-L../../rice"
 
 EXTRA_DIST = \
@@ -24,7 +30,8 @@ inheritance/Makefile: inheritance/extconf.rb ../config.status ../ruby/lib/mkmf-r
 all: enum/Makefile map/Makefile inheritance/Makefile all_extensions
 
 all_extensions:
-	@for sample in $(RICE_SAMPLES); \
+	@set -e; \
+	for sample in $(RICE_SAMPLES); \
 	do \
 	  $(MAKE) -C $${sample} all; \
 	done
@@ -32,7 +39,8 @@ all_extensions:
 clean: enum/Makefile map/Makefile inheritance/Makefile clean_extensions
 
 clean_extensions:
-	@for sample in $(RICE_SAMPLES); \
+	@set -e; \
+	for sample in $(RICE_SAMPLES); \
 	do \
 	  $(MAKE) -C $${sample} clean; \
 	done
@@ -40,7 +48,8 @@ clean_extensions:
 distclean: enum/Makefile map/Makefile inheritance/Makefile distclean_extensions
 
 distclean_extensions:
-	@for sample in $(RICE_SAMPLES);
+	@set -e; \
+	for sample in $(RICE_SAMPLES);
 	do \
 	  $(MAKE) -C $${sample} distclean; \
 	done
