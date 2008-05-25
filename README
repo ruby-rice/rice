@@ -179,7 +179,7 @@ We could also add an #initialize method to our class:
   {
     Class rb_cTest =
       define_class("Test")
-      .define_method("initialize", test_initialize);
+      .define_method("initialize", test_initialize)
       .define_method("hello", test_hello);
   }
 \endcode
@@ -563,7 +563,7 @@ We can wrap this class by using typedefs:
     Data_Type<Container> rb_cContainer =
       define_class<Container>("Container")
       .define_method("capacity", get_capacity(&Container::capacity))
-      .define_method("capacity=", set_capacity(&Container::capacity))
+      .define_method("capacity=", set_capacity(&Container::capacity));
   }
 \endcode
 
