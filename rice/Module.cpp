@@ -27,7 +27,15 @@ Module(VALUE v)
 Rice::String Rice::Module::
 name() const
 {
-  return rb_mod_name(*this);
+  Object name(rb_mod_name(*this));
+  if(name == Nil)
+  {
+    return String("");
+  }
+  else
+  {
+    return name;
+  }
 }
 
 Rice::Module Rice::

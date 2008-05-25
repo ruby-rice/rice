@@ -33,6 +33,9 @@ public:
   Module(VALUE v);
 
   //! Return the name of the module.
+  /*! Note that on Ruby 1.9 Module#name will return nil for an unnamed
+   *  module, but this function will return an empty string.
+   */
   String name() const;
 
   //! Swap with another Module.
