@@ -55,6 +55,19 @@ extern "C"
     VALUE * cfp = ruby_current_thread->cfp; \
     CFP_DATA_MEMO_NODE_AND_PC = RBASIC(CFP_METHOD_CLASS)->klass; \
     CFP_METHOD_CLASS = RCLASS_SUPER(CFP_METHOD_CLASS); \
+    if(rb_type(CFP_DATA_MEMO_NODE_AND_PC) != T_NODE) \
+    { \
+      /* This can happen for module functions */ \
+      NODE * n = rb_method_node( \
+          CFP_METHOD_CLASS, \
+          rb_frame_this_func()); \
+      CFP_DATA_MEMO_NODE_AND_PC = RBASIC(n->nd_clss)->klass; \
+      \
+      if(rb_type(CFP_DATA_MEMO_NODE_AND_PC) != T_NODE) \
+      { \
+        rb_raise(rb_eRuntimeError, "Could not get method data"); \
+      } \
+    } \
   } while(0)
 
 NODE * data_memo_node()
@@ -204,12 +217,12 @@ END
  *   +- ...
  *
  */
-void Rice::detail::
+VALUE Rice::detail::
 define_method_with_data(
     VALUE klass, ID id, VALUE (*cfunc)(ANYARGS), int arity, VALUE data)
 {
   /* TODO: origin should have #to_s and #inspect methods defined */
-#ifdef HAVE_RB_CLASS_BOOT
+#if RUBY_VERSION_CODE >= 170
   VALUE origin = rb_class_boot(klass);
 #else
   VALUE origin = rb_class_new(klass);
