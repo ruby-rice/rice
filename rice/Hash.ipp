@@ -31,7 +31,7 @@ Hash(Object v)
 inline size_t Rice::Hash::
 size() const
 {
-  return (*this)->tbl->num_entries;
+  return RHASH_TBL(*this)->num_entries;
 }
 
 inline Rice::Hash::Proxy::
@@ -147,7 +147,7 @@ template<typename Hash_Ref_T, typename Value_T>
 inline Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
 Iterator(Hash_Ref_T hash, size_t bin, st_table_entry * ptr)
   : hash_(hash)
-  , tbl_(RHASH(hash.value())->tbl)
+  , tbl_(RHASH_TBL(hash.value()))
   , bin_(bin)
   , ptr_(ptr)
   , tmp_(hash, Qnil)
@@ -285,28 +285,28 @@ swap(Iterator& iterator)
 inline Rice::Hash::iterator Rice::Hash::
 begin()
 {
-  st_table * tbl(RHASH(value())->tbl);
+  st_table * tbl(RHASH_TBL(value()));
   return iterator(*this, 0, tbl->bins[0]);
 }
 
 inline Rice::Hash::const_iterator Rice::Hash::
 begin() const
 {
-  st_table * tbl(RHASH(value())->tbl);
+  st_table * tbl(RHASH_TBL(value()));
   return const_iterator(*this, 0, tbl->bins[0]);
 }
 
 inline Rice::Hash::iterator Rice::Hash::
 end()
 {
-  st_table * tbl(RHASH(value())->tbl);
+  st_table * tbl(RHASH_TBL(value()));
   return iterator(*this, tbl->num_bins, 0);
 }
 
 inline Rice::Hash::const_iterator Rice::Hash::
 end() const
 {
-  st_table * tbl(RHASH(value())->tbl);
+  st_table * tbl(RHASH_TBL(value()));
   return const_iterator(*this, tbl->num_bins, 0);
 }
 
