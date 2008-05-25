@@ -1,20 +1,28 @@
 #include "VM.hpp"
 #include "detail/ruby.hpp"
-#include "detail/env.hpp" 
+
+#ifndef RUBY_VM
+extern C
+{
+#include "env.h"
+}
+#endif
 
 #include <stdexcept>
 
 Rice::VM::
 VM(char * app_name)
 {
-  init_stack();
+  Object o;
+  init_stack(&o);
   init(1, &app_name);
 }
 
 Rice::VM::
 VM(int argc, char * argv[])
 {
-  init_stack();
+  Object o;
+  init_stack(&o);
   init(argc, argv);
 }
 
@@ -22,14 +30,16 @@ Rice::VM::
 VM(std::vector<char *> const & args)
 {
   check_not_initialized();
-  init_stack();
+  Object o;
+  init_stack(&o);
   init(args.size(), const_cast<char * *>(&args[0]));
 }
 
 Rice::VM::
 ~VM()
 {
-  init_stack();
+  Object o;
+  init_stack(&o);
 }
 
 #if RUBY_VERSION_CODE < 186
@@ -38,20 +48,25 @@ Rice::VM::
 #endif
 
 void Rice::VM::
-init_stack()
+init_stack(Object * location_on_stack)
 {
+  VALUE * v = const_cast<VALUE *>(&location_on_stack->value());
 #if RUBY_VERSION_CODE >= 186
-  RUBY_INIT_STACK;
+  ruby_init_stack(v);
 #else
-  VALUE v;
-  Init_stack(&v);
+  Init_stack(v);
 #endif
 }
 
 void Rice::VM::
 run()
 {
+  Object o;
+  init_stack(&o);
+#ifdef RUBY_VM
+#else
   ruby_run();
+#endif
 }
 
 extern "C"

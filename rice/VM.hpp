@@ -1,6 +1,8 @@
 #ifndef VM__hpp
 #define VM__hpp
 
+#include "Object.hpp"
+
 #include <vector>
 
 namespace Rice
@@ -14,7 +16,7 @@ public:
   VM(std::vector<char *> const & args);
   ~VM();
 
-  void init_stack();
+  void init_stack(Object * location_on_stack);
   void run();
 
 private:

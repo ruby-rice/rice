@@ -858,7 +858,8 @@ the Ruby API:
   {
     // Need to initialize the stack here, because we don't know if
     // we are at the same stack depth as when the VM was initialized
-    vm->init_stack();
+    Object o;
+    vm->init_stack(&o);
 
     // Now do some work...
     obj->call("some_callback_function")
