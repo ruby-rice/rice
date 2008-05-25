@@ -49,7 +49,12 @@ public:
   template<typename T, size_t n>
   Array(T const (& a)[n]);
 
-public:
+  //! Concatenate another array onto this array.
+  Array concat(Array a);
+
+  //! Concatenate another array onto this array.
+  Array operator+=(Array rhs);
+
   //! Return the size of the array.
   size_t size() const;
 

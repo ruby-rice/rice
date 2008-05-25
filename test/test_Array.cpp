@@ -239,3 +239,63 @@ TESTCASE(assign_int)
   ASSERT_EQUAL(10, from_ruby<int>(a[0]));
 }
 
+TESTCASE(concat)
+{
+  Array a;
+  a.push(11);
+  a.push(12);
+  a.push(13);
+
+  Array b;
+  b.push(9);
+  b.push(27);
+  b.push(32);
+
+  Array result(a.concat(b));
+
+  ASSERT_EQUAL(a, result);
+
+  ASSERT_EQUAL(6u, a.size());
+  ASSERT_EQUAL(11, from_ruby<int>(a[0]));
+  ASSERT_EQUAL(12, from_ruby<int>(a[1]));
+  ASSERT_EQUAL(13, from_ruby<int>(a[2]));
+  ASSERT_EQUAL(9, from_ruby<int>(a[3]));
+  ASSERT_EQUAL(27, from_ruby<int>(a[4]));
+  ASSERT_EQUAL(32, from_ruby<int>(a[5]));
+
+  ASSERT_EQUAL(3u, b.size());
+  ASSERT_EQUAL(9, from_ruby<int>(b[0]));
+  ASSERT_EQUAL(27, from_ruby<int>(b[1]));
+  ASSERT_EQUAL(32, from_ruby<int>(b[2]));
+}
+
+TESTCASE(plus_equals)
+{
+  Array a;
+  a.push(11);
+  a.push(12);
+  a.push(13);
+
+  Array b;
+  b.push(9);
+  b.push(27);
+  b.push(32);
+
+  Array result(a += b);
+
+  ASSERT_EQUAL(a, result);
+
+  ASSERT_EQUAL(6u, a.size());
+  ASSERT_EQUAL(11, from_ruby<int>(a[0]));
+  ASSERT_EQUAL(12, from_ruby<int>(a[1]));
+  ASSERT_EQUAL(13, from_ruby<int>(a[2]));
+  ASSERT_EQUAL(9, from_ruby<int>(a[3]));
+  ASSERT_EQUAL(27, from_ruby<int>(a[4]));
+  ASSERT_EQUAL(32, from_ruby<int>(a[5]));
+
+  ASSERT_EQUAL(3u, b.size());
+  ASSERT_EQUAL(9, from_ruby<int>(b[0]));
+  ASSERT_EQUAL(27, from_ruby<int>(b[1]));
+  ASSERT_EQUAL(32, from_ruby<int>(b[2]));
+}
+
