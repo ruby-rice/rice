@@ -14,9 +14,11 @@
 #define HAVE_ISINF
 #endif
 
+#ifndef RUBY_VERSION_CODE
 // TODO: Is there a way to ensure that this is Ruby's version.h?
 #define RUBY_EXTERN extern "C"
 #include <version.h>
+#endif
 
 // workaround for ruby 1.8.4, which defines eaccess and shouldn't
 #if RUBY_VERSION_CODE <= 184
@@ -82,6 +84,10 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 
 #ifndef RSTRING_PTR
 #define RSTRING_PTR(str) RSTRING(str)->ptr
+#endif
+
+#ifndef RHASH_TBL
+#define RHASH_TBL(h) RHASH(h)->tbl
 #endif
 
 // ruby.h has a few defines that conflict with Visual Studio's STL
