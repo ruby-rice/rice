@@ -4,6 +4,7 @@
 #include "detail/Exception_Handler.hpp"
 #include "detail/ruby.hpp"
 #include "Object_defn.hpp"
+#include "Identifier.hpp"
 
 namespace Rice
 {
@@ -141,7 +142,7 @@ public:
   Derived_T & define_iterator(
       Iterator_T (T::*begin)(),
       Iterator_T (T::*end)(),
-      char const * name = "each");
+      Identifier name = "each");
 
   //! Include a module.
   /*! \param inc the module to be included.

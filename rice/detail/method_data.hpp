@@ -1,5 +1,5 @@
-#ifndef Rice__method_data__hpp_
-#define Rice__method_data__hpp_
+#ifndef method_data__hpp
+#define method_data__hpp
 
 #include "ruby.hpp"
 
@@ -9,25 +9,13 @@ namespace Rice
 namespace detail
 {
 
-// Retrieve the data associated with the last called method.
-void * method_data();
+VALUE define_method_with_data(
+    VALUE klass, ID id, VALUE (*cfunc)(ANYARGS), int arity, VALUE data);
 
-// Define a method and attach data to it.
-void define_method_with_data(
-    VALUE klass,
-    char const * name,
-    RUBY_METHOD_FUNC func,
-    int num_args,
-    void * data);
+VALUE method_data();
 
-// Set the data associated with a method.
-void set_method_data(
-    VALUE klass,
-    char const * name,
-    void * data);
+} // detail
 
-} // namespace detail
+} // Rice
 
-} // namespace Rice
-
-#endif // Rice__method_data__hpp_
+#endif // method_data__hpp

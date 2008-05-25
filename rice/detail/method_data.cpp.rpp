@@ -2,6 +2,10 @@
 
 #include <ruby.h>
 
+#ruby <<END
+MAX_ARGS = 15
+nil
+END
 
 extern "C"
 {
@@ -102,111 +106,24 @@ VALUE data_wrapper_0(VALUE self)
   return result;
 }
 
-VALUE data_wrapper_1(VALUE self, VALUE arg1)
+#ruby <<END
+  (1..MAX_ARGS).each do |i|
+    params = (1..i).map { |j| "VALUE arg#{j}" }.join(', ')
+    args = (1..i).map { |j| "arg#{j}" }.join(', ')
+
+    puts <<-END
+VALUE data_wrapper_#{i}(VALUE self, #{params})
 {
   VALUE result;
   FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1);
+  result = (*actual_cfunc())(self, #{args});
   return result;
 }
-VALUE data_wrapper_2(VALUE self, VALUE arg1, VALUE arg2)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2);
-  return result;
-}
-VALUE data_wrapper_3(VALUE self, VALUE arg1, VALUE arg2, VALUE arg3)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2, arg3);
-  return result;
-}
-VALUE data_wrapper_4(VALUE self, VALUE arg1, VALUE arg2, VALUE arg3, VALUE arg4)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2, arg3, arg4);
-  return result;
-}
-VALUE data_wrapper_5(VALUE self, VALUE arg1, VALUE arg2, VALUE arg3, VALUE arg4, VALUE arg5)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2, arg3, arg4, arg5);
-  return result;
-}
-VALUE data_wrapper_6(VALUE self, VALUE arg1, VALUE arg2, VALUE arg3, VALUE arg4, VALUE arg5, VALUE arg6)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2, arg3, arg4, arg5, arg6);
-  return result;
-}
-VALUE data_wrapper_7(VALUE self, VALUE arg1, VALUE arg2, VALUE arg3, VALUE arg4, VALUE arg5, VALUE arg6, VALUE arg7)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
-  return result;
-}
-VALUE data_wrapper_8(VALUE self, VALUE arg1, VALUE arg2, VALUE arg3, VALUE arg4, VALUE arg5, VALUE arg6, VALUE arg7, VALUE arg8)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
-  return result;
-}
-VALUE data_wrapper_9(VALUE self, VALUE arg1, VALUE arg2, VALUE arg3, VALUE arg4, VALUE arg5, VALUE arg6, VALUE arg7, VALUE arg8, VALUE arg9)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
-  return result;
-}
-VALUE data_wrapper_10(VALUE self, VALUE arg1, VALUE arg2, VALUE arg3, VALUE arg4, VALUE arg5, VALUE arg6, VALUE arg7, VALUE arg8, VALUE arg9, VALUE arg10)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
-  return result;
-}
-VALUE data_wrapper_11(VALUE self, VALUE arg1, VALUE arg2, VALUE arg3, VALUE arg4, VALUE arg5, VALUE arg6, VALUE arg7, VALUE arg8, VALUE arg9, VALUE arg10, VALUE arg11)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
-  return result;
-}
-VALUE data_wrapper_12(VALUE self, VALUE arg1, VALUE arg2, VALUE arg3, VALUE arg4, VALUE arg5, VALUE arg6, VALUE arg7, VALUE arg8, VALUE arg9, VALUE arg10, VALUE arg11, VALUE arg12)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
-  return result;
-}
-VALUE data_wrapper_13(VALUE self, VALUE arg1, VALUE arg2, VALUE arg3, VALUE arg4, VALUE arg5, VALUE arg6, VALUE arg7, VALUE arg8, VALUE arg9, VALUE arg10, VALUE arg11, VALUE arg12, VALUE arg13)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
-  return result;
-}
-VALUE data_wrapper_14(VALUE self, VALUE arg1, VALUE arg2, VALUE arg3, VALUE arg4, VALUE arg5, VALUE arg6, VALUE arg7, VALUE arg8, VALUE arg9, VALUE arg10, VALUE arg11, VALUE arg12, VALUE arg13, VALUE arg14)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
-  return result;
-}
-VALUE data_wrapper_15(VALUE self, VALUE arg1, VALUE arg2, VALUE arg3, VALUE arg4, VALUE arg5, VALUE arg6, VALUE arg7, VALUE arg8, VALUE arg9, VALUE arg10, VALUE arg11, VALUE arg12, VALUE arg13, VALUE arg14, VALUE arg15)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
-  return result;
-}
+    END
+  end
+
+  nil
+END
 
 } // namespace
 
@@ -302,22 +219,14 @@ define_method_with_data(
   VALUE (*data_wrapper)(ANYARGS);
   switch(arity)
   {
-    case 0: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_0); break;
-    case 1: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_1); break;
-    case 2: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_2); break;
-    case 3: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_3); break;
-    case 4: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_4); break;
-    case 5: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_5); break;
-    case 6: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_6); break;
-    case 7: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_7); break;
-    case 8: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_8); break;
-    case 9: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_9); break;
-    case 10: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_10); break;
-    case 11: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_11); break;
-    case 12: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_12); break;
-    case 13: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_13); break;
-    case 14: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_14); break;
-    case 15: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_15); break;
+#ruby <<END
+  (0..MAX_ARGS).each do |i|
+    puts <<-END
+    case #{i}: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_#{i}); break;
+    END
+  end
+  nil
+END
     case -1: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_m1); break;
     default: rb_raise(rb_eArgError, "unsupported arity %d", arity);
   }

@@ -1,6 +1,7 @@
 lib_LIBRARIES = librice.a
 
 librice_a_SOURCES = \
+Array.cpp \
 Class.cpp \
 Data_Type.cpp \
 Exception.cpp \
@@ -79,7 +80,6 @@ detail/Auto_Member_Function_Wrapper.hpp \
 detail/Auto_Member_Function_Wrapper.ipp \
 detail/Caster.hpp \
 detail/Exception_Handler.hpp \
-detail/Iterator_Definer.hpp \
 detail/Not_Copyable.hpp \
 detail/Wrapped_Function.hpp \
 detail/check_ruby_type.hpp \
@@ -90,11 +90,9 @@ detail/default_allocation_func.ipp \
 detail/define_method_and_auto_wrap.hpp \
 detail/define_method_and_auto_wrap.ipp \
 detail/demangle.hpp \
-detail/env.hpp \
 detail/from_ruby.hpp \
 detail/from_ruby.ipp \
 detail/method_data.hpp \
-detail/node.hpp \
 detail/object_call.hpp \
 detail/object_call.ipp \
 detail/protect.hpp \

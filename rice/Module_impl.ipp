@@ -111,8 +111,7 @@ public:
 
   static VALUE call(VALUE self)
   {
-    void * data = Rice::detail::method_data();
-    Iterator * iterator = static_cast<Iterator *>(data);
+    Data_Object<Iterator> iterator(Rice::detail::method_data());
     return iterator->call_impl(self);
   }
 };
@@ -162,15 +161,16 @@ Rice::Module_impl<Base_T, Derived_T>::
 define_iterator(
     Iterator_T (T::*begin)(),
     Iterator_T (T::*end)(),
-    char const * name)
+    Identifier name)
 {
-  // TODO: memory leak!!!!!!!
-  detail::Iterator * iterator =
-    new detail::Iterator_Impl<T, Iterator_T>(
-        begin,
-        end,
-        Data_Type<T>());
-  detail::define_method_with_data(
+  Data_Object<detail::Iterator> iterator(
+      new detail::Iterator_Impl<T, Iterator_T>(
+          begin,
+          end,
+          Data_Type<T>()),
+      Data_Type<detail::Iterator>(rb_cObject));
+  protect(
+      detail::define_method_with_data,
       static_cast<VALUE>(*this),
       name,
       (RUBY_METHOD_FUNC)iterator->call,
