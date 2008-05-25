@@ -82,6 +82,16 @@ Data_Type(Module const & klass)
 }
 
 template<typename T>
+template<typename Base_T>
+inline Rice::Data_Type<T>::
+Data_Type(Module const & klass)
+  : Module_impl<Data_Type_Base, Data_Type<T> >(
+      klass)
+{
+  this->bind<Base_T>(klass);
+}
+
+template<typename T>
 inline Rice::Data_Type<T>::
 ~Data_Type()
 {
@@ -99,7 +109,7 @@ klass() {
   else
   {
     std::string s;
-    s += detail::demangle(typeid(T *).name());
+    s += detail::demangle(typeid(T).name());
     s += " is unbound";
     throw std::runtime_error(s.c_str());
   }
