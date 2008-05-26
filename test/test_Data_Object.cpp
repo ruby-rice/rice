@@ -10,6 +10,14 @@ TESTSUITE(Data_Object);
 namespace
 {
   struct Foo { Foo() : x_(42) { } int x_; };
+
+  bool test_ruby_mark__marked = false;
+}
+
+template<>
+void ruby_mark(Foo * foo)
+{
+  test_ruby_mark__marked = true;
 }
 
 SETUP(Data_Object)
@@ -35,7 +43,11 @@ TESTCASE(construct_from_pointer_with_defaults)
   Data_Object<Foo> wrapped_foo(foo);
   ASSERT_EQUAL(foo, wrapped_foo.get());
   ASSERT_EQUAL(Data_Type<Foo>::klass(), wrapped_foo.class_of());
-  ASSERT_EQUAL(RUBY_DATA_FUNC(0), RDATA(wrapped_foo.value())->dmark);
+  typedef void (*Mark_Func)(void *);
+  typedef void (*Mark_Func_Foo)(Foo *);
+  ASSERT_EQUAL(
+      Mark_Func(Mark_Func_Foo(ruby_mark<Foo>)),
+      RDATA(wrapped_foo.value())->dmark);
   ASSERT_EQUAL(
       RUBY_DATA_FUNC(Default_Allocation_Strategy<Foo>::free),
       RUBY_DATA_FUNC(RDATA(wrapped_foo.value())->dfree));
@@ -49,7 +61,11 @@ TESTCASE(construct_from_pointer_and_klass)
   Data_Object<Foo> wrapped_foo(foo, Data_Type<Foo>::klass());
   ASSERT_EQUAL(foo, wrapped_foo.get());
   ASSERT_EQUAL(Data_Type<Foo>::klass(), wrapped_foo.class_of());
-  ASSERT_EQUAL(RUBY_DATA_FUNC(0), RDATA(wrapped_foo.value())->dmark);
+  typedef void (*Mark_Func)(void *);
+  typedef void (*Mark_Func_Foo)(Foo *);
+  ASSERT_EQUAL(
+      Mark_Func(Mark_Func_Foo(ruby_mark<Foo>)),
+      RDATA(wrapped_foo.value())->dmark);
   ASSERT_EQUAL(
       RUBY_DATA_FUNC(Default_Allocation_Strategy<Foo>::free),
       RUBY_DATA_FUNC(RDATA(wrapped_foo.value())->dfree));
@@ -63,7 +79,11 @@ TESTCASE(construct_from_pointer_and_alternate_klass)
   Data_Object<Foo> wrapped_foo(foo, rb_cObject);
   ASSERT_EQUAL(foo, wrapped_foo.get());
   ASSERT_EQUAL(rb_cObject, CLASS_OF(wrapped_foo.value()));
-  ASSERT_EQUAL(RUBY_DATA_FUNC(0), RDATA(wrapped_foo.value())->dmark);
+  typedef void (*Mark_Func)(void *);
+  typedef void (*Mark_Func_Foo)(Foo *);
+  ASSERT_EQUAL(
+      Mark_Func(Mark_Func_Foo(ruby_mark<Foo>)),
+      RDATA(wrapped_foo.value())->dmark);
   ASSERT_EQUAL(
       RUBY_DATA_FUNC(Default_Allocation_Strategy<Foo>::free),
       RUBY_DATA_FUNC(RDATA(wrapped_foo.value())->dfree));
@@ -233,3 +253,17 @@ TESTCASE(from_ruby_copy)
   Data_Object<Foo> wrapped_foo(foo);
   ASSERT_EQUAL(foo->x_, from_ruby<Foo>(wrapped_foo).x_);
 }
+
+TESTCASE(ruby_mark)
+{
+  Data_Type<Foo> rb_cFoo;
+  Foo * foo = new Foo;
+  Data_Object<Foo> wrapped_foo(foo);
+
+  test_ruby_mark__marked = false;
+
+  rb_gc_start();
+
+  ASSERT_EQUAL(true, test_ruby_mark__marked);
+}
+

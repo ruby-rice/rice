@@ -6,6 +6,10 @@
 
 #include <algorithm>
 
+template<typename T>
+const typename Rice::Default_Mark_Function<T>::Ruby_Data_Func
+Rice::Default_Mark_Function<T>::mark = ruby_mark<T>;
+
 namespace Rice
 {
 
