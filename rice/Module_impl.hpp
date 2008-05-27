@@ -140,6 +140,14 @@ public:
       char const * name,
       Func_T func);
 
+  //! Create an alias for a method.
+  /*! \param new_name the name of the new alias
+   *  \param old_name the name of the original method
+   */
+  Derived_T & alias_method(
+      Identifier new_name,
+      Identifier old_name);
+
   //! Define an iterator.
   /*! Essentially this is a conversion from a C++-style begin/end
    *  iterator to a Ruby-style \#each iterator.

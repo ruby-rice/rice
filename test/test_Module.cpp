@@ -91,6 +91,16 @@ TESTCASE(define_module_function_simple)
   ASSERT(define_method_simple_ok);
 }
 
+TESTCASE(alias_method)
+{
+  Module m(anonymous_module());
+  m.define_method("foo", define_method_simple_helper);
+  m.alias_method("bar", "foo");
+  define_method_simple_ok = false;
+  Object o = m.instance_eval("o = Object.new; o.extend(self); o.bar");
+  ASSERT(define_method_simple_ok);
+}
+
 namespace
 {
 

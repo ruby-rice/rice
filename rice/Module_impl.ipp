@@ -154,6 +154,38 @@ namespace Rice
 namespace detail
 {
 
+inline
+VALUE
+alias_method(
+    Rice::Module_base module,
+    Rice::Identifier new_name,
+    Rice::Identifier old_name)
+{
+  rb_define_alias(module, new_name.c_str(), old_name.c_str());
+  return Qnil;
+}
+
+} // detail
+
+} // Rice
+
+template<typename Base_T, typename Derived_T>
+inline
+Derived_T &
+Rice::Module_impl<Base_T, Derived_T>::
+alias_method(
+    Identifier new_name,
+    Identifier old_name)
+{
+  protect(detail::alias_method, *this, new_name, old_name);
+}
+
+namespace Rice
+{
+
+namespace detail
+{
+
 class Iterator
 {
 public:
