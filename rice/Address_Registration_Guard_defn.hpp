@@ -30,6 +30,9 @@ class Address_Registration_Guard
   : private detail::Not_Copyable
 {
 public:
+  //! Default constructor which does not register any address.
+  Address_Registration_Guard() { }
+
   //! Register an address with the GC.
   /*  \param address The address to register with the GC.  The address
    *  must point to a valid ruby object (RObject).
