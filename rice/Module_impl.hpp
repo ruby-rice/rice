@@ -23,9 +23,11 @@ public:
   Module_base(VALUE v = rb_cObject);
 
 protected: // TODO
+  detail::Exception_Handler const * handler() const;
+
   // TODO: For now, we always leak the handler, but in the future, we
   // should register it with the garbage collector.
-  detail::Exception_Handler const * handler_;
+  mutable detail::Exception_Handler const * handler_;
 };
 
 /*! An intermediate base class so we can always return the most-derived

@@ -17,8 +17,20 @@ inline
 Rice::Module_base::
 Module_base(VALUE v)
   : Object(v)
-  , handler_(new Rice::detail::Default_Exception_Handler)
+  , handler_(0)
 {
+}
+
+inline
+Rice::detail::Exception_Handler const *
+Rice::Module_base::
+handler() const
+{
+  if(!handler_)
+  {
+    handler_ = new Rice::detail::Default_Exception_Handler;
+  }
+  return handler_;
 }
 
 template<typename Base_T, typename Derived_T>
@@ -50,7 +62,7 @@ add_handler(
       new Rice::detail::
       Functor_Exception_Handler<Exception_T, Functor_T>(
           functor,
-          this->handler_);
+          this->handler());
   return (Derived_T &)*this;
 }
 
@@ -64,7 +76,7 @@ define_method(
     Func_T func)
 {
   detail::define_method_and_auto_wrap(
-      *this, name, func, this->handler_);
+      *this, name, func, this->handler());
   return (Derived_T &)*this;
 }
 
@@ -78,7 +90,7 @@ define_singleton_method(
     T func)
 {
   detail::define_method_and_auto_wrap(
-      rb_class_of(*this), name, func, this->handler_);
+      rb_class_of(*this), name, func, this->handler());
   return (Derived_T &)*this;
 }
 
