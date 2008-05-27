@@ -2,7 +2,7 @@
 #include "detail/ruby.hpp"
 
 #ifndef RUBY_VM
-extern C
+extern "C"
 {
 #include "env.h"
 }
