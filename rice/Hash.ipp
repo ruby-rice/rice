@@ -31,7 +31,7 @@ Hash(Object v)
 inline size_t Rice::Hash::
 size() const
 {
-  return RHASH_TBL(*this)->num_entries;
+  return RHASH_TBL(this->value())->num_entries;
 }
 
 inline Rice::Hash::Proxy::
