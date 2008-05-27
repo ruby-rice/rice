@@ -4,6 +4,7 @@
 #include "Data_Type.hpp"
 #include "Symbol.hpp"
 #include "protect.hpp"
+#include "Address_Registration_Guard.hpp"
 
 #include "Module.hpp"
 #include "Class.hpp"
@@ -17,20 +18,56 @@ inline
 Rice::Module_base::
 Module_base(VALUE v)
   : Object(v)
-  , handler_(0)
+  , handler_(Nil)
+  , handler_guard_()
 {
 }
 
 inline
-Rice::detail::Exception_Handler const *
+Rice::Module_base::
+Module_base(Module_base const & other)
+  : Object(other)
+  , handler_(other.handler_)
+  , handler_guard_()
+{
+  if(!handler_.is_nil())
+  {
+    Address_Registration_Guard handler_guard(&handler_);
+    handler_guard_.swap(handler_guard);
+  }
+}
+
+inline
+Rice::Object
 Rice::Module_base::
 handler() const
 {
-  if(!handler_)
-  {
-    handler_ = new Rice::detail::Default_Exception_Handler;
+  if(handler_.is_nil())
+{
+  Address_Registration_Guard handler_guard(&handler_);
+    handler_ = Data_Object<detail::Exception_Handler>(
+        new detail::Default_Exception_Handler,
+        Data_Type<detail::Exception_Handler>(rb_cObject));
+    handler_guard_.swap(handler_guard);
   }
   return handler_;
+}
+
+inline
+void Rice::Module_base::
+set_handler(Object handler)
+{
+  handler_ = handler;
+}
+
+inline
+void
+Rice::Module_base::
+swap(Module_base & other)
+{
+  handler_.swap(other.handler_);
+  handler_guard_.swap(other.handler_guard_);
+  Object::swap(other);
 }
 
 template<typename Base_T, typename Derived_T>
@@ -58,11 +95,14 @@ Rice::Module_impl<Base_T, Derived_T>::
 add_handler(
     Functor_T functor)
 {
-  this->handler_ =
-      new Rice::detail::
-      Functor_Exception_Handler<Exception_T, Functor_T>(
-          functor,
-          this->handler());
+  Data_Object<detail::Exception_Handler> old_handler(this->handler());
+  this->set_handler(
+      Data_Object<detail::Exception_Handler>(
+          new Rice::detail::
+          Functor_Exception_Handler<Exception_T, Functor_T>(
+              functor,
+              old_handler.get()),
+          Data_Type<detail::Exception_Handler>(rb_cObject)));
   return (Derived_T &)*this;
 }
 
@@ -103,7 +143,7 @@ define_module_function(
     char const * name,
     T func)
 {
-  detail::define_method_and_auto_wrap(*this, name, func);
+  detail::define_method_and_auto_wrap(*this, name, func, this->handler());
   this->call("module_function", Symbol(name));
   return (Derived_T &)*this;
 }

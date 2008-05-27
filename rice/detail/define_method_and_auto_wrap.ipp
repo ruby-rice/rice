@@ -11,11 +11,12 @@ define_method_and_auto_wrap(
     VALUE klass,
     Identifier name,
     Fun_T function,
-    Exception_Handler const * handler)
+    Object handler)
 {
   Data_Object<Wrapped_Function> f(
       wrap_function(function, handler),
-      Data_Type<Wrapped_Function>(rb_cObject));
+      Data_Type<Wrapped_Function>(rb_cObject),
+      Wrapped_Function::mark);
   protect(
       define_method_with_data,
       klass,

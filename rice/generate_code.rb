@@ -304,97 +304,7 @@ wrap_header(hpp_filename, nil, docstring, false, nil, nil, GENERATED_FILE_WARNIN
     end
   end
 end
-# 
-# # ======================================================================
-# method_types = [
-#   'method', 'module_function', 'protected_method',
-#   'private_method', 'singleton_method'
-# ]
-# method_docstring = <<END
-# //! Define a %s method.  Like rb_define_%s, but automatically calculates
-# //! the number of arguments based on the prototype of the supplied
-# //! function f.
-# VALUE define_%s(
-#     VALUE klass,
-#     char const * name,
-#     VALUE (*f)(VALUE arg1, VALUE arg2, ...));
-# END
-# docstring = <<END
-# /*! \\file
-#  *  \\brief Helpers for defining ruby methods, overloaded on the
-#  *  signature of the function being wrapped.
-#  */
-# #{method_types.map do |t| method_docstring % [ t, t, t ] end}
-# //! Define a global function.  Like rb_define_global_function, but
-# //! automatically calculates the number of arguments based on the
-# //! prototype of the supplied function f.
-# void define_global_function(
-#     char const * name,
-#     VALUE (*f)(VALUE arg1, VALUE arg2, ...));
-# END
-# method_def = <<END
-# inline void define_%s(
-#   VALUE klass,
-#   char const * name,
-#   VALUE(*f)(%%(args)))
-# {
-#   rb_define_%s(klass, name, RUBY_METHOD_FUNC(f), %%(j));
-# }
-# END
-# method_decl = <<END
-# void define_%s(
-#   VALUE klass,
-#   char const * name,
-#   VALUE(*f)(%%(args)));
-# END
-# ipp_template = <<END
-# #{method_types.map do |t| method_def % [ t, t ] end }\
-# inline void define_global_function(
-#   char const * name,
-#   VALUE(*f)(%(args)))
-# {
-#   rb_define_global_function(name, RUBY_METHOD_FUNC(f), %(j));
-# }
-# 
-# // ---------------------------------------------------------------------
-# END
-# hpp_template = <<END
-# #{method_types.map do |t| method_decl % t end }\
-# void define_global_function(
-#   char const * name,
-#   VALUE(*f)(%(args)));
-# 
-# // ---------------------------------------------------------------------
-# END
-# ipp_filename = 'define_method.ipp'
-# hpp_filename = 'define_method.hpp'
-# wrap_header(ipp_filename, 'Rice') do |ipp|
-#   wrap_header(hpp_filename, 'Rice', docstring, true) do |hpp|
-#     for j in 0..MAX_ARGS do
-#       t_array = (0..j).to_a
-#       arg_list = t_array.map { |x| "VALUE" }.join(', ')
-#       ipp.puts fill_template(ipp_template, {
-#         :args => arg_list,
-#         :j => j
-#       })
-#       ipp.puts ""
-#       hpp.puts fill_template(hpp_template, {
-#         :args => arg_list
-#       })
-#       hpp.puts ""
-#     end
-#     arg_list = "int, VALUE*, VALUE";
-#     ipp.puts fill_template(ipp_template, {
-#       :args => arg_list,
-#       :j => -1
-#     })
-#     ipp.puts ""
-#     hpp.puts fill_template(hpp_template, {
-#       :args => arg_list
-#     })
-#   end
-# end
-# 
+
 # ======================================================================
 docstring = <<END
 END
@@ -403,10 +313,9 @@ template<typename Func_T, typename Ret_T, %(typename_list)>
 Auto_Function_Wrapper<Func_T, Ret_T, %(typenames)>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -429,7 +338,7 @@ call(%(value_args))
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -444,10 +353,9 @@ template<typename Func_T, %(typename_list)>
 Auto_Function_Wrapper<Func_T, void, %(typenames)>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -471,7 +379,7 @@ call(%(value_args))
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -501,13 +409,12 @@ public:
 
   Auto_Function_Wrapper(
       Func func,
-      Exception_Handler const * handler = 0);
+      Object handler);
 
   static VALUE call(%(value_args));
 
 private:
   Func func_;
-  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, %(typename_list)>
@@ -522,23 +429,21 @@ public:
 
   Auto_Function_Wrapper(
       Func func,
-      Exception_Handler const * handler = 0);
+      Object handler);
 
   static VALUE call(%(value_args));
 
 private:
   Func func_;
-  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
 END
 hpp_head = <<END
-#include "Exception_Handler.hpp"
-
 END
 ipp_head = <<END
 #include "method_data.hpp"
+#include "Exception_Handler.hpp"
 #include "../Data_Object.hpp"
 #include "../ruby_try_catch.hpp"
 #include "../to_from_ruby.hpp"
@@ -596,10 +501,9 @@ template<typename Func_T, typename Ret_T, typename Self_T%(typename_list)>
 Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T%(typenames)>::
 Auto_Member_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -624,7 +528,7 @@ call(VALUE self%(value_args))
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -639,10 +543,9 @@ template<typename Func_T, typename Self_T%(typename_list)>
 Auto_Member_Function_Wrapper<Func_T, void, Self_T%(typenames)>::
 Auto_Member_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -668,7 +571,7 @@ call(VALUE self%(value_args))
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -693,13 +596,12 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Exception_Handler const * handler = 0);
+      Object handler);
 
   static VALUE call(VALUE self%(value_args));
 
 private:
   Func func_;
-  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T%(typename_list)>
@@ -713,19 +615,19 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Exception_Handler const * handler = 0);
+      Object handler);
 
   static VALUE call(VALUE self%(value_args));
 
 private:
   Func func_;
-  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
 END
 ipp_head = <<END
 #include "method_data.hpp"
+#include "Exception_Handler.hpp"
 #include "../Data_Object.hpp"
 #include "../ruby_try_catch.hpp"
 #include "../to_from_ruby.hpp"
@@ -781,7 +683,7 @@ ipp_template = <<END
 template<typename Ret_T, %(typename_list)>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(%(typenames)),
-    Exception_Handler const * handler)
+    Object handler)
 {
   typedef Ret_T (*Func)(%(typenames));
   return new Auto_Function_Wrapper<Func, Ret_T, %(typenames)>(func, handler);
@@ -790,7 +692,7 @@ Wrapped_Function * wrap_function(
 template<typename Ret_T, typename Self_T%(typename_list_no_self)>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(%(typenames_no_self_no_comma)),
-    Exception_Handler const * handler)
+    Object handler)
 {
   typedef Ret_T (Self_T::*Func)(%(typenames_no_self_no_comma));
   return new Auto_Member_Function_Wrapper<Func, Ret_T, Self_T%(typenames_no_self)>(func, handler);
@@ -799,7 +701,7 @@ Wrapped_Function * wrap_function(
 template<typename Ret_T, typename Self_T%(typename_list_no_self)>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(%(typenames_no_self_no_comma)) const,
-    Exception_Handler const * handler)
+    Object handler)
 {
   typedef Ret_T (Self_T::*Func)(%(typenames_no_self_no_comma)) const;
   return new Auto_Member_Function_Wrapper<Func, Ret_T, Self_T%(typenames_no_self)>(func, handler);
@@ -811,22 +713,21 @@ hpp_template = <<END
 template<typename Ret_T, %(typename_list)>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(%(typenames)),
-    Exception_Handler const * handler = 0);
+    Object handler);
 
 template<typename Ret_T, typename Self_T%(typename_list_no_self)>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(%(typenames_no_self_no_comma)),
-    Exception_Handler const * handler = 0);
+    Object handler);
 
 template<typename Ret_T, typename Self_T%(typename_list_no_self)>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(%(typenames_no_self_no_comma)) const,
-    Exception_Handler const * handler = 0);
+    Object handler);
 
 // ---------------------------------------------------------------------
 END
 hpp_head = <<END
-#include "Exception_Handler.hpp"
 #include "Wrapped_Function.hpp"
 
 END
@@ -920,77 +821,6 @@ if ARGV[0] == '--clean' then
     File.rm_f(filename)
   end
 end
-
-=begin
-# ======================================================================
-docstring = <<END
-END
-hpp_template = <<END
-struct Function_Traits<Ret_T, %(typenames)> 
-{
-  typedef Ret_T Result_Type;
-  typedef 
-}
-
-template<typename Ret_T, %(typename_list)>
-Function_Traits<Ret_T, %(typenames)> functor_traits(
-    Ret_T (*func)(%(typenames)),
-    Exception_Handler const * handler = 0);
-
-template<typename Ret_T, typename Self_T%(typename_list_no_self)>
-Function_Traits<Ret_T, %(typenames)> functor_traits(
-    Ret_T (Self_T::*func)(%(typenames_no_self_no_comma)),
-    Exception_Handler const * handler = 0);
-
-template<typename Ret_T, typename Self_T%(typename_list_no_self)>
-Member_Function_Traits<Ret_T, Self_T%(typenames_no_self) > functor_traits(
-    Ret_T (Self_T::*func)(%(typenames_no_self_no_comma)) const,
-    Exception_Handler const * handler = 0);
-
-// ---------------------------------------------------------------------
-END
-hpp_head = <<END
-#include "Exception_Handler.hpp"
-#include "Wrapped_Function.hpp"
-
-END
-hpp_tail = <<END
-
-template<typename T>
-functor_traits(&T::operator())
-
-END
-ipp_head = <<END
-#include "Auto_Function_Wrapper.hpp"
-#include "Auto_Member_Function_Wrapper.hpp"
-END
-ipp_filename = 'detail/function_traits.ipp'
-hpp_filename = 'detail/function_traits.hpp'
-wrap_header(hpp_filename, 'Rice::detail', docstring, true, hpp_head, hpp_tail) do |hpp|
-  for j in 0..MAX_ARGS do
-    t_array = (0..j).to_a
-    typenames     = t_array.map { |x| "Arg#{x}_T" }.join(', ')
-    typename_list = t_array.map { |x| "typename Arg#{x}_T" }.join(', ')
-    t_array.shift
-    typenames_no_self     = t_array.map { |x| ", Arg#{x}_T" }
-    typename_list_no_self = t_array.map { |x| ", typename Arg#{x}_T" }
-    typenames_no_self_no_comma = typenames_no_self.to_s.sub(', ', '')
-    ipp.puts fill_template(ipp_template, {
-      :typenames                  => typenames,
-      :typename_list              => typename_list,
-      :typenames_no_self          => typenames_no_self,
-      :typename_list_no_self      => typename_list_no_self,
-      :typenames_no_self_no_comma => typenames_no_self_no_comma,
-    })
-    hpp.puts fill_template(hpp_template, {
-      :typenames                  => typenames,
-      :typename_list              => typename_list,
-      :typename_list_no_self      => typename_list_no_self,
-      :typenames_no_self_no_comma => typenames_no_self_no_comma,
-    })
-  end
-end
-=end
 
 require 'find'
 require 'rubypp'

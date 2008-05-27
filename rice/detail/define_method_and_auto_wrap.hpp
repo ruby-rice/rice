@@ -10,14 +10,12 @@ namespace Rice
 namespace detail
 {
 
-class Exception_Handler;
-
 template<typename Fun_T>
 void define_method_and_auto_wrap(
     VALUE klass,
     Identifier name,
     Fun_T function,
-    Exception_Handler const * handler = 0);
+    Object handler);
 
 } // detail
 

@@ -5,9 +5,15 @@
 #include "detail/ruby.hpp"
 #include "Object_defn.hpp"
 #include "Identifier.hpp"
+#include "Address_Registration_Guard_defn.hpp"
 
 namespace Rice
 {
+
+namespace detail
+{
+  class Exception_Handler;
+}
 
 class Module;
 class Class;
@@ -21,13 +27,17 @@ class Module_base
 {
 public:
   Module_base(VALUE v = rb_cObject);
+  Module_base(Module_base const & other);
 
-protected: // TODO
-  detail::Exception_Handler const * handler() const;
+  void swap(Module_base & other);
 
-  // TODO: For now, we always leak the handler, but in the future, we
-  // should register it with the garbage collector.
-  mutable detail::Exception_Handler const * handler_;
+protected:
+  Object handler() const;
+  void set_handler(Object handler);
+
+private:
+  mutable Object handler_;
+  mutable Address_Registration_Guard handler_guard_;
 };
 
 /*! An intermediate base class so we can always return the most-derived

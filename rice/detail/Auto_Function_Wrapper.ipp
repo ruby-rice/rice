@@ -8,6 +8,7 @@
 #undef TYPE
 
 #include "method_data.hpp"
+#include "Exception_Handler.hpp"
 #include "../Data_Object.hpp"
 #include "../ruby_try_catch.hpp"
 #include "../to_from_ruby.hpp"
@@ -21,10 +22,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -47,7 +47,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -62,10 +62,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -89,7 +88,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -105,10 +104,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -131,7 +129,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -146,10 +144,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -173,7 +170,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -189,10 +186,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -215,7 +211,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -230,10 +226,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -257,7 +252,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -273,10 +268,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -299,7 +293,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -314,10 +308,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -341,7 +334,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -357,10 +350,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -383,7 +375,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -398,10 +390,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -425,7 +416,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -441,10 +432,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -467,7 +457,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -482,10 +472,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -509,7 +498,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -525,10 +514,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -551,7 +539,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -566,10 +554,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -593,7 +580,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -609,10 +596,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -635,7 +621,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -650,10 +636,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -677,7 +662,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -693,10 +678,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -719,7 +703,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -734,10 +718,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -761,7 +744,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -777,10 +760,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -803,7 +785,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -818,10 +800,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -845,7 +826,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -861,10 +842,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -887,7 +867,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -902,10 +882,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -929,7 +908,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -945,10 +924,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -971,7 +949,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -986,10 +964,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1013,7 +990,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -1029,10 +1006,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1055,7 +1031,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3)
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -1070,10 +1046,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1097,7 +1072,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3)
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -1113,10 +1088,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1139,7 +1113,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2)
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -1154,10 +1128,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T>
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1181,7 +1154,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2)
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -1197,10 +1170,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T>
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1223,7 +1195,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1)
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -1238,10 +1210,9 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T>
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1265,7 +1236,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1)
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -1281,10 +1252,9 @@ template<typename Func_T, typename Ret_T, typename Arg0_T>
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1307,7 +1277,7 @@ call(VALUE ruby_arg0)
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
@@ -1322,10 +1292,9 @@ template<typename Func_T, typename Arg0_T>
 Auto_Function_Wrapper<Func_T, void, Arg0_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+    Object handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
   , func_(func)
-  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1349,7 +1318,7 @@ call(VALUE ruby_arg0)
     {
       if(wrapper)
       {
-        return wrapper->handler_->handle_exception();
+        return wrapper->handler()->handle_exception();
       }
       else
       {
