@@ -40,9 +40,23 @@ DX_INIT_DOXYGEN(rice, Doxyfile, doc)
 RICE_SAMPLES="enum map inheritance"
 AC_SUBST(RICE_SAMPLES)
 
+
+dnl Disable fastdep on osx, since it's not compatible with universal
+dnl binaries
+AC_CANONICAL_TARGET
+case $target_os in
+  darwin*)
+    am__fastdepCXX_TRUE='#'
+    am__fastdepCXX_FALSE=
+    ;;
+  *)
+    ;;
+esac
+
 AC_CONFIG_FILES(Makefile rice/Makefile test/Makefile sample/Makefile
                 ruby/Makefile ruby/lib/Makefile ruby/lib/mkmf-rice.rb)
 AC_OUTPUT
 
 dnl Work around a bug in older versions of Rubygems
 chmod +x install-sh
+
