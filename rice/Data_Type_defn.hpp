@@ -104,22 +104,16 @@ public:
   typedef T Type;
 
   //! Default constructor which does not bind.
-  /*! No member functions must be called on this Data_Type until the
-   *  type is bound.
+  /*! No member functions must be called on this Data_Type except bind,
+   *  until the type is bound.
    */
   Data_Type();
 
   //! Constructor which takes a Module.
-  /*! Binds the type to the given Module with no base class.
+  /*! Binds the type to the given VALUE according to the rules given
+   *  above.
    *  \param klass the module to which to bind.
    */
-  Data_Type(Module const & v);
-
-  //! Constructor which takes a Module and a base class.
-  /*! Binds the type to the given Module and base class.
-   *  \param klass the module to which to bind.
-   */
-  template<typename Base_T>
   Data_Type(Module const & v);
 
   //! Destructor.

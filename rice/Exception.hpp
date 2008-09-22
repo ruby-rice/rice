@@ -63,9 +63,6 @@ private:
   Address_Registration_Guard message_guard_;
 };
 
-//! Return the active exception, or nil if there is no active exception
-Object errinfo();
-
 } // namespace Rice
 
 #endif // Rice__Exception__hpp_

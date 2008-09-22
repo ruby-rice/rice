@@ -192,15 +192,7 @@ public:
 private:
   Hash hash_;
   st_table * tbl_;
-
-  // TODO: we should be using autoconf to check for the existence of
-  // st_index_t
-#ifdef ST_INDEX_BITS
-  st_index_t bin_; // 1.9
-#else
-  int bin_; // pre-1.9
-#endif
-
+  int bin_;
   st_table_entry * ptr_;
 
   mutable typename detail::remove_const<Value_T>::Type tmp_;

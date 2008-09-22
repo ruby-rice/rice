@@ -8,8 +8,6 @@
 #undef TYPE
 
 #include "method_data.hpp"
-#include "Exception_Handler.hpp"
-#include "../Data_Object.hpp"
 #include "../ruby_try_catch.hpp"
 #include "../to_from_ruby.hpp"
 namespace Rice
@@ -22,9 +20,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -35,9 +34,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); Arg10_T arg10(from_ruby<Arg10_T>(ruby_arg10)); Arg11_T arg11(from_ruby<Arg11_T>(ruby_arg11)); Arg12_T arg12(from_ruby<Arg12_T>(ruby_arg12)); Arg13_T arg13(from_ruby<Arg13_T>(ruby_arg13)); Arg14_T arg14(from_ruby<Arg14_T>(ruby_arg14)); Arg15_T arg15(from_ruby<Arg15_T>(ruby_arg15)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15));
   }
@@ -47,7 +45,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -62,9 +60,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -75,9 +74,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); Arg10_T arg10(from_ruby<Arg10_T>(ruby_arg10)); Arg11_T arg11(from_ruby<Arg11_T>(ruby_arg11)); Arg12_T arg12(from_ruby<Arg12_T>(ruby_arg12)); Arg13_T arg13(from_ruby<Arg13_T>(ruby_arg13)); Arg14_T arg14(from_ruby<Arg14_T>(ruby_arg14)); Arg15_T arg15(from_ruby<Arg15_T>(ruby_arg15)); 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
     return Qnil;
@@ -88,7 +87,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -104,9 +103,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -117,9 +117,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); Arg10_T arg10(from_ruby<Arg10_T>(ruby_arg10)); Arg11_T arg11(from_ruby<Arg11_T>(ruby_arg11)); Arg12_T arg12(from_ruby<Arg12_T>(ruby_arg12)); Arg13_T arg13(from_ruby<Arg13_T>(ruby_arg13)); Arg14_T arg14(from_ruby<Arg14_T>(ruby_arg14)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14));
   }
@@ -129,7 +128,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -144,9 +143,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -157,9 +157,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); Arg10_T arg10(from_ruby<Arg10_T>(ruby_arg10)); Arg11_T arg11(from_ruby<Arg11_T>(ruby_arg11)); Arg12_T arg12(from_ruby<Arg12_T>(ruby_arg12)); Arg13_T arg13(from_ruby<Arg13_T>(ruby_arg13)); Arg14_T arg14(from_ruby<Arg14_T>(ruby_arg14)); 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
     return Qnil;
@@ -170,7 +170,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -186,9 +186,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -199,9 +200,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); Arg10_T arg10(from_ruby<Arg10_T>(ruby_arg10)); Arg11_T arg11(from_ruby<Arg11_T>(ruby_arg11)); Arg12_T arg12(from_ruby<Arg12_T>(ruby_arg12)); Arg13_T arg13(from_ruby<Arg13_T>(ruby_arg13)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13));
   }
@@ -211,7 +211,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -226,9 +226,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -239,9 +240,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); Arg10_T arg10(from_ruby<Arg10_T>(ruby_arg10)); Arg11_T arg11(from_ruby<Arg11_T>(ruby_arg11)); Arg12_T arg12(from_ruby<Arg12_T>(ruby_arg12)); Arg13_T arg13(from_ruby<Arg13_T>(ruby_arg13)); 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
     return Qnil;
@@ -252,7 +253,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -268,9 +269,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -281,9 +283,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); Arg10_T arg10(from_ruby<Arg10_T>(ruby_arg10)); Arg11_T arg11(from_ruby<Arg11_T>(ruby_arg11)); Arg12_T arg12(from_ruby<Arg12_T>(ruby_arg12)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12));
   }
@@ -293,7 +294,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -308,9 +309,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -321,9 +323,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); Arg10_T arg10(from_ruby<Arg10_T>(ruby_arg10)); Arg11_T arg11(from_ruby<Arg11_T>(ruby_arg11)); Arg12_T arg12(from_ruby<Arg12_T>(ruby_arg12)); 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
     return Qnil;
@@ -334,7 +336,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -350,9 +352,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -363,9 +366,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); Arg10_T arg10(from_ruby<Arg10_T>(ruby_arg10)); Arg11_T arg11(from_ruby<Arg11_T>(ruby_arg11)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11));
   }
@@ -375,7 +377,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -390,9 +392,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -403,9 +406,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); Arg10_T arg10(from_ruby<Arg10_T>(ruby_arg10)); Arg11_T arg11(from_ruby<Arg11_T>(ruby_arg11)); 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
     return Qnil;
@@ -416,7 +419,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -432,9 +435,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -445,9 +449,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); Arg10_T arg10(from_ruby<Arg10_T>(ruby_arg10)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10));
   }
@@ -457,7 +460,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -472,9 +475,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -485,9 +489,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); Arg10_T arg10(from_ruby<Arg10_T>(ruby_arg10)); 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
     return Qnil;
@@ -498,7 +502,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -514,9 +518,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -527,9 +532,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9));
   }
@@ -539,7 +543,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -554,9 +558,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -567,9 +572,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); Arg9_T arg9(from_ruby<Arg9_T>(ruby_arg9)); 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
     return Qnil;
@@ -580,7 +585,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -596,9 +601,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -609,9 +615,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8));
   }
@@ -621,7 +626,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -636,9 +641,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -649,9 +655,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); Arg8_T arg8(from_ruby<Arg8_T>(ruby_arg8)); 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
     return Qnil;
@@ -662,7 +668,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -678,9 +684,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -691,9 +698,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7));
   }
@@ -703,7 +709,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -718,9 +724,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -731,9 +738,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); Arg7_T arg7(from_ruby<Arg7_T>(ruby_arg7)); 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
     return Qnil;
@@ -744,7 +751,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -760,9 +767,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -773,9 +781,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6));
   }
@@ -785,7 +792,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -800,9 +807,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -813,9 +821,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); Arg6_T arg6(from_ruby<Arg6_T>(ruby_arg6)); 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
     return Qnil;
@@ -826,7 +834,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -842,9 +850,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -855,9 +864,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5));
   }
@@ -867,7 +875,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -882,9 +890,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -895,9 +904,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); Arg5_T arg5(from_ruby<Arg5_T>(ruby_arg5)); 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5);
     return Qnil;
@@ -908,7 +917,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -924,9 +933,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -937,9 +947,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4));
   }
@@ -949,7 +958,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -964,9 +973,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -977,9 +987,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); Arg4_T arg4(from_ruby<Arg4_T>(ruby_arg4)); 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4);
     return Qnil;
@@ -990,7 +1000,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE r
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -1006,9 +1016,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1019,9 +1030,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3)
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3));
   }
@@ -1031,7 +1041,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3)
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -1046,9 +1056,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typ
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1059,9 +1070,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3)
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); Arg3_T arg3(from_ruby<Arg3_T>(ruby_arg3)); 
     wrapper->func_(arg0, arg1, arg2, arg3);
     return Qnil;
@@ -1072,7 +1083,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3)
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -1088,9 +1099,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T, type
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1101,9 +1113,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2)
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); 
     return to_ruby(wrapper->func_(arg0, arg1, arg2));
   }
@@ -1113,7 +1124,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2)
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -1128,9 +1139,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T, typename Arg2_T>
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1141,9 +1153,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2)
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); Arg2_T arg2(from_ruby<Arg2_T>(ruby_arg2)); 
     wrapper->func_(arg0, arg1, arg2);
     return Qnil;
@@ -1154,7 +1166,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1, VALUE ruby_arg2)
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -1170,9 +1182,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T, typename Arg1_T>
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1183,9 +1196,8 @@ call(VALUE ruby_arg0, VALUE ruby_arg1)
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); 
     return to_ruby(wrapper->func_(arg0, arg1));
   }
@@ -1195,7 +1207,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1)
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -1210,9 +1222,10 @@ template<typename Func_T, typename Arg0_T, typename Arg1_T>
 Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1223,9 +1236,9 @@ call(VALUE ruby_arg0, VALUE ruby_arg1)
   Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); Arg1_T arg1(from_ruby<Arg1_T>(ruby_arg1)); 
     wrapper->func_(arg0, arg1);
     return Qnil;
@@ -1236,7 +1249,7 @@ call(VALUE ruby_arg0, VALUE ruby_arg1)
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -1252,9 +1265,10 @@ template<typename Func_T, typename Ret_T, typename Arg0_T>
 Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1265,9 +1279,8 @@ call(VALUE ruby_arg0)
   Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
-    wrapper =
-      (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T> *)func.get();
+    void * data = detail::method_data();
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); 
     return to_ruby(wrapper->func_(arg0));
   }
@@ -1277,7 +1290,7 @@ call(VALUE ruby_arg0)
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {
@@ -1292,9 +1305,10 @@ template<typename Func_T, typename Arg0_T>
 Auto_Function_Wrapper<Func_T, void, Arg0_T>::
 Auto_Function_Wrapper(
     Func func,
-    Object handler)
-  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args, handler)
+    Exception_Handler const * handler)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
 {
 }
 
@@ -1305,9 +1319,9 @@ call(VALUE ruby_arg0)
   Auto_Function_Wrapper<Func_T, void, Arg0_T> * wrapper = 0;
   try
   {
-    Data_Object<Wrapped_Function> func(detail::method_data());
+    void * data = detail::method_data();
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, Arg0_T> *)func.get();
+      (Auto_Function_Wrapper<Func_T, void, Arg0_T> *)data;
     Arg0_T arg0(from_ruby<Arg0_T>(ruby_arg0)); 
     wrapper->func_(arg0);
     return Qnil;
@@ -1318,7 +1332,7 @@ call(VALUE ruby_arg0)
     {
       if(wrapper)
       {
-        return wrapper->handler()->handle_exception();
+        return wrapper->handler_->handle_exception();
       }
       else
       {

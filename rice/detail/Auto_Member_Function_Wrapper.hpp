@@ -28,12 +28,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12, VALUE ruby_arg13, VALUE ruby_arg14, VALUE ruby_arg15);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T, typename Arg14_T, typename Arg15_T>
@@ -47,12 +48,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12, VALUE ruby_arg13, VALUE ruby_arg14, VALUE ruby_arg15);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -67,12 +69,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12, VALUE ruby_arg13, VALUE ruby_arg14);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T, typename Arg14_T>
@@ -86,12 +89,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12, VALUE ruby_arg13, VALUE ruby_arg14);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -106,12 +110,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12, VALUE ruby_arg13);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T>
@@ -125,12 +130,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12, VALUE ruby_arg13);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -145,12 +151,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T>
@@ -164,12 +171,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -184,12 +192,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T>
@@ -203,12 +212,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -223,12 +233,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T>
@@ -242,12 +253,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -262,12 +274,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T>
@@ -281,12 +294,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -301,12 +315,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T>
@@ -320,12 +335,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -340,12 +356,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T>
@@ -359,12 +376,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -379,12 +397,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T>
@@ -398,12 +417,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -418,12 +438,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T>
@@ -437,12 +458,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -457,12 +479,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T>
@@ -476,12 +499,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -496,12 +520,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T>
@@ -515,12 +540,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -535,12 +561,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T>
@@ -554,12 +581,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -574,12 +602,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T, typename Arg1_T>
@@ -593,12 +622,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self, VALUE ruby_arg1);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------
@@ -613,12 +643,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 template<typename Func_T, typename Self_T>
@@ -632,12 +663,13 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Object handler);
+      Exception_Handler const * handler = 0);
 
   static VALUE call(VALUE self);
 
 private:
   Func func_;
+  Exception_Handler const * handler_;
 };
 
 // ---------------------------------------------------------------------

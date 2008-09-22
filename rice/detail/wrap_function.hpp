@@ -7,6 +7,7 @@
 // This causes problems with certain C++ libraries
 #undef TYPE
 
+#include "Exception_Handler.hpp"
 #include "Wrapped_Function.hpp"
 
 namespace Rice
@@ -22,257 +23,257 @@ namespace detail
 template<typename Ret_T, typename Arg0_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)() const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T, typename Arg14_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T, typename Arg14_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T, typename Arg14_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 template<typename Ret_T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T, typename Arg14_T, typename Arg15_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T, typename Arg14_T, typename Arg15_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T),
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 template<typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T, typename Arg14_T, typename Arg15_T>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T) const,
-    Object handler);
+    Exception_Handler const * handler = 0);
 
 // ---------------------------------------------------------------------
 #endif // DOXYGEN

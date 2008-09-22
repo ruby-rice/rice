@@ -4,7 +4,6 @@
 #include "Data_Type.hpp"
 #include "Symbol.hpp"
 #include "protect.hpp"
-#include "Address_Registration_Guard.hpp"
 
 #include "Module.hpp"
 #include "Class.hpp"
@@ -18,56 +17,8 @@ inline
 Rice::Module_base::
 Module_base(VALUE v)
   : Object(v)
-  , handler_(Nil)
-  , handler_guard_()
+  , handler_(new Rice::detail::Default_Exception_Handler)
 {
-}
-
-inline
-Rice::Module_base::
-Module_base(Module_base const & other)
-  : Object(other)
-  , handler_(other.handler_)
-  , handler_guard_()
-{
-  if(!handler_.is_nil())
-  {
-    Address_Registration_Guard handler_guard(&handler_);
-    handler_guard_.swap(handler_guard);
-  }
-}
-
-inline
-Rice::Object
-Rice::Module_base::
-handler() const
-{
-  if(handler_.is_nil())
-{
-  Address_Registration_Guard handler_guard(&handler_);
-    handler_ = Data_Object<detail::Exception_Handler>(
-        new detail::Default_Exception_Handler,
-        Data_Type<detail::Exception_Handler>(rb_cObject));
-    handler_guard_.swap(handler_guard);
-  }
-  return handler_;
-}
-
-inline
-void Rice::Module_base::
-set_handler(Object handler)
-{
-  handler_ = handler;
-}
-
-inline
-void
-Rice::Module_base::
-swap(Module_base & other)
-{
-  handler_.swap(other.handler_);
-  handler_guard_.swap(other.handler_guard_);
-  Object::swap(other);
 }
 
 template<typename Base_T, typename Derived_T>
@@ -95,14 +46,11 @@ Rice::Module_impl<Base_T, Derived_T>::
 add_handler(
     Functor_T functor)
 {
-  Data_Object<detail::Exception_Handler> old_handler(this->handler());
-  this->set_handler(
-      Data_Object<detail::Exception_Handler>(
-          new Rice::detail::
-          Functor_Exception_Handler<Exception_T, Functor_T>(
-              functor,
-              old_handler.get()),
-          Data_Type<detail::Exception_Handler>(rb_cObject)));
+  this->handler_ =
+      new Rice::detail::
+      Functor_Exception_Handler<Exception_T, Functor_T>(
+          functor,
+          this->handler_);
   return (Derived_T &)*this;
 }
 
@@ -116,7 +64,7 @@ define_method(
     Func_T func)
 {
   detail::define_method_and_auto_wrap(
-      *this, name, func, this->handler());
+      *this, name, func, this->handler_);
   return (Derived_T &)*this;
 }
 
@@ -130,7 +78,7 @@ define_singleton_method(
     T func)
 {
   detail::define_method_and_auto_wrap(
-      rb_class_of(*this), name, func, this->handler());
+      rb_class_of(*this), name, func, this->handler_);
   return (Derived_T &)*this;
 }
 
@@ -143,41 +91,9 @@ define_module_function(
     char const * name,
     T func)
 {
-  detail::define_method_and_auto_wrap(*this, name, func, this->handler());
+  detail::define_method_and_auto_wrap(*this, name, func);
   this->call("module_function", Symbol(name));
   return (Derived_T &)*this;
-}
-
-namespace Rice
-{
-
-namespace detail
-{
-
-inline
-VALUE
-alias_method(
-    Rice::Module_base module,
-    Rice::Identifier new_name,
-    Rice::Identifier old_name)
-{
-  rb_define_alias(module, new_name.c_str(), old_name.c_str());
-  return Qnil;
-}
-
-} // detail
-
-} // Rice
-
-template<typename Base_T, typename Derived_T>
-inline
-Derived_T &
-Rice::Module_impl<Base_T, Derived_T>::
-alias_method(
-    Identifier new_name,
-    Identifier old_name)
-{
-  protect(detail::alias_method, *this, new_name, old_name);
 }
 
 namespace Rice
@@ -195,7 +111,8 @@ public:
 
   static VALUE call(VALUE self)
   {
-    Data_Object<Iterator> iterator(Rice::detail::method_data());
+    void * data = Rice::detail::method_data();
+    Iterator * iterator = static_cast<Iterator *>(data);
     return iterator->call_impl(self);
   }
 };
@@ -245,16 +162,15 @@ Rice::Module_impl<Base_T, Derived_T>::
 define_iterator(
     Iterator_T (T::*begin)(),
     Iterator_T (T::*end)(),
-    Identifier name)
+    char const * name)
 {
-  Data_Object<detail::Iterator> iterator(
-      new detail::Iterator_Impl<T, Iterator_T>(
-          begin,
-          end,
-          Data_Type<T>()),
-      Data_Type<detail::Iterator>(rb_cObject));
-  protect(
-      detail::define_method_with_data,
+  // TODO: memory leak!!!!!!!
+  detail::Iterator * iterator =
+    new detail::Iterator_Impl<T, Iterator_T>(
+        begin,
+        end,
+        Data_Type<T>());
+  detail::define_method_with_data(
       static_cast<VALUE>(*this),
       name,
       (RUBY_METHOD_FUNC)iterator->call,

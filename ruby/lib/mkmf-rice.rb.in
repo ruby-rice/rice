@@ -37,13 +37,6 @@ def init_mkmf_rice(config = CONFIG)
   $CPPFLAGS << " #{$RICE_CPPFLAGS} -I#{$RICE_PREFIX}/include"
   $LDFLAGS << " #{$RICE_LDFLAGS} -L#{$RICE_PREFIX}/lib"
 
-  # TODO: Ruby 1.9 doesn't install version.h anymore.  We need to phase
-  # out use of RUBY_VERSION_CODE, but until then, this is what we'll do.
-  ruby_version_code = RUBY_VERSION.gsub(/\./, '').to_i
-  if ruby_version_code >= 190 then
-    $CPPFLAGS << " -DRUBY_VERSION_CODE=#{ruby_version_code}"
-  end
-
   # Turn on debugging and verbose warnings by default on compilers that
   # support it
   $CXXFLAGS = ''
@@ -187,7 +180,7 @@ class RiceMakefileCreator
     end
 
     def puts(*strings)
-      print *strings.map { |s| "#{s}\n" }
+      print strings.map { |s| "#{s}\n" }
     end
 
     def close

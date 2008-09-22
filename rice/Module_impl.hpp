@@ -4,16 +4,9 @@
 #include "detail/Exception_Handler.hpp"
 #include "detail/ruby.hpp"
 #include "Object_defn.hpp"
-#include "Identifier.hpp"
-#include "Address_Registration_Guard_defn.hpp"
 
 namespace Rice
 {
-
-namespace detail
-{
-  class Exception_Handler;
-}
 
 class Module;
 class Class;
@@ -27,17 +20,11 @@ class Module_base
 {
 public:
   Module_base(VALUE v = rb_cObject);
-  Module_base(Module_base const & other);
 
-  void swap(Module_base & other);
-
-protected:
-  Object handler() const;
-  void set_handler(Object handler);
-
-private:
-  mutable Object handler_;
-  mutable Address_Registration_Guard handler_guard_;
+protected: // TODO
+  // TODO: For now, we always leak the handler, but in the future, we
+  // should register it with the garbage collector.
+  detail::Exception_Handler const * handler_;
 };
 
 /*! An intermediate base class so we can always return the most-derived
@@ -140,14 +127,6 @@ public:
       char const * name,
       Func_T func);
 
-  //! Create an alias for a method.
-  /*! \param new_name the name of the new alias
-   *  \param old_name the name of the original method
-   */
-  Derived_T & alias_method(
-      Identifier new_name,
-      Identifier old_name);
-
   //! Define an iterator.
   /*! Essentially this is a conversion from a C++-style begin/end
    *  iterator to a Ruby-style \#each iterator.
@@ -162,7 +141,7 @@ public:
   Derived_T & define_iterator(
       Iterator_T (T::*begin)(),
       Iterator_T (T::*end)(),
-      Identifier name = "each");
+      char const * name = "each");
 
   //! Include a module.
   /*! \param inc the module to be included.

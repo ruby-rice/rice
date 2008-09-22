@@ -57,13 +57,3 @@ what() const throw()
   return from_ruby<char const *>(message_);
 }
 
-Rice::Object Rice::
-errinfo()
-{
-#ifdef RUBY_VM
-  return rb_errinfo();
-#else
-  return ruby_errinfo;
-#endif
-}
-

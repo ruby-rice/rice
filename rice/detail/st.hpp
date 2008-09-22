@@ -12,11 +12,7 @@
 
 extern "C"
 {
-#ifdef RUBY_VM
-#include "ruby/st.h"
-#else
 #include "st.h"
-#endif
 }
 
 // Older versions of Ruby don't have proper signatures for the st_
