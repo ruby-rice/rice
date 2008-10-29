@@ -21,6 +21,7 @@ AC_ARG_WITH(
 AC_SUBST(RUBY)
 
 RUBY_CONFIG_ARCHDIR=`RUBY_CONFIG(archdir)`
+RUBY_CONFIG_ARCH=`RUBY_CONFIG(arch)`
 RUBY_CONFIG_LIBDIR=`RUBY_CONFIG(libdir)`
 RUBY_CONFIG_BINDIR=`RUBY_CONFIG(bindir)`
 RUBY_CONFIG_CFLAGS=`RUBY_CONFIG(CFLAGS)`
@@ -30,8 +31,13 @@ RUBY_CONFIG_LDFLAGS=`RUBY_CONFIG(LDFLAGS)`
 RUBY_CONFIG_LIBRUBYARG=`RUBY_CONFIG(LIBRUBYARG)`
 RUBY_CONFIG_LIBRUBYARG_STATIC=`RUBY_CONFIG(LIBRUBYARG_STATIC)`
 RUBY_CONFIG_CCDLFLAGS=`RUBY_CONFIG(CCDLFLAGS)`
+RUBY_CONFIG_RUBYHDRDIR=`RUBY_CONFIG(rubyhdrdir)`
 
 RUBY_CPPFLAGS="-I${RUBY_CONFIG_ARCHDIR}"
+if [[ "${RUBY_CONFIG_ARCHDIR}" != "" ]]; then
+  RUBY_CPPFLAGS="${RUBY_CPPFLAGS} -I${RUBY_CONFIG_RUBYHDRDIR}"
+  RUBY_CPPFLAGS="${RUBY_CPPFLAGS} -I${RUBY_CONFIG_RUBYHDRDIR}/${RUBY_CONFIG_ARCH}"
+fi
 AC_SUBST(RUBY_CPPFLAGS)
 
 RUBY_CFLAGS="${RUBY_CONFIG_CFLAGS} ${RUBY_CONFIG_CCDLFLAGS}"
@@ -77,12 +83,16 @@ CPPFLAGS="${CPPFLAGS} ${RUBY_CPPFLAGS}"
 CXXFLAGS="${CPPFLAGS}"
 AC_CHECK_HEADER(ruby.h,,AC_MSG_ERROR(
                 could not find ruby.h (check config.log)),[ ])
-AC_CHECK_HEADER(node.h,,AC_MSG_ERROR(
-                could not find node.h (check config.log)),[
+AC_CHECK_HEADER(node.h,,,[
 #include <ruby.h>
 ])
-AC_CHECK_HEADER(version.h,,AC_MSG_ERROR(
-                could not find version.h (check config.log)),[
+
+if test "x${ac_cv_header_node_h}x" != xyesx; then
+  AC_CHECK_HEADER(mininode.h,,AC_MSG_ERROR(
+                  could not find node.h or mininode.h (check config.log)))
+fi
+
+AC_CHECK_HEADER(version.h,,,[
 #include <ruby.h>
 ])
 CPPFLAGS="${CPPFLAGS_save}"
