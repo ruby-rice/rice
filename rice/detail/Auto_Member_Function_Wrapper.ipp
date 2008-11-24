@@ -27,13 +27,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T, typename Arg14_T, typename Arg15_T>
@@ -78,13 +71,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T, typename Arg14_T, typename Arg15_T>
@@ -131,13 +117,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T, typename Arg14_T>
@@ -182,13 +161,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T, typename Arg14_T>
@@ -235,13 +207,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T>
@@ -286,13 +251,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T>
@@ -339,13 +297,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T>
@@ -390,13 +341,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T>
@@ -443,13 +387,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T>
@@ -494,13 +431,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T>
@@ -547,13 +477,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T>
@@ -598,13 +521,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T>
@@ -651,13 +567,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T>
@@ -702,13 +611,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T>
@@ -755,13 +657,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T>
@@ -806,13 +701,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T>
@@ -859,13 +747,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T>
@@ -910,13 +791,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T>
@@ -963,13 +837,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T>
@@ -1014,13 +881,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T>
@@ -1067,13 +927,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T>
@@ -1118,13 +971,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T>
@@ -1171,13 +1017,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T>
@@ -1222,13 +1061,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T>
@@ -1275,13 +1107,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T>
@@ -1326,13 +1151,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T, typename Arg3_T>
@@ -1379,13 +1197,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T, typename Arg2_T>
@@ -1430,13 +1241,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T, typename Arg2_T>
@@ -1483,13 +1287,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, typename Arg1_T>
@@ -1534,13 +1331,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T, typename Arg1_T>
@@ -1587,13 +1377,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T>
@@ -1638,13 +1421,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T>

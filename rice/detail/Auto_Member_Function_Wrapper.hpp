@@ -28,7 +28,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12, VALUE ruby_arg13, VALUE ruby_arg14, VALUE ruby_arg15);
 
@@ -49,7 +49,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12, VALUE ruby_arg13, VALUE ruby_arg14, VALUE ruby_arg15);
 
@@ -71,7 +71,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12, VALUE ruby_arg13, VALUE ruby_arg14);
 
@@ -92,7 +92,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12, VALUE ruby_arg13, VALUE ruby_arg14);
 
@@ -114,7 +114,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12, VALUE ruby_arg13);
 
@@ -135,7 +135,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12, VALUE ruby_arg13);
 
@@ -157,7 +157,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12);
 
@@ -178,7 +178,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11, VALUE ruby_arg12);
 
@@ -200,7 +200,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11);
 
@@ -221,7 +221,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10, VALUE ruby_arg11);
 
@@ -243,7 +243,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10);
 
@@ -264,7 +264,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9, VALUE ruby_arg10);
 
@@ -286,7 +286,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9);
 
@@ -307,7 +307,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8, VALUE ruby_arg9);
 
@@ -329,7 +329,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8);
 
@@ -350,7 +350,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7, VALUE ruby_arg8);
 
@@ -372,7 +372,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7);
 
@@ -393,7 +393,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6, VALUE ruby_arg7);
 
@@ -415,7 +415,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6);
 
@@ -436,7 +436,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5, VALUE ruby_arg6);
 
@@ -458,7 +458,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5);
 
@@ -479,7 +479,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4, VALUE ruby_arg5);
 
@@ -501,7 +501,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4);
 
@@ -522,7 +522,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_arg4);
 
@@ -544,7 +544,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3);
 
@@ -565,7 +565,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3);
 
@@ -587,7 +587,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2);
 
@@ -608,7 +608,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2);
 
@@ -630,7 +630,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1);
 
@@ -651,7 +651,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self, VALUE ruby_arg1);
 
@@ -673,7 +673,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self);
 
@@ -694,7 +694,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self);
 

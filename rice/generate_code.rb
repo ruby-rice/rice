@@ -409,13 +409,6 @@ Auto_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, %(typename_list)>
@@ -457,13 +450,6 @@ Auto_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, %(typename_list)>
@@ -516,7 +502,7 @@ public:
 
   Auto_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(%(value_args));
 
@@ -538,7 +524,7 @@ public:
 
   Auto_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(%(value_args));
 
@@ -618,13 +604,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T%(typename_list)>
@@ -669,13 +648,6 @@ Auto_Member_Function_Wrapper(
   , handler_(handler)
   , handler_guard_(&handler_)
 {
-  if(!handler_.test())
-  {
-    Data_Object<Exception_Handler> handler(
-        new Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
 }
 
 template<typename Func_T, typename Self_T%(typename_list)>
@@ -725,7 +697,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self%(value_args));
 
@@ -746,7 +718,7 @@ public:
 
   Auto_Member_Function_Wrapper(
       Func func,
-      Data_Object<Exception_Handler> handler = Rice::Nil);
+      Data_Object<Exception_Handler> handler);
 
   static VALUE call(VALUE self%(value_args));
 

@@ -95,13 +95,13 @@ define_method(
 }
 
 template<typename Base_T, typename Derived_T>
-template<typename T>
+template<typename Func_T>
 inline
 Derived_T &
 Rice::Module_impl<Base_T, Derived_T>::
 define_singleton_method(
     char const * name,
-    T func)
+    Func_T func)
 {
   detail::define_method_and_auto_wrap(
       rb_class_of(*this), name, func, this->handler_);
@@ -109,15 +109,15 @@ define_singleton_method(
 }
 
 template<typename Base_T, typename Derived_T>
-template<typename T>
+template<typename Func_T>
 inline
 Derived_T &
 Rice::Module_impl<Base_T, Derived_T>::
 define_module_function(
     char const * name,
-    T func)
+    Func_T func)
 {
-  detail::define_method_and_auto_wrap(*this, name, func);
+  define_method(name, func);
   this->call("module_function", Symbol(name));
   return (Derived_T &)*this;
 }

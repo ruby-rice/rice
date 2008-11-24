@@ -17,7 +17,7 @@ void define_method_and_auto_wrap(
     VALUE klass,
     char const * name,
     Fun_T function,
-    Data_Object<Exception_Handler> handler = Rice::Nil);
+    Data_Object<Exception_Handler> handler);
 
 } // detail
 
