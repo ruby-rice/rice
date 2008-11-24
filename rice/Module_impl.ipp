@@ -76,7 +76,7 @@ add_handler(
           functor,
           this->handler_),
       rb_cObject);
-  handler_.swap(handler);
+  this->handler_.swap(handler);
   return (Derived_T &)*this;
 }
 
