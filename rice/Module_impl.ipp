@@ -1,5 +1,6 @@
 #include "detail/define_method_and_auto_wrap.hpp"
 #include "Object.hpp"
+#include "Address_Registration_Guard.hpp"
 #include "Data_Object.hpp"
 #include "Data_Type.hpp"
 #include "Symbol.hpp"
@@ -17,8 +18,31 @@ inline
 Rice::Module_base::
 Module_base(VALUE v)
   : Object(v)
-  , handler_(new Rice::detail::Default_Exception_Handler)
+  , handler_(
+      Data_Object<Rice::detail::Default_Exception_Handler>(
+          new Rice::detail::Default_Exception_Handler,
+          rb_cObject))
+  , handler_guard_(&handler_)
 {
+}
+
+inline
+Rice::Module_base::
+Module_base(Module_base const & other)
+  : Object(other)
+  , handler_(other.handler_)
+  , handler_guard_(&handler_)
+{
+}
+
+inline
+Rice::Module_base &
+Rice::Module_base::
+operator=(Module_base const & other)
+{
+  Module_base tmp(other);
+  swap(tmp);
+  return *this;
 }
 
 template<typename Base_T, typename Derived_T>
@@ -46,11 +70,13 @@ Rice::Module_impl<Base_T, Derived_T>::
 add_handler(
     Functor_T functor)
 {
-  this->handler_ =
-      new Rice::detail::
+  Data_Object<detail::Exception_Handler> handler(
+      new detail::
       Functor_Exception_Handler<Exception_T, Functor_T>(
           functor,
-          this->handler_);
+          this->handler_),
+      rb_cObject);
+  handler_.swap(handler);
   return (Derived_T &)*this;
 }
 

@@ -1,9 +1,10 @@
 #ifndef Rice__Module_impl__hpp_
 #define Rice__Module_impl__hpp_
 
-#include "detail/Exception_Handler.hpp"
+#include "detail/Exception_Handler_defn.hpp"
 #include "detail/ruby.hpp"
 #include "Object_defn.hpp"
+#include "Address_Registration_Guard_defn.hpp"
 
 namespace Rice
 {
@@ -20,11 +21,13 @@ class Module_base
 {
 public:
   Module_base(VALUE v = rb_cObject);
+  Module_base(Module_base const & other);
+
+  Module_base & operator=(Module_base const & other);
 
 protected: // TODO
-  // TODO: For now, we always leak the handler, but in the future, we
-  // should register it with the garbage collector.
-  detail::Exception_Handler const * handler_;
+  Object handler_;
+  Address_Registration_Guard handler_guard_;
 };
 
 /*! An intermediate base class so we can always return the most-derived

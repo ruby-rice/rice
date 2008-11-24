@@ -2,6 +2,7 @@
 #define Rice__detail__define_method_and_auto_wrap__hpp_
 
 #include "ruby.hpp"
+#include "../Data_Object.hpp"
 
 namespace Rice
 {
@@ -16,7 +17,7 @@ void define_method_and_auto_wrap(
     VALUE klass,
     char const * name,
     Fun_T function,
-    Exception_Handler const * handler = 0);
+    Data_Object<Exception_Handler> handler = Rice::Nil);
 
 } // detail
 
