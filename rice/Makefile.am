@@ -34,6 +34,7 @@ Critical_Guard.hpp \
 Critical_Guard.ipp \
 Data_Object.hpp \
 Data_Object.ipp \
+Data_Object_defn.hpp \
 Data_Type.hpp \
 Data_Type.ipp \
 Data_Type_defn.hpp \
@@ -79,6 +80,8 @@ detail/Auto_Member_Function_Wrapper.hpp \
 detail/Auto_Member_Function_Wrapper.ipp \
 detail/Caster.hpp \
 detail/Exception_Handler.hpp \
+detail/Exception_Handler.ipp \
+detail/Exception_Handler_defn.hpp \
 detail/Iterator_Definer.hpp \
 detail/Not_Copyable.hpp \
 detail/Wrapped_Function.hpp \
