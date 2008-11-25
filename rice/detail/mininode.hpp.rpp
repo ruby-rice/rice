@@ -83,14 +83,14 @@ static const int NOEX_PUBLIC = 0x0;
 
 inline NODE * NEW_METHOD(NODE * body, VALUE origin, int noex)
 {
-  return NEW_NODE(NODE_METHOD, body, origin, noex);
+  return NEW_NODE(NODE_METHOD, origin, body, noex);
 }
 
 #ifdef RUBY_VM
 
 inline NODE * NEW_FBODY(NODE * body, ID id)
 {
-  return NEW_NODE(NODE_FBODY, body, id, 0);
+  return NEW_NODE(NODE_FBODY, id, body, 0);
 }
 
 #else
