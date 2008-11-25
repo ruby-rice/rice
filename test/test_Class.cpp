@@ -121,7 +121,7 @@ TESTCASE(define_module_function_simple)
       Exception,
       c.define_module_function("foo", &define_method_simple_helper),
       ASSERT_EQUAL(
-          Object(rb_eNoMethodError), // TODO: 1.6.x?
+          Object(rb_eTypeError),
           Object(CLASS_OF(ex.value()))
           )
       );

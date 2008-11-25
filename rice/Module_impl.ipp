@@ -3,6 +3,7 @@
 #include "Data_Object.hpp"
 #include "Data_Type.hpp"
 #include "Symbol.hpp"
+#include "Exception.hpp"
 #include "protect.hpp"
 
 #include "Module.hpp"
@@ -91,8 +92,13 @@ define_module_function(
     Identifier name,
     T func)
 {
-  // TODO: not a true module function, but the only way to simulate it
-  // with method data
+  if(this->rb_type() != T_MODULE)
+  {
+    throw Rice::Exception(
+        rb_eTypeError,
+        "can only define module functions for modules");
+  }
+
   define_method(name, func);
   define_singleton_method(name, func);
   return (Derived_T &)*this;
