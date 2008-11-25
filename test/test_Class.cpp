@@ -49,6 +49,9 @@ TESTCASE(include_module)
   expected_ancestors.push(Module(rb_mEnumerable));
   expected_ancestors.push(Module(rb_cObject));
   expected_ancestors.push(Module(rb_mKernel));
+#ifdef RUBY_VM
+  expected_ancestors.push(Module(rb_cBasicObject));
+#endif
   ASSERT_EQUAL(expected_ancestors, ancestors);
 }
 
