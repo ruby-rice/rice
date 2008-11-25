@@ -82,7 +82,7 @@ detail/Caster.hpp \
 detail/Exception_Handler.hpp \
 detail/Exception_Handler.ipp \
 detail/Exception_Handler_defn.hpp \
-detail/Iterator_Definer.hpp \
+detail/Iterator.hpp \
 detail/Not_Copyable.hpp \
 detail/Wrapped_Function.hpp \
 detail/check_ruby_type.hpp \
