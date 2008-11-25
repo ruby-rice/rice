@@ -91,8 +91,10 @@ define_module_function(
     Identifier name,
     T func)
 {
-  detail::define_method_and_auto_wrap(*this, name, func);
-  this->call("module_function", Symbol(name));
+  // TODO: not a true module function, but the only way to simulate it
+  // with method data
+  define_method(name, func);
+  define_singleton_method(name, func);
   return (Derived_T &)*this;
 }
 
