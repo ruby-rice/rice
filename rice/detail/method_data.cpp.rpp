@@ -237,7 +237,7 @@ END
  *   +- ...
  *
  */
-void
+VALUE
 Rice::detail::
 define_method_with_data(
     VALUE klass, ID id, VALUE (*cfunc)(ANYARGS), int arity, VALUE data)
@@ -288,6 +288,8 @@ END
       origin);
   rb_add_method(klass, id, node, NOEX_PUBLIC);
 #endif
+
+  return Qnil;
 }
 
 VALUE

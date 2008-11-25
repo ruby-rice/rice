@@ -9,7 +9,7 @@ namespace Rice
 namespace detail
 {
 
-void define_method_with_data(
+VALUE define_method_with_data(
     VALUE klass, ID id, VALUE (*cfunc)(ANYARGS), int arity, VALUE data);
 
 VALUE method_data();
