@@ -25,8 +25,16 @@ public:
 
   Module_base & operator=(Module_base const & other);
 
-protected: // TODO
-  Object handler_;
+  void swap(Module_base & other);
+
+protected:
+  template<typename Exception_T, typename Functor_T>
+  void add_handler(Functor_T functor);
+
+  Object handler() const;
+
+private:
+  Object mutable handler_;
   Address_Registration_Guard handler_guard_;
 };
 

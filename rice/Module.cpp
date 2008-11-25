@@ -56,8 +56,7 @@ anonymous_module()
 void Rice::Module::
 swap(Rice::Module & other)
 {
-  std::swap(handler_, other.handler_);
-  Object::swap(other);
+  Module_base::swap(other);
 }
 
 Rice::Array

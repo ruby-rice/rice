@@ -18,10 +18,7 @@ inline
 Rice::Module_base::
 Module_base(VALUE v)
   : Object(v)
-  , handler_(
-      Data_Object<Rice::detail::Default_Exception_Handler>(
-          new Rice::detail::Default_Exception_Handler,
-          rb_cObject))
+  , handler_(Qnil)
   , handler_guard_(&handler_)
 {
 }
@@ -43,6 +40,46 @@ operator=(Module_base const & other)
   Module_base tmp(other);
   swap(tmp);
   return *this;
+}
+
+inline
+void
+Rice::Module_base::
+swap(Module_base & other)
+{
+  std::swap(handler_, other.handler_);
+  Object::swap(other);
+}
+
+template<typename Exception_T, typename Functor_T>
+inline
+void
+Rice::Module_base::
+add_handler(Functor_T functor)
+{
+  Data_Object<detail::Exception_Handler> handler(
+      new detail::
+      Functor_Exception_Handler<Exception_T, Functor_T>(
+          functor,
+          this->handler()),
+      rb_cObject);
+  this->handler_.swap(handler);
+}
+
+inline
+Rice::Object
+Rice::Module_base::
+handler() const
+{
+  if(!handler_.test())
+  {
+    Data_Object<Rice::detail::Default_Exception_Handler> handler(
+        new Rice::detail::Default_Exception_Handler,
+        rb_cObject);
+    handler_.swap(handler);
+  }
+
+  return handler_;
 }
 
 template<typename Base_T, typename Derived_T>
@@ -70,13 +107,7 @@ Rice::Module_impl<Base_T, Derived_T>::
 add_handler(
     Functor_T functor)
 {
-  Data_Object<detail::Exception_Handler> handler(
-      new detail::
-      Functor_Exception_Handler<Exception_T, Functor_T>(
-          functor,
-          this->handler_),
-      rb_cObject);
-  this->handler_.swap(handler);
+  Module_base::add_handler<Exception_T>(functor);
   return (Derived_T &)*this;
 }
 
@@ -90,7 +121,7 @@ define_method(
     Func_T func)
 {
   detail::define_method_and_auto_wrap(
-      *this, name, func, this->handler_);
+      *this, name, func, this->handler());
   return (Derived_T &)*this;
 }
 
@@ -104,7 +135,7 @@ define_singleton_method(
     Func_T func)
 {
   detail::define_method_and_auto_wrap(
-      rb_class_of(*this), name, func, this->handler_);
+      rb_class_of(*this), name, func, this->handler());
   return (Derived_T &)*this;
 }
 
