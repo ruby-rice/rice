@@ -35,7 +35,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -78,7 +78,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -123,7 +123,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -166,7 +166,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -211,7 +211,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -254,7 +254,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -299,7 +299,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -342,7 +342,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -387,7 +387,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -430,7 +430,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -475,7 +475,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -518,7 +518,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -563,7 +563,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -606,7 +606,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -651,7 +651,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -694,7 +694,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -739,7 +739,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -782,7 +782,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -827,7 +827,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -870,7 +870,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -915,7 +915,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -958,7 +958,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1003,7 +1003,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1046,7 +1046,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3, VALUE ruby_a
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1091,7 +1091,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3)
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1134,7 +1134,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2, VALUE ruby_arg3)
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1179,7 +1179,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2)
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1222,7 +1222,7 @@ call(VALUE self, VALUE ruby_arg1, VALUE ruby_arg2)
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1267,7 +1267,7 @@ call(VALUE self, VALUE ruby_arg1)
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1310,7 +1310,7 @@ call(VALUE self, VALUE ruby_arg1)
   Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1355,7 +1355,7 @@ call(VALUE self)
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1398,7 +1398,7 @@ call(VALUE self)
   Auto_Member_Function_Wrapper<Func_T, void, Self_T> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);

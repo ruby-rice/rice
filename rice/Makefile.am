@@ -14,7 +14,8 @@ VM.cpp \
 detail/check_ruby_type.cpp \
 detail/demangle.cpp \
 detail/method_data.cpp \
-detail/protect.cpp
+detail/protect.cpp \
+detail/mininode.cpp
 
 nobase_include_HEADERS = \
 Address_Registration_Guard.hpp \
@@ -113,4 +114,13 @@ includedir = ${prefix}/include/rice
 AM_CPPFLAGS = @RUBY_CPPFLAGS@
 
 AM_CXXFLAGS = @RUBY_CXXFLAGS@
+
+detail/method_data.cpp: detail/method_data.cpp.rpp detail/mininode.hpp
+	ruby -C detail ../rubypp.rb method_data.cpp.rpp method_data.cpp
+
+detail/mininode.cpp: detail/mininode.cpp.rpp
+	ruby -C detail ../rubypp.rb mininode.cpp.rpp mininode.cpp
+
+detail/mininode.hpp: detail/mininode.hpp.rpp
+	ruby -C detail ../rubypp.rb mininode.hpp.rpp mininode.hpp
 

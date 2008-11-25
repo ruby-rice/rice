@@ -1,5 +1,6 @@
 dnl Get a key from ruby's configuration table
-AC_DEFUN([RUBY_CONFIG], [$RUBY -rrbconfig -e "puts Config::CONFIG[['$1']]"])
+AC_DEFUN([RUBY_CONFIG], [
+          $RUBY -rrbconfig -e "puts(Config::CONFIG[['$1']] || '')"])
 
 AC_DEFUN([RB_INIT_RUBY], [
 
@@ -20,10 +21,14 @@ AC_ARG_WITH(
 
 AC_SUBST(RUBY)
 
+RUBY_VERSION_CODE=`$RUBY -e "puts RUBY_VERSION.gsub(/\./, '')"`
+AC_SUBST(RUBY_VERSION_CODE)
+
 RUBY_CONFIG_ARCHDIR=`RUBY_CONFIG(archdir)`
 RUBY_CONFIG_ARCH=`RUBY_CONFIG(arch)`
 RUBY_CONFIG_LIBDIR=`RUBY_CONFIG(libdir)`
 RUBY_CONFIG_BINDIR=`RUBY_CONFIG(bindir)`
+RUBY_CONFIG_RUBYHDRDIR=`RUBY_CONFIG(rubyhdrdir)`
 RUBY_CONFIG_CFLAGS=`RUBY_CONFIG(CFLAGS)`
 RUBY_CONFIG_LIBS=`RUBY_CONFIG(LIBS)`
 RUBY_CONFIG_DLDLIBS=`RUBY_CONFIG(DLDLIBS)`
@@ -31,12 +36,14 @@ RUBY_CONFIG_LDFLAGS=`RUBY_CONFIG(LDFLAGS)`
 RUBY_CONFIG_LIBRUBYARG=`RUBY_CONFIG(LIBRUBYARG)`
 RUBY_CONFIG_LIBRUBYARG_STATIC=`RUBY_CONFIG(LIBRUBYARG_STATIC)`
 RUBY_CONFIG_CCDLFLAGS=`RUBY_CONFIG(CCDLFLAGS)`
-RUBY_CONFIG_RUBYHDRDIR=`RUBY_CONFIG(rubyhdrdir)`
 
-RUBY_CPPFLAGS="-I${RUBY_CONFIG_ARCHDIR}"
-if [[ "${RUBY_CONFIG_ARCHDIR}" != "" ]]; then
-  RUBY_CPPFLAGS="${RUBY_CPPFLAGS} -I${RUBY_CONFIG_RUBYHDRDIR}"
+if test "x${RUBY_CONFIG_RUBYHDRDIR}x" != "xx"; then
+  # 1.9
+  RUBY_CPPFLAGS="-I${RUBY_CONFIG_RUBYHDRDIR}"
   RUBY_CPPFLAGS="${RUBY_CPPFLAGS} -I${RUBY_CONFIG_RUBYHDRDIR}/${RUBY_CONFIG_ARCH}"
+else
+  # 1.8
+  RUBY_CPPFLAGS="-I${RUBY_CONFIG_ARCHDIR}"
 fi
 AC_SUBST(RUBY_CPPFLAGS)
 
@@ -81,20 +88,24 @@ dnl searching for standard header files as a side-effect (which we want)
 CPPFLAGS_save="${CPPFLAGS}"
 CPPFLAGS="${CPPFLAGS} ${RUBY_CPPFLAGS}"
 CXXFLAGS="${CPPFLAGS}"
-AC_CHECK_HEADER(ruby.h,,AC_MSG_ERROR(
+AC_CHECK_HEADERS(ruby.h,,AC_MSG_ERROR(
                 could not find ruby.h (check config.log)),[ ])
-AC_CHECK_HEADER(node.h,,,[
+AC_CHECK_HEADERS(node.h,,,[
+#include <ruby.h>
+])
+AC_CHECK_HEADERS(ruby/node.h,
+                 [ AC_DEFINE(REALLY_HAVE_RUBY_NODE_H, [],
+                             [ Define this macro to use ruby/node.h ]) ],
+                             ,[
+#include <ruby.h>
+])
+AC_CHECK_HEADERS(version.h,,,[
+#include <ruby.h>
+])
+AC_CHECK_HEADERS(env.h,,,[
 #include <ruby.h>
 ])
 
-if test "x${ac_cv_header_node_h}x" != xyesx; then
-  AC_CHECK_HEADER(mininode.h,,AC_MSG_ERROR(
-                  could not find node.h or mininode.h (check config.log)))
-fi
-
-AC_CHECK_HEADER(version.h,,,[
-#include <ruby.h>
-])
 CPPFLAGS="${CPPFLAGS_save}"
 
 AC_MINGW32

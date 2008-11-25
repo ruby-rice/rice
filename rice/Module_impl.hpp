@@ -90,7 +90,7 @@ public:
    */
   template<typename Func_T>
   Derived_T & define_method(
-      char const * name,
+      Identifier name,
       Func_T func);
 
   //! Define a singleton method.
@@ -106,7 +106,7 @@ public:
    */
   template<typename Func_T>
   Derived_T & define_singleton_method(
-      char const * name,
+      Identifier name,
       Func_T func);
 
   //! Define a module function.
@@ -124,7 +124,7 @@ public:
    */
   template<typename Func_T>
   Derived_T & define_module_function(
-      char const * name,
+      Identifier name,
       Func_T func);
 
   //! Define an iterator.
@@ -141,7 +141,7 @@ public:
   Derived_T & define_iterator(
       Iterator_T (T::*begin)(),
       Iterator_T (T::*end)(),
-      char const * name = "each");
+      Identifier name = "each");
 
   //! Include a module.
   /*! \param inc the module to be included.

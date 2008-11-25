@@ -125,10 +125,10 @@ each(Object self)
 {
   VALUE enums_v = rb_iv_get(self, "enums");
   Check_Type(enums_v, T_ARRAY);
-  RArray * enums = RARRAY(enums_v);
-  for(int j = 0; j < enums->len; ++j)
+  Array enums(enums_v);
+  for(size_t j = 0; j < enums.size(); ++j)
   {
-    rb_yield(enums->ptr[j]);
+    rb_yield(enums[j].value());
   }
   return Qnil;
 }

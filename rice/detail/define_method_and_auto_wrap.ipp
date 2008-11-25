@@ -9,12 +9,12 @@ template<typename Fun_T>
 void Rice::detail::
 define_method_and_auto_wrap(
     VALUE klass,
-    char const * name,
+    Identifier name,
     Fun_T function,
     Exception_Handler const * handler)
 {
   Wrapped_Function * f(wrap_function(function, handler));
-  define_method_with_data(klass, name, f->func(), f->arity(), f);
+  define_method_with_data(klass, name.id(), f->func(), f->arity(), (VALUE)f); // TODO
 }
 
 #endif // Rice__detail__define_method_and_auto_wrap__ipp_

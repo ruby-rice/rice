@@ -2,6 +2,7 @@
 #define Rice__detail__define_method_and_auto_wrap__hpp_
 
 #include "ruby.hpp"
+#include "../Identifier.hpp"
 
 namespace Rice
 {
@@ -14,7 +15,7 @@ class Exception_Handler;
 template<typename Fun_T>
 void define_method_and_auto_wrap(
     VALUE klass,
-    char const * name,
+    Identifier name,
     Fun_T function,
     Exception_Handler const * handler = 0);
 

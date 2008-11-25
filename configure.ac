@@ -41,7 +41,8 @@ RICE_SAMPLES="enum map inheritance"
 AC_SUBST(RICE_SAMPLES)
 
 AC_CONFIG_FILES(Makefile rice/Makefile test/Makefile sample/Makefile
-                ruby/Makefile ruby/lib/Makefile ruby/lib/mkmf-rice.rb)
+                ruby/Makefile ruby/lib/Makefile ruby/lib/mkmf-rice.rb
+                rice/detail/ruby_version_code.hpp)
 AC_OUTPUT
 
 dnl Work around a bug in older versions of Rubygems

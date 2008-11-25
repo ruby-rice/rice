@@ -15,10 +15,10 @@ protect(
   VALUE retval = rb_protect(f, arg, &state);
   if(state != 0)
   {
-    if(state == TAG_RAISE && ruby_errinfo != Qnil)
+    if(state == TAG_RAISE && rb_errinfo() != Qnil)
     {
       // TODO: convert NoMemoryError into bad_alloc?
-      throw Rice::Exception(ruby_errinfo);
+      throw Rice::Exception(rb_errinfo());
     }
     throw Jump_Tag(state);
   }

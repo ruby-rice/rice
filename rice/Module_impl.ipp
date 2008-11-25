@@ -60,7 +60,7 @@ inline
 Derived_T &
 Rice::Module_impl<Base_T, Derived_T>::
 define_method(
-    char const * name,
+    Identifier name,
     Func_T func)
 {
   detail::define_method_and_auto_wrap(
@@ -74,7 +74,7 @@ inline
 Derived_T &
 Rice::Module_impl<Base_T, Derived_T>::
 define_singleton_method(
-    char const * name,
+    Identifier name,
     T func)
 {
   detail::define_method_and_auto_wrap(
@@ -88,7 +88,7 @@ inline
 Derived_T &
 Rice::Module_impl<Base_T, Derived_T>::
 define_module_function(
-    char const * name,
+    Identifier name,
     T func)
 {
   detail::define_method_and_auto_wrap(*this, name, func);
@@ -111,7 +111,7 @@ public:
 
   static VALUE call(VALUE self)
   {
-    void * data = Rice::detail::method_data();
+    void * data = (void *)Rice::detail::method_data();
     Iterator * iterator = static_cast<Iterator *>(data);
     return iterator->call_impl(self);
   }
@@ -162,7 +162,7 @@ Rice::Module_impl<Base_T, Derived_T>::
 define_iterator(
     Iterator_T (T::*begin)(),
     Iterator_T (T::*end)(),
-    char const * name)
+    Identifier name)
 {
   // TODO: memory leak!!!!!!!
   detail::Iterator * iterator =
@@ -175,7 +175,7 @@ define_iterator(
       name,
       (RUBY_METHOD_FUNC)iterator->call,
       0,
-      iterator);
+      (VALUE)iterator); // TODO
   return (Derived_T &)*this;
 }
 
