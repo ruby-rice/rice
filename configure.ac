@@ -45,6 +45,9 @@ DX_INIT_DOXYGEN(rice, Doxyfile, doc)
 RICE_SAMPLES="enum map inheritance"
 AC_SUBST(RICE_SAMPLES)
 
+RICE_ROOT=`pwd`
+AC_SUBST(RICE_ROOT)
+
 AC_CONFIG_FILES(Makefile rice/Makefile test/Makefile sample/Makefile
                 ruby/Makefile ruby/lib/Makefile ruby/lib/mkmf-rice.rb
                 rice/detail/ruby_version_code.hpp)
