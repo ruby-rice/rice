@@ -110,7 +110,7 @@ namespace Rice
   namespace detail
   {
     inline VALUE rb_errinfo() { return ruby_errinfo; }
-    inline VALUE rb_set_errinfo(VALUE exc) { ruby_errinfo = exc; }
+    inline void rb_set_errinfo(VALUE exc) { ruby_errinfo = exc; }
   } // detail
 } // Rice
 #define rb_errinfo() ::Rice::detail::rb_errinfo()
