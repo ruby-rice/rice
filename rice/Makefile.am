@@ -43,8 +43,10 @@ Data_Type_fwd.hpp \
 Enum.hpp \
 Enum.ipp \
 Exception.hpp \
+Exception_defn.hpp \
 Exception_Base.hpp \
 Exception_Base.ipp \
+Exception_Base_defn.hpp \
 Hash.hpp \
 Hash.ipp \
 Identifier.hpp \
