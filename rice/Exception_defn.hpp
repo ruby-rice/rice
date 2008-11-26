@@ -3,7 +3,7 @@
 
 #include "Exception_Base_defn.hpp"
 #include "String.hpp"
-#include "Address_Registration_Guard.hpp"
+#include "Address_Registration_Guard_defn.hpp"
 
 #include <stdexcept>
 #include "detail/ruby.hpp"
