@@ -94,7 +94,7 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 #endif
 
 #ifndef RHASH_TBL
-#define RHASH_TBL(hsh) RARRAY(hsh)->tbl
+#define RHASH_TBL(hsh) RHASH(hsh)->tbl
 #endif
 
 // ruby.h has a few defines that conflict with Visual Studio's STL
