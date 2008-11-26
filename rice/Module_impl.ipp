@@ -13,6 +13,7 @@
 
 #include "detail/ruby.hpp"
 #include "detail/method_data.hpp"
+#include "detail/Iterator.hpp"
 
 
 inline
@@ -161,64 +162,6 @@ define_module_function(
   return (Derived_T &)*this;
 }
 
-namespace Rice
-{
-
-namespace detail
-{
-
-class Iterator
-{
-public:
-  virtual ~Iterator() { }
-
-  virtual VALUE call_impl(VALUE self) = 0;
-
-  static VALUE call(VALUE self)
-  {
-    void * data = (void *)Rice::detail::method_data();
-    Iterator * iterator = static_cast<Iterator *>(data);
-    return iterator->call_impl(self);
-  }
-};
-
-template<typename T, typename Iterator_T>
-class Iterator_Impl
-  : public Iterator
-{
-public:
-  Iterator_Impl(
-      Iterator_T (T::*begin)(),
-      Iterator_T (T::*end)(),
-      Rice::Data_Type<T> data_type)
-    : begin_(begin)
-    , end_(end)
-    , data_type_(data_type)
-  {
-  }
-
-  virtual VALUE call_impl(VALUE self)
-  {
-    Rice::Data_Object<T> obj(self, data_type_);
-    Iterator_T it = obj->begin();
-    Iterator_T end = obj->end();
-    for(; it != end; ++it)
-    {
-      protect(rb_yield, to_ruby(*it));
-    }
-    return self;
-  }
-
-private:
-  Iterator_T (T::*begin_)();
-  Iterator_T (T::*end_)();
-  Rice::Data_Type<T> data_type_;
-};
-
-} // namespace detail
-
-} // namespace Rice
-
 template<typename Base_T, typename Derived_T>
 template<typename T, typename Iterator_T>
 inline
@@ -229,18 +172,7 @@ define_iterator(
     Iterator_T (T::*end)(),
     Identifier name)
 {
-  // TODO: memory leak!!!!!!!
-  detail::Iterator * iterator =
-    new detail::Iterator_Impl<T, Iterator_T>(
-        begin,
-        end,
-        Data_Type<T>());
-  detail::define_method_with_data(
-      static_cast<VALUE>(*this),
-      name,
-      (RUBY_METHOD_FUNC)iterator->call,
-      0,
-      (VALUE)iterator); // TODO
+  detail::define_iterator(*this, name, begin, end);
   return (Derived_T &)*this;
 }
 
