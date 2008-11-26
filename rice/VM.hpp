@@ -2,6 +2,7 @@
 #define VM__hpp
 
 #include <vector>
+#include "detail/ruby_version_code.hpp"
 
 namespace Rice
 {
@@ -20,6 +21,10 @@ public:
 private:
   void check_not_initialized() const;
   void init(int argc, char * argv[]);
+
+#if RICE__RUBY_VERSION_CODE >= 190
+  void * node_;
+#endif
 };
 
 }

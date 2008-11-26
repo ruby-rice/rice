@@ -15,7 +15,7 @@ TESTCASE(default_construct)
 {
   Array a;
   ASSERT_EQUAL(T_ARRAY, rb_type(a));
-  ASSERT_EQUAL(0, RARRAY(a.value())->len);
+  ASSERT_EQUAL(0, RARRAY_LEN(a.value()));
 }
 
 TESTCASE(construct_from_vector_of_int)
@@ -158,7 +158,7 @@ TESTCASE(shift)
 TESTCASE(to_c_array)
 {
   Array a;
-  ASSERT_EQUAL(RARRAY(a.value())->ptr, a.to_c_array());
+  ASSERT_EQUAL(RARRAY_PTR(a.value()), a.to_c_array());
 }
 
 TESTCASE(iterate)

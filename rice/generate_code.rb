@@ -304,97 +304,7 @@ wrap_header(hpp_filename, nil, docstring, false, nil, nil, GENERATED_FILE_WARNIN
     end
   end
 end
-# 
-# # ======================================================================
-# method_types = [
-#   'method', 'module_function', 'protected_method',
-#   'private_method', 'singleton_method'
-# ]
-# method_docstring = <<END
-# //! Define a %s method.  Like rb_define_%s, but automatically calculates
-# //! the number of arguments based on the prototype of the supplied
-# //! function f.
-# VALUE define_%s(
-#     VALUE klass,
-#     char const * name,
-#     VALUE (*f)(VALUE arg1, VALUE arg2, ...));
-# END
-# docstring = <<END
-# /*! \\file
-#  *  \\brief Helpers for defining ruby methods, overloaded on the
-#  *  signature of the function being wrapped.
-#  */
-# #{method_types.map do |t| method_docstring % [ t, t, t ] end}
-# //! Define a global function.  Like rb_define_global_function, but
-# //! automatically calculates the number of arguments based on the
-# //! prototype of the supplied function f.
-# void define_global_function(
-#     char const * name,
-#     VALUE (*f)(VALUE arg1, VALUE arg2, ...));
-# END
-# method_def = <<END
-# inline void define_%s(
-#   VALUE klass,
-#   char const * name,
-#   VALUE(*f)(%%(args)))
-# {
-#   rb_define_%s(klass, name, RUBY_METHOD_FUNC(f), %%(j));
-# }
-# END
-# method_decl = <<END
-# void define_%s(
-#   VALUE klass,
-#   char const * name,
-#   VALUE(*f)(%%(args)));
-# END
-# ipp_template = <<END
-# #{method_types.map do |t| method_def % [ t, t ] end }\
-# inline void define_global_function(
-#   char const * name,
-#   VALUE(*f)(%(args)))
-# {
-#   rb_define_global_function(name, RUBY_METHOD_FUNC(f), %(j));
-# }
-# 
-# // ---------------------------------------------------------------------
-# END
-# hpp_template = <<END
-# #{method_types.map do |t| method_decl % t end }\
-# void define_global_function(
-#   char const * name,
-#   VALUE(*f)(%(args)));
-# 
-# // ---------------------------------------------------------------------
-# END
-# ipp_filename = 'define_method.ipp'
-# hpp_filename = 'define_method.hpp'
-# wrap_header(ipp_filename, 'Rice') do |ipp|
-#   wrap_header(hpp_filename, 'Rice', docstring, true) do |hpp|
-#     for j in 0..MAX_ARGS do
-#       t_array = (0..j).to_a
-#       arg_list = t_array.map { |x| "VALUE" }.join(', ')
-#       ipp.puts fill_template(ipp_template, {
-#         :args => arg_list,
-#         :j => j
-#       })
-#       ipp.puts ""
-#       hpp.puts fill_template(hpp_template, {
-#         :args => arg_list
-#       })
-#       hpp.puts ""
-#     end
-#     arg_list = "int, VALUE*, VALUE";
-#     ipp.puts fill_template(ipp_template, {
-#       :args => arg_list,
-#       :j => -1
-#     })
-#     ipp.puts ""
-#     hpp.puts fill_template(hpp_template, {
-#       :args => arg_list
-#     })
-#   end
-# end
-# 
+
 # ======================================================================
 docstring = <<END
 END
@@ -418,7 +328,7 @@ call(%(value_args))
   Auto_Function_Wrapper<Func_T, Ret_T, %(typenames)> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, %(typenames)> *)data;
     %(arg_convert_list)
     return to_ruby(wrapper->func_(%(arg_list)));
@@ -459,7 +369,7 @@ call(%(value_args))
   Auto_Function_Wrapper<Func_T, void, %(typenames)> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Function_Wrapper<Func_T, void, %(typenames)> *)data;
     %(arg_convert_list)
@@ -613,7 +523,7 @@ call(VALUE self%(value_args))
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T%(typenames)> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T%(typenames)> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -657,7 +567,7 @@ call(VALUE self%(value_args))
   Auto_Member_Function_Wrapper<Func_T, void, Self_T%(typenames)> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    VALUE data = detail::method_data();
     wrapper =
       (Auto_Member_Function_Wrapper<Func_T, void, Self_T%(typenames)> *)data;
     Self_T * obj = from_ruby<Self_T *>(self);

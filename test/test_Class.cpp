@@ -49,6 +49,9 @@ TESTCASE(include_module)
   expected_ancestors.push(Module(rb_mEnumerable));
   expected_ancestors.push(Module(rb_cObject));
   expected_ancestors.push(Module(rb_mKernel));
+#ifdef RUBY_VM
+  expected_ancestors.push(Module(rb_cBasicObject));
+#endif
   ASSERT_EQUAL(expected_ancestors, ancestors);
 }
 
@@ -118,7 +121,7 @@ TESTCASE(define_module_function_simple)
       Exception,
       c.define_module_function("foo", &define_method_simple_helper),
       ASSERT_EQUAL(
-          Object(rb_eNoMethodError), // TODO: 1.6.x?
+          Object(rb_eTypeError),
           Object(CLASS_OF(ex.value()))
           )
       );

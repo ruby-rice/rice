@@ -3,6 +3,7 @@
 
 #include "ruby.hpp"
 #include "../Data_Object.hpp"
+#include "../Identifier.hpp"
 
 namespace Rice
 {
@@ -15,7 +16,7 @@ class Exception_Handler;
 template<typename Fun_T>
 void define_method_and_auto_wrap(
     VALUE klass,
-    char const * name,
+    Identifier name,
     Fun_T function,
     Data_Object<Exception_Handler> handler);
 

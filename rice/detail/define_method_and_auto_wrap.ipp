@@ -4,17 +4,23 @@
 #include "wrap_function.hpp"
 #include "method_data.hpp"
 #include "Exception_Handler_defn.hpp"
+#include "../protect.hpp"
 
 template<typename Fun_T>
 void Rice::detail::
 define_method_and_auto_wrap(
     VALUE klass,
-    char const * name,
+    Identifier name,
     Fun_T function,
     Data_Object<Exception_Handler> handler)
 {
   Wrapped_Function * f(wrap_function(function, handler));
-  define_method_with_data(klass, name, f->func(), f->arity(), f);
+  Rice::protect(
+      define_method_with_data,
+      klass,
+      name.id(),
+      f->func(), f->arity(),
+      (VALUE)f); // TODO
 }
 
 #endif // Rice__detail__define_method_and_auto_wrap__ipp_

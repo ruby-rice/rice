@@ -101,7 +101,7 @@ vcall(
     Identifier id,
     Array args)
 {
-  return protect(rb_funcall3, *this, id, args.size(), args->ptr);
+  return protect(rb_funcall3, *this, id, args.size(), args.to_c_array());
 }
 
 void Rice::Object::

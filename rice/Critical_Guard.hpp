@@ -1,6 +1,10 @@
 #ifndef Rice__ruby_Critical_Guard__hpp_
 #define Rice__ruby_Critical_Guard__hpp_
 
+#include "detail/ruby_version_code.hpp"
+
+#if RICE__RUBY_VERSION_CODE < 190
+
 namespace Rice
 {
 
@@ -27,6 +31,8 @@ public:
 };
 
 }
+
+#endif
 
 #include "Critical_Guard.ipp"
 

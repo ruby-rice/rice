@@ -8,8 +8,12 @@
 
 // TODO: Won't work on ruby 1.9
 
+#include "ruby_version_code.hpp"
+
+#if RICE__RUBY_VERSION_CODE < 190
 extern "C" {
   #include "env.h"
 }
+#endif
 
 #endif
