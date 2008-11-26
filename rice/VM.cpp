@@ -20,7 +20,7 @@ VM(int argc, char * argv[])
 }
 
 Rice::VM::
-VM(std::vector<char *> const & args)
+VM(std::vector<const char *> const & args)
 {
   check_not_initialized();
   init_stack();

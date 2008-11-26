@@ -11,7 +11,7 @@ TESTSUITE(VM);
 
 SETUP(VM)
 {
-  std::vector<char *> args;
+  std::vector<const char *> args;
   args.push_back("test_VM");
   args.push_back("-e");
   args.push_back("puts \"HELLO\"");

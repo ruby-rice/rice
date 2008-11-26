@@ -12,7 +12,7 @@ class VM
 public:
   VM(char * app_name);
   VM(int argc, char * argv[]);
-  VM(std::vector<char *> const & args);
+  VM(std::vector<const char *> const & args);
   ~VM();
 
   void init_stack();
