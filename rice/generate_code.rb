@@ -328,8 +328,8 @@ call(%(value_args))
   Auto_Function_Wrapper<Func_T, Ret_T, %(typenames)> * wrapper = 0;
   try
   {
-    VALUE data = detail::method_data();
-    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, %(typenames)> *)data;
+    Data_Object<Wrapped_Function> data(detail::method_data());
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, %(typenames)> *)data.get();
     %(arg_convert_list)
     return to_ruby(wrapper->func_(%(arg_list)));
   }
@@ -369,9 +369,9 @@ call(%(value_args))
   Auto_Function_Wrapper<Func_T, void, %(typenames)> * wrapper = 0;
   try
   {
-    VALUE data = detail::method_data();
+    Data_Object<Wrapped_Function> data(detail::method_data());
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void, %(typenames)> *)data;
+      (Auto_Function_Wrapper<Func_T, void, %(typenames)> *)data.get();
     %(arg_convert_list)
     wrapper->func_(%(arg_list));
     return Qnil;
@@ -523,9 +523,9 @@ call(VALUE self%(value_args))
   Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T%(typenames)> * wrapper = 0;
   try
   {
-    VALUE data = detail::method_data();
+    Data_Object<Wrapped_Function> data(detail::method_data());
     wrapper =
-      (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T%(typenames)> *)data;
+      (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T%(typenames)> *)data.get();
     Self_T * obj = from_ruby<Self_T *>(self);
     %(arg_convert_list)
     Func func = wrapper->func_;
@@ -567,9 +567,9 @@ call(VALUE self%(value_args))
   Auto_Member_Function_Wrapper<Func_T, void, Self_T%(typenames)> * wrapper = 0;
   try
   {
-    VALUE data = detail::method_data();
+    Data_Object<Wrapped_Function> data(detail::method_data());
     wrapper =
-      (Auto_Member_Function_Wrapper<Func_T, void, Self_T%(typenames)> *)data;
+      (Auto_Member_Function_Wrapper<Func_T, void, Self_T%(typenames)> *)data.get();
     Self_T * obj = from_ruby<Self_T *>(self);
     %(arg_convert_list)
     Func func = wrapper->func_;

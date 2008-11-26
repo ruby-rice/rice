@@ -14,13 +14,16 @@ define_method_and_auto_wrap(
     Fun_T function,
     Data_Object<Exception_Handler> handler)
 {
-  Wrapped_Function * f(wrap_function(function, handler));
+  Data_Object<Wrapped_Function> f(
+      wrap_function(function, handler),
+      rb_cObject);
   Rice::protect(
       define_method_with_data,
       klass,
       name.id(),
-      f->func(), f->arity(),
-      (VALUE)f); // TODO
+      f->func(),
+      f->arity(),
+      f);
 }
 
 #endif // Rice__detail__define_method_and_auto_wrap__ipp_
