@@ -27,7 +27,16 @@ Module(VALUE v)
 Rice::String Rice::Module::
 name() const
 {
-  return rb_mod_name(*this);
+  Object name = rb_mod_name(*this);
+  if(name.is_nil())
+  {
+    // 1.9
+    return String("");
+  }
+  else
+  {
+    return name;
+  }
 }
 
 Rice::Module Rice::
@@ -56,8 +65,7 @@ anonymous_module()
 void Rice::Module::
 swap(Rice::Module & other)
 {
-  std::swap(handler_, other.handler_);
-  Object::swap(other);
+  Module_base::swap(other);
 }
 
 Rice::Array

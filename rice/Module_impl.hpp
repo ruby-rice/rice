@@ -1,9 +1,10 @@
 #ifndef Rice__Module_impl__hpp_
 #define Rice__Module_impl__hpp_
 
-#include "detail/Exception_Handler.hpp"
+#include "detail/Exception_Handler_defn.hpp"
 #include "detail/ruby.hpp"
 #include "Object_defn.hpp"
+#include "Address_Registration_Guard_defn.hpp"
 
 namespace Rice
 {
@@ -20,11 +21,21 @@ class Module_base
 {
 public:
   Module_base(VALUE v = rb_cObject);
+  Module_base(Module_base const & other);
 
-protected: // TODO
-  // TODO: For now, we always leak the handler, but in the future, we
-  // should register it with the garbage collector.
-  detail::Exception_Handler const * handler_;
+  Module_base & operator=(Module_base const & other);
+
+  void swap(Module_base & other);
+
+protected:
+  template<typename Exception_T, typename Functor_T>
+  void add_handler(Functor_T functor);
+
+  Object handler() const;
+
+private:
+  Object mutable handler_;
+  Address_Registration_Guard handler_guard_;
 };
 
 /*! An intermediate base class so we can always return the most-derived
@@ -90,7 +101,7 @@ public:
    */
   template<typename Func_T>
   Derived_T & define_method(
-      char const * name,
+      Identifier name,
       Func_T func);
 
   //! Define a singleton method.
@@ -106,7 +117,7 @@ public:
    */
   template<typename Func_T>
   Derived_T & define_singleton_method(
-      char const * name,
+      Identifier name,
       Func_T func);
 
   //! Define a module function.
@@ -124,7 +135,7 @@ public:
    */
   template<typename Func_T>
   Derived_T & define_module_function(
-      char const * name,
+      Identifier name,
       Func_T func);
 
   //! Define an iterator.
@@ -141,7 +152,7 @@ public:
   Derived_T & define_iterator(
       Iterator_T (T::*begin)(),
       Iterator_T (T::*end)(),
-      char const * name = "each");
+      Identifier name = "each");
 
   //! Include a module.
   /*! \param inc the module to be included.

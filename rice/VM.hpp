@@ -2,6 +2,7 @@
 #define VM__hpp
 
 #include <vector>
+#include "detail/ruby_version_code.hpp"
 
 namespace Rice
 {
@@ -11,7 +12,7 @@ class VM
 public:
   VM(char * app_name);
   VM(int argc, char * argv[]);
-  VM(std::vector<char *> const & args);
+  VM(std::vector<const char *> const & args);
   ~VM();
 
   void init_stack();
@@ -20,6 +21,10 @@ public:
 private:
   void check_not_initialized() const;
   void init(int argc, char * argv[]);
+
+#if RICE__RUBY_VERSION_CODE >= 190
+  void * node_;
+#endif
 };
 
 }

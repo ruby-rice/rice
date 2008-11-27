@@ -2,6 +2,8 @@
 #include "rice/Critical_Guard.hpp"
 #include <stdexcept>
 
+#if RICE__RUBY_VERSION_CODE < 190
+
 using namespace Rice;
 
 TESTSUITE(Critical_Guard);
@@ -44,4 +46,6 @@ TESTCASE(exception)
   }
   ASSERT(!rb_thread_critical);
 }
+
+#endif
 

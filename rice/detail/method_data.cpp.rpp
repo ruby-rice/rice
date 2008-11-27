@@ -1,0 +1,301 @@
+#include "method_data.hpp"
+
+// TODO: This is silly, autoconf...
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+
+#include "../config.hpp"
+
+#ruby <<END
+MAX_ARGS = 15
+nil
+END
+
+#if defined(HAVE_NODE_H)
+/* pre-YARV */
+#include <node.h>
+#elif defined(REALLY_HAVE_RUBY_NODE_H)
+/* YARV */
+#include <ruby/node.h>
+#else
+/* YARV without node.h */
+#include "mininode.hpp"
+using namespace Rice::detail::Mininode;
+#endif
+
+#include "env.hpp"
+
+#ifdef RUBY_VM
+
+/* YARV */
+
+namespace
+{
+
+struct rb_thread_struct
+{   
+    VALUE self;
+    void *vm;
+    VALUE *stack;
+    unsigned long stack_size;
+    VALUE *cfp;
+    /* ... */
+};
+
+typedef struct rb_thread_struct rb_thread_t;
+
+} // namespace
+
+extern "C" rb_thread_t * ruby_current_thread;
+
+#endif
+
+namespace
+{
+
+#ifdef RUBY_VM
+
+/* YARV */
+
+#define CFP_DATA_MEMO_NODE_AND_PC cfp[0]
+#define CFP_METHOD_CLASS cfp[11]
+
+/* On YARV, we store the method data on the stack.  We don't have to pop
+ * it off the stack, because the stack pointer will be reset to the
+ * previous frame's stack pointer when the function returns.
+ */
+static void fix_frame()
+{
+  do {
+    VALUE * cfp = ruby_current_thread->cfp;
+    CFP_DATA_MEMO_NODE_AND_PC = RBASIC(CFP_METHOD_CLASS)->klass;
+
+    if(rb_type(CFP_DATA_MEMO_NODE_AND_PC) != T_NODE)
+    {
+      /* This can happen for module functions that are created after
+       * the stub function */
+      rb_raise(
+          rb_eRuntimeError,
+          "Cannot find method data for module function");
+    }
+    else
+    {
+      CFP_METHOD_CLASS = RCLASS_SUPER(CFP_METHOD_CLASS);
+    }
+  } while(0);
+}
+
+#define FIX_FRAME() \
+  fix_frame()
+
+static NODE * data_memo_node()
+{
+  VALUE * cfp = ruby_current_thread->cfp;
+  return (NODE *)CFP_DATA_MEMO_NODE_AND_PC;
+}
+
+#else
+
+/* pre-YARV */
+
+/* Okay to not pop this temporary frame, since it will be popped by the
+ * caller
+ */
+#define FIX_FRAME() \
+  struct FRAME _frame = *ruby_frame; \
+  _frame.last_class = RCLASS(ruby_frame->last_class)->super; \
+  _frame.prev = ruby_frame; \
+  ruby_frame = &_frame; \
+
+static NODE * data_memo_node()
+{
+  return (NODE *)(RBASIC(ruby_frame->prev->last_class)->klass);
+}
+
+#endif
+
+typedef VALUE (*Method_Func)(ANYARGS);
+
+static Method_Func actual_cfunc()
+{
+  return data_memo_node()->nd_cfnc;
+}
+
+static VALUE data_wrapper_m1(int argc, VALUE * argv, VALUE self)
+{
+  VALUE result;
+  FIX_FRAME();
+  result = (*actual_cfunc())(argc, argv, self);
+  return result;
+}
+
+static VALUE data_wrapper_0(VALUE self)
+{
+  VALUE result;
+  FIX_FRAME();
+  result = (*actual_cfunc())(self);
+  return result;
+}
+
+#ruby <<END
+  (1..MAX_ARGS).each do |i|
+    params = (1..i).map { |j| "VALUE arg#{j}" }.join(', ')
+    args = (1..i).map { |j| "arg#{j}" }.join(', ')
+
+    puts <<-END
+static VALUE data_wrapper_#{i}(VALUE self, #{params})
+{
+  VALUE result;
+  FIX_FRAME();
+  result = (*actual_cfunc())(self, #{args});
+  return result;
+}
+    END
+  end
+
+  nil
+END
+
+} // namespace
+
+/* Define a method and attach data to it.
+ *
+ * The method looks to ruby like a normal aliased CFUNC, with a modified
+ * origin class:
+ *
+ * NODE_FBODY
+ *   |- (u1) orig - origin class
+ *   |  |- basic
+ *   |  |  |- flags - origin class flags + FL_SINGLETON
+ *   |  |  +- klass - NODE_MEMO
+ *   |  |     |- (u1) cfnc - actual C function to call
+ *   |  |     |- (u2) rval - stored data
+ *   |  |     +- (u3) 0
+ *   |  |- iv_tbl - 0
+ *   |  |- m_tbl - 0
+ *   |  +- super - actual origin class
+ *   |- (u2) mid - name of the method
+ *   +- (u3) head - NODE_CFUNC
+ *      |- (u1) cfnc - wrapper function to call
+ *      +- (u2) argc - function arity
+ *
+ * Or, on YARV:
+ *
+ * NODE_FBODY
+ *   |- (u1) oid - name of the method
+ *   +- (u2) body - NODE_METHOD
+ *      |- (u1) clss - origin class
+ *      |  |- basic
+ *      |  |  |- flags - origin class flags + FL_SINGLETON
+ *      |  |  +- klass - NODE_MEMO
+ *      |  |     |- (u1) cfnc - actual C function to call
+ *      |  |     |- (u2) rval - stored data
+ *      |  |     +- (u3) 0
+ *      |  |- ptr - rb_classext_t
+ *      |  |  |- super - actual origin class
+ *      |  |  +- iv_tbl - 0
+ *      |  |- m_tbl - 0
+ *      |  +- iv_index_tbl - 0?
+ *      |- (u2) body - NODE_CFUNC
+ *      |  |- (u1) cfnc - wrapper function to call
+ *      |  |- (u2) argc - function arity
+ *      +- (u3) noex - NOEX_PUBLIC
+ *
+ * When the wrapper function is called, last_class is set to the origin
+ * class found in the FBODY node.  So that the method data will be
+ * accessible, and so last_class will point to klass and not to our MEMO
+ * node, it is necessary to "fix" the current frame.
+ *
+ * Pre-YARV, this means we duplicate the current frame and set last_class:
+ *
+ * ruby_frame
+ *   |- last_class - klass
+ *   |- prev
+ *   |  |- last_class - NODE_MEMO
+ *   |  |  |- (u1) cfnc - actual C function to call
+ *   |  |  |- (u2) rval - stored data
+ *   |  |  +- (u3) 0
+ *   |  |- prev - the real previous frame
+ *   |  +- ...
+ *   +- ...
+ *
+ * The method data is then accessible via
+ * ruby_frame->prev->last_class->rval.
+ *
+ * On YARV, the current frame is not duplicated; rather, the method data
+ * is placed on the stack and is referenced by one of the unused members
+ * of the control frame (the program counter):
+ *
+ * ruby_current_thread->cfp
+ *   |- pc - NODE_MEMO
+ *   |  |- (u1) cfnc - actual C function to call
+ *   |  |- (u2) rval - stored data
+ *   |  +- (u3) 0
+ *   |- method_class - klass
+ *   +- ...
+ *
+ */
+VALUE
+Rice::detail::
+define_method_with_data(
+    VALUE klass, ID id, VALUE (*cfunc)(ANYARGS), int arity, VALUE data)
+{
+  /* TODO: origin should have #to_s and #inspect methods defined */
+#ifdef HAVE_RB_CLASS_BOOT
+  VALUE origin = rb_class_boot(klass);
+#else
+  VALUE origin = rb_class_new(klass);
+#endif
+  NODE * node;
+
+  VALUE (*data_wrapper)(ANYARGS);
+  switch(arity)
+  {
+#ruby <<END
+  (0..MAX_ARGS).each do |i|
+    puts <<-END
+    case #{i}: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_#{i}); break;
+    END
+  end
+  nil
+END
+    case -1: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_m1); break;
+    default: rb_raise(rb_eArgError, "unsupported arity %d", arity);
+  }
+
+  FL_SET(origin, FL_SINGLETON);
+  rb_singleton_class_attached(origin, klass);
+  rb_name_class(origin, SYM2ID(rb_class_name(klass)));
+
+  RBASIC(origin)->klass = (VALUE)NEW_NODE(NODE_MEMO, cfunc, data, 0);
+
+#ifdef RUBY_VM
+  /* YARV */
+  node = NEW_FBODY(
+      NEW_METHOD(
+          NEW_CFUNC(data_wrapper, arity),
+          origin,
+          NOEX_PUBLIC),
+      id);
+  st_insert(RCLASS_M_TBL(klass), id, (st_data_t)node);
+#else
+  /* pre-YARV */
+  node = NEW_FBODY(
+      NEW_CFUNC(data_wrapper, arity),
+      id,
+      origin);
+  rb_add_method(klass, id, node, NOEX_PUBLIC);
+#endif
+
+  return Qnil;
+}
+
+VALUE
+Rice::detail::
+method_data()
+{
+  return data_memo_node()->nd_rval;
+}
+

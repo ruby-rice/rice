@@ -113,7 +113,7 @@ inline void Rice::Data_Object<T>::
 swap(Data_Object<U> & ref)
 {
   std::swap(obj_, ref.obj_);
-  Object::swap(*this, ref);
+  Object::swap(ref);
 }
 
 template<typename T>

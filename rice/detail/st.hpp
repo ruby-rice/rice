@@ -12,13 +12,17 @@
 
 extern "C"
 {
+#ifdef RUBY_VM
+#include "ruby/st.h"
+#else
 #include "st.h"
+#endif
 }
 
 // Older versions of Ruby don't have proper signatures for the st_
 // functions
 
-#if RUBY_VERSION_CODE < 180
+#if RICE__RUBY_VERSION_CODE < 180
 
 typedef char * st_data_t;
 
@@ -50,7 +54,7 @@ extern "C" typedef st_table* (*St_Init_Table_Signature)(
 
 } // namespace Exc_Ruby
 
-#endif // RUBY_VERSION_CODE < 180
+#endif // RICE__RUBY_VERSION_CODE < 180
 
 #endif // Exc_Ruby___cpp__st__hpp_
 

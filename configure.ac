@@ -26,6 +26,11 @@ AC_SUBST(RICE_USING_MINGW32)
 m4_include(ruby.ac)
 RB_INIT_RUBY
 
+AC_CHECK_LIB(ruby,
+             rb_class_boot,
+             [ AC_DEFINE(HAVE_RB_CLASS_BOOT, [], [
+              Define this macro if rb_class_boot is defined ]) ] )
+
 m4_include(doxygen.ac)
 DX_HTML_FEATURE(ON)
 DX_CHM_FEATURE(OFF)
@@ -40,8 +45,12 @@ DX_INIT_DOXYGEN(rice, Doxyfile, doc)
 RICE_SAMPLES="enum map inheritance"
 AC_SUBST(RICE_SAMPLES)
 
+RICE_ROOT=`pwd`
+AC_SUBST(RICE_ROOT)
+
 AC_CONFIG_FILES(Makefile rice/Makefile test/Makefile sample/Makefile
-                ruby/Makefile ruby/lib/Makefile ruby/lib/mkmf-rice.rb)
+                ruby/Makefile ruby/lib/Makefile ruby/lib/mkmf-rice.rb
+                rice/detail/ruby_version_code.hpp)
 AC_OUTPUT
 
 dnl Work around a bug in older versions of Rubygems

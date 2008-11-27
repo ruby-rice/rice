@@ -21,7 +21,7 @@ inline void define_alloc_func(
     Class const & klass,
     RUBY_VALUE_FUNC allocate_func)
 {
-#if RUBY_VERSION_CODE < 170
+#if RICE__RUBY_VERSION_CODE < 170
   klass.define_singleton_method("allocate", allocate_func);
   klass.define_singleton_method("new", ruby_16_new);
 #else
@@ -41,7 +41,7 @@ inline void define_creation_funcs(
 
 inline void undef_alloc_func(Class const & klass)
 {
-#if RUBY_VERSION_CODE >= 170
+#if RICE__RUBY_VERSION_CODE >= 170
   rb_undef_alloc_func(klass);
 #else
   rb_undef_method(CLASS_OF(klass), "new");

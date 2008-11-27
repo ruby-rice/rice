@@ -69,7 +69,10 @@ Data_Type()
   : Module_impl<Data_Type_Base, Data_Type<T> >(
       klass_ == Qnil ? rb_cObject : klass_)
 {
-  unbound_instances().insert(this);
+  if(!is_bound())
+  {
+    unbound_instances().insert(this);
+  }
 }
 
 template<typename T>
@@ -138,11 +141,23 @@ from_ruby(Object x)
 
   void * v = DATA_PTR(x.value());
   Class klass = x.class_of();
+
+  if(klass.value() == klass_)
+  {
+    // Great, not converting to a base/derived type
+    Data_Type<T> data_klass;
+    Data_Object<T> obj(x, data_klass);
+    return obj.get();
+  }
+
   Data_Type_Base::Casters::const_iterator it(
       Data_Type_Base::casters_.find(klass));
   if(it == Data_Type_Base::casters_.end())
   {
-    throw std::runtime_error("Derived type is unbound");
+    std::string s = "Derived class ";
+    s += klass.name().str();
+    s += " is not registered/bound in Rice";
+    throw std::runtime_error(s);
   }
 
   detail::Abstract_Caster * caster = it->second;

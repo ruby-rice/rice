@@ -14,14 +14,14 @@ TESTCASE(default_construct)
 {
   String s;
   ASSERT_EQUAL(T_STRING, rb_type(s));
-  ASSERT_EQUAL("", RSTRING(s.value())->ptr);
+  ASSERT_EQUAL("", RSTRING_PTR(s.value()));
 }
 
 TESTCASE(construct_from_value)
 {
   String s(rb_str_new2("foo"));
   ASSERT_EQUAL(T_STRING, rb_type(s));
-  ASSERT_EQUAL("foo", RSTRING(s.value())->ptr);
+  ASSERT_EQUAL("foo", RSTRING_PTR(s.value()));
 }
 
 TESTCASE(construct_from_object)
@@ -29,35 +29,35 @@ TESTCASE(construct_from_object)
   Object o(rb_str_new2("foo"));
   String s(o);
   ASSERT_EQUAL(T_STRING, rb_type(s));
-  ASSERT_EQUAL("foo", RSTRING(s.value())->ptr);
+  ASSERT_EQUAL("foo", RSTRING_PTR(s.value()));
 }
 
 TESTCASE(construct_from_identifier)
 {
   String s(Identifier("foo"));
   ASSERT_EQUAL(T_STRING, rb_type(s));
-  ASSERT_EQUAL("foo", RSTRING(s.value())->ptr);
+  ASSERT_EQUAL("foo", RSTRING_PTR(s.value()));
 }
 
 TESTCASE(construct_from_c_string)
 {
   String s("foo");
   ASSERT_EQUAL(T_STRING, rb_type(s));
-  ASSERT_EQUAL("foo", RSTRING(s.value())->ptr);
+  ASSERT_EQUAL("foo", RSTRING_PTR(s.value()));
 }
 
 TESTCASE(construct_from_std_string)
 {
   String s(std::string("foo"));
   ASSERT_EQUAL(T_STRING, rb_type(s));
-  ASSERT_EQUAL("foo", RSTRING(s.value())->ptr);
+  ASSERT_EQUAL("foo", RSTRING_PTR(s.value()));
 }
 
 TESTCASE(format)
 {
   String s(String::format("%s %d", "foo", 42));
   ASSERT_EQUAL(T_STRING, rb_type(s));
-  ASSERT_EQUAL("foo 42", RSTRING(s.value())->ptr);
+  ASSERT_EQUAL("foo 42", RSTRING_PTR(s.value()));
 }
 
 TESTCASE(length)
@@ -77,7 +77,7 @@ TESTCASE(bracket)
 TESTCASE(c_str)
 {
   String s("foo");
-  ASSERT_EQUAL(RSTRING(s.value())->ptr, s.c_str());
+  ASSERT_EQUAL(RSTRING_PTR(s.value()), s.c_str());
 }
 
 TESTCASE(str)

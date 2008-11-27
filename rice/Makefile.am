@@ -14,7 +14,8 @@ VM.cpp \
 detail/check_ruby_type.cpp \
 detail/demangle.cpp \
 detail/method_data.cpp \
-detail/protect.cpp
+detail/protect.cpp \
+detail/mininode.cpp
 
 nobase_include_HEADERS = \
 Address_Registration_Guard.hpp \
@@ -34,6 +35,7 @@ Critical_Guard.hpp \
 Critical_Guard.ipp \
 Data_Object.hpp \
 Data_Object.ipp \
+Data_Object_defn.hpp \
 Data_Type.hpp \
 Data_Type.ipp \
 Data_Type_defn.hpp \
@@ -41,8 +43,10 @@ Data_Type_fwd.hpp \
 Enum.hpp \
 Enum.ipp \
 Exception.hpp \
+Exception_defn.hpp \
 Exception_Base.hpp \
 Exception_Base.ipp \
+Exception_Base_defn.hpp \
 Hash.hpp \
 Hash.ipp \
 Identifier.hpp \
@@ -79,7 +83,9 @@ detail/Auto_Member_Function_Wrapper.hpp \
 detail/Auto_Member_Function_Wrapper.ipp \
 detail/Caster.hpp \
 detail/Exception_Handler.hpp \
-detail/Iterator_Definer.hpp \
+detail/Exception_Handler.ipp \
+detail/Exception_Handler_defn.hpp \
+detail/Iterator.hpp \
 detail/Not_Copyable.hpp \
 detail/Wrapped_Function.hpp \
 detail/check_ruby_type.hpp \
@@ -113,4 +119,13 @@ includedir = ${prefix}/include/rice
 AM_CPPFLAGS = @RUBY_CPPFLAGS@
 
 AM_CXXFLAGS = @RUBY_CXXFLAGS@
+
+detail/method_data.cpp: detail/method_data.cpp.rpp detail/mininode.hpp
+	ruby -C detail ../rubypp.rb method_data.cpp.rpp method_data.cpp
+
+detail/mininode.cpp: detail/mininode.cpp.rpp
+	ruby -C detail ../rubypp.rb mininode.cpp.rpp mininode.cpp
+
+detail/mininode.hpp: detail/mininode.hpp.rpp
+	ruby -C detail ../rubypp.rb mininode.hpp.rpp mininode.hpp
 

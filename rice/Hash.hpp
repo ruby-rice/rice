@@ -152,7 +152,7 @@ class Hash::Iterator
 {
 public:
   //! Construct a new Iterator.
-  Iterator(Hash_Ref_T hash, size_t bin, st_table_entry * ptr);
+  Iterator(Hash_Ref_T hash, st_data_t bin, st_table_entry * ptr);
 
   //! Copy construct an Iterator.
   Iterator(Iterator const & iterator);
@@ -192,7 +192,11 @@ public:
 private:
   Hash hash_;
   st_table * tbl_;
+#if RUBY_VERSION_CODE >= 190
+  st_index_t bin_;
+#else
   int bin_;
+#endif
   st_table_entry * ptr_;
 
   mutable typename detail::remove_const<Value_T>::Type tmp_;

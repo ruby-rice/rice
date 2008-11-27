@@ -1,7 +1,7 @@
 #ifndef Rice__ruby_try_catch__hpp_
 #define Rice__ruby_try_catch__hpp_
 
-#include "Exception_Base.hpp"
+#include "Exception_Base_defn.hpp"
 #include "Jump_Tag.hpp"
 #include "detail/ruby.hpp"
 #include <stdexcept>
