@@ -2,6 +2,7 @@
 #define Rice__Data_Type__ipp_
 
 #include "Class.hpp"
+#include "String.hpp"
 #include "Data_Object.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "detail/creation_funcs.hpp"
