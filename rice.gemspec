@@ -62,6 +62,7 @@ of the Ruby C API.
     'rice/*.rb',
     'rice/config.hpp.in',
     'rice/detail/*.?pp',
+    'rice/detail/ruby_version_code.hpp.in',
 
     # Library files
     'ruby/lib/mkmf-rice.rb.in',

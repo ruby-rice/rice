@@ -77,6 +77,7 @@ ruby_try_catch.hpp \
 to_from_ruby.hpp \
 to_from_ruby.ipp \
 to_from_ruby_defn.hpp \
+ruby_mark.hpp \
 detail/Auto_Function_Wrapper.hpp \
 detail/Auto_Function_Wrapper.ipp \
 detail/Auto_Member_Function_Wrapper.hpp \
@@ -112,7 +113,8 @@ detail/to_ruby.hpp \
 detail/to_ruby.ipp \
 detail/win32.hpp \
 detail/wrap_function.hpp \
-detail/wrap_function.ipp
+detail/wrap_function.ipp \
+detail/ruby_version_code.hpp
 
 includedir = ${prefix}/include/rice
 
