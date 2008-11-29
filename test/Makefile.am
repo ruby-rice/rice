@@ -22,7 +22,8 @@ unittest_SOURCES = \
 	test_String.cpp \
 	test_Struct.cpp \
 	test_Symbol.cpp \
-	test_To_From_Ruby.cpp
+	test_To_From_Ruby.cpp \
+	test_global_functions.cpp
 
 vm_unittest_SOURCES = \
 	unittest.cpp \

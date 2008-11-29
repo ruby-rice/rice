@@ -4,10 +4,16 @@
 namespace Rice
 {
 
-template<typename Func_T>
-void define_global_function(
-    char const * name,
-    Func_T func);
+  /**
+   * Helper forwarder method to easily wrap
+   * globally available functions. This simply
+   * forwards off a call to define_module_function
+   * on rb_mKernel
+   */
+  template<typename Func_T>
+  void define_global_function(
+      char const * name,
+      Func_T func);
 
 } // Rice
 
