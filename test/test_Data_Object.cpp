@@ -45,8 +45,10 @@ TESTCASE(construct_from_pointer_with_defaults)
   ASSERT_EQUAL(Data_Type<Foo>::klass(), wrapped_foo.class_of());
   typedef void (*Mark_Func)(void *);
   typedef void (*Mark_Func_Foo)(Foo *);
+  Mark_Func expected_mark_func =
+    Mark_Func(Mark_Func_Foo(ruby_mark<Foo>));
   ASSERT_EQUAL(
-      Mark_Func(Mark_Func_Foo(ruby_mark<Foo>)),
+      expected_mark_func,
       RDATA(wrapped_foo.value())->dmark);
   ASSERT_EQUAL(
       RUBY_DATA_FUNC(Default_Allocation_Strategy<Foo>::free),
@@ -63,8 +65,10 @@ TESTCASE(construct_from_pointer_and_klass)
   ASSERT_EQUAL(Data_Type<Foo>::klass(), wrapped_foo.class_of());
   typedef void (*Mark_Func)(void *);
   typedef void (*Mark_Func_Foo)(Foo *);
+  Mark_Func expected_mark_func =
+    Mark_Func(Mark_Func_Foo(ruby_mark<Foo>));
   ASSERT_EQUAL(
-      Mark_Func(Mark_Func_Foo(ruby_mark<Foo>)),
+      expected_mark_func,
       RDATA(wrapped_foo.value())->dmark);
   ASSERT_EQUAL(
       RUBY_DATA_FUNC(Default_Allocation_Strategy<Foo>::free),
@@ -81,8 +85,10 @@ TESTCASE(construct_from_pointer_and_alternate_klass)
   ASSERT_EQUAL(rb_cObject, CLASS_OF(wrapped_foo.value()));
   typedef void (*Mark_Func)(void *);
   typedef void (*Mark_Func_Foo)(Foo *);
+  Mark_Func expected_mark_func =
+    Mark_Func(Mark_Func_Foo(ruby_mark<Foo>));
   ASSERT_EQUAL(
-      Mark_Func(Mark_Func_Foo(ruby_mark<Foo>)),
+      expected_mark_func,
       RDATA(wrapped_foo.value())->dmark);
   ASSERT_EQUAL(
       RUBY_DATA_FUNC(Default_Allocation_Strategy<Foo>::free),
