@@ -6,6 +6,7 @@ class RiceTest < Test::Unit::TestCase
   VERBOSE = ARGV.include?('-v')
 
   EXEEXT = Config::CONFIG['EXEEXT']
+  RUBY = Config::CONFIG['RUBY_INSTALL_NAME']
 
   def test_unittest
     run_external_test("./unittest#{EXEEXT}")
@@ -13,6 +14,10 @@ class RiceTest < Test::Unit::TestCase
 
   def test_vm_unittest
     run_external_test("./vm_unittest#{EXEEXT}")
+  end
+
+  def test_vm_unittest
+    run_external_test("#{RUBY} test_multiple_extensions.rb")
   end
 
   def run_external_test(executable)
