@@ -263,7 +263,7 @@ namespace Rice
   {
     inline VALUE str2ccstr(VALUE x)
     {
-      return (VALUE)(STR2CSTR(x));
+      return (VALUE)(StringValuePtr(x));
     }
   }
 }
