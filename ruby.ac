@@ -24,6 +24,7 @@ AC_SUBST(RUBY)
 RUBY_VERSION_CODE=`$RUBY -e "puts RUBY_VERSION.gsub(/\./, '')"`
 AC_SUBST(RUBY_VERSION_CODE)
 
+RUBY_CONFIG_SO_NAME=`RUBY_CONFIG(RUBY_SO_NAME)`
 RUBY_CONFIG_ARCHDIR=`RUBY_CONFIG(archdir)`
 RUBY_CONFIG_ARCH=`RUBY_CONFIG(arch)`
 RUBY_CONFIG_LIBDIR=`RUBY_CONFIG(libdir)`
@@ -105,6 +106,12 @@ AC_CHECK_HEADERS(version.h,,,[
 AC_CHECK_HEADERS(env.h,,,[
 #include <ruby.h>
 ])
+
+AC_CHECK_LIB($RUBY_CONFIG_SO_NAME,
+             rb_class_boot,
+             [ AC_DEFINE(HAVE_RB_CLASS_BOOT, [], [
+              Define this macro if rb_class_boot is defined ]) ] )
+
 
 CPPFLAGS="${CPPFLAGS_save}"
 

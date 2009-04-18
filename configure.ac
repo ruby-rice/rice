@@ -26,11 +26,6 @@ AC_SUBST(RICE_USING_MINGW32)
 m4_include(ruby.ac)
 RB_INIT_RUBY
 
-AC_CHECK_LIB(ruby,
-             rb_class_boot,
-             [ AC_DEFINE(HAVE_RB_CLASS_BOOT, [], [
-              Define this macro if rb_class_boot is defined ]) ] )
-
 m4_include(doxygen.ac)
 DX_HTML_FEATURE(ON)
 DX_CHM_FEATURE(OFF)
