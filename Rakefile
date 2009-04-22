@@ -4,7 +4,7 @@ require 'yaml'
 require 'rubyforge'
 
 PROJECT_NAME = "rice"
-RICE_VERSION = "1.0.3"
+RICE_VERSION = "1.1.0"
 PROJECT_WEB_PATH = "/var/www/gforge-projects/rice"
 
 task :default => :test

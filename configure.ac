@@ -1,4 +1,4 @@
-AC_INIT(rice, 1.0)
+AC_INIT(rice, 1.1)
 AC_CONFIG_SRCDIR(rice)
 AM_INIT_AUTOMAKE
 
