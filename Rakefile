@@ -2,9 +2,9 @@ require 'rake/gempackagetask'
 require 'rake/contrib/sshpublisher'
 require 'yaml'
 require 'rubyforge'
+require 'ruby/lib/version'
 
 PROJECT_NAME = "rice"
-RICE_VERSION = "1.1.0"
 PROJECT_WEB_PATH = "/var/www/gforge-projects/rice"
 
 task :default => :test
@@ -51,7 +51,7 @@ task :release => :package do
   puts "Logging into rubyforge"
   rf.login
 
-  pkg = "pkg/#{PROJECT_NAME}-#{RICE_VERSION}"
+  pkg = "pkg/#{PROJECT_NAME}-#{Rice::VERSION}"
 
   c = rf.userconfig
 
@@ -61,7 +61,7 @@ task :release => :package do
     "#{pkg}.gem"
   ]
 
-  puts "Releasing #{PROJECT_NAME} v. #{RICE_VERSION}"
+  puts "Releasing #{PROJECT_NAME} v. #{Rice::VERSION}"
   begin
     rf.add_release $spec.rubyforge_project, PROJECT_NAME, RICE_VERSION, *files
   rescue => ex

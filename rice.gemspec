@@ -1,6 +1,6 @@
 $spec = Gem::Specification.new do |s|
   s.name = PROJECT_NAME
-  s.version = RICE_VERSION
+  s.version = Rice::VERSION
   s.summary = 'Ruby Interface for C++ Extensions'
   s.homepage = 'http://rice.rubyforge.org/'
   s.rubyforge_project = PROJECT_NAME
