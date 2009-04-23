@@ -26,6 +26,8 @@ of the Ruby C API.
     'doxygen.ac',
     'doxygen.am',
 
+    'extconf.rb',
+
     # Autoconf
     'bootstrap',
     'configure.ac',
@@ -66,6 +68,7 @@ of the Ruby C API.
 
     # Library files
     'ruby/lib/mkmf-rice.rb.in',
+    'ruby/lib/version.rb',
 
     # Samples
     'sample/enum/extconf.rb',
@@ -83,7 +86,7 @@ of the Ruby C API.
   ]
   s.files = patterns.collect { |p| Dir.glob(p) }.flatten
 
-  s.extensions = 'configure'
+  s.extensions = ['extconf.rb']
 
   s.test_files = [
     'test/test_rice.rb',
