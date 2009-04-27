@@ -16,8 +16,6 @@ pkg
 *.log
 .deps
 *~
-<<<<<<< HEAD:.gitignore
 .*.swp
-=======
-*.swp
->>>>>>> yarv_method_data:.gitignore
+doc
+rice/README.doxygen
