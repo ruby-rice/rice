@@ -1,9 +1,0 @@
-* Demangling of the C++ class names when using gcc
-
-* Better error message when argument types are wrong
-
-1.0.1
-
-* -fPIC during compiling for better compiler portability
-
-* Fixed tarball and zip, they were missing aclocal.m4
