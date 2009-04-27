@@ -1,4 +1,4 @@
-require 'ftools'
+require 'fileutils'
 require 'find'
 
 def process(file)
@@ -10,7 +10,7 @@ def process(file)
       end
     end
   end
-  File.mv("#{file}.pp", "#{file}")
+  FileUtils.mv("#{file}.pp", "#{file}")
 end
 
 Find.find(".") do |file|

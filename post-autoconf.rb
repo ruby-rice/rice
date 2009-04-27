@@ -1,4 +1,4 @@
-require 'ftools'
+require 'fileutils'
 require 'find'
 
 def process(file)
@@ -10,7 +10,7 @@ def process(file)
       end
     end
   end
-  File.mv("#{file}.pp", "#{file}")
+  FileUtils.mv("#{file}.pp", "#{file}")
 end
 
 process("configure") do |out, line|
@@ -19,4 +19,4 @@ process("configure") do |out, line|
   line.gsub!(/([^"'])(\$am_aux_dir)/, '\1\"\2\"')
   out.puts line
 end
-File.chmod(0700, "configure")
+FileUtils.chmod(0700, "configure")
