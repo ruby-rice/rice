@@ -192,7 +192,7 @@ public:
 private:
   Hash hash_;
   st_table * tbl_;
-#if RUBY_VERSION_CODE >= 190
+#if RICE__RUBY_VERSION_CODE >= 190
   st_index_t bin_;
 #else
   int bin_;

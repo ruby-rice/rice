@@ -33,7 +33,7 @@ Rice::VM::
   init_stack();
 }
 
-#if RUBY_VERSION_CODE < 186
+#if RICE__RUBY_VERSION_CODE < 186
   extern "C"
   void Init_stack(VALUE *);
 #endif
@@ -41,7 +41,7 @@ Rice::VM::
 void Rice::VM::
 init_stack()
 {
-#if RUBY_VERSION_CODE >= 186
+#if RICE__RUBY_VERSION_CODE >= 186
   RUBY_INIT_STACK;
 #else
   VALUE v;
