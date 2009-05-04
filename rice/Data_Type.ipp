@@ -126,7 +126,7 @@ define_constructor(
   check_is_bound();
 
   // Normal constructor pattern with new/initialize
-  detail::define_alloc_func(
+  rb_define_alloc_func(
       static_cast<VALUE>(*this),
       detail::default_allocation_func<T>);
   define_method("initialize", &Constructor_T::construct);

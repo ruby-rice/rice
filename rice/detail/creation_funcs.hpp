@@ -9,14 +9,6 @@ class Class;
 namespace detail
 {
 
-//! Ruby 1.6.x doesn't have rb_define_alloc_func, but Ruby 1.8 will.
-//! It's the "new" way to allocate objects.  This function will just
-//! define a singleton new method on older versions of Ruby, and will
-//! call rb_define_alloc_func() on newer versions of Ruby.
-void define_alloc_func(
-    Class const & klass,
-    RUBY_VALUE_FUNC allocate_func);
-
 //! Like define_alloc_func, but allows the user to define an
 //! "initialize" method too.
 template<typename Initialize_Func_T>

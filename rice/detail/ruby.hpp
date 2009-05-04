@@ -42,39 +42,7 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 // Fix Ruby RUBY_METHOD_FUNC from macro to typedef
 #if defined(RUBY_METHOD_FUNC)
 # undef RUBY_METHOD_FUNC
-# if RICE__RUBY_VERSION_CODE <= 166
-    extern "C" typedef VALUE (*RUBY_METHOD_FUNC)();
-# else
-    extern "C" typedef VALUE (*RUBY_METHOD_FUNC)(ANYARGS);
-# endif
-#endif
-
-// Some functions have the wrong prototype on Ruby 1.6.  Casting from a
-// C++ function to an extern "C" function won't result in correct
-// behavior on all platforms.  Fortunately this has been fixed in newer
-// versions of Ruby.
-#if RICE__RUBY_VERSION_CODE < 170
-  namespace Rice
-  {
-    namespace detail
-    {
-      extern "C" typedef VALUE
-        (*Rb_Protect_Signature)(RUBY_VALUE_FUNC, VALUE, int *);
-      extern "C" typedef void
-        (*Rb_Gc_Mark_Signature)(VALUE);
-      extern "C" typedef void
-        (*Rb_Set_End_Proc_Signature)(void (*)(VALUE), VALUE);
-    } // detail
-  } // Rice
-  //! Ruby 1.6 has the wrong signature for rb_protect.
-# define rb_protect(f, arg, state) \
-     ((::Rice::detail::Rb_Protect_Signature)(rb_protect))(f, arg, state)
-//! Ruby 1.6 has the wrong signature for rb_gc_mark.
-# define rb_gc_mark(value) \
-    ((::Rice::detail::Rb_Gc_Mark_Signature)(rb_gc_mark))(value)
-//! Ruby 1.6 has the wrong signature for rb_set_end_proc.
-# define rb_set_end_proc(f,v) \
-    ((::Rice::detail::Rb_Set_End_Proc_Signature)(rb_set_end_proc))(f, v)
+  extern "C" typedef VALUE (*RUBY_METHOD_FUNC)(ANYARGS);
 #endif
 
 #ifndef RSTRING_LEN
