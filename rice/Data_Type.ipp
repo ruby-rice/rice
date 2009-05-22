@@ -13,8 +13,6 @@
 #include <stdexcept>
 #include <typeinfo>
 
-#include <iostream>
-
 template<typename T>
 VALUE Rice::Data_Type<T>::klass_ = Qnil;
 
@@ -170,22 +168,15 @@ from_ruby(Object x)
 
   VALUE ancestors = rb_mod_ancestors(klass.value());
 
-  //rb_warn("Looking for a caster for class %s", klass.name().c_str());
-
   int earliest = RARRAY(ancestors)->len + 1;
-
-  //rb_warn("Ancestor's length is %d", RARRAY(ancestors)->len);
 
   int index;
   VALUE indexFound;
   Data_Type_Base::Casters::const_iterator toUse = end;
 
   for(; it != end; it++) {
-    //rb_warn("Checking against %s", RSTRING_PTR(rb_funcall(it->first, rb_intern("to_s"), 0)));
-
     // Do we match directly?
     if(klass.value() == it->first) {
-      //rb_warn("We found ourselves exactly, woot!");
       toUse = it;
       break;
     }
@@ -200,19 +191,10 @@ from_ruby(Object x)
     if(indexFound != Qnil) {
       index = NUM2INT(indexFound);
 
-      //rb_warn("Index found in ancestors, index is %d, earliest is %d", index, earliest);
-
       if(index < earliest) {
         earliest = index;
         toUse = it;
-        std::cout << "We've now chosen to use class " 
-          << RSTRING_PTR(rb_funcall(toUse->first, rb_intern("to_s"), 0)) 
-          << " and V is currently " << v << " but this class' v is " << DATA_PTR(toUse->first) << std::endl;
-        //v = DATA_PTR(toUse->first);
-        //rb_warn("Now using the found item (%s), earliest is now %d", RSTRING_PTR(rb_funcall(toUse->first, rb_intern("to_s"), 0)), earliest);
       }
-    } else {
-      //rb_warn("Index was NOT found in ancestors");
     }
   }
   
@@ -223,22 +205,15 @@ from_ruby(Object x)
     s += " is not registered/bound in Rice";
     throw std::runtime_error(s);
   }
-    
-  if(v == 0) {
-    v = DATA_PTR(toUse->first);
-  }
 
   detail::Abstract_Caster * caster = toUse->second;
   if(caster)
   {
-    std::cout << "We have a caster, casting..." << std::endl;
     T * result = static_cast<T *>(caster->cast_to_base(v, klass_));
-    std::cout << "Result is " << result << std::endl;
     return result;
   }
   else
   {
-    std::cout << "Hmm, no caster, just cast it straight" << std::endl;
     return static_cast<T *>(v);
   }
 }
