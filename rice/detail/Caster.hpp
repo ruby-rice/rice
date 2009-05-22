@@ -44,7 +44,11 @@ protected:
       }
       else
       {
-        throw std::runtime_error("bad cast");
+        std::string s = "bad cast from ";
+        s += type_.name().str(); 
+        s += " to ";
+        s += type.name().str();
+        throw std::runtime_error(s);
       }
     }
   }
