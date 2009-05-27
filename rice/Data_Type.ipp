@@ -168,7 +168,7 @@ from_ruby(Object x)
 
   VALUE ancestors = rb_mod_ancestors(klass.value());
 
-  int earliest = RARRAY(ancestors)->len + 1;
+  int earliest = RARRAY_LEN(ancestors) + 1;
 
   int index;
   VALUE indexFound;
