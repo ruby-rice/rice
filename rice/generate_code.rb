@@ -807,6 +807,19 @@ public:
 };
 
 END
+
+hpp_self_template = <<END
+template<typename T%(typename_list)>
+class Constructor<T, Object%(type_list)%(void_list)>
+{
+public:
+  static void construct(Object self%(arg_list))
+  {
+    DATA_PTR(self.value()) = new T(self%(arg_names));
+  }
+};
+
+END
 hpp_head = <<END
 #include "to_from_ruby_defn.hpp"
 #include "detail/method_data.hpp"
@@ -820,18 +833,40 @@ wrap_header(hpp_filename, 'Rice', nil, false, hpp_head) do |hpp|
     typename_list    = t_array.map { |x| ", typename Arg#{x}_T" }
     type_list        = t_array.map { |x| ", Arg#{x}_T" }
     void_list        = o_array.map { |x| ", void" }
+
     arg_list         = t_array.map { |x| ", Arg#{x}_T arg#{x}" }
     arg_names        = t_array.map { |x| "arg#{x}" }.join(', ')
+
     hpp.puts fill_template(hpp_template, {
       :typename_list    => typename_list,
       :type_list        => type_list,
       :void_list        => void_list,
       :arg_list         => arg_list,
-      :arg_names        => arg_names,
+      :arg_names        => arg_names
+    })
+  end
+
+  # For the self / Director system
+  for j in 0..(MAX_ARGS - 1) do
+    t_array = (1..j).to_a
+    o_array = (j..(MAX_ARGS - 1)).to_a
+    typename_list    = t_array.map { |x| ", typename Arg#{x}_T" }
+    type_list        = t_array.map { |x| ", Arg#{x}_T" }
+    void_list        = o_array.map { |x| ", void" }
+
+    arg_list         = t_array.map { |x| ", Arg#{x}_T arg#{x}" }
+    arg_names        = t_array.map { |x| ", arg#{x}" }
+
+    hpp.puts fill_template(hpp_self_template, {
+      :typename_list    => typename_list,
+      :type_list        => type_list,
+      :void_list        => void_list,
+      :arg_list         => arg_list,
+      :arg_names        => arg_names
     })
   end
 end
- 
+
 if ARGV[0] == '--clean' then
   $filenames.each do |filename|
     File.rm_f(filename)

@@ -44,10 +44,8 @@ protected:
       }
       else
       {
-        std::string s = "bad cast from ";
-        s += type_.name().str(); 
-        s += " to ";
-        s += type.name().str();
+        std::string s = "bad cast. No caster found for ";
+        s += type_.name().str();
         throw std::runtime_error(s);
       }
     }
