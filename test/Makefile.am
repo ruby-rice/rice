@@ -13,6 +13,7 @@ unittest_SOURCES = \
 	test_Critical_Guard.cpp \
 	test_Data_Object.cpp \
 	test_Data_Type.cpp \
+	test_Director.cpp \
 	test_Enum.cpp \
 	test_Exception.cpp \
 	test_Hash.cpp \

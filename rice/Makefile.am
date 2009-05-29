@@ -3,6 +3,7 @@ lib_LIBRARIES = librice.a
 librice_a_SOURCES = \
 Class.cpp \
 Data_Type.cpp \
+Director.cpp \
 Exception.cpp \
 Identifier.cpp \
 Module.cpp \
@@ -40,6 +41,7 @@ Data_Type.hpp \
 Data_Type.ipp \
 Data_Type_defn.hpp \
 Data_Type_fwd.hpp \
+Director.hpp \
 Enum.hpp \
 Enum.ipp \
 Exception.hpp \
