@@ -15,7 +15,7 @@ namespace Rice {
     public:
       //! Construct new Director. Needs the Ruby object so that the 
       //  proxy class can call methods on that object.
-      Director(Object self) { self_ = self; }
+      Director(Object self);
 
       virtual ~Director() { }
 
@@ -27,6 +27,12 @@ namespace Rice {
        */
       bool callIsFromRuby(const char* methodName);
 
+      //! Raise a ruby exception when a call comes through for a pure virtual method
+      /*! If a Ruby script calls 'super' on a method that's otherwise a pure virtual
+       *  method, use this method to throw an exception in this case. 
+       */
+      void raisePureVirtual();
+
       //! Get the Ruby object linked to this C++ instance
       Object getSelf() { return self_; }
 
@@ -34,6 +40,7 @@ namespace Rice {
 
       // Save the Ruby object related to the instance of this class
       Object self_;
+
   };
 }
 
