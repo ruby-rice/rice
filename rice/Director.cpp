@@ -1,9 +1,6 @@
 #include "Director.hpp"
 
-#include "env.h"
-
-#include <iostream>
-using namespace std;
+#include "detail/env.hpp"
 
 namespace Rice {
 
@@ -11,11 +8,11 @@ namespace Rice {
     self_ = self;
   }
 
-  bool Director::callIsFromRuby(const char* methodName) {
+  bool Director::callIsFromRuby(const char* methodName) const {
     return (getSelf().value() == ruby_frame->self) && ( rb_id2name(ruby_frame->orig_func) != methodName );
   }
 
-  void Director::raisePureVirtual() {
+  void Director::raisePureVirtual() const {
     rb_raise(rb_eNotImpError, "Cannot call super() into a pure-virtual C++ method");
   }
 

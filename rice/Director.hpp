@@ -25,16 +25,16 @@ namespace Rice {
        *  this to prevent infinite loops where super() calls could
        *  inadvertantly call methods back in Ruby
        */
-      bool callIsFromRuby(const char* methodName);
+      bool callIsFromRuby(const char* methodName) const;
 
       //! Raise a ruby exception when a call comes through for a pure virtual method
       /*! If a Ruby script calls 'super' on a method that's otherwise a pure virtual
        *  method, use this method to throw an exception in this case. 
        */
-      void raisePureVirtual();
+      void raisePureVirtual() const;
 
       //! Get the Ruby object linked to this C++ instance
-      Object getSelf() { return self_; }
+      Object getSelf() const { return self_; }
 
     private:
 
