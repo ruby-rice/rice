@@ -13,6 +13,7 @@ class MultipleExtensionTest < Test::Unit::TestCase
     # And make sure we can call methods in the base class on a derived
     # instance
     dog = Dog.new
-    dog.speak
+    assert_equal dog.name, "Dog"
+    assert_equal dog.speak, "Woof woof"
   end
 end
