@@ -2,6 +2,7 @@
 #include "rice/Module.hpp"
 #include "rice/Exception.hpp"
 #include "rice/Array.hpp"
+#include "rice/Arg.hpp"
 
 using namespace Rice;
 
@@ -251,3 +252,79 @@ TESTCASE(mod_name_anonymous)
   ASSERT_EQUAL(String(""), m.name());
 }
 
+/**
+ * Tests for default arguments
+ */
+namespace 
+{
+  int defaults_method_one_arg1;
+  int defaults_method_one_arg2;
+  bool defaults_method_one_arg3 = false;
+
+  void defaults_method_one(Object o, int arg1, int arg2 = 3, bool arg3 = true) 
+  {
+    defaults_method_one_arg1 = arg1;
+    defaults_method_one_arg2 = arg2;
+    defaults_method_one_arg3 = arg3;
+  }
+}
+
+TESTCASE(define_method_default_arguments)
+{
+  Module m(anonymous_module());
+  m.define_method("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
+
+  Object o = m.instance_eval("o = Object.new; o.extend(self); o.foo(2)");
+
+  ASSERT_EQUAL(2, defaults_method_one_arg1);
+  ASSERT_EQUAL(3, defaults_method_one_arg2);
+  ASSERT(defaults_method_one_arg3);
+
+  o = m.instance_eval("o = Object.new; o.extend(self); o.foo(11, 10)");
+
+  ASSERT_EQUAL(11, defaults_method_one_arg1);
+  ASSERT_EQUAL(10, defaults_method_one_arg2);
+  ASSERT(defaults_method_one_arg3);
+
+  o = m.instance_eval("o = Object.new; o.extend(self); o.foo(22, 33, false)");
+
+  ASSERT_EQUAL(11, defaults_method_one_arg1);
+  ASSERT_EQUAL(10, defaults_method_one_arg2);
+  ASSERT(!defaults_method_one_arg3);
+}
+
+TESTCASE(default_arguments_still_throws_argument_error)
+{
+  Module m(anonymous_module());
+  m.define_method("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
+
+  ASSERT_EXCEPTION_CHECK(
+      Exception,
+      m.instance_eval("o = Object.new; o.extend(self); o.foo()"),
+      ASSERT_EQUAL(
+          Object(rb_eArgError),
+          Object(CLASS_OF(ex.value()))
+          )
+      );
+
+  ASSERT_EXCEPTION_CHECK(
+      Exception,
+      m.instance_eval("o = Object.new; o.extend(self); o.foo(3, 4, false, 17)"),
+      ASSERT_EQUAL(
+          Object(rb_eArgError),
+          Object(CLASS_OF(ex.value()))
+          )
+      );
+}
+
+TESTCASE(default_arguments_for_define_singleton_method)
+{
+
+}
+
+TESTCASE(default_arguments_for_define_module_function)
+{
+
+}
+
+TESTCASE(default_arguments_for_define_global_function)
