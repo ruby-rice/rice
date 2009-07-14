@@ -5,6 +5,7 @@
 #include "detail/ruby.hpp"
 #include "Object_defn.hpp"
 #include "Address_Registration_Guard_defn.hpp"
+#include "detail/Arguments.h"
 
 namespace Rice
 {
@@ -103,6 +104,17 @@ public:
   Derived_T & define_method(
       Identifier name,
       Func_T func);
+
+  //! Define an instance method with default arguments.
+  /*! \see Module::define_method()
+   *  \see Args
+   *  \param arguments The list of arguments for this method.
+   */
+  template<typename Func_T>
+  Derived_T & define_method(
+      Identifier name,
+      Func_T func,
+      Arguments arguments);
 
   //! Define a singleton method.
   /*! The method's implementation can be any function or member

@@ -4,6 +4,7 @@
 #include "ruby.hpp"
 #include "../Data_Object.hpp"
 #include "../Identifier.hpp"
+#include "Arguments.hpp"
 
 namespace Rice
 {
@@ -19,6 +20,14 @@ void define_method_and_auto_wrap(
     Identifier name,
     Fun_T function,
     Data_Object<Exception_Handler> handler);
+
+template<typename Fun_T>
+void define_method_and_auto_wrap(
+    VALUE klass,
+    Identifier name,
+    Fun_T function,
+    Data_Object<Exception_Handler> handler,
+    Arguments arguments);
 
 } // detail
 

@@ -132,6 +132,21 @@ template<typename Func_T>
 inline
 Derived_T &
 Rice::Module_impl<Base_T, Derived_T>::
+define_method(
+    Identifier name,
+    Func_T func,
+    Arguments arguments)
+{
+  detail::define_method_with_arguments_and_auto_wrap(
+      *this, name, func, this->handler(), arguments);
+  return (Derived_T &)*this;
+}
+
+template<typename Base_T, typename Derived_T>
+template<typename Func_T>
+inline
+Derived_T &
+Rice::Module_impl<Base_T, Derived_T>::
 define_singleton_method(
     Identifier name,
     Func_T func)

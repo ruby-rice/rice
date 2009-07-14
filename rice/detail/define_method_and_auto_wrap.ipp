@@ -26,4 +26,25 @@ define_method_and_auto_wrap(
       f);
 }
 
+template<typename Fun_T>
+void Rice::detail::
+define_method_and_auto_wrap (
+    VALUE klass,
+    Identifier name,
+    Fun_T function,
+    Data_Object<Exception_Handler> handler,
+    Arguments arguments)
+{
+  Data_Object<Wrapped_Function> f(
+      wrap_function(function, handler, arguments),
+      rb_cObject);
+  Rice::protect(
+      define_method_with_data,
+      klass,
+      name.id(),
+      f->func(),
+      -1,
+      f);
+}
+
 #endif // Rice__detail__define_method_and_auto_wrap__ipp_
