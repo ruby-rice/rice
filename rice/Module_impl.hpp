@@ -5,7 +5,7 @@
 #include "detail/ruby.hpp"
 #include "Object_defn.hpp"
 #include "Address_Registration_Guard_defn.hpp"
-#include "detail/Arguments.h"
+#include "detail/Arguments.hpp"
 
 namespace Rice
 {

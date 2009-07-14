@@ -137,7 +137,7 @@ define_method(
     Func_T func,
     Arguments arguments)
 {
-  detail::define_method_with_arguments_and_auto_wrap(
+  detail::define_method_and_auto_wrap(
       *this, name, func, this->handler(), arguments);
   return (Derived_T &)*this;
 }

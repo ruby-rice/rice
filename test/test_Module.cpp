@@ -328,3 +328,5 @@ TESTCASE(default_arguments_for_define_module_function)
 }
 
 TESTCASE(default_arguments_for_define_global_function)
+{
+}

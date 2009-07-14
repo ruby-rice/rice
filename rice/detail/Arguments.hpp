@@ -1,11 +1,10 @@
 #ifndef Rice__Arguments__hpp_
 #define Rice__Arguments__hpp_
 
+#include "../Arg_impl.hpp"
 #include <vector>
 
 namespace Rice {
-
-  class Arg;
 
   class Arguments
   {
