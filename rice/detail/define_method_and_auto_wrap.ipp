@@ -22,7 +22,7 @@ define_method_and_auto_wrap(
       klass,
       name.id(),
       f->func(),
-      f->arity(),
+      -1, //f->arity(),
       f);
 }
 

@@ -325,14 +325,27 @@ Auto_Function_Wrapper(
 
 template<typename Func_T, typename Ret_T, %(typename_list)>
 VALUE Auto_Function_Wrapper<Func_T, Ret_T, %(typenames)>::
-call(%(value_args))
+call(int argc, VALUE *args, VALUE self)
 {
   Auto_Function_Wrapper<Func_T, Ret_T, %(typenames)> * wrapper = 0;
   try
   {
     Data_Object<Wrapped_Function> data(detail::method_data());
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, %(typenames)> *)data.get();
-    %(arg_convert_list)
+
+    %(arg_def_list)
+
+    bool hasSelf = (self && self != Qnil);
+
+    if (hasSelf && argc == (Num_Args - 1)) {
+      arg0 = from_ruby<Arg0_T>(self); %(self_arg_convert_list)
+    } else if (argc == Num_Args) {
+      %(arg_convert_list)
+    } else {
+      rb_raise(rb_eArgError, "wrong number of arguments (%d for %d)", argc, 
+          hasSelf ? Num_Args - 1 : Num_Args);
+    }
+
     return to_ruby(wrapper->func_(%(arg_list)));
   }
   catch(...)
@@ -368,7 +381,7 @@ Auto_Function_Wrapper(
 
 template<typename Func_T, %(typename_list)>
 VALUE Auto_Function_Wrapper<Func_T, void, %(typenames)>::
-call(%(value_args))
+call(int argc, VALUE* args, VALUE self)
 {
   Auto_Function_Wrapper<Func_T, void, %(typenames)> * wrapper = 0;
   try
@@ -376,7 +389,20 @@ call(%(value_args))
     Data_Object<Wrapped_Function> data(detail::method_data());
     wrapper =
       (Auto_Function_Wrapper<Func_T, void, %(typenames)> *)data.get();
-    %(arg_convert_list)
+
+    %(arg_def_list)
+
+    bool hasSelf = (self && self != Qnil);
+
+    if (hasSelf && argc == (Num_Args - 1)) {
+      arg0 = from_ruby<Arg0_T>(self); %(self_arg_convert_list)
+    } else if (argc == Num_Args) {
+      %(arg_convert_list)
+    } else {
+      rb_raise(rb_eArgError, "wrong number of arguments (%d for %d)", argc, 
+          hasSelf ? Num_Args - 1 : Num_Args);
+    }
+
     wrapper->func_(%(arg_list));
     return Qnil;
   }
@@ -419,7 +445,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(%(value_args));
+  static VALUE call(int argc, VALUE* args, VALUE self);
 
 private:
   Func func_;
@@ -443,7 +469,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(%(value_args));
+  static VALUE call(int argc, VALUE* args, VALUE self);
 
 private:
   Func func_;
@@ -463,18 +489,156 @@ ipp_head = <<END
 #include "../ruby_try_catch.hpp"
 #include "../to_from_ruby.hpp"
 END
+ipp_tail = <<END
+template<typename Func_T, typename Ret_T>
+Auto_Function_Wrapper<Func_T, Ret_T>::
+Auto_Function_Wrapper(
+    Func func,
+    Exception_Handler const * handler,
+    Arguments* arguments)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+  , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
+  , arguments_(arguments)
+{
+}
+
+template<typename Func_T, typename Ret_T>
+VALUE Auto_Function_Wrapper<Func_T, Ret_T>::
+call()
+{
+  Auto_Function_Wrapper<Func_T, Ret_T> * wrapper = 0;
+  try
+  {
+    Data_Object<Wrapped_Function> data(detail::method_data());
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T>*)data.get();
+
+    return to_ruby<Ret_T>(wrapper->func_());
+  }
+  catch(...)
+  {
+    RUBY_TRY
+    {
+      if(wrapper)
+      {
+        return wrapper->handler_->handle_exception();
+      }
+      else
+      {
+        throw;
+      }
+    }
+    RUBY_CATCH
+  }
+}
+
+template<typename Func_T>
+Auto_Function_Wrapper<Func_T, void>::
+Auto_Function_Wrapper(
+    Func func,
+    Exception_Handler const * handler,
+    Arguments* arguments)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+  , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
+  , arguments_(arguments)
+{
+}
+
+template<typename Func_T>
+VALUE Auto_Function_Wrapper<Func_T, void>::
+call()
+{
+  Auto_Function_Wrapper<Func_T, void> * wrapper = 0;
+  try
+  {
+    void * data = detail::method_data();
+    wrapper =
+      (Auto_Function_Wrapper<Func_T, void> *)data;
+
+    wrapper->func_();
+    return Qnil;
+  }
+  catch(...)
+  {
+    RUBY_TRY
+    {
+      if(wrapper)
+      {
+        return wrapper->handler_->handle_exception();
+      }
+      else
+      {
+        throw;
+      }
+    }
+    RUBY_CATCH
+  }
+}
+END
+hpp_tail = <<END
+
+template<typename Func_T, typename Ret_T>
+class Auto_Function_Wrapper<Func_T, Ret_T>
+  : public Wrapped_Function
+{
+public:
+  // typedef void (*Func)();
+  typedef Func_T Func;
+
+  static const int Num_Args = 0;
+
+  Auto_Function_Wrapper(
+      Func func,
+      Exception_Handler const * handler = 0,
+      Arguments* arguments = 0);
+
+  static VALUE call();
+
+private:
+  Func func_;
+  Exception_Handler const * handler_;
+  Arguments* arguments_;
+};
+
+template<typename Func_T>
+class Auto_Function_Wrapper<Func_T, void>
+  : public Wrapped_Function
+{
+public:
+  // typedef void (*Func)();
+  typedef Func_T Func;
+
+  static const int Num_Args = 0;
+
+  Auto_Function_Wrapper(
+      Func func,
+      Exception_Handler const * handler = 0,
+      Arguments* arguments = 0);
+
+  static VALUE call();
+
+private:
+  Func func_;
+  Exception_Handler const * handler_;
+  Arguments* arguments_;
+};
+END
 ipp_filename = 'detail/Auto_Function_Wrapper.ipp'
 hpp_filename = 'detail/Auto_Function_Wrapper.hpp'
 wrap_header(hpp_filename, 'Rice::detail', docstring, true, hpp_head) do |hpp|
   wrap_header(ipp_filename, 'Rice::detail', nil, false, ipp_head) do |ipp|
-    j = MAX_ARGS # TODO: what's the best way to iterate backward?
-    while j >= 0 do
+    MAX_ARGS.downto(0) do |j|
       t_array = (0..j).to_a
-      value_args    = t_array.map { |x| "VALUE ruby_arg#{x}" }.join(', ')
+      arg_def_list      = t_array.map { |x| "Arg#{x}_T arg#{x};" }
       arg_list      = t_array.map { |x| "arg#{x}" }.join(', ')
       typenames     = t_array.map { |x| "Arg#{x}_T" }.join(', ')
-      arg_convert_list = t_array.map do |x|
-        "Arg#{x}_T arg#{x}(from_ruby<Arg#{x}_T>(ruby_arg#{x})); "
+      arg_convert_list  = t_array.map do |x|
+        "arg#{x} = from_ruby<Arg#{x}_T>(args[#{x}]);"
+      end
+      self_arg_convert_list = (0...j).to_a.map do |x|
+        n = x + 1
+        "arg#{n} = from_ruby<Arg#{n}_T>(args[#{x}]);"
       end
       if j == MAX_ARGS then
         typename_list = t_array.map { |x| "typename Arg#{x}_T" }.join(', ')
@@ -486,22 +650,23 @@ wrap_header(hpp_filename, 'Rice::detail', docstring, true, hpp_head) do |hpp|
         specializations = "<Func_T, Ret_T, #{typenames}>"
       end
       ipp.puts fill_template(ipp_template, {
-        :value_args       => value_args,
+        :arg_def_list     => arg_def_list,
         :arg_list         => arg_list,
         :typenames        => typenames,
         :typename_list    => typename_list,
         :arg_convert_list => arg_convert_list,
+        :self_arg_convert_list => self_arg_convert_list,
       })
       hpp.puts fill_template(hpp_template, {
-        :value_args       => value_args,
         :typenames        => typenames,
         :typename_list_d  => typename_list_d,
         :typename_list    => typename_list,
-        :j                => j,
+        :j                => j + 1,
         :specializations  => specializations,
       })
-      j -= 1
     end
+    ipp.puts ipp_tail
+    hpp.puts hpp_tail
   end
 end
 
