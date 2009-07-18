@@ -135,7 +135,7 @@ Rice::Module_impl<Base_T, Derived_T>::
 define_method(
     Identifier name,
     Func_T func,
-    Arguments arguments)
+    Arguments* arguments)
 {
   detail::define_method_and_auto_wrap(
       *this, name, func, this->handler(), arguments);

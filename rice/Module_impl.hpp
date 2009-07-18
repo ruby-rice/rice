@@ -114,7 +114,7 @@ public:
   Derived_T & define_method(
       Identifier name,
       Func_T func,
-      Arguments arguments);
+      Arguments* arguments);
 
   //! Define a singleton method.
   /*! The method's implementation can be any function or member

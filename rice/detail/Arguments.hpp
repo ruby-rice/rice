@@ -4,23 +4,34 @@
 #include "../Arg_impl.hpp"
 #include <vector>
 
+#include <iostream>
+using namespace std;
+
 namespace Rice {
 
   class Arguments
   {
     public: 
-      Arguments() {}
+      Arguments() {
+        cout << "New arguments object" << endl;
+      }
+
+      ~Arguments() {
+        cout << "Arguments getting destroyed" << endl;
+      }
 
       /**
        * Add a defined Arg to this list of Arguments
        */
-      void add(const Arg& arg) 
+      void add(const Arg* arg) 
       {
+        cout << "Adding arg with name " << arg->name() << endl;
         args_.push_back(arg);
+        cout << "Count is now " << args_.size() << endl;
       }
 
     private:
-      std::vector<Arg> args_;
+      std::vector<const Arg*> args_;
   };
 
 }

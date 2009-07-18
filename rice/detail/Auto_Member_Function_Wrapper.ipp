@@ -22,7 +22,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -68,7 +68,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -116,7 +116,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -162,7 +162,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -210,7 +210,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -256,7 +256,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -304,7 +304,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -350,7 +350,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -398,7 +398,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -444,7 +444,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -492,7 +492,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -538,7 +538,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -586,7 +586,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -632,7 +632,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -680,7 +680,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -726,7 +726,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -774,7 +774,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -820,7 +820,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -868,7 +868,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -914,7 +914,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -962,7 +962,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -1008,7 +1008,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -1056,7 +1056,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -1102,7 +1102,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -1150,7 +1150,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T, Arg3_T>::
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -1196,7 +1196,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T, Arg3_T>::
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -1244,7 +1244,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T, Arg2_T>::
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -1290,7 +1290,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T, Arg2_T>::
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -1338,7 +1338,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, Arg1_T>::
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -1384,7 +1384,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T, Arg1_T>::
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -1432,7 +1432,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T>::
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -1478,7 +1478,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T>::
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)

@@ -27,7 +27,7 @@ void define_method_and_auto_wrap(
     Identifier name,
     Fun_T function,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments);
+    Arguments* arguments);
 
 } // detail
 

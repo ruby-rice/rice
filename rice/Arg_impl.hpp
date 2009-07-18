@@ -1,6 +1,9 @@
 #ifndef Rice__Arg_Impl_hpp_
 #define Rice__Arg_Impl_hpp_
 
+#include <iostream>
+using namespace std;
+
 namespace Rice {
 
   /**
@@ -33,10 +36,15 @@ namespace Rice {
 
       virtual ~Arg()
       {
+        /*
+        cout << "Destroying arg with name " << name_ << endl;
+        cout << "default value is " << defaultValue << endl;
         if(defaultValue)
         {
           delete defaultValue;
         }
+        cout << "Destroyed" << endl;
+        */
       }
 
       /**
@@ -90,6 +98,8 @@ namespace Rice {
           type(const Type & value)
             :held(value)
           {}
+
+          virtual ~type() { cout << "Destroying held type " << endl; }
 
           virtual type_base* clone() const
           {

@@ -314,7 +314,7 @@ Auto_Function_Wrapper<Func_T, Ret_T, %(typenames)>::
 Auto_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -357,7 +357,7 @@ Auto_Function_Wrapper<Func_T, void, %(typenames)>::
 Auto_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -417,7 +417,7 @@ public:
   Auto_Function_Wrapper(
       Func func,
       Data_Object<Exception_Handler> handler,
-      Arguments arguments = Arguments());
+      Arguments* arguments = 0);
 
   static VALUE call(%(value_args));
 
@@ -425,7 +425,7 @@ private:
   Func func_;
   Data_Object<Exception_Handler> handler_;
   Address_Registration_Guard handler_guard_;
-  Arguments arguments_;
+  Arguments* arguments_;
 };
 
 template<typename Func_T, %(typename_list)>
@@ -441,7 +441,7 @@ public:
   Auto_Function_Wrapper(
       Func func,
       Data_Object<Exception_Handler> handler,
-      Arguments arguments = Arguments());
+      Arguments* arguments = 0);
 
   static VALUE call(%(value_args));
 
@@ -449,7 +449,7 @@ private:
   Func func_;
   Data_Object<Exception_Handler> handler_;
   Address_Registration_Guard handler_guard_;
-  Arguments arguments_;
+  Arguments* arguments_;
 };
 
 // ---------------------------------------------------------------------
@@ -517,7 +517,7 @@ Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T%(typenames)>::
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -563,7 +563,7 @@ Auto_Member_Function_Wrapper<Func_T, void, Self_T%(typenames)>::
 Auto_Member_Function_Wrapper(
     Func func,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
   , handler_(handler)
@@ -620,7 +620,7 @@ public:
   Auto_Member_Function_Wrapper(
       Func func,
       Data_Object<Exception_Handler> handler,
-      Arguments arguments = Arguments());
+      Arguments* arguments = 0);
 
   static VALUE call(VALUE self%(value_args));
 
@@ -628,7 +628,7 @@ private:
   Func func_;
   Data_Object<Exception_Handler> handler_;
   Address_Registration_Guard handler_guard_;
-  Arguments arguments_;
+  Arguments* arguments_;
 };
 
 template<typename Func_T, typename Self_T%(typename_list)>
@@ -643,7 +643,7 @@ public:
   Auto_Member_Function_Wrapper(
       Func func,
       Data_Object<Exception_Handler> handler,
-      Arguments arguments = Arguments());
+      Arguments* arguments = 0);
 
   static VALUE call(VALUE self%(value_args));
 
@@ -651,7 +651,7 @@ private:
   Func func_;
   Data_Object<Exception_Handler> handler_;
   Address_Registration_Guard handler_guard_;
-  Arguments arguments_;
+  Arguments* arguments_;
 };
 
 // ---------------------------------------------------------------------
@@ -713,7 +713,7 @@ template<typename Ret_T, %(typename_list)>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(%(typenames)),
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
 {
   typedef Ret_T (*Func)(%(typenames));
   return new Auto_Function_Wrapper<Func, Ret_T, %(typenames)>(func, handler, arguments);
@@ -723,7 +723,7 @@ template<typename Ret_T, typename Self_T%(typename_list_no_self)>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(%(typenames_no_self_no_comma)),
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
 {
   typedef Ret_T (Self_T::*Func)(%(typenames_no_self_no_comma));
   return new Auto_Member_Function_Wrapper<Func, Ret_T, Self_T%(typenames_no_self)>(func, handler, arguments);
@@ -733,7 +733,7 @@ template<typename Ret_T, typename Self_T%(typename_list_no_self)>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(%(typenames_no_self_no_comma)) const,
     Data_Object<Exception_Handler> handler,
-    Arguments arguments)
+    Arguments* arguments)
 {
   typedef Ret_T (Self_T::*Func)(%(typenames_no_self_no_comma)) const;
   return new Auto_Member_Function_Wrapper<Func, Ret_T, Self_T%(typenames_no_self)>(func, handler, arguments);
@@ -746,19 +746,19 @@ template<typename Ret_T, %(typename_list)>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(%(typenames)),
     Data_Object<Exception_Handler> handler = Rice::Nil,
-    Arguments arguments = Arguments());
+    Arguments* arguments = 0);
 
 template<typename Ret_T, typename Self_T%(typename_list_no_self)>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(%(typenames_no_self_no_comma)),
     Data_Object<Exception_Handler> handler = Rice::Nil,
-    Arguments arguments = Arguments());
+    Arguments* arguments = 0);
 
 template<typename Ret_T, typename Self_T%(typename_list_no_self)>
 Wrapped_Function * wrap_function(
     Ret_T (Self_T::*func)(%(typenames_no_self_no_comma)) const,
     Data_Object<Exception_Handler> handler = Rice::Nil,
-    Arguments arguments = Arguments());
+    Arguments* arguments = 0);
 
 // ---------------------------------------------------------------------
 END
