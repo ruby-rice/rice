@@ -9,6 +9,7 @@
 #include <iostream>
 
 using namespace Rice;
+using namespace std;
 
 TESTSUITE(Class);
 
@@ -134,6 +135,7 @@ int define_method_int_result;
 
 void define_method_int_helper(Object o, int i)
 {
+  cout << "int helper method called with var of " << i << endl;
   define_method_int_result = i;
 }
 
