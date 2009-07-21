@@ -131,21 +131,29 @@ TESTCASE(define_module_function_simple)
 namespace
 {
 
-int define_method_int_result;
+  int define_method_int_result;
 
-void define_method_int_helper(Object o, int i)
-{
-  cout << "int helper method called with var of " << i << endl;
-  define_method_int_result = i;
-}
+  class IntHelper {
+    public: 
+      IntHelper() { }
+
+      void define_method_int_helper(int i)
+      {
+        define_method_int_result = i;
+      }
+  };
 
 } // namespace
 
 TESTCASE(define_method_int)
 {
-  Class c(anonymous_class());
-  c.define_method("foo", &define_method_int_helper);
+  Class c = 
+    define_class<IntHelper>("IntHelper")
+      .define_constructor(Constructor<IntHelper>())
+      .define_method("foo", &IntHelper::define_method_int_helper);
+
   Object o = c.call("new");
+
   define_method_int_result = 0;
   o.call("foo", 42);
   ASSERT_EQUAL(42, define_method_int_result);
@@ -153,9 +161,13 @@ TESTCASE(define_method_int)
 
 TESTCASE(define_method_int_passed_two_args)
 {
-  Class c(anonymous_class());
-  c.define_method("foo", &define_method_int_helper);
+  Class c = 
+    define_class<IntHelper>("IntHelper")
+      .define_constructor(Constructor<IntHelper>())
+      .define_method("foo", &IntHelper::define_method_int_helper);
+
   Object o = c.call("new");
+
   ASSERT_EXCEPTION_CHECK(
       Exception,
       o.call("foo", 1, 2),
@@ -168,9 +180,13 @@ TESTCASE(define_method_int_passed_two_args)
 
 TESTCASE(define_method_int_passed_no_args)
 {
-  Class c(anonymous_class());
-  c.define_method("foo", &define_method_int_helper);
+  Class c = 
+    define_class<IntHelper>("IntHelper")
+      .define_constructor(Constructor<IntHelper>())
+      .define_method("foo", &IntHelper::define_method_int_helper);
+
   Object o = c.call("new");
+
   ASSERT_EXCEPTION_CHECK(
       Exception,
       o.call("foo"),
