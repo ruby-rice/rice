@@ -319,32 +319,35 @@ Auto_Function_Wrapper(
   , func_(func)
   , handler_(handler)
   , handler_guard_(&handler_)
-  , arguments_(arguments)
 {
+  if(arguments == 0) {
+    arguments_ = new Arguments();
+  } else {
+    arguments_ = arguments;
+  }
 }
 
 template<typename Func_T, typename Ret_T, %(typename_list)>
 VALUE Auto_Function_Wrapper<Func_T, Ret_T, %(typenames)>::
-call(int argc, VALUE *args, VALUE self)
+call(int argc, VALUE *argv, VALUE self)
 {
   Auto_Function_Wrapper<Func_T, Ret_T, %(typenames)> * wrapper = 0;
   try
   {
     Data_Object<Wrapped_Function> data(detail::method_data());
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, %(typenames)> *)data.get();
+    Arguments* args = wrapper->arguments_;
 
+    VALUE %(scan_def_list);
     %(arg_def_list)
 
+    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
+      %(scan_args_list));
+
+    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
-    if (hasSelf && argc == (Num_Args - 1)) {
-      arg0 = from_ruby<Arg0_T>(self); %(self_arg_convert_list)
-    } else if (argc == Num_Args) {
-      %(arg_convert_list)
-    } else {
-      rb_raise(rb_eArgError, "wrong number of arguments (%d for %d)", argc, 
-          hasSelf ? Num_Args - 1 : Num_Args);
-    }
+    %(arg_convert_list)
 
     return to_ruby(wrapper->func_(%(arg_list)));
   }
@@ -375,13 +378,17 @@ Auto_Function_Wrapper(
   , func_(func)
   , handler_(handler)
   , handler_guard_(&handler_)
-  , arguments_(arguments)
 {
+  if(arguments == 0) {
+    arguments_ = new Arguments();
+  } else {
+    arguments_ = arguments;
+  }
 }
 
 template<typename Func_T, %(typename_list)>
 VALUE Auto_Function_Wrapper<Func_T, void, %(typenames)>::
-call(int argc, VALUE* args, VALUE self)
+call(int argc, VALUE* argv, VALUE self)
 {
   Auto_Function_Wrapper<Func_T, void, %(typenames)> * wrapper = 0;
   try
@@ -389,19 +396,17 @@ call(int argc, VALUE* args, VALUE self)
     Data_Object<Wrapped_Function> data(detail::method_data());
     wrapper =
       (Auto_Function_Wrapper<Func_T, void, %(typenames)> *)data.get();
+    Arguments* args = wrapper->arguments_;
 
+    VALUE %(scan_def_list);
     %(arg_def_list)
+
+    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+      %(scan_args_list));
 
     bool hasSelf = (self && self != Qnil);
 
-    if (hasSelf && argc == (Num_Args - 1)) {
-      arg0 = from_ruby<Arg0_T>(self); %(self_arg_convert_list)
-    } else if (argc == Num_Args) {
-      %(arg_convert_list)
-    } else {
-      rb_raise(rb_eArgError, "wrong number of arguments (%d for %d)", argc, 
-          hasSelf ? Num_Args - 1 : Num_Args);
-    }
+    %(arg_convert_list)
 
     wrapper->func_(%(arg_list));
     return Qnil;
@@ -591,7 +596,7 @@ public:
   Auto_Function_Wrapper(
       Func func,
       Exception_Handler const * handler = 0,
-      Arguments* arguments = 0);
+      Arguments* arguments = new Arguments());
 
   static VALUE call();
 
@@ -614,7 +619,7 @@ public:
   Auto_Function_Wrapper(
       Func func,
       Exception_Handler const * handler = 0,
-      Arguments* arguments = 0);
+      Arguments* arguments = new Arguments());
 
   static VALUE call();
 
@@ -630,12 +635,14 @@ wrap_header(hpp_filename, 'Rice::detail', docstring, true, hpp_head) do |hpp|
   wrap_header(ipp_filename, 'Rice::detail', nil, false, ipp_head) do |ipp|
     MAX_ARGS.downto(0) do |j|
       t_array = (0..j).to_a
-      arg_def_list      = t_array.map { |x| "Arg#{x}_T arg#{x};" }
+      scan_def_list  = t_array.map { |x| "varg#{x}" }.join(', ')
+      arg_def_list  = t_array.map { |x| "Arg#{x}_T arg#{x};"}
       arg_list      = t_array.map { |x| "arg#{x}" }.join(', ')
+      scan_args_list = t_array.map { |x| "&varg#{x}"}.join(', ')
       typenames     = t_array.map { |x| "Arg#{x}_T" }.join(', ')
       arg_convert_list  = t_array.map do |x|
-        "arg#{x} = from_ruby<Arg#{x}_T>(args[#{x}]);"
-      end
+        "if(args->isOptional(#{x}) && NIL_P(varg#{x})) { arg#{x} = args->get(#{x})->getDefaultValue<Arg#{x}_T>(); } else { arg#{x} = from_ruby<Arg#{x}_T>(varg#{x}); }"
+      end.join("\n\t\t")
       self_arg_convert_list = (0...j).to_a.map do |x|
         n = x + 1
         "arg#{n} = from_ruby<Arg#{n}_T>(args[#{x}]);"
@@ -650,12 +657,14 @@ wrap_header(hpp_filename, 'Rice::detail', docstring, true, hpp_head) do |hpp|
         specializations = "<Func_T, Ret_T, #{typenames}>"
       end
       ipp.puts fill_template(ipp_template, {
+        :scan_def_list    => scan_def_list,
         :arg_def_list     => arg_def_list,
         :arg_list         => arg_list,
         :typenames        => typenames,
         :typename_list    => typename_list,
         :arg_convert_list => arg_convert_list,
-        :self_arg_convert_list => self_arg_convert_list,
+        :scan_args_list   => scan_args_list,
+#        :self_arg_convert_list => self_arg_convert_list,
       })
       hpp.puts fill_template(hpp_template, {
         :typenames        => typenames,

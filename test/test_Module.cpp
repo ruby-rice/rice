@@ -268,7 +268,7 @@ namespace
     defaults_method_one_arg3 = arg3;
   }
 }
-/*
+
 TESTCASE(define_method_default_arguments)
 {
   Module m(anonymous_module());
@@ -330,4 +330,7 @@ TESTCASE(default_arguments_for_define_module_function)
 TESTCASE(default_arguments_for_define_global_function)
 {
 }
-*/
+
+TESTCASE(default_arguments_on_member_functions)
+{
+}

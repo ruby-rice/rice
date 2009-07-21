@@ -817,7 +817,7 @@ public:
   Auto_Function_Wrapper(
       Func func,
       Exception_Handler const * handler = 0,
-      Arguments* arguments = 0);
+      Arguments* arguments = new Arguments());
 
   static VALUE call();
 
@@ -840,7 +840,7 @@ public:
   Auto_Function_Wrapper(
       Func func,
       Exception_Handler const * handler = 0,
-      Arguments* arguments = 0);
+      Arguments* arguments = new Arguments());
 
   static VALUE call();
 

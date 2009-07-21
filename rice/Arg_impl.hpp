@@ -27,6 +27,7 @@ namespace Rice {
        */
       Arg(const char* name)
         : name_(name)
+        , defaultValue(0)
       {}
 
       Arg(const Arg& other)
@@ -36,15 +37,6 @@ namespace Rice {
 
       virtual ~Arg()
       {
-        /*
-        cout << "Destroying arg with name " << name_ << endl;
-        cout << "default value is " << defaultValue << endl;
-        if(defaultValue)
-        {
-          delete defaultValue;
-        }
-        cout << "Destroyed" << endl;
-        */
       }
 
       /**
@@ -60,11 +52,19 @@ namespace Rice {
       }
 
       /**
+       * Does this argument have a default value on it?
+       */
+      bool hasDefaultValue() const {
+        cout << "Arg(" << name_ << ") has default value? " << defaultValue << endl;
+        return defaultValue != 0;
+      }
+
+      /**
        * Get the default value of this argument,
        * if one exists
        */
       template<typename Arg_Type>
-      Arg_Type& getDefaultValue()
+      Arg_Type& getDefaultValue() const
       {
         return static_cast< type<Arg_Type>* >(defaultValue)->held;
       }
