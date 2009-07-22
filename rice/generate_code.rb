@@ -344,7 +344,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       %(scan_args_list));
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     %(arg_convert_list)
@@ -499,7 +498,7 @@ template<typename Func_T, typename Ret_T>
 Auto_Function_Wrapper<Func_T, Ret_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler,
+    Data_Object<Exception_Handler> handler,
     Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
@@ -541,7 +540,7 @@ template<typename Func_T>
 Auto_Function_Wrapper<Func_T, void>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler,
+    Data_Object<Exception_Handler> handler,
     Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
@@ -557,7 +556,7 @@ call()
   Auto_Function_Wrapper<Func_T, void> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    Data_Object<Wrapped_Function> data(detail::method_data());
     wrapper =
       (Auto_Function_Wrapper<Func_T, void> *)data;
 
@@ -595,14 +594,14 @@ public:
 
   Auto_Function_Wrapper(
       Func func,
-      Exception_Handler const * handler = 0,
+      Data_Object<Exception_Handler> handler,
       Arguments* arguments = new Arguments());
 
   static VALUE call();
 
 private:
   Func func_;
-  Exception_Handler const * handler_;
+  Data_Object<Exception_Handler> handler_;
   Arguments* arguments_;
 };
 
@@ -618,14 +617,14 @@ public:
 
   Auto_Function_Wrapper(
       Func func,
-      Exception_Handler const * handler = 0,
+      Data_Object<Exception_Handler> handler,
       Arguments* arguments = new Arguments());
 
   static VALUE call();
 
 private:
   Func func_;
-  Exception_Handler const * handler_;
+  Data_Object<Exception_Handler> handler_;
   Arguments* arguments_;
 };
 END
@@ -643,6 +642,10 @@ wrap_header(hpp_filename, 'Rice::detail', docstring, true, hpp_head) do |hpp|
       arg_convert_list  = t_array.map do |x|
         "if(args->isOptional(#{x}) && NIL_P(varg#{x})) { arg#{x} = args->get(#{x})->getDefaultValue<Arg#{x}_T>(); } else { arg#{x} = from_ruby<Arg#{x}_T>(varg#{x}); }"
       end.join("\n\t\t")
+#      self_arg_convert_list = (0...j).to_a.map do |x|
+#        n = x + 1
+#        "if(args->isOptional(#{x}) && NIL_P(varg#{n})) { arg#{n} = args->get(#{x})->getDefaultValue<Arg#{n}_T>(); } else { arg#{n} = from_ruby<Arg#{n}_T>(varg#{x}); }"
+#      end.join("\n\t\t")
       self_arg_convert_list = (0...j).to_a.map do |x|
         n = x + 1
         "arg#{n} = from_ruby<Arg#{n}_T>(args[#{x}]);"
@@ -1103,14 +1106,36 @@ hpp_head = <<END
 #include "Arguments.hpp"
 
 END
+hpp_start = <<END
+template<typename Ret_T>
+Wrapped_Function * wrap_function(
+    Ret_T (*func)(),
+    Data_Object<Exception_Handler> handler = Rice::Nil,
+    Arguments* arguments = 0);
+
+END
 ipp_head = <<END
 #include "Auto_Function_Wrapper.hpp"
 #include "Auto_Member_Function_Wrapper.hpp"
+END
+ipp_start = <<END
+template<typename Ret_T>
+Wrapped_Function * wrap_function(
+    Ret_T (*func)(),
+    Data_Object<Exception_Handler> handler,
+    Arguments* arguments)
+{
+  typedef Ret_T (*Func)();
+  return new Auto_Function_Wrapper<Func, Ret_T>(func, handler, arguments);
+}
+
 END
 ipp_filename = 'detail/wrap_function.ipp'
 hpp_filename = 'detail/wrap_function.hpp'
 wrap_header(hpp_filename, 'Rice::detail', docstring, true, hpp_head) do |hpp|
   wrap_header(ipp_filename, 'Rice::detail', nil, false, ipp_head) do |ipp|
+    ipp.puts ipp_start
+    hpp.puts hpp_start
     for j in 0..MAX_ARGS do
       t_array = (0..j).to_a
       typenames     = t_array.map { |x| "Arg#{x}_T" }.join(', ')

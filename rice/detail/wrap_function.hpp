@@ -23,6 +23,12 @@ namespace detail
 
 #else
 
+template<typename Ret_T>
+Wrapped_Function * wrap_function(
+    Ret_T (*func)(),
+    Data_Object<Exception_Handler> handler = Rice::Nil,
+    Arguments* arguments = 0);
+
 template<typename Ret_T, typename Arg0_T>
 Wrapped_Function * wrap_function(
     Ret_T (*func)(Arg0_T),

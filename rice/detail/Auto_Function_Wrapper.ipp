@@ -51,7 +51,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14, &varg15);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -201,7 +200,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -349,7 +347,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -495,7 +492,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -639,7 +635,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -781,7 +776,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -921,7 +915,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -1059,7 +1052,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -1195,7 +1187,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -1329,7 +1320,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -1461,7 +1451,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -1591,7 +1580,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2, &varg3, &varg4);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -1719,7 +1707,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2, &varg3);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -1845,7 +1832,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1, &varg2);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -1969,7 +1955,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0, &varg1);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -2091,7 +2076,6 @@ call(int argc, VALUE *argv, VALUE self)
     int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
       &varg0);
 
-    // Wonder if I still need this?
     bool hasSelf = (self && self != Qnil);
 
     if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
@@ -2180,7 +2164,7 @@ template<typename Func_T, typename Ret_T>
 Auto_Function_Wrapper<Func_T, Ret_T>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler,
+    Data_Object<Exception_Handler> handler,
     Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
@@ -2222,7 +2206,7 @@ template<typename Func_T>
 Auto_Function_Wrapper<Func_T, void>::
 Auto_Function_Wrapper(
     Func func,
-    Exception_Handler const * handler,
+    Data_Object<Exception_Handler> handler,
     Arguments* arguments)
   : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
   , func_(func)
@@ -2238,9 +2222,9 @@ call()
   Auto_Function_Wrapper<Func_T, void> * wrapper = 0;
   try
   {
-    void * data = detail::method_data();
+    Data_Object<Wrapped_Function> data(detail::method_data());
     wrapper =
-      (Auto_Function_Wrapper<Func_T, void> *)data;
+      (Auto_Function_Wrapper<Func_T, void> *)data.get();
 
     wrapper->func_();
     return Qnil;

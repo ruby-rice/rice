@@ -816,14 +816,14 @@ public:
 
   Auto_Function_Wrapper(
       Func func,
-      Exception_Handler const * handler = 0,
+      Data_Object<Exception_Handler> handler,
       Arguments* arguments = new Arguments());
 
   static VALUE call();
 
 private:
   Func func_;
-  Exception_Handler const * handler_;
+  Data_Object<Exception_Handler> handler_;
   Arguments* arguments_;
 };
 
@@ -839,14 +839,14 @@ public:
 
   Auto_Function_Wrapper(
       Func func,
-      Exception_Handler const * handler = 0,
+      Data_Object<Exception_Handler> handler,
       Arguments* arguments = new Arguments());
 
   static VALUE call();
 
 private:
   Func func_;
-  Exception_Handler const * handler_;
+  Data_Object<Exception_Handler> handler_;
   Arguments* arguments_;
 };
 #endif // DOXYGEN
