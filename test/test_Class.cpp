@@ -88,7 +88,7 @@ namespace
 
 bool define_method_simple_ok;
 
-void define_method_simple_helper(Object o)
+void define_method_simple_helper()
 {
   define_method_simple_ok = true;
 }
@@ -209,7 +209,7 @@ struct Foo
 int define_method_int_foo_result_i;
 Foo * define_method_int_foo_result_x;
 
-void define_method_int_foo_helper(Object o, int i, Foo * x)
+void define_method_int_foo_helper(int i, Foo * x)
 {
   define_method_int_foo_result_i = i;
   define_method_int_foo_result_x = x;
@@ -252,7 +252,7 @@ void handle_silly_exception(Silly_Exception const & ex)
   throw Exception(rb_eRuntimeError, "SILLY");
 }
 
-void throw_silly_exception(Object self)
+void throw_silly_exception()
 {
   throw Silly_Exception();
 }
