@@ -6,7 +6,7 @@
 inline Rice::Object Rice::Object::
 call(Identifier id) const
 {
-  VALUE args[] = { Qnil };
+  VALUE args[] = {  };
   return protect(rb_funcall2, value(), id, 0, args);
 }
 
