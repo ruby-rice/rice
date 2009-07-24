@@ -4,9 +4,6 @@
 #include "../Arg_impl.hpp"
 #include <vector>
 
-#include <iostream>
-using namespace std;
-
 namespace Rice {
 
   class Arguments
@@ -42,19 +39,14 @@ namespace Rice {
       char* formatString(int fullArgCount) 
       {
         char* output = new char[2];
-        cout << "In format string... required is " << required_ << " and optional is " << optional_ << endl;
         if(required_ == 0 && optional_ == 0) 
         {
-          cout << "All required, full arg count is " << fullArgCount << endl;
           sprintf(output, "%d0", fullArgCount);
         }
         else 
         {
-          cout << "Required and optional!" << endl;
           sprintf(output, "%d%d", required_ , optional_);
         }
-
-        cout << "Returning " << output << endl;
 
         return output;
       }
@@ -80,7 +72,7 @@ namespace Rice {
        * Is the argument at the request location an optional
        * argument?
        */
-      bool isOptional(int pos) 
+      bool isOptional(unsigned int pos) 
       {
         if(required_ == 0 && optional_ == 0) 
         {

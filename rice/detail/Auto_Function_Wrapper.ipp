@@ -45,30 +45,57 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13, varg14, varg15;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;Arg10_T arg10;Arg11_T arg11;Arg12_T arg12;Arg13_T arg13;Arg14_T arg14;Arg15_T arg15;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14, &varg15);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14, &varg15);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg10 = args->get(9)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg11 = args->get(10)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg12 = args->get(11)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg13 = args->get(12)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg12); }
+			if(args->isOptional(13) && NIL_P(varg13)) { arg14 = args->get(13)->getDefaultValue<Arg14_T>(); } else { arg14 = from_ruby<Arg14_T>(varg13); }
+			if(args->isOptional(14) && NIL_P(varg14)) { arg15 = args->get(14)->getDefaultValue<Arg15_T>(); } else { arg15 = from_ruby<Arg15_T>(varg14); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14, &varg15);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
-		if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
-		if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
-		if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
-		if(args->isOptional(13) && NIL_P(varg13)) { arg13 = args->get(13)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg13); }
-		if(args->isOptional(14) && NIL_P(varg14)) { arg14 = args->get(14)->getDefaultValue<Arg14_T>(); } else { arg14 = from_ruby<Arg14_T>(varg14); }
-		if(args->isOptional(15) && NIL_P(varg15)) { arg15 = args->get(15)->getDefaultValue<Arg15_T>(); } else { arg15 = from_ruby<Arg15_T>(varg15); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
+			if(args->isOptional(13) && NIL_P(varg13)) { arg13 = args->get(13)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg13); }
+			if(args->isOptional(14) && NIL_P(varg14)) { arg14 = args->get(14)->getDefaultValue<Arg14_T>(); } else { arg14 = from_ruby<Arg14_T>(varg14); }
+			if(args->isOptional(15) && NIL_P(varg15)) { arg15 = args->get(15)->getDefaultValue<Arg15_T>(); } else { arg15 = from_ruby<Arg15_T>(varg15); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15));
   }
@@ -119,30 +146,57 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13, varg14, varg15;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;Arg10_T arg10;Arg11_T arg11;Arg12_T arg12;Arg13_T arg13;Arg14_T arg14;Arg15_T arg15;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14, &varg15);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14, &varg15);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg10 = args->get(9)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg11 = args->get(10)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg12 = args->get(11)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg13 = args->get(12)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg12); }
+			if(args->isOptional(13) && NIL_P(varg13)) { arg14 = args->get(13)->getDefaultValue<Arg14_T>(); } else { arg14 = from_ruby<Arg14_T>(varg13); }
+			if(args->isOptional(14) && NIL_P(varg14)) { arg15 = args->get(14)->getDefaultValue<Arg15_T>(); } else { arg15 = from_ruby<Arg15_T>(varg14); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14, &varg15);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
-		if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
-		if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
-		if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
-		if(args->isOptional(13) && NIL_P(varg13)) { arg13 = args->get(13)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg13); }
-		if(args->isOptional(14) && NIL_P(varg14)) { arg14 = args->get(14)->getDefaultValue<Arg14_T>(); } else { arg14 = from_ruby<Arg14_T>(varg14); }
-		if(args->isOptional(15) && NIL_P(varg15)) { arg15 = args->get(15)->getDefaultValue<Arg15_T>(); } else { arg15 = from_ruby<Arg15_T>(varg15); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
+			if(args->isOptional(13) && NIL_P(varg13)) { arg13 = args->get(13)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg13); }
+			if(args->isOptional(14) && NIL_P(varg14)) { arg14 = args->get(14)->getDefaultValue<Arg14_T>(); } else { arg14 = from_ruby<Arg14_T>(varg14); }
+			if(args->isOptional(15) && NIL_P(varg15)) { arg15 = args->get(15)->getDefaultValue<Arg15_T>(); } else { arg15 = from_ruby<Arg15_T>(varg15); }
+    }
 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
     return Qnil;
@@ -194,29 +248,55 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13, varg14;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;Arg10_T arg10;Arg11_T arg11;Arg12_T arg12;Arg13_T arg13;Arg14_T arg14;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg10 = args->get(9)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg11 = args->get(10)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg12 = args->get(11)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg13 = args->get(12)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg12); }
+			if(args->isOptional(13) && NIL_P(varg13)) { arg14 = args->get(13)->getDefaultValue<Arg14_T>(); } else { arg14 = from_ruby<Arg14_T>(varg13); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
-		if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
-		if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
-		if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
-		if(args->isOptional(13) && NIL_P(varg13)) { arg13 = args->get(13)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg13); }
-		if(args->isOptional(14) && NIL_P(varg14)) { arg14 = args->get(14)->getDefaultValue<Arg14_T>(); } else { arg14 = from_ruby<Arg14_T>(varg14); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
+			if(args->isOptional(13) && NIL_P(varg13)) { arg13 = args->get(13)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg13); }
+			if(args->isOptional(14) && NIL_P(varg14)) { arg14 = args->get(14)->getDefaultValue<Arg14_T>(); } else { arg14 = from_ruby<Arg14_T>(varg14); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14));
   }
@@ -267,29 +347,55 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13, varg14;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;Arg10_T arg10;Arg11_T arg11;Arg12_T arg12;Arg13_T arg13;Arg14_T arg14;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg10 = args->get(9)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg11 = args->get(10)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg12 = args->get(11)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg13 = args->get(12)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg12); }
+			if(args->isOptional(13) && NIL_P(varg13)) { arg14 = args->get(13)->getDefaultValue<Arg14_T>(); } else { arg14 = from_ruby<Arg14_T>(varg13); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
-		if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
-		if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
-		if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
-		if(args->isOptional(13) && NIL_P(varg13)) { arg13 = args->get(13)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg13); }
-		if(args->isOptional(14) && NIL_P(varg14)) { arg14 = args->get(14)->getDefaultValue<Arg14_T>(); } else { arg14 = from_ruby<Arg14_T>(varg14); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
+			if(args->isOptional(13) && NIL_P(varg13)) { arg13 = args->get(13)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg13); }
+			if(args->isOptional(14) && NIL_P(varg14)) { arg14 = args->get(14)->getDefaultValue<Arg14_T>(); } else { arg14 = from_ruby<Arg14_T>(varg14); }
+    }
 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
     return Qnil;
@@ -341,28 +447,53 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;Arg10_T arg10;Arg11_T arg11;Arg12_T arg12;Arg13_T arg13;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg10 = args->get(9)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg11 = args->get(10)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg12 = args->get(11)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg13 = args->get(12)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg12); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
-		if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
-		if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
-		if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
-		if(args->isOptional(13) && NIL_P(varg13)) { arg13 = args->get(13)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg13); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
+			if(args->isOptional(13) && NIL_P(varg13)) { arg13 = args->get(13)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg13); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13));
   }
@@ -413,28 +544,53 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;Arg10_T arg10;Arg11_T arg11;Arg12_T arg12;Arg13_T arg13;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg10 = args->get(9)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg11 = args->get(10)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg12 = args->get(11)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg13 = args->get(12)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg12); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
-		if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
-		if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
-		if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
-		if(args->isOptional(13) && NIL_P(varg13)) { arg13 = args->get(13)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg13); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
+			if(args->isOptional(13) && NIL_P(varg13)) { arg13 = args->get(13)->getDefaultValue<Arg13_T>(); } else { arg13 = from_ruby<Arg13_T>(varg13); }
+    }
 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
     return Qnil;
@@ -486,27 +642,51 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;Arg10_T arg10;Arg11_T arg11;Arg12_T arg12;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg10 = args->get(9)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg11 = args->get(10)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg12 = args->get(11)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg11); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
-		if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
-		if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
-		if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12));
   }
@@ -557,27 +737,51 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;Arg10_T arg10;Arg11_T arg11;Arg12_T arg12;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg10 = args->get(9)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg11 = args->get(10)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg12 = args->get(11)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg11); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
-		if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
-		if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
-		if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
+			if(args->isOptional(12) && NIL_P(varg12)) { arg12 = args->get(12)->getDefaultValue<Arg12_T>(); } else { arg12 = from_ruby<Arg12_T>(varg12); }
+    }
 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
     return Qnil;
@@ -629,26 +833,49 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;Arg10_T arg10;Arg11_T arg11;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg10 = args->get(9)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg11 = args->get(10)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg10); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
-		if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
-		if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11));
   }
@@ -699,26 +926,49 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;Arg10_T arg10;Arg11_T arg11;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg10 = args->get(9)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg11 = args->get(10)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg10); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
-		if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
-		if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+			if(args->isOptional(11) && NIL_P(varg11)) { arg11 = args->get(11)->getDefaultValue<Arg11_T>(); } else { arg11 = from_ruby<Arg11_T>(varg11); }
+    }
 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
     return Qnil;
@@ -770,25 +1020,47 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;Arg10_T arg10;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg10 = args->get(9)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg9); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
-		if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10));
   }
@@ -839,25 +1111,47 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;Arg10_T arg10;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg10 = args->get(9)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg9); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
-		if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+			if(args->isOptional(10) && NIL_P(varg10)) { arg10 = args->get(10)->getDefaultValue<Arg10_T>(); } else { arg10 = from_ruby<Arg10_T>(varg10); }
+    }
 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
     return Qnil;
@@ -909,24 +1203,45 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9));
   }
@@ -977,24 +1292,45 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;Arg9_T arg9;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg9 = args->get(8)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg8); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
-		if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+			if(args->isOptional(9) && NIL_P(varg9)) { arg9 = args->get(9)->getDefaultValue<Arg9_T>(); } else { arg9 = from_ruby<Arg9_T>(varg9); }
+    }
 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
     return Qnil;
@@ -1046,23 +1382,43 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8));
   }
@@ -1113,23 +1469,43 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;Arg8_T arg8;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg8 = args->get(7)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg7); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
-		if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+			if(args->isOptional(8) && NIL_P(varg8)) { arg8 = args->get(8)->getDefaultValue<Arg8_T>(); } else { arg8 = from_ruby<Arg8_T>(varg8); }
+    }
 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
     return Qnil;
@@ -1181,22 +1557,41 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7));
   }
@@ -1247,22 +1642,41 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;Arg7_T arg7;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg7 = args->get(6)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg6); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
-		if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+			if(args->isOptional(7) && NIL_P(varg7)) { arg7 = args->get(7)->getDefaultValue<Arg7_T>(); } else { arg7 = from_ruby<Arg7_T>(varg7); }
+    }
 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
     return Qnil;
@@ -1314,21 +1728,39 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6));
   }
@@ -1379,21 +1811,39 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;Arg6_T arg6;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg6 = args->get(5)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg5); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
-		if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+			if(args->isOptional(6) && NIL_P(varg6)) { arg6 = args->get(6)->getDefaultValue<Arg6_T>(); } else { arg6 = from_ruby<Arg6_T>(varg6); }
+    }
 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
     return Qnil;
@@ -1445,20 +1895,37 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5));
   }
@@ -1509,20 +1976,37 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4, varg5;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;Arg5_T arg5;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4, &varg5);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg5 = args->get(4)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg4); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
-		if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+			if(args->isOptional(5) && NIL_P(varg5)) { arg5 = args->get(5)->getDefaultValue<Arg5_T>(); } else { arg5 = from_ruby<Arg5_T>(varg5); }
+    }
 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5);
     return Qnil;
@@ -1574,19 +2058,35 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2, &varg3, &varg4);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4));
   }
@@ -1637,19 +2137,35 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3, varg4;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;Arg4_T arg4;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3, &varg4);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2, &varg3, &varg4);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg4 = args->get(3)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg3); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3, &varg4);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
-		if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+			if(args->isOptional(4) && NIL_P(varg4)) { arg4 = args->get(4)->getDefaultValue<Arg4_T>(); } else { arg4 = from_ruby<Arg4_T>(varg4); }
+    }
 
     wrapper->func_(arg0, arg1, arg2, arg3, arg4);
     return Qnil;
@@ -1701,18 +2217,33 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2, &varg3);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3));
   }
@@ -1763,18 +2294,33 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2, varg3;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;Arg3_T arg3;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2, &varg3);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2, &varg3);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg3 = args->get(2)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg2); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2, &varg3);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
-		if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+			if(args->isOptional(3) && NIL_P(varg3)) { arg3 = args->get(3)->getDefaultValue<Arg3_T>(); } else { arg3 = from_ruby<Arg3_T>(varg3); }
+    }
 
     wrapper->func_(arg0, arg1, arg2, arg3);
     return Qnil;
@@ -1826,17 +2372,31 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1, &varg2);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1, arg2));
   }
@@ -1887,17 +2447,31 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1, varg2;
     Arg0_T arg0;Arg1_T arg1;Arg2_T arg2;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1, &varg2);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1, &varg2);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg2 = args->get(1)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg1); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1, &varg2);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
-		if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+			if(args->isOptional(2) && NIL_P(varg2)) { arg2 = args->get(2)->getDefaultValue<Arg2_T>(); } else { arg2 = from_ruby<Arg2_T>(varg2); }
+    }
 
     wrapper->func_(arg0, arg1, arg2);
     return Qnil;
@@ -1949,16 +2523,29 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1;
     Arg0_T arg0;Arg1_T arg1;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0, &varg1);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+    }
 
     return to_ruby(wrapper->func_(arg0, arg1));
   }
@@ -2009,16 +2596,29 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0, varg1;
     Arg0_T arg0;Arg1_T arg1;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0, &varg1);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0, &varg1);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      if(args->isOptional(0) && NIL_P(varg0)) { arg1 = args->get(0)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg0); }
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0, &varg1);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
-		if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+			if(args->isOptional(1) && NIL_P(varg1)) { arg1 = args->get(1)->getDefaultValue<Arg1_T>(); } else { arg1 = from_ruby<Arg1_T>(varg1); }
+    }
 
     wrapper->func_(arg0, arg1);
     return Qnil;
@@ -2070,15 +2670,28 @@ call(int argc, VALUE *argv, VALUE self)
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0;
     Arg0_T arg0;
 
-    int provided = rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+        , &varg0);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+    }
 
     return to_ruby(wrapper->func_(arg0));
   }
@@ -2129,15 +2742,28 @@ call(int argc, VALUE* argv, VALUE self)
       (Auto_Function_Wrapper<Func_T, void, Arg0_T> *)data.get();
     Arguments* args = wrapper->arguments_;
 
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
     VALUE varg0;
     Arg0_T arg0;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
-      &varg0);
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+        , &varg0);
 
-    bool hasSelf = (self && self != Qnil);
+      arg0 = from_ruby<Arg0_T>(self); 
+      
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args)
+        , &varg0);
 
-    if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+      if(args->isOptional(0) && NIL_P(varg0)) { arg0 = args->get(0)->getDefaultValue<Arg0_T>(); } else { arg0 = from_ruby<Arg0_T>(varg0); }
+    }
 
     wrapper->func_(arg0);
     return Qnil;

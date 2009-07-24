@@ -261,7 +261,7 @@ namespace
   int defaults_method_one_arg2;
   bool defaults_method_one_arg3 = false;
 
-  void defaults_method_one(Object o, int arg1, int arg2 = 3, bool arg3 = true) 
+  void defaults_method_one(int arg1, int arg2 = 3, bool arg3 = true) 
   {
     defaults_method_one_arg1 = arg1;
     defaults_method_one_arg2 = arg2;
@@ -274,22 +274,23 @@ TESTCASE(define_method_default_arguments)
   Module m(anonymous_module());
   m.define_method("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
 
-  Object o = m.instance_eval("o = Object.new; o.extend(self); o.foo(2)");
+  Object o = m.instance_eval("o = Object.new; o.extend(self); o");
+  o.call("foo", 2);
 
   ASSERT_EQUAL(2, defaults_method_one_arg1);
   ASSERT_EQUAL(3, defaults_method_one_arg2);
   ASSERT(defaults_method_one_arg3);
 
-  o = m.instance_eval("o = Object.new; o.extend(self); o.foo(11, 10)");
+  o.call("foo", 11, 10);
 
   ASSERT_EQUAL(11, defaults_method_one_arg1);
   ASSERT_EQUAL(10, defaults_method_one_arg2);
   ASSERT(defaults_method_one_arg3);
 
-  o = m.instance_eval("o = Object.new; o.extend(self); o.foo(22, 33, false)");
+  o.call("foo", 22, 33, false);
 
-  ASSERT_EQUAL(11, defaults_method_one_arg1);
-  ASSERT_EQUAL(10, defaults_method_one_arg2);
+  ASSERT_EQUAL(22, defaults_method_one_arg1);
+  ASSERT_EQUAL(33, defaults_method_one_arg2);
   ASSERT(!defaults_method_one_arg3);
 }
 
@@ -315,6 +316,11 @@ TESTCASE(default_arguments_still_throws_argument_error)
           Object(CLASS_OF(ex.value()))
           )
       );
+}
+
+TESTCASE(method_with_single_argument_that_has_default)
+{
+
 }
 
 TESTCASE(default_arguments_for_define_singleton_method)

@@ -1,9 +1,6 @@
 #ifndef Rice__Arg_Impl_hpp_
 #define Rice__Arg_Impl_hpp_
 
-#include <iostream>
-using namespace std;
-
 namespace Rice {
 
   /**
@@ -55,7 +52,6 @@ namespace Rice {
        * Does this argument have a default value on it?
        */
       bool hasDefaultValue() const {
-        cout << "Arg(" << name_ << ") has default value? " << defaultValue << endl;
         return defaultValue != 0;
       }
 
@@ -99,7 +95,7 @@ namespace Rice {
             :held(value)
           {}
 
-          virtual ~type() { cout << "Destroying held type " << endl; }
+          virtual ~type() { }
 
           virtual type_base* clone() const
           {

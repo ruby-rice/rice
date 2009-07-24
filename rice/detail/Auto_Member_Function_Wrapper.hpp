@@ -31,7 +31,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -54,7 +54,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -78,7 +78,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -101,7 +101,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -125,7 +125,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -148,7 +148,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -172,7 +172,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -195,7 +195,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -219,7 +219,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -242,7 +242,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -266,7 +266,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -289,7 +289,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -313,7 +313,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -336,7 +336,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -360,7 +360,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -383,7 +383,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -407,7 +407,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -430,7 +430,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -454,7 +454,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -477,7 +477,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -501,7 +501,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -524,7 +524,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -548,7 +548,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -571,7 +571,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -595,7 +595,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -618,7 +618,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -642,7 +642,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -665,7 +665,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -689,7 +689,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -712,7 +712,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -736,7 +736,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -759,7 +759,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -783,7 +783,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;
@@ -806,7 +806,7 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
-  static VALUE call(int argc, VALUE* args, VALUE self);
+  static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
   Func func_;

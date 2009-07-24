@@ -1,9 +1,6 @@
 #ifndef Rice__Arg_Operators_hpp_
 #define Rice__Arg_Operators_hpp_
 
-#include <iostream>
-using namespace std;
-
 namespace Rice 
 {
 
@@ -14,8 +11,6 @@ namespace Rice
    */
   Arguments* operator,(const Arg& arg1, const Arg& arg2)
   {
-    cout << "operator, New arguments obj" << endl;
-
     Arguments* a = new Arguments();
     a->add(&arg1);
     a->add(&arg2);
@@ -24,7 +19,6 @@ namespace Rice
 
   Arguments* operator,(Arguments* arguments, const Arg& arg)
   {
-    cout << "operator, Adding argument" << endl;
     arguments->add(&arg);
     return arguments;
   }

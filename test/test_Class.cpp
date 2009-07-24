@@ -153,7 +153,6 @@ TESTCASE(define_method_int)
       .define_method("foo", &IntHelper::define_method_int_helper);
 
   Object o = c.call("new");
-
   define_method_int_result = 0;
   o.call("foo", 42);
   ASSERT_EQUAL(42, define_method_int_result);
