@@ -21,6 +21,19 @@ namespace Rice {
       }
 
       /**
+       * Get the full argument count of this
+       * list of arguments.
+       * Returns -1 no defined arguments
+       */
+      int count() {
+        if(required_ == 0 && optional_ == 0) {
+          return -1;
+        } else {
+          return required_ + optional_;
+        }
+      }
+
+      /**
        * Get the rb_scan_args format string for this
        * list of arguments.
        * In the case of no Args (default case), this
