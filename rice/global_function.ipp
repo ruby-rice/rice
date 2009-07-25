@@ -3,8 +3,9 @@
 template<typename Func_T>
 void Rice::define_global_function(
     char const * name,
-    Func_T func)
+    Func_T func,
+    Arguments* arguments)
 {
-  Module(rb_mKernel).define_module_function(name, func);
+  Module(rb_mKernel).define_module_function(name, func, arguments);
 }
 

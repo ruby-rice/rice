@@ -120,20 +120,6 @@ Derived_T &
 Rice::Module_impl<Base_T, Derived_T>::
 define_method(
     Identifier name,
-    Func_T func)
-{
-  detail::define_method_and_auto_wrap(
-      *this, name, func, this->handler());
-  return (Derived_T &)*this;
-}
-
-template<typename Base_T, typename Derived_T>
-template<typename Func_T>
-inline
-Derived_T &
-Rice::Module_impl<Base_T, Derived_T>::
-define_method(
-    Identifier name,
     Func_T func,
     Arguments* arguments)
 {
@@ -149,10 +135,11 @@ Derived_T &
 Rice::Module_impl<Base_T, Derived_T>::
 define_singleton_method(
     Identifier name,
-    Func_T func)
+    Func_T func,
+    Arguments* arguments)
 {
   detail::define_method_and_auto_wrap(
-      rb_class_of(*this), name, func, this->handler());
+      rb_class_of(*this), name, func, this->handler(), arguments);
   return (Derived_T &)*this;
 }
 
@@ -163,7 +150,8 @@ Derived_T &
 Rice::Module_impl<Base_T, Derived_T>::
 define_module_function(
     Identifier name,
-    Func_T func)
+    Func_T func,
+    Arguments* arguments)
 {
   if(this->rb_type() != T_MODULE)
   {
@@ -172,8 +160,8 @@ define_module_function(
         "can only define module functions for modules");
   }
 
-  define_method(name, func);
-  define_singleton_method(name, func);
+  define_method(name, func, arguments);
+  define_singleton_method(name, func, arguments);
   return (Derived_T &)*this;
 }
 

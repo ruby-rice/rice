@@ -238,6 +238,11 @@ TESTCASE(define_method_int_foo)
   ASSERT_EQUAL(foo, define_method_int_foo_result_x);
 }
 
+
+TESTCASE(define_method_with_default_arguments)
+{
+}
+
 namespace
 {
 

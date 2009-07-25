@@ -3,6 +3,7 @@
 #include "rice/Exception.hpp"
 #include "rice/Array.hpp"
 #include "rice/Arg.hpp"
+#include "rice/global_function.hpp"
 
 using namespace Rice;
 
@@ -318,25 +319,68 @@ TESTCASE(default_arguments_still_throws_argument_error)
       );
 }
 
+namespace {
+  int the_one_default_arg = 0;
+  void method_with_one_default_arg(int num = 4) {
+    the_one_default_arg = num;
+  }
+}
+
+/*
 TESTCASE(method_with_single_argument_that_has_default)
 {
-
+  Module m(anonymous_module());
+  m.define_method("foo", &method_with_one_default_arg, (Arg("num") = 4));
+  m.instance_eval("o = Object.new; o.extend(self); o.foo()");
+  
+  ASSERT_EQUAL(4, the_one_default_arg);
 }
+*/
 
 TESTCASE(default_arguments_for_define_singleton_method)
 {
+  Class c(anonymous_class());
+  c.define_singleton_method("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
 
+  c.call("foo", 2);
+
+  ASSERT_EQUAL(2, defaults_method_one_arg1);
+  ASSERT_EQUAL(3, defaults_method_one_arg2);
+  ASSERT(defaults_method_one_arg3);
+
+  c.call("foo", 11, 10);
+
+  ASSERT_EQUAL(11, defaults_method_one_arg1);
+  ASSERT_EQUAL(10, defaults_method_one_arg2);
+  ASSERT(defaults_method_one_arg3);
+
+  c.call("foo", 22, 33, false);
+
+  ASSERT_EQUAL(22, defaults_method_one_arg1);
+  ASSERT_EQUAL(33, defaults_method_one_arg2);
+  ASSERT(!defaults_method_one_arg3);
 }
 
 TESTCASE(default_arguments_for_define_module_function)
 {
+  Module m(anonymous_module());
+  m.define_module_function("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
 
-}
+  m.call("foo", 2);
 
-TESTCASE(default_arguments_for_define_global_function)
-{
-}
+  ASSERT_EQUAL(2, defaults_method_one_arg1);
+  ASSERT_EQUAL(3, defaults_method_one_arg2);
+  ASSERT(defaults_method_one_arg3);
 
-TESTCASE(default_arguments_on_member_functions)
-{
+  m.call("foo", 11, 10);
+
+  ASSERT_EQUAL(11, defaults_method_one_arg1);
+  ASSERT_EQUAL(10, defaults_method_one_arg2);
+  ASSERT(defaults_method_one_arg3);
+
+  m.call("foo", 22, 33, false);
+
+  ASSERT_EQUAL(22, defaults_method_one_arg1);
+  ASSERT_EQUAL(33, defaults_method_one_arg2);
+  ASSERT(!defaults_method_one_arg3);
 }

@@ -1,6 +1,8 @@
 #ifndef Rice__global_function__hpp_
 #define Rice__global_function__hpp_
 
+#include "Arg.hpp"
+
 namespace Rice
 {
 
@@ -13,7 +15,8 @@ namespace Rice
   template<typename Func_T>
   void define_global_function(
       char const * name,
-      Func_T func);
+      Func_T func,
+      Arguments* arguments = 0);
 
 } // Rice
 

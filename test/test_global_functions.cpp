@@ -43,3 +43,40 @@ TESTCASE(exposes_global_functions_with_arguments)
   ASSERT_EQUAL(10, method_with_args_arg0);
 }
 
+namespace 
+{
+  int defaults_method_one_arg1;
+  int defaults_method_one_arg2;
+  bool defaults_method_one_arg3 = false;
+
+  void defaults_method_one(int arg1, int arg2 = 3, bool arg3 = true) 
+  {
+    defaults_method_one_arg1 = arg1;
+    defaults_method_one_arg2 = arg2;
+    defaults_method_one_arg3 = arg3;
+  }
+}
+
+TESTCASE(default_arguments_for_define_global_function)
+{
+  define_global_function("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
+  Module m(rb_mKernel);
+
+  m.call("foo", 2);
+
+  ASSERT_EQUAL(2, defaults_method_one_arg1);
+  ASSERT_EQUAL(3, defaults_method_one_arg2);
+  ASSERT(defaults_method_one_arg3);
+
+  m.call("foo", 11, 10);
+
+  ASSERT_EQUAL(11, defaults_method_one_arg1);
+  ASSERT_EQUAL(10, defaults_method_one_arg2);
+  ASSERT(defaults_method_one_arg3);
+
+  m.call("foo", 22, 33, false);
+
+  ASSERT_EQUAL(22, defaults_method_one_arg1);
+  ASSERT_EQUAL(33, defaults_method_one_arg2);
+  ASSERT(!defaults_method_one_arg3);
+}
