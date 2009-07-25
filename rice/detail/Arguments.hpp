@@ -2,6 +2,7 @@
 #define Rice__Arguments__hpp_
 
 #include "../Arg_impl.hpp"
+#include <stdio.h>
 #include <vector>
 
 namespace Rice {

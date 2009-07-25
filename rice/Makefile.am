@@ -12,6 +12,7 @@ String.cpp \
 Struct.cpp \
 Symbol.cpp \
 VM.cpp \
+Arg_operators.cpp \
 detail/check_ruby_type.cpp \
 detail/demangle.cpp \
 detail/method_data.cpp \
@@ -25,6 +26,8 @@ Address_Registration_Guard_defn.hpp \
 Allocation_Strategies.hpp \
 Array.hpp \
 Array.ipp \
+Arg.hpp \
+Arg_operators.hpp \
 Builtin_Object.hpp \
 Builtin_Object.ipp \
 Builtin_Object_defn.hpp \
@@ -84,6 +87,7 @@ detail/Auto_Function_Wrapper.hpp \
 detail/Auto_Function_Wrapper.ipp \
 detail/Auto_Member_Function_Wrapper.hpp \
 detail/Auto_Member_Function_Wrapper.ipp \
+detail/Arguments.hpp \
 detail/Caster.hpp \
 detail/Exception_Handler.hpp \
 detail/Exception_Handler.ipp \
