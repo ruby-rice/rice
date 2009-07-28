@@ -133,6 +133,22 @@ template<typename Func_T>
 inline
 Derived_T &
 Rice::Module_impl<Base_T, Derived_T>::
+define_method(
+    Identifier name,
+    Func_T func,
+    Arg const& arg)
+{
+  Arguments* args = new Arguments();
+  args->add(&arg);
+  return define_method(name, func, args);
+}
+
+
+template<typename Base_T, typename Derived_T>
+template<typename Func_T>
+inline
+Derived_T &
+Rice::Module_impl<Base_T, Derived_T>::
 define_singleton_method(
     Identifier name,
     Func_T func,
@@ -141,6 +157,21 @@ define_singleton_method(
   detail::define_method_and_auto_wrap(
       rb_class_of(*this), name, func, this->handler(), arguments);
   return (Derived_T &)*this;
+}
+
+template<typename Base_T, typename Derived_T>
+template<typename Func_T>
+inline
+Derived_T &
+Rice::Module_impl<Base_T, Derived_T>::
+define_singleton_method(
+    Identifier name,
+    Func_T func,
+    Arg const& arg)
+{
+  Arguments* args = new Arguments();
+  args->add(&arg);
+  return define_singleton_method(name, func, args);
 }
 
 template<typename Base_T, typename Derived_T>
@@ -163,6 +194,21 @@ define_module_function(
   define_method(name, func, arguments);
   define_singleton_method(name, func, arguments);
   return (Derived_T &)*this;
+}
+
+template<typename Base_T, typename Derived_T>
+template<typename Func_T>
+inline
+Derived_T &
+Rice::Module_impl<Base_T, Derived_T>::
+define_module_function(
+    Identifier name,
+    Func_T func,
+    Arg const& arg)
+{
+  Arguments* args = new Arguments();
+  args->add(&arg);
+  return define_module_function(name, func, args);
 }
 
 template<typename Base_T, typename Derived_T>

@@ -326,16 +326,30 @@ namespace {
   }
 }
 
-/*
-TESTCASE(method_with_single_argument_that_has_default)
+TESTCASE(defining_methods_with_single_default_argument)
 {
+  // define_method
   Module m(anonymous_module());
   m.define_method("foo", &method_with_one_default_arg, (Arg("num") = 4));
   m.instance_eval("o = Object.new; o.extend(self); o.foo()");
-  
+  ASSERT_EQUAL(4, the_one_default_arg);
+
+  the_one_default_arg = 0;
+
+  // define_singleton_method
+  Class c(anonymous_class());
+  c.define_singleton_method("foo", &method_with_one_default_arg, (Arg("num") = 4));
+  c.call("foo");
+  ASSERT_EQUAL(4, the_one_default_arg);
+
+  the_one_default_arg = 0;
+
+  // define_module_function
+  m.define_module_function("foo2", &method_with_one_default_arg, (Arg("num") = 4));
+
+  m.call("foo2");
   ASSERT_EQUAL(4, the_one_default_arg);
 }
-*/
 
 TESTCASE(default_arguments_for_define_singleton_method)
 {

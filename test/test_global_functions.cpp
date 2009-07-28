@@ -80,3 +80,18 @@ TESTCASE(default_arguments_for_define_global_function)
   ASSERT_EQUAL(33, defaults_method_one_arg2);
   ASSERT(!defaults_method_one_arg3);
 }
+
+namespace {
+  int the_one_default_arg = 0;
+  void method_with_one_default_arg(int num = 4) {
+    the_one_default_arg = num;
+  }
+}
+
+TESTCASE(single_default_argument) 
+{
+  define_global_function("foo", &method_with_one_default_arg, (Arg("num") = 4));
+  Module m(rb_mKernel);
+  m.call("foo");
+  ASSERT_EQUAL(4, the_one_default_arg);
+}
