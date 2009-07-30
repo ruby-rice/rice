@@ -398,3 +398,31 @@ TESTCASE(default_arguments_for_define_module_function)
   ASSERT_EQUAL(33, defaults_method_one_arg2);
   ASSERT(!defaults_method_one_arg3);
 }
+
+namespace {
+  std::string with_defaults_and_references_x;
+  bool with_defaults_and_references_doIt;
+
+  void with_defaults_and_references(std::string const& x, bool doIt = false)
+  {
+    with_defaults_and_references_x = x;
+    with_defaults_and_references_doIt = doIt;
+  }
+}
+
+template<>
+std::string* from_ruby<std::string*>(Rice::Object x) {
+  return new std::string(from_ruby<char const*>(x));
+}
+
+TESTCASE(define_method_works_with_reference_arguments) 
+{
+  Module m(anonymous_module());
+  m.define_module_function("foo", &with_defaults_and_references, 
+      (Arg("x"), Arg("doIt") = false));
+
+  m.call("foo", "test");
+
+  ASSERT_EQUAL("test", with_defaults_and_references_x);
+  ASSERT(!with_defaults_and_references_doIt);
+}

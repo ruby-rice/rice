@@ -4,6 +4,7 @@
 #include "../Arg_impl.hpp"
 #include <stdio.h>
 #include <vector>
+#include "../to_from_ruby_defn.hpp"
 
 namespace Rice {
 
@@ -92,6 +93,24 @@ namespace Rice {
       const Arg* get(int pos) 
       {
         return args_[pos];
+      }
+
+      /**
+       * Given a position, a type, and a ruby VALUE, figure out
+       * what argument value we need to return according to 
+       * defaults and if that VALUE is nil or not
+       */
+      template<typename Arg_T>
+      Arg_T getArgumentOrDefault(int pos, VALUE in) 
+      {
+        if(isOptional(pos) && NIL_P(in))
+        {
+          return get(pos)->getDefaultValue<Arg_T>();
+        } 
+        else 
+        {
+          return from_ruby<Arg_T>(in);
+        }
       }
 
     private:

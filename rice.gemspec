@@ -1,4 +1,4 @@
-$spec = Gem::Specification.new do |s|
+Gem::Specification.new do |s|
   s.name = 'rice'
   s.version = '1.2.0'
   s.summary = 'Ruby Interface for C++ Extensions'

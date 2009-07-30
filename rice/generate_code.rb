@@ -346,22 +346,23 @@ call(int argc, VALUE *argv, VALUE self)
     }
 
     VALUE %(scan_def_list);
-    %(arg_def_list)
 
     if(hasSelf) {
       rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
         %(scan_args_list));
 
-      arg0 = from_ruby<Arg0_T>(self); 
+      Arg0_T arg0 = from_ruby<Arg0_T>(self); 
       %(self_arg_convert_list)
+
+      return to_ruby(wrapper->func_(%(arg_list)));
     } else {
       rb_scan_args(argc, argv, args->formatString(Num_Args)
         %(scan_args_list));
 
       %(arg_convert_list)
-    }
 
-    return to_ruby(wrapper->func_(%(arg_list)));
+      return to_ruby(wrapper->func_(%(arg_list)));
+    }
   }
   catch(...)
   {
@@ -418,23 +419,25 @@ call(int argc, VALUE* argv, VALUE self)
     }
 
     VALUE %(scan_def_list);
-    %(arg_def_list)
 
     if(hasSelf) {
       rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
         %(scan_args_list));
 
-      arg0 = from_ruby<Arg0_T>(self); 
+      Arg0_T arg0 = from_ruby<Arg0_T>(self); 
       %(self_arg_convert_list)
+
+      wrapper->func_(%(arg_list));
+      return Qnil;
     } else {
       rb_scan_args(argc, argv, args->formatString(Num_Args)
         %(scan_args_list));
 
       %(arg_convert_list)
-    }
 
-    wrapper->func_(%(arg_list));
-    return Qnil;
+      wrapper->func_(%(arg_list));
+      return Qnil;
+    }
   }
   catch(...)
   {
@@ -666,11 +669,11 @@ wrap_header(hpp_filename, 'Rice::detail', docstring, true, hpp_head) do |hpp|
       scan_args_list = t_array.map { |x| ", &varg#{x}"}
       typenames     = t_array.map { |x| "Arg#{x}_T" }.join(', ')
       arg_convert_list  = t_array.map do |x|
-        "if(args->isOptional(#{x}) && NIL_P(varg#{x})) { arg#{x} = args->get(#{x})->getDefaultValue<Arg#{x}_T>(); } else { arg#{x} = from_ruby<Arg#{x}_T>(varg#{x}); }"
+        "Arg#{x}_T arg#{x} = args->getArgumentOrDefault<Arg#{x}_T>(#{x}, varg#{x});"
       end.join("\n\t\t\t")
       self_arg_convert_list = (0...j).to_a.map do |x|
         n = x + 1
-        "if(args->isOptional(#{x}) && NIL_P(varg#{x})) { arg#{n} = args->get(#{x})->getDefaultValue<Arg#{n}_T>(); } else { arg#{n} = from_ruby<Arg#{n}_T>(varg#{x}); }"
+        "Arg#{n}_T arg#{n} = args->getArgumentOrDefault<Arg#{n}_T>(#{x}, varg#{x});"
       end.join("\n\t\t\t")
       if j == MAX_ARGS then
         typename_list = t_array.map { |x| "typename Arg#{x}_T" }.join(', ')
@@ -683,7 +686,6 @@ wrap_header(hpp_filename, 'Rice::detail', docstring, true, hpp_head) do |hpp|
       end
       ipp.puts fill_template(ipp_template, {
         :scan_def_list    => scan_def_list,
-        :arg_def_list     => arg_def_list,
         :arg_list         => arg_list,
         :typenames        => typenames,
         :typename_list    => typename_list,
