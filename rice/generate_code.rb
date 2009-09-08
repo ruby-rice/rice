@@ -745,7 +745,6 @@ call(int argc, VALUE* argv, VALUE self)
     Arguments* args = wrapper->arguments_;
 
     VALUE %(scan_def_list);
-    %(arg_def_list)
 
     rb_scan_args(argc, argv, args->formatString(Num_Args), 
       %(scan_args_list));
@@ -805,7 +804,6 @@ call(int argc, VALUE* argv, VALUE self)
     Arguments* args = wrapper->arguments_;
 
     VALUE %(scan_def_list);
-    %(arg_def_list)
 
     rb_scan_args(argc, argv, args->formatString(Num_Args), 
       %(scan_args_list));
@@ -1056,13 +1054,12 @@ wrap_header(hpp_filename, 'Rice::detail', docstring, true) do |hpp|
     MAX_ARGS.downto(0) do |j|
       t_array = (0..j).to_a
       scan_def_list  = t_array.map { |x| "varg#{x}" }.join(', ')
-      arg_def_list  = t_array.map { |x| "Arg#{x}_T arg#{x};"}
       arg_list      = t_array.map { |x| "arg#{x}" }.join(', ')
       scan_args_list = t_array.map { |x| "&varg#{x}"}.join(', ')
       typenames     = t_array.map { |x| ", Arg#{x}_T" }
       typenames_n   = t_array.map { |x| "Arg#{x}_T" }.join(', ')
       arg_convert_list  = t_array.map do |x|
-        "if(args->isOptional(#{x}) && NIL_P(varg#{x})) { arg#{x} = args->get(#{x})->getDefaultValue<Arg#{x}_T>(); } else { arg#{x} = from_ruby<Arg#{x}_T>(varg#{x}); }"
+        "Arg#{x}_T arg#{x} = args->getArgumentOrDefault<Arg#{x}_T>(#{x}, varg#{x});"
       end.join("\n\t\t")
       if j == MAX_ARGS then
         typename_list = t_array.map { |x| ", typename Arg#{x}_T" }.join
@@ -1076,7 +1073,6 @@ wrap_header(hpp_filename, 'Rice::detail', docstring, true) do |hpp|
       ipp.puts fill_template(ipp_template, {
         :scan_def_list    => scan_def_list,
         :arg_list         => arg_list,
-        :arg_def_list     => arg_def_list,
         :typenames        => typenames,
         :typename_list    => typename_list,
         :scan_args_list   => scan_args_list,
