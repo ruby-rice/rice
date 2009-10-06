@@ -2,7 +2,7 @@
 #define Rice__Arguments__hpp_
 
 #include "../Arg_impl.hpp"
-#include <stdio.h>
+#include <sstream>
 #include <vector>
 #include "../to_from_ruby_defn.hpp"
 
@@ -10,7 +10,7 @@ namespace Rice {
 
   class Arguments
   {
-    public: 
+    public:
       Arguments() {
         required_ = 0;
         optional_ = 0;
@@ -38,33 +38,33 @@ namespace Rice {
        * In the case of no Args (default case), this
        * method uses the passed in full argument count
        */
-      char* formatString(int fullArgCount) 
+      const char* formatString(int fullArgCount)
       {
-        char* output = new char[2];
-        if(required_ == 0 && optional_ == 0) 
+        std::stringstream s;
+        if(required_ == 0 && optional_ == 0)
         {
-          sprintf(output, "%d0", fullArgCount);
+          s << fullArgCount << 0;
         }
-        else 
+        else
         {
-          sprintf(output, "%d%d", required_ , optional_);
+          s << required_ << optional_;
         }
 
-        return output;
+        return s.str().c_str();
       }
 
       /**
        * Add a defined Arg to this list of Arguments
        */
-      void add(const Arg* arg) 
+      void add(const Arg& arg)
       {
         args_.push_back(arg);
 
-        if(arg->hasDefaultValue())
+        if(arg.hasDefaultValue())
         {
           optional_++;
-        } 
-        else 
+        }
+        else
         {
           required_++;
         }
@@ -74,47 +74,39 @@ namespace Rice {
        * Is the argument at the request location an optional
        * argument?
        */
-      bool isOptional(unsigned int pos) 
+      bool isOptional(unsigned int pos)
       {
-        if(required_ == 0 && optional_ == 0) 
+        if(required_ == 0 && optional_ == 0)
         {
           return false;
         }
-        if(pos >= args_.size()) 
+        if(pos >= args_.size())
         {
-          return false; 
+          return false;
         }
-        return args_[pos]->hasDefaultValue();
-      }
-
-      /**
-       * Get access to the Arg object at the given position
-       */
-      const Arg* get(int pos) 
-      {
-        return args_[pos];
+        return args_[pos].hasDefaultValue();
       }
 
       /**
        * Given a position, a type, and a ruby VALUE, figure out
-       * what argument value we need to return according to 
+       * what argument value we need to return according to
        * defaults and if that VALUE is nil or not
        */
       template<typename Arg_T>
-      Arg_T getArgumentOrDefault(int pos, VALUE in) 
+      Arg_T getArgumentOrDefault(int pos, VALUE in)
       {
         if(isOptional(pos) && NIL_P(in))
         {
-          return get(pos)->getDefaultValue<Arg_T>();
-        } 
-        else 
+          return args_[pos].getDefaultValue<Arg_T>();
+        }
+        else
         {
           return from_ruby<Arg_T>(in);
         }
       }
 
     private:
-      std::vector<const Arg*> args_;
+      std::vector<Arg> args_;
 
       /** Keep counts of required and optional parameters */
       int required_;

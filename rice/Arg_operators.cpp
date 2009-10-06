@@ -7,14 +7,14 @@ namespace Rice {
   Arguments* operator,(const Arg& arg1, const Arg& arg2)
   {
     Arguments* a = new Arguments();
-    a->add(&arg1);
-    a->add(&arg2);
+    a->add(arg1);
+    a->add(arg2);
     return a;
   }
 
   Arguments* operator,(Arguments* arguments, const Arg& arg)
   {
-    arguments->add(&arg);
+    arguments->add(arg);
     return arguments;
   }
 

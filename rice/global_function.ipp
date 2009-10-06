@@ -16,7 +16,7 @@ void Rice::define_global_function(
     Arg const& arg)
 {
   Arguments* args = new Arguments();
-  args->add(&arg);
+  args->add(arg);
   define_global_function(name, func, args);
 }
 

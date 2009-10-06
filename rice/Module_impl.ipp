@@ -139,7 +139,7 @@ define_method(
     Arg const& arg)
 {
   Arguments* args = new Arguments();
-  args->add(&arg);
+  args->add(arg);
   return define_method(name, func, args);
 }
 
@@ -170,7 +170,7 @@ define_singleton_method(
     Arg const& arg)
 {
   Arguments* args = new Arguments();
-  args->add(&arg);
+  args->add(arg);
   return define_singleton_method(name, func, args);
 }
 
@@ -207,7 +207,7 @@ define_module_function(
     Arg const& arg)
 {
   Arguments* args = new Arguments();
-  args->add(&arg);
+  args->add(arg);
   return define_module_function(name, func, args);
 }
 
