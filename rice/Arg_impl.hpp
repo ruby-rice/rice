@@ -91,7 +91,7 @@ namespace Rice {
       class type : public type_base
       {
         public:
-          type(const Type & value)
+          type(Type value)
             :held(value)
           {}
 
