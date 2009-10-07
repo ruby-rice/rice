@@ -60,7 +60,7 @@ namespace Rice {
        * if one exists
        */
       template<typename Arg_Type>
-      Arg_Type& getDefaultValue() const
+      Arg_Type getDefaultValue() const
       {
         return static_cast< type<Arg_Type>* >(defaultValue)->held;
       }
