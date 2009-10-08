@@ -36,11 +36,10 @@ struct Default_Enum_Traits
  *  Example:
  *  \code
  *    enum Color { Red, Green, Blue };
- *    Enum<Color> rb_cColor = define_enum<Color>()
+ *    Enum<Color> rb_cColor = define_enum<Color>("Color")
  *      .define_value("Red", Red)
  *      .define_value("Green", Green)
- *      .define_value("Blue", Blue)
- *      .initialize("Color");
+ *      .define_value("Blue", Blue);
  *  \endcode
  */
 template<typename Enum_T, typename Enum_Traits = Default_Enum_Traits<Enum_T> >
