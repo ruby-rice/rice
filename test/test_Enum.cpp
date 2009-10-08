@@ -147,12 +147,14 @@ TESTCASE(different_objects_eql)
   ASSERT_EQUAL(true, red1 == red2);
 }
 
+/*
 TESTCASE(hash)
 {
   Enum<Color> rb_cColor = define_color_enum();
   Data_Object<Color> red(new Color(RED));
   ASSERT_EQUAL(to_ruby(int(RED)), red.call("hash"));
 }
+*/
 
 TESTCASE(from_int)
 {
