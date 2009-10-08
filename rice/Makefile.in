@@ -603,8 +603,8 @@ distdir: $(DISTFILES)
 	  sed -e "s|^$$srcdirstrip/||;t" \
 	      -e "s|^$$topsrcdirstrip/|$(top_builddir)/|;t"`; \
 	case $$dist_files in \
-	  */*) $(MKDIR_P) `echo "$$dist_files" | \
-			   sed '/\//!d;s|^|$(distdir)/|;s,/[^/]*$$,,' | \
+	  */*) eval $(MKDIR_P) `echo "$$dist_files" | \
+			   sed '/\//!d;s|^|"$(distdir)"/|;s,/[^/]*$$,,' | \
 			   sort -u` ;; \
 	esac; \
 	for file in $$dist_files; do \
@@ -612,12 +612,12 @@ distdir: $(DISTFILES)
 	  if test -d $$d/$$file; then \
 	    dir=`echo "/$$file" | sed -e 's,/[^/]*$$,,'`; \
 	    if test -d $(srcdir)/$$file && test $$d != $(srcdir); then \
-	      cp -pR $(srcdir)/$$file $(distdir)$$dir || exit 1; \
+	      cp -pR $(srcdir)/$$file "$(distdir)"$$dir || exit 1; \
 	    fi; \
-	    cp -pR $$d/$$file $(distdir)$$dir || exit 1; \
+	    cp -pR $$d/$$file "$(distdir)"$$dir || exit 1; \
 	  else \
-	    test -f $(distdir)/$$file \
-	    || cp -p $$d/$$file $(distdir)/$$file \
+	    test -f "$(distdir)"/$$file \
+	    || cp -p $$d/$$file "$(distdir)"/$$file \
 	    || exit 1; \
 	  fi; \
 	done
