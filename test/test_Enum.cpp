@@ -2,6 +2,7 @@
 #include "rice/Enum.hpp"
 #include "rice/Array.hpp"
 #include "rice/String.hpp"
+#include "rice/Constructor.hpp"
 #include <iostream>
 
 using namespace Rice;
@@ -158,5 +159,35 @@ TESTCASE(from_int)
   Enum<Color> rb_cColor = define_color_enum();
   Data_Object<Color> color(rb_cColor.call("from_int", int(RED)));
   ASSERT_EQUAL(RED, *color);
+}
+
+namespace
+{
+  class Inner
+  {
+    public:
+      enum Props
+      {
+        VALUE1,
+        VALUE2,
+        VALUE3
+      };
+  };
+}
+
+TESTCASE(nested_enums)
+{
+  {
+    Data_Type<Inner> inner = define_class<Inner>("Inner");
+    define_enum<Inner::Props>("Props", inner)
+      .define_value("VALUE1", Inner::VALUE1)
+      .define_value("VALUE2", Inner::VALUE2)
+      .define_value("VALUE3", Inner::VALUE3);
+    inner.define_constructor(Constructor<Inner>());
+  }
+
+  ASSERT_EQUAL(to_ruby(int(0)), Object(protect(rb_eval_string, "Inner::Props::VALUE1.to_i")));
+  ASSERT_EQUAL(to_ruby(int(1)), Object(protect(rb_eval_string, "Inner::Props::VALUE2.to_i")));
+  ASSERT_EQUAL(to_ruby(int(2)), Object(protect(rb_eval_string, "Inner::Props::VALUE3.to_i")));
 }
 
