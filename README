@@ -17,10 +17,9 @@ What Rice gives you:
 
 \section installation Installation
 
-There are two ways to install Rice. You can download the tarball from the project
-page:
+There are two ways to install Rice. You can download the tarball from the repository:
 
-http://rubyforge.org/projects/rice
+http://github.com/jameskilton/rice
 
 extract it and:
 
@@ -53,7 +52,8 @@ The first step is to create an extconf.rb file:
 \endcode
 
 Note that we use mkmf-rice instead of mkmf.  This will ensure that the
-extension will be linked with standard C++ library.
+extension will be linked with standard C++ library along with the Rice
+library, and allow access to the Rice header files.
 
 Next we create our extension and save it to test.cpp:
 
@@ -111,7 +111,7 @@ that this is a class and not some other type of object.  Some other
 naming conventions that are commonly used:
 
 \li rb_c variable name prefix for a Class
-\li rb_M variable name prefix for a Module
+\li rb_m variable name prefix for a Module
 \li rb_e variable name prefix for an Exception type
 \li rb_  function prefix for a function in the Ruby C API
 \li rb_f_ function prefix to differentiate between an API function that
@@ -147,7 +147,7 @@ Now let's add a method to our class:
   {
     Class rb_cTest =
       define_class("Test")
-      .define_method("hello", test_hello);
+      .define_method("hello", &test_hello);
   }
 \endcode
 
@@ -179,8 +179,8 @@ We could also add an #initialize method to our class:
   {
     Class rb_cTest =
       define_class("Test")
-      .define_method("initialize", test_initialize);
-      .define_method("hello", test_hello);
+      .define_method("initialize", &test_initialize);
+      .define_method("hello", &test_hello);
   }
 \endcode
 
@@ -597,7 +597,7 @@ If we write this:
   extern "C"
   void Init_Test()
   {
-    define_global_function("foo", foo);
+    define_global_function("foo", &foo);
   }
 \endcode
 
@@ -616,7 +616,7 @@ To avoid this problem, it is necessary to write a wrapper function:
   extern "C"
   void Init_Test()
   {
-    define_global_function("foo", wrap_foo);
+    define_global_function("foo", &wrap_foo);
   }
 \endcode
 
@@ -624,6 +624,71 @@ Note that the out parameter is returned from wrap_foo, as Ruby does not
 have pass-by-variable-reference (it uses pass-by-object-reference).
 
 Future versions of Rice will have a cleaner way of dealing with this.
+
+\section default_arguments Default Arguments
+
+Going back to our initial C++ class example, lets say that hello() now
+take a few arguments for what to return, each with a default value:
+
+\code
+  class Test
+  {
+  public:
+    Test();
+    std::string hello(std::string first = "hello", std::string second = "world");
+  };
+\endcode
+
+As default parameter information is not available through templates, 
+it's necessary to define this in Rice explicitly using Rice::Arg:
+
+\code
+  #include "rice/Data_Type.hpp"
+  #include "rice/Constructor.hpp"
+
+  using namespace Rice;
+
+  extern "C"
+  void Init_Test()
+  {
+    Data_Type<Test> rb_cTest =
+      define_class<Test>("Test")
+      .define_constructor(Constructor<Test>())
+      .define_method("hello", 
+         &Test::hello,
+         (Arg("hello") = "hello", Arg("second") = "world")
+      );
+  }
+\endcode
+
+The syntax here is simply Arg(nameOfParameter) = defaultValue. The name of the
+parameter is not important (more for readability, and the future for when/if Ruby 
+gets named arguments), but the value set via operator= must match the type
+of the given parameter. 
+
+These Rice::Arg objects must be in the correct order, and if there are more than
+one of them they must be surrounded in parentheses, as above, or the compilation
+will fail.
+
+It may be required to explicitly cast the default argument values to their 
+appropriate types:
+
+\code
+  .define_method("hello", 
+     &Test::hello,
+     (Arg("hello") = (std::string)"hello", Arg("second") = (std::string)"world")
+  );
+\endcode
+
+With this, Ruby will now know about the default arguments, and this wrapper
+can be used as expected:
+
+\code
+  t = Test.new
+  t.hello
+  t.hello("goodbye")
+  t.hello("goodnight", "moon")
+\endcode
 
 \section motivation Motivation
 
