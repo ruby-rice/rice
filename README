@@ -15,12 +15,17 @@ What Rice gives you:
 \li Smart pointers for handling garbage collection
 \li Wrappers for most builtin types to simplify calling code
 
+\section project Project Details
+
+The source is hosted on github: http://github.com/jameskilton/rice
+
+Bug tracking: http://github.com/jameskilton/rice/issues
+
+Mailing List: http://groups.google.com/group/ruby-rice
+
 \section installation Installation
 
-There are two ways to install Rice. You can download the tarball from the repository:
-
-http://github.com/jameskilton/rice
-
+There are two ways to install Rice. You can download the tarball from the repository, 
 extract it and:
 
 \code
