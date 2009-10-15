@@ -1,7 +1,16 @@
 Makefile
+Makefile.in
+aclocal.m4
 autom4te.cache
+rice/config.hpp
 config.log
 config.status
+config.guess
+config.sub
+configure
+depcomp
+install-sh
+missing
 pkg
 *.o
 *.so
@@ -10,4 +19,3 @@ pkg
 *~
 .*.swp
 doc
-rice/README.doxygen
