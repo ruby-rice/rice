@@ -20,3 +20,4 @@ pkg
 .*.swp
 doc
 *.dSYM
+*.bundle
