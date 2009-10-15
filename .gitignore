@@ -19,3 +19,4 @@ pkg
 *~
 .*.swp
 doc
+*.dSYM
