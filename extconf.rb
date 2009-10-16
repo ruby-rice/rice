@@ -19,4 +19,12 @@ gem_name = "rice-#{Rice::VERSION}"
 prefix_dir = File.join(Gem.default_dir, "gems", gem_name, "ruby", "lib")
 with_ruby = File.join(Config::CONFIG["bindir"], Config::CONFIG["RUBY_INSTALL_NAME"])
 
-system "./configure --with-ruby=#{with_ruby} --prefix=#{prefix_dir}"
+other_opts = ""
+env = ""
+
+if RUBY_PLATFORM =~ /darwin10/
+  other_opts = "--disable-dependency-tracking"
+  env = "ARCHFLAGS='-arch x86_64'"
+end
+
+system "#{env} ./configure --with-ruby=#{with_ruby} --prefix=#{prefix_dir} #{other_opts}"
