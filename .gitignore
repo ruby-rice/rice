@@ -3,6 +3,7 @@ Makefile.in
 aclocal.m4
 autom4te.cache
 rice/config.hpp
+rice/README.doxygen
 config.log
 config.status
 config.guess
