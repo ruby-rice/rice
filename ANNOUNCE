@@ -1,0 +1,84 @@
+Rice: Ruby Interface for C++ Extensions
+========================================
+
+What is Rice?
+
+  Rice is a C++ interface to Ruby's C API.  It provides a type-safe and
+  exception-safe interface in order to make embedding Ruby and writing
+  Ruby extensions with C++ easier.  It is similar to Boost.Python in many
+  ways, but also attempts to provide an object-oriented interface to all
+  of the Ruby C API.
+
+
+What's New?
+
+  * Rice::Director - Seemless Polymorphism across C++ and Ruby (named after SWIG_Director)
+  * Default Arguments
+  * Removed explicit self requirement for global / module functions
+  * Various bug fixes
+
+Supported Platforms:
+
+  * Linux
+  * Mac OS X 10.5 and 10.6
+
+  Windows support is iffy right now. Waiting to see how the mingw build of Ruby comes along.
+
+What Rice gives you:
+
+  * A simple C++-based syntax for wrapping and defining classes
+  * Automatic conversion of exceptions between C++ and Ruby
+  * Smart pointers for handling garbage collection
+  * Wrappers for most builtin types to simplify calling code
+
+  Documentation: http://rice.rubyforge.org
+
+  Project Page:  http://github.com/jameskilton/rice
+
+  Google Groups: http://groups.google.com/group/ruby-rice
+
+
+How do you get Rice?
+
+  gem install rice
+
+  Note: Rice does require a C++ compiler. See the Documentation page for more details.
+
+
+How simple of a syntax?
+
+wrapper.cpp
+
+  #include <rice/Class.hpp>
+  #include <rice/Constructor.hpp>
+
+  class MyWrapper {
+    public:
+      MyWrapper() { }
+
+      void doThis() { }
+      int doThat(int a, float b) { }
+  };
+
+  extern "C"
+  void Init_wrapper()
+  {
+    define_class<MyWrapper>("MyWrapper")
+      .define_constructor(Constructor<MyWrapper>())
+      .define_method("do_this", &MyWrapper::doThis)
+      .define_method("do_that", &MyWrapper::doThat);
+  }
+
+extconf.rb
+
+  require 'mkmf-rice'
+  create_makefile("wrapper")
+
+test.rb
+
+  require 'wrapper'
+  c = MyWrapper.new
+  c.do_this
+  c.do_that(1, 2.0)
+
+Building Ruby wrapper extensions have never been so easy.
