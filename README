@@ -25,7 +25,7 @@ Mailing List: http://groups.google.com/group/ruby-rice
 
 \section installation Installation
 
-There are two ways to install Rice. You can download the tarball from the repository, 
+There are two ways to install Rice. You can download the tarball from the repository,
 extract it and:
 
 \code
@@ -40,7 +40,7 @@ or you can install via RubyGems
   gem install rice
 \endcode
 
-Note to Windows users: Rice is only known to properly compile and run under Cygwin and Mingw. 
+Note to Windows users: Rice is only known to properly compile and run under Cygwin and Mingw.
 
 \section tutorial Tutorial
 
@@ -343,7 +343,7 @@ The Data_Object class can be used to wrap a newly-created object:
 
 \code
   Data_Object<Foo> foo(new Foo);
-\endcode 
+\endcode
 
 or to unwrap an already-created object:
 
@@ -359,7 +359,7 @@ A Data_Object functions like a smart pointer:
   foo->foo();
   std::cout << *foo << std::endl;
 \endcode
- 
+
 Like a VALUE or an Object, data stored in a Data_Object will be marked
 by the garbage collector as long as the Data_Object is on the stack.
 
@@ -617,7 +617,7 @@ To avoid this problem, it is necessary to write a wrapper function:
     foo(&c);
     return to_ruby(c);
   }
-  
+
   extern "C"
   void Init_Test()
   {
@@ -630,21 +630,22 @@ have pass-by-variable-reference (it uses pass-by-object-reference).
 
 Future versions of Rice will have a cleaner way of dealing with this.
 
+
 \section default_arguments Default Arguments
 
 Going back to our initial C++ class example, lets say that hello() now
-take a few arguments for what to return, each with a default value:
+take a few arguments for what to return, one which has a default value:
 
 \code
   class Test
   {
   public:
     Test();
-    std::string hello(std::string first = "hello", std::string second = "world");
+    std::string hello(std::string first, std::string second = "world");
   };
 \endcode
 
-As default parameter information is not available through templates, 
+As default parameter information is not available through templates,
 it's necessary to define this in Rice explicitly using Rice::Arg:
 
 \code
@@ -659,29 +660,29 @@ it's necessary to define this in Rice explicitly using Rice::Arg:
     Data_Type<Test> rb_cTest =
       define_class<Test>("Test")
       .define_constructor(Constructor<Test>())
-      .define_method("hello", 
+      .define_method("hello",
          &Test::hello,
-         (Arg("hello") = "hello", Arg("second") = "world")
+         (Arg("hello"), Arg("second") = "world")
       );
   }
 \endcode
 
-The syntax here is simply Arg(nameOfParameter) = defaultValue. The name of the
-parameter is not important (more for readability, and the future for when/if Ruby 
+The syntax here is simply Arg(nameOfParameter)[ = defaultValue].  The name of the
+parameter is not important (more for readability, and the future for when/if Ruby
 gets named arguments), but the value set via operator= must match the type
-of the given parameter. 
+of the given parameter.
 
 These Rice::Arg objects must be in the correct order, and if there are more than
 one of them they must be surrounded in parentheses, as above, or the compilation
 will fail.
 
-It may be required to explicitly cast the default argument values to their 
+It may be required to explicitly cast the default argument values to their
 appropriate types:
 
 \code
-  .define_method("hello", 
+  .define_method("hello",
      &Test::hello,
-     (Arg("hello") = (std::string)"hello", Arg("second") = (std::string)"world")
+     (Arg("hello"), Arg("second") = (std::string)"world")
   );
 \endcode
 
@@ -690,10 +691,170 @@ can be used as expected:
 
 \code
   t = Test.new
-  t.hello
-  t.hello("goodbye")
+  t.hello("hello")
   t.hello("goodnight", "moon")
 \endcode
+
+
+\section director Director
+
+As polymorphism is the most important tennant of Object Oriented Programming,
+it's important that Rice supports polymorphic calls travelling between C++
+and Ruby seemlessly. Super calls from Ruby subclasses back into C++ already work,
+but enabling the other direction requires some extra work. While this isn't
+something Rice can do on it's own, the Rice::Director class hides most of the
+details.
+
+Like SWIG_Director, Rice::Director is a class that is used to build a proxy class
+to properly send execution up or down the object heiarchy for that class. Take
+the following class:
+
+\code
+  class VirtualBase {
+    public:
+      VirtualBase();
+      virtual int doWork();
+      virtual int processWorker() = 0;
+  };
+\endcode
+
+Due to the abstract nature of this class, it will not work at all with Rice
+in it's current form. Any attempt to do so will cause a compilation error due to
+this class not being constructable. Even without the pure virtual function, any
+call to VirtualBase::doWork will stop at the C++ level and not pass down into
+any Ruby subclasses.
+
+To properly wrap both of these methods, you'll need to build a proxy class
+that subclasses Rice::Director:
+
+\code
+  #include "rice/Director.hpp"
+
+  class VirtualBaseProxy : public VirtualBase, public Rice::Director {
+    public:
+      VirtualBaseProxy(Object self) : Rice::Director(self) { }
+
+      virtual int doWork() {
+        if(callIsFromRuby("do_work")) {
+          return VirtualBase::doWork();
+        } else {
+          return from_ruby<int>( getSelf().call("do_work") );
+        }
+      }
+
+      virtual int processWorker() {
+        if(callIsFromRuby("process_worker")) {
+          raisePureVirtual();
+        } else {
+          return from_ruby<int>( getSelf().call("process_worker") );
+        }
+      }
+  };
+\endcode
+
+There is a lot going on here, so we'll take go through each part.
+
+\code
+  class VirtualBaseProxy : public Virtualbase, public Rice::Director {
+\endcode
+
+First, the class needs to subclass both the virtual class and Rice::Director.
+
+\code
+    public:
+      VirtualBaseProxy(Object self) : Rice::Director(self) { }
+\endcode
+
+For Rice::Director to work its magic, every instance of this class needs to
+have a handle to the Ruby instance of this class as well. The constructor
+must take a Rice::Object as the first argument, then any other arguments follow
+and should be passed back to the superclass as needed. The code here is the
+minimum required for a Rice::Director proxy.
+
+\code
+      virtual int doWork() {
+        if(callIsFromRuby("do_work")) {
+          // Call from Ruby via super, head up the stack
+          return VirtualBase::doWork();
+        } else {
+          // Call from C++ heading down the stack, get self
+          // and call the method in Ruby, taking care to
+          // convert types to and from ruby as needed.
+          return from_ruby<int>( getSelf().call("do_work") );
+        }
+      }
+\endcode
+
+Every virtual method needs to have a special definition inside of this proxy class.
+Use Rice::Director::callIsFromRuby to check if execution is passing up or down
+the heirarchy. The name passed to this method needs to be the name as exposed to Ruby
+(which will be seen in the wrapper code below).
+
+A special case as seen in the proxy method for processWorker is the raisePureVirtual
+method. In the case of pure virtual methods, the proxy is the top of the heirarchy.
+This proxy could be written more simply:
+
+\code
+      virtual int processWorker() {
+        return from_ruby<int>( getSelf().call("process_worker") );
+      }
+\endcode
+
+but if the Ruby code accidentally calls #super, the code will get stuck in an infinite loop.
+To prevent this from happening, use Rice::Director::raisePureVirtual to inform users of the 
+extension that they should not be calling up into C++ for that method.
+
+Once the proxy class is built, it's time to wrap it into Ruby:
+
+\code
+extern "C"
+void Init_virtual() {
+  // See Caveat below
+  define_class<VirtualBase>("__VirtualBase__");
+
+  define_class<VirtualBaseProxy, VirtualBase>("VirtualBase")
+    .define_method("do_work", &VirtualBaseProxy::doWork)
+    .define_method("process_worker", &VirtualBaseProxy::processWorker);
+}
+\endcode
+
+The wrapping is the same as is described earlier in this document. Expose the class
+VirtualBaseProxy named as VirtualBase, register it as a subclass of VirtualBase,
+and define methods pointing to the proxy object.
+
+<b>Caveat</b>: Rice figures out inheritance and class heirarchies solely through
+the types given in define_class. Ideally Rice would be able to handle this edge
+case automatically, but for now you'll still need to tell Rice about the base class
+being wrapped into a Rice::Director proxy, or type casting will throw an exception
+during execution. So as a general rule, make sure that any class you use as SuperClass 
+in define_class<Class, SuperClass> is also itself
+exposed.
+
+Following this, if you have subclasses of virtual classes that themselves have virtual
+methods, you need to set the Rice::Director proxy as the superclass of that class,
+something like:
+
+\code
+  // Given a class like this
+  class SubVirtual : public VirtualBase {
+    public:
+      virtual int doMoreWork();
+  }
+
+  // You'd need another Director proxy
+  class SubVirtualDirector : public SubVirtual, public VirtualBase, public Rice::Director {
+    ...
+  }
+
+  // And expose it in Rice as such
+  define_class<SubVirtual, VirtualBaseProxy>("__SubVirtual__");
+  define_class<SubVirtualDirector, SubVirtual>("SubVirtual")
+    ...
+
+\endcode
+
+This situation has not been fully tested
+
 
 \section motivation Motivation
 
@@ -910,7 +1071,7 @@ class:
     vm.run()
   }
 \endcode
-  
+
 If the VM is not initialized from main() -- from a callback, for example
 -- then you may need to initialize the stack whenever you use Rice or
 the Ruby API:
