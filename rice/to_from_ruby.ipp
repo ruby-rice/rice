@@ -257,22 +257,14 @@ Rice::Object to_ruby<double>(double const & x)
 }
 
 // ---------------------------------------------------------------------
-namespace Rice
-{
-  namespace detail
-  {
-    inline VALUE str2ccstr(VALUE x)
-    {
-      return (VALUE)(StringValuePtr(x));
-    }
-  }
-}
-
 template<>
 inline
 char const * from_ruby<char const *>(Rice::Object x)
 {
-  return (char const *)Rice::protect(Rice::detail::str2ccstr, x);
+  // TODO: Maybe not the right way to do this conversion (what happens
+  // if the object gets GC'd?)
+  VALUE v(x.value());
+  return (char const *)Rice::protect<char const *>(rb_string_value_cstr, &v);
 }
 
 template<>
