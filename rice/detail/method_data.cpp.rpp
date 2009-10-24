@@ -28,28 +28,8 @@ using namespace Rice::detail::Mininode;
 #include "env.hpp"
 
 #ifdef RUBY_VM
-
 /* YARV */
-
-namespace
-{
-
-struct rb_thread_struct
-{   
-    VALUE self;
-    void *vm;
-    VALUE *stack;
-    unsigned long stack_size;
-    VALUE *cfp;
-    /* ... */
-};
-
-typedef struct rb_thread_struct rb_thread_t;
-
-} // namespace
-
-extern "C" rb_thread_t * ruby_current_thread;
-
+#include "cfp.hpp"
 #endif
 
 namespace
@@ -59,32 +39,30 @@ namespace
 
 /* YARV */
 
-#define CFP_DATA_MEMO_NODE_AND_PC cfp[0]
-#define CFP_METHOD_CLASS cfp[11]
-
 /* On YARV, we store the method data on the stack.  We don't have to pop
  * it off the stack, because the stack pointer will be reset to the
  * previous frame's stack pointer when the function returns.
  */
 static void fix_frame()
 {
-  do {
-    VALUE * cfp = ruby_current_thread->cfp;
-    CFP_DATA_MEMO_NODE_AND_PC = RBASIC(CFP_METHOD_CLASS)->klass;
+  VALUE * cfp = Rice::detail::cfp();
+  VALUE & memo_node = Rice::detail::cfp_data_memo_node_and_pc(cfp);
+  VALUE & method_class = Rice::detail::cfp_method_class(cfp);
 
-    if(rb_type(CFP_DATA_MEMO_NODE_AND_PC) != T_NODE)
-    {
-      /* This can happen for module functions that are created after
-       * the stub function */
-      rb_raise(
-          rb_eRuntimeError,
-          "Cannot find method data for module function");
-    }
-    else
-    {
-      CFP_METHOD_CLASS = RCLASS_SUPER(CFP_METHOD_CLASS);
-    }
-  } while(0);
+  memo_node = RBASIC(method_class)->klass;
+
+  if(rb_type(memo_node) != T_NODE)
+  {
+    /* This can happen for module functions that are created after
+     * the stub function */
+    rb_raise(
+        rb_eRuntimeError,
+        "Cannot find method data for module function");
+  }
+  else
+  {
+    method_class = RCLASS_SUPER(method_class);
+  }
 }
 
 #define FIX_FRAME() \
@@ -92,8 +70,9 @@ static void fix_frame()
 
 static NODE * data_memo_node()
 {
-  VALUE * cfp = ruby_current_thread->cfp;
-  return (NODE *)CFP_DATA_MEMO_NODE_AND_PC;
+  VALUE * cfp = Rice::detail::cfp();
+  VALUE & memo_node = Rice::detail::cfp_data_memo_node_and_pc(cfp);
+  return (NODE *)memo_node;
 }
 
 #else
