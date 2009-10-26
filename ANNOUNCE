@@ -80,5 +80,3 @@ test.rb
   c = MyWrapper.new
   c.do_this
   c.do_that(1, 2.0)
-
-Building Ruby wrapper extensions have never been so easy.
