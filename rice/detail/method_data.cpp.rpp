@@ -45,6 +45,7 @@ namespace
  */
 static void fix_frame()
 {
+#if 0
   VALUE * cfp = Rice::detail::cfp();
   VALUE & memo_node = Rice::detail::cfp_data_memo_node_and_pc(cfp);
   VALUE & method_class = Rice::detail::cfp_method_class(cfp);
@@ -63,6 +64,7 @@ static void fix_frame()
   {
     method_class = RCLASS_SUPER(method_class);
   }
+#endif
 }
 
 #define FIX_FRAME() \
@@ -70,8 +72,31 @@ static void fix_frame()
 
 static NODE * data_memo_node()
 {
+/*
   VALUE * cfp = Rice::detail::cfp();
   VALUE & memo_node = Rice::detail::cfp_data_memo_node_and_pc(cfp);
+  return (NODE *)memo_node;
+*/
+  ID id;
+  VALUE klass;
+  if (!rb_frame_method_id_and_class(&id, &klass))
+  {
+    rb_raise(
+        rb_eRuntimeError,
+        "Cannot get method id and class for function");
+  }
+
+  VALUE memo_node = RBASIC(klass)->klass;
+
+  if(rb_type(memo_node) != T_NODE)
+  {
+    /* This can happen for module functions that are created after
+     * the stub function */
+    rb_raise(
+        rb_eRuntimeError,
+        "Cannot find method data for module function");
+  }
+
   return (NODE *)memo_node;
 }
 
@@ -252,13 +277,20 @@ END
 
 #ifdef RUBY_VM
   /* YARV */
-  node = NEW_FBODY(
-      NEW_METHOD(
-          NEW_CFUNC(data_wrapper, arity),
-          origin,
-          NOEX_PUBLIC),
+  rb_define_method(
+      origin,
+      rb_id2name(id),
+      data_wrapper,
+      arity);
+  rb_alias(
+      origin,
+      rb_intern("dummy"),
       id);
+  st_lookup(RCLASS_M_TBL(origin), rb_intern("dummy"), (st_data_t *)&node);
   st_insert(RCLASS_M_TBL(klass), id, (st_data_t)node);
+
+  // Clear the table so we don't try to double-free the method entry
+  RCLASS_M_TBL(origin) = st_init_numtable();
 #else
   /* pre-YARV */
   node = NEW_FBODY(
