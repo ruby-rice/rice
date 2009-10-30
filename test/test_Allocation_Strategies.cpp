@@ -67,7 +67,7 @@ TESTCASE(xmalloc_allocation_strategy_allocate)
 
 TESTCASE(xmalloc_allocation_strategy_free)
 {
-  Foo * t = new Foo;
+  Foo * t = Xmalloc_Allocation_Strategy<Foo>::allocate();
   ASSERT(constructor_called);
   ASSERT(!destructor_called);
   Xmalloc_Allocation_Strategy<Foo>::free(t);

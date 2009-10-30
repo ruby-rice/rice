@@ -1,6 +1,6 @@
 #include "Director.hpp"
 
-#include "detail/env.hpp"
+#include "detail/ruby.hpp"
 
 namespace Rice {
 

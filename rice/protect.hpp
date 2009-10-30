@@ -21,7 +21,7 @@ namespace Rice
 /*! E.g.:
  *  \code
  *    VALUE x = protect(rb_ary_new);
- *    protect(rb_ary_push(x, INT2NUM(42));
+ *    protect(rb_ary_push, x, INT2NUM(42));
  *  \endcode
  *
  *  Note that this function makes copies of all of its arguments; it

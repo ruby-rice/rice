@@ -124,7 +124,7 @@ docstring = <<END
 /*! E.g.:
  *  \\code
  *    VALUE x = protect(rb_ary_new);
- *    protect(rb_ary_push(x, INT2NUM(42));
+ *    protect(rb_ary_push, x, INT2NUM(42));
  *  \\endcode
  *
  *  Note that this function makes copies of all of its arguments; it
@@ -139,48 +139,64 @@ ipp_template = <<END
 namespace detail
 {
 
-template<typename Fun%(typenames)>
+template<typename Ret_T, typename Fun%(typenames)>
 class Ruby_Function_%(j)
 {
 public:
   Ruby_Function_%(j)(Fun f%(member_args));
-  inline VALUE operator()();
+  inline void operator()();
   static inline VALUE call(Ruby_Function_%(j) * f);
+  Ret_T const & result() const { return result_; }
+
 private:
   Fun f_;
   %(member_decls)
+  Ret_T result_; // TODO: use placement new
 };
 
-template<typename Fun%(typenames)>
-inline Ruby_Function_%(j)<Fun%(types)>::
+template<typename Ret_T, typename Fun%(typenames)>
+inline Ruby_Function_%(j)<Ret_T, Fun%(types)>::
 Ruby_Function_%(j)(Fun f%(member_args))
   : f_(f)%(initializers)
 { }
 
-template<typename Fun%(typenames)>
-inline VALUE Ruby_Function_%(j)<Fun%(types)>::
+template<typename Ret_T, typename Fun%(typenames)>
+inline void Ruby_Function_%(j)<Ret_T, Fun%(types)>::
 operator()()
 {
-  return f_(%(member_params));
+  result_ = f_(%(member_params));
 }
 
-template<typename Fun%(typenames)>
-inline VALUE Ruby_Function_%(j)<Fun%(types)>::
+template<typename Ret_T, typename Fun%(typenames)>
+inline VALUE Ruby_Function_%(j)<Ret_T, Fun%(types)>::
 call(Ruby_Function_%(j) * f)
 {
-  return (*f)();
+  (*f)();
+  return Qnil;
 }
 
 } // namespace detail
 
+template<typename Ret_T, typename Fun%(typenames)>
+inline Ret_T protect(Fun fun%(args))
+{
+  typedef detail::Ruby_Function_%(j)<Ret_T, Fun%(types)> RF;
+  RF f(fun%(params));
+  detail::protect(
+      RUBY_VALUE_FUNC(RF::call),
+      reinterpret_cast<VALUE>(&f));
+  return f.result();
+}
+
 template<typename Fun%(typenames)>
 inline VALUE protect(Fun fun%(args))
 {
-  typedef detail::Ruby_Function_%(j)<Fun%(types)> RF;
+  typedef detail::Ruby_Function_%(j)<VALUE, Fun%(types)> RF;
   RF f(fun%(params));
-  return detail::protect(
+  detail::protect(
       RUBY_VALUE_FUNC(RF::call),
       reinterpret_cast<VALUE>(&f));
+  return f.result();
 }
 
 // ---------------------------------------------------------------------
