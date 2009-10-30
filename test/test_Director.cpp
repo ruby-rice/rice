@@ -65,20 +65,20 @@ namespace {
     public:
       WorkerDirector(Object self) : Director(self) { }
 
-      int process(int num) {
-        if(callIsFromRuby("process")) {
-          raisePureVirtual();
-        } else {
-          return from_ruby<int>( getSelf().call("process", num) );
-        }
+      virtual int process(int num) {
+        return from_ruby<int>( getSelf().call("process", num) );
       }
 
-      int doSomething(int num) {
-        if(callIsFromRuby("do_something")) {
-          return this->Worker::doSomething(num);
-        } else {
-          return from_ruby<int>( getSelf().call("do_something", num) );
-        }
+      int default_process(int num) {
+        raisePureVirtual();
+      }
+
+      virtual int doSomething(int num) {
+        return from_ruby<int>( getSelf().call("do_something", num) );
+      }
+
+      int default_doSomething(int num) {
+        return Worker::doSomething(num);
       }
   };
 };
@@ -109,7 +109,7 @@ TESTCASE(can_call_virtual_methods_on_base_class)
   define_class<WorkerDirector, Worker>("Worker")
     .define_constructor(Constructor<WorkerDirector, Object>())
     .define_method("get_number", &Worker::getNumber)
-    .define_method("do_something", &WorkerDirector::doSomething);
+    .define_method("do_something", &WorkerDirector::default_doSomething);
 
   Module m = define_module("Testing");
 
@@ -122,7 +122,7 @@ TESTCASE(super_calls_pass_execution_up_the_inheritance_chain)
 {
   define_class<WorkerDirector, Worker>("Worker")
     .define_constructor(Constructor<WorkerDirector, Object>())
-    .define_method("do_something", &WorkerDirector::doSomething);
+    .define_method("do_something", &WorkerDirector::default_doSomething);
 
   Module m = define_module("Testing");
   m.instance_eval("class RubyWorker < Worker; def do_something(num); super * num; end; end");
@@ -136,7 +136,7 @@ TESTCASE(super_calls_on_pure_virtual_raise_error)
 {
   define_class<WorkerDirector, Worker>("Worker")
     .define_constructor(Constructor<WorkerDirector, Object>())
-    .define_method("process", &WorkerDirector::process);
+    .define_method("process", &WorkerDirector::default_process);
 
   Module m = define_module("Testing");
   m.instance_eval("class RubyWorker < Worker; def process(num); super; end; end");
@@ -160,7 +160,7 @@ TESTCASE(polymorphic_calls_head_down_the_call_chain)
 
   define_class<WorkerDirector, Worker>("Worker")
     .define_constructor(Constructor<WorkerDirector, Object>())
-    .define_method("process", &WorkerDirector::process);
+    .define_method("process", &WorkerDirector::default_process);
 
   Module m = define_module("Testing");
 
@@ -195,11 +195,11 @@ namespace {
       CallsSelfDirector(Object self) : Director(self) { }
 
       virtual int doItImpl(int in) {
-        if(!callIsFromRuby("do_it_impl")) {
-          return 0;
-        } else {
-          return from_ruby<int>( getSelf().call("do_it_impl", in) );
-        }
+        return from_ruby<int>( getSelf().call("do_it_impl", in) );
+      }
+
+      int default_doItImpl(int in) {
+        raisePureVirtual();
       }
   };
 
@@ -211,7 +211,7 @@ TESTCASE(mix_of_polymorphic_calls_and_inheritance_dont_cause_infinite_loops)
 
   define_class<CallsSelfDirector, CallsSelf>("CallsSelf")
     .define_constructor(Constructor<CallsSelfDirector, Rice::Object>())
-    .define_method("do_it_impl", &CallsSelfDirector::doItImpl)
+    .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
     .define_method("do_it", &CallsSelf::doIt);
 
   Module m = define_module("Testing");
