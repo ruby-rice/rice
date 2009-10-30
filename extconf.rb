@@ -11,6 +11,8 @@
 # for gem to continue 'make'-ing. It needs to be named 'extconf.rb' to fit Rubygem's
 # expectations
 
+$:.unshift File.expand_path(File.dirname(__FILE__))
+
 require 'rbconfig'
 require 'rubygems'
 require 'ruby/lib/version.rb'
