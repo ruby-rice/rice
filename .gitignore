@@ -4,6 +4,7 @@ aclocal.m4
 autom4te.cache
 rice/config.hpp
 rice/README.doxygen
+rice/detail/ruby_version_code.hpp
 config.log
 config.status
 config.guess
