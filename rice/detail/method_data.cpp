@@ -65,83 +65,42 @@ method_data()
 
 #endif
 
-/* Define a method and attach data to it.
- *
- * The method looks to ruby like a normal aliased CFUNC, with a modified
- * origin class:
- *
- * NODE_FBODY
- *   |- (u1) orig - origin class
- *   |  |- basic
- *   |  |  |- flags - origin class flags + FL_SINGLETON
- *   |  |  +- klass - NODE_MEMO
- *   |  |     |- (u1) cfnc - actual C function to call
- *   |  |     |- (u2) rval - stored data
- *   |  |     +- (u3) 0
- *   |  |- iv_tbl - 0
- *   |  |- m_tbl - 0
- *   |  +- super - actual origin class
- *   |- (u2) mid - name of the method
- *   +- (u3) head - NODE_CFUNC
- *      |- (u1) cfnc - wrapper function to call
- *      +- (u2) argc - function arity
- *
- * Or, on YARV:
- *
- * NODE_FBODY
- *   |- (u1) oid - name of the method
- *   +- (u2) body - NODE_METHOD
- *      |- (u1) clss - origin class
- *      |  |- basic
- *      |  |  |- flags - origin class flags + FL_SINGLETON
- *      |  |  +- klass - NODE_MEMO
- *      |  |     |- (u1) cfnc - actual C function to call
- *      |  |     |- (u2) rval - stored data
- *      |  |     +- (u3) 0
- *      |  |- ptr - rb_classext_t
- *      |  |  |- super - actual origin class
- *      |  |  +- iv_tbl - 0
- *      |  |- m_tbl - 0
- *      |  +- iv_index_tbl - 0?
- *      |- (u2) body - NODE_CFUNC
- *      |  |- (u1) cfnc - wrapper function to call
- *      |  |- (u2) argc - function arity
- *      +- (u3) noex - NOEX_PUBLIC
- *
- * When the wrapper function is called, last_class is set to the origin
- * class found in the FBODY node.  So that the method data will be
- * accessible, and so last_class will point to klass and not to our MEMO
- * node, it is necessary to "fix" the current frame.
- *
- * Pre-YARV, this means we duplicate the current frame and set last_class:
- *
- * ruby_frame
- *   |- last_class - klass
- *   |- prev
- *   |  |- last_class - NODE_MEMO
- *   |  |  |- (u1) cfnc - actual C function to call
- *   |  |  |- (u2) rval - stored data
- *   |  |  +- (u3) 0
- *   |  |- prev - the real previous frame
- *   |  +- ...
- *   +- ...
- *
- * The method data is then accessible via
- * ruby_frame->prev->last_class->rval.
- *
- * On YARV, the current frame is not duplicated; rather, the method data
- * is placed on the stack and is referenced by one of the unused members
- * of the control frame (the program counter):
- *
- * ruby_current_thread->cfp
- *   |- pc - NODE_MEMO
- *   |  |- (u1) cfnc - actual C function to call
- *   |  |- (u2) rval - stored data
- *   |  +- (u3) 0
- *   |- method_class - klass
- *   +- ...
- *
- */
+// Define a method and attach data to it.
+// The method looks to ruby like a normal aliased CFUNC, with a modified
+// origin class.
+//
+// How this works:
+//
+// To store method data and have it registered with the GC, we need a
+// "slot" to put it in.  This "slot" must be recognized and marked by
+// the garbage collector.  There happens to be such a place we can put
+// data, and it has to do with aliased methods.  When Ruby creates an
+// alias for a method, it stores a reference to the original class in
+// the method entry.  The form of the method entry differs from ruby
+// version to ruby version, but the concept is the same across all of
+// them.
+// 
+// In Rice, we make use of this by defining a method on a dummy class,
+// then attaching that method to our real class.  The method is a real
+// method in our class, but its origin class is our dummy class.
+// 
+// When Ruby makes a method call, it stores the origin class in the
+// current stack frame.  When Ruby calls into Rice, we grab the origin
+// class from the stack frame, then pull the data out of the origin
+// class.  The data item is then used to determine how to convert
+// arguments and return type, how to handle exceptions, etc.
+//
+// It used to be the case that Rice would "fix" the call frame so that
+// the modified origin class was not visible to the called function (it
+// would appear to the callee that the origin class was the same as the
+// class it was defined on).  However, this required modifying the call
+// frame directly, and the layout of that frame varies from version to
+// version.  To keep things simple (and as a side effect improve
+// performance), Rice no longer hides the modified origin class this way.
+//
+// Functions that make use of "last_class" (1.8) or
+// "rb_frame_method_id_and_class" (1.9) will therefore not get the
+// results they expect.
 VALUE
 Rice::detail::
 define_method_with_data(
