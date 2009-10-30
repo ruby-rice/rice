@@ -141,6 +141,8 @@ of the Ruby C API.
     rice/detail/creation_funcs.hpp
     rice/detail/Arguments.hpp
     rice/detail/wrap_function.ipp
+    rice/detail/cfp.hpp
+    rice/detail/cfp.ipp
     rice/detail/check_ruby_type.cpp
     rice/detail/demangle.cpp
     rice/detail/check_ruby_type.hpp
