@@ -106,34 +106,48 @@ Rice::detail::
 define_method_with_data(
     VALUE klass, ID id, VALUE (*cfunc)(ANYARGS), int arity, VALUE data)
 {
-  /* TODO: origin should have #to_s and #inspect methods defined */
 #ifdef HAVE_RB_CLASS_BOOT
   VALUE origin = rb_class_boot(klass);
 #else
   VALUE origin = rb_class_new(klass);
 #endif
+
+  // Create the memo object with a magic number so we can detect if
+  // we're getting the origin class we expect (this can happen if the
+  // module_function method is called on a Rice function on ruby 1.9).
   VALUE memo = rb_assoc_new(DATA_MAGIC, data);
+
+  // Set the class name of our modified origin class to something
+  // obvious in case someone tries to inspect it.
   VALUE real_class_name = rb_class_name(klass);
   VALUE origin_class_name = rb_str_plus(
       real_class_name,
       rb_str_new2("<data wrapper>"));
 
+  // Create the modified origin class
   FL_SET(origin, FL_SINGLETON);
   rb_singleton_class_attached(origin, klass);
   rb_name_class(origin, SYM2ID(rb_str_intern(origin_class_name)));
+
+  // Attach our "memo" to the origin class
   rb_ivar_set(origin, 0, memo);
 
-  /* YARV */
-  st_data_t dummy_entry;
+  // Create the aliased method on the origin class
   rb_define_method(
       origin,
       rb_id2name(id),
       cfunc,
       arity);
+
+  // Alias the method in the origin class so we can copy it to another
+  // class with the origin class intact as part of the method entry
   rb_alias(
       origin,
       rb_intern("dummy"),
       id);
+
+  // Copy the method entry to the real class
+  st_data_t dummy_entry;
   st_lookup(RCLASS_M_TBL(origin), rb_intern("dummy"), &dummy_entry);
   st_insert(RCLASS_M_TBL(klass), id, dummy_entry);
 
