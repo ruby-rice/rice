@@ -179,12 +179,12 @@ Foo * from_ruby<Foo *>(Object x)
 TESTCASE(define_singleton_method_int_foo)
 {
   Module m(anonymous_module());
-  m.define_singleton_method("foo", define_method_int_foo_helper);
+  m.define_singleton_method("int_and_foo", define_method_int_foo_helper);
   define_method_int_result = 0;
   Foo * foo = new Foo;
   foo->x = 1024;
   VALUE f = Data_Wrap_Struct(rb_cObject, 0, Default_Allocation_Strategy<Foo>::free, foo);
-  m.call("foo", 42, Object(f));
+  m.call("int_and_foo", 42, Object(f));
   ASSERT_EQUAL(42, define_method_int_foo_result_i);
   ASSERT_EQUAL(foo, define_method_int_foo_result_x);
 }
