@@ -1,94 +1,44 @@
 #include "method_data.hpp"
+#include "ruby.hpp"
 
 // TODO: This is silly, autoconf...
 #undef PACKAGE_NAME
 #undef PACKAGE_STRING
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
-
 #include "../config.hpp"
 
-#ruby <<END
-MAX_ARGS = 15
-nil
-END
-
-#if defined(HAVE_NODE_H)
+#ifndef RUBY_VM
 /* pre-YARV */
 #include <node.h>
-#elif defined(REALLY_HAVE_RUBY_NODE_H)
-/* YARV */
-#include <ruby/node.h>
-#else
-/* YARV without node.h */
-#include "mininode.hpp"
-using namespace Rice::detail::Mininode;
-#endif
-
 #include "env.hpp"
-
-#ifdef RUBY_VM
-/* YARV */
-#include "cfp.hpp"
 #endif
 
 namespace
 {
 
+VALUE DATA_MAGIC = INT2NUM(0xDA7A);
+
+} // namespace
+
 #ifdef RUBY_VM
 
-/* YARV */
-
-/* On YARV, we store the method data on the stack.  We don't have to pop
- * it off the stack, because the stack pointer will be reset to the
- * previous frame's stack pointer when the function returns.
- */
-static void fix_frame()
+VALUE
+Rice::detail::
+method_data()
 {
-#if 0
-  VALUE * cfp = Rice::detail::cfp();
-  VALUE & memo_node = Rice::detail::cfp_data_memo_node_and_pc(cfp);
-  VALUE & method_class = Rice::detail::cfp_method_class(cfp);
-
-  memo_node = RBASIC(method_class)->klass;
-
-  if(rb_type(memo_node) != T_NODE)
-  {
-    /* This can happen for module functions that are created after
-     * the stub function */
-    rb_raise(
-        rb_eRuntimeError,
-        "Cannot find method data for module function");
-  }
-  else
-  {
-    method_class = RCLASS_SUPER(method_class);
-  }
-#endif
-}
-
-#define FIX_FRAME() \
-  fix_frame()
-
-static NODE * data_memo_node()
-{
-/*
-  VALUE * cfp = Rice::detail::cfp();
-  VALUE & memo_node = Rice::detail::cfp_data_memo_node_and_pc(cfp);
-  return (NODE *)memo_node;
-*/
   ID id;
-  VALUE klass;
-  if (!rb_frame_method_id_and_class(&id, &klass))
+  VALUE origin;
+  if (!rb_frame_method_id_and_class(&id, &origin))
   {
     rb_raise(
         rb_eRuntimeError,
         "Cannot get method id and class for function");
   }
 
-  VALUE memo_node = RBASIC(klass)->klass;
+  VALUE memo = rb_ivar_get(origin, 0);
 
-  if(rb_type(memo_node) != T_NODE)
+  if(rb_type(memo) != T_ARRAY && RARRAY_PTR(memo)[0] != DATA_MAGIC)
   {
     /* This can happen for module functions that are created after
      * the stub function */
@@ -97,72 +47,23 @@ static NODE * data_memo_node()
         "Cannot find method data for module function");
   }
 
-  return (NODE *)memo_node;
+  return RARRAY_PTR(memo)[1];
 }
 
 #else
 
 /* pre-YARV */
 
-/* Okay to not pop this temporary frame, since it will be popped by the
- * caller
- */
-#define FIX_FRAME() \
-  struct FRAME _frame = *ruby_frame; \
-  _frame.last_class = RCLASS(ruby_frame->last_class)->super; \
-  _frame.prev = ruby_frame; \
-  ruby_frame = &_frame; \
-
-static NODE * data_memo_node()
+VALUE
+Rice::detail::
+method_data()
 {
-  return (NODE *)(RBASIC(ruby_frame->prev->last_class)->klass);
+  VALUE origin = ruby_frame->last_class;
+  VALUE memo = rb_ivar_get(origin, 0);
+  return RARRAY_PTR(memo)[1];
 }
 
 #endif
-
-typedef VALUE (*Method_Func)(ANYARGS);
-
-static Method_Func actual_cfunc()
-{
-  return data_memo_node()->nd_cfnc;
-}
-
-static VALUE data_wrapper_m1(int argc, VALUE * argv, VALUE self)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(argc, argv, self);
-  return result;
-}
-
-static VALUE data_wrapper_0(VALUE self)
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self);
-  return result;
-}
-
-#ruby <<END
-  (1..MAX_ARGS).each do |i|
-    params = (1..i).map { |j| "VALUE arg#{j}" }.join(', ')
-    args = (1..i).map { |j| "arg#{j}" }.join(', ')
-
-    puts <<-END
-static VALUE data_wrapper_#{i}(VALUE self, #{params})
-{
-  VALUE result;
-  FIX_FRAME();
-  result = (*actual_cfunc())(self, #{args});
-  return result;
-}
-    END
-  end
-
-  nil
-END
-
-} // namespace
 
 /* Define a method and attach data to it.
  *
@@ -252,61 +153,34 @@ define_method_with_data(
 #else
   VALUE origin = rb_class_new(klass);
 #endif
-  NODE * node;
-
-  VALUE (*data_wrapper)(ANYARGS);
-  switch(arity)
-  {
-#ruby <<END
-  (0..MAX_ARGS).each do |i|
-    puts <<-END
-    case #{i}: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_#{i}); break;
-    END
-  end
-  nil
-END
-    case -1: data_wrapper = RUBY_METHOD_FUNC(data_wrapper_m1); break;
-    default: rb_raise(rb_eArgError, "unsupported arity %d", arity);
-  }
+  VALUE memo = rb_assoc_new(DATA_MAGIC, data);
+  VALUE real_class_name = rb_class_name(klass);
+  VALUE origin_class_name = rb_str_plus(
+      real_class_name,
+      rb_str_new2("<data wrapper>"));
 
   FL_SET(origin, FL_SINGLETON);
   rb_singleton_class_attached(origin, klass);
-  rb_name_class(origin, SYM2ID(rb_class_name(klass)));
+  rb_name_class(origin, SYM2ID(rb_str_intern(origin_class_name)));
+  rb_ivar_set(origin, 0, memo);
 
-  RBASIC(origin)->klass = (VALUE)NEW_NODE(NODE_MEMO, cfunc, data, 0);
-
-#ifdef RUBY_VM
   /* YARV */
+  st_data_t dummy_entry;
   rb_define_method(
       origin,
       rb_id2name(id),
-      data_wrapper,
+      cfunc,
       arity);
   rb_alias(
       origin,
       rb_intern("dummy"),
       id);
-  st_lookup(RCLASS_M_TBL(origin), rb_intern("dummy"), (st_data_t *)&node);
-  st_insert(RCLASS_M_TBL(klass), id, (st_data_t)node);
+  st_lookup(RCLASS_M_TBL(origin), rb_intern("dummy"), &dummy_entry);
+  st_insert(RCLASS_M_TBL(klass), id, dummy_entry);
 
   // Clear the table so we don't try to double-free the method entry
   RCLASS_M_TBL(origin) = st_init_numtable();
-#else
-  /* pre-YARV */
-  node = NEW_FBODY(
-      NEW_CFUNC(data_wrapper, arity),
-      id,
-      origin);
-  rb_add_method(klass, id, node, NOEX_PUBLIC);
-#endif
 
   return Qnil;
-}
-
-VALUE
-Rice::detail::
-method_data()
-{
-  return data_memo_node()->nd_rval;
 }
 
