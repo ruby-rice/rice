@@ -167,12 +167,12 @@ TESTCASE(polymorphic_calls_head_down_the_call_chain)
   m.instance_eval(
       "class EchoWorker < Worker; def process(num); num + 2; end; end;"
       "class DoubleWorker < Worker; def process(num); num * 2; end; end;"
-      "handler = Handler.new;"
-      "handler.add_worker(EchoWorker.new);"
-      "handler.add_worker(DoubleWorker.new);"
+      "$handler = Handler.new;"
+      "$handler.add_worker(EchoWorker.new);"
+      "$handler.add_worker(DoubleWorker.new);"
   );
 
-  Object result = m.instance_eval("handler.process_workers(5)");
+  Object result = m.instance_eval("$handler.process_workers(5)");
 
   // Hit's EchoWorker, so 5 + 2, then passes that to DoubleWorker, so 7 * 2 = 14
   ASSERT_EQUAL(14, from_ruby<int>(result.value()));
