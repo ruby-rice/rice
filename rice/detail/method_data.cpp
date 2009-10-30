@@ -24,8 +24,28 @@ using namespace Rice::detail::Mininode;
 #include "env.hpp"
 
 #ifdef RUBY_VM
+
 /* YARV */
-#include "cfp.hpp"
+
+namespace
+{
+
+struct rb_thread_struct
+{   
+    VALUE self;
+    void *vm;
+    VALUE *stack;
+    unsigned long stack_size;
+    VALUE *cfp;
+    /* ... */
+};
+
+typedef struct rb_thread_struct rb_thread_t;
+
+} // namespace
+
+extern "C" rb_thread_t * ruby_current_thread;
+
 #endif
 
 namespace
@@ -35,32 +55,32 @@ namespace
 
 /* YARV */
 
+#define CFP_DATA_MEMO_NODE_AND_PC cfp[0]
+#define CFP_METHOD_CLASS cfp[11]
+
 /* On YARV, we store the method data on the stack.  We don't have to pop
  * it off the stack, because the stack pointer will be reset to the
  * previous frame's stack pointer when the function returns.
  */
 static void fix_frame()
 {
-#if 0
-  VALUE * cfp = Rice::detail::cfp();
-  VALUE & memo_node = Rice::detail::cfp_data_memo_node_and_pc(cfp);
-  VALUE & method_class = Rice::detail::cfp_method_class(cfp);
+  do {
+    VALUE * cfp = ruby_current_thread->cfp;
+    CFP_DATA_MEMO_NODE_AND_PC = RBASIC(CFP_METHOD_CLASS)->klass;
 
-  memo_node = RBASIC(method_class)->klass;
-
-  if(rb_type(memo_node) != T_NODE)
-  {
-    /* This can happen for module functions that are created after
-     * the stub function */
-    rb_raise(
-        rb_eRuntimeError,
-        "Cannot find method data for module function");
-  }
-  else
-  {
-    method_class = RCLASS_SUPER(method_class);
-  }
-#endif
+    if(rb_type(CFP_DATA_MEMO_NODE_AND_PC) != T_NODE)
+    {
+      /* This can happen for module functions that are created after
+       * the stub function */
+      rb_raise(
+          rb_eRuntimeError,
+          "Cannot find method data for module function");
+    }
+    else
+    {
+      CFP_METHOD_CLASS = RCLASS_SUPER(CFP_METHOD_CLASS);
+    }
+  } while(0);
 }
 
 #define FIX_FRAME() \
@@ -68,32 +88,8 @@ static void fix_frame()
 
 static NODE * data_memo_node()
 {
-/*
-  VALUE * cfp = Rice::detail::cfp();
-  VALUE & memo_node = Rice::detail::cfp_data_memo_node_and_pc(cfp);
-  return (NODE *)memo_node;
-*/
-  ID id;
-  VALUE klass;
-  if (!rb_frame_method_id_and_class(&id, &klass))
-  {
-    rb_raise(
-        rb_eRuntimeError,
-        "Cannot get method id and class for function");
-  }
-
-  VALUE memo_node = RBASIC(klass)->klass;
-
-  if(rb_type(memo_node) != T_NODE)
-  {
-    /* This can happen for module functions that are created after
-     * the stub function */
-    rb_raise(
-        rb_eRuntimeError,
-        "Cannot find method data for module function");
-  }
-
-  return (NODE *)memo_node;
+  VALUE * cfp = ruby_current_thread->cfp;
+  return (NODE *)CFP_DATA_MEMO_NODE_AND_PC;
 }
 
 #else
@@ -368,20 +364,13 @@ define_method_with_data(
 
 #ifdef RUBY_VM
   /* YARV */
-  rb_define_method(
-      origin,
-      rb_id2name(id),
-      data_wrapper,
-      arity);
-  rb_alias(
-      origin,
-      rb_intern("dummy"),
+  node = NEW_FBODY(
+      NEW_METHOD(
+          NEW_CFUNC(data_wrapper, arity),
+          origin,
+          NOEX_PUBLIC),
       id);
-  st_lookup(RCLASS_M_TBL(origin), rb_intern("dummy"), (st_data_t *)&node);
   st_insert(RCLASS_M_TBL(klass), id, (st_data_t)node);
-
-  // Clear the table so we don't try to double-free the method entry
-  RCLASS_M_TBL(origin) = st_init_numtable();
 #else
   /* pre-YARV */
   node = NEW_FBODY(
