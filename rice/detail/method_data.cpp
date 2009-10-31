@@ -17,7 +17,7 @@
 namespace
 {
 
-VALUE DATA_MAGIC = INT2NUM(0xDA7A);
+VALUE DATA_MAGIC = rb_fix_new(0xDA7A);
 
 } // namespace
 
