@@ -147,13 +147,11 @@ of the Ruby C API.
     rice/detail/demangle.cpp
     rice/detail/check_ruby_type.hpp
     rice/detail/Auto_Member_Function_Wrapper.ipp
-    rice/detail/mininode.cpp
     rice/detail/Auto_Member_Function_Wrapper.hpp
     rice/detail/protect.cpp
     rice/detail/node.hpp
     rice/detail/Wrapped_Function.hpp
     rice/detail/protect.hpp
-    rice/detail/mininode.cpp.rpp
     rice/detail/demangle.hpp
     rice/detail/define_method_and_auto_wrap.hpp
     rice/detail/default_allocation_func.ipp
@@ -165,18 +163,15 @@ of the Ruby C API.
     rice/detail/st.hpp
     rice/detail/from_ruby.hpp
     rice/detail/win32.hpp
-    rice/detail/mininode.hpp.rpp
     rice/detail/creation_funcs.ipp
     rice/detail/to_ruby.hpp
     rice/detail/remove_const.hpp
     rice/detail/Auto_Function_Wrapper.hpp
     rice/detail/env.hpp
-    rice/detail/method_data.cpp.rpp
     rice/detail/to_ruby.ipp
     rice/detail/method_data.hpp
     rice/detail/Exception_Handler.hpp
     rice/detail/object_call.ipp
-    rice/detail/mininode.hpp
     rice/detail/rubysig.hpp
     rice/detail/ruby_version_code.hpp
     rice/detail/method_data.cpp
