@@ -14,6 +14,11 @@
 #include "env.hpp"
 #endif
 
+/* 1.8.6 compatibility */
+#ifndef RCLASS_M_TBL
+#define RCLASS_M_TBL(x) (RCLASS(x)->m_tbl)
+#endif
+
 namespace
 {
 
