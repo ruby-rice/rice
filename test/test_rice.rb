@@ -16,8 +16,12 @@ class RiceTest < Test::Unit::TestCase
     run_external_test("./vm_unittest#{EXEEXT}")
   end
 
-  def test_vm_unittest
+  def test_multiple_extensions
     run_external_test("#{RUBY} test_multiple_extensions.rb")
+  end
+
+  def test_multiple_extensions_with_inheritance
+    run_external_test("#{RUBY} test_multiple_extensions_with_inheritance.rb")
   end
 
   def run_external_test(executable)
