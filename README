@@ -702,8 +702,7 @@ As polymorphism is the most important tennant of Object Oriented Programming,
 it's important that Rice supports polymorphic calls travelling between C++
 and Ruby seemlessly. Super calls from Ruby subclasses back into C++ already work,
 but enabling the other direction requires some extra work. While this isn't
-something Rice can do on it's own, the Rice::Director class hides most of the
-details.
+something Rice can do on it's own, the Rice::Director class opens up this feature.
 
 Like SWIG_Director, Rice::Director is a class that is used to build a proxy class
 to properly send execution up or down the object heiarchy for that class. Take
@@ -721,11 +720,11 @@ the following class:
 Due to the abstract nature of this class, it will not work at all with Rice
 in it's current form. Any attempt to do so will cause a compilation error due to
 this class not being constructable. Even without the pure virtual function, any
-call to VirtualBase::doWork will stop at the C++ level and not pass down into
+call to VirtualBase::doWork will stop at the C++ level and will not pass down into
 any Ruby subclasses.
 
 To properly wrap both of these methods, you'll need to build a proxy class
-that subclasses Rice::Director:
+that subclasses Rice::Director along with a few methods:
 
 \code
   #include "rice/Director.hpp"
@@ -735,19 +734,19 @@ that subclasses Rice::Director:
       VirtualBaseProxy(Object self) : Rice::Director(self) { }
 
       virtual int doWork() {
-        if(callIsFromRuby("do_work")) {
-          return VirtualBase::doWork();
-        } else {
-          return from_ruby<int>( getSelf().call("do_work") );
-        }
+        return from_ruby<int>( getSelf().call("do_work") );
+      }
+
+      int default_doWork() {
+        return VirtualBase::doWork();
       }
 
       virtual int processWorker() {
-        if(callIsFromRuby("process_worker")) {
-          raisePureVirtual();
-        } else {
-          return from_ruby<int>( getSelf().call("process_worker") );
-        }
+        return from_ruby<int>( getSelf().call("process_worker") );
+      }
+
+      int default_processWorker() {
+        raisePureVirtual();
       }
   };
 \endcode
@@ -773,36 +772,34 @@ minimum required for a Rice::Director proxy.
 
 \code
       virtual int doWork() {
-        if(callIsFromRuby("do_work")) {
-          // Call from Ruby via super, head up the stack
-          return VirtualBase::doWork();
-        } else {
-          // Call from C++ heading down the stack, get self
-          // and call the method in Ruby, taking care to
-          // convert types to and from ruby as needed.
-          return from_ruby<int>( getSelf().call("do_work") );
-        }
+        return from_ruby<int>( getSelf().call("do_work") );
+      }
+
+      int default_doWork() {
+        return VirtualBase::doWork();
       }
 \endcode
 
-Every virtual method needs to have a special definition inside of this proxy class.
-Use Rice::Director::callIsFromRuby to check if execution is passing up or down
-the heirarchy. The name passed to this method needs to be the name as exposed to Ruby
-(which will be seen in the wrapper code below).
+The two methods seen here directly correspond to the two code directions this class
+opens up. The virtual method is this class's hook into C++'s polymorphism. Any calls
+that need to be forwarded into Ruby are done as specified here: get the Ruby object
+for the instance of this class, call Rice::Object::call, and if necessary convert
+the return value from Ruby back into C++ types.
 
-A special case as seen in the proxy method for processWorker is the raisePureVirtual
-method. In the case of pure virtual methods, the proxy is the top of the heirarchy.
-This proxy could be written more simply:
+The defaul_doWork method will be used as Rice's hookup of calling back up the 
+heirarchy (wrapping is below). This method needs to do one of two things: call
+up the class heirarchy, as seen here, or call raisePureVirtual() as seen in the
+processWorker example:
 
 \code
-      virtual int processWorker() {
-        return from_ruby<int>( getSelf().call("process_worker") );
+      int default_processWorker() {
+        raisePureVirtual();
       }
 \endcode
 
-but if the Ruby code accidentally calls #super, the code will get stuck in an infinite loop.
-To prevent this from happening, use Rice::Director::raisePureVirtual to inform users of the 
-extension that they should not be calling up into C++ for that method.
+The method raisePureVirtual() exists to allow wrapping a pure virtual method into Ruby
+but making sure any users of this extension are informed quickly that there's nothing
+in the C++ to call for the given method.
 
 Once the proxy class is built, it's time to wrap it into Ruby:
 
@@ -813,8 +810,8 @@ void Init_virtual() {
   define_class<VirtualBase>("__VirtualBase__");
 
   define_class<VirtualBaseProxy, VirtualBase>("VirtualBase")
-    .define_method("do_work", &VirtualBaseProxy::doWork)
-    .define_method("process_worker", &VirtualBaseProxy::processWorker);
+    .define_method("do_work", &VirtualBaseProxy::default_doWork)
+    .define_method("process_worker", &VirtualBaseProxy::default_processWorker);
 }
 \endcode
 
@@ -827,8 +824,7 @@ the types given in define_class. Ideally Rice would be able to handle this edge
 case automatically, but for now you'll still need to tell Rice about the base class
 being wrapped into a Rice::Director proxy, or type casting will throw an exception
 during execution. So as a general rule, make sure that any class you use as SuperClass 
-in define_class<Class, SuperClass> is also itself
-exposed.
+in define_class<Class, SuperClass> is also itself exposed through Rice.
 
 Following this, if you have subclasses of virtual classes that themselves have virtual
 methods, you need to set the Rice::Director proxy as the superclass of that class,
