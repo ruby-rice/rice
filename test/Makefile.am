@@ -2,6 +2,23 @@ noinst_PROGRAMS = unittest vm_unittest
 
 TESTS = unittest vm_unittest
 
+
+check: run_multiple_extensions_test
+
+.PHONY: run_multiple_extensions_test
+
+run_multiple_extensions_test:
+	$(RUBY) test_multiple_extensions.rb
+
+
+check: run_multiple_extensions_with_inheritance_test
+
+.PHONY: run_multiple_extensions_with_inheritance_test
+
+run_multiple_extensions_with_inheritance_test:
+	$(RUBY) test_multiple_extensions_with_inheritance.rb
+
+
 unittest_SOURCES = \
 	unittest.cpp \
 	test_Address_Registration_Guard.cpp \

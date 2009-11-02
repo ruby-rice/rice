@@ -143,6 +143,14 @@ public:
   Object iv_get(
       Identifier name) const;
 
+  //! Get the value of an instance variable, but don't warn if it is
+  //unset.
+  /*! \param name the name of the instance variable to get
+   *  \return the value of the instance variable
+   */
+  Object attr_get(
+      Identifier name) const;
+
 #include "detail/object_call.hpp"
 
   //! Vectorized call.

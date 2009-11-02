@@ -60,7 +60,7 @@ bind(Module const & klass)
 
   detail::Abstract_Caster * base_caster = Data_Type<Base_T>().caster();
   caster_.reset(new detail::Caster<T, Base_T>(base_caster, klass));
-  Data_Type_Base::casters_.insert(std::make_pair(klass, caster_.get()));
+  Data_Type_Base::casters().insert(std::make_pair(klass, caster_.get()));
   return Data_Type<T>();
 }
 
@@ -151,8 +151,8 @@ from_ruby(Object x)
     return obj.get();
   }
 
-  Data_Type_Base::Casters::const_iterator it = Data_Type_Base::casters_.begin();
-  Data_Type_Base::Casters::const_iterator end = Data_Type_Base::casters_.end();
+  Data_Type_Base::Casters::const_iterator it = Data_Type_Base::casters().begin();
+  Data_Type_Base::Casters::const_iterator end = Data_Type_Base::casters().end();
    
   // Finding the bound type that relates to the given klass is
   // a two step process. We iterate over the list of known type casters,

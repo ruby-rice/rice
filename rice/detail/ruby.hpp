@@ -65,6 +65,10 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 #define RHASH_TBL(hsh) RHASH(hsh)->tbl
 #endif
 
+#ifndef RCLASS_M_TBL
+#define RCLASS_M_TBL(c) RCLASS(c)->m_tbl
+#endif
+
 // ruby.h has a few defines that conflict with Visual Studio's STL
 #if defined(_MSC_VER)
   #undef write

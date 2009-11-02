@@ -42,7 +42,10 @@ public:
 protected:
   virtual detail::Abstract_Caster * caster() const = 0;
 
-  static Casters casters_;
+  static Casters & casters();
+
+private:
+  static Casters * casters_;
 };
 
 //! Define a new data class in the namespace given by module.

@@ -93,7 +93,14 @@ Rice::Object Rice::Object::
 iv_get(
     Identifier name) const
 {
-  return protect(rb_iv_get, *this, name.c_str());
+  return protect(rb_ivar_get, *this, name.id());
+}
+
+Rice::Object Rice::Object::
+attr_get(
+    Identifier name) const
+{
+  return protect(rb_attr_get, *this, name.id());
 }
 
 Rice::Object Rice::Object::
