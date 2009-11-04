@@ -19,7 +19,6 @@ Rice::Data_Type_Base::
 {
 }
 
-#include <iostream>
 Rice::Data_Type_Base::Casters &
 Rice::Data_Type_Base::
 casters()
