@@ -1,5 +1,7 @@
 noinst_PROGRAMS = unittest vm_unittest
 
+SUBDIRS = ext
+
 TESTS = unittest vm_unittest
 
 
@@ -17,6 +19,14 @@ check: run_multiple_extensions_with_inheritance_test
 
 run_multiple_extensions_with_inheritance_test:
 	$(RUBY) test_multiple_extensions_with_inheritance.rb
+
+
+check: run_multiple_extensions_same_class_test
+
+.PHONY: run_multiple_extensions_same_class_test
+
+run_multiple_extensions_same_class_test:
+	$(RUBY) test_multiple_extensions_same_class.rb
 
 
 unittest_SOURCES = \
