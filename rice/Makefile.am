@@ -111,10 +111,10 @@ detail/node.hpp \
 detail/object_call.hpp \
 detail/object_call.ipp \
 detail/protect.hpp \
-detail/remove_const.hpp \
 detail/ruby.hpp \
 detail/rubysig.hpp \
 detail/st.hpp \
+detail/traits.hpp \
 detail/to_ruby.hpp \
 detail/to_ruby.ipp \
 detail/win32.hpp \

@@ -426,3 +426,26 @@ TESTCASE(define_method_works_with_reference_arguments)
   ASSERT_EQUAL("test", with_defaults_and_references_x);
   ASSERT(!with_defaults_and_references_doIt);
 }
+
+namespace {
+  float with_reference_defaults_x;
+  std::string with_reference_defaults_str;
+
+  void with_reference_defaults(float x, std::string const& str = std::string("testing"))
+  {
+    with_reference_defaults_x = x;
+    with_reference_defaults_str = str;
+  }
+}
+
+TESTCASE(define_method_works_with_reference_const_default_values) 
+{
+  Module m(anonymous_module());
+  m.define_module_function("bar", &with_reference_defaults, 
+      (Arg("x"), Arg("str") = std::string("testing")));
+
+  m.call("bar", 3);
+
+  ASSERT_EQUAL(3, with_reference_defaults_x);
+  ASSERT_EQUAL("testing", with_reference_defaults_str);
+}

@@ -165,7 +165,7 @@ of the Ruby C API.
     rice/detail/win32.hpp
     rice/detail/creation_funcs.ipp
     rice/detail/to_ruby.hpp
-    rice/detail/remove_const.hpp
+    rice/detail/traits.hpp
     rice/detail/Auto_Function_Wrapper.hpp
     rice/detail/env.hpp
     rice/detail/to_ruby.ipp

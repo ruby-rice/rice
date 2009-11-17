@@ -537,6 +537,7 @@ ipp_head = <<END
 #include "method_data.hpp"
 #include "../ruby_try_catch.hpp"
 #include "../to_from_ruby.hpp"
+#include "traits.hpp"
 END
 ipp_tail = <<END
 template<typename Func_T, typename Ret_T>
@@ -685,11 +686,13 @@ wrap_header(hpp_filename, 'Rice::detail', docstring, true, hpp_head) do |hpp|
       scan_args_list = t_array.map { |x| ", &varg#{x}"}
       typenames     = t_array.map { |x| "Arg#{x}_T" }.join(', ')
       arg_convert_list  = t_array.map do |x|
-        "Arg#{x}_T arg#{x} = args->getArgumentOrDefault<Arg#{x}_T>(#{x}, varg#{x});"
+        "typedef typename sanitize< Arg#{x}_T >::Type Arg#{x}_Type;\n\t\t" +
+        "Arg#{x}_Type arg#{x} = args->getArgumentOrDefault<Arg#{x}_Type>(#{x}, varg#{x});"
       end.join("\n\t\t\t")
       self_arg_convert_list = (0...j).to_a.map do |x|
         n = x + 1
-        "Arg#{n}_T arg#{n} = args->getArgumentOrDefault<Arg#{n}_T>(#{x}, varg#{x});"
+        "typedef typename sanitize< Arg#{n}_T >::Type Arg#{n}_Type;\n\t\t" +
+        "Arg#{n}_Type arg#{n} = args->getArgumentOrDefault<Arg#{n}_Type>(#{x}, varg#{x});"
       end.join("\n\t\t\t")
       if j == MAX_ARGS then
         typename_list = t_array.map { |x| "typename Arg#{x}_T" }.join(', ')
@@ -1061,6 +1064,7 @@ ipp_head = <<END
 #include "method_data.hpp"
 #include "../ruby_try_catch.hpp"
 #include "../to_from_ruby.hpp"
+#include "traits.hpp"
 #include <typeinfo>
 END
 ipp_filename = 'detail/Auto_Member_Function_Wrapper.ipp'
@@ -1075,7 +1079,8 @@ wrap_header(hpp_filename, 'Rice::detail', docstring, true) do |hpp|
       typenames     = t_array.map { |x| ", Arg#{x}_T" }
       typenames_n   = t_array.map { |x| "Arg#{x}_T" }.join(', ')
       arg_convert_list  = t_array.map do |x|
-        "Arg#{x}_T arg#{x} = args->getArgumentOrDefault<Arg#{x}_T>(#{x}, varg#{x});"
+        "typedef typename sanitize< Arg#{x}_T >::Type Arg#{x}_Type;\n\t\t" +
+        "Arg#{x}_Type arg#{x} = args->getArgumentOrDefault<Arg#{x}_Type>(#{x}, varg#{x});"
       end.join("\n\t\t")
       if j == MAX_ARGS then
         typename_list = t_array.map { |x| ", typename Arg#{x}_T" }.join

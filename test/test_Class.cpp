@@ -396,3 +396,80 @@ TESTCASE(subclassing)
   m.instance_eval("class NewClass < Testing::BaseClass; end;");
   m.instance_eval("n = NewClass.new");
 }
+
+namespace 
+{
+  int defaults_method_one_arg1;
+  int defaults_method_one_arg2;
+  bool defaults_method_one_arg3 = false;
+
+  class DefaultArgs
+  {
+    public:
+      void defaults_method_one(int arg1, int arg2 = 3, bool arg3 = true) 
+      {
+        defaults_method_one_arg1 = arg1;
+        defaults_method_one_arg2 = arg2;
+        defaults_method_one_arg3 = arg3;
+      }
+  };
+}
+
+TESTCASE(define_method_default_arguments)
+{
+  Class c = define_class<DefaultArgs>("DefaultArgs")
+              .define_constructor(Constructor<DefaultArgs>())
+              .define_method("with_defaults", 
+                  &DefaultArgs::defaults_method_one, 
+                  (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
+
+  Object o = c.call("new");
+  o.call("with_defaults", 2);
+
+  ASSERT_EQUAL(2, defaults_method_one_arg1);
+  ASSERT_EQUAL(3, defaults_method_one_arg2);
+  ASSERT(defaults_method_one_arg3);
+
+  o.call("with_defaults", 11, 10);
+
+  ASSERT_EQUAL(11, defaults_method_one_arg1);
+  ASSERT_EQUAL(10, defaults_method_one_arg2);
+  ASSERT(defaults_method_one_arg3);
+
+  o.call("with_defaults", 22, 33, false);
+
+  ASSERT_EQUAL(22, defaults_method_one_arg1);
+  ASSERT_EQUAL(33, defaults_method_one_arg2);
+  ASSERT(!defaults_method_one_arg3);
+}
+
+namespace {
+  float with_reference_defaults_x;
+  std::string with_reference_defaults_str;
+
+  class DefaultArgsRefs 
+  {
+    public:
+      void with_reference_defaults(float x, std::string const& str = std::string("testing"))
+      {
+        with_reference_defaults_x = x;
+        with_reference_defaults_str = str;
+      }
+  };
+
+}
+
+TESTCASE(define_method_works_with_reference_const_default_values) 
+{
+  Class c = define_class<DefaultArgsRefs>("DefaultArgsRefs")
+              .define_constructor(Constructor<DefaultArgsRefs>())
+              .define_method("bar", 
+                  &DefaultArgsRefs::with_reference_defaults, 
+                  (Arg("x"), Arg("str") = std::string("testing")));
+
+  Object o = c.call("new");
+  o.call("bar", 3);
+
+  ASSERT_EQUAL(3, with_reference_defaults_x);
+  ASSERT_EQUAL("testing", with_reference_defaults_str);
+}
