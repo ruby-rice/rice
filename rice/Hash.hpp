@@ -5,7 +5,7 @@
 #include "to_from_ruby_defn.hpp"
 #include "detail/ruby.hpp"
 #include "detail/st.hpp"
-#include "detail/remove_const.hpp"
+#include "detail/traits.hpp"
 #include <iterator>
 
 namespace Rice
