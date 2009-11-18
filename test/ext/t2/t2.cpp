@@ -6,6 +6,6 @@ using namespace Rice;
 extern "C"
 void Init_t2()
 {
-  define_class<Foo>("Foo");
+  volatile Data_Type<Foo> foo;
 }
 
