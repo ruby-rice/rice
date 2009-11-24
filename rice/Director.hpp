@@ -19,14 +19,6 @@ namespace Rice {
 
       virtual ~Director() { }
 
-      //! Is the current method call path coming from Ruby?
-      /*! This method allows one to choose the call chain according
-       *  to the direction of the execution path. We need to do
-       *  this to prevent infinite loops where super() calls could
-       *  inadvertantly call methods back in Ruby
-       */
-      bool callIsFromRuby(const char* methodName) const;
-
       //! Raise a ruby exception when a call comes through for a pure virtual method
       /*! If a Ruby script calls 'super' on a method that's otherwise a pure virtual
        *  method, use this method to throw an exception in this case. 

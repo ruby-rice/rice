@@ -1,7 +1,5 @@
 #include "Director.hpp"
 
-#include "detail/ruby.hpp"
-
 namespace Rice {
 
   Director::Director(Object self) {
