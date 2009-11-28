@@ -29,4 +29,4 @@ if RUBY_PLATFORM =~ /darwin10/
   env = "ARCHFLAGS='-arch x86_64'"
 end
 
-system "#{env} ./configure --with-ruby=#{with_ruby} --prefix=#{prefix_dir} #{other_opts}"
+system "#{env} sh configure --with-ruby=#{with_ruby} --prefix=#{prefix_dir} #{other_opts}"
