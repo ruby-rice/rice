@@ -118,7 +118,7 @@ AC_DEFUN([DX_ARG_ABLE], [
     AC_DEFUN([DX_CURRENT_FEATURE], [$1])
     AC_DEFUN([DX_CURRENT_DESCRIPTION], [$2])
     AC_ARG_ENABLE(doxygen-$1,
-                  [AS_HELP_STRING(DX_IF_FEATURE([$1], [--disable-doxygen-$1],
+                  [AC_HELP_STRING(DX_IF_FEATURE([$1], [--disable-doxygen-$1],
                                                       [--enable-doxygen-$1]),
                                   DX_IF_FEATURE([$1], [don't $2], [$2]))],
                   [
