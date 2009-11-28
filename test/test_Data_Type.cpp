@@ -44,7 +44,7 @@ namespace {
       }
 
       int process() {
-        vector<Listener*>::iterator i = mListeners.begin();
+        std::vector<Listener*>::iterator i = mListeners.begin();
         int accum = 0; 
         for(; i != mListeners.end(); i++) {
           accum += (*i)->getValue();
@@ -56,7 +56,7 @@ namespace {
       int listenerCount() { return mListeners.size(); }
 
     private:
-      vector<Listener*> mListeners;
+      std::vector<Listener*> mListeners;
   };
 }
 
