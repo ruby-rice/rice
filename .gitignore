@@ -23,3 +23,8 @@ pkg
 doc
 *.dSYM
 *.bundle
+
+# Msys / mingw generated files
+mkinstalldirs
+*.def
+*.exe
