@@ -33,7 +33,7 @@ bind(Module const & klass)
   {
     std::string s;
     s = "Data type ";
-    s = typeid(T).name();
+    s += typeid(T).name();
     s += " is already bound to a different type";
     throw std::runtime_error(s.c_str());
   }
@@ -251,7 +251,7 @@ check_is_bound()
   {
     std::string s;
     s = "Data type ";
-    s = typeid(T).name();
+    s += typeid(T).name();
     s += " is not bound";
     throw std::runtime_error(s.c_str());
   }
