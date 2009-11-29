@@ -153,6 +153,30 @@ public:
   Data_Type<T> & define_constructor(
       Constructor_T constructor);
 
+  //! Register a Director class for this class.
+  /*! For any class that uses Rice::Director to enable polymorphism
+   *  across the languages, you need to register that director proxy
+   *  class with this method. Not doing so will cause the resulting 
+   *  library to die at run time when it tries to convert the base
+   *  type into the Director proxy type, and cannot find an appropriate Caster.
+   *
+   *  This method takes no arguments, just needs the type of the
+   *  Director proxy class.
+   *
+   *  For example:
+   *  \code
+   *    class FooDirector : public Foo, public Rice::Director {
+   *      ...
+   *    };
+   *
+   *    define_class<Foo>("Foo")
+   *      .define_director<FooDirector>()
+   *      .define_constructor(Constructor<FooDirector, Rice::Object>());
+   *  \endcode
+   */
+  template<typename Director_T>
+  Data_Type<T>& define_director();
+
   //! Convert ruby object x to type T.
   /*! \param x the object to convert.
    *  \return the C++ object wrapped inside object x.

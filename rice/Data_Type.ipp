@@ -135,6 +135,15 @@ define_constructor(
 }
 
 template<typename T>
+template<typename Director_T>
+inline Rice::Data_Type<T>& Rice::Data_Type<T>::
+define_director()
+{
+  Rice::Data_Type<Director_T>::template bind<T>(*this);
+  return *this;
+}
+
+template<typename T>
 inline T * Rice::Data_Type<T>::
 from_ruby(Object x)
 {

@@ -86,15 +86,12 @@ namespace {
 SETUP(Director)
 {
   ruby_init();
-
-  // Always need to tell Rice about the base class so that
-  // casting works correctly
-  define_class<Worker>("__Worker__");
 }
 
 TESTCASE(exposes_worker_as_instantiatable_class)
 {
-  define_class<WorkerDirector, Worker>("Worker")
+  define_class<Worker>("Worker")
+    .define_director<WorkerDirector>()
     .define_constructor(Constructor<WorkerDirector, Object>())
     .define_method("get_number", &Worker::getNumber);
 
@@ -106,7 +103,8 @@ TESTCASE(exposes_worker_as_instantiatable_class)
 
 TESTCASE(can_call_virtual_methods_on_base_class)
 {
-  define_class<WorkerDirector, Worker>("Worker")
+  define_class<Worker>("Worker")
+    .define_director<WorkerDirector>()
     .define_constructor(Constructor<WorkerDirector, Object>())
     .define_method("get_number", &Worker::getNumber)
     .define_method("do_something", &WorkerDirector::default_doSomething);
@@ -120,7 +118,8 @@ TESTCASE(can_call_virtual_methods_on_base_class)
 
 TESTCASE(super_calls_pass_execution_up_the_inheritance_chain)
 {
-  define_class<WorkerDirector, Worker>("Worker")
+  define_class<Worker>("Worker")
+    .define_director<WorkerDirector>()
     .define_constructor(Constructor<WorkerDirector, Object>())
     .define_method("do_something", &WorkerDirector::default_doSomething);
 
@@ -134,7 +133,8 @@ TESTCASE(super_calls_pass_execution_up_the_inheritance_chain)
 
 TESTCASE(super_calls_on_pure_virtual_raise_error)
 {
-  define_class<WorkerDirector, Worker>("Worker")
+  define_class<Worker>("Worker")
+    .define_director<WorkerDirector>()
     .define_constructor(Constructor<WorkerDirector, Object>())
     .define_method("process", &WorkerDirector::default_process);
 
@@ -158,7 +158,8 @@ TESTCASE(polymorphic_calls_head_down_the_call_chain)
     .define_method("add_worker", &Handler::addWorker)
     .define_method("process_workers", &Handler::processWorkers);
 
-  define_class<WorkerDirector, Worker>("Worker")
+  define_class<Worker>("Worker")
+    .define_director<WorkerDirector>()
     .define_constructor(Constructor<WorkerDirector, Object>())
     .define_method("process", &WorkerDirector::default_process);
 
@@ -203,13 +204,22 @@ namespace {
       }
   };
 
+  struct MyCallsSelf : CallsSelf {
+    MyCallsSelf() { }
+
+    int doItImpl(int in) { return in * 12; }
+  };
+
+  CallsSelf* getCallsSelf() {
+    return new MyCallsSelf();
+  }
+
 }
 
 TESTCASE(mix_of_polymorphic_calls_and_inheritance_dont_cause_infinite_loops)
 {
-  define_class<CallsSelf>("__CallsSelf__");
-
-  define_class<CallsSelfDirector, CallsSelf>("CallsSelf")
+  define_class<CallsSelf>("CallsSelf")
+    .define_director<CallsSelfDirector>()
     .define_constructor(Constructor<CallsSelfDirector, Rice::Object>())
     .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
     .define_method("do_it", &CallsSelf::doIt);
@@ -222,4 +232,19 @@ TESTCASE(mix_of_polymorphic_calls_and_inheritance_dont_cause_infinite_loops)
       );
 
   ASSERT_EQUAL(100, from_ruby<int>(result.value()));
+}
+
+TESTCASE(director_class_super_classes_get_type_bound)
+{
+  Module m = define_module("Testing");
+  m.define_module_function("get_calls_self", &getCallsSelf);
+
+  define_class<CallsSelf>("CallsSelf")
+    .define_director<CallsSelfDirector>()
+    .define_constructor(Constructor<CallsSelfDirector, Rice::Object>())
+    .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
+    .define_method("do_it", &CallsSelf::doIt);
+
+  Object result = m.instance_eval("cs = Testing::get_calls_self; cs.do_it(3);");
+  ASSERT_EQUAL(36, from_ruby<int>(result.value()));
 }

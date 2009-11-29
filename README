@@ -806,51 +806,23 @@ Once the proxy class is built, it's time to wrap it into Ruby:
 \code
 extern "C"
 void Init_virtual() {
-  // See Caveat below
-  define_class<VirtualBase>("__VirtualBase__");
-
-  define_class<VirtualBaseProxy, VirtualBase>("VirtualBase")
+  define_class<VirtualBase>("VirtualBase")
+    .define_director<VirtualBaseProxy>()
+    .define_constructor(Constructor<VirtualBaseProxy, Rice::Object>())
     .define_method("do_work", &VirtualBaseProxy::default_doWork)
     .define_method("process_worker", &VirtualBaseProxy::default_processWorker);
 }
 \endcode
 
 The wrapping is the same as is described earlier in this document. Expose the class
-VirtualBaseProxy named as VirtualBase, register it as a subclass of VirtualBase,
+VirtualBaseProxy named as VirtualBase, register it as a director proxy of VirtualBase,
 and define methods pointing to the proxy object.
 
-<b>Caveat</b>: Rice figures out inheritance and class heirarchies solely through
-the types given in define_class. Ideally Rice would be able to handle this edge
-case automatically, but for now you'll still need to tell Rice about the base class
-being wrapped into a Rice::Director proxy, or type casting will throw an exception
-during execution. So as a general rule, make sure that any class you use as SuperClass 
-in define_class<Class, SuperClass> is also itself exposed through Rice.
+You must use define_director() method to register the Rice::Director proxy class or you will
+get type conversion errors at run time.
 
-Following this, if you have subclasses of virtual classes that themselves have virtual
-methods, you need to set the Rice::Director proxy as the superclass of that class,
-something like:
-
-\code
-  // Given a class like this
-  class SubVirtual : public VirtualBase {
-    public:
-      virtual int doMoreWork();
-  }
-
-  // You'd need another Director proxy
-  class SubVirtualDirector : public SubVirtual, public VirtualBase, public Rice::Director {
-    ...
-  }
-
-  // And expose it in Rice as such
-  define_class<SubVirtual, VirtualBaseProxy>("__SubVirtual__");
-  define_class<SubVirtualDirector, SubVirtual>("SubVirtual")
-    ...
-
-\endcode
-
-This situation has not been fully tested
-
+You must use the Rice::Director proxy class in the Constructor line, this allows proper
+object construction / destruction of the types in question.
 
 \section motivation Motivation
 
