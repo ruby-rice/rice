@@ -210,8 +210,18 @@ namespace {
     int doItImpl(int in) { return in * 12; }
   };
 
+  // Abstract type return types handled properly
   CallsSelf* getCallsSelf() {
     return new MyCallsSelf();
+  }
+
+  // Abstract type Argument types handled properly
+  int doItOnPointer(CallsSelf* obj, int in) {
+    return obj->doIt(in);
+  }
+
+  int doItOnReference(CallsSelf& obj, int in) {
+    return obj.doIt(in);
   }
 
 }
@@ -248,3 +258,44 @@ TESTCASE(director_class_super_classes_get_type_bound)
   Object result = m.instance_eval("cs = Testing::get_calls_self; cs.do_it(3);");
   ASSERT_EQUAL(36, from_ruby<int>(result.value()));
 }
+
+TESTCASE(director_allows_abstract_types_used_as_parameters_pointers)
+{
+  Module m = define_module("Testing");
+  m.define_module_function("do_it_on_pointer", &doItOnPointer);
+
+  define_class<CallsSelf>("CallsSelf")
+    .define_director<CallsSelfDirector>()
+    .define_constructor(Constructor<CallsSelfDirector, Rice::Object>())
+    .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
+    .define_method("do_it", &CallsSelf::doIt);
+
+  Object result = m.instance_eval(
+      "class MySelf < CallsSelf; def do_it_impl(num); num * 10; end; end;"
+      "c = MySelf.new;"
+      "Testing::do_it_on_pointer(c, 5)"
+      );
+
+  ASSERT_EQUAL(50, from_ruby<int>(result.value()));
+}
+/*
+TESTCASE(director_allows_abstract_types_used_as_parameters_reference)
+{
+  Module m = define_module("Testing");
+  m.define_module_function("do_it_on_ref", &doItOnReference);
+
+  define_class<CallsSelf>("CallsSelf")
+    .define_director<CallsSelfDirector>()
+    .define_constructor(Constructor<CallsSelfDirector, Rice::Object>())
+    .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
+    .define_method("do_it", &CallsSelf::doIt);
+
+  Object result = m.instance_eval(
+      "class MySelf < CallsSelf; def do_it_impl(num); num * 10; end; end;"
+      "c = MySelf.new;"
+      "Testing::do_it_on_ref(c, 3)"
+      );
+
+  ASSERT_EQUAL(30, from_ruby<int>(result.value()));
+}
+*/
