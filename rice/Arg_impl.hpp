@@ -52,7 +52,7 @@ namespace Rice {
        *  \param val the value to store as default
        */
       template<typename Arg_Type>
-      Arg& operator=(Arg_Type const& val)
+      Arg& operator=(Arg_Type val)
       {
         defaultValue = new type<Arg_Type>(val);
         return *this;
@@ -67,7 +67,7 @@ namespace Rice {
       /*! \return the type saved to this Arg
        */
       template<typename Arg_Type>
-      Arg_Type getDefaultValue() const
+      Arg_Type getDefaultValue()
       {
         return static_cast< type<Arg_Type>* >(defaultValue)->held;
       }
