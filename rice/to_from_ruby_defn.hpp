@@ -18,7 +18,7 @@
  *  pointer to that object.
  *
  *  Conversions from ruby to a pointer type are automatically generated
- *  when a type is bound using Data_Type.  If no conversion exists, and
+ *  when a type is bound using Data_Type.  If no conversion exists an
  *  exception is thrown.
  *
  *  \param T the C++ type to which to convert.
@@ -46,7 +46,7 @@ typename Rice::detail::from_ruby_<T>::Retval_T from_ruby(Rice::Object x)
 /*! If x is a pointer, wraps the pointee as a Ruby object.  If x is an
  *  Object, returns x.
  *
- *  If no conversion exists, a compile-time error is generated.
+ *  If no conversion exists a compile-time error is generated.
  *
  *  \param x the object to convert.
  *  \return a Ruby representation of the C++ object.
