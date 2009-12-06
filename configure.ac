@@ -44,8 +44,8 @@ RICE_ROOT=`pwd`
 AC_SUBST(RICE_ROOT)
 
 AC_CONFIG_FILES(Makefile rice/Makefile test/Makefile sample/Makefile
-                ruby/Makefile ruby/lib/Makefile ruby/lib/mkmf-rice.rb
-                rice/detail/ruby_version_code.hpp)
+                ruby/Makefile ruby/lib/Makefile test/ext/Makefile
+                ruby/lib/mkmf-rice.rb rice/detail/ruby_version_code.hpp)
 AC_OUTPUT
 
 dnl Work around a bug in older versions of Rubygems
