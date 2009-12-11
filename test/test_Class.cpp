@@ -443,6 +443,7 @@ TESTCASE(define_method_default_arguments)
   ASSERT(!defaults_method_one_arg3);
 }
 
+/*
 namespace {
   float with_reference_defaults_x;
   std::string with_reference_defaults_str;
@@ -473,3 +474,4 @@ TESTCASE(define_method_works_with_reference_const_default_values)
   ASSERT_EQUAL(3, with_reference_defaults_x);
   ASSERT_EQUAL("testing", with_reference_defaults_str);
 }
+*/

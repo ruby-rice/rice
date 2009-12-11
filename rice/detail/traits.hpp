@@ -30,9 +30,10 @@ struct remove_ref<T &> { typedef T Type; };
 template<typename T>
 struct sanitize
 {
-  typedef typename remove_const< 
-    typename remove_ref<T>::Type 
-    >::Type Type;
+  typedef T Type;
+  //typedef typename remove_const< 
+    //typename remove_ref<T>::Type 
+    //>::Type Type;
 };
 
 }
