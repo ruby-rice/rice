@@ -1,0 +1,62 @@
+Auto_Function_Wrapper: Clean up argument definitions
+
+Implicit and other type conversions:
+
+  The idea here is that we can tell Rice which types have been defined to have
+  automatic conversions. For example, Ogre::Degree and Ogre::Radian are defined
+  to be used interchangably, and any numerical conversions happen in each class.
+
+  boost::python exposes a completely seperate declaration method: implicitly_convertible<from, to>
+  I'm going to try having it as a method on Data_Type, but I may need to go the same route
+  depending on if bi-directional requires this, say:
+
+  implicitly_convertible<Ogre::Degree, Ogre::Radian>();
+  implicitly_convertible<Ogre::Radian, Ogre::Degree>();
+
+  Due to Rice's and Ruby's differing handling of defined types and fundamental types (int, float, etc),
+  special care needs to be taken to ensure both conversions work
+
+  I want to be able to do:
+
+    struct Real
+    {
+      Real(int x)
+        : v(x)
+      {}
+
+      operator int() const
+      {
+        return v;
+      }
+
+      int v;
+    };
+
+    define_class<Real>("Real")
+      .define_constructor(Constructor<Real, int>())
+      .implicit_cast_to<int>();
+
+  or if there were a defined type that Real converts to and from:
+
+    define_class<Real>("Real")
+      .define_constructor(Constructor<Real, int>())
+      .implicit_cast_to<Fake>();
+
+    define_class<Fake>("Fake")
+      .define_constructor(Constructor<Fake, int>())
+      .implicit_cast_to<Real>();
+
+  So the steps I'll need to take to make this work correctly are as follows: 
+
+  T from_ruby(Rice::Object x)
+    - Check for direct match (exists)
+    - Change casters to a multimap
+    - Build new caster for implicit type conversion
+      - Might need two ways of this: constructor or cast method.
+
+    - Check for any implicit casts for type T
+      - Try to build the list so that I don't have to actually cast anything 
+        unless I know it's the right type to cast to
+      - How do I know what type I'm casting from? (the case of Real being given a FixNum)
+      - Defined types to Defined types will be much simpler I believe
+    
