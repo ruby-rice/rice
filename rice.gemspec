@@ -1,6 +1,7 @@
+require 'ruby/lib/version'
 $spec = Gem::Specification.new do |s|
   s.name = 'rice'
-  s.version = '1.2.0'
+  s.version = Rice::VERSION
   s.summary = 'Ruby Interface for C++ Extensions'
   s.homepage = 'http://rice.rubyforge.org/'
   s.rubyforge_project = 'rice'
@@ -24,6 +25,8 @@ of the Ruby C API.
   s.extra_rdoc_files = [ 'README' ]
 
   s.require_paths = [ 'ruby/lib' ]
+
+  s.add_development_dependency("rubyforge")
 
   patterns = [
     # Documentation
