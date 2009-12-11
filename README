@@ -669,7 +669,7 @@ it's necessary to define this in Rice explicitly using Rice::Arg:
 
 The syntax here is simply Arg(nameOfParameter)[ = defaultValue].  The name of the
 parameter is not important (more for readability, and the future for when/if Ruby
-gets named arguments), but the value set via operator= must match the type
+gets named parameters), but the value set via operator= must match the type
 of the given parameter.
 
 These Rice::Arg objects must be in the correct order, and if there are more than
@@ -702,7 +702,8 @@ As polymorphism is the most important tennant of Object Oriented Programming,
 it's important that Rice supports polymorphic calls travelling between C++
 and Ruby seemlessly. Super calls from Ruby subclasses back into C++ already work,
 but enabling the other direction requires some extra work. While this isn't
-something Rice can do on it's own, the Rice::Director class opens up this feature.
+something Rice can do on it's own, the Rice::Director class, coupled with 
+Rice::Data_Type::define_director exposes this functionality cleanly.
 
 Like SWIG_Director, Rice::Director is a class that is used to build a proxy class
 to properly send execution up or down the object heiarchy for that class. Take
@@ -751,13 +752,13 @@ that subclasses Rice::Director along with a few methods:
   };
 \endcode
 
-There is a lot going on here, so we'll take go through each part.
+There is a lot going on here, so we'll go through each part.
 
 \code
   class VirtualBaseProxy : public Virtualbase, public Rice::Director {
 \endcode
 
-First, the class needs to subclass both the virtual class and Rice::Director.
+First, the class needs to subclass both the virtual class and Rice::Director class.
 
 \code
     public:
@@ -786,7 +787,7 @@ that need to be forwarded into Ruby are done as specified here: get the Ruby obj
 for the instance of this class, call Rice::Object::call, and if necessary convert
 the return value from Ruby back into C++ types.
 
-The defaul_doWork method will be used as Rice's hookup of calling back up the 
+The default_doWork method will be used as Rice's hookup of calling back up the 
 heirarchy (wrapping is below). This method needs to do one of two things: call
 up the class heirarchy, as seen here, or call raisePureVirtual() as seen in the
 processWorker example:
@@ -815,11 +816,8 @@ void Init_virtual() {
 \endcode
 
 The wrapping is the same as is described earlier in this document. Expose the class
-VirtualBaseProxy named as VirtualBase, register it as a director proxy of VirtualBase,
-and define methods pointing to the proxy object.
-
-You must use define_director() method to register the Rice::Director proxy class or you will
-get type conversion errors at run time.
+VirtualBase, and register VirtualBaseProxy as a director proxy of VirtualBase with
+Rice::Data_Type::define_director, then define methods pointing to the proxy object as necessary.
 
 You must use the Rice::Director proxy class in the Constructor line, this allows proper
 object construction / destruction of the types in question.
