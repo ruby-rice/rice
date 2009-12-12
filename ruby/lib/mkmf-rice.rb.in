@@ -1,7 +1,14 @@
 # Make sure that archflags does not include ppc if we're 
-# on Intel x86 processor on Mac
+# on Intel x86 processor on Mac, and that we use the proper
+# arch depending on 10.5 or 10.6
 if `uname`.chomp == "Darwin"
-  arch = `uname -p`.chomp
+  arch = 
+    if RUBY_PLATFORM =~ /darwin10/
+      'x86_64'
+    else
+      `uname -p`.chomp
+    end
+
   ENV["ARCHFLAGS"] = "-arch #{arch}"
 end
 
