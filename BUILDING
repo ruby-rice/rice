@@ -1,0 +1,6 @@
+To build rice exactly as rubygems will:
+
+  ruby extconf.rb && make
+
+This will ensure that certain flags and parameters are passed to configure
+according to the ruby you are using and the platform you are building on
