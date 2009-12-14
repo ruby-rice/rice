@@ -3,26 +3,26 @@ Rice: Ruby Interface for C++ Extensions
 
 What is Rice?
 
-  Rice is a C++ interface to Ruby's C API.  It provides a type-safe and
+  Rice is a C++ interface to Ruby's C API. It provides a type-safe and
   exception-safe interface in order to make embedding Ruby and writing
-  Ruby extensions with C++ easier.  It is similar to Boost.Python in many
+  Ruby extensions with C++ easier. It is similar to Boost.Python in many
   ways, but also attempts to provide an object-oriented interface to all
   of the Ruby C API.
 
 
 What's New?
 
-  * Rice::Director - Seemless Polymorphism across C++ and Ruby (named after SWIG_Director)
-  * Default Arguments
-  * Removed explicit self requirement for global / module functions
-  * Various bug fixes
+  * Full 1.9 support!
+  * Cleaned up Rice::Director to be easier to use and support inheritance nicely (see Documentation)
+  * Multiple Rice extensions pulled into the same Ruby instance now work properly
+
 
 Supported Platforms:
 
   * Linux
   * Mac OS X 10.5 and 10.6
+  * Windows with MinGW / MSYS
 
-  Windows support is iffy right now. Waiting to see how the mingw build of Ruby comes along.
 
 What Rice gives you:
 
