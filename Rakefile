@@ -9,17 +9,8 @@ PROJECT_WEB_PATH = "/var/www/gforge-projects/rice"
 
 task :default => :test
 
-desc "Build Rice locally. Delete the top level Makefile to force this to run"
-task :build do 
-  if !File.exist?("Makefile")
-    sh "bootstrap"
-    sh "configure"
-    sh "make"
-  end
-end
-
 desc "Run unit tests" 
-task :test => :build do
+task :test do
   cd "test" do
     ruby "test_rice.rb"
   end
@@ -44,29 +35,3 @@ Rake::GemPackageTask.new($spec) do |pkg|
   pkg.need_zip = true
   pkg.need_tar = true
 end
-
-desc "Create a new release to Rubyforge" 
-task :release => :package do
-  rf = RubyForge.new
-  puts "Logging into rubyforge"
-  rf.login
-
-  pkg = "pkg/#{PROJECT_NAME}-#{Rice::VERSION}"
-
-  c = rf.userconfig
-
-  files = [
-    "#{pkg}.tgz",
-    "#{pkg}.zip",
-    "#{pkg}.gem"
-  ]
-
-  puts "Releasing #{PROJECT_NAME} v. #{Rice::VERSION}"
-  begin
-    rf.add_release $spec.rubyforge_project, PROJECT_NAME, RICE_VERSION, *files
-  rescue => ex
-    puts "You may not be configured with rubyforge. Please run `rubyforge config` and run this task again."
-    puts "Error is #{ex.inspect}"
-  end
-end
-
