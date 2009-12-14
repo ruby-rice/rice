@@ -22,7 +22,7 @@ task :doc do
 end
 
 desc "Upload documentation to the website. Requires rubyforge gem" 
-task :upload_web => [:build, :doc] do
+task :upload_web => [:doc] do
   config = YAML.load(File.read(File.expand_path("~/.rubyforge/user-config.yml")))
   host = "#{config["username"]}@rubyforge.org"
 
