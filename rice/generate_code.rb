@@ -364,7 +364,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE %(scan_def_list);
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         %(scan_args_list));
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -372,7 +372,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(%(arg_list)));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         %(scan_args_list));
 
       %(arg_convert_list)
@@ -437,7 +437,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE %(scan_def_list);
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         %(scan_args_list));
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -446,7 +446,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(%(arg_list));
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         %(scan_args_list));
 
       %(arg_convert_list)
@@ -765,7 +765,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE %(scan_def_list);
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       %(scan_args_list));
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -824,7 +824,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE %(scan_def_list);
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       %(scan_args_list));
 
     Self_T * obj = from_ruby<Self_T *>(self);

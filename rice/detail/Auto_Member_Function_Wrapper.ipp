@@ -51,7 +51,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13, varg14, varg15;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14, &varg15);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -141,7 +141,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13, varg14, varg15;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14, &varg15);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -233,7 +233,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13, varg14;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -321,7 +321,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13, varg14;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -411,7 +411,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -497,7 +497,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -585,7 +585,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -669,7 +669,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -755,7 +755,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -837,7 +837,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -921,7 +921,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1001,7 +1001,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1083,7 +1083,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1161,7 +1161,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1241,7 +1241,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1317,7 +1317,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1395,7 +1395,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1469,7 +1469,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1545,7 +1545,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1617,7 +1617,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1691,7 +1691,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1761,7 +1761,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4, varg5;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4, &varg5);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1833,7 +1833,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1901,7 +1901,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3, varg4;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3, &varg4);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -1971,7 +1971,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -2037,7 +2037,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2, varg3;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2, &varg3);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -2105,7 +2105,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -2169,7 +2169,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1, varg2;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1, &varg2);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -2235,7 +2235,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -2297,7 +2297,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0, varg1;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0, &varg1);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -2361,7 +2361,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0);
 
     Self_T * obj = from_ruby<Self_T *>(self);
@@ -2421,7 +2421,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     VALUE varg0;
 
-    rb_scan_args(argc, argv, args->formatString(Num_Args), 
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), 
       &varg0);
 
     Self_T * obj = from_ruby<Self_T *>(self);

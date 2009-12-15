@@ -56,7 +56,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13, varg14, varg15;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14, &varg15);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -93,7 +93,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14, &varg15);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -189,7 +189,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13, varg14, varg15;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14, &varg15);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -227,7 +227,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14, &varg15);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -324,7 +324,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13, varg14;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -359,7 +359,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -453,7 +453,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13, varg14;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -489,7 +489,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13, &varg14);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -584,7 +584,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -617,7 +617,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -709,7 +709,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12, varg13;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -743,7 +743,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12, &varg13);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -836,7 +836,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -867,7 +867,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -957,7 +957,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11, varg12;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -989,7 +989,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11, &varg12);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -1080,7 +1080,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -1109,7 +1109,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -1197,7 +1197,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10, varg11;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -1227,7 +1227,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10, &varg11);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -1316,7 +1316,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -1343,7 +1343,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -1429,7 +1429,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9, varg10;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -1457,7 +1457,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9, &varg10);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -1544,7 +1544,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -1569,7 +1569,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -1653,7 +1653,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8, varg9;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -1679,7 +1679,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8, &varg9);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -1764,7 +1764,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -1787,7 +1787,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -1869,7 +1869,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7, varg8;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -1893,7 +1893,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7, &varg8);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -1976,7 +1976,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -1997,7 +1997,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -2077,7 +2077,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6, varg7;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -2099,7 +2099,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6, &varg7);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -2180,7 +2180,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -2199,7 +2199,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -2277,7 +2277,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5, varg6;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -2297,7 +2297,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5, &varg6);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -2376,7 +2376,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -2393,7 +2393,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -2469,7 +2469,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4, varg5;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -2487,7 +2487,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2, arg3, arg4, arg5);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4, &varg5);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -2564,7 +2564,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -2579,7 +2579,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3, arg4));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -2653,7 +2653,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3, varg4;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -2669,7 +2669,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2, arg3, arg4);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3, &varg4);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -2744,7 +2744,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2, &varg3);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -2757,7 +2757,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2, arg3));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -2829,7 +2829,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2, varg3;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2, &varg3);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -2843,7 +2843,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2, arg3);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2, &varg3);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -2916,7 +2916,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1, varg2;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1, &varg2);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -2927,7 +2927,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1, arg2));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -2997,7 +2997,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1, varg2;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1, &varg2);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -3009,7 +3009,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1, arg2);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1, &varg2);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -3080,7 +3080,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0, varg1;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0, &varg1);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -3089,7 +3089,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0, arg1));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -3157,7 +3157,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0, varg1;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0, &varg1);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -3167,7 +3167,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0, arg1);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0, &varg1);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -3236,7 +3236,7 @@ call(int argc, VALUE *argv, VALUE self)
     VALUE varg0;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1)
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , &varg0);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -3244,7 +3244,7 @@ call(int argc, VALUE *argv, VALUE self)
 
       return to_ruby(wrapper->func_(arg0));
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
@@ -3310,7 +3310,7 @@ call(int argc, VALUE* argv, VALUE self)
     VALUE varg0;
 
     if(hasSelf) {
-      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) 
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , &varg0);
 
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
@@ -3319,7 +3319,7 @@ call(int argc, VALUE* argv, VALUE self)
       wrapper->func_(arg0);
       return Qnil;
     } else {
-      rb_scan_args(argc, argv, args->formatString(Num_Args)
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
         , &varg0);
 
       typedef typename sanitize< Arg0_T >::Type Arg0_Type;
