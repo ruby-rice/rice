@@ -27,6 +27,8 @@ env = ""
 if RUBY_PLATFORM =~ /darwin10/
   other_opts = "--disable-dependency-tracking"
   env = "ARCHFLAGS='-arch x86_64'"
+elsif RUBY_PLATFORM =~ /darwin9/
+  env = "ARCHFLAGS='-arch #{`uname -p`.chomp}'"
 end
 
 system "#{env} sh configure --with-ruby=#{with_ruby} --prefix=#{prefix_dir} #{other_opts}"
