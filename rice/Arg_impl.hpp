@@ -42,6 +42,9 @@ namespace Rice {
 
       virtual ~Arg()
       {
+        if(defaultValue) {
+          delete defaultValue;
+        }
       }
 
       //! Set the default value for this Arg
