@@ -8,11 +8,11 @@ namespace Rice
   /*! Take a list of Arg objects and build up a single Argument
    *  object used later in method dispatch
    */
-  Arguments* operator,(const Arg& arg1, const Arg& arg2);
+  Arguments* operator,(Arg arg1, Arg arg2);
 
   /*! @see operator,(Arg, Arg)
    */
-  Arguments* operator,(Arguments* arguments, const Arg& arg);
+  Arguments* operator,(Arguments* arguments, Arg arg);
 
 }
 
