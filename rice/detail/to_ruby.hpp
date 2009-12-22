@@ -8,7 +8,7 @@ namespace Rice
     template<typename T>
     struct to_ruby_
     {
-      static Rice::Object convert(T & x);
+      static Rice::Object convert(T const & x);
     };
 
     template<typename T>

@@ -4,6 +4,7 @@
 #include "rice/Array.hpp"
 #include "rice/Arg.hpp"
 #include "rice/global_function.hpp"
+#include "rice/Constructor.hpp"
 
 using namespace Rice;
 
@@ -256,13 +257,13 @@ TESTCASE(mod_name_anonymous)
 /**
  * Tests for default arguments
  */
-namespace 
+namespace
 {
   int defaults_method_one_arg1;
   int defaults_method_one_arg2;
   bool defaults_method_one_arg3 = false;
 
-  void defaults_method_one(int arg1, int arg2 = 3, bool arg3 = true) 
+  void defaults_method_one(int arg1, int arg2 = 3, bool arg3 = true)
   {
     defaults_method_one_arg1 = arg1;
     defaults_method_one_arg2 = arg2;
@@ -415,16 +416,48 @@ std::string* from_ruby<std::string*>(Rice::Object x) {
   return new std::string(from_ruby<char const*>(x));
 }
 
-TESTCASE(define_method_works_with_reference_arguments) 
+TESTCASE(define_method_works_with_reference_arguments)
 {
   Module m(anonymous_module());
-  m.define_module_function("foo", &with_defaults_and_references, 
+  m.define_module_function("foo", &with_defaults_and_references,
       (Arg("x"), Arg("doIt") = false));
 
   m.call("foo", "test");
 
   ASSERT_EQUAL("test", with_defaults_and_references_x);
   ASSERT(!with_defaults_and_references_doIt);
+}
+
+namespace {
+  class ReturnTest { };
+
+  class Factory {
+    public:
+      Factory() { returnTest_ = new ReturnTest(); }
+
+      const ReturnTest& getReturnTest() const {
+        return *returnTest_;
+      }
+
+     private:
+      const ReturnTest* returnTest_;
+  };
+}
+
+TESTCASE(define_method_works_with_const_reference_return)
+{
+  define_class<ReturnTest>("ReturnTest")
+    .define_constructor(Constructor<ReturnTest>());
+
+  define_class<Factory>("Factory")
+    .define_constructor(Constructor<Factory>())
+    .define_method("get_return_test", &Factory::getReturnTest);
+
+  Module m(anonymous_module());
+
+  Object result = m.instance_eval("Factory.new.get_return_test");
+
+  ASSERT_EQUAL("ReturnTest", result.class_of().name().c_str());
 }
 
 /*
@@ -439,10 +472,10 @@ namespace {
   }
 }
 
-TESTCASE(define_method_works_with_reference_const_default_values) 
+TESTCASE(define_method_works_with_reference_const_default_values)
 {
   Module m(anonymous_module());
-  m.define_module_function("bar", &with_reference_defaults, 
+  m.define_module_function("bar", &with_reference_defaults,
       (Arg("x"), Arg("str") = std::string("testing")));
 
   m.call("bar", 3);
