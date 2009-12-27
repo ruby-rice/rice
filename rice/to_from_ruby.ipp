@@ -289,3 +289,9 @@ Rice::Object to_ruby<std::string>(std::string const & x)
   return to_ruby(x.c_str());
 }
 
+template<>
+inline
+std::string* from_ruby<std::string* >(Rice::Object x)
+{
+  return new std::string(from_ruby<char const *>(x));
+}

@@ -411,11 +411,6 @@ namespace {
   }
 }
 
-template<>
-std::string* from_ruby<std::string*>(Rice::Object x) {
-  return new std::string(from_ruby<char const*>(x));
-}
-
 TESTCASE(define_method_works_with_reference_arguments)
 {
   Module m(anonymous_module());
