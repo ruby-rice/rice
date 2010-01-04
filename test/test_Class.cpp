@@ -130,11 +130,37 @@ TESTCASE(define_module_function_simple)
 
 namespace
 {
+  class RefTest
+  {
+    public:
+      RefTest() { }
+
+      static std::string& getReference() {
+        static std::string foo = "foo";
+        return foo;
+      }
+  };
+}
+
+TESTCASE(define_singleton_method_returning_reference)
+{
+  Class c = define_class<RefTest>("RefTest")
+    .define_constructor(Constructor<RefTest>())
+    .define_singleton_method("get_reference", &RefTest::getReference);
+
+  Module m(anonymous_module());
+
+  Object result = m.instance_eval("RefTest.get_reference");
+  ASSERT_EQUAL(result, String("foo"));
+}
+
+namespace
+{
 
   int define_method_int_result;
 
   class IntHelper {
-    public: 
+    public:
       IntHelper() { }
 
       void define_method_int_helper(int i)
@@ -147,7 +173,7 @@ namespace
 
 TESTCASE(define_method_int)
 {
-  Class c = 
+  Class c =
     define_class<IntHelper>("IntHelper")
       .define_constructor(Constructor<IntHelper>())
       .define_method("foo", &IntHelper::define_method_int_helper);
@@ -160,7 +186,7 @@ TESTCASE(define_method_int)
 
 TESTCASE(define_method_int_passed_two_args)
 {
-  Class c = 
+  Class c =
     define_class<IntHelper>("IntHelper")
       .define_constructor(Constructor<IntHelper>())
       .define_method("foo", &IntHelper::define_method_int_helper);
@@ -179,7 +205,7 @@ TESTCASE(define_method_int_passed_two_args)
 
 TESTCASE(define_method_int_passed_no_args)
 {
-  Class c = 
+  Class c =
     define_class<IntHelper>("IntHelper")
       .define_constructor(Constructor<IntHelper>())
       .define_method("foo", &IntHelper::define_method_int_helper);
@@ -236,11 +262,6 @@ TESTCASE(define_method_int_foo)
   o.call("foo", 42, Object(f));
   ASSERT_EQUAL(42, define_method_int_foo_result_i);
   ASSERT_EQUAL(foo, define_method_int_foo_result_x);
-}
-
-
-TESTCASE(define_method_with_default_arguments)
-{
 }
 
 namespace
@@ -390,14 +411,14 @@ TESTCASE(subclassing)
 
   // Not sure how to make this a true failure case. If the subclassing
   // doesn't work, Ruby will throw an error:
-  // 
+  //
   //    in `new': wrong instance allocation
   //
   m.instance_eval("class NewClass < Testing::BaseClass; end;");
   m.instance_eval("n = NewClass.new");
 }
 
-namespace 
+namespace
 {
   int defaults_method_one_arg1;
   int defaults_method_one_arg2;
@@ -406,7 +427,7 @@ namespace
   class DefaultArgs
   {
     public:
-      void defaults_method_one(int arg1, int arg2 = 3, bool arg3 = true) 
+      void defaults_method_one(int arg1, int arg2 = 3, bool arg3 = true)
       {
         defaults_method_one_arg1 = arg1;
         defaults_method_one_arg2 = arg2;
@@ -419,8 +440,8 @@ TESTCASE(define_method_default_arguments)
 {
   Class c = define_class<DefaultArgs>("DefaultArgs")
               .define_constructor(Constructor<DefaultArgs>())
-              .define_method("with_defaults", 
-                  &DefaultArgs::defaults_method_one, 
+              .define_method("with_defaults",
+                  &DefaultArgs::defaults_method_one,
                   (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
 
   Object o = c.call("new");
@@ -448,7 +469,7 @@ namespace {
   float with_reference_defaults_x;
   std::string with_reference_defaults_str;
 
-  class DefaultArgsRefs 
+  class DefaultArgsRefs
   {
     public:
       void with_reference_defaults(float x, std::string const& str = std::string("testing"))
@@ -460,12 +481,12 @@ namespace {
 
 }
 
-TESTCASE(define_method_works_with_reference_const_default_values) 
+TESTCASE(define_method_works_with_reference_const_default_values)
 {
   Class c = define_class<DefaultArgsRefs>("DefaultArgsRefs")
               .define_constructor(Constructor<DefaultArgsRefs>())
-              .define_method("bar", 
-                  &DefaultArgsRefs::with_reference_defaults, 
+              .define_method("bar",
+                  &DefaultArgsRefs::with_reference_defaults,
                   (Arg("x"), Arg("str") = std::string("testing")));
 
   Object o = c.call("new");

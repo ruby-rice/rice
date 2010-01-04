@@ -563,7 +563,7 @@ call()
     Data_Object<Wrapped_Function> data(detail::method_data());
     wrapper = (Auto_Function_Wrapper<Func_T, Ret_T>*)data.get();
 
-    return to_ruby<Ret_T>(wrapper->func_());
+    return to_ruby(wrapper->func_());
   }
   catch(...)
   {
