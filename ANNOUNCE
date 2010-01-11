@@ -12,10 +12,11 @@ What is Rice?
 
 What's New?
 
-  * Full 1.9 support!
-  * Cleaned up Rice::Director to be easier to use and support inheritance nicely (see Documentation)
-  * Multiple Rice extensions pulled into the same Ruby instance now work properly
-
+  * Fixed local gem install (~/.gem)
+  * Fixed compilation error on no-argument static class methods that return reference types
+  * Better implicit handling of const reference types
+  * Fixed potential memory leaks when dealing with Rice::Arg
+  * Changed mailing list away from Google Groups to http://librelist.com
 
 Supported Platforms:
 
@@ -33,9 +34,10 @@ What Rice gives you:
 
   Documentation: http://rice.rubyforge.org
 
-  Project Page:  http://github.com/jameskilton/rice
+  Project Page: http://github.com/jameskilton/rice
 
-  Google Groups: http://groups.google.com/group/ruby-rice
+  Mailing List: rice@librelist.com
+                First email will be used as subscription and dropped.
 
 
 How do you get Rice?
