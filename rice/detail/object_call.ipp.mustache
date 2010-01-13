@@ -1,0 +1,21 @@
+// This is a generated file.  DO NOT EDIT!!
+#include "../protect.hpp"
+#include "../to_from_ruby.hpp"
+
+inline Rice::Object Rice::Object::
+call(Identifier id) const
+{
+  VALUE args[] = {  };
+  return protect(rb_funcall2, value(), id, 0, args);
+}
+
+{{#entries}}
+template<{{typenames}}>
+inline Rice::Object Rice::Object::
+call(Identifier id, {{arguments}}) const
+{
+  VALUE args[] = { {{to_rubies}} };
+  return protect(rb_funcall2, value(), id, {{arg_count}}, args);
+}
+
+{{/entries}}

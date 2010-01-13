@@ -1,0 +1,29 @@
+// This is a generated file.  DO NOT EDIT!!
+#ifdef DOXYGEN
+
+//! Call the Ruby method specified by 'id' on object 'obj'.
+/*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
+ *  Ruby objects with to_ruby<>.  The return value will automatically be
+ *  converted to type Retval_T with from_ruby<>.
+ *
+ *  E.g.:
+ *  \code
+ *    float y = x.call<float>("foo", z, 42);
+ *  \endcode
+ */
+template<typename Retval_T>
+Retval_T call(Identifier id, T1 arg1, T2 arg2, ...) const;
+
+//! Version of call which defaults to Object return type.
+Object call(Identifier id, T1 arg1, T2 arg2, ...) const;
+#else
+
+Object call(Identifier id) const;
+
+{{#entries}}
+template<{{typenames}}>
+Object call(Identifier id, {{arguments}}) const;
+
+{{/entries}}
+
+#endif
