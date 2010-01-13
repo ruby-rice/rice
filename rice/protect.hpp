@@ -36,50 +36,50 @@ VALUE protect(Function f, T1 arg1, T2 arg2, ...);
 template<typename Fun>
 VALUE protect(Fun fun);
 
-template<typename Fun, typename T1>
-VALUE protect(Fun fun, T1 const & t1);
+template<typename Fun, typename T0>
+VALUE protect(Fun fun, T0 const & t0);
 
-template<typename Fun, typename T1, typename T2>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2);
+template<typename Fun, typename T0, typename T1>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1);
 
-template<typename Fun, typename T1, typename T2, typename T3>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2, T3 const & t3);
+template<typename Fun, typename T0, typename T1, typename T2>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2);
 
-template<typename Fun, typename T1, typename T2, typename T3, typename T4>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4);
+template<typename Fun, typename T0, typename T1, typename T2, typename T3>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t3);
 
-template<typename Fun, typename T1, typename T2, typename T3, typename T4, typename T5>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5);
+template<typename Fun, typename T0, typename T1, typename T2, typename T3, typename T4>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4);
 
-template<typename Fun, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6);
+template<typename Fun, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5);
 
-template<typename Fun, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7);
+template<typename Fun, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6);
 
-template<typename Fun, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8);
+template<typename Fun, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7);
 
-template<typename Fun, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9);
+template<typename Fun, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8);
 
-template<typename Fun, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9, T10 const & t10);
+template<typename Fun, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9);
 
-template<typename Fun, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10, typename T11>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9, T10 const & t10, T11 const & t11);
+template<typename Fun, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9, T10 const & t10);
 
-template<typename Fun, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10, typename T11, typename T12>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9, T10 const & t10, T11 const & t11, T12 const & t12);
+template<typename Fun, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10, typename T11>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9, T10 const & t10, T11 const & t11);
 
-template<typename Fun, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10, typename T11, typename T12, typename T13>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9, T10 const & t10, T11 const & t11, T12 const & t12, T13 const & t13);
+template<typename Fun, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10, typename T11, typename T12>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9, T10 const & t10, T11 const & t11, T12 const & t12);
 
-template<typename Fun, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10, typename T11, typename T12, typename T13, typename T14>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9, T10 const & t10, T11 const & t11, T12 const & t12, T13 const & t13, T14 const & t14);
+template<typename Fun, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10, typename T11, typename T12, typename T13>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9, T10 const & t10, T11 const & t11, T12 const & t12, T13 const & t13);
 
-template<typename Fun, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10, typename T11, typename T12, typename T13, typename T14, typename T15>
-VALUE protect(Fun fun, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9, T10 const & t10, T11 const & t11, T12 const & t12, T13 const & t13, T14 const & t14, T15 const & t15);
+template<typename Fun, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10, typename T11, typename T12, typename T13, typename T14>
+VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9, T10 const & t10, T11 const & t11, T12 const & t12, T13 const & t13, T14 const & t14);
 
 #endif // DOXYGEN
 
