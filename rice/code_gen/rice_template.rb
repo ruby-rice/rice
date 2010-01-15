@@ -24,14 +24,21 @@ class RiceTemplate < Mustache
   #
   # template is expected to be a valid Mustache template.
   # This template should use {{i}} for the counter number.
-  def build(count, template)
+  #
+  # If seperator is present, returns a string. If nil, returns
+  # the array.
+  def build(count, template, seperator = ", ")
     args = []
 
     count.times do |i|
       args << Mustache.render(template, {:i => i})
     end
 
-    args.join(", ")
+    if seperator
+      args.join(seperator)
+    else
+      args
+    end
   end
 
 end

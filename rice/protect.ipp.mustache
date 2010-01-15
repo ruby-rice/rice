@@ -1,0 +1,156 @@
+#ifndef Rice__protect__ipp_
+#define Rice__protect__ipp_
+
+// This is a generated file.  DO NOT EDIT!!
+
+
+// This causes problems with certain C++ libraries
+#undef TYPE
+
+#include "detail/protect.hpp"
+namespace Rice
+{
+
+namespace detail
+{
+
+  template<typename Ret_T, typename Fun>
+  class Ruby_Function_0
+  {
+  public:
+    Ruby_Function_0(Fun f);
+    inline void operator()();
+    static inline VALUE call(Ruby_Function_0 * f);
+    Ret_T const & result() const { return result_; }
+
+  private:
+    Fun f_;
+    
+    Ret_T result_; // TODO: use placement new
+  };
+
+  template<typename Ret_T, typename Fun>
+  inline Ruby_Function_0<Ret_T, Fun>::
+  Ruby_Function_0(Fun f)
+    : f_(f)
+  { }
+
+  template<typename Ret_T, typename Fun>
+  inline void Ruby_Function_0<Ret_T, Fun>::
+  operator()()
+  {
+    result_ = f_();
+  }
+
+  template<typename Ret_T, typename Fun>
+  inline VALUE Ruby_Function_0<Ret_T, Fun>::
+  call(Ruby_Function_0 * f)
+  {
+    (*f)();
+    return Qnil;
+  }
+
+} // namespace detail
+
+template<typename Ret_T, typename Fun>
+inline Ret_T protect(Fun fun)
+{
+  typedef detail::Ruby_Function_0<Ret_T, Fun> RF;
+  RF f(fun);
+  detail::protect(
+      RUBY_VALUE_FUNC(RF::call),
+      reinterpret_cast<VALUE>(&f));
+  return f.result();
+}
+
+template<typename Fun>
+inline VALUE protect(Fun fun)
+{
+  typedef detail::Ruby_Function_0<VALUE, Fun> RF;
+  RF f(fun);
+  detail::protect(
+      RUBY_VALUE_FUNC(RF::call),
+      reinterpret_cast<VALUE>(&f));
+  return f.result();
+}
+
+// ---------------------------------------------------------------------
+
+{{#entries}}
+namespace detail
+{
+
+  template<typename Ret_T, typename Fun, {{{typenames}}}>
+  class Ruby_Function_{{{count}}}
+  {
+  public:
+    Ruby_Function_{{{count}}}(Fun f, {{{arguments}}});
+    inline void operator()();
+    static inline VALUE call(Ruby_Function_{{{count}}} * f);
+    Ret_T const & result() const { return result_; }
+
+  private:
+    Fun f_;
+    {{{members}}};
+    Ret_T result_; // TODO: use placement new
+  };
+
+  template<typename Ret_T, typename Fun, {{{typenames}}}>
+  inline Ruby_Function_{{{count}}}<Ret_T, Fun, {{{types}}}>::
+  Ruby_Function_{{count}}(Fun f, {{{arguments}}})
+    : f_(f), {{{supercalls}}}
+  { }
+
+  template<typename Ret_T, typename Fun, {{{typenames}}}>
+  inline void Ruby_Function_{{{count}}}<Ret_T, Fun, {{{types}}}>::
+  operator()()
+  {
+    result_ = f_({{{member_call_args}}});
+  }
+
+  template<typename Ret_T, typename Fun, {{{typenames}}}>
+  inline VALUE Ruby_Function_{{{count}}}<Ret_T, Fun, {{{types}}}>::
+  call(Ruby_Function_{{{count}}} * f)
+  {
+    (*f)();
+    return Qnil;
+  }
+
+} // namespace detail
+
+/**
+ * protect on a function with a return type
+ */
+template<typename Ret_T, typename Fun, {{{typenames}}}>
+inline Ret_T protect(Fun fun, {{{arguments}}})
+{
+  typedef detail::Ruby_Function_{{{count}}}<Ret_T, Fun, {{{types}}}> RF;
+  RF f(fun, {{{call_args}}});
+  detail::protect(
+      RUBY_VALUE_FUNC(RF::call),
+      reinterpret_cast<VALUE>(&f));
+  return f.result();
+}
+
+/**
+ * protect on a function with VALUE return type
+ */
+template<typename Fun, {{{typenames}}}>
+inline VALUE protect(Fun fun, {{{arguments}}})
+{
+  typedef detail::Ruby_Function_{{{count}}}<VALUE, Fun, {{{types}}}> RF;
+  RF f(fun, {{{call_args}}});
+  detail::protect(
+      RUBY_VALUE_FUNC(RF::call),
+      reinterpret_cast<VALUE>(&f));
+  return f.result();
+}
+
+// ---------------------------------------------------------------------
+{{/entries}}
+
+} // namespace Rice
+
+
+#endif // Rice__protect__ipp_
+
