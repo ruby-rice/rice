@@ -19,6 +19,37 @@ class RiceTemplate < Mustache
     self.template_file = File.join(RICE_HOME, "detail", "#{file}.mustache")
   end
 
+  # Return the out the resulting file to be written to
+  def self.out_file
+    self.template_file.gsub(/\.mustache/, "")
+  end
+
+  # Render this template and print out to .out_file
+  def self.render_to_file
+    File.open(self.out_file, "w+") do |f|
+      f.write(render)
+    end
+  end
+
+  ##
+  # Template helper methods
+  ##
+
+  # All templates need to implement this method to define
+  # exactly what an entry contains
+  def entry
+    raise "Template must implement this method"
+  end
+
+  # Every template needs to loop over a set called 'entries'
+  def entries
+    e = []
+    MAX_ARGS.times do |i|
+      e << entry(i + 1)
+    end
+    e
+  end
+
   # Build _count_ number of _template_ strings and return
   # the list as a comma delimited array.
   #
