@@ -44,7 +44,7 @@ class RiceTemplate < Mustache
   # Every template needs to loop over a set called 'entries'
   def entries
     e = []
-    MAX_ARGS.times do |i|
+    (self[:max_args] || MAX_ARGS).times do |i|
       e << entry(i + 1)
     end
     e

@@ -1,0 +1,65 @@
+#ifndef Rice__Constructor__hpp_
+#define Rice__Constructor__hpp_
+
+// This is a generated file.  DO NOT EDIT!!
+
+
+// This causes problems with certain C++ libraries
+#undef TYPE
+
+#include "to_from_ruby_defn.hpp"
+#include "detail/method_data.hpp"
+namespace Rice
+{
+  template<typename T, {{void_templates}}>
+  class Constructor
+  {
+  private:
+    Constructor()
+    {
+    }
+  };
+
+  template<typename T>
+  class Constructor<T, {{voids}}>
+  {
+  public:
+    static void construct(Object self)
+    {
+      DATA_PTR(self.value()) = new T();
+    }
+  };
+
+
+  template<typename T>
+  class Constructor<T, Object, {{voids_self}}>
+  {
+  public:
+    static void construct(Object self)
+    {
+      DATA_PTR(self.value()) = new T(self);
+    }
+  };
+
+  {{#selfs}}
+    {{#entries}}
+
+    {{! The extra 'void' at the end here is a work around to a bug with GCC}}
+    template<typename T, {{typenames}}>
+    class Constructor<T, {{self_type}}{{types_and_voids_list}}, void>
+    {
+      public:
+        static void construct(Object self, {{parameters}})
+        {
+          DATA_PTR(self.value()) = new T({{with_self}}{{arguments}});
+        }
+    };
+
+    {{/entries}}
+  {{/selfs}}
+
+} // namespace Rice
+
+
+#endif // Rice__Constructor__hpp_
+

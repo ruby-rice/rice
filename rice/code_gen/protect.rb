@@ -8,7 +8,7 @@ class ProtectHpp < RiceTemplate
     {
       :typenames => build(num, "typename T{{i}}"),
       :arguments => build(num, "T{{i}} const & t{{i}}")
-    } 
+    }
   end
 
 end
@@ -27,7 +27,7 @@ class ProtectIpp < RiceTemplate
       :supercalls => build(c, "t{{i}}_(t{{i}})"),
       :call_args => build(c, "t{{i}}"),
       :member_call_args => build(c, "t{{i}}_")
-    } 
+    }
   end
 
 end
