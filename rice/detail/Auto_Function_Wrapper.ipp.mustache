@@ -1,0 +1,275 @@
+#ifndef Rice__detail__Auto_Function_Wrapper__ipp_
+#define Rice__detail__Auto_Function_Wrapper__ipp_
+
+// This is a generated file.  DO NOT EDIT!!
+
+
+// This causes problems with certain C++ libraries
+#undef TYPE
+
+#include "method_data.hpp"
+#include "../ruby_try_catch.hpp"
+#include "../to_from_ruby.hpp"
+#include "traits.hpp"
+namespace Rice
+{
+
+namespace detail
+{
+
+{{#reverse_entries}}
+template<typename Func_T, typename Ret_T, {{typenames}}>
+Auto_Function_Wrapper<Func_T, Ret_T, {{types}}>::
+Auto_Function_Wrapper(
+    Func func,
+    Data_Object<Exception_Handler> handler,
+    Arguments* arguments)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+  , func_(func)
+  , handler_(handler)
+  , handler_guard_(&handler_)
+{
+  if(arguments == 0) {
+    arguments_ = new Arguments();
+  } else {
+    arguments_ = arguments;
+  }
+}
+
+template<typename Func_T, typename Ret_T, {{typenames}}>
+VALUE Auto_Function_Wrapper<Func_T, Ret_T, {{types}}>::
+call(int argc, VALUE *argv, VALUE self)
+{
+  Auto_Function_Wrapper<Func_T, Ret_T, {{types}}> * wrapper = 0;
+  try
+  {
+    Data_Object<Wrapped_Function> data(detail::method_data());
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T, {{types}}> *)data.get();
+    Arguments* args = wrapper->arguments_;
+
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
+    VALUE {{vargs}};
+
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
+        , {{{scan_args}}});
+
+      Arg0_T arg0 = from_ruby<Arg0_T>(self); 
+
+      {{#self_arguments}}
+        typedef typename sanitize< {{in_type}} >::Type {{out_type}};
+        {{out_type}} {{arg}} = args->getArgumentOrDefault<{{out_type}}>({{count}}, varg{{count}});
+      {{/self_arguments}}
+
+      return to_ruby(wrapper->func_({{call_args}}));
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
+        , {{{scan_args}}});
+
+      {{#arguments}}
+        typedef typename sanitize< Arg{{count}}_T >::Type Arg{{count}}_Type;
+        Arg{{count}}_Type arg{{count}} = args->getArgumentOrDefault<Arg{{count}}_Type>({{count}}, varg{{count}});
+      {{/arguments}}
+
+      return to_ruby(wrapper->func_({{call_args}}));
+    }
+  }
+  catch(...)
+  {
+    RUBY_TRY
+    {
+      if(wrapper)
+      {
+        return wrapper->handler_->handle_exception();
+      }
+      else
+      {
+        throw;
+      }
+    }
+    RUBY_CATCH
+  }
+}
+
+template<typename Func_T, {{typenames}}>
+Auto_Function_Wrapper<Func_T, void, {{types}}>::
+Auto_Function_Wrapper(
+    Func func,
+    Data_Object<Exception_Handler> handler,
+    Arguments* arguments)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+  , func_(func)
+  , handler_(handler)
+  , handler_guard_(&handler_)
+{
+  if(arguments == 0) {
+    arguments_ = new Arguments();
+  } else {
+    arguments_ = arguments;
+  }
+}
+
+template<typename Func_T, {{typenames}}>
+VALUE Auto_Function_Wrapper<Func_T, void, {{types}}>::
+call(int argc, VALUE* argv, VALUE self)
+{
+  Auto_Function_Wrapper<Func_T, void, {{types}}> * wrapper = 0;
+  try
+  {
+    Data_Object<Wrapped_Function> data(detail::method_data());
+    wrapper = (Auto_Function_Wrapper<Func_T, void, {{types}}> *)data.get();
+    Arguments* args = wrapper->arguments_;
+
+    bool hasSelf = (self && self != Qnil);
+    if(args->count() >= 0) {
+      hasSelf = hasSelf && args->count() == Num_Args - 1;
+    } else {
+      hasSelf = hasSelf && argc == Num_Args -1;
+    }
+
+    VALUE {{vargs}};
+
+    if(hasSelf) {
+      rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
+        , {{{scan_args}}});
+
+      Arg0_T arg0 = from_ruby<Arg0_T>(self); 
+
+      {{#self_arguments}}
+        typedef typename sanitize< {{in_type}} >::Type {{out_type}};
+        {{out_type}} {{arg}} = args->getArgumentOrDefault<{{out_type}}>({{count}}, varg{{count}});
+      {{/self_arguments}}
+
+      wrapper->func_({{call_args}});
+      return Qnil;
+    } else {
+      rb_scan_args(argc, argv, args->formatString(Num_Args).c_str()
+        , {{{scan_args}}});
+
+      {{#arguments}}
+        typedef typename sanitize< Arg{{count}}_T >::Type Arg{{count}}_Type;
+        Arg{{count}}_Type arg{{count}} = args->getArgumentOrDefault<Arg{{count}}_Type>({{count}}, varg{{count}});
+      {{/arguments}}
+
+      wrapper->func_({{call_args}});
+      return Qnil;
+    }
+  }
+  catch(...)
+  {
+    RUBY_TRY
+    {
+      if(wrapper)
+      {
+        return wrapper->handler_->handle_exception();
+      }
+      else
+      {
+        throw;
+      }
+    }
+    RUBY_CATCH
+  }
+}
+
+// ---------------------------------------------------------------------
+{{/reverse_entries}}
+
+template<typename Func_T, typename Ret_T>
+Auto_Function_Wrapper<Func_T, Ret_T>::
+Auto_Function_Wrapper(
+    Func func,
+    Data_Object<Exception_Handler> handler,
+    Arguments* arguments)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+  , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
+  , arguments_(arguments)
+{
+}
+
+template<typename Func_T, typename Ret_T>
+VALUE Auto_Function_Wrapper<Func_T, Ret_T>::
+call()
+{
+  Auto_Function_Wrapper<Func_T, Ret_T> * wrapper = 0;
+  try
+  {
+    Data_Object<Wrapped_Function> data(detail::method_data());
+    wrapper = (Auto_Function_Wrapper<Func_T, Ret_T>*)data.get();
+
+    return to_ruby(wrapper->func_());
+  }
+  catch(...)
+  {
+    RUBY_TRY
+    {
+      if(wrapper)
+      {
+        return wrapper->handler_->handle_exception();
+      }
+      else
+      {
+        throw;
+      }
+    }
+    RUBY_CATCH
+  }
+}
+
+template<typename Func_T>
+Auto_Function_Wrapper<Func_T, void>::
+Auto_Function_Wrapper(
+    Func func,
+    Data_Object<Exception_Handler> handler,
+    Arguments* arguments)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+  , func_(func)
+  , handler_(handler ? handler : new Default_Exception_Handler)
+  , arguments_(arguments)
+{
+}
+
+template<typename Func_T>
+VALUE Auto_Function_Wrapper<Func_T, void>::
+call()
+{
+  Auto_Function_Wrapper<Func_T, void> * wrapper = 0;
+  try
+  {
+    Data_Object<Wrapped_Function> data(detail::method_data());
+    wrapper = (Auto_Function_Wrapper<Func_T, void> *)data.get();
+
+    wrapper->func_();
+    return Qnil;
+  }
+  catch(...)
+  {
+    RUBY_TRY
+    {
+      if(wrapper)
+      {
+        return wrapper->handler_->handle_exception();
+      }
+      else
+      {
+        throw;
+      }
+    }
+    RUBY_CATCH
+  }
+}
+
+} // namespace detail
+
+} // namespace Rice
+
+
+#endif // Rice__detail__Auto_Function_Wrapper__ipp_
+

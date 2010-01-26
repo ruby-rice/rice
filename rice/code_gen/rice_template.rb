@@ -41,10 +41,24 @@ class RiceTemplate < Mustache
     raise "Template must implement this method"
   end
 
+  # How many iterations are we running?
+  def iterations
+    self[:max_args] || MAX_ARGS
+  end
+
   # Every template needs to loop over a set called 'entries'
   def entries
     e = []
-    (self[:max_args] || MAX_ARGS).times do |i|
+    self.iterations.times do |i|
+      e << entry(i + 1)
+    end
+    e
+  end
+
+  # Can loop over the entries in reverse order
+  def reverse_entries
+    e = []
+    self.iterations.downto(0) do |i|
       e << entry(i + 1)
     end
     e

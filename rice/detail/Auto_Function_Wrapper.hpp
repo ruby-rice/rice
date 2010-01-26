@@ -24,7 +24,6 @@ class Auto_Function_Wrapper
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T);
   typedef Func_T Func;
 
   static const int Num_Args = 16;
@@ -48,7 +47,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, Arg15_T);
   typedef Func_T Func;
 
   static const int Num_Args = 16;
@@ -73,7 +71,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T);
   typedef Func_T Func;
 
   static const int Num_Args = 15;
@@ -97,7 +94,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T);
   typedef Func_T Func;
 
   static const int Num_Args = 15;
@@ -122,7 +118,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T);
   typedef Func_T Func;
 
   static const int Num_Args = 14;
@@ -146,7 +141,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T);
   typedef Func_T Func;
 
   static const int Num_Args = 14;
@@ -171,7 +165,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T);
   typedef Func_T Func;
 
   static const int Num_Args = 13;
@@ -195,7 +188,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T);
   typedef Func_T Func;
 
   static const int Num_Args = 13;
@@ -220,7 +212,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T);
   typedef Func_T Func;
 
   static const int Num_Args = 12;
@@ -244,7 +235,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T);
   typedef Func_T Func;
 
   static const int Num_Args = 12;
@@ -269,7 +259,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T);
   typedef Func_T Func;
 
   static const int Num_Args = 11;
@@ -293,7 +282,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T);
   typedef Func_T Func;
 
   static const int Num_Args = 11;
@@ -318,7 +306,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T);
   typedef Func_T Func;
 
   static const int Num_Args = 10;
@@ -342,7 +329,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T);
   typedef Func_T Func;
 
   static const int Num_Args = 10;
@@ -367,7 +353,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T);
   typedef Func_T Func;
 
   static const int Num_Args = 9;
@@ -391,7 +376,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T);
   typedef Func_T Func;
 
   static const int Num_Args = 9;
@@ -416,7 +400,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T);
   typedef Func_T Func;
 
   static const int Num_Args = 8;
@@ -440,7 +423,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T);
   typedef Func_T Func;
 
   static const int Num_Args = 8;
@@ -465,7 +447,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T);
   typedef Func_T Func;
 
   static const int Num_Args = 7;
@@ -489,7 +470,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T);
   typedef Func_T Func;
 
   static const int Num_Args = 7;
@@ -514,7 +494,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T);
   typedef Func_T Func;
 
   static const int Num_Args = 6;
@@ -538,7 +517,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T);
   typedef Func_T Func;
 
   static const int Num_Args = 6;
@@ -563,7 +541,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T);
   typedef Func_T Func;
 
   static const int Num_Args = 5;
@@ -587,7 +564,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T);
   typedef Func_T Func;
 
   static const int Num_Args = 5;
@@ -612,7 +588,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T, Arg3_T>
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T);
   typedef Func_T Func;
 
   static const int Num_Args = 4;
@@ -636,7 +611,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T, Arg3_T>
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T, Arg3_T);
   typedef Func_T Func;
 
   static const int Num_Args = 4;
@@ -661,7 +635,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T, Arg2_T>
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T, Arg2_T);
   typedef Func_T Func;
 
   static const int Num_Args = 3;
@@ -685,7 +658,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T, Arg2_T>
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T, Arg2_T);
   typedef Func_T Func;
 
   static const int Num_Args = 3;
@@ -710,7 +682,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T, Arg1_T>
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T, Arg1_T);
   typedef Func_T Func;
 
   static const int Num_Args = 2;
@@ -734,7 +705,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T, Arg1_T>
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T, Arg1_T);
   typedef Func_T Func;
 
   static const int Num_Args = 2;
@@ -759,7 +729,6 @@ class Auto_Function_Wrapper<Func_T, Ret_T, Arg0_T>
   : public Wrapped_Function
 {
 public:
-  // typedef Ret_T (*Func)(Arg0_T);
   typedef Func_T Func;
 
   static const int Num_Args = 1;
@@ -783,7 +752,6 @@ class Auto_Function_Wrapper<Func_T, void, Arg0_T>
   : public Wrapped_Function
 {
 public:
-  // typedef void (*Func)(Arg0_T);
   typedef Func_T Func;
 
   static const int Num_Args = 1;
@@ -803,7 +771,6 @@ private:
 };
 
 // ---------------------------------------------------------------------
-
 template<typename Func_T, typename Ret_T>
 class Auto_Function_Wrapper<Func_T, Ret_T>
   : public Wrapped_Function
@@ -849,6 +816,7 @@ private:
   Data_Object<Exception_Handler> handler_;
   Arguments* arguments_;
 };
+
 #endif // DOXYGEN
 
 } // namespace detail
