@@ -1,0 +1,126 @@
+#ifndef Rice__detail__Auto_Member_Function_Wrapper__hpp_
+#define Rice__detail__Auto_Member_Function_Wrapper__hpp_
+
+// This is a generated file.  DO NOT EDIT!!
+
+
+// This causes problems with certain C++ libraries
+#undef TYPE
+
+namespace Rice
+{
+
+namespace detail
+{
+
+#ifdef DOXYGEN
+
+#else
+
+{{#reverse_entries}}
+template<typename Func_T, typename Ret_T, typename Self_T, {{typenames_with_return}}>
+class Auto_Member_Function_Wrapper{{{specs_with_return}}}
+  : public Wrapped_Function
+{
+public:
+  typedef Func_T Func;
+
+  static const int Num_Args = {{num_args}};
+
+  Auto_Member_Function_Wrapper(
+      Func func,
+      Data_Object<Exception_Handler> handler,
+      Arguments* arguments = 0);
+
+  static VALUE call(int argc, VALUE* argv, VALUE self);
+
+private:
+  Func func_;
+  Data_Object<Exception_Handler> handler_;
+  Address_Registration_Guard handler_guard_;
+  Arguments* arguments_;
+};
+
+template<typename Func_T, typename Self_T, {{typenames}}>
+class Auto_Member_Function_Wrapper{{{specs}}}
+  : public Wrapped_Function
+{
+public:
+  typedef Func_T Func;
+
+  static const int Num_Args = {{num_args}};
+
+  Auto_Member_Function_Wrapper(
+      Func func,
+      Data_Object<Exception_Handler> handler,
+      Arguments* arguments = 0);
+
+  static VALUE call(int argc, VALUE* argv, VALUE self);
+
+private:
+  Func func_;
+  Data_Object<Exception_Handler> handler_;
+  Address_Registration_Guard handler_guard_;
+  Arguments* arguments_;
+};
+
+// ---------------------------------------------------------------------
+{{/reverse_entries}}
+
+template<typename Func_T, typename Ret_T, typename Self_T>
+class Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T>
+  : public Wrapped_Function
+{
+public:
+  typedef Func_T Func;
+
+  static const int Num_Args = 0;
+
+  Auto_Member_Function_Wrapper(
+      Func func,
+      Data_Object<Exception_Handler> handler,
+      Arguments* arguments = 0);
+
+  static VALUE call(int argc, VALUE* argv, VALUE self);
+
+private:
+  Func func_;
+  Data_Object<Exception_Handler> handler_;
+  Address_Registration_Guard handler_guard_;
+  Arguments* arguments_;
+};
+
+template<typename Func_T, typename Self_T>
+class Auto_Member_Function_Wrapper<Func_T, void, Self_T>
+  : public Wrapped_Function
+{
+public:
+  typedef Func_T Func;
+
+  static const int Num_Args = 0;
+
+  Auto_Member_Function_Wrapper(
+      Func func,
+      Data_Object<Exception_Handler> handler,
+      Arguments* arguments = 0);
+
+  static VALUE call(int argc, VALUE* argv, VALUE self);
+
+private:
+  Func func_;
+  Data_Object<Exception_Handler> handler_;
+  Address_Registration_Guard handler_guard_;
+  Arguments* arguments_;
+};
+
+// ---------------------------------------------------------------------
+#endif // DOXYGEN
+
+} // namespace detail
+
+} // namespace Rice
+
+#include "Auto_Member_Function_Wrapper.ipp"
+
+#endif // Rice__detail__Auto_Member_Function_Wrapper__hpp_
+

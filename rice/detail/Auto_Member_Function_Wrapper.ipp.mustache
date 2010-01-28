@@ -1,0 +1,262 @@
+#ifndef Rice__detail__Auto_Member_Function_Wrapper__ipp_
+#define Rice__detail__Auto_Member_Function_Wrapper__ipp_
+
+// This is a generated file.  DO NOT EDIT!!
+
+
+// This causes problems with certain C++ libraries
+#undef TYPE
+
+#include "method_data.hpp"
+#include "../ruby_try_catch.hpp"
+#include "../to_from_ruby.hpp"
+#include "traits.hpp"
+#include <typeinfo>
+namespace Rice
+{
+
+namespace detail
+{
+
+{{#reverse_entries}}
+template<typename Func_T, typename Ret_T, typename Self_T, {{typenames}}>
+Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, {{types}}>::
+Auto_Member_Function_Wrapper(
+    Func func,
+    Data_Object<Exception_Handler> handler,
+    Arguments* arguments)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+  , func_(func)
+  , handler_(handler)
+  , handler_guard_(&handler_)
+  , arguments_(arguments)
+{
+  if(arguments == 0) {
+    arguments_ = new Arguments();
+  } else {
+    arguments_ = arguments;
+  }
+}
+
+template<typename Func_T, typename Ret_T, typename Self_T, {{typenames}}>
+VALUE Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, {{types}}>::
+call(int argc, VALUE* argv, VALUE self)
+{
+  Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, {{types}}> * wrapper = 0;
+  try
+  {
+    Data_Object<Wrapped_Function> data(detail::method_data());
+    wrapper = (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, {{types}}> *)data.get();
+    Arguments* args = wrapper->arguments_;
+
+    VALUE {{vargs}};
+
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), {{{scan_args}}});
+
+    Self_T * obj = from_ruby<Self_T *>(self);
+
+    {{#arguments}}
+      typedef typename sanitize< Arg{{count}}_T >::Type Arg{{count}}_Type;
+      Arg{{count}}_Type arg{{count}} = args->getArgumentOrDefault<Arg{{count}}_Type>({{count}}, varg{{count}});
+    {{/arguments}}
+
+    Func func = wrapper->func_;
+    return to_ruby((*obj.*func)({{call_args}}));
+  }
+  catch(...)
+  {
+    RUBY_TRY
+    {
+      if(wrapper)
+      {
+        return wrapper->handler_->handle_exception();
+      }
+      else
+      {
+        throw;
+      }
+    }
+    RUBY_CATCH
+  }
+}
+
+template<typename Func_T, typename Self_T, {{typenames}}>
+Auto_Member_Function_Wrapper<Func_T, void, Self_T, {{types}}>::
+Auto_Member_Function_Wrapper(
+    Func func,
+    Data_Object<Exception_Handler> handler,
+    Arguments* arguments)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+  , func_(func)
+  , handler_(handler)
+  , handler_guard_(&handler_)
+  , arguments_(arguments)
+{
+  if(arguments == 0) {
+    arguments_ = new Arguments();
+  } else {
+    arguments_ = arguments;
+  }
+}
+
+template<typename Func_T, typename Self_T, {{typenames}}>
+VALUE Auto_Member_Function_Wrapper<Func_T, void, Self_T, {{types}}>::
+call(int argc, VALUE* argv, VALUE self)
+{
+  Auto_Member_Function_Wrapper<Func_T, void, Self_T, {{types}}> * wrapper = 0;
+  try
+  {
+    Data_Object<Wrapped_Function> data(detail::method_data());
+    wrapper = (Auto_Member_Function_Wrapper<Func_T, void, Self_T, {{types}}> *)data.get();
+    Arguments* args = wrapper->arguments_;
+
+    VALUE {{vargs}};
+
+    rb_scan_args(argc, argv, args->formatString(Num_Args).c_str(), {{{scan_args}}});
+
+    Self_T * obj = from_ruby<Self_T *>(self);
+
+    {{#arguments}}
+      typedef typename sanitize< Arg{{count}}_T >::Type Arg{{count}}_Type;
+      Arg{{count}}_Type arg{{count}} = args->getArgumentOrDefault<Arg{{count}}_Type>({{count}}, varg{{count}});
+    {{/arguments}}
+
+    Func func = wrapper->func_;
+    (*obj.*func)({{call_args}});
+    return Qnil;
+  }
+  catch(...)
+  {
+    RUBY_TRY
+    {
+      if(wrapper)
+      {
+        return wrapper->handler_->handle_exception();
+      }
+      else
+      {
+        throw;
+      }
+    }
+    RUBY_CATCH
+  }
+}
+
+// ---------------------------------------------------------------------
+{{/reverse_entries}}
+
+template<typename Func_T, typename Ret_T, typename Self_T>
+Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T>::
+Auto_Member_Function_Wrapper(
+    Func func,
+    Data_Object<Exception_Handler> handler,
+    Arguments* arguments)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+  , func_(func)
+  , handler_(handler)
+  , handler_guard_(&handler_)
+  , arguments_(arguments)
+{
+  if(arguments == 0) {
+    arguments_ = new Arguments();
+  } else {
+    arguments_ = arguments;
+  }
+}
+
+template<typename Func_T, typename Ret_T, typename Self_T>
+VALUE Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T>::
+call(int argc, VALUE* argv, VALUE self)
+{
+  Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T> * wrapper = 0;
+  try
+  {
+    Data_Object<Wrapped_Function> data(detail::method_data());
+    wrapper =
+      (Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T> *)data.get();
+
+    rb_scan_args(argc, argv, "0");
+    Self_T * obj = from_ruby<Self_T *>(self);
+
+    Func func = wrapper->func_;
+    return to_ruby((*obj.*func)());
+  }
+  catch(...)
+  {
+    RUBY_TRY
+    {
+      if(wrapper)
+      {
+        return wrapper->handler_->handle_exception();
+      }
+      else
+      {
+        throw;
+      }
+    }
+    RUBY_CATCH
+  }
+}
+
+template<typename Func_T, typename Self_T>
+Auto_Member_Function_Wrapper<Func_T, void, Self_T>::
+Auto_Member_Function_Wrapper(
+    Func func,
+    Data_Object<Exception_Handler> handler,
+    Arguments* arguments)
+  : Wrapped_Function(RUBY_METHOD_FUNC(call), Num_Args)
+  , func_(func)
+  , handler_(handler)
+  , handler_guard_(&handler_)
+  , arguments_(arguments)
+{
+  if(arguments == 0) {
+    arguments_ = new Arguments();
+  } else {
+    arguments_ = arguments;
+  }
+}
+
+template<typename Func_T, typename Self_T>
+VALUE Auto_Member_Function_Wrapper<Func_T, void, Self_T>::
+call(int argc, VALUE* argv, VALUE self)
+{
+  Auto_Member_Function_Wrapper<Func_T, void, Self_T> * wrapper = 0;
+  try
+  {
+    Data_Object<Wrapped_Function> data(detail::method_data());
+    wrapper =
+      (Auto_Member_Function_Wrapper<Func_T, void, Self_T> *)data.get();
+    rb_scan_args(argc, argv, "0");
+    Self_T * obj = from_ruby<Self_T *>(self);
+
+    Func func = wrapper->func_;
+    (*obj.*func)();
+    return Qnil;
+  }
+  catch(...)
+  {
+    RUBY_TRY
+    {
+      if(wrapper)
+      {
+        return wrapper->handler_->handle_exception();
+      }
+      else
+      {
+        throw;
+      }
+    }
+    RUBY_CATCH
+  }
+}
+
+// ---------------------------------------------------------------------
+
+} // namespace detail
+
+} // namespace Rice
+
+
+#endif // Rice__detail__Auto_Member_Function_Wrapper__ipp_
+
