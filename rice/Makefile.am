@@ -73,7 +73,6 @@ Struct.ipp \
 Symbol.hpp \
 Symbol.ipp \
 VM.hpp \
-generate_code.rb \
 global_function.hpp \
 global_function.ipp \
 protect.hpp \
