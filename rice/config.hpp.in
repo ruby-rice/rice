@@ -6,9 +6,6 @@
 /* Define to 1 if you have the <node.h> header file. */
 #undef HAVE_NODE_H
 
-/* Define this macro if rb_class_boot is defined */
-#undef HAVE_RB_CLASS_BOOT
-
 /* Define to 1 if you have the <ruby.h> header file. */
 #undef HAVE_RUBY_H
 

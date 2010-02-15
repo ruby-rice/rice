@@ -107,20 +107,6 @@ AC_CHECK_HEADERS(env.h,,,[
 #include <ruby.h>
 ])
 
-dnl We need to set the LD flags to include the path to this Ruby's
-dnl library path so that this library check will work for ruby installs
-dnl sitting in unconvential locations
-save_ldflags="$LDFLAGS"
-LDFLAGS="$RUBY_LDFLAGS"
-
-AC_CHECK_LIB($RUBY_CONFIG_SO_NAME,
-             rb_class_boot,
-             [ AC_DEFINE(HAVE_RB_CLASS_BOOT, [], [
-              Define this macro if rb_class_boot is defined ]) ] )
-
-LDFLAGS="$save_ldflags"
-
-
 CPPFLAGS="${CPPFLAGS_save}"
 
 AC_MINGW32

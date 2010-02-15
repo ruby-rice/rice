@@ -111,11 +111,7 @@ Rice::detail::
 define_method_with_data(
     VALUE klass, ID id, VALUE (*cfunc)(ANYARGS), int arity, VALUE data)
 {
-#ifdef HAVE_RB_CLASS_BOOT
   VALUE origin = rb_class_boot(klass);
-#else
-  VALUE origin = rb_class_new(klass);
-#endif
 
   // Create the memo object with a magic number so we can detect if
   // we're getting the origin class we expect (this can happen if the
