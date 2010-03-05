@@ -64,3 +64,64 @@ TESTCASE(non_default_constructor)
   ASSERT_EQUAL(rb_cNon_Default_Constructible, o.class_of());
   ASSERT_EQUAL(42, o->i());
 }
+
+/*
+namespace
+{
+  class WithDefaultArgs
+  {
+    public:
+      WithDefaultArgs(int x, float y = 2.0, bool yes = false)
+      {
+        x_ = x;
+        y_ = y;
+        yes_ = yes;
+      }
+
+      WithDefaultArgs(int x = 14) {
+        x_ = x;
+        y_ = 1.0;
+        yes_ = false;
+      }
+
+      int getX() { return x_; }
+      float getY() { return y_; }
+      bool getYes() { return yes_; }
+
+    private:
+
+      int x_;
+      float y_;
+      bool yes_;
+  };
+}
+
+TESTCASE(constructor_supports_default_arguments)
+{
+  Class klass = define_class<WithDefaultArgs>("WithDefaultArgs").
+    define_constructor(Constructor<WithDefaultArgs, int, float, bool>(
+          ( Arg("x"), Arg("y") = (float)2.0, Arg("yes") = (bool)false )));
+
+  Data_Object<WithDefaultArgs> obj;
+
+  obj= klass.call("new", 4);
+  ASSERT_EQUAL(4, obj->getX());
+  ASSERT_EQUAL(2.0, obj->getY());
+  ASSERT_EQUAL(false, obj->getYes());
+
+  obj= klass.call("new", 5, 3.0);
+  ASSERT_EQUAL(5, obj->getX());
+  ASSERT_EQUAL(3.0, obj->getY());
+  ASSERT_EQUAL(false, obj->getYes());
+
+  obj= klass.call("new", 7, 12.0, true);
+  ASSERT_EQUAL(7, obj->getX());
+  ASSERT_EQUAL(12.0, obj->getY());
+  ASSERT_EQUAL(true, obj->getYes());
+}
+
+TESTCASE(constructor_supports_single_default_argument)
+{
+
+}
+*/
