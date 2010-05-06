@@ -24,19 +24,19 @@ TESTCASE(construct_from_value)
 namespace
 {
 
-class Silly_Exception
+class Quite_Silly_Exception
   : public std::exception
 {
 };
 
-void handle_silly_exception(Silly_Exception const & ex)
+void handle_silly_exception(Quite_Silly_Exception const & ex)
 {
   throw Exception(rb_eRuntimeError, "SILLY");
 }
 
 void throw_silly_exception(Object self)
 {
-  throw Silly_Exception();
+  throw Quite_Silly_Exception();
 }
 
 } // namespace
@@ -44,7 +44,7 @@ void throw_silly_exception(Object self)
 TESTCASE(add_handler)
 {
   Module m(anonymous_module());
-  m.add_handler<Silly_Exception>(handle_silly_exception);
+  m.add_handler<Quite_Silly_Exception>(handle_silly_exception);
   m.define_singleton_method("foo", throw_silly_exception);
   Object exc = m.instance_eval("begin; foo; rescue Exception; $!; end");
   ASSERT_EQUAL(rb_eRuntimeError, CLASS_OF(exc));
