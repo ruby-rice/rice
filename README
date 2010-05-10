@@ -695,6 +695,12 @@ can be used as expected:
   t.hello("goodnight", "moon")
 \endcode
 
+This will also work with Constructors:
+
+\code
+  .define_constructor(Constructor<SomeClass, int, int>(),
+      ( Arg("arg1") = 1, Arg("otherArg") = 12 );
+\endcode
 
 \section director Director
 

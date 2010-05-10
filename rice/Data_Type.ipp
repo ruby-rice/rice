@@ -121,7 +121,8 @@ template<typename T>
 template<typename Constructor_T>
 inline Rice::Data_Type<T> & Rice::Data_Type<T>::
 define_constructor(
-    Constructor_T constructor)
+    Constructor_T constructor,
+    Arguments* arguments)
 {
   check_is_bound();
 
@@ -129,10 +130,27 @@ define_constructor(
   rb_define_alloc_func(
       static_cast<VALUE>(*this),
       detail::default_allocation_func<T>);
-  define_method("initialize", &Constructor_T::construct);
+  define_method(
+      "initialize", 
+      &Constructor_T::construct,
+      arguments
+      );
 
   return *this;
 }
+
+template<typename T>
+template<typename Constructor_T>
+inline Rice::Data_Type<T> & Rice::Data_Type<T>::
+define_constructor(
+    Constructor_T constructor,
+    Arg const& arg)
+{
+  Arguments* args = new Arguments();
+  args->add(arg);
+  return define_constructor(constructor, args);
+}
+
 
 template<typename T>
 template<typename Director_T>
