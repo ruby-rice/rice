@@ -39,7 +39,6 @@ public:
   // Must be public to workaround gcc 3.3
   typedef std::map<VALUE, detail::Abstract_Caster *> Casters;
 
-protected:
   virtual detail::Abstract_Caster * caster() const = 0;
 
   static Casters & casters();
@@ -93,6 +92,15 @@ template<typename T, typename Base_T>
 Rice::Data_Type<T> define_class(
     char const * name);
 
+//! Define an implicit conversion rule between two types.
+/*! Given two types, which can be custom types already 
+ *  wrapped into Rice or fundamental C++ types, this
+ *  tells Rice that the two types can be used interchangably.
+ *  \param From_T The type to convert from
+ *  \param To_T The type to convert to
+ */
+template<typename From_T, typename To_T>
+void define_implicit_cast();
 
 //! A mechanism for binding ruby types to C++ types.
 /*! This class binds run-time types (Ruby VALUEs) to compile-time types
@@ -194,6 +202,10 @@ public:
    */
   static bool is_bound();
 
+  virtual detail::Abstract_Caster * caster() const;
+
+  static std::auto_ptr<detail::Abstract_Caster> caster_;
+
 protected:
   //! Bind a Data_Type to a VALUE.
   /*! Throws an exception if the Data_Type is already bound to a
@@ -227,12 +239,9 @@ private:
   template<typename T_>
   friend class Data_Type;
 
-  virtual detail::Abstract_Caster * caster() const;
-
   static void check_is_bound();
 
   static VALUE klass_;
-  static std::auto_ptr<detail::Abstract_Caster> caster_;
 
   typedef std::set<Data_Type<T> *> Instances;
 

@@ -330,4 +330,34 @@ define_class(
   return Data_Type<T>::template bind<Base_T>(c);
 }
 
+#include <iostream>
+using namespace std;
+
+template<typename From_T, typename To_T>
+inline void 
+Rice::define_implicit_cast()
+{
+  // As Rice currently expects only one entry into
+  // this list for a given klass VALUE, we need to get
+  // the current caster for From_T and insert in our
+  // new caster into it's heirarchy.
+
+  Class from_class = Data_Type<From_T>::klass().value();
+  Class to_class = Data_Type<To_T>::klass().value();
+
+  detail::Abstract_Caster* from_caster = 
+    Data_Type<From_T>().caster();
+
+  detail::Abstract_Caster* new_caster = 
+    new detail::Implicit_Caster<To_T, From_T>(from_caster, to_class);
+
+  Data_Type_Base::casters().erase(from_class);
+  Data_Type_Base::casters().insert(
+    std::make_pair(
+      from_class,
+      new_caster
+    )
+  );
+}
+
 #endif // Rice__Data_Type__ipp_
