@@ -1,3 +1,4 @@
+$: << File.expand_path(File.dirname(__FILE__))
 require 'rake/gempackagetask'
 require 'rake/contrib/sshpublisher'
 require 'yaml'
