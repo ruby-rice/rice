@@ -330,9 +330,6 @@ define_class(
   return Data_Type<T>::template bind<Base_T>(c);
 }
 
-#include <iostream>
-using namespace std;
-
 template<typename From_T, typename To_T>
 inline void 
 Rice::define_implicit_cast()
@@ -340,7 +337,7 @@ Rice::define_implicit_cast()
   // As Rice currently expects only one entry into
   // this list for a given klass VALUE, we need to get
   // the current caster for From_T and insert in our
-  // new caster into it's heirarchy.
+  // new caster as the head of the caster list
 
   Class from_class = Data_Type<From_T>::klass().value();
   Class to_class = Data_Type<To_T>::klass().value();
