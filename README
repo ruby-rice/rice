@@ -828,6 +828,43 @@ Rice::Data_Type::define_director, then define methods pointing to the proxy obje
 You must use the Rice::Director proxy class in the Constructor line, this allows proper
 object construction / destruction of the types in question.
 
+\section implicit_cast Implicit Casting
+
+There are times when a library exposes classes that while unrelated are
+built to be interchangeable across the library. One example of this,
+taken from Ogre, are the Degree and Radian classes. When a given method
+takes a Radian, you're free to pass in a Degree, and vice versa. 
+
+Rice cannot automatically figure out if this kind of functionality is
+possible in a given library but it does have a simple API for defining
+these relationships: Rice::define_implicit_cast<From, To>().
+
+\code
+class Degree { ... };
+class Radian { ... };
+
+extern "C"
+void Init_implicit() {
+  define_class<Degree>()
+    ...;
+  define_class<Radian>()
+    ...;
+
+  define_implicit_cast<Degree, Radian>();
+  define_implicit_cast<Radian, Degree>();
+}
+\endcode
+
+This support is still being fleshed out and has a few requirements for
+proper use:
+
+\li The two types must be bound in Rice before defining the cast.
+\li The classes must have constructors that take the other type.
+\li This feature cannot be used with fundamental types yet.
+
+To see a full example of this feature, please check out
+test/test_Data_Type.cpp.
+
 \section motivation Motivation
 
 There are a number of common problems when writing C or C++ extensions
