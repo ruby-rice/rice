@@ -264,12 +264,12 @@ TESTCASE(supports_multiple_implicit_conversions_for_a_type)
   define_class<Explicit>("Explicit")
     .define_constructor(Constructor<Explicit, float>());
 
+  define_global_function("is_obtuse", &isObtuse);
+  define_global_function("explicit_value", &getExplicitValue);
+
   define_implicit_cast<Radian, Degree>();
   define_implicit_cast<Degree, Radian>();
   define_implicit_cast<Degree, Explicit>();
-
-  define_global_function("is_obtuse", &isObtuse);
-  define_global_function("explicit_value", &getExplicitValue);
 
   Module m = define_module("TestingModule");
   Object result;

@@ -343,7 +343,7 @@ Rice::define_implicit_cast()
   Class to_class = Data_Type<To_T>::klass().value();
 
   detail::Abstract_Caster* from_caster = 
-    Data_Type<From_T>().caster();
+    Data_Type<From_T>::caster_.release();
 
   detail::Abstract_Caster* new_caster = 
     new detail::Implicit_Caster<To_T, From_T>(from_caster, to_class);
@@ -359,7 +359,7 @@ Rice::define_implicit_cast()
 
   // And make sure the from_class has direct access to the
   // updated caster list
-  Data_Type<From_T>().caster_.reset(new_caster);
+  Data_Type<From_T>::caster_.reset(new_caster);
 }
 
 #endif // Rice__Data_Type__ipp_
