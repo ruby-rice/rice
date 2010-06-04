@@ -193,14 +193,10 @@ namespace
 TESTCASE(can_define_implicit_type_conversions_across_wrapped_types)
 {
   define_class<Degree>("Degree")
-    .define_constructor(Constructor<Degree, float>())
-    .define_method("value_degrees", &Degree::valueDegrees)
-    .define_method("value_radians", &Degree::valueRadians);
+    .define_constructor(Constructor<Degree, float>());
 
   define_class<Radian>("Radian")
-    .define_constructor(Constructor<Radian, float>())
-    .define_method("value_degrees", &Radian::valueDegrees)
-    .define_method("value_radians", &Radian::valueRadians);
+    .define_constructor(Constructor<Radian, float>());
 
   define_implicit_cast<Degree, Radian>();
   define_implicit_cast<Radian, Degree>();
@@ -232,6 +228,57 @@ TESTCASE(can_define_implicit_type_conversions_across_wrapped_types)
 
   result = m.instance_eval("is_right(Radian.new(2.0))");
   ASSERT(!from_ruby<bool>(result.value()));
+}
+
+namespace {
+  class Explicit
+  {
+    public:
+      Explicit(float v) {
+        value = v;
+      }
+
+      Explicit(const Degree &d) {
+        value = d.valueDegrees();
+      }
+
+      float getValue() { return value; }
+
+    private:
+      float value;
+  };
+
+  float getExplicitValue(Explicit* v) {
+    return v->getValue();
+  }
+}
+
+TESTCASE(supports_multiple_implicit_conversions_for_a_type)
+{
+  define_class<Degree>("Degree")
+    .define_constructor(Constructor<Degree, float>());
+
+  define_class<Radian>("Radian")
+    .define_constructor(Constructor<Radian, float>());
+
+  define_class<Explicit>("Explicit")
+    .define_constructor(Constructor<Explicit, float>());
+
+  define_implicit_cast<Radian, Degree>();
+  define_implicit_cast<Degree, Radian>();
+  define_implicit_cast<Degree, Explicit>();
+
+  define_global_function("is_obtuse", &isObtuse);
+  define_global_function("explicit_value", &getExplicitValue);
+
+  Module m = define_module("TestingModule");
+  Object result;
+
+  result = m.instance_eval("is_obtuse(Degree.new(75))");
+  ASSERT(!from_ruby<bool>(result.value()));
+
+  result = m.instance_eval("explicit_value(Degree.new(75))");
+  ASSERT_EQUAL(75.0, from_ruby<float>(result.value()));
 }
 
 /**
