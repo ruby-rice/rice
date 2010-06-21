@@ -190,7 +190,7 @@ class RiceMakefileCreator
     end
 
     def puts(*strings)
-      print(*strings.map { |s| "#{s}\n" })
+      print(*strings.flatten.map { |s| "#{s}\n" })
     end
 
     def close
