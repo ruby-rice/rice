@@ -60,6 +60,7 @@ vm_unittest_SOURCES = \
 
 AM_CPPFLAGS = \
 	-I.. \
+	$(RUBY_CFLAGS)
 	$(RUBY_CPPFLAGS)
 
 AM_CXXLAGS = \
