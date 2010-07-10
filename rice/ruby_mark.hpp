@@ -6,7 +6,7 @@
  *  the default behavior (which is to not mark any additional objects).
  */
 template<typename T>
-void ruby_mark(T * obj)
+void ruby_mark(T * /* obj */)
 {
 }
 

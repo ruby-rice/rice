@@ -121,7 +121,7 @@ template<typename T>
 template<typename Constructor_T>
 inline Rice::Data_Type<T> & Rice::Data_Type<T>::
 define_constructor(
-    Constructor_T constructor,
+    Constructor_T /* constructor */,
     Arguments* arguments)
 {
   check_is_bound();
@@ -195,7 +195,7 @@ from_ruby(Object x)
 
   VALUE ancestors = rb_mod_ancestors(klass.value());
 
-  int earliest = RARRAY_LEN(ancestors) + 1;
+  long earliest = RARRAY_LEN(ancestors) + 1;
 
   int index;
   VALUE indexFound;
