@@ -2,7 +2,6 @@ $: << File.expand_path(File.dirname(__FILE__))
 require 'rake/gempackagetask'
 require 'rake/contrib/sshpublisher'
 require 'yaml'
-require 'rubyforge'
 require 'ruby/lib/version'
 
 PROJECT_NAME = "rice"
