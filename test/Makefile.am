@@ -46,6 +46,7 @@ unittest_SOURCES = \
 	test_Hash.cpp \
 	test_Identifier.cpp \
 	test_Jump_Tag.cpp \
+	test_Memory_Management.cpp \
 	test_Module.cpp \
 	test_Object.cpp \
 	test_String.cpp \

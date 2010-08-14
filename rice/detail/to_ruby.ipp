@@ -7,8 +7,7 @@ convert(T const & x)
 {
   if(Data_Type<T>::is_bound())
   {
-    Data_Object<T> obj(&const_cast<T&>(x));
-    return obj;
+    return Rice::Data_Object<T >(new T(x), Rice::Data_Type<T >::klass(), 0, 0);
   }
   else
   {
