@@ -12,11 +12,10 @@ What is Rice?
 
 What's New?
 
-  * Fixed local gem install (~/.gem)
-  * Fixed compilation error on no-argument static class methods that return reference types
-  * Better implicit handling of const reference types
-  * Fixed potential memory leaks when dealing with Rice::Arg
-  * Changed mailing list away from Google Groups to http://librelist.com
+  * Fully compatible with Ruby 1.9.2
+  * Constructor supports default arguments
+  * Ability to define implicit casting through define_implicit_cast
+  * Fixed a few memory-related issues
 
 Supported Platforms:
 
