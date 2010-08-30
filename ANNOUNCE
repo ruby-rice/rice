@@ -13,15 +13,18 @@ What is Rice?
 What's New?
 
   * Fully compatible with Ruby 1.9.2
-  * Constructor supports default arguments
-  * Ability to define implicit casting through define_implicit_cast
-  * Fixed a few memory-related issues
+  * Constructor now supports default arguments
+  * Ability to define implicit casting rules through define_implicit_cast
+  * Various tweaks, bug fixes, and memory management updates
 
 Supported Platforms:
 
   * Linux
   * Mac OS X 10.5 and 10.6
-  * Windows with MinGW / MSYS
+
+  * While Windows has been known to work with MinGW / MSYS, I haven't
+    been able to keep this testing up as of late. Would appreciate any help
+    here.
 
 
 What Rice gives you:
