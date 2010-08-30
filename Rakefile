@@ -23,9 +23,7 @@ end
 
 desc "Upload documentation to the website. Requires rubyforge gem" 
 task :upload_web => [:doc] do
-  config = YAML.load(File.read(File.expand_path("~/.rubyforge/user-config.yml")))
-  host = "#{config["username"]}@rubyforge.org"
-
+  host = "jameskilton@rubyforge.org"
   Rake::SshDirPublisher.new(host, PROJECT_WEB_PATH, "doc/html").upload
 end
 
