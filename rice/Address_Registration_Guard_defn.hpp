@@ -56,7 +56,17 @@ public:
   //! Swap with another Address_Registration_Guard.
   void swap(Address_Registration_Guard & other);
 
+  /** Called during Ruby's exit process since we should not call
+   * rb_gc unregister_address there
+   */
+  static void disable();
+
 private:
+  static bool enabled;
+  static bool exit_handler_registered;
+
+  static void registerExitHandler();
+
   VALUE * address_;
 };
 

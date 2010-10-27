@@ -5,6 +5,7 @@ inline Rice::Address_Registration_Guard::
 Address_Registration_Guard(VALUE * address)
   : address_(address)
 {
+  registerExitHandler();
   rb_gc_register_address(address);
 }
 
@@ -12,13 +13,15 @@ inline Rice::Address_Registration_Guard::
 Address_Registration_Guard(Object * object)
   : address_(const_cast<VALUE *>(&object->value()))
 {
+  registerExitHandler();
   rb_gc_register_address(address_);
 }
 
 inline Rice::Address_Registration_Guard::
 ~Address_Registration_Guard()
 {
-  rb_gc_unregister_address(address_);
+  if (enabled)
+    rb_gc_unregister_address(address_);
 }
 
 inline VALUE * Rice::Address_Registration_Guard::
