@@ -17,14 +17,7 @@ require 'rbconfig'
 require 'rubygems'
 require 'ruby/lib/version.rb'
 
-gem_name = "rice-#{Rice::VERSION}"
-
-gem_base_dir =
-    if ENV['GEM_HOME'] then ENV['GEM_HOME']
-    elsif File.writable?(Gem.default_dir) then Gem.default_dir
-    else Gem.user_dir
-    end
-prefix_dir = File.join(gem_base_dir, "gems", gem_name, "ruby", "lib")
+prefix_dir = File.join(File.dirname(File.expand_path(__FILE__)), "ruby", "lib")
 with_ruby = File.join(Config::CONFIG["bindir"], Config::CONFIG["RUBY_INSTALL_NAME"])
 
 other_opts = ""
