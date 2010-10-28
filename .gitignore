@@ -28,3 +28,7 @@ doc
 mkinstalldirs
 *.def
 *.exe
+
+ruby/lib/include
+ruby/lib/lib
+
