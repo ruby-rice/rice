@@ -13,6 +13,7 @@ Struct.cpp \
 Symbol.cpp \
 VM.cpp \
 Arg_operators.cpp \
+Address_Registration_Guard.cpp \
 detail/check_ruby_type.cpp \
 detail/demangle.cpp \
 detail/method_data.cpp \
