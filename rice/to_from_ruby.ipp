@@ -256,9 +256,6 @@ Rice::Object to_ruby<double>(double const & x)
   return Rice::protect(Rice::detail::dbl2num, x);
 }
 
-#include <iostream>
-using namespace std;
-
 // ---------------------------------------------------------------------
 template<>
 inline
