@@ -14,7 +14,6 @@
 $:.unshift File.expand_path(File.dirname(__FILE__))
 
 require 'rbconfig'
-require 'rubygems'
 require 'ruby/lib/version.rb'
 
 prefix_dir = File.join(File.dirname(File.expand_path(__FILE__)), "ruby", "lib")
