@@ -256,15 +256,15 @@ Rice::Object to_ruby<double>(double const & x)
   return Rice::protect(Rice::detail::dbl2num, x);
 }
 
+#include <iostream>
+using namespace std;
+
 // ---------------------------------------------------------------------
 template<>
 inline
 char const * from_ruby<char const *>(Rice::Object x)
 {
-  // TODO: Maybe not the right way to do this conversion (what happens
-  // if the object gets GC'd?)
-  VALUE v(x.value());
-  return (char const *)Rice::protect<char const *>(rb_string_value_cstr, &v);
+  return Rice::String(x).str().data();
 }
 
 template<>
@@ -279,19 +279,19 @@ template<>
 inline
 std::string from_ruby<std::string>(Rice::Object x)
 {
-  return std::string(from_ruby<char const *>(x));
+  return Rice::String(x).str();
 }
 
 template<>
 inline
 Rice::Object to_ruby<std::string>(std::string const & x)
 {
-  return to_ruby(x.c_str());
+  return Rice::protect(rb_str_new, x.data(), x.size());
 }
 
 template<>
 inline
 std::string* from_ruby<std::string* >(Rice::Object x)
 {
-  return new std::string(from_ruby<char const *>(x));
+  return new std::string(Rice::String(x).str());
 }

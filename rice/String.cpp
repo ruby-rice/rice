@@ -37,7 +37,7 @@ String(char const * s)
 
 Rice::String::
 String(std::string const & s)
-  : Builtin_Object<RString, T_STRING>(protect(rb_str_new, s.c_str(), s.length()))
+  : Builtin_Object<RString, T_STRING>(protect(rb_str_new, s.data(), s.length()))
 {
 }
 
@@ -83,7 +83,7 @@ c_str() const
 std::string Rice::String::
 str() const
 {
-  return RSTRING_PTR(value());
+  return std::string(RSTRING_PTR(value()), length());
 }
 
 Rice::Identifier Rice::String::

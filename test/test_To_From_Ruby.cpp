@@ -261,3 +261,17 @@ TESTCASE(std_string_from_ruby)
   ASSERT_EQUAL(std::string("foo"), from_ruby<std::string>(rb_str_new2("foo")));
 }
 
+TESTCASE(std_string_to_ruby_with_binary)
+{
+  Rice::String got = to_ruby(std::string("\000test", 5));
+
+  ASSERT_EQUAL(String(std::string("\000test", 5)), got);
+  ASSERT_EQUAL(5, got.length());
+}
+
+TESTCASE(std_string_from_ruby_with_binary)
+{
+  std::string got = from_ruby<std::string>(rb_str_new("\000test", 5));
+  ASSERT_EQUAL(5, got.length());
+  ASSERT_EQUAL(std::string("\000test", 5), got);
+}
