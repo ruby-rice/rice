@@ -12,10 +12,8 @@ What is Rice?
 
 What's New?
 
-  * Fully compatible with Ruby 1.9.2
-  * Constructor now supports default arguments
-  * Ability to define implicit casting rules through define_implicit_cast
-  * Various tweaks, bug fixes, and memory management updates
+  * Fixed segfault on shutdown in 1.9.2 (Thanks Sylvain Joyeux)
+  * Installation no longer requires rubygems and can be built anywhere
 
 Supported Platforms:
 
