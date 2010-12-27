@@ -26,8 +26,6 @@ of the Ruby C API.
 
   s.require_paths = [ 'ruby/lib' ]
 
-  s.add_development_dependency("rubyforge")
-
   patterns = [
     # Documentation
     'COPYING',
