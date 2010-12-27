@@ -26,9 +26,10 @@ arch = Config::CONFIG["arch"].split("-")[0]
 
 if RUBY_PLATFORM =~ /darwin10/
   other_opts = "--disable-dependency-tracking"
-  env = "ARCHFLAGS='-arch #{arch}'"
+  env = "ARCHFLAGS='-arch #{arch}' CPPFLAGS='-arch #{arch}'"
 elsif RUBY_PLATFORM =~ /darwin9/
-  env = "ARCHFLAGS='-arch #{`uname -p`.chomp}'"
+  arch = `uname -p`.chomp
+  env = "ARCHFLAGS='-arch #{arch}' CPPFLAGS='-arch #{arch}'"
 end
 
 system "#{env} sh configure --with-ruby=#{with_ruby} --prefix=#{prefix_dir} #{other_opts}"
