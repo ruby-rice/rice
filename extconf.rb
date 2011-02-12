@@ -22,9 +22,13 @@ with_ruby = File.join(Config::CONFIG["bindir"], Config::CONFIG["RUBY_INSTALL_NAM
 other_opts = ""
 env = ""
 
-arch = Config::CONFIG["arch"].split("-")[0]
-
 if RUBY_PLATFORM =~ /darwin10/
+  arch = Config::CONFIG["arch"].split("-")[0]
+
+  if arch == "universal"
+    arch = `uname -m`.strip
+  end
+
   other_opts = "--disable-dependency-tracking"
   env = "ARCHFLAGS='-arch #{arch}' CPPFLAGS='-arch #{arch}'"
 elsif RUBY_PLATFORM =~ /darwin9/
