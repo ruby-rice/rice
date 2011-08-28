@@ -298,7 +298,7 @@ void
 Rice::Module_impl<Base_T, Derived_T>::
 remove_const(Identifier name)
 {
-  protect(rb_mod_remove_const, *this, Symbol(name));
+  protect(rb_mod_remove_const, *this, name.to_sym());
 }
 
 template<typename Base_T, typename Derived_T>
