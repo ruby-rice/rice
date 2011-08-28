@@ -7,8 +7,6 @@
 
 #if defined(_MSC_VER)
 #define NOMINMAX
-#else
-using namespace std;
 #endif
 
 #include <vector>
@@ -16,6 +14,10 @@ using namespace std;
 #include <stdexcept>
 #include <sstream>
 #include <iostream>
+
+#if !defined(_MSC_VER)
+using namespace std;
+#endif
 
 class Failure
 {
