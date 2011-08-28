@@ -130,8 +130,8 @@ define_constructor(
   rb_define_alloc_func(
       static_cast<VALUE>(*this),
       detail::default_allocation_func<T>);
-  define_method(
-      "initialize", 
+  this->define_method(
+      "initialize",
       &Constructor_T::construct,
       arguments
       );
