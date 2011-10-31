@@ -48,7 +48,7 @@ class AutoMemberFunctionWrapperIpp < RiceTemplate
       args << {
         :count => count
       }
-    end 
+    end
 
     args
   end

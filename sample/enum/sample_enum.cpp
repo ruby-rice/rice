@@ -45,7 +45,7 @@ void Init_sample_enum()
       .define_value("FOO", SE_FOO)
       .define_value("BAR", SE_BAR)
       .define_value("BAZ", SE_BAZ);
-     
+
     sample_enum_type
       .define_method("description", description);
   }

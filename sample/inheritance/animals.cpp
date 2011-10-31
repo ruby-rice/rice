@@ -86,7 +86,7 @@ void Init_animals(void)
 
     define_class<Bear, Animal>("Bear")
       .define_constructor(Constructor<Bear>());
-      
+
     define_class<Dog, Animal>("Dog")
       .define_constructor(Constructor<Dog>());
 

@@ -180,7 +180,7 @@ from_ruby(Object x)
 
   Data_Type_Base::Casters::const_iterator it = Data_Type_Base::casters().begin();
   Data_Type_Base::Casters::const_iterator end = Data_Type_Base::casters().end();
-   
+
   // Finding the bound type that relates to the given klass is
   // a two step process. We iterate over the list of known type casters,
   // looking for:
@@ -210,7 +210,7 @@ from_ruby(Object x)
 
     // Check for ancestors. Trick is, we need to find the lowest
     // ancestor that does have a Caster to make sure that we're casting
-    // to the closest C++ type that the Ruby class is subclassing. 
+    // to the closest C++ type that the Ruby class is subclassing.
     // There might be multiple ancestors that are also wrapped in
     // the extension, so find the earliest in the list and use that one.
     indexFound = rb_funcall(ancestors, rb_intern("index"), 1, it->first);
@@ -224,7 +224,7 @@ from_ruby(Object x)
       }
     }
   }
-  
+
   if(toUse == end)
   {
     std::string s = "Class ";
@@ -331,7 +331,7 @@ define_class(
 }
 
 template<typename From_T, typename To_T>
-inline void 
+inline void
 Rice::define_implicit_cast()
 {
   // As Rice currently expects only one entry into
@@ -342,10 +342,10 @@ Rice::define_implicit_cast()
   Class from_class = Data_Type<From_T>::klass().value();
   Class to_class = Data_Type<To_T>::klass().value();
 
-  detail::Abstract_Caster* from_caster = 
+  detail::Abstract_Caster* from_caster =
     Data_Type<From_T>::caster_.release();
 
-  detail::Abstract_Caster* new_caster = 
+  detail::Abstract_Caster* new_caster =
     new detail::Implicit_Caster<To_T, From_T>(from_caster, to_class);
 
   // Insert our new caster into the list for the from class

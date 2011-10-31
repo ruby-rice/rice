@@ -39,7 +39,7 @@ extern "C" typedef int (*St_Insert_Signature)(
 extern "C" typedef int (*St_Lookup_Signature)(
     st_table * table,
     st_data_t key,
-    st_data_t * value); 
+    st_data_t * value);
 extern "C" typedef st_table* (*St_Init_Table_Signature)(
     struct st_hash_type * type);
 

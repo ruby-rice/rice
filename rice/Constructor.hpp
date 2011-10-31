@@ -41,7 +41,7 @@ namespace Rice
     }
   };
 
-  
+
     template<typename T, typename Arg0_T>
     class Constructor<T, Arg0_T, void, void, void, void, void, void, void, void, void, void, void, void, void, void, void>
     {
@@ -52,7 +52,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T>
     class Constructor<T, Arg0_T, Arg1_T, void, void, void, void, void, void, void, void, void, void, void, void, void, void>
     {
@@ -63,7 +63,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T>
     class Constructor<T, Arg0_T, Arg1_T, Arg2_T, void, void, void, void, void, void, void, void, void, void, void, void, void>
     {
@@ -74,7 +74,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T>
     class Constructor<T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, void, void, void, void, void, void, void, void, void, void, void, void>
     {
@@ -85,7 +85,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T>
     class Constructor<T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, void, void, void, void, void, void, void, void, void, void, void>
     {
@@ -96,7 +96,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T>
     class Constructor<T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, void, void, void, void, void, void, void, void, void, void>
     {
@@ -107,7 +107,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T>
     class Constructor<T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, void, void, void, void, void, void, void, void, void>
     {
@@ -118,7 +118,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T>
     class Constructor<T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, void, void, void, void, void, void, void, void>
     {
@@ -129,7 +129,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T>
     class Constructor<T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, void, void, void, void, void, void, void>
     {
@@ -140,7 +140,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T>
     class Constructor<T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, void, void, void, void, void, void>
     {
@@ -151,7 +151,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T>
     class Constructor<T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, void, void, void, void, void>
     {
@@ -162,7 +162,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T>
     class Constructor<T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, void, void, void, void>
     {
@@ -173,7 +173,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T>
     class Constructor<T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, void, void, void>
     {
@@ -184,7 +184,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T>
     class Constructor<T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, void, void>
     {
@@ -195,7 +195,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T, typename Arg14_T>
     class Constructor<T, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, Arg14_T, void>
     {
@@ -206,7 +206,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T>
     class Constructor<T, Object, Arg0_T, void, void, void, void, void, void, void, void, void, void, void, void, void, void>
     {
@@ -217,7 +217,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T>
     class Constructor<T, Object, Arg0_T, Arg1_T, void, void, void, void, void, void, void, void, void, void, void, void, void>
     {
@@ -228,7 +228,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T>
     class Constructor<T, Object, Arg0_T, Arg1_T, Arg2_T, void, void, void, void, void, void, void, void, void, void, void, void>
     {
@@ -239,7 +239,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T>
     class Constructor<T, Object, Arg0_T, Arg1_T, Arg2_T, Arg3_T, void, void, void, void, void, void, void, void, void, void, void>
     {
@@ -250,7 +250,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T>
     class Constructor<T, Object, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, void, void, void, void, void, void, void, void, void, void>
     {
@@ -261,7 +261,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T>
     class Constructor<T, Object, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, void, void, void, void, void, void, void, void, void>
     {
@@ -272,7 +272,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T>
     class Constructor<T, Object, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, void, void, void, void, void, void, void, void>
     {
@@ -283,7 +283,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T>
     class Constructor<T, Object, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, void, void, void, void, void, void, void>
     {
@@ -294,7 +294,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T>
     class Constructor<T, Object, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, void, void, void, void, void, void>
     {
@@ -305,7 +305,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T>
     class Constructor<T, Object, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, void, void, void, void, void>
     {
@@ -316,7 +316,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T>
     class Constructor<T, Object, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, void, void, void, void>
     {
@@ -327,7 +327,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T>
     class Constructor<T, Object, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, void, void, void>
     {
@@ -338,7 +338,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T>
     class Constructor<T, Object, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, void, void>
     {
@@ -349,7 +349,7 @@ namespace Rice
         }
     };
 
-    
+
     template<typename T, typename Arg0_T, typename Arg1_T, typename Arg2_T, typename Arg3_T, typename Arg4_T, typename Arg5_T, typename Arg6_T, typename Arg7_T, typename Arg8_T, typename Arg9_T, typename Arg10_T, typename Arg11_T, typename Arg12_T, typename Arg13_T>
     class Constructor<T, Object, Arg0_T, Arg1_T, Arg2_T, Arg3_T, Arg4_T, Arg5_T, Arg6_T, Arg7_T, Arg8_T, Arg9_T, Arg10_T, Arg11_T, Arg12_T, Arg13_T, void>
     {

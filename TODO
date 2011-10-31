@@ -46,7 +46,7 @@ Implicit and other type conversions:
       .define_constructor(Constructor<Fake, int>())
       .implicit_cast_to<Real>();
 
-  So the steps I'll need to take to make this work correctly are as follows: 
+  So the steps I'll need to take to make this work correctly are as follows:
 
   T from_ruby(Rice::Object x)
     - Check for direct match (exists)
@@ -55,8 +55,8 @@ Implicit and other type conversions:
       - Might need two ways of this: constructor or cast method.
 
     - Check for any implicit casts for type T
-      - Try to build the list so that I don't have to actually cast anything 
+      - Try to build the list so that I don't have to actually cast anything
         unless I know it's the right type to cast to
       - How do I know what type I'm casting from? (the case of Real being given a FixNum)
       - Defined types to Defined types will be much simpler I believe
-    
+

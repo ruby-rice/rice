@@ -9,19 +9,19 @@ PROJECT_WEB_PATH = "/var/www/gforge-projects/rice"
 
 task :default => :test
 
-desc "Run unit tests" 
+desc "Run unit tests"
 task :test do
   cd "test" do
     ruby "test_rice.rb"
   end
 end
 
-desc "Build the documentation" 
+desc "Build the documentation"
 task :doc do
   sh "make doc"
 end
 
-desc "Upload documentation to the website. Requires rubyforge gem" 
+desc "Upload documentation to the website. Requires rubyforge gem"
 task :upload_web => [:doc] do
   host = "jameskilton@rubyforge.org"
   Rake::SshDirPublisher.new(host, PROJECT_WEB_PATH, "doc/html").upload

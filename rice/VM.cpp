@@ -1,6 +1,6 @@
 #include "VM.hpp"
 #include "detail/ruby.hpp"
-#include "detail/env.hpp" 
+#include "detail/env.hpp"
 #include "detail/ruby_version_code.hpp"
 
 #include <stdexcept>

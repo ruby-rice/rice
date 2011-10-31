@@ -19,7 +19,7 @@ namespace Rice
  *      Foo()
  *        : string_(rb_str_new2())
  *        , guard_(&string_);
- * 
+ *
  *    private:
  *      VALUE string_;
  *      Address_Registration_Guard guard_;
