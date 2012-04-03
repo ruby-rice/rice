@@ -22,7 +22,7 @@ with_ruby = File.join(Config::CONFIG["bindir"], Config::CONFIG["RUBY_INSTALL_NAM
 other_opts = ""
 env = ""
 
-if RUBY_PLATFORM =~ /darwin10/
+if RUBY_PLATFORM =~ /darwin10/ || RUBY_PLATFORM =~ /darwin11/
   arch = Config::CONFIG["arch"].split("-")[0]
 
   if arch == "universal"
