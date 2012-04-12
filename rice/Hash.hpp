@@ -204,6 +204,20 @@ private:
 
 } // namespace Rice
 
+template<>
+inline
+Rice::Hash from_ruby<Rice::Hash>(Rice::Object x)
+{
+  return Rice::Hash(x);
+}
+
+template<>
+inline
+Rice::Object to_ruby<Rice::Hash>(Rice::Hash const & x)
+{
+  return x;
+}
+
 #include "Hash.ipp"
 
 #endif // Rice__Hash__hpp_

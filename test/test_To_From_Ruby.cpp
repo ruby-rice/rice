@@ -1,6 +1,8 @@
 #include "unittest.hpp"
 #include "rice/to_from_ruby.hpp"
 #include "rice/String.hpp"
+#include "rice/Array.hpp"
+#include "rice/Hash.hpp"
 #include <limits>
 #include <cmath>
 
@@ -274,4 +276,28 @@ TESTCASE(std_string_from_ruby_with_binary)
   std::string got = from_ruby<std::string>(rb_str_new("\000test", 5));
   ASSERT_EQUAL(5, got.length());
   ASSERT_EQUAL(std::string("\000test", 5), got);
+}
+
+TESTCASE(array_to_ruby)
+{
+  Array a(rb_ary_new());
+  ASSERT_EQUAL(a.value(), to_ruby(a).value());
+}
+
+TESTCASE(array_from_ruby)
+{
+  Array a(rb_ary_new());
+  ASSERT_EQUAL(a.value(), from_ruby<Array>(a).value());
+}
+
+TESTCASE(hash_to_ruby)
+{
+  Hash h(rb_hash_new());
+  ASSERT_EQUAL(h.value(), to_ruby(h).value());
+}
+
+TESTCASE(hash_from_ruby)
+{
+  Hash h(rb_hash_new());
+  ASSERT_EQUAL(h.value(), from_ruby<Hash>(h).value());
 }
