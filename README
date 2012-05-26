@@ -562,8 +562,8 @@ We can wrap this class by using typedefs:
   extern "C"
   void Init_Container()
   {
-    typedef size_t (*Container::get_capacity)();
-    typedef void (*Container::set_capacity)(size_t);
+    typedef size_t (Container::*get_capacity)();
+    typedef void (Container::*set_capacity)(size_t);
 
     Data_Type<Container> rb_cContainer =
       define_class<Container>("Container")
