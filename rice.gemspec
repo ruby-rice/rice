@@ -6,7 +6,7 @@ $spec = Gem::Specification.new do |s|
   s.homepage = 'http://rice.rubyforge.org/'
   s.rubyforge_project = 'rice'
   s.authors = ['Paul Brannan', 'Jason Roelofs']
-  s.email = ['curlypaul924@gmail.com', 'jameskilton@gmail.com']
+  s.email = ['curlypaul924@gmail.com', 'jasonroelofs@gmail.com']
 
   s.description = <<-END
 Rice is a C++ interface to Ruby's C API.  It provides a type-safe and
