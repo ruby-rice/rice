@@ -5,8 +5,8 @@ class RiceTest < Test::Unit::TestCase
   # TODO: probably a better way to find this out...
   VERBOSE = ARGV.include?('-v')
 
-  EXEEXT = Config::CONFIG['EXEEXT']
-  RUBY = Config::CONFIG['RUBY_INSTALL_NAME']
+  EXEEXT = RbConfig::CONFIG['EXEEXT']
+  RUBY = RbConfig::CONFIG['RUBY_INSTALL_NAME']
 
   def test_unittest
     run_external_test("./unittest#{EXEEXT}")

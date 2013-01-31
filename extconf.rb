@@ -17,13 +17,13 @@ require 'rbconfig'
 require 'ruby/lib/version.rb'
 
 prefix_dir = File.join(File.dirname(File.expand_path(__FILE__)), "ruby", "lib")
-with_ruby = File.join(Config::CONFIG["bindir"], Config::CONFIG["RUBY_INSTALL_NAME"])
+with_ruby = File.join(RbConfig::CONFIG["bindir"], RbConfig::CONFIG["RUBY_INSTALL_NAME"])
 
 other_opts = ""
 env = ""
 
-if RUBY_PLATFORM =~ /darwin10/ || RUBY_PLATFORM =~ /darwin11/
-  arch = Config::CONFIG["arch"].split("-")[0]
+if RUBY_PLATFORM =~ /darwin1[0-2]/ 
+  arch = RbConfig::CONFIG["arch"].split("-")[0]
 
   if arch == "universal"
     arch = `uname -m`.strip

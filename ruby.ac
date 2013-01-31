@@ -1,6 +1,6 @@
 dnl Get a key from ruby's configuration table
 AC_DEFUN([RUBY_CONFIG], [
-          $RUBY -rrbconfig -e "puts(Config::CONFIG[['$1']] || '')"])
+          $RUBY -rrbconfig -e "puts(RbConfig::CONFIG[['$1']] || '')"])
 
 AC_DEFUN([RB_INIT_RUBY], [
 
@@ -77,7 +77,7 @@ else
     RUBY_SITELIBDIR=`RUBY_CONFIG(sitelibdir)`
   else
     sitelibdir_no_prefix=`$RUBY -rrbconfig \
-    -e "include Config; \
+    -e "include RbConfig; \
     puts CONFIG[['sitelibdir']].sub(CONFIG[['prefix']], '')"`
     RUBY_SITELIBDIR="${prefix}/${sitelibdir_no_prefix}"
   fi
