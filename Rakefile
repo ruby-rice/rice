@@ -1,5 +1,6 @@
 $: << File.expand_path(File.dirname(__FILE__))
-require 'rake/gempackagetask'
+require 'rubygems'
+require 'rubygems/package_task'
 require 'rake/contrib/sshpublisher'
 require 'yaml'
 require 'ruby/lib/version'
@@ -29,5 +30,5 @@ end
 
 # Gemspec kept externally
 eval(File.read("rice.gemspec"))
-Rake::GemPackageTask.new($spec) do |pkg|
+Gem::PackageTask.new($spec) do |pkg|
 end
