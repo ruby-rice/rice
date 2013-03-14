@@ -84,11 +84,11 @@ method_data()
 // the method entry.  The form of the method entry differs from ruby
 // version to ruby version, but the concept is the same across all of
 // them.
-// 
+//
 // In Rice, we make use of this by defining a method on a dummy class,
 // then attaching that method to our real class.  The method is a real
 // method in our class, but its origin class is our dummy class.
-// 
+//
 // When Ruby makes a method call, it stores the origin class in the
 // current stack frame.  When Ruby calls into Rice, we grab the origin
 // class from the stack frame, then pull the data out of the origin

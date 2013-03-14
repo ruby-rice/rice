@@ -35,7 +35,7 @@ Exception(Object exc, char const * fmt, ...)
 {
   va_list args;
   char buf[BUFSIZ];
-  
+
   va_init_list(args, fmt);
   vsnprintf(buf, BUFSIZ, fmt, args);
   buf[BUFSIZ - 1] = '\0';

@@ -49,7 +49,7 @@ class AutoFunctionWrapperIpp < RiceTemplate
       args << {
         :count => count
       }
-    end 
+    end
 
     args
   end
@@ -63,7 +63,7 @@ class AutoFunctionWrapperIpp < RiceTemplate
         :arg => "arg#{count + 1}",
         :count => count
       }
-    end 
+    end
 
     args
   end

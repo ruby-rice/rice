@@ -93,7 +93,7 @@ Rice::Data_Type<T> define_class(
     char const * name);
 
 //! Define an implicit conversion rule between two types.
-/*! Given two types, which can be custom types already 
+/*! Given two types, which can be custom types already
  *  wrapped into Rice or fundamental C++ types, this
  *  tells Rice that the two types can be used interchangably.
  *  \param From_T The type to convert from
@@ -129,7 +129,7 @@ public:
 
   //! Destructor.
   virtual ~Data_Type();
- 
+
   //! Explictly return the Ruby type.
   /*! \return the ruby class to which the type is bound.
    */
@@ -170,7 +170,7 @@ public:
   //! Register a Director class for this class.
   /*! For any class that uses Rice::Director to enable polymorphism
    *  across the languages, you need to register that director proxy
-   *  class with this method. Not doing so will cause the resulting 
+   *  class with this method. Not doing so will cause the resulting
    *  library to die at run time when it tries to convert the base
    *  type into the Director proxy type, and cannot find an appropriate Caster.
    *

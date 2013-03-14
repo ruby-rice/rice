@@ -25,7 +25,7 @@ namespace detail
 
   private:
     Fun f_;
-    
+
     Ret_T result_; // TODO: use placement new
   };
 

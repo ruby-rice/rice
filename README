@@ -708,7 +708,7 @@ As polymorphism is the most important tennant of Object Oriented Programming,
 it's important that Rice supports polymorphic calls travelling between C++
 and Ruby seemlessly. Super calls from Ruby subclasses back into C++ already work,
 but enabling the other direction requires some extra work. While this isn't
-something Rice can do on it's own, the Rice::Director class, coupled with 
+something Rice can do on it's own, the Rice::Director class, coupled with
 Rice::Data_Type::define_director exposes this functionality cleanly.
 
 Like SWIG_Director, Rice::Director is a class that is used to build a proxy class
@@ -793,7 +793,7 @@ that need to be forwarded into Ruby are done as specified here: get the Ruby obj
 for the instance of this class, call Rice::Object::call, and if necessary convert
 the return value from Ruby back into C++ types.
 
-The default_doWork method will be used as Rice's hookup of calling back up the 
+The default_doWork method will be used as Rice's hookup of calling back up the
 heirarchy (wrapping is below). This method needs to do one of two things: call
 up the class heirarchy, as seen here, or call raisePureVirtual() as seen in the
 processWorker example:
@@ -833,7 +833,7 @@ object construction / destruction of the types in question.
 There are times when a library exposes classes that while unrelated are
 built to be interchangeable across the library. One example of this,
 taken from Ogre, are the Degree and Radian classes. When a given method
-takes a Radian, you're free to pass in a Degree, and vice versa. 
+takes a Radian, you're free to pass in a Degree, and vice versa.
 
 Rice cannot automatically figure out if this kind of functionality is
 possible in a given library but it does have a simple API for defining

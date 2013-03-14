@@ -185,7 +185,7 @@ namespace {
   class CallsSelf {
     public:
       int doIt(int in) {
-        return doItImpl(in); 
+        return doItImpl(in);
       }
 
       virtual int doItImpl(int in) = 0;

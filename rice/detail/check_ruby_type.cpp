@@ -7,7 +7,7 @@ check_ruby_type(
     VALUE klass,
     bool include_super
     )
-{ 
+{
   if( !rb_obj_is_kind_of(value, klass) ||
      (!include_super && rb_obj_class(value) != klass))
   {
@@ -22,6 +22,6 @@ check_ruby_type(
         "wrong argument type %s (expected %s)",
         got, expected
       );
-  }                                 
+  }
 }
 

@@ -182,7 +182,7 @@ compare(Object lhs, Object rhs)
   Rice::Data_Object<Enum_T> r(rhs, klass);
 
   Enum_T left(*l);
-  Enum_T right(*r);  
+  Enum_T right(*r);
 
   if(left == right)
   {
@@ -203,7 +203,7 @@ Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
 eql(Object lhs, Object rhs)
 {
   using ::from_ruby; // Workaround for g++ 3.3.3
-  bool is_equal = from_ruby<int>(compare(lhs, rhs)) == 0; 
+  bool is_equal = from_ruby<int>(compare(lhs, rhs)) == 0;
   return to_ruby(is_equal);
 }
 

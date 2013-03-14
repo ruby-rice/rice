@@ -60,7 +60,7 @@ call(int argc, VALUE *argv, VALUE self)
       rb_scan_args(argc, argv, args->formatString(Num_Args - 1).c_str()
         , {{{scan_args}}});
 
-      Arg0_T arg0 = from_ruby<Arg0_T>(self); 
+      Arg0_T arg0 = from_ruby<Arg0_T>(self);
 
       {{#self_arguments}}
         typedef typename sanitize< {{in_type}} >::Type {{out_type}};
@@ -139,7 +139,7 @@ call(int argc, VALUE* argv, VALUE self)
       rb_scan_args(argc, argv, args->formatString(Num_Args - 1) .c_str()
         , {{{scan_args}}});
 
-      Arg0_T arg0 = from_ruby<Arg0_T>(self); 
+      Arg0_T arg0 = from_ruby<Arg0_T>(self);
 
       {{#self_arguments}}
         typedef typename sanitize< {{in_type}} >::Type {{out_type}};

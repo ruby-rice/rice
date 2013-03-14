@@ -15,7 +15,7 @@ convert(T const & x)
     s += demangle(typeid(T *).name());
     throw std::invalid_argument(s.c_str());
   }
-}   
+}
 
 template<typename T>
 Rice::Object

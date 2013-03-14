@@ -9,8 +9,8 @@ class ConstructorHpp < RiceTemplate
   end
 
   def voids(count = MAX_ARGS)
-    count < 1 ? 
-      "" : 
+    count < 1 ?
+      "" :
       (["void"] * (count)).join(", ")
   end
 

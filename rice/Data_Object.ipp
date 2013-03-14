@@ -80,7 +80,7 @@ Data_Object(
     Object value)
   : Object(value)
   , obj_(detail::unwrap<T>(value))
-{  
+{
   Data_Type<T> klass;
   check_cpp_type(klass);
   detail::check_ruby_type(value, klass, true);
@@ -94,7 +94,7 @@ Data_Object(
     Data_Type<U> const & klass)
   : Object(value)
   , obj_(detail::unwrap<T>(value))
-{  
+{
   check_cpp_type(klass);
   detail::check_ruby_type(value, klass, true);
 }

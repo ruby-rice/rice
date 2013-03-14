@@ -24,7 +24,7 @@ namespace Rice
       char const * name,
       Func_T func,
       Arg const& arg);
-  
+
 
 } // Rice
 

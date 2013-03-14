@@ -8,7 +8,7 @@ class ObjectCallHpp < RiceTemplate
     {
       :typenames => build(c, "typename T{{i}}"),
       :arguments => build(c, "T{{i}} arg{{i}}")
-    } 
+    }
   end
 
 end
@@ -23,7 +23,7 @@ class ObjectCallIpp < RiceTemplate
       :arguments => build(c, "T{{i}} arg{{i}}"),
       :to_rubies => build(c, "to_ruby(arg{{i}})"),
       :arg_count => c
-    } 
+    }
   end
 
 end
