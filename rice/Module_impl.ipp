@@ -155,7 +155,7 @@ define_singleton_method(
     Arguments* arguments)
 {
   detail::define_method_and_auto_wrap(
-      rb_class_of(*this), name, func, this->handler(), arguments);
+      rb_singleton_class(*this), name, func, this->handler(), arguments);
   return (Derived_T &)*this;
 }
 

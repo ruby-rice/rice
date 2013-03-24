@@ -94,6 +94,22 @@ TESTCASE(define_module_function_simple)
   ASSERT(define_method_simple_ok);
 }
 
+TESTCASE(define_module_does_not_leak_method_to_Object)
+{
+  Module m = define_module("TestModule");
+  m.define_module_function("test_module_function", &define_method_simple_helper);
+
+  Module runner(anonymous_module());
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    runner.instance_eval("Object.test_module_function"),
+    ASSERT_EQUAL(
+      Object(rb_eNoMethodError),
+      Object(CLASS_OF(ex.value()))
+    )
+  );
+}
+
 namespace
 {
 
