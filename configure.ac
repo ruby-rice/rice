@@ -2,7 +2,7 @@ AC_INIT(rice, 1.1)
 AC_CONFIG_SRCDIR(rice)
 AM_INIT_AUTOMAKE
 
-AM_CONFIG_HEADER(rice/config.hpp)
+AC_CONFIG_HEADERS(rice/config.hpp)
 
 AC_LANG(C++)
 AC_PROG_CXX
