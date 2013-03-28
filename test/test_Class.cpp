@@ -258,7 +258,7 @@ TESTCASE(define_method_int_foo)
   define_method_int_result = 0;
   Foo * foo = new Foo;
   foo->x = 1024;
-  VALUE f = Data_Wrap_Struct(rb_cObject, 0, Default_Allocation_Strategy<Foo>::free, foo);
+  VALUE f = Data_Wrap_Struct(rb_cObject, 0, Default_Free_Function<Foo>::free, foo);
   o.call("foo", 42, Object(f));
   ASSERT_EQUAL(42, define_method_int_foo_result_i);
   ASSERT_EQUAL(foo, define_method_int_foo_result_x);
@@ -332,7 +332,7 @@ TESTCASE(define_iterator)
   c.define_iterator(&Container::begin, &Container::end);
   Container * container = new Container(array, 3);
   Object wrapped_container = Data_Wrap_Struct(
-      c, 0, Default_Allocation_Strategy<Container>::free, container);
+      c, 0, Default_Free_Function<Container>::free, container);
   Array a = wrapped_container.instance_eval("a = []; each() { |x| a << x }; a");
   ASSERT_EQUAL(3u, a.size());
   ASSERT_EQUAL(to_ruby(1), Object(a[0]));

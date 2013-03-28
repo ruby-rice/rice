@@ -23,7 +23,7 @@ struct Default_Mark_Function
 };
 
 template<typename T>
-struct Default_Allocation_Strategy
+struct Default_Free_Function
 {
   static void free(T * obj) { delete obj; }
 };
@@ -79,7 +79,7 @@ public:
       T * obj,
       VALUE klass = Data_Type<T>::klass(),
       Ruby_Data_Func mark_func = Default_Mark_Function<T>::mark,
-      Ruby_Data_Func free_func = Default_Allocation_Strategy<T>::free);
+      Ruby_Data_Func free_func = Default_Free_Function<T>::free);
 
   //! Unwrap a Ruby object.
   /*! This constructor is analgous to calling Data_Get_Struct.  Uses

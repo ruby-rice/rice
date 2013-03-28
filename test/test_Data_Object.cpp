@@ -51,7 +51,7 @@ TESTCASE(construct_from_pointer_with_defaults)
       expected_mark_func,
       RDATA(wrapped_foo.value())->dmark);
   ASSERT_EQUAL(
-      RUBY_DATA_FUNC(Default_Allocation_Strategy<Foo>::free),
+      RUBY_DATA_FUNC(Default_Free_Function<Foo>::free),
       RUBY_DATA_FUNC(RDATA(wrapped_foo.value())->dfree));
   ASSERT_EQUAL(foo, DATA_PTR(wrapped_foo.value()));
 }
@@ -71,7 +71,7 @@ TESTCASE(construct_from_pointer_and_klass)
       expected_mark_func,
       RDATA(wrapped_foo.value())->dmark);
   ASSERT_EQUAL(
-      RUBY_DATA_FUNC(Default_Allocation_Strategy<Foo>::free),
+      RUBY_DATA_FUNC(Default_Free_Function<Foo>::free),
       RUBY_DATA_FUNC(RDATA(wrapped_foo.value())->dfree));
   ASSERT_EQUAL(foo, DATA_PTR(wrapped_foo.value()));
 }
@@ -91,7 +91,7 @@ TESTCASE(construct_from_pointer_and_alternate_klass)
       expected_mark_func,
       RDATA(wrapped_foo.value())->dmark);
   ASSERT_EQUAL(
-      RUBY_DATA_FUNC(Default_Allocation_Strategy<Foo>::free),
+      RUBY_DATA_FUNC(Default_Free_Function<Foo>::free),
       RUBY_DATA_FUNC(RDATA(wrapped_foo.value())->dfree));
   ASSERT_EQUAL(foo, DATA_PTR(wrapped_foo.value()));
 }
@@ -112,7 +112,7 @@ TESTCASE(construct_from_pointer_and_klass_and_mark_function)
   ASSERT_EQUAL(Data_Type<Foo>::klass(), wrapped_foo.class_of());
   ASSERT_EQUAL((void *)dummy_mark, RDATA(wrapped_foo.value())->dmark);
   ASSERT_EQUAL(
-      RUBY_DATA_FUNC(Default_Allocation_Strategy<Foo>::free),
+      RUBY_DATA_FUNC(Default_Free_Function<Foo>::free),
       RUBY_DATA_FUNC(RDATA(wrapped_foo.value())->dfree));
   ASSERT_EQUAL(foo, DATA_PTR(wrapped_foo.value()));
 }
@@ -142,14 +142,14 @@ TESTCASE(construct_from_pointer_and_klass_and_mark_and_free)
 TESTCASE(construct_from_ruby_object)
 {
   Foo * foo = new Foo;
-  VALUE wrapped_foo = Data_Wrap_Struct(Data_Type<Foo>::klass(), 0, Default_Allocation_Strategy<Foo>::free, foo);
+  VALUE wrapped_foo = Data_Wrap_Struct(Data_Type<Foo>::klass(), 0, Default_Free_Function<Foo>::free, foo);
   Data_Object<Foo> data_object_foo(wrapped_foo);
   ASSERT_EQUAL(foo, data_object_foo.get());
   ASSERT_EQUAL(Data_Type<Foo>::klass(), data_object_foo.class_of());
   ASSERT_EQUAL(RDATA(wrapped_foo), RDATA(data_object_foo.value()));
   ASSERT_EQUAL(RUBY_DATA_FUNC(0), RDATA(data_object_foo.value())->dmark);
   ASSERT_EQUAL(
-      RUBY_DATA_FUNC(Default_Allocation_Strategy<Foo>::free),
+      RUBY_DATA_FUNC(Default_Free_Function<Foo>::free),
       RUBY_DATA_FUNC(RDATA(data_object_foo.value())->dfree));
   ASSERT_EQUAL(foo, DATA_PTR(data_object_foo.value()));
 }
@@ -158,14 +158,14 @@ TESTCASE(construct_from_ruby_object_and_class)
 {
   Data_Type<Foo> rb_cFoo;
   Foo * foo = new Foo;
-  VALUE wrapped_foo = Data_Wrap_Struct(Data_Type<Foo>::klass(), 0, Default_Allocation_Strategy<Foo>::free, foo);
+  VALUE wrapped_foo = Data_Wrap_Struct(Data_Type<Foo>::klass(), 0, Default_Free_Function<Foo>::free, foo);
   Data_Object<Foo> data_object_foo(wrapped_foo, rb_cFoo);
   ASSERT_EQUAL(foo, data_object_foo.get());
   ASSERT_EQUAL(Data_Type<Foo>::klass(), data_object_foo.class_of());
   ASSERT_EQUAL(RDATA(wrapped_foo), RDATA(data_object_foo.value()));
   ASSERT_EQUAL(RUBY_DATA_FUNC(0), RDATA(data_object_foo.value())->dmark);
   ASSERT_EQUAL(
-      RUBY_DATA_FUNC(Default_Allocation_Strategy<Foo>::free),
+      RUBY_DATA_FUNC(Default_Free_Function<Foo>::free),
       RUBY_DATA_FUNC(RDATA(data_object_foo.value())->dfree));
   ASSERT_EQUAL(foo, DATA_PTR(data_object_foo.value()));
 }
@@ -174,7 +174,7 @@ TESTCASE(construct_from_ruby_object_and_wrong_class)
 {
   Foo * foo = new Foo;
   Data_Type<Foo> rb_cFoo;
-  VALUE wrapped_foo = Data_Wrap_Struct(rb_cObject, 0, Default_Allocation_Strategy<Foo>::free, foo);
+  VALUE wrapped_foo = Data_Wrap_Struct(rb_cObject, 0, Default_Free_Function<Foo>::free, foo);
   ASSERT_EXCEPTION_CHECK(
       Exception,
       Data_Object<Foo> data_object_foo(wrapped_foo, rb_cFoo),
@@ -189,7 +189,7 @@ TESTCASE(copy_construct)
 {
   Data_Type<Foo> rb_cFoo;
   Foo * foo = new Foo;
-  VALUE wrapped_foo = Data_Wrap_Struct(Data_Type<Foo>::klass(), 0, Default_Allocation_Strategy<Foo>::free, foo);
+  VALUE wrapped_foo = Data_Wrap_Struct(Data_Type<Foo>::klass(), 0, Default_Free_Function<Foo>::free, foo);
   Data_Object<Foo> orig_data_object_foo(wrapped_foo, rb_cFoo);
   Data_Object<Foo> data_object_foo(orig_data_object_foo);
   ASSERT_EQUAL(foo, data_object_foo.get());
@@ -197,7 +197,7 @@ TESTCASE(copy_construct)
   ASSERT_EQUAL(RDATA(wrapped_foo), RDATA(data_object_foo.value()));
   ASSERT_EQUAL(RUBY_DATA_FUNC(0), RDATA(data_object_foo.value())->dmark);
   ASSERT_EQUAL(
-      RUBY_DATA_FUNC(Default_Allocation_Strategy<Foo>::free),
+      RUBY_DATA_FUNC(Default_Free_Function<Foo>::free),
       RUBY_DATA_FUNC(RDATA(data_object_foo.value())->dfree));
   ASSERT_EQUAL(foo, DATA_PTR(data_object_foo.value()));
 }
