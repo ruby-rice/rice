@@ -1,6 +1,6 @@
 #include "VM.hpp"
 #include "detail/ruby.hpp"
-#include "detail/env.hpp" 
+#include "detail/env.hpp"
 #include "detail/ruby_version_code.hpp"
 
 #include <stdexcept>
@@ -33,20 +33,10 @@ Rice::VM::
   init_stack();
 }
 
-#if RICE__RUBY_VERSION_CODE < 186
-  extern "C"
-  void Init_stack(VALUE *);
-#endif
-
 void Rice::VM::
 init_stack()
 {
-#if RICE__RUBY_VERSION_CODE >= 186
   RUBY_INIT_STACK;
-#else
-  VALUE v;
-  Init_stack(&v);
-#endif
 }
 
 void Rice::VM::

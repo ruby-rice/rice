@@ -16,16 +16,7 @@
 
 #include "ruby_version_code.hpp"
 
-// workaround for ruby 1.8.4, which defines eaccess and shouldn't
-#if RICE__RUBY_VERSION_CODE <= 184
-#define eaccess ruby_eaccess
-#endif
-
 #include <ruby.h>
-
-#if RICE__RUBY_VERSION_CODE <= 184
-#undef eaccess
-#endif
 
 #ifdef WIN32
 #include "win32.hpp"
