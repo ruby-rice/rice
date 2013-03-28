@@ -251,6 +251,24 @@ TESTCASE(char_const_ptr_from_ruby)
   ASSERT_EQUAL("foo", from_ruby<char const *>(rb_str_new2("foo")));
 }
 
+TESTCASE(char_from_ruby_single_character_string)
+{
+  ASSERT_EQUAL('x', from_ruby<char>(rb_str_new2("x")));
+}
+
+TESTCASE(char_from_ruby_longer_string)
+{
+  ASSERT_EXCEPTION(
+    std::invalid_argument,
+    from_ruby<char>(rb_str_new2("xy"))
+  );
+}
+
+TESTCASE(char_from_ruby_fixnum)
+{
+  ASSERT_EQUAL('1', from_ruby<char>(INT2NUM(49)));
+}
+
 TESTCASE(std_string_to_ruby)
 {
   ASSERT_EQUAL(String(""), to_ruby(std::string("")));

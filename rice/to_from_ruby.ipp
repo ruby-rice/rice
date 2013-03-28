@@ -164,7 +164,7 @@ char from_ruby<char>(Rice::Object x)
 {
   if(x.rb_type() == T_STRING)
   {
-    if(RSTRING_LEN(x.value()) == 0)
+    if(RSTRING_LEN(x.value()) == 1)
     {
       return RSTRING_PTR(x.value())[0];
     }
