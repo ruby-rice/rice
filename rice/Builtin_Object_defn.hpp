@@ -2,7 +2,6 @@
 #define Rice__Builtin_Object_defn__hpp_
 
 #include "Object_defn.hpp"
-#include "Allocation_Strategies.hpp"
 #include "detail/ruby.hpp"
 
 namespace Rice

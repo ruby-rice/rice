@@ -32,7 +32,6 @@ run_multiple_extensions_same_class_test:
 unittest_SOURCES = \
 	unittest.cpp \
 	test_Address_Registration_Guard.cpp \
-	test_Allocation_Strategies.cpp \
 	test_Array.cpp \
 	test_Builtin_Object.cpp \
 	test_Class.cpp \

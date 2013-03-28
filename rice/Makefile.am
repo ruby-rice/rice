@@ -23,7 +23,6 @@ nobase_include_HEADERS = \
 Address_Registration_Guard.hpp \
 Address_Registration_Guard.ipp \
 Address_Registration_Guard_defn.hpp \
-Allocation_Strategies.hpp \
 Array.hpp \
 Array.ipp \
 Arg.hpp \

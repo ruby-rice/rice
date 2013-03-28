@@ -3,7 +3,6 @@
 
 #include "Object_defn.hpp"
 #include "Data_Type_fwd.hpp"
-#include "Allocation_Strategies.hpp"
 #include "ruby_mark.hpp"
 #include "detail/to_ruby.hpp"
 #include "detail/ruby.hpp"
@@ -22,6 +21,13 @@ struct Default_Mark_Function
   typedef void (*Ruby_Data_Func)(T * obj);
   static const Ruby_Data_Func mark;
 };
+
+template<typename T>
+struct Default_Allocation_Strategy
+{
+  static void free(T * obj) { delete obj; }
+};
+
 
 //! A smartpointer-like wrapper for Ruby data objects.
 /*! A data object is a ruby object of type T_DATA, which is usually
