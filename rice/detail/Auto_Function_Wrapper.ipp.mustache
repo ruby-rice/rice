@@ -37,6 +37,13 @@ Auto_Function_Wrapper(
 }
 
 template<typename Func_T, typename Ret_T, {{typenames}}>
+Auto_Function_Wrapper<Func_T, Ret_T, {{types}}>::
+~Auto_Function_Wrapper()
+{
+  if(arguments_) { delete arguments_; }
+}
+
+template<typename Func_T, typename Ret_T, {{typenames}}>
 VALUE Auto_Function_Wrapper<Func_T, Ret_T, {{types}}>::
 call(int argc, VALUE *argv, VALUE self)
 {
@@ -113,6 +120,13 @@ Auto_Function_Wrapper(
   } else {
     arguments_ = arguments;
   }
+}
+
+template<typename Func_T, {{typenames}}>
+Auto_Function_Wrapper<Func_T, void, {{types}}>::
+~Auto_Function_Wrapper()
+{
+  if(arguments_) { delete arguments_; }
 }
 
 template<typename Func_T, {{typenames}}>
@@ -195,6 +209,13 @@ Auto_Function_Wrapper(
 }
 
 template<typename Func_T, typename Ret_T>
+Auto_Function_Wrapper<Func_T, Ret_T>::
+~Auto_Function_Wrapper()
+{
+  if(arguments_) { delete arguments_; }
+}
+
+template<typename Func_T, typename Ret_T>
 VALUE Auto_Function_Wrapper<Func_T, Ret_T>::
 call()
 {
@@ -234,6 +255,13 @@ Auto_Function_Wrapper(
   , handler_(handler ? handler : new Default_Exception_Handler)
   , arguments_(arguments)
 {
+}
+
+template<typename Func_T>
+Auto_Function_Wrapper<Func_T, void>::
+~Auto_Function_Wrapper()
+{
+  if(arguments_) { delete arguments_; }
 }
 
 template<typename Func_T>

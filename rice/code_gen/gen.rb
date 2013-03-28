@@ -1,3 +1,4 @@
+$:.unshift File.expand_path(File.dirname(__FILE__))
 require 'object_call'
 require 'protect'
 require 'constructor'

@@ -1126,6 +1126,7 @@ inline VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 co
 }
 
 // ---------------------------------------------------------------------
+
 } // namespace Rice
 
 

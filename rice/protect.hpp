@@ -81,6 +81,7 @@ VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t
 template<typename Fun, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10, typename T11, typename T12, typename T13, typename T14>
 VALUE protect(Fun fun, T0 const & t0, T1 const & t1, T2 const & t2, T3 const & t3, T4 const & t4, T5 const & t5, T6 const & t6, T7 const & t7, T8 const & t8, T9 const & t9, T10 const & t10, T11 const & t11, T12 const & t12, T13 const & t13, T14 const & t14);
 
+
 #endif // DOXYGEN
 
 } // namespace Rice

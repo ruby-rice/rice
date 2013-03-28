@@ -39,6 +39,13 @@ Auto_Member_Function_Wrapper(
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T, {{typenames}}>
+Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, {{types}}>::
+~Auto_Member_Function_Wrapper()
+{
+  if(arguments_) { delete arguments_; }
+}
+
+template<typename Func_T, typename Ret_T, typename Self_T, {{typenames}}>
 VALUE Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T, {{types}}>::
 call(int argc, VALUE* argv, VALUE self)
 {
@@ -97,6 +104,13 @@ Auto_Member_Function_Wrapper(
   } else {
     arguments_ = arguments;
   }
+}
+
+template<typename Func_T, typename Self_T, {{typenames}}>
+Auto_Member_Function_Wrapper<Func_T, void, Self_T, {{types}}>::
+~Auto_Member_Function_Wrapper()
+{
+  if(arguments_) { delete arguments_; }
 }
 
 template<typename Func_T, typename Self_T, {{typenames}}>
@@ -165,6 +179,13 @@ Auto_Member_Function_Wrapper(
 }
 
 template<typename Func_T, typename Ret_T, typename Self_T>
+Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T>::
+~Auto_Member_Function_Wrapper()
+{
+  if(arguments_) { delete arguments_; }
+}
+
+template<typename Func_T, typename Ret_T, typename Self_T>
 VALUE Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T>::
 call(int argc, VALUE* argv, VALUE self)
 {
@@ -215,6 +236,13 @@ Auto_Member_Function_Wrapper(
   } else {
     arguments_ = arguments;
   }
+}
+
+template<typename Func_T, typename Self_T>
+Auto_Member_Function_Wrapper<Func_T, void, Self_T>::
+~Auto_Member_Function_Wrapper()
+{
+  if(arguments_) { delete arguments_; }
 }
 
 template<typename Func_T, typename Self_T>

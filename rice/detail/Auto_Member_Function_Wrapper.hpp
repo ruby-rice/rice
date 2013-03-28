@@ -31,6 +31,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -53,6 +55,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -78,6 +82,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -100,6 +106,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -125,6 +133,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -147,6 +157,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -172,6 +184,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -194,6 +208,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -219,6 +235,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -241,6 +259,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -266,6 +286,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -288,6 +310,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -313,6 +337,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -335,6 +361,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -360,6 +388,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -382,6 +412,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -407,6 +439,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -429,6 +463,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -454,6 +490,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -476,6 +514,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -501,6 +541,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -523,6 +565,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -548,6 +592,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -570,6 +616,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -595,6 +643,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -617,6 +667,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -642,6 +694,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -664,6 +718,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -689,6 +745,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -711,6 +769,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -736,6 +796,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -759,6 +821,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Member_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 private:
@@ -769,6 +833,7 @@ private:
 };
 
 // ---------------------------------------------------------------------
+
 template<typename Func_T, typename Ret_T, typename Self_T>
 class Auto_Member_Function_Wrapper<Func_T, Ret_T, Self_T>
   : public Wrapped_Function
@@ -782,6 +847,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -805,6 +872,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Member_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* argv, VALUE self);
 

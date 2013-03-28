@@ -34,6 +34,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
 
+  ~Auto_Function_Wrapper();
+
   static VALUE call(int argc, VALUE* args, VALUE self);
 
 private:
@@ -56,6 +58,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = 0);
+
+  ~Auto_Function_Wrapper();
 
   static VALUE call(int argc, VALUE* args, VALUE self);
 
@@ -84,6 +88,8 @@ public:
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = new Arguments());
 
+  ~Auto_Function_Wrapper();
+
   static VALUE call();
 
 private:
@@ -106,6 +112,8 @@ public:
       Func func,
       Data_Object<Exception_Handler> handler,
       Arguments* arguments = new Arguments());
+
+  ~Auto_Function_Wrapper();
 
   static VALUE call();
 
