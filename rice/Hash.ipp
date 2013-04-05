@@ -6,7 +6,7 @@
 #include "Builtin_Object.hpp"
 #include "Exception.hpp"
 #include "Builtin_Object.hpp"
-#include "ruby/st.h"
+#include "detail/st.hpp"
 #include <algorithm>
 
 inline Rice::Hash::
