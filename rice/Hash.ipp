@@ -6,15 +6,8 @@
 #include "Builtin_Object.hpp"
 #include "Exception.hpp"
 #include "Builtin_Object.hpp"
+#include "ruby/st.h"
 #include <algorithm>
-
-// TODO: Evil hack
-struct st_table_entry {
-  unsigned int hash;
-  st_data_t key;
-  st_data_t record;
-  st_table_entry *next;
-};
 
 inline Rice::Hash::
 Hash()
@@ -31,7 +24,7 @@ Hash(Object v)
 inline size_t Rice::Hash::
 size() const
 {
-  return RHASH_TBL(this->value())->num_entries;
+  return RHASH_SIZE(this->value());
 }
 
 inline Rice::Hash::Proxy::
@@ -145,28 +138,30 @@ swap(Rice::Hash::Entry & entry)
 
 template<typename Hash_Ref_T, typename Value_T>
 inline Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
-Iterator(Hash_Ref_T hash, st_data_t bin, st_table_entry * ptr)
+Iterator(Hash_Ref_T hash)
   : hash_(hash)
-  , tbl_(RHASH_TBL(hash.value()))
-  , bin_(bin)
-  , ptr_(ptr)
+  , current_index_(0)
+  , keys_(Qnil)
   , tmp_(hash, Qnil)
 {
-  // If we aren't already at the end, then use the increment operator to
-  // point to the first element
-  if(!ptr_ && bin_ < tbl_->num_bins)
-  {
-    operator++();
-  }
+}
+
+template<typename Hash_Ref_T, typename Value_T>
+inline Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
+Iterator(Hash_Ref_T hash, int start_at)
+  : hash_(hash)
+  , current_index_(start_at)
+  , keys_(Qnil)
+  , tmp_(hash, Qnil)
+{
 }
 
 template<typename Hash_Ref_T, typename Value_T>
 inline Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
 Iterator(Iterator const & iterator)
   : hash_(iterator.hash_.value())
-  , tbl_(iterator.tbl_)
-  , bin_(iterator.bin_)
-  , ptr_(iterator.ptr_)
+  , current_index_(iterator.current_index_)
+  , keys_(Qnil)
   , tmp_(iterator.hash_, Qnil)
 {
 }
@@ -176,9 +171,8 @@ template<typename Iterator_T>
 inline Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
 Iterator(Iterator_T const & iterator)
   : hash_(iterator.hash_.value())
-  , tbl_(iterator.tbl_)
-  , bin_(iterator.bin_)
-  , ptr_(iterator.ptr_)
+  , current_index_(iterator.current_index_)
+  , keys_(Qnil)
   , tmp_(iterator.hash_, Qnil)
 {
 }
@@ -200,25 +194,9 @@ inline Rice::Hash::Iterator<Hash_Ref_T, Value_T> &
 Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
 operator++()
 {
-  // Go to the next element in the bin; this will be a no-op if we were
-  // called from the constructor, because ptr_ will be 0 (and if its
-  // not, this function won't get called).
-  if(ptr_)
-  {
-    ptr_ = ptr_->next;
-  }
-
-  // If we've reached the end of the bin, then try the next bin until
-  // we have run out of bins
-  while(ptr_ == 0)
-  {
-    ++bin_;
-    if(bin_ == tbl_->num_bins)
-    {
-      // At the end..
-      return *this;
-    }
-    ptr_ = tbl_->bins[bin_];
+  // Ensure we're within the range
+  if(current_index_ < hash_keys().size()) {
+    current_index_++;
   }
 
   return *this;
@@ -239,7 +217,7 @@ inline Value_T
 Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
 operator*()
 {
-  return Value_T(hash_, ptr_->key);
+  return Value_T(hash_, current_key());
 }
 
 template<typename Hash_Ref_T, typename Value_T>
@@ -247,7 +225,7 @@ inline Value_T *
 Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
 operator->()
 {
-  Entry tmp(hash_, ptr_->key);
+  Entry tmp(hash_, current_key());
   this->tmp_.swap(tmp);
   return &tmp_;
 }
@@ -257,9 +235,7 @@ inline bool Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
 operator==(Iterator const & rhs) const
 {
   return hash_.value() == rhs.hash_.value()
-    && tbl_ == rhs.tbl_
-    && bin_ == rhs.bin_
-    && ptr_ == rhs.ptr_;
+    && current_index_ == rhs.current_index_;
 }
 
 template<typename Hash_Ref_T, typename Value_T>
@@ -277,37 +253,53 @@ swap(Iterator& iterator)
   using namespace std;
 
   hash_.swap(iterator.hash_);
-  swap(tbl_, iterator.tbl_);
-  swap(bin_, iterator.bin_);
-  swap(ptr_, iterator.ptr_);
+  swap(keys_, iterator.keys_);
+  swap(current_index_, iterator.current_index_);
+}
+
+template<typename Hash_Ref_T, typename Value_T>
+inline Rice::Object
+Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
+current_key()
+{
+  return hash_keys()[current_index_];
+}
+
+
+template<typename Hash_Ref_T, typename Value_T>
+inline Rice::Array
+Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
+hash_keys()
+{
+  if(NIL_P(keys_)) {
+    keys_ = rb_funcall(hash_, rb_intern("keys"), 0, 0);
+  }
+
+  return Rice::Array(keys_);
 }
 
 inline Rice::Hash::iterator Rice::Hash::
 begin()
 {
-  st_table * tbl(RHASH_TBL(value()));
-  return iterator(*this, 0, tbl->bins[0]);
+  return iterator(*this);
 }
 
 inline Rice::Hash::const_iterator Rice::Hash::
 begin() const
 {
-  st_table * tbl(RHASH_TBL(value()));
-  return const_iterator(*this, 0, tbl->bins[0]);
+  return const_iterator(*this);
 }
 
 inline Rice::Hash::iterator Rice::Hash::
 end()
 {
-  st_table * tbl(RHASH_TBL(value()));
-  return iterator(*this, tbl->num_bins, 0);
+  return iterator(*this, size());
 }
 
 inline Rice::Hash::const_iterator Rice::Hash::
 end() const
 {
-  st_table * tbl(RHASH_TBL(value()));
-  return const_iterator(*this, tbl->num_bins, 0);
+  return const_iterator(*this, size());
 }
 
 inline bool Rice::
