@@ -45,7 +45,7 @@ def init_mkmf_rice(config = CONFIG)
   $preload ||= nil
 
   $CPPFLAGS << " #{$RICE_CPPFLAGS} -I#{$RICE_PREFIX}/include"
-  $LDFLAGS << " #{$RICE_LDFLAGS} -L#{$RICE_PREFIX}/lib"
+  $LDFLAGS << " #{$RICE_LDFLAGS} -L#{$RICE_PREFIX}/lib -lrice"
 
   # Turn on debugging and verbose warnings by default on compilers that
   # support it
@@ -74,9 +74,6 @@ def init_mkmf_rice(config = CONFIG)
     $LDSHARED_CXX = \
       replace_cc_with_cxx(config['LDSHARED'])
   end
-
-  # Link against the rice library by default
-  have_library('rice') or raise 
 end
 
 def replace_cc_with_cxx(str)
