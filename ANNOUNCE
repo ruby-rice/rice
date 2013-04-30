@@ -12,13 +12,16 @@ What is Rice?
 
 What's New?
 
-  * Fixed segfault on shutdown in 1.9.2 (Thanks Sylvain Joyeux)
-  * Installation no longer requires rubygems and can be built anywhere
+  * Ruby 2.0 support!
+  * Removed support for all Ruby < 1.8.7
+  * Fix converting from Ruby to a single char (#34)
+  * Fix define_singleton_method to set methods on the metaclass (#40)
+  * Fix a few potential memory leaks (#41, #42)
 
 Supported Platforms:
 
   * Linux
-  * Mac OS X 10.5 and 10.6
+  * Mac OS X
 
   * While Windows has been known to work with MinGW / MSYS, I haven't
     been able to keep this testing up as of late. Would appreciate any help
