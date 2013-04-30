@@ -40,7 +40,8 @@ or you can install via RubyGems
   gem install rice
 \endcode
 
-Note to Windows users: Rice is only known to properly compile and run under Cygwin and Mingw.
+Rice is known to work on *nix and OSX. Windows is not currently
+supported.
 
 \section tutorial Tutorial
 
