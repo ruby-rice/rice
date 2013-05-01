@@ -25,23 +25,27 @@ Mailing List: rice@librelist.com (your first email will be used as a subscriptio
 
 \section installation Installation
 
-There are two ways to install Rice. You can download the tarball from the repository,
-extract it and:
-
-\code
-  ./configure
-  make
-  sudo make install
-\endcode
-
-or you can install via RubyGems
-
 \code
   gem install rice
 \endcode
 
+Building it locally from a clone of the repository is as follows:
+
+\code
+  ./bootstrap
+  ruby extconf.rb
+  make
+\endcode
+
 Rice is known to work on *nix and OSX. Windows is not currently
 supported.
+
+Rice does not work with any Ruby compiled with the Falcon
+performans patches as they make changes to some internals which Rice
+relies on.
+
+Also Rice requires a Ruby built with --enable-shared and will not
+install properly against a Ruby with only static libraries.
 
 \section tutorial Tutorial
 
