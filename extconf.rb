@@ -25,7 +25,7 @@ Unfortunately Rice does not work against a Ruby without any shared libraries.
 You'll need to rebuild Ruby with --enable-shared to use this library.
 
 If you're on rvm:   rvm reinstall [version] -- --enable-shared
-If you're on rbenv: CONFIGURE_OPTS="--enable-shard" rbenv install [version]
+If you're on rbenv: CONFIGURE_OPTS="--enable-shared" rbenv install [version]
 If this is a host environment like Heroku you'll need to contact their support.
 EOC
 end
