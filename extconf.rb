@@ -47,4 +47,5 @@ elsif RUBY_PLATFORM =~ /darwin9/
   env = "ARCHFLAGS='-arch #{arch}' CPPFLAGS='-arch #{arch}'"
 end
 
+system "sh bootstrap"
 system "#{env} sh configure --with-ruby=#{with_ruby} --prefix=#{prefix_dir} #{other_opts}"
