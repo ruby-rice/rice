@@ -1,5 +1,6 @@
 #include "unittest.hpp"
 #include "rice/String.hpp"
+#include "rice/global_function.hpp"
 
 using namespace Rice;
 
@@ -92,3 +93,15 @@ TESTCASE(intern)
   ASSERT_EQUAL(Identifier("foo"), s.intern());
 }
 
+/**
+ * Issue 59 - Copy constructor compilation problem.
+ */
+
+namespace {
+  void testStringArg(Object self, String string) {
+  }
+}
+
+TESTCASE(use_string_in_wrapped_function) {
+  define_global_function("test_string_arg", &testStringArg);
+}

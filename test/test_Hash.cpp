@@ -1,5 +1,6 @@
 #include "unittest.hpp"
 #include "rice/Hash.hpp"
+#include "rice/global_function.hpp"
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -195,4 +196,17 @@ TESTCASE(iterate_and_change)
   ASSERT_EQUAL(to_ruby(m[1]), h[1]);
   ASSERT_EQUAL(to_ruby(m[6]), h[6]);
   ASSERT_EQUAL(to_ruby(m[42]), h[42]);
+}
+
+/**
+ * Issue 59 - Copy constructor compilation problem.
+ */
+
+namespace {
+  void testHashArg(Object self, Hash string) {
+  }
+}
+
+TESTCASE(use_hash_in_wrapped_function) {
+  define_global_function("test_hash_arg", &testHashArg);
 }

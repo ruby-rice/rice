@@ -1,6 +1,7 @@
 #include "unittest.hpp"
 #include "rice/Struct.hpp"
 #include "rice/Symbol.hpp"
+#include "rice/global_function.hpp"
 
 using namespace Rice;
 
@@ -190,3 +191,15 @@ TESTCASE(instance_swap)
   ASSERT_EQUAL(to_ruby(3), Object(rb_struct_getmember(p2, rb_intern("z"))));
 }
 
+/**
+ * Issue 59 - Copy constructor compilation problem.
+ */
+
+namespace {
+  void testStructArg(Object self, Struct string) {
+  }
+}
+
+TESTCASE(use_struct_in_wrapped_function) {
+  define_global_function("test_struct_arg", &testStructArg);
+}

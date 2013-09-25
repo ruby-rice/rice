@@ -69,4 +69,3 @@ TESTCASE(swap)
   ASSERT_EQUAL(b1.value(), o2.value());
   ASSERT_EQUAL(b2.value(), o1.value());
 }
-
