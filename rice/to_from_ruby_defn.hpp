@@ -55,8 +55,7 @@ typename Rice::detail::from_ruby_<T>::Retval_T from_ruby(Rice::Object x)
  *  \code
  *    rb_p(to_ruby(42));
  *
- *    Data_Object<Foo> foo(new Foo);
- *    Foo * p_foo = foo.get();
+ *    Foo * p_foo = new Foo();
  *    rb_p(to_ruby(p_foo));
  *  \endcode
  */

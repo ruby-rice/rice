@@ -8,7 +8,7 @@ namespace Rice {
   /**
    * A Director works exactly as a SWIG %director works (thus the name).
    * You use this class to help build proxy classes so that polymorphism
-   * works from C++ into Ruby.
+   * works from C++ into Ruby. See the main README for how this class works.
    */
   class Director 
   {

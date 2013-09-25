@@ -8,11 +8,13 @@ namespace Rice {
    *  wrapped method. Inspired by how Boost.Python handles keyword and
    *  default arguments, the syntax is simple:
    *
+   *  \code
    *    define_method(
    *      "method",
    *      &method,
    *      (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true)
    *    );
+   *  \endcode
    *
    *  which means "for method &method, it takes 3 arguments
    *  [arg1, arg2, arg3]. Of these arguments, arg2's default is 3

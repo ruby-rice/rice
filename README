@@ -636,7 +636,7 @@ have pass-by-variable-reference (it uses pass-by-object-reference).
 Future versions of Rice will have a cleaner way of dealing with this.
 
 
-\section default_arguments Default Arguments
+\subsection default_arguments Default Arguments
 
 Going back to our initial C++ class example, lets say that hello() now
 take a few arguments for what to return, one which has a default value:
@@ -707,7 +707,7 @@ This will also work with Constructors:
       ( Arg("arg1") = 1, Arg("otherArg") = 12 );
 \endcode
 
-\section director Director
+\subsection director Director
 
 As polymorphism is the most important tennant of Object Oriented Programming,
 it's important that Rice supports polymorphic calls travelling between C++
@@ -833,12 +833,13 @@ Rice::Data_Type::define_director, then define methods pointing to the proxy obje
 You must use the Rice::Director proxy class in the Constructor line, this allows proper
 object construction / destruction of the types in question.
 
-\section implicit_cast Implicit Casting
+\subsection implicit_cast Implicit Casting
 
 There are times when a library exposes classes that while unrelated are
 built to be interchangeable across the library. One example of this,
-taken from Ogre, are the Degree and Radian classes. When a given method
-takes a Radian, you're free to pass in a Degree, and vice versa. 
+taken from the Open Source 3d rendering engine <a
+href="http://www.ogre3d.org/">OGRE</a>, are the Degree and Radian classes.
+When a given method takes a Radian, you're free to pass in a Degree, and vice versa. 
 
 Rice cannot automatically figure out if this kind of functionality is
 possible in a given library but it does have a simple API for defining
@@ -1060,7 +1061,7 @@ the garbage collector.
 
 \li If an Object is allocated on the heap or if it is a member of an
 object that might be allocated on the heap, use an
-Address_Registration_Guard to register the object with the garbage
+Rice::Address_Registration_Guard to register the object with the garbage
 collector.
 
 \li If a reference counted object is being wrapped, or if another type
