@@ -2,10 +2,12 @@ rvm:
   - 1.8.7
   - 1.9.3
   - 2.0.0
-  - ree
   - ruby-head
 before_script:
   - sh bootstrap
   - ruby extconf.rb
   - make
 script: rake
+matrix:
+  allow_failures:
+    - rvm: ruby-head
