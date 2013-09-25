@@ -184,6 +184,8 @@ namespace {
 
   class CallsSelf {
     public:
+      virtual ~CallsSelf() { }
+
       int doIt(int in) {
         return doItImpl(in); 
       }
@@ -195,6 +197,7 @@ namespace {
 
     public:
       CallsSelfDirector(Object self) : Director(self) { }
+      virtual ~CallsSelfDirector() { }
 
       virtual int doItImpl(int in) {
         return from_ruby<int>( getSelf().call("do_it_impl", in) );
@@ -208,6 +211,7 @@ namespace {
 
   struct MyCallsSelf : CallsSelf {
     MyCallsSelf() { }
+    virtual ~MyCallsSelf() { }
 
     int doItImpl(int in) { return in * 12; }
   };
