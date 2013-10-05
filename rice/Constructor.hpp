@@ -11,6 +11,27 @@
 #include "detail/method_data.hpp"
 namespace Rice
 {
+#ifdef DOXYGEN
+//! Define a Type's Constructor and it's arguments.
+/*! E.g. for the default constructor on a Type:
+    \code
+      define_class<Test>()
+        .define_constructor(Constructor<Test>());
+    \endcode
+ *
+ *  The first template type must be the type being wrapped.
+ *  Afterwards any extra types must match the appropriate constructor
+ *  to be used in C++ when constructing the object.
+ *
+ *  For more information, see Rice::Data_Type::define_constructor.
+ */
+template<typename T, typename ArgTypes, ...>
+class Constructor
+{
+};
+
+#else
+
   template<typename T, typename Arg0_T=void, typename Arg1_T=void, typename Arg2_T=void, typename Arg3_T=void, typename Arg4_T=void, typename Arg5_T=void, typename Arg6_T=void, typename Arg7_T=void, typename Arg8_T=void, typename Arg9_T=void, typename Arg10_T=void, typename Arg11_T=void, typename Arg12_T=void, typename Arg13_T=void, typename Arg14_T=void, typename Arg15_T=void>
   class Constructor
   {
@@ -360,6 +381,8 @@ namespace Rice
         }
     };
 
+
+#endif // DOXYGEN
 
 } // namespace Rice
 
