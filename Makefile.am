@@ -22,5 +22,5 @@ EXTRA_DIST = \
 
 rice/README.doxygen: README
 	@echo Generating documentation
-	@$(RUBY) -e 'File.open("README") { |i| File.open("rice/README.doxygen", "w") { |o| o.puts "/*! #{i.gets}"; i.each_line { |l| o.puts " *  #{l}" if l !~ /^\\comment/ and l !~ /^vim:/ }; o.puts " */" } }'
+	@$(RUBY) -e 'File.open("README") { |i| File.open("rice/README.doxygen", "w") { |o| o.puts "/*! #{i.gets}"; i.each_line { |l| o.puts "    #{l}" if l !~ /^\\comment/ and l !~ /^vim:/ }; o.puts " */" } }'
 
