@@ -12,11 +12,9 @@ What is Rice?
 
 What's New?
 
-  * Ruby 2.0 support!
-  * Removed support for all Ruby < 1.8.7
-  * Fix converting from Ruby to a single char (#34)
-  * Fix define_singleton_method to set methods on the metaclass (#40)
-  * Fix a few potential memory leaks (#41, #42)
+  * Update build system to remove deprecation warnings and allow easier building
+  * Fix String to work as a parameter in a wrapped method (#59)
+  * Update documentation a bit
 
 Supported Platforms:
 
