@@ -40,7 +40,8 @@ TESTCASE(message)
 
 TESTCASE(what)
 {
+  const char* foo = "foo";
   Exception ex(rb_eRuntimeError, "%s", "foo");
-  ASSERT_EQUAL("foo", ex.what());
+  ASSERT_EQUAL(foo, ex.what());
 }
 

@@ -247,8 +247,9 @@ TESTCASE(char_const_ptr_to_ruby)
 
 TESTCASE(char_const_ptr_from_ruby)
 {
+  char const* foo = "foo";
   ASSERT_EQUAL("", from_ruby<char const *>(rb_str_new2("")));
-  ASSERT_EQUAL("foo", from_ruby<char const *>(rb_str_new2("foo")));
+  ASSERT_EQUAL(foo, from_ruby<char const *>(rb_str_new2("foo")));
 }
 
 TESTCASE(char_from_ruby_single_character_string)
