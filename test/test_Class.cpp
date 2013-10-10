@@ -119,13 +119,9 @@ TESTCASE(define_module_function_simple)
   // module_function only works with Module, not Class
   Class c(anonymous_class());
   ASSERT_EXCEPTION_CHECK(
-      Exception,
-      c.define_module_function("foo", &define_method_simple_helper),
-      ASSERT_EQUAL(
-          Object(rb_eTypeError),
-          Object(CLASS_OF(ex.value()))
-          )
-      );
+    std::runtime_error,
+    c.define_module_function("foo", &define_method_simple_helper),
+  );
 }
 
 namespace

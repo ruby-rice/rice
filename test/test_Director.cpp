@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "rice/Exception.hpp"
 #include "rice/Director.hpp"
 #include "rice/Constructor.hpp"
 #include "rice/Data_Type.hpp"

@@ -4,7 +4,6 @@
 #include "Data_Object.hpp"
 #include "Data_Type.hpp"
 #include "Symbol.hpp"
-#include "Exception.hpp"
 #include "protect.hpp"
 
 #include "Module.hpp"
@@ -186,9 +185,7 @@ define_module_function(
 {
   if(this->rb_type() != T_MODULE)
   {
-    throw Rice::Exception(
-        rb_eTypeError,
-        "can only define module functions for modules");
+    throw std::runtime_error("can only define module functions for modules");
   }
 
   define_method(name, func, arguments);
