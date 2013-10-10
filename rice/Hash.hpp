@@ -199,7 +199,7 @@ protected:
 
 private:
   Hash hash_;
-  int current_index_;
+  size_t current_index_;
   VALUE keys_;
 
   mutable typename detail::remove_const<Value_T>::Type tmp_;
