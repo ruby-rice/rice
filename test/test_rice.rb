@@ -1,7 +1,8 @@
-require 'test/unit'
+gem 'minitest'
+require 'minitest/autorun'
 require 'rbconfig'
 
-class RiceTest < Test::Unit::TestCase
+class RiceTest < Minitest::Test
   # TODO: probably a better way to find this out...
   VERBOSE = ARGV.include?('-v')
 

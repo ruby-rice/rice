@@ -1,8 +1,9 @@
 $: << File.join(File.dirname(__FILE__), '..', 'sample')
 
-require 'test/unit'
+gem 'minitest'
+require 'minitest/autorun'
 
-class MultipleExtensionTest < Test::Unit::TestCase
+class MultipleExtensionTest < Minitest::Test
   def test_multiple_extensions
     # Rinse
     require 'map/map'
