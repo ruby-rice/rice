@@ -1,5 +1,6 @@
 $: << File.join(File.dirname(__FILE__), '..', 'sample')
 
+require 'rubygems'
 gem 'minitest'
 require 'minitest/autorun'
 
