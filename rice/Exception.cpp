@@ -54,6 +54,6 @@ char const * Rice::Exception::
 what() const throw()
 {
   message_ = message();
-  return from_ruby<char const *>(message_);
+  return from_ruby<std::string>(message_).c_str();
 }
 
