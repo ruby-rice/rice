@@ -46,7 +46,7 @@ namespace {
 
       int process() {
         std::vector<Listener*>::iterator i = mListeners.begin();
-        int accum = 0; 
+        int accum = 0;
         for(; i != mListeners.end(); i++) {
           accum += (*i)->getValue();
         }
@@ -54,7 +54,7 @@ namespace {
         return accum;
       }
 
-      int listenerCount() { return mListeners.size(); }
+      size_t listenerCount() { return mListeners.size(); }
 
     private:
       std::vector<Listener*> mListeners;
@@ -100,7 +100,7 @@ TESTCASE(can_send_ruby_instance_back_into_rice)
  * The following test SEGFAULTs right now
  */
 /*
-TESTCASE(no_super_in_constructor_still_works) 
+TESTCASE(no_super_in_constructor_still_works)
 {
   Module m = define_module("TestingModule");
   Object handler = m.instance_eval("@handler = ListenerHandler.new");
@@ -127,14 +127,14 @@ TESTCASE(no_super_in_constructor_still_works)
  * Two ways of defining if types are implicitly castable
  *
  * 1) operator
- * 2) constructor 
+ * 2) constructor
  */
 
 /**
  * Examples here taken from Ogre's Math library.
  * This uses the constructor method of casting types.
  */
-namespace 
+namespace
 {
   const int degree2Radians = (3.14 / 180.0);
   const int radian2Degrees = (180.0 / 3.14);
@@ -157,7 +157,7 @@ namespace
   class Radian
   {
     public:
-      explicit Radian(float r) : val_(r) {} 
+      explicit Radian(float r) : val_(r) {}
       Radian(const Degree& d) : val_(d.valueRadians()) {}
 
       float valueRadians() const { return val_; }

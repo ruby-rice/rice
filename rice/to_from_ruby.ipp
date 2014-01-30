@@ -39,7 +39,7 @@ template<>
 inline
 int from_ruby<int>(Rice::Object x)
 {
-  return Rice::protect(Rice::detail::num2int, x);
+  return Rice::detail::num2int(x);
 }
 
 template<>
@@ -101,7 +101,7 @@ template<>
 inline
 unsigned int from_ruby<unsigned int>(Rice::Object x)
 {
-  return Rice::protect(Rice::detail::num2uint, x);
+  return Rice::detail::num2uint(x);
 }
 
 template<>
