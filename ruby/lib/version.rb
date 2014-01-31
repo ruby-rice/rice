@@ -1,3 +1,3 @@
 module Rice
-  VERSION = "1.5.3"
+  VERSION = "1.6.0.pre"
 end
