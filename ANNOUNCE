@@ -12,9 +12,9 @@ What is Rice?
 
 What's New?
 
-  * Update build system to remove deprecation warnings and allow easier building
-  * Fix String to work as a parameter in a wrapped method (#59)
-  * Update documentation a bit
+  * Ruby 2.1 support -- Thanks Chai Zhenhua
+  * Methods and Constructors have correct method access specifiers [#57]
+  * Clean up some 64-bit compiler warnings
 
 Supported Platforms:
 
