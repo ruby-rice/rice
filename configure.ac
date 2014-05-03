@@ -22,7 +22,7 @@ else
 fi
 
 # Requires autoconf-archive
-AX_CXX_COMPILE_STDCXX_11(noext,mandatory)
+AX_CXX_COMPILE_STDCXX_11
 
 AC_SUBST(RICE_USING_MINGW32)
 
