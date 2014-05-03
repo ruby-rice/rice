@@ -1092,7 +1092,7 @@ If the VM is not initialized from main() -- from a callback, for example
 the Ruby API:
 
 \code
-  std::auto_ptr<Rice::VM> vm;
+  std::unique_ptr<Rice::VM> vm;
   Rice::Object obj;
 
   void some_application_extension_init()

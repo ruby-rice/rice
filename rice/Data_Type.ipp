@@ -17,7 +17,7 @@ template<typename T>
 VALUE Rice::Data_Type<T>::klass_ = Qnil;
 
 template<typename T>
-std::auto_ptr<Rice::detail::Abstract_Caster> Rice::Data_Type<T>::caster_;
+std::unique_ptr<Rice::detail::Abstract_Caster> Rice::Data_Type<T>::caster_;
 
 template<typename T>
 template<typename Base_T>
