@@ -4,6 +4,14 @@ rvm:
   - 2.0.0
   - 2.1.0
   - ruby-head
+before_install:
+  # Support g++ 4.8 with C++x11 features
+  # https://github.com/travis-ci/travis-ci/issues/979
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libboost1.48-dev libyajl-dev libxml2-dev libxqilla-dev
+  - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
 before_script:
   - gem install minitest
   - sh bootstrap
