@@ -2,6 +2,7 @@ require 'ruby/lib/version'
 $spec = Gem::Specification.new do |s|
   s.name = 'rice'
   s.version = Rice::VERSION
+  s.license = "MIT"
   s.summary = 'Ruby Interface for C++ Extensions'
   s.homepage = 'http://rice.rubyforge.org/'
   s.rubyforge_project = 'rice'
