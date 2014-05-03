@@ -99,7 +99,7 @@ define_value(
     char const * name,
     Enum_T value)
 {
-  std::unique_ptr<Enum_T> copy(new Enum_T(value));
+  std_unique_ptr<Enum_T> copy(new Enum_T(value));
   Rice::Data_Object<Enum_T> m(copy.get(), *this);
   copy.release();
   names_[m] = String(name);

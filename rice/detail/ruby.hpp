@@ -80,5 +80,11 @@ namespace Rice
 #define rb_set_errinfo(exc) ::Rice::detail::rb_set_errinfo(exc)
 #endif
 
+#ifdef HAVE_CXX11
+#define std_unique_ptr std::unique_ptr
+#else
+#define std_unique_ptr std::auto_ptr
+#endif
+
 #endif // Rice__detail__ruby__hpp_
 

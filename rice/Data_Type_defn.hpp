@@ -204,7 +204,7 @@ public:
 
   virtual detail::Abstract_Caster * caster() const;
 
-  static std::unique_ptr<detail::Abstract_Caster> caster_;
+  static std_unique_ptr<detail::Abstract_Caster> caster_;
 
 protected:
   //! Bind a Data_Type to a VALUE.

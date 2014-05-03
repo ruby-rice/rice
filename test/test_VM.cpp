@@ -5,7 +5,7 @@
 
 using namespace Rice;
 
-std::unique_ptr<VM> vm;
+std_unique_ptr<VM> vm;
 
 TESTSUITE(VM);
 
