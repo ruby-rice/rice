@@ -21,6 +21,9 @@ else
   RICE_USING_MINGW32="false"
 fi
 
+# Requires autoconf-archive
+AX_CXX_COMPILE_STDCXX_11(noext,mandatory)
+
 AC_SUBST(RICE_USING_MINGW32)
 
 m4_include(ruby.ac)
