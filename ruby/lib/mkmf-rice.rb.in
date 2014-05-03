@@ -133,7 +133,7 @@ class Object
   alias_method :link_command_orig, :link_command
   def link_command(ldflags, opt='', libpath=$DEFLIBPATH|$LIBPATH)
     link_command = link_command_orig(ldflags, opt, libpath)
-    return Config::expand(
+    return RbConfig::expand(
         link_command,
         'CXXFLAGS' => "#{$CXXFLAGS}")
   end
