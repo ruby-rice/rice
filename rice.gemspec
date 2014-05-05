@@ -42,6 +42,7 @@ of the Ruby C API.
 
     # Autoconf
     'bootstrap',
+    'check_stdcxx_11.ac',
     'configure.ac',
     'configure',
     'config.guess',
