@@ -44,8 +44,16 @@ def init_mkmf_rice(config = CONFIG)
   # Ruby 1.8.6 uses $preload without setting it
   $preload ||= nil
 
+  lib_dirs = []
+
+  lib_dir = "#{$RICE_PREFIX}/lib"
+  lib64_dir = "#{$RICE_PREFIX}/lib64"
+
+  lib_dirs << "-L#{lib_dir}" if File.directory?(lib_dir)
+  lib_dirs << "-L#{lib64_dir}" if File.directory?(lib64_dir)
+
   $CPPFLAGS << " #{$RICE_CPPFLAGS} -I#{$RICE_PREFIX}/include"
-  $LDFLAGS << " #{$RICE_LDFLAGS} -L#{$RICE_PREFIX}/lib -lrice"
+  $LDFLAGS << " #{$RICE_LDFLAGS} #{lib_dirs.join(" ")} -lrice"
 
   # Turn on debugging and verbose warnings by default on compilers that
   # support it
