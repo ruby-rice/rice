@@ -1,5 +1,5 @@
 #ifndef Rice__ruby_struct__hpp_
-#define Ruplu__ruby_struct__hpp_
+#define Rice__ruby_struct__hpp_
 
 #include "Array.hpp"
 #include "Hash.hpp"
