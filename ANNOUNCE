@@ -33,7 +33,7 @@ What Rice gives you:
   * Smart pointers for handling garbage collection
   * Wrappers for most builtin types to simplify calling code
 
-  Documentation: http://rice.rubyforge.org
+  Documentation: http://jasonroelofs.github.io/rice
 
   Project Page: http://github.com/jasonroelofs/rice
 

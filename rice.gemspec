@@ -4,8 +4,7 @@ $spec = Gem::Specification.new do |s|
   s.version = Rice::VERSION
   s.license = "MIT"
   s.summary = 'Ruby Interface for C++ Extensions'
-  s.homepage = 'http://rice.rubyforge.org/'
-  s.rubyforge_project = 'rice'
+  s.homepage = 'https://github.com/jasonroelofs/rice'
   s.authors = ['Paul Brannan', 'Jason Roelofs']
   s.email = ['curlypaul924@gmail.com', 'jasonroelofs@gmail.com']
 
