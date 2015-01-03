@@ -10,13 +10,13 @@
 
 inline Rice::Hash::
 Hash()
-  : Builtin_Object<RHash, T_HASH>(protect(rb_hash_new))
+  : Builtin_Object<T_HASH>(protect(rb_hash_new))
 {
 }
 
 inline Rice::Hash::
 Hash(Object v)
-  : Builtin_Object<RHash, T_HASH>(v)
+  : Builtin_Object<T_HASH>(v)
 {
 }
 

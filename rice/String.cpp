@@ -13,37 +13,37 @@
 
 Rice::String::
 String()
-  : Builtin_Object<RString, T_STRING>(protect(rb_str_new2, ""))
+  : Builtin_Object<T_STRING>(protect(rb_str_new2, ""))
 {
 }
 
 Rice::String::
 String(VALUE v)
-  : Builtin_Object<RString, T_STRING>(v)
+  : Builtin_Object<T_STRING>(v)
 {
 }
 
 Rice::String::
 String(Object v)
-  : Builtin_Object<RString, T_STRING>(v)
+  : Builtin_Object<T_STRING>(v)
 {
 }
 
 Rice::String::
 String(char const * s)
-  : Builtin_Object<RString, T_STRING>(protect(rb_str_new2, s))
+  : Builtin_Object<T_STRING>(protect(rb_str_new2, s))
 {
 }
 
 Rice::String::
 String(std::string const & s)
-  : Builtin_Object<RString, T_STRING>(protect(rb_str_new, s.data(), s.length()))
+  : Builtin_Object<T_STRING>(protect(rb_str_new, s.data(), s.length()))
 {
 }
 
 Rice::String::
 String(Identifier id)
-  : Builtin_Object<RString, T_STRING>(protect(rb_str_new2, id.c_str()))
+  : Builtin_Object<T_STRING>(protect(rb_str_new2, id.c_str()))
 {
 }
 

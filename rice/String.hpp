@@ -21,7 +21,7 @@ namespace Rice
  *  \endcode
  */
 class String
-  : public Builtin_Object<RString, T_STRING>
+  : public Builtin_Object<T_STRING>
 {
 public:
   //! Construct a new string.

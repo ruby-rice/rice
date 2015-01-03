@@ -20,7 +20,7 @@ namespace Rice
  *  \endcode
  */
 class Array
-  : public Builtin_Object<RArray, T_ARRAY>
+  : public Builtin_Object<T_ARRAY>
 {
 public:
   //! Construct a new array

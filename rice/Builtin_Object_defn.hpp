@@ -14,7 +14,7 @@ namespace Rice
  *  class is a wrapper for those types of objects, primarily useful as a
  *  base class for other wrapper classes like Array and Hash.
  */
-template<typename T, int Builtin_Type>
+template<int Builtin_Type>
 class Builtin_Object
   : public Object
 {
@@ -31,17 +31,17 @@ public:
    */
   Builtin_Object(Builtin_Object const & other);
 
-  T & operator*() const { return *obj_; } //!< Return a reference to obj_
-  T * operator->() const { return obj_; } //!< Return a pointer to obj_
-  T * get() const { return obj_; }        //!< Return a pointer to obj_
+  RObject & operator*() const { return *obj_; } //!< Return a reference to obj_
+  RObject * operator->() const { return obj_; } //!< Return a pointer to obj_
+  RObject * get() const { return obj_; }        //!< Return a pointer to obj_
 
   //! Swap with another builtin object of the same type
   /*! \param ref the object with which to swap.
    */
-  void swap(Builtin_Object<T, Builtin_Type> & ref);
+  void swap(Builtin_Object<Builtin_Type> & ref);
 
 private:
-  T * obj_;
+  RObject * obj_;
 };
 
 } // namespace Rice

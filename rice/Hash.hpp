@@ -22,7 +22,7 @@ namespace Rice
 //!   std::cout << String(h[42]) << std::endl;
 //! \endcode
 class Hash
-  : public Builtin_Object<RHash, T_HASH>
+  : public Builtin_Object<T_HASH>
 {
 public:
   //! Construct a new hash.

@@ -5,26 +5,26 @@
 
 inline Rice::Array::
 Array()
-  : Builtin_Object<RArray, T_ARRAY>(protect(rb_ary_new))
+  : Builtin_Object<T_ARRAY>(protect(rb_ary_new))
 {
 }
 
 inline Rice::Array::
 Array(Object v)
-  : Builtin_Object<RArray, T_ARRAY>(v)
+  : Builtin_Object<T_ARRAY>(v)
 {
 }
 
 inline Rice::Array::
 Array(VALUE v)
-  : Builtin_Object<RArray, T_ARRAY>(v)
+  : Builtin_Object<T_ARRAY>(v)
 {
 }
 
 template<typename Iter_T>
 inline Rice::Array::
 Array(Iter_T it, Iter_T end)
-  : Builtin_Object<RArray, T_ARRAY>(protect(rb_ary_new))
+  : Builtin_Object<T_ARRAY>(protect(rb_ary_new))
 {
   for(; it != end; ++it)
   {
@@ -35,7 +35,7 @@ Array(Iter_T it, Iter_T end)
 template<typename T, size_t n>
 inline Rice::Array::
 Array(T const (& a)[n])
-  : Builtin_Object<RArray, T_ARRAY>(protect(rb_ary_new))
+  : Builtin_Object<T_ARRAY>(protect(rb_ary_new))
 {
   for(size_t j = 0; j < n; ++j)
   {

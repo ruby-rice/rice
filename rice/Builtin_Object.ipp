@@ -19,26 +19,26 @@ namespace detail
   }
 }
 
-template<typename T, int Builtin_Type>
-inline Builtin_Object<T, Builtin_Type>::
+template<int Builtin_Type>
+inline Builtin_Object<Builtin_Type>::
 Builtin_Object(Object value)
   : Object(value)
-  , obj_((T*)(value.value()))
+  , obj_((RObject*)(value.value()))
 {
   protect(detail::check_type, value, Builtin_Type);
 }
 
-template<typename T, int Builtin_Type>
-inline Builtin_Object<T, Builtin_Type>::
-Builtin_Object(Builtin_Object<T, Builtin_Type> const & other)
+template<int Builtin_Type>
+inline Builtin_Object<Builtin_Type>::
+Builtin_Object(Builtin_Object<Builtin_Type> const & other)
   : Object(other.value())
   , obj_(other.obj_)
 {
 }
 
-template<typename T, int Builtin_Type>
-inline void Builtin_Object<T, Builtin_Type>::
-swap(Builtin_Object<T, Builtin_Type> & ref)
+template<int Builtin_Type>
+inline void Builtin_Object<Builtin_Type>::
+swap(Builtin_Object<Builtin_Type> & ref)
 {
   std::swap(obj_, ref.obj_);
   Object::swap(ref);

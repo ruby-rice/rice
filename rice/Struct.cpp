@@ -88,7 +88,7 @@ Rice::Struct::Instance::
 Instance(
     Struct const & type,
     Array args)
-  : Builtin_Object<RStruct, T_STRUCT>(type.new_instance(args))
+  : Builtin_Object<T_STRUCT>(type.new_instance(args))
   , type_(type)
 {
 }
@@ -97,7 +97,7 @@ Rice::Struct::Instance::
 Instance(
     Struct const & type,
     Object s)
-  : Builtin_Object<RStruct, T_STRUCT>(s)
+  : Builtin_Object<T_STRUCT>(s)
   , type_(type)
 {
 }
@@ -106,7 +106,7 @@ void Rice::Struct::Instance::
 swap(Instance & other)
 {
   type_.swap(other.type_);
-  Builtin_Object<RStruct, T_STRUCT>::swap(other);
+  Builtin_Object<T_STRUCT>::swap(other);
 }
 
 Rice::Struct Rice::
