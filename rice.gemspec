@@ -1,4 +1,6 @@
+$:.unshift File.expand_path(File.dirname(__FILE__))
 require 'ruby/lib/version'
+
 $spec = Gem::Specification.new do |s|
   s.name = 'rice'
   s.version = Rice::VERSION
