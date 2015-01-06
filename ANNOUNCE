@@ -12,9 +12,12 @@ What is Rice?
 
 What's New?
 
-  * Ruby 2.1 support -- Thanks Chai Zhenhua
-  * Methods and Constructors have correct method access specifiers [#57]
-  * Clean up some 64-bit compiler warnings
+  * Ruby 2.2 support
+    Potential breaking changes. Ruby 2.2 removed RHash as a public accessible struct
+    and as such I changed all of the Builtin_Objects to work directly off of RObject
+    instead of the specifics (RArray, RStruct, RString, etc). If you've been using these
+    objects directly I recommend using either the Rice API or Ruby's CAPI instead for
+    future compatibility.
 
 Supported Platforms:
 
