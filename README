@@ -58,7 +58,7 @@ The first step is to create an extconf.rb file:
 
 \code
   require 'mkmf-rice'
-  create_makefile('Test')
+  create_makefile('test')
 \endcode
 
 Note that we use mkmf-rice instead of mkmf.  This will ensure that the
@@ -69,13 +69,13 @@ Next we create our extension and save it to test.cpp:
 
 \code
   extern "C"
-  void Init_Test()
+  void Init_test()
   {
   }
 \endcode
 
 Note the extern "C" line above.  This tells the compiler that the
-function Init_Test should have C linkage and calling convention.  This
+function Init_test should have C linkage and calling convention.  This
 turns off name mangling so that the Ruby interpreter will be able to
 find the function (remember that Ruby is written in C, not C++).
 
@@ -94,7 +94,7 @@ Defining a class in Rice is easy:
   using namespace Rice;
 
   extern "C"
-  void Init_Test()
+  void Init_test()
   {
     Class rb_cTest = define_class("Test");
   }
@@ -109,7 +109,7 @@ wanted to inherit from a different class, we could easily do so:
   using namespace Rice;
 
   extern "C"
-  void Init_Test()
+  void Init_test()
   {
     Class rb_cMySocket = define_class("MySocket", rb_cIO);
   }
@@ -153,7 +153,7 @@ Now let's add a method to our class:
   }
 
   extern "C"
-  void Init_Test()
+  void Init_test()
   {
     Class rb_cTest =
       define_class("Test")
@@ -185,7 +185,7 @@ We could also add an #initialize method to our class:
   }
 
   extern "C"
-  void Init_Test()
+  void Init_test()
   {
     Class rb_cTest =
       define_class("Test")
@@ -230,7 +230,7 @@ section.  To wrap it:
   using namespace Rice;
 
   extern "C"
-  void Init_Test()
+  void Init_test()
   {
     Data_Type<Test> rb_cTest =
       define_class<Test>("Test")
@@ -312,7 +312,7 @@ Take another look at the wrapper we wrote for the Test class:
 
 \code
   extern "C"
-  void Init_Test()
+  void Init_test()
   {
     Data_Type<Test> rb_cTest =
       define_class<Test>("Test")
@@ -393,7 +393,7 @@ If we were to wrap this function:
 
 \code
   extern "C"
-  void Init_Test()
+  void Init_test()
   {
     Data_Type<Test> rb_cTest =
       define_class<Test>("Test")
@@ -418,7 +418,7 @@ this:
 
 \code
   extern "C"
-  void Init_Test()
+  void Init_test()
   {
     Data_Type<Test> rb_cTest =
       define_class<Test>("Test")
@@ -528,7 +528,7 @@ Forunately Rice handles this gracefully:
   };
 
   extern "C"
-  void Init_Test()
+  void Init_test()
   {
     Data_Type<Base> rb_cBase =
       define_class<Base>("Base")
@@ -605,7 +605,7 @@ If we write this:
 
 \code
   extern "C"
-  void Init_Test()
+  void Init_test()
   {
     define_global_function("foo", &foo);
   }
@@ -624,7 +624,7 @@ To avoid this problem, it is necessary to write a wrapper function:
   }
 
   extern "C"
-  void Init_Test()
+  void Init_test()
   {
     define_global_function("foo", &wrap_foo);
   }
@@ -660,7 +660,7 @@ it's necessary to define this in Rice explicitly using Rice::Arg:
   using namespace Rice;
 
   extern "C"
-  void Init_Test()
+  void Init_test()
   {
     Data_Type<Test> rb_cTest =
       define_class<Test>("Test")
