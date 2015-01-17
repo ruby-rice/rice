@@ -58,7 +58,7 @@ The first step is to create an extconf.rb file:
 
 \code
   require 'mkmf-rice'
-  create_makefile('test')
+  create_makefile('Test')
 \endcode
 
 Note that we use mkmf-rice instead of mkmf.  This will ensure that the
