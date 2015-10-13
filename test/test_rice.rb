@@ -14,10 +14,6 @@ class RiceTest < Minitest::Test
     run_external_test("./unittest#{EXEEXT}")
   end
 
-  def test_vm_unittest
-    run_external_test("./vm_unittest#{EXEEXT}")
-  end
-
   def test_multiple_extensions
     run_external_test("#{RUBY} test_multiple_extensions.rb")
   end

@@ -1,8 +1,8 @@
-noinst_PROGRAMS = unittest vm_unittest
+noinst_PROGRAMS = unittest
 
 SUBDIRS = ext
 
-TESTS = unittest vm_unittest
+TESTS = unittest
 
 
 check: run_multiple_extensions_test
@@ -53,10 +53,6 @@ unittest_SOURCES = \
 	test_Symbol.cpp \
 	test_To_From_Ruby.cpp \
 	test_global_functions.cpp
-
-vm_unittest_SOURCES = \
-	unittest.cpp \
-	test_VM.cpp
 
 AM_CPPFLAGS = \
 	-I.. \

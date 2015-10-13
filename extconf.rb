@@ -19,17 +19,6 @@ require 'ruby/lib/version.rb'
 prefix_dir = File.join(File.dirname(File.expand_path(__FILE__)), "ruby", "lib")
 with_ruby = File.join(RbConfig::CONFIG["bindir"], RbConfig::CONFIG["RUBY_INSTALL_NAME"])
 
-if RbConfig::CONFIG["ENABLE_SHARED"] == "no"
-  raise <<EOC
-Unfortunately Rice does not work against a Ruby without any shared libraries.
-You'll need to rebuild Ruby with --enable-shared to use this library.
-
-If you're on rvm:   rvm reinstall [version] -- --enable-shared
-If you're on rbenv: CONFIGURE_OPTS="--enable-shared" rbenv install [version]
-If this is a host environment like Heroku you'll need to contact their support.
-EOC
-end
-
 other_opts = ""
 env = ""
 
