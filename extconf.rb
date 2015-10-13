@@ -22,18 +22,22 @@ with_ruby = File.join(RbConfig::CONFIG["bindir"], RbConfig::CONFIG["RUBY_INSTALL
 other_opts = ""
 env = ""
 
-if RUBY_PLATFORM =~ /darwin1[0-2]/ 
-  arch = RbConfig::CONFIG["arch"].split("-")[0]
+if RUBY_PLATFORM =~ /darwin(\d+)/
+  darwin_version = $1.to_i
 
-  if arch == "universal"
-    arch = `uname -m`.strip
+  if darwin_version >= 10
+    arch = RbConfig::CONFIG["arch"].split("-")[0]
+
+    if arch == "universal"
+      arch = `uname -m`.strip
+    end
+
+    other_opts = "--disable-dependency-tracking"
+    env = "ARCHFLAGS='-arch #{arch}' CPPFLAGS='-arch #{arch}'"
+  else
+    arch = `uname -p`.chomp
+    env = "ARCHFLAGS='-arch #{arch}' CPPFLAGS='-arch #{arch}'"
   end
-
-  other_opts = "--disable-dependency-tracking"
-  env = "ARCHFLAGS='-arch #{arch}' CPPFLAGS='-arch #{arch}'"
-elsif RUBY_PLATFORM =~ /darwin9/
-  arch = `uname -p`.chomp
-  env = "ARCHFLAGS='-arch #{arch}' CPPFLAGS='-arch #{arch}'"
 end
 
 system "sh bootstrap"
