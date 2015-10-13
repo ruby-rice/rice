@@ -23,6 +23,21 @@ other_opts = ""
 env = ""
 
 if RUBY_PLATFORM =~ /darwin(\d+)/
+  # TY Nokogiri!
+  if !File.exist?('/usr/include/iconv.h')
+    abort <<'EOM'.chomp
+-----
+The file "/usr/include/iconv.h" is missing in your build environment,
+which means you haven't installed Xcode Command Line Tools properly.
+To install Command Line Tools, try running `xcode-select --install` on
+terminal and follow the instructions.  If it fails, open Xcode.app,
+select from the menu "Xcode" - "Open Developer Tool" - "More Developer
+Tools" to open the developer site, download the installer for your OS
+version and run it.
+-----
+EOM
+  end
+
   darwin_version = $1.to_i
 
   if darwin_version >= 10
