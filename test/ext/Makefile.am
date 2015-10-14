@@ -15,29 +15,27 @@ t1/Makefile: t1/extconf.rb ../../config.status ../../ruby/lib/mkmf-rice.rb
 t2/Makefile: t2/extconf.rb ../../config.status ../../ruby/lib/mkmf-rice.rb
 	@RUBY@ $(RUBY_EXTCONF_OPTIONS) -C t2 extconf.rb $(EXTCONF_OPTIONS)
 
-all clean distclean: t1/Makefile t2/Makefile
-
 all: t1_all t2_all
 
-t1_all:
-	make -C t1 all
+t1_all: t1/Makefile
+	${MAKE} -C t1 all
 
-t2_all:
-	make -C t2 all
+t2_all: t2/Makefile
+	${MAKE} -C t2 all
 
 clean: t1_clean t2_clean
 
-t1_clean:
-	make -C t1 clean
+t1_clean: t1/Makefile
+	${MAKE} -C t1 clean
 
-t2_clean:
-	make -C t2 clean
+t2_clean: t2/Makefile
+	${MAKE} -C t2 clean
 
 distclean: t1_distclean t2_distclean
 
-t1_distclean:
-	make -C t1 distclean
+t1_distclean: t1/Makefile
+	${MAKE} -C t1 distclean
 
-t2_distclean:
-	make -C t2 distclean
+t2_distclean: t2/Makefile
+	${MAKE} -C t2 distclean
 

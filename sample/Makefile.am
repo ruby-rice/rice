@@ -23,10 +23,10 @@ inheritance/Makefile: inheritance/extconf.rb ../config.status ../ruby/lib/mkmf-r
 
 all: enum/Makefile map/Makefile inheritance/Makefile all_extensions
 
-all_extensions:
+all_extensions: $(addsuffix /Makefile,$(RICE_SAMPLES))
 	@for sample in $(RICE_SAMPLES); \
 	do \
-	  $(MAKE) -C $${sample} all; \
+	  ${MAKE} -C $${sample} all; \
 	done
 
 clean: enum/Makefile map/Makefile inheritance/Makefile clean_extensions
@@ -34,7 +34,7 @@ clean: enum/Makefile map/Makefile inheritance/Makefile clean_extensions
 clean_extensions:
 	@for sample in $(RICE_SAMPLES); \
 	do \
-	  $(MAKE) -C $${sample} clean; \
+	  ${MAKE} -C $${sample} clean; \
 	done
 
 distclean: enum/Makefile map/Makefile inheritance/Makefile distclean_extensions
@@ -42,6 +42,6 @@ distclean: enum/Makefile map/Makefile inheritance/Makefile distclean_extensions
 distclean_extensions:
 	@for sample in $(RICE_SAMPLES);
 	do \
-	  $(MAKE) -C $${sample} distclean; \
+	  ${MAKE} -C $${sample} distclean; \
 	done
 
