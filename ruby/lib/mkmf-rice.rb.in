@@ -33,7 +33,7 @@ def init_mkmf_rice(config = CONFIG)
   $LIBRUBYARG_STATIC = "@RUBY_LIBRUBYARG_STATIC@"
   $RICE_CPPFLAGS = "@RICE_CPPFLAGS@"
   $RICE_LDFLAGS = "@RICE_LDFLAGS@"
-  $RICE_PREFIX = "@prefix@"
+  $RICE_PREFIX = File.join(File.dirname(File.expand_path(__FILE__)))
 
   $RICE_USING_MINGW32 = @RICE_USING_MINGW32@
 
