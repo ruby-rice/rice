@@ -21,8 +21,6 @@ The source is hosted on github: http://github.com/jasonroelofs/rice
 
 Bug tracking: http://github.com/jasonroelofs/rice/issues
 
-Mailing List: rice@librelist.com (your first email will be used as a subscription request and dropped)
-
 \section installation Installation
 
 \code
@@ -39,13 +37,6 @@ Building it locally from a clone of the repository is as follows:
 
 Rice is known to work on *nix and OSX. Windows is not currently
 supported.
-
-Rice does not work with any Ruby compiled with the Falcon
-performans patches as they make changes to some internals which Rice
-relies on.
-
-Also Rice requires a Ruby built with --enable-shared and will not
-install properly against a Ruby with only static libraries.
 
 \section tutorial Tutorial
 
@@ -242,11 +233,10 @@ section.  To wrap it:
 This example is similar to the one before, but we use Data_Type<>
 instead of Class and the template version of define_class() instead of
 the non-template version.  This creates a binding in the Rice library
-between the Ruby class Test and the C++ class Test, so that we pass
-member function pointers to define_method() and have conversions be done
-automatically.
+between the Ruby class Test and the C++ class Test such that Rice passes
+member function pointers to define_method().
 
-It's possible to write the conversion functions ourself (as we'll see
+It is possible to write the conversion functions ourself (as we'll see
 below), but Rice does all the dirty work for us.
 
 
@@ -412,7 +402,7 @@ and call it from inside Ruby:
 
 we would get an exception.  Rice will automatically convert any
 C++ exception it catches into a Ruby exception.  But what if we wanted
-to use a custom eror message when we convert the exception, or what if
+to use a custom error message when we convert the exception, or what if
 we wanted to convert to a different type of exception?  We can write
 this:
 
@@ -457,7 +447,7 @@ Rice uses a similar class called Jump_Tag to handle symbols thrown by
 Ruby's throw/catch or other non-local jumps from inside the Ruby VM.
 
 
-\subsection builtin Builtin types
+\subsection builtin Builtin Types
 
 You've seen this example:
 
@@ -466,8 +456,8 @@ You've seen this example:
   std::cout << object_id << std::endl;
 \endcode
 
-Rice mimics the Ruby class hierarchy as closely as it can given that C++
-is statically typed.  In fact, the above code also works for Classes:
+Rice mimics the Ruby class hierarchy as closely as it can.
+In fact, the above code also works for Classes:
 
 \code
   Class rb_cTest = define_class<Test>("Test");
@@ -541,8 +531,7 @@ Forunately Rice handles this gracefully:
 The second template parameter to define_class indicates that Derived
 inherits from Base.
 
-Rice does not yet support multiple inheritance, but it is believed that
-this is possible through the use of mixins.
+Rice does not support multiple inheritance.
 
 
 \subsection overloading Overloaded functions
@@ -577,13 +566,11 @@ We can wrap this class by using typedefs:
   }
 \endcode
 
-A future version of Rice may provide a simplified interface for this.
-
 
 \subsection user_defined_conversions User-defined type conversions
 
 Rice provides default conversions for many built-in types.  Sometimes,
-however, the default conversion is not their right conversion.  For
+however, the default conversion is not what is expected.  For
 example, consider a function:
 
 \code
@@ -633,13 +620,11 @@ To avoid this problem, it is necessary to write a wrapper function:
 Note that the out parameter is returned from wrap_foo, as Ruby does not
 have pass-by-variable-reference (it uses pass-by-object-reference).
 
-Future versions of Rice will have a cleaner way of dealing with this.
-
 
 \subsection default_arguments Default Arguments
 
 Going back to our initial C++ class example, lets say that hello() now
-take a few arguments for what to return, one which has a default value:
+takes more arguments, one of which has a default value:
 
 \code
   class Test
@@ -651,7 +636,7 @@ take a few arguments for what to return, one which has a default value:
 \endcode
 
 As default parameter information is not available through templates,
-it's necessary to define this in Rice explicitly using Rice::Arg:
+it is necessary to define this in Rice explicitly using Rice::Arg:
 
 \code
   #include "rice/Data_Type.hpp"
@@ -673,16 +658,9 @@ it's necessary to define this in Rice explicitly using Rice::Arg:
 \endcode
 
 The syntax here is simply Arg(nameOfParameter)[ = defaultValue].  The name of the
-parameter is not important (more for readability, and the future for when/if Ruby
-gets named parameters), but the value set via operator= must match the type
-of the given parameter.
-
-These Rice::Arg objects must be in the correct order, and if there are more than
-one of them they must be surrounded in parentheses, as above, or the compilation
-will fail.
-
-It may be required to explicitly cast the default argument values to their
-appropriate types:
+parameter is not important here (a readability tool), but the value set via operator=
+must match the type of the parameter. As such it may be necessary to
+explicitly cast the default value.
 
 \code
   .define_method("hello",
@@ -691,7 +669,10 @@ appropriate types:
   );
 \endcode
 
-With this, Ruby will now know about the default arguments, and this wrapper
+These Rice::Arg objects must be in the correct order and must be
+surrounded with parentheses if more than one exists.
+
+Now, Ruby will now know about the default arguments, and this wrapper
 can be used as expected:
 
 \code
@@ -700,7 +681,7 @@ can be used as expected:
   t.hello("goodnight", "moon")
 \endcode
 
-This will also work with Constructors:
+This also works with Constructors:
 
 \code
   .define_constructor(Constructor<SomeClass, int, int>(),
@@ -710,11 +691,11 @@ This will also work with Constructors:
 \subsection director Director
 
 As polymorphism is the most important tennant of Object Oriented Programming,
-it's important that Rice supports polymorphic calls travelling between C++
+it is important that Rice supports polymorphic calls travelling between C++
 and Ruby seemlessly. Super calls from Ruby subclasses back into C++ already work,
-but enabling the other direction requires some extra work. While this isn't
-something Rice can do on it's own, the Rice::Director class, coupled with 
-Rice::Data_Type::define_director exposes this functionality cleanly.
+but enabling the other direction requires some extra effort. Rice
+suppplies the the Rice::Director class and
+Rice::Data_Type::define_director to expose this functionality.
 
 Like SWIG_Director, Rice::Director is a class that is used to build a proxy class
 to properly send execution up or down the object heiarchy for that class. Take
@@ -730,13 +711,12 @@ the following class:
 \endcode
 
 Due to the abstract nature of this class, it will not work at all with Rice
-in it's current form. Any attempt to do so will cause a compilation error due to
+in its current form. Any attempt to do so will cause a compilation error due to
 this class not being constructable. Even without the pure virtual function, any
 call to VirtualBase::doWork will stop at the C++ level and will not pass down into
 any Ruby subclasses.
 
-To properly wrap both of these methods, you'll need to build a proxy class
-that subclasses Rice::Director along with a few methods:
+To properly wrap both of these methods, use a Rice::Director subclass as a proxy:
 
 \code
   #include "rice/Director.hpp"
@@ -769,7 +749,7 @@ There is a lot going on here, so we'll go through each part.
   class VirtualBaseProxy : public Virtualbase, public Rice::Director {
 \endcode
 
-First, the class needs to subclass both the virtual class and Rice::Director class.
+First, the class needs to subclass both the virtual class in question and Rice::Director.
 
 \code
     public:
@@ -777,10 +757,9 @@ First, the class needs to subclass both the virtual class and Rice::Director cla
 \endcode
 
 For Rice::Director to work its magic, every instance of this class needs to
-have a handle to the Ruby instance of this class as well. The constructor
-must take a Rice::Object as the first argument, then any other arguments follow
-and should be passed back to the superclass as needed. The code here is the
-minimum required for a Rice::Director proxy.
+have a handle to the Ruby instance. The constructor
+must take a Rice::Object as the first argument and pass it up into
+Rice::Director. The code here is the minimum required for a Rice::Director proxy.
 
 \code
       virtual int doWork() {
@@ -792,11 +771,12 @@ minimum required for a Rice::Director proxy.
       }
 \endcode
 
-The two methods seen here directly correspond to the two code directions this class
-opens up. The virtual method is this class's hook into C++'s polymorphism. Any calls
-that need to be forwarded into Ruby are done as specified here: get the Ruby object
-for the instance of this class, call Rice::Object::call, and if necessary convert
-the return value from Ruby back into C++ types.
+Here the directory proxy overrides the methods for Ruby exposure and
+implements the required actions to pass flow around the heirarchy
+appropriately. The pattern shown here is that the actual override will
+call down into Ruby, handling any type conversions, while a
+default_methodName method handles calling up into C++ and will be the
+method wrapped into Rice.
 
 The default_doWork method will be used as Rice's hookup of calling back up the 
 heirarchy (wrapping is below). This method needs to do one of two things: call
@@ -810,8 +790,8 @@ processWorker example:
 \endcode
 
 The method raisePureVirtual() exists to allow wrapping a pure virtual method into Ruby
-but making sure any users of this extension are informed quickly that there's nothing
-in the C++ to call for the given method.
+(and ensuring compliation is possible) but making sure any users of this extension are 
+informed quickly that there's nothing callable in the C++ side of the library.
 
 Once the proxy class is built, it's time to wrap it into Ruby:
 
@@ -835,14 +815,14 @@ object construction / destruction of the types in question.
 
 \subsection implicit_cast Implicit Casting
 
-There are times when a library exposes classes that while unrelated are
-built to be interchangeable across the library. One example of this,
-taken from the Open Source 3d rendering engine <a
-href="http://www.ogre3d.org/">OGRE</a>, are the Degree and Radian classes.
+There are times when a library exposes classes that, while unrelated, are
+built to be interchangeable across the library. One example of this is found in
+the Open Source 3d rendering engine <a
+href="http://www.ogre3d.org/">OGRE</a>: Ogre::Degree and Ogre::Radian.
 When a given method takes a Radian, you're free to pass in a Degree, and vice versa. 
 
 Rice cannot automatically figure out if this kind of functionality is
-possible in a given library but it does have a simple API for defining
+possible in a given library but it does provide an API for defining
 these relationships: Rice::define_implicit_cast<From, To>().
 
 \code
@@ -861,12 +841,11 @@ void Init_implicit() {
 }
 \endcode
 
-This support is still being fleshed out and has a few requirements for
-proper use:
+Using Rice::define_implicit_cast has the following requirements:
 
 \li The two types must be bound in Rice before defining the cast.
 \li The classes must have constructors that take the other type.
-\li This feature cannot be used with fundamental types yet.
+\li This feature cannot be used with fundamental types.
 
 To see a full example of this feature, please check out
 test/test_Data_Type.cpp.
@@ -1031,7 +1010,7 @@ to be much more readable than using the Boost preprocessor library.
 
 \section history History
 
-Rice originated as a project to interface with C++-based trading
+Rice originated as Excruby, a project to interface with C++-based trading
 software at Automated Trading Desk in Mount Pleasant, South Carolina.
 The Ruby bindings for Swig were at the time less mature than they are
 today, and did not suit the needs of the project.
