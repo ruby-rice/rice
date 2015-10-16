@@ -270,6 +270,12 @@ TESTCASE(char_from_ruby_fixnum)
   ASSERT_EQUAL('1', from_ruby<char>(INT2NUM(49)));
 }
 
+TESTCASE(char_star_from_ruby)
+{
+  const char* expected = "my string";
+  ASSERT_EQUAL(expected, from_ruby<const char*>(rb_str_new2("my string")));
+}
+
 TESTCASE(std_string_to_ruby)
 {
   ASSERT_EQUAL(String(""), to_ruby(std::string("")));
