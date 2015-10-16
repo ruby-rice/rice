@@ -11,7 +11,6 @@ Object.cpp \
 String.cpp \
 Struct.cpp \
 Symbol.cpp \
-VM.cpp \
 Arg_operators.cpp \
 Address_Registration_Guard.cpp \
 detail/check_ruby_type.cpp \
@@ -72,7 +71,6 @@ Struct.hpp \
 Struct.ipp \
 Symbol.hpp \
 Symbol.ipp \
-VM.hpp \
 global_function.hpp \
 global_function.ipp \
 protect.hpp \
