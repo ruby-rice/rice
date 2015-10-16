@@ -36,7 +36,6 @@ unittest_SOURCES = \
 	test_Builtin_Object.cpp \
 	test_Class.cpp \
 	test_Constructor.cpp \
-	test_Critical_Guard.cpp \
 	test_Data_Object.cpp \
 	test_Data_Type.cpp \
 	test_Director.cpp \

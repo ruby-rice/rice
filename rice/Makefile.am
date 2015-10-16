@@ -34,8 +34,6 @@ Class.hpp \
 Class.ipp \
 Class_defn.hpp \
 Constructor.hpp \
-Critical_Guard.hpp \
-Critical_Guard.ipp \
 Data_Object.hpp \
 Data_Object.ipp \
 Data_Object_defn.hpp \
@@ -109,7 +107,6 @@ detail/object_call.hpp \
 detail/object_call.ipp \
 detail/protect.hpp \
 detail/ruby.hpp \
-detail/rubysig.hpp \
 detail/st.hpp \
 detail/traits.hpp \
 detail/to_ruby.hpp \
