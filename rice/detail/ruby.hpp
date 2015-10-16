@@ -67,19 +67,6 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
   #undef bind
 #endif
 
-#if RICE__RUBY_VERSION_CODE < 190
-namespace Rice
-{
-  namespace detail
-  {
-    inline VALUE rb_errinfo() { return ruby_errinfo; }
-    inline void rb_set_errinfo(VALUE exc) { ruby_errinfo = exc; }
-  } // detail
-} // Rice
-#define rb_errinfo() ::Rice::detail::rb_errinfo()
-#define rb_set_errinfo(exc) ::Rice::detail::rb_set_errinfo(exc)
-#endif
-
 #ifdef HAVE_CXX11
 #define std_unique_ptr std::unique_ptr
 #else

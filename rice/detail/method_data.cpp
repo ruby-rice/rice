@@ -8,26 +8,6 @@
 #undef PACKAGE_VERSION
 #include "../config.hpp"
 
-/* 1.8.6 compatibility */
-#ifndef RCLASS_M_TBL
-#define RCLASS_M_TBL(x) (RCLASS(x)->m_tbl)
-#endif
-
-
-#ifndef RUBY_VM 
-/* pre-YARV */
-#include <node.h>
-#include "env.hpp"
-
-namespace {
-int rb_frame_method_id_and_class(ID *idp, VALUE *klassp) {
-  *klassp = ruby_frame->last_class;
-  *idp = ruby_frame->last_func;
-  return 1;
-}
-}
-#endif
-
 #define RICE_ID rb_intern("__rice__")
 
 VALUE

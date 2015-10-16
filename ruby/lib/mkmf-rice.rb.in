@@ -37,14 +37,8 @@ def init_mkmf_rice(config = CONFIG)
 
   $RICE_USING_MINGW32 = @RICE_USING_MINGW32@
 
-  # Ruby < 1.8.6 does not have $DEFLIBPATH
-  $DEFLIBPATH ||= []
-
   # We use this for the samples
   $DEFLIBPATH.unshift(with_config('libpath')) if with_config('libpath')
-
-  # Ruby 1.8.6 uses $preload without setting it
-  $preload ||= nil
 
   lib_dirs = []
 

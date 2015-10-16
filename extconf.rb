@@ -1,5 +1,5 @@
-# To allow Rice to be installed on non-system installs of Ruby (say the user has
-# 1.8.7 and 1.9.0 installed), the rice gem uses the extconf version of deployment
+# To allow Rice to be installed on non-system installs of Ruby (rbenv or rvm),
+# the rice gem uses the extconf version of deployment
 # rather than configure. This file will get the appropriate values from CONFIG
 # for the Ruby that this library is being installed into and generate
 # the proper arguments to ./configure.
