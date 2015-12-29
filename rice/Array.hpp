@@ -99,7 +99,8 @@ public:
    */
   Object shift();
 
-  //! Return a pointer to the beginning of the underlying C array.
+  //! Return a pointer to the beginning of a C array containing
+  //! the VALUEs stored in this Array.
   //! Use with caution!
   /*! \return a pointer to the beginning of the array.
    */

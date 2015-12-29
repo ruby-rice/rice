@@ -159,7 +159,15 @@ TESTCASE(shift)
 TESTCASE(to_c_array)
 {
   Array a;
-  ASSERT_EQUAL(RARRAY_PTR(a.value()), a.to_c_array());
+  a.push(to_ruby(42));
+  a.push(to_ruby(43));
+  a.push(to_ruby(44));
+
+  const VALUE* out = a.to_c_array();
+
+  ASSERT_EQUAL(42, from_ruby<int>(out[0]));
+  ASSERT_EQUAL(43, from_ruby<int>(out[1]));
+  ASSERT_EQUAL(44, from_ruby<int>(out[2]));
 }
 
 TESTCASE(iterate)

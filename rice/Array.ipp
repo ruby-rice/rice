@@ -52,8 +52,7 @@ size() const
 inline Rice::Object Rice::Array::
 operator[](ptrdiff_t index) const
 {
-  VALUE * ptr = RARRAY_PTR(this->value());
-  return ptr[position_of(index)];
+  return protect(rb_ary_entry, value(), position_of(index));
 }
 
 inline Rice::Array::Proxy Rice::Array::
@@ -91,7 +90,15 @@ shift()
 inline VALUE * Rice::Array::
 to_c_array()
 {
-  return RARRAY_PTR(this->value());
+  std::vector<VALUE> arr(size());
+
+  Array::const_iterator it = this->begin();
+  Array::const_iterator e =  this->end();
+  for(int i = 0 ;it != e; i++, ++it) {
+    arr[i] = it->value();
+  }
+
+  return arr.data();
 }
 
 inline size_t Rice::Array::
@@ -117,13 +124,13 @@ Proxy(Array array, size_t index)
 inline Rice::Array::Proxy::
 operator Rice::Object() const
 {
-  return RARRAY_PTR(array_.value())[index_];
+  return protect(rb_ary_entry, array_.value(), index_);
 }
 
 inline VALUE Rice::Array::Proxy::
 value() const
 {
-  return RARRAY_PTR(array_.value())[index_];
+  return protect(rb_ary_entry, array_.value(), index_);
 }
 
 template<typename T>
@@ -131,7 +138,7 @@ Rice::Object Rice::Array::Proxy::
 operator=(T const & value)
 {
   Object o = to_ruby(value);
-  RARRAY_PTR(array_.value())[index_] = o.value();
+  rb_ary_store(array_.value(), index_, o.value());
   return o;
 }
 
