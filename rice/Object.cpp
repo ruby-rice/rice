@@ -108,7 +108,16 @@ vcall(
     Identifier id,
     Array args)
 {
-  return protect(rb_funcall3, *this, id, args.size(), args.to_c_array());
+  std::vector<VALUE> a(args.size());
+
+  Array::const_iterator it  = args.begin();
+  Array::const_iterator end = args.end();
+
+  for(int i = 0 ;it != end; i++, ++it) {
+    a[i] = it->value();
+  }
+
+  return protect(rb_funcall3, *this, id, args.size(), &a[0]);
 }
 
 void Rice::Object::

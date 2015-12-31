@@ -87,20 +87,6 @@ shift()
   return protect(rb_ary_shift, value());
 }
 
-inline VALUE * Rice::Array::
-to_c_array()
-{
-  std::vector<VALUE> arr(size());
-
-  Array::const_iterator it = this->begin();
-  Array::const_iterator e =  this->end();
-  for(int i = 0 ;it != e; i++, ++it) {
-    arr[i] = it->value();
-  }
-
-  return arr.data();
-}
-
 inline size_t Rice::Array::
 position_of(ptrdiff_t index) const
 {

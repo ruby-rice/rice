@@ -99,13 +99,6 @@ public:
    */
   Object shift();
 
-  //! Return a pointer to the beginning of a C array containing
-  //! the VALUEs stored in this Array.
-  //! Use with caution!
-  /*! \return a pointer to the beginning of the array.
-   */
-  VALUE * to_c_array();
-
 private:
   template<typename Array_Ref_T, typename Value_T>
   class Iterator;
