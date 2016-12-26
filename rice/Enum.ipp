@@ -75,7 +75,7 @@ initialize(
     .define_method("to_i", to_i)
     .define_method("inspect", inspect)
     .define_method("<=>", compare)
-    //.define_method("hash", hash)
+    .define_method("hash", hash)
     .define_method("eql?", eql)
     .define_method("==", eql)
     .define_method("===", eql)

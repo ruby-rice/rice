@@ -3,6 +3,7 @@
 #include "rice/Array.hpp"
 #include "rice/String.hpp"
 #include "rice/Constructor.hpp"
+#include "rice/global_function.hpp"
 #include <iostream>
 
 using namespace Rice;
@@ -147,14 +148,12 @@ TESTCASE(different_objects_eql)
   ASSERT_EQUAL(true, red1 == red2);
 }
 
-/*
 TESTCASE(hash)
 {
   Enum<Color> rb_cColor = define_color_enum();
   Data_Object<Color> red(new Color(RED));
   ASSERT_EQUAL(to_ruby(int(RED)), red.call("hash"));
 }
-*/
 
 TESTCASE(from_int)
 {
@@ -193,3 +192,24 @@ TESTCASE(nested_enums)
   ASSERT_EQUAL(to_ruby(int(2)), Object(protect(rb_eval_string, "Inner::Props::VALUE3.to_i")));
 }
 
+namespace
+{
+  Color getEnum()
+  {
+    return GREEN;
+  }
+}
+
+TESTCASE(return_enum_value_to_ruby)
+{
+  Enum<Color> rb_cColor = define_color_enum();
+  define_global_function("get_enum", &getEnum);
+
+  ASSERT_EQUAL(
+    Data_Object<Color>(protect(rb_eval_string, "Color::GREEN")),
+    Data_Object<Color>(protect(rb_eval_string, "get_enum"))
+  );
+
+  ASSERT_EQUAL(String("GREEN"), String(protect(rb_eval_string, "get_enum.to_s")));
+  ASSERT_EQUAL(String("#<Color::GREEN>"), String(protect(rb_eval_string, "get_enum.inspect")));
+}
