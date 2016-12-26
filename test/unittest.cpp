@@ -131,6 +131,6 @@ int main()
     }
   }
 
-  return result.errors().size() + result.failures().size();
+  return (int)result.errors().size() + (int)result.failures().size();
 }
 

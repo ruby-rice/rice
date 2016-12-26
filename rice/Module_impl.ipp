@@ -285,7 +285,7 @@ bool
 Rice::Module_impl<Base_T, Derived_T>::
 const_defined(Identifier name) const
 {
-  int result = protect(rb_const_defined, *this, name);
+  size_t result = protect(rb_const_defined, *this, name);
   return bool(result);
 }
 

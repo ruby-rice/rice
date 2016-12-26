@@ -117,7 +117,7 @@ vcall(
     a[i] = it->value();
   }
 
-  return protect(rb_funcall3, *this, id, args.size(), &a[0]);
+  return protect(rb_funcall3, *this, id, (int)args.size(), &a[0]);
 }
 
 void Rice::Object::

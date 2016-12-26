@@ -292,13 +292,13 @@ begin() const
 inline Rice::Hash::iterator Rice::Hash::
 end()
 {
-  return iterator(*this, size());
+  return iterator(*this, (int)size());
 }
 
 inline Rice::Hash::const_iterator Rice::Hash::
 end() const
 {
-  return const_iterator(*this, size());
+  return const_iterator(*this, (int)size());
 }
 
 inline bool Rice::
