@@ -2,7 +2,8 @@ rvm:
   - 2.0
   - 2.1
   - 2.2
-  - 2.3.0
+  - 2.3
+  - 2.4
   - ruby-head
 before_script:
   - gem install minitest
@@ -10,6 +11,9 @@ before_script:
   - ruby extconf.rb
   - make
 script: "export LD_LIBRARY_PATH=`rvm config-get libdir`:$LD_LIBRARY_PATH && rake"
+branches:
+  only:
+    - master
 matrix:
   allow_failures:
     - rvm: ruby-head
