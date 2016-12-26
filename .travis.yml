@@ -11,6 +11,9 @@ before_script:
   - ruby extconf.rb
   - make
 script: "export LD_LIBRARY_PATH=`rvm config-get libdir`:$LD_LIBRARY_PATH && rake"
+branches:
+  only:
+    - master
 matrix:
   allow_failures:
     - rvm: ruby-head
