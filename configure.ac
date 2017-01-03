@@ -21,7 +21,7 @@ else
   RICE_USING_MINGW32="false"
 fi
 
-m4_include(check_stdcxx_11.ac)
+# Requires autoconf-archive
 AX_CXX_COMPILE_STDCXX_11(,optional)
 
 AC_SUBST(RICE_USING_MINGW32)

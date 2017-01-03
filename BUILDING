@@ -1,3 +1,8 @@
+Required dependencies:
+
+  autotools
+  autoconf-archive
+
 Before building anything, you'll need to run autotools:
 
   ./bootstrap
