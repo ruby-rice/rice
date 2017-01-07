@@ -14,10 +14,6 @@ script: "export LD_LIBRARY_PATH=`rvm config-get libdir`:$LD_LIBRARY_PATH && rake
 branches:
   only:
     - master
-addons:
-  apt:
-    packages:
-    - autoconf-archive
 matrix:
   allow_failures:
     - rvm: ruby-head
