@@ -261,7 +261,7 @@ template<>
 inline
 char const * from_ruby<char const *>(Rice::Object x)
 {
-  return Rice::String(x).str().data();
+  return Rice::String(x).c_str();
 }
 
 template<>
