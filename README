@@ -321,7 +321,7 @@ calls:
   Foo const * f = from_ruby<Foo const *>(obj);
 \endcode
 
-work as expected.
+works as expected.
 
 The Data_Object class is a wrapper for the Data_Wrap_Struct and the
 Data_Get_Struct macros in C extensions.  It can be used to wrap or
@@ -778,7 +778,7 @@ call down into Ruby, handling any type conversions, while a
 default_methodName method handles calling up into C++ and will be the
 method wrapped into Rice.
 
-The default_doWork method will be used as Rice's hookup of calling back up the 
+The default_doWork method will be used as Rice's hookup of calling back up the
 heirarchy (wrapping is below). This method needs to do one of two things: call
 up the class heirarchy, as seen here, or call raisePureVirtual() as seen in the
 processWorker example:
@@ -790,7 +790,7 @@ processWorker example:
 \endcode
 
 The method raisePureVirtual() exists to allow wrapping a pure virtual method into Ruby
-(and ensuring compliation is possible) but making sure any users of this extension are 
+(and ensuring compliation is possible) but making sure any users of this extension are
 informed quickly that there's nothing callable in the C++ side of the library.
 
 Once the proxy class is built, it's time to wrap it into Ruby:
@@ -819,7 +819,7 @@ There are times when a library exposes classes that, while unrelated, are
 built to be interchangeable across the library. One example of this is found in
 the Open Source 3d rendering engine <a
 href="http://www.ogre3d.org/">OGRE</a>: Ogre::Degree and Ogre::Radian.
-When a given method takes a Radian, you're free to pass in a Degree, and vice versa. 
+When a given method takes a Radian, you're free to pass in a Degree, and vice versa.
 
 Rice cannot automatically figure out if this kind of functionality is
 possible in a given library but it does provide an API for defining
