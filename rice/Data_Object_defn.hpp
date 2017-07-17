@@ -62,7 +62,7 @@ public:
   typedef void (*Ruby_Data_Func)(T * obj);
 
   //! Wrap a C++ object.
-  /*! This constructor is analgous to calling Data_Wrap_Struct.  Be
+  /*! This constructor is analogous to calling Data_Wrap_Struct.  Be
    *  careful not to call this function more than once for the same
    *  pointer (in general, it should only be called for newly
    *  constructed objects that need to be managed by Ruby's garbage
@@ -82,7 +82,7 @@ public:
       Ruby_Data_Func free_func = Default_Free_Function<T>::free);
 
   //! Unwrap a Ruby object.
-  /*! This constructor is analgous to calling Data_Get_Struct.  Uses
+  /*! This constructor is analogous to calling Data_Get_Struct.  Uses
    *  Data_Type<T>::klass as the class of the object.
    *  \param value the Ruby object to unwrap.
    */
@@ -90,7 +90,7 @@ public:
       Object value);
 
   //! Unwrap a Ruby object.
-  /*! This constructor is analgous to calling Data_Get_Struct.  Will
+  /*! This constructor is analogous to calling Data_Get_Struct.  Will
    *  throw an exception if the class of the object differs from the
    *  specified class.
    *  \param value the Ruby object to unwrap.
