@@ -20,6 +20,8 @@ The source is hosted on github: http://github.com/jasonroelofs/rice
 
 Bug tracking: http://github.com/jasonroelofs/rice/issues
 
+API documentation: http://jasonroelofs.github.io/rice
+
 # Installation {#installation}
 
 ~~~
