@@ -51,7 +51,7 @@ The first step is to create an extconf.rb file:
   create_makefile('test')
 ~~~
 
-Note that we use mkmf-rice instead of mkmf.  This will ensure that the
+Note that we use `mkmf-rice` instead of `mkmf`.  This will ensure that the
 extension will be linked with standard C++ library along with the Rice
 library, and allow access to the Rice header files.
 
@@ -65,7 +65,7 @@ Next we create our extension and save it to test.cpp:
 ~~~
 
 Note the extern "C" line above.  This tells the compiler that the
-function Init_test should have C linkage and calling convention.  This
+function `Init_test` should have C linkage and calling convention.  This
 turns off name mangling so that the Ruby interpreter will be able to
 find the function (remember that Ruby is written in C, not C++).
 
@@ -90,7 +90,7 @@ Defining a class in Rice is easy:
   }
 ~~~
 
-This will create a class called Test that inherits from Object.  If we
+This will create a class called `Test` that inherits from `Object`. If we
 wanted to inherit from a different class, we could easily do so:
 
 ~~~{.cpp}
@@ -105,9 +105,9 @@ wanted to inherit from a different class, we could easily do so:
   }
 ~~~
 
-Note the prefix rb_c on the name of the class.  This is a convention
-that the Ruby interpreter and many extensions tend to use.  It signifies
-that this is a class and not some other type of object.  Some other
+Note the prefix rb_c on the name of the class. This is a convention
+that the Ruby interpreter and many extensions tend to use. It signifies
+that this is a class and not some other type of object. Some other
 naming conventions that are commonly used:
 
 - rb_c variable name prefix for a Class
@@ -121,9 +121,9 @@ takes Ruby objects as arguments and one that takes C argument types
 arguments
 
 
-Also note that we don't include "ruby.h" directly.  Rice has a wrapper
+Also note that we don't include "ruby.h" directly. Rice has a wrapper
 for ruby.h that handles some compatibility issues across platforms and
-Ruby versions.  Always include Rice headers before including anything
+Ruby versions. Always include Rice headers before including anything
 that might include "ruby.h".
 
 ## Defining methods {#methods}
@@ -151,11 +151,11 @@ Now let's add a method to our class:
   }
 ~~~
 
-Here we add a method Test#hello that simply returns the string
+Here we add a method `%Test#hello` that simply returns the string
 "Hello, World".  The method takes self as an implicit parameter, but
 isn't used, so we comment it out to prevent a compiler warning.
 
-We could also add an #initialize method to our class:
+We could also add an `#initialize` method to our class:
 
 ~~~{.cpp}
   #include "rice/Class.hpp"
@@ -184,12 +184,12 @@ We could also add an #initialize method to our class:
   }
 ~~~
 
-The initialize method sets an instance variable @foo to the value 42.
-The number is automatically converted to a Fixnum before doing the
+The `initialize` method sets an instance variable `@foo` to the value 42.
+The number is automatically converted to a `Fixnum` before doing the
 assignment.
 
-Note that we're chaining calls on the Class object.  Most member
-functions in Module and Class return a reference to self, so we can
+Note that we're chaining calls on the `Class` object.  Most member
+functions in `Module` and `Class` return a reference to self, so we can
 chain as many calls as we want to define as many methods as we want.
 
 
@@ -211,7 +211,7 @@ Let's assume we have the following C++ class that we want to wrap:
 ~~~
 
 This is a C++ version of the Ruby class we just created in the previous
-section.  To wrap it:
+section. To wrap it:
 
 ~~~{.cpp}
   #include "rice/Data_Type.hpp"
@@ -229,11 +229,11 @@ section.  To wrap it:
   }
 ~~~
 
-This example is similar to the one before, but we use Data_Type<>
-instead of Class and the template version of define_class() instead of
-the non-template version.  This creates a binding in the Rice library
-between the Ruby class Test and the C++ class Test such that Rice passes
-member function pointers to define_method().
+This example is similar to the one before, but we use `Data_Type<>`
+instead of `Class` and the template version of define_class() instead of
+the non-template version. This creates a binding in the Rice library
+between the Ruby class `Test` and the C++ class Test such that Rice passes
+member function pointers to `define_method()`.
 
 It is possible to write the conversion functions ourself (as we'll see
 below), but Rice does all the dirty work for us.
@@ -253,7 +253,7 @@ Let's look again at our example class:
 ~~~
 
 When we wrote our class, we never wrote a single line of code to convert
-the std::string returned by hello() into a Ruby type.  Neverthless, the
+the `std::string` returned by `hello()` into a Ruby type. Neverthless, the
 conversion works, and when we write:
 
 ~~~{.cpp}
@@ -275,7 +275,7 @@ Ruby types:
 ~~~
 
 Rice has included by default specializations for many of the builtin
-types.  To define your own conversion, you can write a specialization:
+types. To define your own conversion, you can write a specialization:
 
 ~~~{.cpp}
   template<>
@@ -292,12 +292,12 @@ types.  To define your own conversion, you can write a specialization:
 ~~~
 
 The implementation of these functions would, of course, depend on the
-implementation of Foo.
+implementation of `Foo`.
 
 
 ## Conversions for wrapped C++ types {#data_conversions}
 
-Take another look at the wrapper we wrote for the Test class:
+Take another look at the wrapper we wrote for the `Test` class:
 
 ~~~{.cpp}
   extern "C"
@@ -310,7 +310,7 @@ Take another look at the wrapper we wrote for the Test class:
   }
 ~~~
 
-When we called define_class<Test>, it created a Class for us and
+When we called `define_class<Test>`, it created a Class for us and
 automatically registered the new Class with the type system, so that the
 calls:
 
@@ -322,18 +322,18 @@ calls:
 
 works as expected.
 
-The Data_Object class is a wrapper for the Data_Wrap_Struct and the
-Data_Get_Struct macros in C extensions.  It can be used to wrap or
-unwrap any class that has been assigned to a Data_Type.  It inherits
-from Object, so any member functions we can call on an Object we can
-also call on a Data_Object:
+The `Data_Object` class is a wrapper for the `Data_Wrap_Struct` and the
+`Data_Get_Struct` macros in C extensions.  It can be used to wrap or
+unwrap any class that has been assigned to a `Data_Type`.  It inherits
+from `Object`, so any member functions we can call on an `Object` we can
+also call on a `Data_Object`:
 
 ~~~{.cpp}
   Object object_id = obj.call("object_id");
   std::cout << object_id << std::endl;
 ~~~
 
-The Data_Object class can be used to wrap a newly-created object:
+The `Data_Object` class can be used to wrap a newly-created object:
 
 ~~~{.cpp}
   Data_Object<Foo> foo(new Foo);
@@ -346,7 +346,7 @@ or to unwrap an already-created object:
   Data_Object<Foo> foo(obj);
 ~~~
 
-A Data_Object functions like a smart pointer:
+A `Data_Object` functions like a smart pointer:
 
 ~~~{.cpp}
   Data_Object<Foo> foo(obj);
@@ -354,8 +354,8 @@ A Data_Object functions like a smart pointer:
   std::cout << *foo << std::endl;
 ~~~
 
-Like a VALUE or an Object, data stored in a Data_Object will be marked
-by the garbage collector as long as the Data_Object is on the stack.
+Like a `VALUE` or an `Object`, data stored in a `Data_Object` will be marked
+by the garbage collector as long as the `Data_Object` is on the stack.
 
 
 ## Exceptions {#exception}
@@ -418,8 +418,8 @@ this:
   }
 ~~~
 
-The handle_my_exception function need only rethrow the exception as a
-Rice::Exception:
+The `handle_my_exception` function need only rethrow the exception as a
+`Rice::Exception`:
 
 ~~~{.cpp}
   void handle_my_exception(MyException const & ex)
@@ -439,11 +439,11 @@ also converted:
 ~~~
 
 Internally whenever Rice catches a C++ or a Ruby exception, it converts
-it to an Exception object.  This object will later be re-raised as a
+it to an `Exception` object.  This object will later be re-raised as a
 Ruby exception when control is returned to the Ruby VM.
 
-Rice uses a similar class called Jump_Tag to handle symbols thrown by
-Ruby's throw/catch or other non-local jumps from inside the Ruby VM.
+Rice uses a similar class called `Jump_Tag` to handle symbols thrown by
+Ruby's `throw`/`catch` or other non-local jumps from inside the Ruby VM.
 
 
 ## Builtin Types {#builtin}
@@ -476,7 +476,7 @@ Rice provides builtin wrappers for many builtin Ruby types, including:
 - Symbol
 - Exception
 
-The Array and Hash types can even be iterated over the same way one
+The `Array` and `Hash` types can even be iterated over the same way one
 would iterate over an STL container:
 
 ~~~{.cpp}
@@ -492,14 +492,14 @@ would iterate over an STL container:
   }
 ~~~
 
-STL algorithms should also work as expected on Array and Hash containers.
+STL algorithms should also work as expected on `Array` and `Hash` containers.
 
 
 ## Inheritance {#inheritance}
 
-Inheritance is a tricky problem to solve in extensions.  This is because
+Inheritance is a tricky problem to solve in extensions. This is because
 wrapper functions for base classes typically don't know how to accept
-pointers to derived classes.  It is possible to write this logic, but
+pointers to derived classes. It is possible to write this logic, but
 the code is nontrivial.
 
 Forunately Rice handles this gracefully:
@@ -527,8 +527,8 @@ Forunately Rice handles this gracefully:
   }
 ~~~
 
-The second template parameter to define_class indicates that Derived
-inherits from Base.
+The second template parameter to define_class indicates that `Derived`
+inherits from `Base`.
 
 Rice does not support multiple inheritance.
 
@@ -549,7 +549,7 @@ Consider a class that uses this idiom for accessors:
   };
 ~~~
 
-We can wrap this class by using typedefs:
+We can wrap this class by using `typedef`s:
 
 ~~~{.cpp}
   extern "C"
@@ -568,21 +568,21 @@ We can wrap this class by using typedefs:
 
 ## User-defined type conversions {#user_defined_conversions}
 
-Rice provides default conversions for many built-in types.  Sometimes,
-however, the default conversion is not what is expected.  For
+Rice provides default conversions for many built-in types. Sometimes,
+however, the default conversion is not what is expected. For
 example, consider a function:
 
 ~~~{.cpp}
   void foo(char * x);
 ~~~
 
-Is x a pointer to a single character or a pointer to the first character
+Is `x` a pointer to a single character or a pointer to the first character
 of a null-terminated string or a pointer to the first character of an
 array of char?
 
 Because the second case is the most common use case (a pointer to the
 first character of a C string), Rice provides a default conversion that
-treats a char * as a C string.  But suppose the above function takes a
+treats a `char *` as a C string.  But suppose the above function takes a
 pointer to a char instead?
 
 If we write this:
@@ -614,13 +614,13 @@ To avoid this problem, it is necessary to write a wrapper function:
   }
 ~~~
 
-Note that the out parameter is returned from wrap_foo, as Ruby does not
+Note that the out parameter is returned from `wrap_foo`, as Ruby does not
 have pass-by-variable-reference (it uses pass-by-object-reference).
 
 
 ## Default Arguments {#default_arguments}
 
-Going back to our initial C++ class example, lets say that hello() now
+Going back to our initial C++ class example, lets say that `hello()` now
 takes more arguments, one of which has a default value:
 
 ~~~{.cpp}
@@ -633,7 +633,7 @@ takes more arguments, one of which has a default value:
 ~~~
 
 As default parameter information is not available through templates,
-it is necessary to define this in Rice explicitly using Rice::Arg:
+it is necessary to define this in Rice explicitly using `Rice::Arg`:
 
 ~~~{.cpp}
   #include "rice/Data_Type.hpp"
@@ -654,8 +654,8 @@ it is necessary to define this in Rice explicitly using Rice::Arg:
   }
 ~~~
 
-The syntax here is simply Arg(nameOfParameter)[ = defaultValue].  The name of the
-parameter is not important here (a readability tool), but the value set via operator=
+The syntax here is simply `Arg(nameOfParameter)[ = defaultValue]`.  The name of the
+parameter is not important here (a readability tool), but the value set via `operator=`
 must match the type of the parameter. As such it may be necessary to
 explicitly cast the default value.
 
@@ -666,7 +666,7 @@ explicitly cast the default value.
   );
 ~~~
 
-These Rice::Arg objects must be in the correct order and must be
+These `Rice::Arg` objects must be in the correct order and must be
 surrounded with parentheses if more than one exists.
 
 Now, Ruby will now know about the default arguments, and this wrapper
@@ -691,11 +691,11 @@ As polymorphism is the most important tennant of Object Oriented Programming,
 it is important that Rice supports polymorphic calls travelling between C++
 and Ruby seemlessly. Super calls from Ruby subclasses back into C++ already work,
 but enabling the other direction requires some extra effort. Rice
-suppplies the the Rice::Director class and
-Rice::Data_Type::define_director to expose this functionality.
+supplies the the `Rice::Director` class and
+`Rice::Data_Type::define_director` to expose this functionality.
 
-Like SWIG_Director, Rice::Director is a class that is used to build a proxy class
-to properly send execution up or down the object heiarchy for that class. Take
+Like `SWIG_Director`, `Rice::Director` is a class that is used to build a proxy class
+to properly send execution up or down the object hierarchy for that class. Take
 the following class:
 
 ~~~{.cpp}
@@ -710,10 +710,10 @@ the following class:
 Due to the abstract nature of this class, it will not work at all with Rice
 in its current form. Any attempt to do so will cause a compilation error due to
 this class not being constructable. Even without the pure virtual function, any
-call to VirtualBase::doWork will stop at the C++ level and will not pass down into
+call to `VirtualBase::doWork` will stop at the C++ level and will not pass down into
 any Ruby subclasses.
 
-To properly wrap both of these methods, use a Rice::Director subclass as a proxy:
+To properly wrap both of these methods, use a `Rice::Director` subclass as a proxy:
 
 ~~~{.cpp}
   #include "rice/Director.hpp"
@@ -746,17 +746,17 @@ There is a lot going on here, so we'll go through each part.
   class VirtualBaseProxy : public Virtualbase, public Rice::Director {
 ~~~
 
-First, the class needs to subclass both the virtual class in question and Rice::Director.
+First, the class needs to subclass both the virtual class in question and `Rice::Director`.
 
 ~~~{.cpp}
     public:
       VirtualBaseProxy(Object self) : Rice::Director(self) { }
 ~~~
 
-For Rice::Director to work its magic, every instance of this class needs to
+For `Rice::Director` to work its magic, every instance of this class needs to
 have a handle to the Ruby instance. The constructor
-must take a Rice::Object as the first argument and pass it up into
-Rice::Director. The code here is the minimum required for a Rice::Director proxy.
+must take a `Rice::Object` as the first argument and pass it up into
+`Rice::Director`. The code here is the minimum required for a `Rice::Director` proxy.
 
 ~~~{.cpp}
       virtual int doWork() {
@@ -769,15 +769,15 @@ Rice::Director. The code here is the minimum required for a Rice::Director proxy
 ~~~
 
 Here the directory proxy overrides the methods for Ruby exposure and
-implements the required actions to pass flow around the heirarchy
+implements the required actions to pass flow around the hierarchy
 appropriately. The pattern shown here is that the actual override will
 call down into Ruby, handling any type conversions, while a
-default_methodName method handles calling up into C++ and will be the
+`default_methodName` method handles calling up into C++ and will be the
 method wrapped into Rice.
 
-The default_doWork method will be used as Rice's hookup of calling back up the
-heirarchy (wrapping is below). This method needs to do one of two things: call
-up the class heirarchy, as seen here, or call raisePureVirtual() as seen in the
+The `default_doWork` method will be used as Rice's hookup of calling back up the
+hierarchy (wrapping is below). This method needs to do one of two things: call
+up the class hierarchy, as seen here, or call `raisePureVirtual()` as seen in the
 processWorker example:
 
 ~~~{.cpp}
@@ -786,7 +786,7 @@ processWorker example:
       }
 ~~~
 
-The method raisePureVirtual() exists to allow wrapping a pure virtual method into Ruby
+The method `raisePureVirtual()` exists to allow wrapping a pure virtual method into Ruby
 (and ensuring compliation is possible) but making sure any users of this extension are
 informed quickly that there's nothing callable in the C++ side of the library.
 
@@ -804,10 +804,10 @@ void Init_virtual() {
 ~~~
 
 The wrapping is the same as is described earlier in this document. Expose the class
-VirtualBase, and register VirtualBaseProxy as a director proxy of VirtualBase with
-Rice::Data_Type::define_director, then define methods pointing to the proxy object as necessary.
+`VirtualBase`, and register `VirtualBaseProxy` as a director proxy of `VirtualBase` with
+`Rice::Data_Type::define_director`, then `define methods` pointing to the proxy object as necessary.
 
-You must use the Rice::Director proxy class in the Constructor line, this allows proper
+You must use the `Rice::Director` proxy class in the Constructor line, this allows proper
 object construction / destruction of the types in question.
 
 ## Implicit Casting {#implicit_cast}
@@ -820,7 +820,7 @@ When a given method takes a Radian, you're free to pass in a Degree, and vice ve
 
 Rice cannot automatically figure out if this kind of functionality is
 possible in a given library but it does provide an API for defining
-these relationships: Rice::define_implicit_cast<From, To>().
+these relationships: `Rice::define_implicit_cast<From, To>()`.
 
 ~~~{.cpp}
 class Degree { ... };
@@ -838,7 +838,7 @@ void Init_implicit() {
 }
 ~~~
 
-Using Rice::define_implicit_cast has the following requirements:
+Using `Rice::define_implicit_cast` has the following requirements:
 
 - The two types must be bound in Rice before defining the cast.
 - The classes must have constructors that take the other type.
