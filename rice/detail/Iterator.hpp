@@ -48,8 +48,8 @@ public:
   virtual VALUE call_impl(VALUE self)
   {
     Data_Object<T> obj(self, data_type_);
-    Iterator_T it = obj->begin();
-    Iterator_T end = obj->end();
+    Iterator_T it = (*obj.*begin_)();
+    Iterator_T end = (*obj.*end_)();
     for(; it != end; ++it)
     {
       Rice::protect(rb_yield, to_ruby(*it));
