@@ -303,8 +303,10 @@ public:
   {
   }
 
-  int * begin() { return array_; }
-  int * end() { return array_ + length_; }
+  // Custom names to make sure we call the function pointers rather than
+  // expectable default names.
+  int * beginFoo() { return array_; }
+  int * endBar() { return array_ + length_; }
 
 private:
   int * array_;
@@ -325,7 +327,7 @@ TESTCASE(define_iterator)
 {
   int array[] = { 1, 2, 3 };
   Class c(anonymous_class());
-  c.define_iterator(&Container::begin, &Container::end);
+  c.define_iterator(&Container::beginFoo, &Container::endBar);
   Container * container = new Container(array, 3);
   Object wrapped_container = Data_Wrap_Struct(
       c, 0, Default_Free_Function<Container>::free, container);
