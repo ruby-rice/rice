@@ -24,7 +24,7 @@ of the Ruby C API.
     'test/test_rice.rb',
   ]
 
-  s.extra_rdoc_files = [ 'README' ]
+  s.extra_rdoc_files = [ 'README.md' ]
 
   s.require_paths = [ 'ruby/lib' ]
 
