@@ -33,10 +33,8 @@ EOC
 end
 
 if RUBY_PLATFORM =~ /darwin(\d+)/
-  check_inconv = <<SYSCMD.chomp
-echo "#include <iconv.h>" | g++ -xc -fsyntax-only -
-SYSCMD
-  if system(check_iconv)
+  check_iconv = 'echo "#include <iconv.h>" | g++ -xc -fsyntax-only -'
+  if !system(check_iconv)
     abort <<EOM.chomp
 -----
 The file "/usr/include/iconv.h" is missing in your build environment,
