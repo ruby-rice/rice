@@ -83,45 +83,6 @@ AC_DEFUN([AX_CXX_COMPILE_STDCXX_11], [dnl
     ac_success=yes
   fi
 
-  m4_if([$1], [noext], [], [dnl
-  if test x$ac_success = xno; then
-    for switch in -std=gnu++11 -std=gnu++0x; do
-      cachevar=AS_TR_SH([ax_cv_cxx_compile_cxx11_$switch])
-      AC_CACHE_CHECK(whether $CXX supports C++11 features with $switch,
-                     $cachevar,
-        [ac_save_CXXFLAGS="$CXXFLAGS"
-         CXXFLAGS="$CXXFLAGS $switch"
-         AC_COMPILE_IFELSE([AC_LANG_SOURCE([_AX_CXX_COMPILE_STDCXX_11_testbody])],
-          [eval $cachevar=yes],
-          [eval $cachevar=no])
-         CXXFLAGS="$ac_save_CXXFLAGS"])
-      if eval test x\$$cachevar = xyes; then
-        CXXFLAGS="$CXXFLAGS $switch"
-        ac_success=yes
-        break
-      fi
-    done
-  fi])
-
-  m4_if([$1], [ext], [], [dnl
-  if test x$ac_success = xno; then
-    for switch in -std=c++11 -std=c++0x; do
-      cachevar=AS_TR_SH([ax_cv_cxx_compile_cxx11_$switch])
-      AC_CACHE_CHECK(whether $CXX supports C++11 features with $switch,
-                     $cachevar,
-        [ac_save_CXXFLAGS="$CXXFLAGS"
-         CXXFLAGS="$CXXFLAGS $switch"
-         AC_COMPILE_IFELSE([AC_LANG_SOURCE([_AX_CXX_COMPILE_STDCXX_11_testbody])],
-          [eval $cachevar=yes],
-          [eval $cachevar=no])
-         CXXFLAGS="$ac_save_CXXFLAGS"])
-      if eval test x\$$cachevar = xyes; then
-        CXXFLAGS="$CXXFLAGS $switch"
-        ac_success=yes
-        break
-      fi
-    done
-  fi])
   AC_LANG_POP([C++])
   if test x$ax_cxx_compile_cxx11_required = xtrue; then
     if test x$ac_success = xno; then
