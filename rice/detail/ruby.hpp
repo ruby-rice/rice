@@ -15,6 +15,7 @@
 #endif
 
 #include "ruby_version_code.hpp"
+#include "../config.hpp"
 
 #include <ruby.h>
 
