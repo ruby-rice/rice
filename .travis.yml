@@ -5,6 +5,7 @@ rvm:
   - 2.3
   - 2.4
   - 2.5
+  - 2.6
   - ruby-head
 before_script:
   - gem install rake -v 12.3.3
