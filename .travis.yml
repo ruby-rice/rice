@@ -8,7 +8,7 @@ rvm:
   - ruby-head
 before_script:
   - gem install rake -v 12.3.3
-  - gem install minitest
+  - gem install minitest -v 5.12.0
   - sh bootstrap
   - ruby extconf.rb
   - make
