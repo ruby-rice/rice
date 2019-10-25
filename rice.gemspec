@@ -106,4 +106,10 @@ of the Ruby C API.
   ]
 
   s.files = patterns.collect { |p| Dir.glob(p) }.flatten
+
+  s.required_ruby_version = ">= 2.4"
+
+  s.add_development_dependency "bundler"
+  s.add_development_dependency "rake"
+  s.add_development_dependency "minitest"
 end
