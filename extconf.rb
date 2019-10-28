@@ -23,12 +23,9 @@ if RbConfig::CONFIG["ENABLE_SHARED"] == "no"
 Unfortunately Rice does not build against a staticly linked Ruby.
 You'll need to rebuild Ruby with --enable-shared to use this library.
 
-If you're on rvm:   rvm reinstall [version] -- --enable-shared
-If you're on rbenv: CONFIGURE_OPTS="--enable-shared" rbenv install [version]
-
-If you are using Heroku, they use a own custom configured, staticly linked Ruby
-for their stack and it unfortunately does not work with Rice. You will need to use
-a custom Ruby build pack that builds and uses a non-static version of Ruby.
+If you're on rvm:    rvm reinstall [version] -- --enable-shared
+If you're on rbenv:  CONFIGURE_OPTS="--enable-shared" rbenv install [version]
+If you're on Heroku: upgrade your stack to heroku-16 or later
 EOC
 end
 
