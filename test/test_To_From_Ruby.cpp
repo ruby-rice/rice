@@ -91,6 +91,32 @@ TESTCASE(long_from_ruby)
       from_ruby<long>(LONG2NUM(std::numeric_limits<long>::max())));
 }
 
+TESTCASE(long_long_to_ruby)
+{
+  ASSERT_EQUAL(LL2NUM(0), to_ruby((long long)0).value());
+  ASSERT_EQUAL(LL2NUM(-1), to_ruby((long long)-1).value());
+  ASSERT_EQUAL(LL2NUM(1), to_ruby((long long)1).value());
+  ASSERT_EQUAL(
+      Object(LL2NUM(std::numeric_limits<long long>::min())),
+      to_ruby(std::numeric_limits<long long>::min()));
+  ASSERT_EQUAL(
+      Object(LL2NUM(std::numeric_limits<long long>::max())),
+      to_ruby(std::numeric_limits<long long>::max()));
+}
+
+TESTCASE(long_long_from_ruby)
+{
+  ASSERT_EQUAL(0, from_ruby<long long>(LL2NUM(0)));
+  ASSERT_EQUAL(-1, from_ruby<long long>(LL2NUM(-1)));
+  ASSERT_EQUAL(1, from_ruby<long long>(LL2NUM(1)));
+  ASSERT_EQUAL(
+      std::numeric_limits<long long>::min(),
+      from_ruby<long long>(LL2NUM(std::numeric_limits<long long>::min())));
+  ASSERT_EQUAL(
+      std::numeric_limits<long long>::max(),
+      from_ruby<long long>(LL2NUM(std::numeric_limits<long long>::max())));
+}
+
 TESTCASE(unsigned_int_to_ruby)
 {
   ASSERT_EQUAL(UINT2NUM(0), to_ruby((unsigned int)0).value());
@@ -143,6 +169,30 @@ TESTCASE(unsigned_long_from_ruby)
   ASSERT_EQUAL(
       std::numeric_limits<unsigned long>::max(),
       from_ruby<unsigned long>(ULONG2NUM(std::numeric_limits<unsigned long>::max())));
+}
+
+TESTCASE(unsigned_long_long_to_ruby)
+{
+  ASSERT_EQUAL(ULL2NUM(0), to_ruby((unsigned long long)0).value());
+  ASSERT_EQUAL(ULL2NUM(1), to_ruby((unsigned long long)1).value());
+  ASSERT_EQUAL(
+      Object(ULL2NUM(std::numeric_limits<unsigned long long>::min())),
+      to_ruby(std::numeric_limits<unsigned long long>::min()));
+  ASSERT_EQUAL(
+      Object(ULL2NUM(std::numeric_limits<unsigned long long>::max())),
+      to_ruby(std::numeric_limits<unsigned long long>::max()));
+}
+
+TESTCASE(unsigned_long_long_from_ruby)
+{
+  ASSERT_EQUAL(0u, from_ruby<unsigned long>(ULL2NUM(0)));
+  ASSERT_EQUAL(1u, from_ruby<unsigned long>(ULL2NUM(1)));
+  ASSERT_EQUAL(
+      std::numeric_limits<unsigned long long>::min(),
+      from_ruby<unsigned long long>(ULL2NUM(std::numeric_limits<unsigned long long>::min())));
+  ASSERT_EQUAL(
+      std::numeric_limits<unsigned long long>::max(),
+      from_ruby<unsigned long long>(ULL2NUM(std::numeric_limits<unsigned long long>::max())));
 }
 
 TESTCASE(bool_to_ruby)

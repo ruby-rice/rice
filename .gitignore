@@ -33,3 +33,5 @@ mkinstalldirs
 ruby/lib/include
 ruby/lib/lib
 
+Gemfile.lock
+.dirstamp

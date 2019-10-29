@@ -85,6 +85,37 @@ namespace Rice
 {
   namespace detail
   {
+    inline long long num2longlong(VALUE x)
+    {
+      return NUM2LL(x);
+    }
+
+    inline VALUE longlong2num(long long x)
+    {
+      return LL2NUM(x);
+    }
+  }
+}
+
+template<>
+inline
+long long from_ruby<long long>(Rice::Object x)
+{
+  return Rice::protect(Rice::detail::num2longlong, x);
+}
+
+template<>
+inline
+Rice::Object to_ruby<long long>(long long const & x)
+{
+  return Rice::protect(Rice::detail::longlong2num, x);
+}
+
+// ---------------------------------------------------------------------
+namespace Rice
+{
+  namespace detail
+  {
     inline unsigned int num2uint(VALUE x)
     {
       return NUM2UINT(x);
@@ -140,6 +171,37 @@ inline
 Rice::Object to_ruby<unsigned long>(unsigned long const & x)
 {
   return Rice::protect(Rice::detail::ulong2num, x);
+}
+
+// ---------------------------------------------------------------------
+namespace Rice
+{
+  namespace detail
+  {
+    inline unsigned long long num2ulonglong(VALUE x)
+    {
+      return NUM2ULL(x);
+    }
+
+    inline VALUE ulonglong2num(unsigned long long x)
+    {
+      return ULL2NUM(x);
+    }
+  }
+}
+
+template<>
+inline
+unsigned long long from_ruby<unsigned long long>(Rice::Object x)
+{
+  return Rice::protect(Rice::detail::num2ulonglong, x);
+}
+
+template<>
+inline
+Rice::Object to_ruby<unsigned long long>(unsigned long long const & x)
+{
+  return Rice::protect(Rice::detail::ulonglong2num, x);
 }
 
 // ---------------------------------------------------------------------
