@@ -27,6 +27,32 @@ TESTCASE(object_from_ruby)
   ASSERT_EQUAL(o.value(), from_ruby<Object>(o).value());
 }
 
+TESTCASE(short_to_ruby)
+{
+  ASSERT_EQUAL(INT2NUM(0), to_ruby((short)0).value());
+  ASSERT_EQUAL(INT2NUM(-1), to_ruby((short)-1).value());
+  ASSERT_EQUAL(INT2NUM(1), to_ruby((short)1).value());
+  ASSERT_EQUAL(
+      Object(INT2NUM(std::numeric_limits<short>::min())),
+      to_ruby(std::numeric_limits<short>::min()));
+  ASSERT_EQUAL(
+      Object(INT2NUM(std::numeric_limits<short>::max())),
+      to_ruby(std::numeric_limits<short>::max()));
+}
+
+TESTCASE(short_from_ruby)
+{
+  ASSERT_EQUAL(0, from_ruby<short>(INT2NUM(0)));
+  ASSERT_EQUAL(-1, from_ruby<short>(INT2NUM(-1)));
+  ASSERT_EQUAL(1, from_ruby<short>(INT2NUM(1)));
+  ASSERT_EQUAL(
+      std::numeric_limits<short>::min(),
+      from_ruby<short>(INT2NUM(std::numeric_limits<short>::min())));
+  ASSERT_EQUAL(
+      std::numeric_limits<short>::max(),
+      from_ruby<short>(INT2NUM(std::numeric_limits<short>::max())));
+}
+
 TESTCASE(int_to_ruby)
 {
   ASSERT_EQUAL(INT2NUM(0), to_ruby((int)0).value());
@@ -115,6 +141,30 @@ TESTCASE(long_long_from_ruby)
   ASSERT_EQUAL(
       std::numeric_limits<long long>::max(),
       from_ruby<long long>(LL2NUM(std::numeric_limits<long long>::max())));
+}
+
+TESTCASE(unsigned_short_to_ruby)
+{
+  ASSERT_EQUAL(UINT2NUM(0), to_ruby((unsigned short)0).value());
+  ASSERT_EQUAL(UINT2NUM(1), to_ruby((unsigned short)1).value());
+  ASSERT_EQUAL(
+      Object(UINT2NUM(std::numeric_limits<unsigned short>::min())),
+      to_ruby(std::numeric_limits<unsigned short>::min()));
+  ASSERT_EQUAL(
+      Object(UINT2NUM(std::numeric_limits<unsigned short>::max())),
+      to_ruby(std::numeric_limits<unsigned short>::max()));
+}
+
+TESTCASE(unsigned_short_from_ruby)
+{
+  ASSERT_EQUAL(0u, from_ruby<unsigned short>(UINT2NUM(0)));
+  ASSERT_EQUAL(1u, from_ruby<unsigned short>(UINT2NUM(1)));
+  ASSERT_EQUAL(
+      std::numeric_limits<unsigned short>::min(),
+      from_ruby<unsigned short>(UINT2NUM(std::numeric_limits<unsigned short>::min())));
+  ASSERT_EQUAL(
+      std::numeric_limits<unsigned short>::max(),
+      from_ruby<unsigned short>(UINT2NUM(std::numeric_limits<unsigned short>::max())));
 }
 
 TESTCASE(unsigned_int_to_ruby)

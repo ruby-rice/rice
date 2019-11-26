@@ -23,6 +23,37 @@ namespace Rice
 {
   namespace detail
   {
+    inline short num2short(VALUE x)
+    {
+      return NUM2SHORT(x);
+    }
+
+    inline VALUE short2num(short x)
+    {
+      return INT2NUM(x);
+    }
+  }
+}
+
+template<>
+inline
+short from_ruby<short>(Rice::Object x)
+{
+  return Rice::detail::num2short(x);
+}
+
+template<>
+inline
+Rice::Object to_ruby<short>(short const & x)
+{
+  return Rice::protect(Rice::detail::short2num, x);
+}
+
+// ---------------------------------------------------------------------
+namespace Rice
+{
+  namespace detail
+  {
     inline int num2int(VALUE x)
     {
       return NUM2INT(x);
@@ -109,6 +140,37 @@ inline
 Rice::Object to_ruby<long long>(long long const & x)
 {
   return Rice::protect(Rice::detail::longlong2num, x);
+}
+
+// ---------------------------------------------------------------------
+namespace Rice
+{
+  namespace detail
+  {
+    inline unsigned short num2ushort(VALUE x)
+    {
+      return NUM2USHORT(x);
+    }
+
+    inline VALUE ushort2num(unsigned short x)
+    {
+      return UINT2NUM(x);
+    }
+  }
+}
+
+template<>
+inline
+unsigned short from_ruby<unsigned short>(Rice::Object x)
+{
+  return Rice::detail::num2ushort(x);
+}
+
+template<>
+inline
+Rice::Object to_ruby<unsigned short>(unsigned short const & x)
+{
+  return Rice::protect(Rice::detail::ushort2num, x);
 }
 
 // ---------------------------------------------------------------------
