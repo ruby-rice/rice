@@ -1,7 +1,7 @@
 /* rice/config.hpp.in.  Generated from configure.ac by autoheader.  */
 
-/* define if the compiler supports basic C++11 syntax */
-#undef HAVE_CXX11
+/* define if the compiler supports basic C++14 syntax */
+#undef HAVE_CXX14
 
 /* Define to 1 if you have the <env.h> header file. */
 #undef HAVE_ENV_H

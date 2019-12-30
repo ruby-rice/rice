@@ -21,8 +21,8 @@ else
   RICE_USING_MINGW32="false"
 fi
 
-m4_include(check_stdcxx_11.ac)
-AX_CXX_COMPILE_STDCXX_11(,optional)
+m4_include(ax_cxx_compile_stdcxx.m4)
+AX_CXX_COMPILE_STDCXX(14, noext, mandatory)
 
 AC_SUBST(RICE_USING_MINGW32)
 
