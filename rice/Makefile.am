@@ -114,7 +114,6 @@ detail/to_ruby.hpp \
 detail/to_ruby.ipp \
 detail/win32.hpp \
 detail/wrap_function.hpp \
-detail/wrap_function.ipp \
 detail/ruby_version_code.hpp
 
 includedir = ${prefix}/include/rice
