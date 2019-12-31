@@ -9,7 +9,6 @@ require 'auto_member_function_wrapper'
 [
   ProtectHpp,
   ProtectIpp,
-  ConstructorHpp,
   AutoFunctionWrapperHpp,
   AutoFunctionWrapperIpp,
   AutoMemberFunctionWrapperHpp,
