@@ -5,6 +5,8 @@
 #include "detail/ruby.hpp"
 #include "to_from_ruby.hpp"
 
+#include <vector>
+
 template<typename ...ArgT>
 inline Rice::Object Rice::Object::
 call(Identifier id, ArgT... args) const

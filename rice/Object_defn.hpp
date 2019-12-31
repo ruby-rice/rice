@@ -8,6 +8,7 @@
 #include "detail/ruby.hpp"
 
 #include <iosfwd>
+#include <vector>
 
 namespace Rice
 {
