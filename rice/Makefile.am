@@ -104,8 +104,6 @@ detail/from_ruby.hpp \
 detail/from_ruby.ipp \
 detail/method_data.hpp \
 detail/node.hpp \
-detail/object_call.hpp \
-detail/object_call.ipp \
 detail/protect.hpp \
 detail/ruby.hpp \
 detail/st.hpp \

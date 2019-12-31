@@ -151,7 +151,25 @@ public:
   Object attr_get(
       Identifier name) const;
 
-#include "detail/object_call.hpp"
+  //! Call the Ruby method specified by 'id' on object 'obj'.
+  /*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
+  *  Ruby objects with to_ruby<>.
+  *
+  *  E.g.:
+  *  \code
+  *    Rice::Object obj = x.call("foo", "one", 2);
+  *  \endcode
+  *
+  *  If a return type is specified, the return value will automatically be
+  *  converted to that type as long as 'from_ruby' exists for that type.
+  *
+  *  E.g.:
+  *  \code
+  *    float ret = x.call<float>("foo", z, 42);
+  *  \endcode
+  */
+  template<typename ...ArgT>
+  Object call(Identifier id, ArgT... args) const;
 
   //! Vectorized call.
   /*! Calls the method identified by id with the list of arguments
@@ -168,6 +186,10 @@ public:
 protected:
   //! Set the encapsulated value.
   void set_value(VALUE v);
+
+  //! Unpack the provided arguments and convert them all to Ruby types.
+  template<typename ...ArgT>
+  std::vector<VALUE> convert_args(ArgT&... args) const;
 
 private:
   volatile VALUE value_;

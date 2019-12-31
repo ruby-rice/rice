@@ -3,8 +3,20 @@
 
 #include "protect.hpp"
 #include "detail/ruby.hpp"
+#include "to_from_ruby.hpp"
 
-#include "detail/object_call.ipp"
+template<typename ...ArgT>
+inline Rice::Object Rice::Object::
+call(Identifier id, ArgT... args) const
+{
+  auto asList = this->convert_args<ArgT...>(args...);
+  return protect(rb_funcall2, value(), id, asList.size(), &asList[0]);
+}
+
+template<typename ...ArgT>
+std::vector<VALUE> Rice::Object::convert_args(ArgT&... args) const {
+  return std::vector<VALUE>{ to_ruby(args)... };
+}
 
 template<typename T>
 void Rice::Object::
