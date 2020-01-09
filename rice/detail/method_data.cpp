@@ -75,9 +75,9 @@ define_method_with_data(
   rb_ivar_set(store, id, data);
 
   // Create the aliased method on the origin class
-  rb_define_method(
+  rb_define_method_id(
       klass,
-      rb_id2name(id),
+      id,
       cfunc,
       arity);
 
