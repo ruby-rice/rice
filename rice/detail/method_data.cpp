@@ -31,6 +31,11 @@ method_data()
   return (store == Qnil) ? Qnil : rb_ivar_get(store, id);
 }
 
+// Ruby 2.7 now includes a similarly named macro that uses templates to
+// pick the right overload for the underlying function. That doesn't work
+// for our cases because we are using this method dynamically and get a
+// compilation error otherwise. This removes the macro and lets us fall
+// back to the C-API underneath again.
 #undef rb_define_method_id
 
 // Define a method and attach data to it.
