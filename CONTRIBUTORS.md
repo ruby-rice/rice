@@ -13,3 +13,4 @@ I'd like to thank the following people for their help in making Rice what it is 
 * [ryannevell](https://github.com/ryannevell) for [PR #98](https://github.com/jasonroelofs/rice/pull/98)
 * [Samu Voutilainen (smarre)](https://github.com/Smarre) for [PR #102](https://github.com/jasonroelofs/rice/pull/102)
 * [Harald Sitter (apachelogger)](https://github.com/apachelogger) for [PR #104](https://github.com/jasonroelofs/rice/pull/104)
+* [nobu](https://github.com/nobu) for [PR #122](https://github.com/jasonroelofs/rice/pull/122)
