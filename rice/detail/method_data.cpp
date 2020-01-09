@@ -31,6 +31,7 @@ method_data()
   return (store == Qnil) ? Qnil : rb_ivar_get(store, id);
 }
 
+#undef rb_define_method_id
 
 // Define a method and attach data to it.
 // The method looks to ruby like a normal aliased CFUNC, with a modified
@@ -75,9 +76,9 @@ define_method_with_data(
   rb_ivar_set(store, id, data);
 
   // Create the aliased method on the origin class
-  rb_define_method(
+  rb_define_method_id(
       klass,
-      rb_id2name(id),
+      id,
       cfunc,
       arity);
 
