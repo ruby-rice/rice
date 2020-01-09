@@ -31,6 +31,7 @@ method_data()
   return (store == Qnil) ? Qnil : rb_ivar_get(store, id);
 }
 
+#undef rb_define_method_id
 
 // Define a method and attach data to it.
 // The method looks to ruby like a normal aliased CFUNC, with a modified
