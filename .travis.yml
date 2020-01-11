@@ -2,6 +2,7 @@ rvm:
   - 2.4
   - 2.5
   - 2.6
+  - 2.7
   - ruby-head
 before_script:
   - sh bootstrap
@@ -11,6 +12,3 @@ script: "export LD_LIBRARY_PATH=`rvm config-get libdir`:$LD_LIBRARY_PATH && rake
 branches:
   only:
     - master
-matrix:
-  allow_failures:
-    - rvm: ruby-head
