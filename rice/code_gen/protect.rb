@@ -1,18 +1,5 @@
 require "rice_template"
 
-class ProtectHpp < RiceTemplate
-
-  cpp_file "protect.hpp"
-
-  def entry(num)
-    {
-      :typenames => build(num, "typename T{{i}}"),
-      :arguments => build(num, "T{{i}} const & t{{i}}")
-    }
-  end
-
-end
-
 class ProtectIpp < RiceTemplate
 
   cpp_file "protect.ipp"
