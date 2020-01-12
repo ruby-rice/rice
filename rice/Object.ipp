@@ -12,7 +12,7 @@ inline Rice::Object Rice::Object::
 call(Identifier id, ArgT... args) const
 {
   auto asList = this->convert_args<ArgT...>(args...);
-  return protect(rb_funcall2, value(), id, asList.size(), &asList[0]);
+  return protect(rb_funcall2, value(), id, (int)asList.size(), &asList[0]);
 }
 
 template<typename ...ArgT>
