@@ -9,7 +9,6 @@ Identifier.cpp \
 Module.cpp \
 Object.cpp \
 String.cpp \
-Struct.cpp \
 Symbol.cpp \
 Arg_operators.cpp \
 Address_Registration_Guard.cpp \

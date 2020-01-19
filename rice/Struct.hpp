@@ -8,6 +8,8 @@
 #include "Builtin_Object.hpp"
 #include "Address_Registration_Guard.hpp"
 
+#include <stdexcept>
+
 namespace Rice
 {
 	class Struct;
