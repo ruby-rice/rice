@@ -104,8 +104,6 @@ detail/from_ruby.hpp \
 detail/from_ruby.ipp \
 detail/method_data.hpp \
 detail/node.hpp \
-detail/object_call.hpp \
-detail/object_call.ipp \
 detail/protect.hpp \
 detail/ruby.hpp \
 detail/st.hpp \
@@ -114,7 +112,6 @@ detail/to_ruby.hpp \
 detail/to_ruby.ipp \
 detail/win32.hpp \
 detail/wrap_function.hpp \
-detail/wrap_function.ipp \
 detail/ruby_version_code.hpp
 
 includedir = ${prefix}/include/rice

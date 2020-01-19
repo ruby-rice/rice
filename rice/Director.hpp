@@ -10,10 +10,10 @@ namespace Rice {
    * You use this class to help build proxy classes so that polymorphism
    * works from C++ into Ruby. See the main README for how this class works.
    */
-  class Director 
+  class Director
   {
     public:
-      //! Construct new Director. Needs the Ruby object so that the 
+      //! Construct new Director. Needs the Ruby object so that the
       //  proxy class can call methods on that object.
       Director(Object self);
 
@@ -21,7 +21,7 @@ namespace Rice {
 
       //! Raise a ruby exception when a call comes through for a pure virtual method
       /*! If a Ruby script calls 'super' on a method that's otherwise a pure virtual
-       *  method, use this method to throw an exception in this case. 
+       *  method, use this method to throw an exception in this case.
        */
       void raisePureVirtual() const;
 

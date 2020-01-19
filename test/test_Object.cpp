@@ -146,3 +146,14 @@ TESTCASE(rb_type)
   ASSERT_EQUAL(T_UNDEF, Object(Qundef).rb_type());
 }
 
+TESTCASE(call_no_arguments)
+{
+  Object three = to_ruby(3).call("to_s");
+  ASSERT_EQUAL(String("3"), three);
+}
+
+TESTCASE(call_return_rice_object)
+{
+  Object three = to_ruby(1).call("+", 2);
+  ASSERT_EQUAL(to_ruby(3), three);
+}

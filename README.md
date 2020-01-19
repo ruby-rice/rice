@@ -39,6 +39,8 @@ Building it locally from a clone of the repository is as follows:
 Rice is known to work on *nix and OSX. Windows is not currently
 supported.
 
+Rice requires a C++ compiler with support for C++14 or later.
+
 # Tutorial {#tutorial}
 
 ## Getting started {#getting_started}
