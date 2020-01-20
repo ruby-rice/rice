@@ -10,7 +10,6 @@ Object.cpp \
 String.cpp \
 Symbol.cpp \
 Arg_operators.cpp \
-Address_Registration_Guard.cpp \
 detail/check_ruby_type.cpp \
 detail/demangle.cpp \
 detail/method_data.cpp \
