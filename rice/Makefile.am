@@ -3,7 +3,6 @@ lib_LIBRARIES = librice.a
 librice_a_SOURCES = \
 Class.cpp \
 Data_Type.cpp \
-Identifier.cpp \
 Module.cpp \
 Object.cpp \
 detail/check_ruby_type.cpp \

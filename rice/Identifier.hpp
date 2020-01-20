@@ -18,9 +18,6 @@ public:
   //! Construct a new Identifier from an ID.
   Identifier(ID id);
 
-  //! Construct a new Identifier from a Symbol.
-  Identifier(Symbol const & symbol);
-
   //! Construct a new Identifier from a string.
   Identifier(char const * s = "");
 
