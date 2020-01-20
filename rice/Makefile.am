@@ -7,7 +7,6 @@ Exception.cpp \
 Identifier.cpp \
 Module.cpp \
 Object.cpp \
-Symbol.cpp \
 detail/check_ruby_type.cpp \
 detail/demangle.cpp \
 detail/method_data.cpp \
