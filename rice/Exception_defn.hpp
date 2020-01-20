@@ -8,6 +8,14 @@
 #include <stdexcept>
 #include "detail/ruby.hpp"
 
+#ifdef HAVE_STDARG_PROTOTYPES
+#include <stdarg.h>
+#define va_init_list(a,b) va_start(a,b)
+#else
+#include <varargs.h>
+#define va_init_list(a,b) va_start(a)
+#endif
+
 namespace Rice
 {
 
@@ -26,10 +34,20 @@ class Exception
 {
 public:
   //! Construct a Exception with the exception e.
-  explicit Exception(VALUE e);
+  explicit Exception(VALUE e)
+    : Exception_Base(e)
+    , message_(Qnil)
+    , message_guard_(&message_)
+  {
+  }
 
   //! Copy constructor.
-  Exception(Exception const & other);
+  Exception(Exception const & other)
+    : Exception_Base(other)
+    , message_(other.message_)
+    , message_guard_(&message_)
+  {
+  }
 
   //! Construct a Exception with printf-style formatting.
   /*! \param exc either an exception object or a class that inherits
@@ -37,7 +55,21 @@ public:
    *  \param fmt a printf-style format string
    *  \param ... the arguments to the format string.
    */
-  Exception(Object exc, char const * fmt, ...);
+  Exception(Object exc, char const * fmt, ...)
+    : Exception_Base(Qnil)
+    , message_(Qnil)
+    , message_guard_(&message_)
+  {
+    va_list args;
+    char buf[BUFSIZ];
+
+    va_init_list(args, fmt);
+    vsnprintf(buf, BUFSIZ, fmt, args);
+    buf[BUFSIZ - 1] = '\0';
+    va_end(args);
+
+    set_value(protect(rb_exc_new2, exc, buf));
+  }
 
   //! Destructor
   virtual ~Exception() throw() { }
@@ -46,7 +78,10 @@ public:
   /*! \return the result of calling message() on the underlying
    *  exception object.
    */
-  String message() const;
+  String message() const
+  {
+    return protect(rb_funcall, value(), rb_intern("message"), 0);
+  }
 
   //! Get message as a char const *.
   /*! If message is a non-string object, then this function will attempt
@@ -54,7 +89,11 @@ public:
    *  specification).
    *  \return the underlying C pointer of the underlying message object.
    */
-  virtual char const * what() const throw();
+  virtual char const * what() const throw()
+  {
+    message_ = message();
+    return from_ruby<std::string>(message_).c_str();
+  }
 
 private:
   // Keep message around in case someone calls what() and then the GC
