@@ -1,7 +1,14 @@
 #ifndef Rice__detail__protect__hpp_
 #define Rice__detail__protect__hpp_
 
+#include "../Exception.hpp"
+#include "../Jump_Tag.hpp"
+
 #include "ruby.hpp"
+
+#ifndef TAG_RAISE
+#define TAG_RAISE 0x6
+#endif
 
 /*! \file
  *  \brief Functions for making exception-safe calls into Ruby code.
@@ -24,7 +31,23 @@ namespace detail
  */
 VALUE protect(
     RUBY_VALUE_FUNC f,
-    VALUE arg);
+    VALUE arg)
+{
+  int state = 0;
+  VALUE retval = rb_protect(f, arg, &state);
+  if(state != 0)
+  {
+    VALUE err = rb_errinfo();
+    if(state == TAG_RAISE && RTEST(err))
+    {
+      // TODO: convert NoMemoryError into bad_alloc?
+      rb_set_errinfo(Rice::Nil);
+      throw Rice::Exception(err);
+    }
+    throw Jump_Tag(state);
+  }
+  return retval;
+}
 
 } // namespace detail
 

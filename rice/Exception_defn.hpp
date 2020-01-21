@@ -16,6 +16,9 @@
 #define va_init_list(a,b) va_start(a)
 #endif
 
+// TODO Why do I need this?
+template<> inline std::string from_ruby<std::string>(Rice::Object x);
+
 namespace Rice
 {
 

@@ -62,11 +62,9 @@ AM_CXXLAGS = \
 	$(RUBY_CXXFLAGS)
 
 AM_LDFLAGS = \
-	$(RUBY_LDFLAGS) \
-	-L../rice
+	$(RUBY_LDFLAGS)
 
 LIBS = \
-	-lrice \
 	$(RUBY_LIBS) \
 	$(RUBY_LIBRUBYARG)
 

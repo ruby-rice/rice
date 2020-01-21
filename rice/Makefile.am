@@ -1,14 +1,3 @@
-lib_LIBRARIES = librice.a
-
-librice_a_SOURCES = \
-Class.cpp \
-Module.cpp \
-Object.cpp \
-detail/check_ruby_type.cpp \
-detail/demangle.cpp \
-detail/method_data.cpp \
-detail/protect.cpp
-
 nobase_include_HEADERS = \
 Address_Registration_Guard.hpp \
 Address_Registration_Guard.ipp \
