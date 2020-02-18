@@ -11,7 +11,8 @@ class RiceTest < Minitest::Test
   RUBY = RbConfig::CONFIG['RUBY_INSTALL_NAME']
 
   def test_unittest
-    run_external_test("./unittest#{EXEEXT}")
+    prefix = "./" unless EXEEXT == ".exe"
+    run_external_test("#{prefix}unittest#{EXEEXT}")
   end
 
   def test_multiple_extensions
@@ -35,7 +36,7 @@ class RiceTest < Minitest::Test
         puts result
       end
     end
-    raise "Error: $?" if $? != 0
+    raise "Error: #{$?}" if $? != 0
   end
 end
 
