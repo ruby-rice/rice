@@ -14,8 +14,9 @@ before_build:
   - bundle -v
 
 build_script:
-  - ridk exec ruby extconf.rb
-  - ridk exec make
+  - ridk enable
+  - ruby extconf.rb
+  - make
 
 test_script:
-  - ridk exec bundle exec rake test
+  - bundle exec rake test
