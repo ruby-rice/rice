@@ -5,8 +5,8 @@
 #include "Array.hpp"
 #include "to_from_ruby_defn.hpp"
 #include "detail/ruby.hpp"
-#include "detail/traits.hpp"
 #include <iterator>
+#include <type_traits>
 
 namespace Rice
 {
@@ -202,7 +202,7 @@ private:
   size_t current_index_;
   VALUE keys_;
 
-  mutable typename detail::remove_const<Value_T>::Type tmp_;
+  mutable typename std::remove_const<Value_T>::type tmp_;
 };
 
 } // namespace Rice

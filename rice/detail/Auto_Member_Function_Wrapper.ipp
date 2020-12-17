@@ -10,7 +10,6 @@
 #include "method_data.hpp"
 #include "../ruby_try_catch.hpp"
 #include "../to_from_ruby.hpp"
-#include "traits.hpp"
 #include <typeinfo>
 namespace Rice
 {
@@ -61,38 +60,22 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
-      typedef typename sanitize< Arg10_T >::Type Arg10_Type;
-      Arg10_Type arg10 = args->getArgumentOrDefault<Arg10_Type>(10, varg10);
-      typedef typename sanitize< Arg11_T >::Type Arg11_Type;
-      Arg11_Type arg11 = args->getArgumentOrDefault<Arg11_Type>(11, varg11);
-      typedef typename sanitize< Arg12_T >::Type Arg12_Type;
-      Arg12_Type arg12 = args->getArgumentOrDefault<Arg12_Type>(12, varg12);
-      typedef typename sanitize< Arg13_T >::Type Arg13_Type;
-      Arg13_Type arg13 = args->getArgumentOrDefault<Arg13_Type>(13, varg13);
-      typedef typename sanitize< Arg14_T >::Type Arg14_Type;
-      Arg14_Type arg14 = args->getArgumentOrDefault<Arg14_Type>(14, varg14);
-      typedef typename sanitize< Arg15_T >::Type Arg15_Type;
-      Arg15_Type arg15 = args->getArgumentOrDefault<Arg15_Type>(15, varg15);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
+      Arg10_T arg10 = args->getArgumentOrDefault<Arg10_T>(10, varg10);
+      Arg11_T arg11 = args->getArgumentOrDefault<Arg11_T>(11, varg11);
+      Arg12_T arg12 = args->getArgumentOrDefault<Arg12_T>(12, varg12);
+      Arg13_T arg13 = args->getArgumentOrDefault<Arg13_T>(13, varg13);
+      Arg14_T arg14 = args->getArgumentOrDefault<Arg14_T>(14, varg14);
+      Arg15_T arg15 = args->getArgumentOrDefault<Arg15_T>(15, varg15);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15));
@@ -157,38 +140,22 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
-      typedef typename sanitize< Arg10_T >::Type Arg10_Type;
-      Arg10_Type arg10 = args->getArgumentOrDefault<Arg10_Type>(10, varg10);
-      typedef typename sanitize< Arg11_T >::Type Arg11_Type;
-      Arg11_Type arg11 = args->getArgumentOrDefault<Arg11_Type>(11, varg11);
-      typedef typename sanitize< Arg12_T >::Type Arg12_Type;
-      Arg12_Type arg12 = args->getArgumentOrDefault<Arg12_Type>(12, varg12);
-      typedef typename sanitize< Arg13_T >::Type Arg13_Type;
-      Arg13_Type arg13 = args->getArgumentOrDefault<Arg13_Type>(13, varg13);
-      typedef typename sanitize< Arg14_T >::Type Arg14_Type;
-      Arg14_Type arg14 = args->getArgumentOrDefault<Arg14_Type>(14, varg14);
-      typedef typename sanitize< Arg15_T >::Type Arg15_Type;
-      Arg15_Type arg15 = args->getArgumentOrDefault<Arg15_Type>(15, varg15);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
+      Arg10_T arg10 = args->getArgumentOrDefault<Arg10_T>(10, varg10);
+      Arg11_T arg11 = args->getArgumentOrDefault<Arg11_T>(11, varg11);
+      Arg12_T arg12 = args->getArgumentOrDefault<Arg12_T>(12, varg12);
+      Arg13_T arg13 = args->getArgumentOrDefault<Arg13_T>(13, varg13);
+      Arg14_T arg14 = args->getArgumentOrDefault<Arg14_T>(14, varg14);
+      Arg15_T arg15 = args->getArgumentOrDefault<Arg15_T>(15, varg15);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
@@ -255,36 +222,21 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
-      typedef typename sanitize< Arg10_T >::Type Arg10_Type;
-      Arg10_Type arg10 = args->getArgumentOrDefault<Arg10_Type>(10, varg10);
-      typedef typename sanitize< Arg11_T >::Type Arg11_Type;
-      Arg11_Type arg11 = args->getArgumentOrDefault<Arg11_Type>(11, varg11);
-      typedef typename sanitize< Arg12_T >::Type Arg12_Type;
-      Arg12_Type arg12 = args->getArgumentOrDefault<Arg12_Type>(12, varg12);
-      typedef typename sanitize< Arg13_T >::Type Arg13_Type;
-      Arg13_Type arg13 = args->getArgumentOrDefault<Arg13_Type>(13, varg13);
-      typedef typename sanitize< Arg14_T >::Type Arg14_Type;
-      Arg14_Type arg14 = args->getArgumentOrDefault<Arg14_Type>(14, varg14);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
+      Arg10_T arg10 = args->getArgumentOrDefault<Arg10_T>(10, varg10);
+      Arg11_T arg11 = args->getArgumentOrDefault<Arg11_T>(11, varg11);
+      Arg12_T arg12 = args->getArgumentOrDefault<Arg12_T>(12, varg12);
+      Arg13_T arg13 = args->getArgumentOrDefault<Arg13_T>(13, varg13);
+      Arg14_T arg14 = args->getArgumentOrDefault<Arg14_T>(14, varg14);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14));
@@ -349,36 +301,21 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
-      typedef typename sanitize< Arg10_T >::Type Arg10_Type;
-      Arg10_Type arg10 = args->getArgumentOrDefault<Arg10_Type>(10, varg10);
-      typedef typename sanitize< Arg11_T >::Type Arg11_Type;
-      Arg11_Type arg11 = args->getArgumentOrDefault<Arg11_Type>(11, varg11);
-      typedef typename sanitize< Arg12_T >::Type Arg12_Type;
-      Arg12_Type arg12 = args->getArgumentOrDefault<Arg12_Type>(12, varg12);
-      typedef typename sanitize< Arg13_T >::Type Arg13_Type;
-      Arg13_Type arg13 = args->getArgumentOrDefault<Arg13_Type>(13, varg13);
-      typedef typename sanitize< Arg14_T >::Type Arg14_Type;
-      Arg14_Type arg14 = args->getArgumentOrDefault<Arg14_Type>(14, varg14);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
+      Arg10_T arg10 = args->getArgumentOrDefault<Arg10_T>(10, varg10);
+      Arg11_T arg11 = args->getArgumentOrDefault<Arg11_T>(11, varg11);
+      Arg12_T arg12 = args->getArgumentOrDefault<Arg12_T>(12, varg12);
+      Arg13_T arg13 = args->getArgumentOrDefault<Arg13_T>(13, varg13);
+      Arg14_T arg14 = args->getArgumentOrDefault<Arg14_T>(14, varg14);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
@@ -445,34 +382,20 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
-      typedef typename sanitize< Arg10_T >::Type Arg10_Type;
-      Arg10_Type arg10 = args->getArgumentOrDefault<Arg10_Type>(10, varg10);
-      typedef typename sanitize< Arg11_T >::Type Arg11_Type;
-      Arg11_Type arg11 = args->getArgumentOrDefault<Arg11_Type>(11, varg11);
-      typedef typename sanitize< Arg12_T >::Type Arg12_Type;
-      Arg12_Type arg12 = args->getArgumentOrDefault<Arg12_Type>(12, varg12);
-      typedef typename sanitize< Arg13_T >::Type Arg13_Type;
-      Arg13_Type arg13 = args->getArgumentOrDefault<Arg13_Type>(13, varg13);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
+      Arg10_T arg10 = args->getArgumentOrDefault<Arg10_T>(10, varg10);
+      Arg11_T arg11 = args->getArgumentOrDefault<Arg11_T>(11, varg11);
+      Arg12_T arg12 = args->getArgumentOrDefault<Arg12_T>(12, varg12);
+      Arg13_T arg13 = args->getArgumentOrDefault<Arg13_T>(13, varg13);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13));
@@ -537,34 +460,20 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
-      typedef typename sanitize< Arg10_T >::Type Arg10_Type;
-      Arg10_Type arg10 = args->getArgumentOrDefault<Arg10_Type>(10, varg10);
-      typedef typename sanitize< Arg11_T >::Type Arg11_Type;
-      Arg11_Type arg11 = args->getArgumentOrDefault<Arg11_Type>(11, varg11);
-      typedef typename sanitize< Arg12_T >::Type Arg12_Type;
-      Arg12_Type arg12 = args->getArgumentOrDefault<Arg12_Type>(12, varg12);
-      typedef typename sanitize< Arg13_T >::Type Arg13_Type;
-      Arg13_Type arg13 = args->getArgumentOrDefault<Arg13_Type>(13, varg13);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
+      Arg10_T arg10 = args->getArgumentOrDefault<Arg10_T>(10, varg10);
+      Arg11_T arg11 = args->getArgumentOrDefault<Arg11_T>(11, varg11);
+      Arg12_T arg12 = args->getArgumentOrDefault<Arg12_T>(12, varg12);
+      Arg13_T arg13 = args->getArgumentOrDefault<Arg13_T>(13, varg13);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
@@ -631,32 +540,19 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
-      typedef typename sanitize< Arg10_T >::Type Arg10_Type;
-      Arg10_Type arg10 = args->getArgumentOrDefault<Arg10_Type>(10, varg10);
-      typedef typename sanitize< Arg11_T >::Type Arg11_Type;
-      Arg11_Type arg11 = args->getArgumentOrDefault<Arg11_Type>(11, varg11);
-      typedef typename sanitize< Arg12_T >::Type Arg12_Type;
-      Arg12_Type arg12 = args->getArgumentOrDefault<Arg12_Type>(12, varg12);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
+      Arg10_T arg10 = args->getArgumentOrDefault<Arg10_T>(10, varg10);
+      Arg11_T arg11 = args->getArgumentOrDefault<Arg11_T>(11, varg11);
+      Arg12_T arg12 = args->getArgumentOrDefault<Arg12_T>(12, varg12);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12));
@@ -721,32 +617,19 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
-      typedef typename sanitize< Arg10_T >::Type Arg10_Type;
-      Arg10_Type arg10 = args->getArgumentOrDefault<Arg10_Type>(10, varg10);
-      typedef typename sanitize< Arg11_T >::Type Arg11_Type;
-      Arg11_Type arg11 = args->getArgumentOrDefault<Arg11_Type>(11, varg11);
-      typedef typename sanitize< Arg12_T >::Type Arg12_Type;
-      Arg12_Type arg12 = args->getArgumentOrDefault<Arg12_Type>(12, varg12);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
+      Arg10_T arg10 = args->getArgumentOrDefault<Arg10_T>(10, varg10);
+      Arg11_T arg11 = args->getArgumentOrDefault<Arg11_T>(11, varg11);
+      Arg12_T arg12 = args->getArgumentOrDefault<Arg12_T>(12, varg12);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
@@ -813,30 +696,18 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
-      typedef typename sanitize< Arg10_T >::Type Arg10_Type;
-      Arg10_Type arg10 = args->getArgumentOrDefault<Arg10_Type>(10, varg10);
-      typedef typename sanitize< Arg11_T >::Type Arg11_Type;
-      Arg11_Type arg11 = args->getArgumentOrDefault<Arg11_Type>(11, varg11);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
+      Arg10_T arg10 = args->getArgumentOrDefault<Arg10_T>(10, varg10);
+      Arg11_T arg11 = args->getArgumentOrDefault<Arg11_T>(11, varg11);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11));
@@ -901,30 +772,18 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
-      typedef typename sanitize< Arg10_T >::Type Arg10_Type;
-      Arg10_Type arg10 = args->getArgumentOrDefault<Arg10_Type>(10, varg10);
-      typedef typename sanitize< Arg11_T >::Type Arg11_Type;
-      Arg11_Type arg11 = args->getArgumentOrDefault<Arg11_Type>(11, varg11);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
+      Arg10_T arg10 = args->getArgumentOrDefault<Arg10_T>(10, varg10);
+      Arg11_T arg11 = args->getArgumentOrDefault<Arg11_T>(11, varg11);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
@@ -991,28 +850,17 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
-      typedef typename sanitize< Arg10_T >::Type Arg10_Type;
-      Arg10_Type arg10 = args->getArgumentOrDefault<Arg10_Type>(10, varg10);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
+      Arg10_T arg10 = args->getArgumentOrDefault<Arg10_T>(10, varg10);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10));
@@ -1077,28 +925,17 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
-      typedef typename sanitize< Arg10_T >::Type Arg10_Type;
-      Arg10_Type arg10 = args->getArgumentOrDefault<Arg10_Type>(10, varg10);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
+      Arg10_T arg10 = args->getArgumentOrDefault<Arg10_T>(10, varg10);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
@@ -1165,26 +1002,16 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9));
@@ -1249,26 +1076,16 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
-      typedef typename sanitize< Arg9_T >::Type Arg9_Type;
-      Arg9_Type arg9 = args->getArgumentOrDefault<Arg9_Type>(9, varg9);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
+      Arg9_T arg9 = args->getArgumentOrDefault<Arg9_T>(9, varg9);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
@@ -1335,24 +1152,15 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8));
@@ -1417,24 +1225,15 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
-      typedef typename sanitize< Arg8_T >::Type Arg8_Type;
-      Arg8_Type arg8 = args->getArgumentOrDefault<Arg8_Type>(8, varg8);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
+      Arg8_T arg8 = args->getArgumentOrDefault<Arg8_T>(8, varg8);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
@@ -1501,22 +1300,14 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7));
@@ -1581,22 +1372,14 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
-      typedef typename sanitize< Arg7_T >::Type Arg7_Type;
-      Arg7_Type arg7 = args->getArgumentOrDefault<Arg7_Type>(7, varg7);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
+      Arg7_T arg7 = args->getArgumentOrDefault<Arg7_T>(7, varg7);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
@@ -1663,20 +1446,13 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6));
@@ -1741,20 +1517,13 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
-      typedef typename sanitize< Arg6_T >::Type Arg6_Type;
-      Arg6_Type arg6 = args->getArgumentOrDefault<Arg6_Type>(6, varg6);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
+      Arg6_T arg6 = args->getArgumentOrDefault<Arg6_T>(6, varg6);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
@@ -1821,18 +1590,12 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5));
@@ -1897,18 +1660,12 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
-      typedef typename sanitize< Arg5_T >::Type Arg5_Type;
-      Arg5_Type arg5 = args->getArgumentOrDefault<Arg5_Type>(5, varg5);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
+      Arg5_T arg5 = args->getArgumentOrDefault<Arg5_T>(5, varg5);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2, arg3, arg4, arg5);
@@ -1975,16 +1732,11 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2, arg3, arg4));
@@ -2049,16 +1801,11 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
-      typedef typename sanitize< Arg4_T >::Type Arg4_Type;
-      Arg4_Type arg4 = args->getArgumentOrDefault<Arg4_Type>(4, varg4);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
+      Arg4_T arg4 = args->getArgumentOrDefault<Arg4_T>(4, varg4);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2, arg3, arg4);
@@ -2125,14 +1872,10 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2, arg3));
@@ -2197,14 +1940,10 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
-      typedef typename sanitize< Arg3_T >::Type Arg3_Type;
-      Arg3_Type arg3 = args->getArgumentOrDefault<Arg3_Type>(3, varg3);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
+      Arg3_T arg3 = args->getArgumentOrDefault<Arg3_T>(3, varg3);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2, arg3);
@@ -2271,12 +2010,9 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1, arg2));
@@ -2341,12 +2077,9 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
-      typedef typename sanitize< Arg2_T >::Type Arg2_Type;
-      Arg2_Type arg2 = args->getArgumentOrDefault<Arg2_Type>(2, varg2);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
+      Arg2_T arg2 = args->getArgumentOrDefault<Arg2_T>(2, varg2);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1, arg2);
@@ -2413,10 +2146,8 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0, arg1));
@@ -2481,10 +2212,8 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
-      typedef typename sanitize< Arg1_T >::Type Arg1_Type;
-      Arg1_Type arg1 = args->getArgumentOrDefault<Arg1_Type>(1, varg1);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
+      Arg1_T arg1 = args->getArgumentOrDefault<Arg1_T>(1, varg1);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0, arg1);
@@ -2551,8 +2280,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
 
     Func func = wrapper->func_;
     return to_ruby((*obj.*func)(arg0));
@@ -2617,8 +2345,7 @@ call(int argc, VALUE* argv, VALUE self)
 
     Self_T * obj = from_ruby<Self_T *>(self);
 
-      typedef typename sanitize< Arg0_T >::Type Arg0_Type;
-      Arg0_Type arg0 = args->getArgumentOrDefault<Arg0_Type>(0, varg0);
+      Arg0_T arg0 = args->getArgumentOrDefault<Arg0_T>(0, varg0);
 
     Func func = wrapper->func_;
     (*obj.*func)(arg0);

@@ -10,7 +10,6 @@
 #include "method_data.hpp"
 #include "../ruby_try_catch.hpp"
 #include "../to_from_ruby.hpp"
-#include "traits.hpp"
 #include <typeinfo>
 namespace Rice
 {
@@ -63,8 +62,7 @@ call(int argc, VALUE* argv, VALUE self)
     Self_T * obj = from_ruby<Self_T *>(self);
 
     {{#arguments}}
-      typedef typename sanitize< Arg{{count}}_T >::Type Arg{{count}}_Type;
-      Arg{{count}}_Type arg{{count}} = args->getArgumentOrDefault<Arg{{count}}_Type>({{count}}, varg{{count}});
+      Arg{{count}}_T arg{{count}} = args->getArgumentOrDefault<Arg{{count}}_T>({{count}}, varg{{count}});
     {{/arguments}}
 
     Func func = wrapper->func_;
@@ -131,8 +129,7 @@ call(int argc, VALUE* argv, VALUE self)
     Self_T * obj = from_ruby<Self_T *>(self);
 
     {{#arguments}}
-      typedef typename sanitize< Arg{{count}}_T >::Type Arg{{count}}_Type;
-      Arg{{count}}_Type arg{{count}} = args->getArgumentOrDefault<Arg{{count}}_Type>({{count}}, varg{{count}});
+      Arg{{count}}_T arg{{count}} = args->getArgumentOrDefault<Arg{{count}}_T>({{count}}, varg{{count}});
     {{/arguments}}
 
     Func func = wrapper->func_;
