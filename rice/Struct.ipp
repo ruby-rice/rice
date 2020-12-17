@@ -12,7 +12,7 @@ template<>
 inline Object Struct::Instance::
 operator[]<Identifier>(Identifier member)
 {
-  size_t index = type_.offset_of(member);
+  unsigned long index = type_.offset_of(member);
   return (*this)[index];
 }
 
