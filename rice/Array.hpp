@@ -46,12 +46,12 @@ public:
   //! Construct an Array from a C array.
   /*! \param a a C array of type T and size n.
    */
-  template<typename T, size_t n>
+  template<typename T, long n>
   Array(T const (& a)[n]);
 
 public:
   //! Return the size of the array.
-  size_t size() const;
+  long size() const;
 
   //! Return the element at the given index.
   /*! \param index The index of the desired element.  The index may be
@@ -59,7 +59,7 @@ public:
    *  index is out of bounds, this function has undefined behavior.
    *  \return the element at the given index.
    */
-  Object operator[](ptrdiff_t index) const;
+  Object operator[](long index) const;
 
 private:
   //! A helper class so array[index]=value can work.
@@ -72,7 +72,7 @@ public:
    *  index is out of bounds, this function has undefined behavior.
    *  \return the element at the given index.
    */
-  Proxy operator[](ptrdiff_t index);
+  Proxy operator[](long index);
 
   //! Push an element onto the end of the array
   /*! \param v an object to push onto the array.
@@ -103,7 +103,7 @@ private:
   template<typename Array_Ref_T, typename Value_T>
   class Iterator;
 
-  size_t position_of(ptrdiff_t index) const;
+  long position_of(long index) const;
 
 public:
   //! An iterator.
@@ -130,7 +130,7 @@ class Array::Proxy
 {
 public:
   //! Construct a new Proxy
-  Proxy(Array array, size_t index);
+  Proxy(Array array, long index);
 
   //! Implicit conversion to Object.
   operator Object() const;
@@ -144,7 +144,7 @@ public:
 
 private:
   Array array_;
-  size_t index_;
+  long index_;
 };
 
 //! A helper class for implementing iterators for a Array.
@@ -154,12 +154,12 @@ class Array::Iterator
   : public std::iterator<
       std::forward_iterator_tag,
       Value_T,            // Type
-      ptrdiff_t,          // Distance type
+      long,               // Distance type
       Object *,           // Pointer type
       Value_T &>          // Reference type
 {
 public:
-  Iterator(Array_Ref_T array, size_t index);
+  Iterator(Array_Ref_T array, long index);
 
   template<typename Array_Ref_T_, typename Value_T_>
   Iterator(Iterator<Array_Ref_T_, Value_T_> const & rhs);
@@ -183,11 +183,11 @@ public:
   // friend class Iterator;
 
   Array_Ref_T array() const;
-  size_t index() const;
+  long index() const;
 
 private:
   Array_Ref_T array_;
-  size_t index_;
+  long index_;
 
   Object tmp_;
 };

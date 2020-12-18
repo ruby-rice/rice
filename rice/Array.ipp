@@ -32,31 +32,31 @@ Array(Iter_T it, Iter_T end)
   }
 }
 
-template<typename T, size_t n>
+template<typename T, long n>
 inline Rice::Array::
 Array(T const (& a)[n])
   : Builtin_Object<T_ARRAY>(protect(rb_ary_new))
 {
-  for(size_t j = 0; j < n; ++j)
+  for(long j = 0; j < n; ++j)
   {
     push(a[j]);
   }
 }
 
-inline size_t Rice::Array::
+inline long Rice::Array::
 size() const
 {
   return RARRAY_LEN(this->value());
 }
 
 inline Rice::Object Rice::Array::
-operator[](ptrdiff_t index) const
+operator[](long index) const
 {
   return protect(rb_ary_entry, value(), position_of(index));
 }
 
 inline Rice::Array::Proxy Rice::Array::
-operator[](ptrdiff_t index)
+operator[](long index)
 {
   return Proxy(*this, position_of(index));
 }
@@ -87,8 +87,8 @@ shift()
   return protect(rb_ary_shift, value());
 }
 
-inline size_t Rice::Array::
-position_of(ptrdiff_t index) const
+inline long Rice::Array::
+position_of(long index) const
 {
   if(index < 0)
   {
@@ -96,12 +96,12 @@ position_of(ptrdiff_t index) const
   }
   else
   {
-    return static_cast<size_t>(index);
+    return static_cast<long>(index);
   }
 }
 
 inline Rice::Array::Proxy::
-Proxy(Array array, size_t index)
+Proxy(Array array, long index)
   : array_(array)
   , index_(index)
 {
@@ -130,7 +130,7 @@ operator=(T const & value)
 
 template<typename Array_Ref_T, typename Value_T>
 inline Rice::Array::Iterator<Array_Ref_T, Value_T>::
-Iterator(Array_Ref_T array, size_t index)
+Iterator(Array_Ref_T array, long index)
   : array_(array)
   , index_(index)
 {
@@ -221,7 +221,7 @@ array() const
 }
 
 template<typename Array_Ref_T, typename Value_T>
-size_t
+long
 Rice::Array::Iterator<Array_Ref_T, Value_T>::
 index() const
 {
