@@ -10,7 +10,6 @@
 #include "method_data.hpp"
 #include "../ruby_try_catch.hpp"
 #include "../to_from_ruby.hpp"
-#include "traits.hpp"
 namespace Rice
 {
 
@@ -70,7 +69,6 @@ call(int argc, VALUE *argv, VALUE self)
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
 
       {{#self_arguments}}
-        typedef typename sanitize< {{in_type}} >::Type {{out_type}};
         {{out_type}} {{arg}} = args->getArgumentOrDefault<{{out_type}}>({{count}}, varg{{count}});
       {{/self_arguments}}
 
@@ -80,8 +78,7 @@ call(int argc, VALUE *argv, VALUE self)
         , {{{scan_args}}});
 
       {{#arguments}}
-        typedef typename sanitize< Arg{{count}}_T >::Type Arg{{count}}_Type;
-        Arg{{count}}_Type arg{{count}} = args->getArgumentOrDefault<Arg{{count}}_Type>({{count}}, varg{{count}});
+        Arg{{count}}_T arg{{count}} = args->getArgumentOrDefault<Arg{{count}}_T>({{count}}, varg{{count}});
       {{/arguments}}
 
       return to_ruby(wrapper->func_({{call_args}}));
@@ -156,7 +153,6 @@ call(int argc, VALUE* argv, VALUE self)
       Arg0_T arg0 = from_ruby<Arg0_T>(self); 
 
       {{#self_arguments}}
-        typedef typename sanitize< {{in_type}} >::Type {{out_type}};
         {{out_type}} {{arg}} = args->getArgumentOrDefault<{{out_type}}>({{count}}, varg{{count}});
       {{/self_arguments}}
 
@@ -167,8 +163,7 @@ call(int argc, VALUE* argv, VALUE self)
         , {{{scan_args}}});
 
       {{#arguments}}
-        typedef typename sanitize< Arg{{count}}_T >::Type Arg{{count}}_Type;
-        Arg{{count}}_Type arg{{count}} = args->getArgumentOrDefault<Arg{{count}}_Type>({{count}}, varg{{count}});
+        Arg{{count}}_T arg{{count}} = args->getArgumentOrDefault<Arg{{count}}_T>({{count}}, varg{{count}});
       {{/arguments}}
 
       wrapper->func_({{call_args}});

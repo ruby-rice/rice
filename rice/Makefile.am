@@ -107,7 +107,6 @@ detail/node.hpp \
 detail/protect.hpp \
 detail/ruby.hpp \
 detail/st.hpp \
-detail/traits.hpp \
 detail/to_ruby.hpp \
 detail/to_ruby.ipp \
 detail/win32.hpp \
