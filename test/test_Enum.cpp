@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/Enum.hpp"
 #include "rice/Array.hpp"
 #include "rice/String.hpp"
@@ -26,7 +27,7 @@ namespace
 
 SETUP(Enum)
 {
-  ruby_init();
+  embed_ruby();
 }
 
 TESTCASE(copy_construct)

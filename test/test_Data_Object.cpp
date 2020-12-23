@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/Data_Object.hpp"
 #include "rice/Data_Type.hpp"
 #include "rice/Exception.hpp"
@@ -22,7 +23,7 @@ void ruby_mark(Foo * foo)
 
 SETUP(Data_Object)
 {
-  ruby_init();
+  embed_ruby();
 
   if(!Data_Type<Foo>::is_bound())
   {

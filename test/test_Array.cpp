@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/Array.hpp"
 #include "rice/String.hpp"
 #include "rice/global_function.hpp"
@@ -9,7 +10,7 @@ TESTSUITE(Array);
 
 SETUP(Array)
 {
-  ruby_init();
+  embed_ruby();
 }
 
 TESTCASE(default_construct)

@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/Address_Registration_Guard.hpp"
 
 using namespace Rice;
@@ -7,7 +8,7 @@ TESTSUITE(Address_Registration_Guard);
 
 SETUP(Address_Registration_Guard)
 {
-  ruby_init();
+  embed_ruby();
 }
 
 TESTCASE(register_address)

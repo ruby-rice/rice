@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/Exception.hpp"
 #include "rice/String.hpp"
 
@@ -8,7 +9,7 @@ TESTSUITE(Exception);
 
 SETUP(Exception)
 {
-  ruby_init();
+  embed_ruby();
 }
 
 TESTCASE(construct_from_exception_object)

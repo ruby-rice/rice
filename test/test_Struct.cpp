@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/Struct.hpp"
 #include "rice/Symbol.hpp"
 #include "rice/global_function.hpp"
@@ -22,7 +23,7 @@ namespace
 
 SETUP(Struct)
 {
-  ruby_init();
+  embed_ruby();
 }
 
 TESTCASE(default_construct)

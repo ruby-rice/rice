@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/global_function.hpp"
 
 using namespace Rice;
@@ -7,7 +8,7 @@ TESTSUITE(GlobalFunction);
 
 SETUP(GlobalFunction)
 {
-  ruby_init();
+  embed_ruby();
 }
 
 namespace {

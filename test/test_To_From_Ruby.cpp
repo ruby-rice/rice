@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/to_from_ruby.hpp"
 #include "rice/String.hpp"
 #include "rice/Array.hpp"
@@ -12,7 +13,7 @@ TESTSUITE(To_From_Ruby);
 
 SETUP(To_From_Ruby)
 {
-  ruby_init();
+  embed_ruby();
 }
 
 TESTCASE(object_to_ruby)

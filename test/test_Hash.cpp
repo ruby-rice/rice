@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/Hash.hpp"
 #include "rice/global_function.hpp"
 #include <vector>
@@ -11,7 +12,7 @@ TESTSUITE(Hash);
 
 SETUP(Hash)
 {
-  ruby_init();
+  embed_ruby();
 }
 
 TESTCASE(default_construct)

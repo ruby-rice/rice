@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/String.hpp"
 #include "rice/Class.hpp"
 #include "rice/global_function.hpp"
@@ -9,7 +10,7 @@ TESTSUITE(Memory_Management);
 
 SETUP(Memory_Management)
 {
-  ruby_init();
+  embed_ruby();
 }
 
 namespace

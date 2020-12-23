@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/Symbol.hpp"
 #include "rice/Identifier.hpp"
 
@@ -8,7 +9,7 @@ TESTSUITE(Symbol);
 
 SETUP(Symbol)
 {
-  ruby_init();
+  embed_ruby();
 }
 
 TESTCASE(construct_from_symbol)
