@@ -55,11 +55,15 @@ EOM
     end
 
     other_opts = "--disable-dependency-tracking"
-    env = "ARCHFLAGS='-arch #{arch}' CPPFLAGS='-arch #{arch}'"
   else
     arch = `uname -p`.chomp
-    env = "ARCHFLAGS='-arch #{arch}' CPPFLAGS='-arch #{arch}'"
   end
+
+  env = if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.0.0')
+          "ARCHFLAGS='-arch #{arch}' CPPFLAGS='-fdeclspec -arch #{arch}'"
+        else
+          "ARCHFLAGS='-arch #{arch}' CPPFLAGS='-arch #{arch}'"
+        end
 end
 
 system "sh bootstrap"
