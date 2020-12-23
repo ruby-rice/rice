@@ -38,7 +38,7 @@ namespace Rice {
        * In the case of no Args (default case), this
        * method uses the passed in full argument count
        */
-      std::string formatString(int fullArgCount)
+      std::string formatString(size_t fullArgCount)
       {
         std::stringstream s;
         if(required_ == 0 && optional_ == 0)

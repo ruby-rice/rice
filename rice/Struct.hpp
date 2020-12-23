@@ -91,7 +91,7 @@ public:
    *  \param member the name of the desired member.
    *  \return the index of the given member.
    */
-  size_t offset_of(Identifier name) const;
+  unsigned long offset_of(Identifier name) const;
 
   class Instance;
   friend class Instance;

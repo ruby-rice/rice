@@ -37,7 +37,7 @@ String(char const * s)
 
 Rice::String::
 String(std::string const & s)
-  : Builtin_Object<T_STRING>(protect(rb_str_new, s.data(), s.length()))
+  : Builtin_Object<T_STRING>(protect(rb_str_new, s.data(), (long)s.length()))
 {
 }
 

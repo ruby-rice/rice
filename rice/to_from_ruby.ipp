@@ -101,7 +101,7 @@ template<>
 inline
 long from_ruby<long>(Rice::Object x)
 {
-  return Rice::protect(Rice::detail::num2long, x);
+  return (long)Rice::protect(Rice::detail::num2long, x);
 }
 
 template<>
@@ -225,7 +225,7 @@ template<>
 inline
 unsigned long from_ruby<unsigned long>(Rice::Object x)
 {
-  return Rice::protect(Rice::detail::num2ulong, x);
+  return (unsigned long)Rice::protect(Rice::detail::num2ulong, x);
 }
 
 template<>
@@ -407,7 +407,7 @@ template<>
 inline
 Rice::Object to_ruby<std::string>(std::string const & x)
 {
-  return Rice::protect(rb_str_new, x.data(), x.size());
+  return Rice::protect(rb_str_new, x.data(), (long)x.size());
 }
 
 template<>

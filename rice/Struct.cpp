@@ -59,11 +59,11 @@ define_member(
   return *this;
 }
 
-size_t Rice::Struct::
+unsigned long Rice::Struct::
 offset_of(Identifier name) const
 {
   Symbol ruby_name(name);
-  return from_ruby<size_t>(member_offset_[ruby_name]);
+  return from_ruby<unsigned long>(member_offset_[ruby_name]);
 }
 
 void Rice::Struct::
