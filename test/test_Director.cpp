@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/Exception.hpp"
 #include "rice/Director.hpp"
 #include "rice/Constructor.hpp"
@@ -87,7 +88,7 @@ namespace {
 
 SETUP(Director)
 {
-  ruby_init();
+  embed_ruby();
 }
 
 TESTCASE(exposes_worker_as_instantiatable_class)

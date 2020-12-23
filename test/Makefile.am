@@ -30,6 +30,7 @@ run_multiple_extensions_same_class_test:
 
 
 unittest_SOURCES = \
+	embed_ruby.cpp \
 	unittest.cpp \
 	test_Address_Registration_Guard.cpp \
 	test_Array.cpp \

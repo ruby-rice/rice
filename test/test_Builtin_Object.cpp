@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/Builtin_Object.hpp"
 #include "rice/Class.hpp"
 
@@ -8,7 +9,7 @@ TESTSUITE(Builtin_Object);
 
 SETUP(Builtin_Object)
 {
-  ruby_init();
+  embed_ruby();
 }
 
 TESTCASE(construct_with_object)

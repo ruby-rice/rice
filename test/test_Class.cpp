@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/Class.hpp"
 #include "rice/Constructor.hpp"
 #include "rice/protect.hpp"
@@ -15,7 +16,7 @@ TESTSUITE(Class);
 
 SETUP(Class)
 {
-  ruby_init();
+  embed_ruby();
 }
 
 TESTCASE(construct)

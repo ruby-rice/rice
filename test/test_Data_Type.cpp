@@ -1,4 +1,5 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
 #include "rice/Data_Type.hpp"
 #include "rice/Exception.hpp"
 #include "rice/Constructor.hpp"
@@ -63,7 +64,7 @@ namespace {
 
 SETUP(Data_Type)
 {
-  ruby_init();
+  embed_ruby();
 
   define_class<Listener>("Listener")
     .define_constructor(Constructor<Listener>())
