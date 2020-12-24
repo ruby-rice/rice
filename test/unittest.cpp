@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include "unittest.hpp"
@@ -85,18 +86,43 @@ run(Test_Result & result)
   }
 }
 
-int main()
+char* findOption(char** begin, char** end, const std::string& option)
 {
+  char** itr = std::find(begin, end, option);
+  if (itr != end && ++itr != end)
+  {
+    return *itr;
+  }
+  return nullptr;
+}
+
+int main(int argc, char** argv)
+{
+  std::vector<Test_Suite> suites;
+
+  char* moduleName = findOption(argv, argv + argc, "--suite");
+  if (moduleName)
+  {
+    Test_Suite suite = test_suites()[moduleName];
+    suites.push_back(suite);
+  }
+  else
+  {
+    std::transform(test_suites().begin(), test_suites().end(),
+      std::back_inserter(suites),
+      [](auto& pair)
+      {
+        return pair.second;
+      });
+  }
+
   Test_Result result;
   size_t num_tests = 0;
-
-  for(Test_Suites::iterator it = test_suites().begin(),
-      end = test_suites().end();
-      it != end;
-      ++it)
+  
+  for (Test_Suite& suite : suites)
   {
-    it->second.run(result);
-    num_tests += it->second.size();
+    suite.run(result);
+    num_tests += suite.size();
   }
 
   std::cout << std::endl;
