@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\rice\Address_Registration_Guard.cpp" />
+    <ClCompile Include="..\..\rice\Arg_operators.cpp" />
+    <ClCompile Include="..\..\rice\Class.cpp" />
+    <ClCompile Include="..\..\rice\Data_Type.cpp" />
+    <ClCompile Include="..\..\rice\detail\check_ruby_type.cpp" />
+    <ClCompile Include="..\..\rice\detail\demangle.cpp" />
+    <ClCompile Include="..\..\rice\detail\method_data.cpp" />
+    <ClCompile Include="..\..\rice\detail\protect.cpp" />
+    <ClCompile Include="..\..\rice\Director.cpp" />
+    <ClCompile Include="..\..\rice\Exception.cpp" />
+    <ClCompile Include="..\..\rice\Identifier.cpp" />
+    <ClCompile Include="..\..\rice\Module.cpp" />
+    <ClCompile Include="..\..\rice\Object.cpp" />
+    <ClCompile Include="..\..\rice\String.cpp" />
+    <ClCompile Include="..\..\rice\Struct.cpp" />
+    <ClCompile Include="..\..\rice\Symbol.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\rice\Address_Registration_Guard.hpp" />
+    <ClInclude Include="..\..\rice\Address_Registration_Guard.ipp" />
+    <ClInclude Include="..\..\rice\Address_Registration_Guard_defn.hpp" />
+    <ClInclude Include="..\..\rice\Arg.hpp" />
+    <ClInclude Include="..\..\rice\Arg_impl.hpp" />
+    <ClInclude Include="..\..\rice\Arg_operators.hpp" />
+    <ClInclude Include="..\..\rice\Array.hpp" />
+    <ClInclude Include="..\..\rice\Array.ipp" />
+    <ClInclude Include="..\..\rice\Builtin_Object.hpp" />
+    <ClInclude Include="..\..\rice\Builtin_Object.ipp" />
+    <ClInclude Include="..\..\rice\Builtin_Object_defn.hpp" />
+    <ClInclude Include="..\..\rice\Class.hpp" />
+    <ClInclude Include="..\..\rice\Class.ipp" />
+    <ClInclude Include="..\..\rice\Class_defn.hpp" />
+    <ClInclude Include="..\..\rice\config.hpp" />
+    <ClInclude Include="..\..\rice\Constructor.hpp" />
+    <ClInclude Include="..\..\rice\Data_Object.hpp" />
+    <ClInclude Include="..\..\rice\Data_Object.ipp" />
+    <ClInclude Include="..\..\rice\Data_Object_defn.hpp" />
+    <ClInclude Include="..\..\rice\Data_Type.hpp" />
+    <ClInclude Include="..\..\rice\Data_Type.ipp" />
+    <ClInclude Include="..\..\rice\Data_Type_defn.hpp" />
+    <ClInclude Include="..\..\rice\Data_Type_fwd.hpp" />
+    <ClInclude Include="..\..\rice\detail\Arguments.hpp" />
+    <ClInclude Include="..\..\rice\detail\Auto_Function_Self_Wrapper.hpp" />
+    <ClInclude Include="..\..\rice\detail\Auto_Function_Self_Wrapper.ipp" />
+    <ClInclude Include="..\..\rice\detail\Auto_Function_Wrapper.hpp" />
+    <ClInclude Include="..\..\rice\detail\Auto_Function_Wrapper.ipp" />
+    <ClInclude Include="..\..\rice\detail\Auto_Member_Function_Wrapper.hpp" />
+    <ClInclude Include="..\..\rice\detail\Auto_Member_Function_Wrapper.ipp" />
+    <ClInclude Include="..\..\rice\detail\Caster.hpp" />
+    <ClInclude Include="..\..\rice\detail\cfp.hpp" />
+    <ClInclude Include="..\..\rice\detail\cfp.ipp" />
+    <ClInclude Include="..\..\rice\detail\check_ruby_type.hpp" />
+    <ClInclude Include="..\..\rice\detail\creation_funcs.hpp" />
+    <ClInclude Include="..\..\rice\detail\creation_funcs.ipp" />
+    <ClInclude Include="..\..\rice\detail\default_allocation_func.hpp" />
+    <ClInclude Include="..\..\rice\detail\default_allocation_func.ipp" />
+    <ClInclude Include="..\..\rice\detail\define_method_and_auto_wrap.hpp" />
+    <ClInclude Include="..\..\rice\detail\define_method_and_auto_wrap.ipp" />
+    <ClInclude Include="..\..\rice\detail\demangle.hpp" />
+    <ClInclude Include="..\..\rice\detail\env.hpp" />
+    <ClInclude Include="..\..\rice\detail\Exception_Handler.hpp" />
+    <ClInclude Include="..\..\rice\detail\Exception_Handler.ipp" />
+    <ClInclude Include="..\..\rice\detail\Exception_Handler_defn.hpp" />
+    <ClInclude Include="..\..\rice\detail\from_ruby.hpp" />
+    <ClInclude Include="..\..\rice\detail\from_ruby.ipp" />
+    <ClInclude Include="..\..\rice\detail\Iterator.hpp" />
+    <ClInclude Include="..\..\rice\detail\method_data.hpp" />
+    <ClInclude Include="..\..\rice\detail\node.hpp" />
+    <ClInclude Include="..\..\rice\detail\Not_Copyable.hpp" />
+    <ClInclude Include="..\..\rice\detail\protect.hpp" />
+    <ClInclude Include="..\..\rice\detail\ruby.hpp" />
+    <ClInclude Include="..\..\rice\detail\ruby_version_code.hpp" />
+    <ClInclude Include="..\..\rice\detail\st.hpp" />
+    <ClInclude Include="..\..\rice\detail\to_ruby.hpp" />
+    <ClInclude Include="..\..\rice\detail\to_ruby.ipp" />
+    <ClInclude Include="..\..\rice\detail\win32.hpp" />
+    <ClInclude Include="..\..\rice\detail\Wrapped_Function.hpp" />
+    <ClInclude Include="..\..\rice\detail\wrap_function.hpp" />
+    <ClInclude Include="..\..\rice\Director.hpp" />
+    <ClInclude Include="..\..\rice\Enum.hpp" />
+    <ClInclude Include="..\..\rice\Enum.ipp" />
+    <ClInclude Include="..\..\rice\Exception.hpp" />
+    <ClInclude Include="..\..\rice\Exception_Base.hpp" />
+    <ClInclude Include="..\..\rice\Exception_Base.ipp" />
+    <ClInclude Include="..\..\rice\Exception_Base_defn.hpp" />
+    <ClInclude Include="..\..\rice\Exception_defn.hpp" />
+    <ClInclude Include="..\..\rice\global_function.hpp" />
+    <ClInclude Include="..\..\rice\global_function.ipp" />
+    <ClInclude Include="..\..\rice\Hash.hpp" />
+    <ClInclude Include="..\..\rice\Hash.ipp" />
+    <ClInclude Include="..\..\rice\Identifier.hpp" />
+    <ClInclude Include="..\..\rice\Identifier.ipp" />
+    <ClInclude Include="..\..\rice\Jump_Tag.hpp" />
+    <ClInclude Include="..\..\rice\Module.hpp" />
+    <ClInclude Include="..\..\rice\Module.ipp" />
+    <ClInclude Include="..\..\rice\Module_defn.hpp" />
+    <ClInclude Include="..\..\rice\Module_impl.hpp" />
+    <ClInclude Include="..\..\rice\Module_impl.ipp" />
+    <ClInclude Include="..\..\rice\Object.hpp" />
+    <ClInclude Include="..\..\rice\Object.ipp" />
+    <ClInclude Include="..\..\rice\Object_defn.hpp" />
+    <ClInclude Include="..\..\rice\protect.hpp" />
+    <ClInclude Include="..\..\rice\protect.ipp" />
+    <ClInclude Include="..\..\rice\Require_Guard.hpp" />
+    <ClInclude Include="..\..\rice\ruby_mark.hpp" />
+    <ClInclude Include="..\..\rice\ruby_try_catch.hpp" />
+    <ClInclude Include="..\..\rice\String.hpp" />
+    <ClInclude Include="..\..\rice\Struct.hpp" />
+    <ClInclude Include="..\..\rice\Struct.ipp" />
+    <ClInclude Include="..\..\rice\Symbol.hpp" />
+    <ClInclude Include="..\..\rice\Symbol.ipp" />
+    <ClInclude Include="..\..\rice\to_from_ruby.hpp" />
+    <ClInclude Include="..\..\rice\to_from_ruby.ipp" />
+    <ClInclude Include="..\..\rice\to_from_ruby_defn.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\rice\config.hpp.in" />
+    <None Include="..\..\rice\config.hpp.in~" />
+    <None Include="..\..\rice\detail\object_call.hpp.mustache" />
+    <None Include="..\..\rice\detail\object_call.ipp.mustache" />
+    <None Include="..\..\rice\detail\ruby_version_code.hpp.in" />
+    <None Include="..\..\rice\protect.ipp.mustache" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{35c7c2c5-7cf2-42bd-92cc-daf557657777}</ProjectGuid>
+    <RootNamespace>librice</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>
+      </SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>
+      </SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>C:\msys64\usr\local\ruby-2.7.2vc\include\ruby-2.7.0;C:\msys64\usr\local\ruby-2.7.2vc\include\ruby-2.7.0\x64-mswin64_140;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>
+      </SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>C:\msys64\usr\local\ruby-2.7.2vc\include\ruby-2.7.0;C:\msys64\usr\local\ruby-2.7.2vc\include\ruby-2.7.0\x64-mswin64_140;</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>
+      </SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
