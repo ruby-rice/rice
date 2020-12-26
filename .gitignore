@@ -35,3 +35,4 @@ ruby/lib/lib
 
 Gemfile.lock
 .dirstamp
+/.idea
