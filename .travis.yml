@@ -1,9 +1,12 @@
 rvm:
-  - 2.4
   - 2.5
   - 2.6
   - 2.7
+  - 3.0
   - ruby-head
+jobs:
+  allow_failures:
+  - rvm: ruby-head
 before_script:
   - sh bootstrap
   - ruby extconf.rb
