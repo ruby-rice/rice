@@ -79,10 +79,6 @@ to_from_ruby.ipp \
 to_from_ruby_defn.hpp \
 ruby_mark.hpp \
 config.hpp \
-detail/Auto_Function_Wrapper.hpp \
-detail/Auto_Function_Wrapper.ipp \
-detail/Auto_Member_Function_Wrapper.hpp \
-detail/Auto_Member_Function_Wrapper.ipp \
 detail/Arguments.hpp \
 detail/Caster.hpp \
 detail/Exception_Handler.hpp \

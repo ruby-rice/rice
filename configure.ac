@@ -22,7 +22,7 @@ else
 fi
 
 m4_include(ax_cxx_compile_stdcxx.m4)
-AX_CXX_COMPILE_STDCXX(14, noext, mandatory)
+AX_CXX_COMPILE_STDCXX(17, noext, mandatory)
 
 AC_SUBST(RICE_USING_MINGW32)
 

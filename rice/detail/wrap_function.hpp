@@ -9,8 +9,6 @@
 #include "../Object_defn.hpp"
 #include "../Data_Object.hpp"
 #include "Arguments.hpp"
-#include "Auto_Function_Wrapper.hpp"
-#include "Auto_Member_Function_Wrapper.hpp"
 
 namespace Rice
 {
@@ -18,44 +16,53 @@ namespace Rice
 namespace detail
 {
 
-template<typename Ret_T>
-Wrapped_Function * wrap_function(
-    Ret_T (*func)(),
-    Data_Object<Exception_Handler> handler,
-    Arguments* arguments)
+// Used for calling Constructor
+template<typename Return_T, typename ...Arg_T>
+auto* wrap_function(Return_T(*func)(Object, Arg_T...),
+  Data_Object<Exception_Handler> handler, Arguments* arguments)
 {
-  typedef Ret_T (*Func)();
-  return new Auto_Function_Wrapper<Func, Ret_T>(func, handler, arguments);
+  using Function_T = Return_T(*)(Object, Arg_T...);
+  return new Wrapped_Function<Function_T, Return_T, Object, Arg_T...>(func, handler, arguments);
 }
 
-template<typename Ret_T, typename ...Arg_T>
-Wrapped_Function * wrap_function(
-    Ret_T (*func)(Arg_T...),
-    Data_Object<Exception_Handler> handler,
-    Arguments* arguments)
+// Used by Enums
+template<typename Return_T, typename ...Arg_T>
+auto* wrap_function(Return_T(*func)(Class, Arg_T...),
+  Data_Object<Exception_Handler> handler,
+  Arguments* arguments)
 {
-  typedef Ret_T (*Func)(Arg_T...);
-  return new Auto_Function_Wrapper<Func, Ret_T, Arg_T...>(func, handler, arguments);
+  using Function_T = Return_T(*)(Class, Arg_T...);
+  return new Wrapped_Function<Function_T, Return_T, Class, Arg_T...>(func, handler, arguments);
 }
 
-template<typename Ret_T, typename Self_T, typename ...Arg_T>
-Wrapped_Function * wrap_function(
-    Ret_T (Self_T::*func)(Arg_T...),
+// A plain function or static member call
+template<typename Return_T, typename ...Arg_T>
+auto* wrap_function(Return_T (*func)(Arg_T...),
     Data_Object<Exception_Handler> handler,
     Arguments* arguments)
 {
-  typedef Ret_T (Self_T::*Func)(Arg_T...);
-  return new Auto_Member_Function_Wrapper<Func, Ret_T, Self_T, Arg_T...>(func, handler, arguments);
+  using Function_T = Return_T(*)(Arg_T...);
+  return new Wrapped_Function<Function_T, Return_T, std::nullptr_t, Arg_T...>(func, handler, arguments);
 }
 
-template<typename Ret_T, typename Self_T, typename ...Arg_T>
-Wrapped_Function * wrap_function(
-    Ret_T (Self_T::*func)(Arg_T...) const,
+// Call a member function on a C++ object
+template<typename Return_T, typename Self_T, typename ...Arg_T>
+auto* wrap_function(Return_T (Self_T::*func)(Arg_T...),
     Data_Object<Exception_Handler> handler,
     Arguments* arguments)
 {
-  typedef Ret_T (Self_T::*Func)(Arg_T...) const;
-  return new Auto_Member_Function_Wrapper<Func, Ret_T, Self_T, Arg_T...>(func, handler, arguments);
+  using Function_T = Return_T(Self_T::*)(Arg_T...);
+  return new Wrapped_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, arguments);
+}
+
+// Call a const member function on a C++ object
+template<typename Return_T, typename Self_T, typename ...Arg_T>
+auto* wrap_function(Return_T (Self_T::*func)(Arg_T...) const,
+    Data_Object<Exception_Handler> handler,
+    Arguments* arguments)
+{
+  using Function_T = Return_T(Self_T::*)(Arg_T...) const;
+  return new Wrapped_Function<Function_T, Return_T, Self_T, Arg_T...>(func, handler, arguments);
 }
 
 } // namespace detail
