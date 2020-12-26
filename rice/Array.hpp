@@ -151,14 +151,14 @@ private:
 // TODO: This really should be a random-access iterator.
 template<typename Array_Ref_T, typename Value_T>
 class Array::Iterator
-  : public std::iterator<
-      std::forward_iterator_tag,
-      Value_T,            // Type
-      long,               // Distance type
-      Object *,           // Pointer type
-      Value_T &>          // Reference type
 {
 public:
+  using iterator_category = std::forward_iterator_tag;
+  using value_type = Value_T;
+  using difference_type = long;
+  using pointer = Object*;
+  using reference = Value_T&;  
+  
   Iterator(Array_Ref_T array, long index);
 
   template<typename Array_Ref_T_, typename Value_T_>

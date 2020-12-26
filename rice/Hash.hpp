@@ -146,11 +146,14 @@ bool operator<(Hash::Entry const & lhs, Hash::Entry const & rhs);
 //! A helper class for implementing iterators for a Hash.
 template<typename Hash_Ref_T, typename Value_T>
 class Hash::Iterator
-  : public std::iterator<
-      std::input_iterator_tag,
-      Value_T>
 {
 public:
+  using iterator_category = std::input_iterator_tag;
+  using value_type = Value_T;
+  using difference_type = long;
+  using pointer = Object*;
+  using reference = Value_T&;
+
   //! Construct a new Iterator.
   Iterator(Hash_Ref_T hash);
 
