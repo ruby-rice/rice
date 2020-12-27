@@ -3,13 +3,8 @@
 #include "protect.hpp"
 #include "detail/ruby.hpp"
 
-#ifdef HAVE_STDARG_PROTOTYPES
 #include <stdarg.h>
 #define va_init_list(a,b) va_start(a,b)
-#else
-#include <varargs.h>
-#define va_init_list(a,b) va_start(a)
-#endif
 
 Rice::String::
 String()
@@ -52,7 +47,7 @@ format(char const * fmt, ...)
 {
   va_list args;
   char buf[BUFSIZ];
-  
+
   va_init_list(args, fmt);
   vsnprintf(buf, BUFSIZ, fmt, args);
   buf[BUFSIZ - 1] = '\0';

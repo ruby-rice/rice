@@ -7,14 +7,18 @@ on:
     branches: [ master ]
 
 jobs:
-  test-on-nix:
+  tests:
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest]
         ruby: [2.5, 2.6, 2.7, 3.0]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
+    - if: ${{ startsWith(matrix.os, 'macos') }}
+      name: Install dependencies
+      run: brew install autoconf automake
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
@@ -27,16 +31,17 @@ jobs:
     - name: Tests
       run: bundle exec rake test
 
-  test-on-macos:
+  # Ruby 3 does not yet have an official release for Windows.
+  # When that's available, this can also merge into the above definition.
+  # https://github.com/ruby/setup-ruby/issues/134
+  test-on-windows:
+    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
-        ruby: [2.5, 2.6, 2.7, 3.0]
-    runs-on: macos-latest
+        ruby: [2.5, 2.6, 2.7, head]
     steps:
     - uses: actions/checkout@v2
-    - name: Install dependencies
-      run: brew install autoconf automake
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
