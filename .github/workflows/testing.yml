@@ -17,12 +17,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set up Ruby
-    - uses: ruby/setup-ruby@v1
+      uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+    - name: Configure
+      run: ruby extconf.rb
     - name: Build
-    - run: ruby extconf.rb
-    - run: make all
-    - name: Run tests
-    - run: bundle exec rake test
+      run: make all
+    - name: Tests
+      run: bundle exec rake test
