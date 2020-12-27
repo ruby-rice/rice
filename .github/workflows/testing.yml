@@ -54,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [2.5, 2.6, 2.7, 3.0]
+        ruby: [2.5, 2.6, 2.7, head] # '3' explicitly is not yet released for windows. https://github.com/ruby/setup-ruby/issues/134
     steps:
     - uses: actions/checkout@v2
     - name: Set up Ruby
