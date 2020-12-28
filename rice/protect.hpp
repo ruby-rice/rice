@@ -5,6 +5,8 @@
 #undef TYPE
 
 #include "Object_defn.hpp"
+#include "detail/Ruby_Function.hpp"
+#include "detail/protect.hpp"
 
 namespace Rice
 {
@@ -27,12 +29,19 @@ namespace Rice
  *  reference to any of its arguments (though you can use non-const
  *  pointers).
  */
-template<typename Fun, typename ...ArgT>
-VALUE protect(Fun fun, ArgT const &... args);
+template<typename Func_T, typename ...Arg_Ts>
+VALUE protect(Func_T func, const Arg_Ts&... args)
+{
+  // Create a functor for calling a Ruby fucntion and define some aliases for readability.
+  auto rubyFunction = detail::ruby_function(func, args...);
+  using RubyFunctionType = decltype(rubyFunction);
+  VALUE rubyFunctionAsFakeValue = reinterpret_cast<VALUE>(&rubyFunction);
+
+  // Now call rb_protect sending it the functor we created above - it's call method
+  // will invoke the underyling Ruby fuction.
+  return detail::protect((RUBY_VALUE_FUNC)&RubyFunctionType::call, rubyFunctionAsFakeValue);
+}
 
 } // namespace Rice
 
-#include "protect.ipp"
-
 #endif // Rice__protect__hpp_
-
