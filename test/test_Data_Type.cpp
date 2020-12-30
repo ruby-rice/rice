@@ -137,8 +137,8 @@ TESTCASE(no_super_in_constructor_still_works)
  */
 namespace
 {
-  const int degree2Radians = (3.14 / 180.0);
-  const int radian2Degrees = (180.0 / 3.14);
+  const float degree2Radians = (float)(3.14 / 180.0);
+  const float radian2Degrees = (float)(180.0 / 3.14);
 
   class Radian;
 

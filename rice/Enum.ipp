@@ -126,7 +126,7 @@ each(Object self)
   VALUE enums_v = rb_iv_get(self, "enums");
   Check_Type(enums_v, T_ARRAY);
   Array enums(enums_v);
-  for(size_t j = 0; j < enums.size(); ++j)
+  for(long j = 0; j < enums.size(); ++j)
   {
     rb_yield(enums[j].value());
   }

@@ -202,7 +202,7 @@ protected:
 
 private:
   Hash hash_;
-  size_t current_index_;
+  long current_index_;
   VALUE keys_;
 
   mutable typename std::remove_const<Value_T>::type tmp_;
