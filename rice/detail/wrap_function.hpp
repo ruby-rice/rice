@@ -19,7 +19,8 @@ namespace detail
 // Used for calling Constructor
 template<typename Return_T, typename ...Arg_T>
 auto* wrap_function(Return_T(*func)(Object, Arg_T...),
-  Data_Object<Exception_Handler> handler, Arguments* arguments)
+  std::shared_ptr<Exception_Handler> handler,
+  Arguments* arguments)
 {
   using Function_T = Return_T(*)(Object, Arg_T...);
   return new Wrapped_Function<Function_T, Return_T, Object, Arg_T...>(func, handler, arguments);
@@ -28,7 +29,7 @@ auto* wrap_function(Return_T(*func)(Object, Arg_T...),
 // Used by Enums
 template<typename Return_T, typename ...Arg_T>
 auto* wrap_function(Return_T(*func)(Class, Arg_T...),
-  Data_Object<Exception_Handler> handler,
+  std::shared_ptr<Exception_Handler> handler,
   Arguments* arguments)
 {
   using Function_T = Return_T(*)(Class, Arg_T...);
@@ -38,7 +39,7 @@ auto* wrap_function(Return_T(*func)(Class, Arg_T...),
 // A plain function or static member call
 template<typename Return_T, typename ...Arg_T>
 auto* wrap_function(Return_T (*func)(Arg_T...),
-    Data_Object<Exception_Handler> handler,
+    std::shared_ptr<Exception_Handler> handler,
     Arguments* arguments)
 {
   using Function_T = Return_T(*)(Arg_T...);
@@ -48,7 +49,7 @@ auto* wrap_function(Return_T (*func)(Arg_T...),
 // Call a member function on a C++ object
 template<typename Return_T, typename Self_T, typename ...Arg_T>
 auto* wrap_function(Return_T (Self_T::*func)(Arg_T...),
-    Data_Object<Exception_Handler> handler,
+    std::shared_ptr<Exception_Handler> handler,
     Arguments* arguments)
 {
   using Function_T = Return_T(Self_T::*)(Arg_T...);
@@ -58,7 +59,7 @@ auto* wrap_function(Return_T (Self_T::*func)(Arg_T...),
 // Call a const member function on a C++ object
 template<typename Return_T, typename Self_T, typename ...Arg_T>
 auto* wrap_function(Return_T (Self_T::*func)(Arg_T...) const,
-    Data_Object<Exception_Handler> handler,
+    std::shared_ptr<Exception_Handler> handler,
     Arguments* arguments)
 {
   using Function_T = Return_T(Self_T::*)(Arg_T...) const;

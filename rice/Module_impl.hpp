@@ -32,11 +32,10 @@ protected:
   template<typename Exception_T, typename Functor_T>
   void add_handler(Functor_T functor);
 
-  Object handler() const;
+  std::shared_ptr<detail::Exception_Handler> handler() const;
 
 private:
-  Object mutable handler_;
-  Address_Registration_Guard handler_guard_;
+  mutable std::shared_ptr<detail::Exception_Handler> handler_;
 };
 
 /*! An intermediate base class so we can always return the most-derived

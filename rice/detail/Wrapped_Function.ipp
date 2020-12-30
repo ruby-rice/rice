@@ -3,8 +3,10 @@
 
 #include "method_data.hpp"
 #include "../ruby_try_catch.hpp"
+#include "Data_Object_defn.hpp"
 
 #include <array>
+#include <algorithm>
 
 namespace Rice
 {
@@ -25,8 +27,8 @@ call(int argc, VALUE* argv, VALUE self)
 
 template<typename Function_T, typename Return_T, typename Receiver_T, typename... Arg_Ts>
 Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
-Wrapped_Function(Function_T func, Data_Object<Exception_Handler> handler, Arguments* arguments)
-    : func_(func), handler_(handler), handler_guard_(&handler_)
+Wrapped_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
+    : func_(func), handler_(handler)
   {
     if (arguments == 0)
     {

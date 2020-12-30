@@ -12,7 +12,7 @@ define_method_and_auto_wrap(
     VALUE klass,
     Identifier name,
     Fun_T function,
-    Data_Object<Exception_Handler> handler,
+    std::shared_ptr<Exception_Handler> handler,
     Arguments* arguments)
 {
   auto* wrapper = wrap_function(function, handler, arguments);

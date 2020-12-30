@@ -18,9 +18,7 @@
 inline
 Rice::Module_base::
 Module_base(VALUE v)
-  : Object(v)
-  , handler_(Qnil)
-  , handler_guard_(&handler_)
+  : Object(v), handler_(std::make_shared<Rice::detail::Default_Exception_Handler>())
 {
 }
 
@@ -29,7 +27,6 @@ Rice::Module_base::
 Module_base(Module_base const & other)
   : Object(other)
   , handler_(other.handler_)
-  , handler_guard_(&handler_)
 {
 }
 
@@ -58,29 +55,18 @@ void
 Rice::Module_base::
 add_handler(Functor_T functor)
 {
-  Data_Object<detail::Exception_Handler> handler(
-      new detail::
-      Functor_Exception_Handler<Exception_T, Functor_T>(
-          functor,
-          this->handler()),
-      rb_cObject);
-  this->handler_.swap(handler);
+  // Create a new exception handler and pass ownership of the current handler to it (they
+  // get chained togehter). Then take ownership of the new handler.
+  this->handler_ = std::make_shared<detail::Functor_Exception_Handler<Exception_T, Functor_T>>(
+    functor, std::move(this->handler_));
 }
 
 inline
-Rice::Object
+std::shared_ptr<Rice::detail::Exception_Handler>
 Rice::Module_base::
 handler() const
 {
-  if(!handler_.test())
-  {
-    Data_Object<Rice::detail::Default_Exception_Handler> handler(
-        new Rice::detail::Default_Exception_Handler,
-        rb_cObject);
-    handler_.swap(handler);
-  }
-
-  return handler_;
+  return this->handler_;
 }
 
 template<typename Base_T, typename Derived_T>

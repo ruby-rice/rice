@@ -40,7 +40,7 @@ public:
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
 public:
-  Wrapped_Function(Function_T func, Data_Object<Exception_Handler> handler, Arguments* arguments);
+  Wrapped_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
   virtual ~Wrapped_Function();
 
   // Invokes the wrapped function
@@ -61,14 +61,9 @@ private:
   VALUE invokeNative(NativeTypes& nativeArgs);
   
 private:
-  // Store the fuction to call
   Function_T func_;
-  // Used to store default function argument values
   Arguments* arguments_;
-
-  // Exception handler
-  Data_Object<Exception_Handler> handler_;
-  Address_Registration_Guard handler_guard_;
+  std::shared_ptr<Exception_Handler> handler_;
 };
 
 } // detail
