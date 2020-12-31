@@ -334,9 +334,9 @@ TESTCASE(define_iterator)
       c, 0, Default_Free_Function<Container>::free, container);
   Array a = wrapped_container.instance_eval("a = []; each() { |x| a << x }; a");
   ASSERT_EQUAL(3u, a.size());
-  ASSERT_EQUAL(to_ruby(1), Object(a[0]));
-  ASSERT_EQUAL(to_ruby(2), Object(a[1]));
-  ASSERT_EQUAL(to_ruby(3), Object(a[2]));
+  ASSERT_EQUAL(to_ruby(1), Object(a[0]).value());
+  ASSERT_EQUAL(to_ruby(2), Object(a[1]).value());
+  ASSERT_EQUAL(to_ruby(3), Object(a[2]).value());
 }
 
 TESTCASE(define_class)

@@ -73,9 +73,9 @@ TESTCASE(bracket)
   h[6] = 9;
   h[42] = 42;
   h[6] = 1;
-  ASSERT_EQUAL(to_ruby(5), Object(h[1]));
-  ASSERT_EQUAL(to_ruby(42), Object(h[42]));
-  ASSERT_EQUAL(to_ruby(1), Object(h[6]));
+  ASSERT_EQUAL(to_ruby(5), h[1].value());
+  ASSERT_EQUAL(to_ruby(42), h[42].value());
+  ASSERT_EQUAL(to_ruby(1), h[6].value());
 }
 
 TESTCASE(get)
@@ -101,9 +101,9 @@ TESTCASE(construct_vector_from_hash_iterators)
   std::vector<Hash::Entry> v(h.begin(), h.end());
   std::sort(v.begin(), v.end());
   ASSERT_EQUAL(3u, v.size());
-  ASSERT_EQUAL(v[0].key, to_ruby(1));
-  ASSERT_EQUAL(v[1].key, to_ruby(6));
-  ASSERT_EQUAL(v[2].key, to_ruby(42));
+  ASSERT_EQUAL(v[0].key.value(), to_ruby(1));
+  ASSERT_EQUAL(v[1].key.value(), to_ruby(6));
+  ASSERT_EQUAL(v[2].key.value(), to_ruby(42));
   ASSERT_EQUAL(&v[0].key, &v[0].first);
   ASSERT_EQUAL(&v[1].key, &v[1].first);
   ASSERT_EQUAL(&v[2].key, &v[2].first);
@@ -134,9 +134,9 @@ TESTCASE(iterate)
 
   std::sort(v.begin(), v.end());
   ASSERT_EQUAL(3u, v.size());
-  ASSERT_EQUAL(v[0].key, to_ruby(1));
-  ASSERT_EQUAL(v[1].key, to_ruby(6));
-  ASSERT_EQUAL(v[2].key, to_ruby(42));
+  ASSERT_EQUAL(v[0].key.value(), to_ruby(1));
+  ASSERT_EQUAL(v[1].key.value(), to_ruby(6));
+  ASSERT_EQUAL(v[2].key.value(), to_ruby(42));
   ASSERT_EQUAL(&v[0].key, &v[0].first);
   ASSERT_EQUAL(&v[1].key, &v[1].first);
   ASSERT_EQUAL(&v[2].key, &v[2].first);
@@ -164,15 +164,15 @@ TESTCASE(const_iterate)
   }
   std::sort(v.begin(), v.end());
   ASSERT_EQUAL(3u, v.size());
-  ASSERT_EQUAL(v[0].key, to_ruby(1));
-  ASSERT_EQUAL(v[1].key, to_ruby(6));
-  ASSERT_EQUAL(v[2].key, to_ruby(42));
+  ASSERT_EQUAL(v[0].key.value(), to_ruby(1));
+  ASSERT_EQUAL(v[1].key.value(), to_ruby(6));
+  ASSERT_EQUAL(v[2].key.value(), to_ruby(42));
   ASSERT_EQUAL(&v[0].key, &v[0].first);
   ASSERT_EQUAL(&v[1].key, &v[1].first);
   ASSERT_EQUAL(&v[2].key, &v[2].first);
-  ASSERT_EQUAL(v[0].value, to_ruby(5));
-  ASSERT_EQUAL(v[1].value, to_ruby(1));
-  ASSERT_EQUAL(v[2].value, to_ruby(42));
+  ASSERT_EQUAL(v[0].value.value(), to_ruby(5));
+  ASSERT_EQUAL(v[1].value.value(), to_ruby(1));
+  ASSERT_EQUAL(v[2].value.value(), to_ruby(42));
   ASSERT_EQUAL(&v[0].value, &v[0].value);
   ASSERT_EQUAL(&v[1].value, &v[1].value);
   ASSERT_EQUAL(&v[2].value, &v[2].value);

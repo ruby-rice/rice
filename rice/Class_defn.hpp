@@ -75,9 +75,9 @@ Rice::Class from_ruby<Rice::Class>(VALUE x)
 
 template<>
 inline
-Rice::Object to_ruby<Rice::Class>(Rice::Class const & x)
+VALUE to_ruby<Rice::Class>(Rice::Class const & x)
 {
-  return x;
+  return x.value();
 }
 
 #endif // Rice__Class_defn__hpp_

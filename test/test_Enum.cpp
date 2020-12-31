@@ -64,9 +64,9 @@ TESTCASE(to_s)
 TESTCASE(to_i)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  ASSERT_EQUAL(to_ruby(int(RED)), Object(protect(rb_eval_string, "Color::RED.to_i")));
-  ASSERT_EQUAL(to_ruby(int(BLACK)), Object(protect(rb_eval_string, "Color::BLACK.to_i")));
-  ASSERT_EQUAL(to_ruby(int(GREEN)), Object(protect(rb_eval_string, "Color::GREEN.to_i")));
+  ASSERT_EQUAL(to_ruby(int(RED)), protect(rb_eval_string, "Color::RED.to_i"));
+  ASSERT_EQUAL(to_ruby(int(BLACK)), protect(rb_eval_string, "Color::BLACK.to_i"));
+  ASSERT_EQUAL(to_ruby(int(GREEN)), protect(rb_eval_string, "Color::GREEN.to_i"));
 }
 
 TESTCASE(inspect)
@@ -80,16 +80,16 @@ TESTCASE(inspect)
 TESTCASE(compare)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  ASSERT_EQUAL(to_ruby(-1), Object(protect(rb_eval_string, "Color::RED <=> Color::BLACK")));
-  ASSERT_EQUAL(to_ruby(1), Object(protect(rb_eval_string, "Color::GREEN <=> Color::RED")));
-  ASSERT_EQUAL(to_ruby(0), Object(protect(rb_eval_string, "Color::BLACK <=> Color::BLACK")));
+  ASSERT_EQUAL(to_ruby(-1), protect(rb_eval_string, "Color::RED <=> Color::BLACK"));
+  ASSERT_EQUAL(to_ruby(1), protect(rb_eval_string, "Color::GREEN <=> Color::RED"));
+  ASSERT_EQUAL(to_ruby(0), protect(rb_eval_string, "Color::BLACK <=> Color::BLACK"));
 }
 
 TESTCASE(eql)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  ASSERT_EQUAL(to_ruby(false), Object(protect(rb_eval_string, "Color::RED == Color::BLACK")));
-  ASSERT_EQUAL(to_ruby(true), Object(protect(rb_eval_string, "Color::GREEN == Color::GREEN")));
+  ASSERT_EQUAL(to_ruby(false), protect(rb_eval_string, "Color::RED == Color::BLACK"));
+  ASSERT_EQUAL(to_ruby(true), protect(rb_eval_string, "Color::GREEN == Color::GREEN"));
 }
 
 TESTCASE(invalid_to_s)
@@ -103,7 +103,7 @@ TESTCASE(invalid_to_i)
 {
   Enum<Color> rb_cColor = define_color_enum();
   Data_Object<Color> invalid(new Color(static_cast<Color>(42)));
-  ASSERT_EQUAL(to_ruby(42), invalid.call("to_i"));
+  ASSERT_EQUAL(to_ruby(42), invalid.call("to_i").value());
 }
 
 TESTCASE(invalid_inspect)
@@ -153,7 +153,7 @@ TESTCASE(hash)
 {
   Enum<Color> rb_cColor = define_color_enum();
   Data_Object<Color> red(new Color(RED));
-  ASSERT_EQUAL(to_ruby(int(RED)), red.call("hash"));
+  ASSERT_EQUAL(to_ruby(int(RED)), red.call("hash").value());
 }
 
 TESTCASE(from_int)
@@ -188,9 +188,9 @@ TESTCASE(nested_enums)
     inner.define_constructor(Constructor<Inner>());
   }
 
-  ASSERT_EQUAL(to_ruby(int(0)), Object(protect(rb_eval_string, "Inner::Props::VALUE1.to_i")));
-  ASSERT_EQUAL(to_ruby(int(1)), Object(protect(rb_eval_string, "Inner::Props::VALUE2.to_i")));
-  ASSERT_EQUAL(to_ruby(int(2)), Object(protect(rb_eval_string, "Inner::Props::VALUE3.to_i")));
+  ASSERT_EQUAL(to_ruby(int(0)), protect(rb_eval_string, "Inner::Props::VALUE1.to_i"));
+  ASSERT_EQUAL(to_ruby(int(1)), protect(rb_eval_string, "Inner::Props::VALUE2.to_i"));
+  ASSERT_EQUAL(to_ruby(int(2)), protect(rb_eval_string, "Inner::Props::VALUE3.to_i"));
 }
 
 namespace

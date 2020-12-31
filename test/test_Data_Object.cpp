@@ -234,7 +234,7 @@ TESTCASE(to_ruby)
   Data_Type<Foo> rb_cFoo;
   Foo * foo = new Foo;
   Data_Object<Foo> wrapped_foo(foo);
-  ASSERT_EQUAL(wrapped_foo.value(), to_ruby(wrapped_foo).value());
+  ASSERT_EQUAL(wrapped_foo.value(), to_ruby(wrapped_foo));
 }
 
 TESTCASE(from_ruby)

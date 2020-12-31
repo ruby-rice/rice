@@ -79,9 +79,9 @@ Rice::Module from_ruby<Rice::Module>(VALUE x)
 
 template<>
 inline
-Rice::Object to_ruby<Rice::Module>(Rice::Module const & x)
+VALUE to_ruby<Rice::Module>(Rice::Module const & x)
 {
-  return x;
+  return x.value();
 }
 
 #endif // Rice__Module_defn__hpp_

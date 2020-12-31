@@ -203,9 +203,9 @@ Rice::Array from_ruby<Rice::Array>(VALUE x)
 
 template<>
 inline
-Rice::Object to_ruby<Rice::Array>(Rice::Array const & x)
+VALUE to_ruby<Rice::Array>(Rice::Array const & x)
 {
-  return x;
+  return x.value();
 }
 
 #include "Array.ipp"

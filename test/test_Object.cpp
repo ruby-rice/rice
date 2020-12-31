@@ -127,7 +127,7 @@ TESTCASE(swap)
   Object o1(INT2NUM(42));
   Object o2(rb_ary_new());
   o1.swap(o2);
-  ASSERT_EQUAL(to_ruby(42), o2);
+  ASSERT_EQUAL(to_ruby(42), o2.value());
   ASSERT_EQUAL(Class(rb_cArray), o1.class_of());
 }
 
@@ -135,7 +135,7 @@ TESTCASE(instance_eval)
 {
   Object o(Class(rb_cObject).call("new"));
   o.iv_set("@foo", 42);
-  ASSERT_EQUAL(to_ruby(42), o.instance_eval("@foo"));
+  ASSERT_EQUAL(to_ruby(42), o.instance_eval("@foo").value());
 }
 
 TESTCASE(rb_type)
@@ -149,12 +149,12 @@ TESTCASE(rb_type)
 
 TESTCASE(call_no_arguments)
 {
-  Object three = to_ruby(3).call("to_s");
+  Object three = Object(to_ruby(3)).call("to_s");
   ASSERT_EQUAL(String("3"), three);
 }
 
 TESTCASE(call_return_rice_object)
 {
-  Object three = to_ruby(1).call("+", 2);
-  ASSERT_EQUAL(to_ruby(3), three);
+  Object three = Object(to_ruby(1)).call("+", 2);
+  ASSERT_EQUAL(Object(to_ruby(3)), three);
 }

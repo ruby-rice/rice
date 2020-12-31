@@ -80,9 +80,9 @@ Rice::String from_ruby<Rice::String>(VALUE x)
 
 template<>
 inline
-Rice::Object to_ruby<Rice::String>(Rice::String const & x)
+VALUE to_ruby<Rice::String>(Rice::String const & x)
 {
-  return x;
+  return x.value();
 }
 
 #include "Builtin_Object.ipp"

@@ -1,7 +1,7 @@
 #include "../Data_Object.hpp"
 
 template<typename T>
-Rice::Object
+VALUE
 Rice::detail::to_ruby_<T>::
 convert(T const & x)
 {
@@ -18,7 +18,7 @@ convert(T const & x)
 }   
 
 template<typename T>
-Rice::Object
+VALUE
 Rice::detail::to_ruby_<T *>::
 convert(T * x)
 {

@@ -55,9 +55,9 @@ Rice::Symbol from_ruby<Rice::Symbol>(VALUE x)
 
 template<>
 inline
-Rice::Object to_ruby<Rice::Symbol>(Rice::Symbol const & x)
+VALUE to_ruby<Rice::Symbol>(Rice::Symbol const & x)
 {
-  return x;
+  return x.value();
 }
 
 #include "Symbol.ipp"

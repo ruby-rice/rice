@@ -219,9 +219,9 @@ Rice::Hash from_ruby<Rice::Hash>(VALUE x)
 
 template<>
 inline
-Rice::Object to_ruby<Rice::Hash>(Rice::Hash const & x)
+VALUE to_ruby<Rice::Hash>(Rice::Hash const & x)
 {
-  return x;
+  return x.value();
 }
 
 #include "Hash.ipp"
