@@ -6,9 +6,9 @@
 // ---------------------------------------------------------------------
 template<>
 inline
-Rice::Object from_ruby<Rice::Object>(Rice::Object x)
+Rice::Object from_ruby<Rice::Object>(VALUE x)
 {
-  return x;
+  return Rice::Object(x);
 }
 
 template<>
@@ -23,11 +23,6 @@ namespace Rice
 {
   namespace detail
   {
-    inline short num2short(VALUE x)
-    {
-      return NUM2SHORT(x);
-    }
-
     inline VALUE short2num(short x)
     {
       return INT2NUM(x);
@@ -37,9 +32,9 @@ namespace Rice
 
 template<>
 inline
-short from_ruby<short>(Rice::Object x)
+short from_ruby<short>(VALUE x)
 {
-  return Rice::detail::num2short(x);
+  return NUM2SHORT(x);
 }
 
 template<>
@@ -54,11 +49,6 @@ namespace Rice
 {
   namespace detail
   {
-    inline int num2int(VALUE x)
-    {
-      return NUM2INT(x);
-    }
-
     inline VALUE int2num(int x)
     {
       return INT2NUM(x);
@@ -68,9 +58,9 @@ namespace Rice
 
 template<>
 inline
-int from_ruby<int>(Rice::Object x)
+int from_ruby<int>(VALUE x)
 {
-  return Rice::detail::num2int(x);
+  return NUM2INT(x);
 }
 
 template<>
@@ -85,11 +75,6 @@ namespace Rice
 {
   namespace detail
   {
-    inline long num2long(VALUE x)
-    {
-      return NUM2LONG(x);
-    }
-
     inline VALUE long2num(long x)
     {
       return LONG2NUM(x);
@@ -99,9 +84,9 @@ namespace Rice
 
 template<>
 inline
-long from_ruby<long>(Rice::Object x)
+long from_ruby<long>(VALUE x)
 {
-  return (long)Rice::protect(Rice::detail::num2long, x);
+  return (long)NUM2LONG(x);
 }
 
 template<>
@@ -116,11 +101,6 @@ namespace Rice
 {
   namespace detail
   {
-    inline long long num2longlong(VALUE x)
-    {
-      return NUM2LL(x);
-    }
-
     inline VALUE longlong2num(long long x)
     {
       return LL2NUM(x);
@@ -130,9 +110,9 @@ namespace Rice
 
 template<>
 inline
-long long from_ruby<long long>(Rice::Object x)
+long long from_ruby<long long>(VALUE x)
 {
-  return Rice::protect(Rice::detail::num2longlong, x);
+  return RB_NUM2LL(x);
 }
 
 template<>
@@ -142,35 +122,18 @@ Rice::Object to_ruby<long long>(long long const & x)
   return Rice::protect(Rice::detail::longlong2num, x);
 }
 
-// ---------------------------------------------------------------------
-namespace Rice
-{
-  namespace detail
-  {
-    inline unsigned short num2ushort(VALUE x)
-    {
-      return NUM2USHORT(x);
-    }
-
-    inline VALUE ushort2num(unsigned short x)
-    {
-      return UINT2NUM(x);
-    }
-  }
-}
-
 template<>
 inline
-unsigned short from_ruby<unsigned short>(Rice::Object x)
+unsigned short from_ruby<unsigned short>(VALUE x)
 {
-  return Rice::detail::num2ushort(x);
+  return NUM2USHORT(x);
 }
 
 template<>
 inline
 Rice::Object to_ruby<unsigned short>(unsigned short const & x)
 {
-  return Rice::protect(Rice::detail::ushort2num, x);
+  return UINT2NUM(x);
 }
 
 // ---------------------------------------------------------------------
@@ -178,11 +141,6 @@ namespace Rice
 {
   namespace detail
   {
-    inline unsigned int num2uint(VALUE x)
-    {
-      return NUM2UINT(x);
-    }
-
     inline VALUE uint2num(unsigned int x)
     {
       return UINT2NUM(x);
@@ -192,16 +150,16 @@ namespace Rice
 
 template<>
 inline
-unsigned int from_ruby<unsigned int>(Rice::Object x)
+unsigned int from_ruby<unsigned int>(VALUE x)
 {
-  return Rice::detail::num2uint(x);
+  return NUM2UINT(x);
 }
 
 template<>
 inline
 Rice::Object to_ruby<unsigned int>(unsigned int const & x)
 {
-  return Rice::protect(Rice::detail::uint2num, x);
+  return UINT2NUM(x);
 }
 
 // ---------------------------------------------------------------------
@@ -209,11 +167,6 @@ namespace Rice
 {
   namespace detail
   {
-    inline unsigned long num2ulong(VALUE x)
-    {
-      return NUM2ULONG(x);
-    }
-
     inline VALUE ulong2num(unsigned long x)
     {
       return ULONG2NUM(x);
@@ -223,9 +176,9 @@ namespace Rice
 
 template<>
 inline
-unsigned long from_ruby<unsigned long>(Rice::Object x)
+unsigned long from_ruby<unsigned long>(VALUE x)
 {
-  return (unsigned long)Rice::protect(Rice::detail::num2ulong, x);
+  return (unsigned long)RB_NUM2ULONG(x);
 }
 
 template<>
@@ -240,11 +193,6 @@ namespace Rice
 {
   namespace detail
   {
-    inline unsigned long long num2ulonglong(VALUE x)
-    {
-      return NUM2ULL(x);
-    }
-
     inline VALUE ulonglong2num(unsigned long long x)
     {
       return ULL2NUM(x);
@@ -254,9 +202,9 @@ namespace Rice
 
 template<>
 inline
-unsigned long long from_ruby<unsigned long long>(Rice::Object x)
+unsigned long long from_ruby<unsigned long long>(VALUE x)
 {
-  return Rice::protect(Rice::detail::num2ulonglong, x);
+  return RB_NUM2ULL(x);
 }
 
 template<>
@@ -269,7 +217,7 @@ Rice::Object to_ruby<unsigned long long>(unsigned long long const & x)
 // ---------------------------------------------------------------------
 template<>
 inline
-bool from_ruby<bool>(Rice::Object x)
+bool from_ruby<bool>(VALUE x)
 {
   return RTEST(x);
 }
@@ -284,13 +232,13 @@ Rice::Object to_ruby<bool>(bool const & x)
 // ---------------------------------------------------------------------
 template<>
 inline
-char from_ruby<char>(Rice::Object x)
+char from_ruby<char>(VALUE x)
 {
-  if(x.rb_type() == T_STRING)
+  if(rb_type(x) == T_STRING)
   {
-    if(RSTRING_LEN(x.value()) == 1)
+    if(RSTRING_LEN(x) == 1)
     {
-      return RSTRING_PTR(x.value())[0];
+      return RSTRING_PTR(x)[0];
     }
     else
     {
@@ -314,7 +262,7 @@ Rice::Object to_ruby<char>(char const & x)
 
 template<>
 inline
-unsigned char from_ruby<unsigned char>(Rice::Object x)
+unsigned char from_ruby<unsigned char>(VALUE x)
 {
   // TODO: I'm not sure if this is the right behavior yet
   return from_ruby<char>(x);
@@ -328,17 +276,10 @@ Rice::Object to_ruby<unsigned char>(unsigned char const & x)
 }
 
 // ---------------------------------------------------------------------
-
 namespace Rice
 {
   namespace detail
   {
-    inline VALUE num2dbl(VALUE x, double * d)
-    {
-      *d = NUM2DBL(x);
-      return Qnil;
-    }
-
     inline VALUE dbl2num(double x)
     {
       return rb_float_new(x);
@@ -348,11 +289,9 @@ namespace Rice
 
 template<>
 inline
-float from_ruby<float>(Rice::Object x)
+float from_ruby<float>(VALUE x)
 {
-  double d;
-  Rice::protect(Rice::detail::num2dbl, x, &d);
-  return float(d);
+  return (float)rb_num2dbl(x);
 }
 
 template<>
@@ -366,26 +305,24 @@ Rice::Object to_ruby<float>(float const & x)
 
 template<>
 inline
-double from_ruby<double>(Rice::Object x)
+double from_ruby<double>(VALUE x)
 {
-  double d;
-  Rice::protect(Rice::detail::num2dbl, x, &d);
-  return d;
+  return rb_num2dbl(x);
 }
 
 template<>
 inline
 Rice::Object to_ruby<double>(double const & x)
 {
-  return Rice::protect(Rice::detail::dbl2num, x);
+  return Rice::detail::dbl2num(x);
 }
 
 // ---------------------------------------------------------------------
 template<>
 inline
-char const * from_ruby<char const *>(Rice::Object x)
+char const * from_ruby<char const *>(VALUE x)
 {
-  return Rice::String(x).c_str();
+  return RSTRING_PTR(x);
 }
 
 template<>
@@ -398,9 +335,9 @@ Rice::Object to_ruby<char const *>(char const * const & x)
 // ---------------------------------------------------------------------
 template<>
 inline
-std::string from_ruby<std::string>(Rice::Object x)
+std::string from_ruby<std::string>(VALUE x)
 {
-  return Rice::String(x).str();
+  return std::string(RSTRING_PTR(x), RSTRING_LEN(x));
 }
 
 template<>
@@ -412,7 +349,7 @@ Rice::Object to_ruby<std::string>(std::string const & x)
 
 template<>
 inline
-std::string* from_ruby<std::string* >(Rice::Object x)
+std::string* from_ruby<std::string* >(VALUE x)
 {
   return new std::string(Rice::String(x).str());
 }

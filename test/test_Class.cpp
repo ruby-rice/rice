@@ -240,10 +240,10 @@ void define_method_int_foo_helper(int i, Foo * x)
 } // namespace
 
 template<>
-Foo * from_ruby<Foo *>(Object x)
+Foo * from_ruby<Foo *>(VALUE x)
 {
   Foo * retval;
-  Data_Get_Struct(x.value(), Foo, retval);
+  Data_Get_Struct(x, Foo, retval);
   return retval;
 }
 
@@ -317,10 +317,10 @@ private:
 } // namespace
 
 template<>
-Container * from_ruby<Container *>(Object x)
+Container * from_ruby<Container *>(VALUE x)
 {
   Container * retval;
-  Data_Get_Struct(x.value(), Container, retval);
+  Data_Get_Struct(x, Container, retval);
   return retval;
 }
 

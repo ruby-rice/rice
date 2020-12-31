@@ -73,7 +73,7 @@ public:
 
 template<>
 inline
-Rice::String from_ruby<Rice::String>(Rice::Object x)
+Rice::String from_ruby<Rice::String>(VALUE x)
 {
   return Rice::String(x);
 }

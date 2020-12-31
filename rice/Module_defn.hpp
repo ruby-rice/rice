@@ -72,7 +72,7 @@ Module anonymous_module();
 
 template<>
 inline
-Rice::Module from_ruby<Rice::Module>(Rice::Object x)
+Rice::Module from_ruby<Rice::Module>(VALUE x)
 {
   return Rice::Module(x);
 }

@@ -37,7 +37,7 @@
  */
 template<typename T>
 inline
-typename Rice::detail::from_ruby_<T>::Retval_T from_ruby(Rice::Object x)
+typename Rice::detail::from_ruby_<T>::Retval_T from_ruby(VALUE x)
 {
   return Rice::detail::from_ruby_<T>::convert(x);
 }

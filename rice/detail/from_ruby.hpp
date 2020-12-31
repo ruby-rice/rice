@@ -10,7 +10,7 @@ namespace Rice
     {
       typedef T Retval_T;
 
-      static T convert(Rice::Object x);
+      static T convert(VALUE x);
     };
 
     template<typename T>
@@ -18,7 +18,7 @@ namespace Rice
     {
       typedef T * Retval_T;
 
-      static T * convert(Rice::Object x);
+      static T * convert(VALUE x);
     };
 
     template<typename T>
@@ -26,7 +26,7 @@ namespace Rice
     {
       typedef T const * Retval_T;
 
-      static T const * convert(Rice::Object x);
+      static T const * convert(VALUE x);
     };
 
     template<typename T>
@@ -34,7 +34,7 @@ namespace Rice
     {
       typedef T & Retval_T;
 
-      static T & convert(Rice::Object x);
+      static T & convert(VALUE x);
     };
   } // detail
 } // Rice

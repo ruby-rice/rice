@@ -2,6 +2,7 @@
 #define Rice__detail__ruby_function__hpp_
 
 #include "ruby.hpp"
+#include "../to_from_ruby_defn.hpp"
 
 namespace Rice
 {
@@ -33,7 +34,8 @@ namespace detail
   inline VALUE Ruby_Function<Function_T, Return_T, Arg_Ts...>::
     call(Ruby_Function* rubyFunction)
   {
-    return rubyFunction->operator()();
+    Object result(rubyFunction->operator()());
+    return result.value();
   }
 
   template<typename Function_T, typename Return_T, typename...Arg_Ts>

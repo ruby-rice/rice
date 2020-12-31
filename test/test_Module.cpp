@@ -187,10 +187,10 @@ void define_method_int_foo_helper(Object o, int i, Foo * x)
 } // namespace
 
 template<>
-Foo * from_ruby<Foo *>(Object x)
+Foo * from_ruby<Foo *>(VALUE x)
 {
   Foo * retval;
-  Data_Get_Struct(x.value(), Foo, retval);
+  Data_Get_Struct(x, Foo, retval);
   return retval;
 }
 

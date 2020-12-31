@@ -68,7 +68,7 @@ Class anonymous_class(
 
 template<>
 inline
-Rice::Class from_ruby<Rice::Class>(Rice::Object x)
+Rice::Class from_ruby<Rice::Class>(VALUE x)
 {
   return Rice::Class(x);
 }

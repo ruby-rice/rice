@@ -212,7 +212,7 @@ private:
 
 template<>
 inline
-Rice::Hash from_ruby<Rice::Hash>(Rice::Object x)
+Rice::Hash from_ruby<Rice::Hash>(VALUE x)
 {
   return Rice::Hash(x);
 }

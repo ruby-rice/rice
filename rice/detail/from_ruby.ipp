@@ -8,50 +8,52 @@
 
 template<typename T>
 T Rice::detail::from_ruby_<T>::
-convert(Rice::Object x)
+convert(VALUE x)
 {
-  if(rb_type(x.value()) == T_DATA)
+  if(rb_type(x) == T_DATA)
   {
     return *Data_Type<T>::from_ruby(x);
   }
   else
   {
+    String temp(x);
     std::string s("Unable to convert ");
-    s += x.class_of().name().c_str();
+    s += temp.class_of().name().c_str();
     s += " to ";
     s += demangle(typeid(T).name());
-    throw std::invalid_argument(s.c_str());
+    throw std::invalid_argument(temp.c_str());
   }
 }
 
 template<typename T>
 T * Rice::detail::from_ruby_<T *>::
-convert(Rice::Object x)
+convert(VALUE x)
 {
-  if(rb_type(x.value()) == T_DATA)
+  if(rb_type(x) == T_DATA)
   {
     return Data_Type<T>::from_ruby(x);
   }
   else
   {
+    String temp(x);
     std::string s("Unable to convert ");
-    s += x.class_of().name().c_str();
+    s += temp.class_of().name().c_str();
     s += " to ";
     s += demangle(typeid(T *).name());
-    throw std::invalid_argument(s.c_str());
+    throw std::invalid_argument(temp.c_str());
   }
 }
 
 template<typename T>
 T const * Rice::detail::from_ruby_<T const *>::
-convert(Rice::Object x)
+convert(VALUE x)
 {
   return from_ruby<T *>(x);
 }
 
 template<typename T>
 T & Rice::detail::from_ruby_<T &>::
-convert(Rice::Object x)
+convert(VALUE x)
 {
   return *from_ruby<T *>(x);
 }

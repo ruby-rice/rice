@@ -196,7 +196,7 @@ private:
 
 template<>
 inline
-Rice::Array from_ruby<Rice::Array>(Rice::Object x)
+Rice::Array from_ruby<Rice::Array>(VALUE x)
 {
   return Rice::Array(x);
 }

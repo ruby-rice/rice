@@ -48,7 +48,7 @@ public:
 
 template<>
 inline
-Rice::Symbol from_ruby<Rice::Symbol>(Rice::Object x)
+Rice::Symbol from_ruby<Rice::Symbol>(VALUE x)
 {
   return Rice::Symbol(x);
 }
