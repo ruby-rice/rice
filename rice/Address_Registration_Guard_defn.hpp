@@ -3,7 +3,6 @@
 
 #include "Object_defn.hpp"
 #include "detail/ruby.hpp"
-#include "detail/Not_Copyable.hpp"
 
 namespace Rice
 {
@@ -27,7 +26,6 @@ namespace Rice
  *  \endcode
  */
 class Address_Registration_Guard
-  : private detail::Not_Copyable
 {
 public:
   //! Register an address with the GC.
@@ -49,6 +47,10 @@ public:
    *  be unregistered from the GC.
    */
   ~Address_Registration_Guard();
+
+  // Don't allow copying or assignment
+  Address_Registration_Guard(Address_Registration_Guard const&) = delete;
+  Address_Registration_Guard& operator=(Address_Registration_Guard const&) = delete;
 
   //! Get the address that is registered with the GC.
   VALUE * address() const;
