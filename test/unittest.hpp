@@ -15,10 +15,6 @@
 #include <sstream>
 #include <iostream>
 
-#if !defined(_MSC_VER)
-using namespace std;
-#endif
-
 class Failure
 {
 public:
