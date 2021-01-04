@@ -10,7 +10,10 @@ EXTRA_DIST = \
 	map/test.rb \
 	inheritance/extconf.rb \
 	inheritance/animals.cpp \
-	inheritance/test.rb
+	inheritance/test.rb \
+	callbacks/extconf.rb \
+	callbacks/sample_callbacks.cpp \
+	callbacks/test.rb
 
 enum/Makefile: enum/extconf.rb ../config.status ../ruby/lib/mkmf-rice.rb
 	@RUBY@ $(RUBY_EXTCONF_OPTIONS) -C enum extconf.rb $(EXTCONF_OPTIONS)
@@ -21,7 +24,10 @@ map/Makefile: map/extconf.rb ../config.status ../ruby/lib/mkmf-rice.rb
 inheritance/Makefile: inheritance/extconf.rb ../config.status ../ruby/lib/mkmf-rice.rb
 	@RUBY@ $(RUBY_EXTCONF_OPTIONS) -C inheritance extconf.rb $(EXTCONF_OPTIONS)
 
-all: enum/Makefile map/Makefile inheritance/Makefile all_extensions
+callbacks/Makefile: callbacks/extconf.rb ../config.status ../ruby/lib/mkmf-rice.rb
+	@RUBY@ $(RUBY_EXTCONF_OPTIONS) -C callbacks extconf.rb $(EXTCONF_OPTIONS)
+
+all: enum/Makefile map/Makefile inheritance/Makefile callbacks/Makefile all_extensions
 
 all_extensions: $(addsuffix /Makefile,$(RICE_SAMPLES))
 	@for sample in $(RICE_SAMPLES); \
@@ -29,7 +35,7 @@ all_extensions: $(addsuffix /Makefile,$(RICE_SAMPLES))
 	  ${MAKE} -C $${sample} all; \
 	done
 
-clean: enum/Makefile map/Makefile inheritance/Makefile clean_extensions
+clean: enum/Makefile map/Makefile inheritance/Makefile callbacks/Makefile clean_extensions
 
 clean_extensions:
 	@for sample in $(RICE_SAMPLES); \
@@ -37,7 +43,7 @@ clean_extensions:
 	  ${MAKE} -C $${sample} clean; \
 	done
 
-distclean: enum/Makefile map/Makefile inheritance/Makefile distclean_extensions
+distclean: enum/Makefile map/Makefile inheritance/Makefile callbacks/Makefile distclean_extensions
 
 distclean_extensions:
 	@for sample in $(RICE_SAMPLES);

@@ -26,6 +26,10 @@ class RiceTest < Minitest::Test
     run_external_test("#{RUBY} test_multiple_extensions_same_class.rb")
   end
 
+  def test_callbacks_sample
+    run_external_test("#{RUBY} test_callbacks_sample.rb")
+  end
+
   def run_external_test(executable)
     if VERBOSE then
       system(executable)

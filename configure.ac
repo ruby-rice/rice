@@ -40,7 +40,7 @@ DX_PDF_FEATURE(OFF)
 DX_PS_FEATURE(OFF)
 DX_INIT_DOXYGEN(rice, Doxyfile, doc)
 
-RICE_SAMPLES="enum map inheritance"
+RICE_SAMPLES="enum map inheritance callbacks"
 AC_SUBST(RICE_SAMPLES)
 
 RICE_ROOT=`pwd`
