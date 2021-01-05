@@ -1,12 +1,10 @@
 ## 3.0
 
-While there isn't significant functionality differences between 2.2 and 3.0,
-I'm releasing a major version bump because dependencies have been updated that
-could cause issues with projects relying on older software.
-
 * Now requires a compiler supporting for C++14 or later
 * Drop support for Ruby 2.4. Supported versions are now 2.5 through 3.0.
 * Fix build issue on macOS Big Sur
+* Fix a data corruption issue with `Rice::Exception::what`.
+* Move CI from Travis to GitHub Actions. Now also able to verify Windows builds!
 
 ## 2.2.0
 
