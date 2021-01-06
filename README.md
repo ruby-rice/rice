@@ -16,7 +16,7 @@ What Rice gives you:
 
 # Project Details {#project}
 
-The source is hosted on github: http://github.com/jasonroelofs/rice
+The source is hosted on GitHub: http://github.com/jasonroelofs/rice
 
 Bug tracking: http://github.com/jasonroelofs/rice/issues
 
@@ -36,8 +36,7 @@ Building it locally from a clone of the repository is as follows:
   make
 ~~~
 
-Rice is known to work on *nix and OSX. Windows is not currently
-supported.
+Rice is known to work on *nix, OSX, and Windows.
 
 Rice requires a C++ compiler with support for C++14 or later.
 

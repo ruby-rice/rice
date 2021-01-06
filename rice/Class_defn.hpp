@@ -9,6 +9,7 @@
 
 /*!
  *  \example inheritance/animals.cpp
+ *  \example callbacks/sample_callbacks.cpp
  */
 
 namespace Rice
