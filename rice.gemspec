@@ -43,7 +43,7 @@ of the Ruby C API.
 
     # Autoconf
     'bootstrap',
-    'check_stdcxx_11.ac',
+    'ax_cxx_compile_stdcxx.m4',
     'configure.ac',
     'configure',
     'config.guess',
@@ -94,6 +94,9 @@ of the Ruby C API.
     'sample/inheritance/extconf.rb',
     'sample/inheritance/*.?pp',
     'sample/inheritance/*.rb',
+    'sample/callbacks/extconf.rb',
+    'sample/callbacks/*.?pp',
+    'sample/callbacks/*.rb',
 
     # Test source files
     'test/*.?pp',
