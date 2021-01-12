@@ -2,7 +2,6 @@
 #define Rice__Data_Object_defn__hpp_
 
 #include "Object_defn.hpp"
-#include "Data_Type_fwd.hpp"
 #include "ruby_mark.hpp"
 #include "detail/to_ruby.hpp"
 #include "detail/ruby.hpp"
@@ -14,6 +13,9 @@
 
 namespace Rice
 {
+// Forward declaration
+template<typename T>
+class Data_Type;
 
 template<typename T>
 struct Default_Mark_Function

@@ -6,7 +6,7 @@
 
 #include "method_data.hpp"
 #include "../ruby_try_catch.hpp"
-#include "Data_Object_defn.hpp"
+#include "../Data_Object_defn.hpp"
 
 namespace Rice
 {

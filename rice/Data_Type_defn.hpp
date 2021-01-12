@@ -2,7 +2,6 @@
 #define Rice__Data_Type_defn__hpp_
 
 #include "Class_defn.hpp"
-#include "Data_Type_fwd.hpp"
 #include "detail/ruby.hpp"
 #include <memory>
 #include <map>
