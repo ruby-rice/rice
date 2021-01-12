@@ -9,38 +9,6 @@
 #include <string>
 #include <stdexcept>
 
-// ---------------------------------------------------------------------
-
-//! Convert a Ruby object to C++.
-/*! If the Ruby object can be converted to an immediate value, returns a
- *  copy of the Ruby object.  If the Ruby object is holding a C++
- *  object and the type specified is a pointer to that type, returns a
- *  pointer to that object.
- *
- *  Conversions from ruby to a pointer type are automatically generated
- *  when a type is bound using Data_Type.  If no conversion exists an
- *  exception is thrown.
- *
- *  \param T the C++ type to which to convert.
- *  \param x the Ruby object to convert.
- *  \return a C++ representation of the Ruby object.
- *
- *  Example:
- *  \code
- *    Object x = INT2NUM(42);
- *    std::cout << from_ruby<int>(x);
- *
- *    Data_Object<Foo> foo(new Foo);
- *    Object obj(foo);
- *    std::cout << *from_ruby<Foo *>(obj) << std::endl;
- *  \endcode
- */
-template<typename T>
-inline
-typename Rice::detail::from_ruby_<T>::Retval_T from_ruby(VALUE x)
-{
-  return Rice::detail::from_ruby_<T>::convert(x);
-}
 
 //! Convert a C++ object to Ruby.
 /*! If x is a pointer, wraps the pointee as a Ruby object.  If x is an

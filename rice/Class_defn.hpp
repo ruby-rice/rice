@@ -1,10 +1,10 @@
 #ifndef Rice__Class_defn__hpp_
 #define Rice__Class_defn__hpp_
 
+#include "detail/from_ruby_defn.hpp"
 #include "Object_defn.hpp"
 #include "Module_impl.hpp"
 #include "Module_defn.hpp"
-#include "to_from_ruby_defn.hpp"
 #include "Identifier.hpp"
 
 /*!
@@ -67,11 +67,13 @@ Class anonymous_class(
 } // namespace Rice
 
 template<>
-inline
-Rice::Class from_ruby<Rice::Class>(VALUE x)
+struct Rice::detail::From_Ruby<Rice::Class>
 {
-  return Rice::Class(x);
-}
+  static Rice::Class convert(VALUE value)
+  {
+    return Rice::Class(value);
+  }
+};
 
 template<>
 inline

@@ -1,10 +1,12 @@
 #ifndef Rice__Module_defn__hpp_
 #define Rice__Module_defn__hpp_
 
+#include <memory>
+
+#include "detail/from_ruby_defn.hpp"
 #include "Object_defn.hpp"
 #include "Module_impl.hpp"
 #include "to_from_ruby_defn.hpp"
-#include <memory>
 
 namespace Rice
 {
@@ -71,11 +73,13 @@ Module anonymous_module();
 } // namespace Rice
 
 template<>
-inline
-Rice::Module from_ruby<Rice::Module>(VALUE x)
+struct Rice::detail::From_Ruby<Rice::Module>
 {
-  return Rice::Module(x);
-}
+  static Rice::Module convert(VALUE value)
+  {
+    return Rice::Module(value);
+  }
+};
 
 template<>
 inline

@@ -1,9 +1,10 @@
-#include "Exception.hpp"
-#include "protect.hpp"
-#include "to_from_ruby.hpp"
-#include "detail/ruby.hpp"
-
 #include <stdarg.h>
+
+#include "Exception.hpp"
+
+#include "detail/from_ruby_defn.hpp"
+#include "protect.hpp"
+
 #define va_init_list(a,b) va_start(a,b)
 
 Rice::Exception::
@@ -49,6 +50,6 @@ char const * Rice::Exception::
 what() const throw()
 {
   message_ = message();
-  return from_ruby<char const *>(message_);
+  return Rice::detail::From_Ruby<char const *>::convert(message_);
 }
 

@@ -187,12 +187,15 @@ void define_method_int_foo_helper(Object o, int i, Foo * x)
 } // namespace
 
 template<>
-Foo * from_ruby<Foo *>(VALUE x)
+struct detail::From_Ruby<Foo*>
 {
-  Foo * retval;
-  Data_Get_Struct(x, Foo, retval);
-  return retval;
-}
+  static Foo* convert(VALUE x)
+  {
+    Foo* retval;
+    Data_Get_Struct(x, Foo, retval);
+    return retval;
+  }
+};
 
 TESTCASE(define_singleton_method_int_foo)
 {
@@ -472,7 +475,6 @@ TESTCASE(define_method_works_with_const_reference_return)
   ASSERT_EQUAL("ReturnTest", result.class_of().name().c_str());
 }
 
-/*
 namespace {
   float with_reference_defaults_x;
   std::string with_reference_defaults_str;
@@ -495,4 +497,25 @@ TESTCASE(define_method_works_with_reference_const_default_values)
   ASSERT_EQUAL(3, with_reference_defaults_x);
   ASSERT_EQUAL("testing", with_reference_defaults_str);
 }
-*/
+
+namespace {
+  int with_pointers_x;
+  std::string with_pointers_str;
+
+  void with_pointers(int* x, std::string const* str)
+  {
+    with_pointers_x = *x;
+    with_pointers_str = *str;
+  }
+}
+
+TESTCASE(define_method_works_with_pointers)
+{
+  Module m(anonymous_module());
+  m.define_module_function("bar", &with_pointers);
+
+  m.call("bar", 3, "testing");
+
+  ASSERT_EQUAL(3, with_pointers_x);
+  ASSERT_EQUAL("testing", with_pointers_str);
+}

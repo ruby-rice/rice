@@ -89,7 +89,7 @@ get(Key_T const & key)
   Object value = operator[](ruby_key);
   try
   {
-    return from_ruby<Value_T>(value);
+    return Rice::detail::From_Ruby<Value_T>::convert(value);
   }
   catch(Exception const & ex)
   {

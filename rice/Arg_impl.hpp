@@ -1,6 +1,9 @@
 #ifndef Rice__Arg_Impl_hpp_
 #define Rice__Arg_Impl_hpp_
 
+#include <any>
+#include <string>
+
 namespace Rice {
 
   //! Helper for defining default arguments of a method
@@ -31,22 +34,15 @@ namespace Rice {
        *  easier to read and 2) hopefully Ruby gets keyword arguments
        *  in the future and this means Rice will be ready for it.
        */
-      Arg(const char* name)
+      Arg(std::string name)
         : name_(name)
-        , defaultValue(0)
-      {}
+      {
+      }
 
       //! Copy Constructor
       Arg(const Arg& other)
-        : name_(other.name()),
-          defaultValue(other.defaultValue ? other.defaultValue->clone() : 0)
-      {}
-
-      virtual ~Arg()
+        : name_(other.name_), defaultValue_(other.defaultValue_)
       {
-        if(defaultValue) {
-          delete defaultValue;
-        }
       }
 
       //! Set the default value for this Arg
@@ -59,69 +55,37 @@ namespace Rice {
       template<typename Arg_Type>
       Arg& operator=(Arg_Type val)
       {
-        defaultValue = new type<Arg_Type>(val);
+        this->defaultValue_ = val;
         return *this;
       }
 
       //! Check if this Arg has a default value associated with it
-      bool hasDefaultValue() const {
-        return defaultValue != 0;
+      bool hasDefaultValue() const
+      {
+        return this->defaultValue_.has_value();
       }
 
-      //! Return the default value associated with this Arg
+      //! Return a reference to the default value associated with this Arg
       /*! \return the type saved to this Arg
        */
       template<typename Arg_Type>
-      Arg_Type getDefaultValue()
+      Arg_Type& defaultValue()
       {
-        return static_cast< type<Arg_Type>* >(defaultValue)->held;
+        return std::any_cast<Arg_Type&>(this->defaultValue_);
       }
 
       //! Get the name of this Arg
-      const char* name() const
+      const std::string name() const
       {
         return name_;
       }
 
     private:
-
       //! Name of the argument
-      const char* name_;
-
-      /**
-       * The following is a stripped down version of
-       * Boost.Any.
-       */
-
-      class type_base
-      {
-        public:
-          virtual ~type_base() {}
-          virtual type_base* clone() const = 0;
-      };
-
-      template<typename Type>
-      class type : public type_base
-      {
-        public:
-          type(Type value)
-            :held(value)
-          {}
-
-          virtual ~type() { }
-
-          virtual type_base* clone() const
-          {
-            return new type(held);
-          }
-
-          Type held;
-      };
-
-    public:
+      const std::string name_;
 
       //! Our saved default value
-      type_base* defaultValue;
+      std::any defaultValue_;
   };
 
 }

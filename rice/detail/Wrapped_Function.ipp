@@ -1,12 +1,12 @@
 #ifndef Rice__detail__Wrapped_Function__ipp_
 #define Rice__detail__Wrapped_Function__ipp_
 
+#include <array>
+#include <algorithm>
+
 #include "method_data.hpp"
 #include "../ruby_try_catch.hpp"
 #include "Data_Object_defn.hpp"
-
-#include <array>
-#include <algorithm>
 
 namespace Rice
 {
@@ -76,30 +76,42 @@ getRubyValues(int argc, VALUE* argv)
 template<typename Function_T, typename Return_T, typename Receiver_T, typename... Arg_Ts>
 template<std::size_t... I>
 std::tuple<Arg_Ts...> Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
-getNativeValues(std::vector<VALUE>& values, std::index_sequence<I...>& indices)
+getNativeValues(std::vector<VALUE>& values, std::tuple<NativeArg<Arg_Ts>...>& nativeArgs, std::index_sequence<I...>& indices)
 {
-  return std::forward_as_tuple(this->arguments_->getArgumentOrDefault<Arg_Ts>(I, values[I])...);
+  // Convert each Ruby value to its native value. Check each Ruby nil value to see if it has
+  // a default argument, and if yes, use that. Otherwise use NativeArg<Arg_Ts> to convert
+  // the Ruby value to a native value. Note that for fundamental types NativeArg<Arg_Ts> 
+  // will keep a copy of the native value so it can be passed by reference or pointer to a
+  // native function.
+  return std::forward_as_tuple((values[I] == Qnil && this->arguments_->isOptional(I) ?
+                                this->arguments_->defaultValue<Arg_Ts>(I) :
+                                std::get<I>(nativeArgs).nativeValue(values[I]))...);
 }
 
 template<typename Function_T, typename Return_T, typename Receiver_T, typename... Arg_Ts>
 Receiver_T Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
 getReceiver(VALUE receiver)
 {
+  // Return the receiver.
   if constexpr (std::is_same<Receiver_T, Object>::value)
   {
+    // This is used for Rice::Constructor
     return Object(receiver);
   }
   else if constexpr (std::is_same<Receiver_T, Class>::value)
   {
+    // This is used for Rice::Enum
     return Class(receiver);
   }
   else if constexpr (std::is_same<Receiver_T, void>::value)
   {
+    // This is used for functions and static members
     return nullptr;
   }
   else
   {
-    return from_ruby<Receiver_T>(receiver);
+    // This is used for member functions - we are returning a pointer to an object
+    return From_Ruby<Receiver_T>::convert(receiver);
   }
 }
 
@@ -107,6 +119,7 @@ template<typename Function_T, typename Return_T, typename Receiver_T, typename..
 VALUE Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
 invokeNative(NativeTypes& nativeArgs)
 {
+  // Call the native function
   if constexpr (std::is_void_v<Return_T>)
   {
     std::apply(this->func_, nativeArgs);
@@ -128,9 +141,14 @@ operator()(int argc, VALUE* argv, VALUE self)
     // Get the ruby values
     std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv);
 
-    // Now convert the Ruby values to native values
+    // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
+    // fundamental types NativeArgs will also keep a copy of the native value so that it 
+    // can be passed by reference or pointer to the native function.
+    std::tuple<NativeArg<Arg_Ts>...> nativeArgs;
+
+    // Convert the Ruby values to native values
     auto indices = std::make_index_sequence<sizeof...(Arg_Ts)>{};
-    std::tuple<Arg_Ts...> nativeValues = this->getNativeValues(rubyValues, indices);
+    std::tuple<Arg_Ts...> nativeValues = this->getNativeValues(rubyValues, nativeArgs, indices);
 
     // Now call the native method
     if constexpr (std::is_same_v<Receiver_T, std::nullptr_t>)
@@ -143,6 +161,7 @@ operator()(int argc, VALUE* argv, VALUE self)
       std::tuple<Receiver_T, Arg_Ts...> nativeArgs = std::tuple_cat(std::tuple(receiver), nativeValues);
       return this->invokeNative(nativeArgs);
     }
+    return Qnil;
   }
   catch (...)
   {

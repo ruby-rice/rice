@@ -2,13 +2,13 @@
 #define Rice__detail__Wrapped_Function__hpp_
 
 #include "ruby.hpp"
+#include "NativeArg.hpp"
 
 namespace Rice
 {
 
 namespace detail
 {
-
 /* This class wraps a native function call. The most important template parameters
    are Receiver_T and Return_T.
 
@@ -52,7 +52,7 @@ private:
 
   // Convert Ruby values to C++ values
   template<typename std::size_t... I>
-  std::tuple<Arg_Ts...> getNativeValues(std::vector<VALUE>& values, std::index_sequence<I...>& indices);
+  std::tuple<Arg_Ts...> getNativeValues(std::vector<VALUE>& values, std::tuple<NativeArg<Arg_Ts>...>& nativeArgs, std::index_sequence<I...>& indices);
 
   // Figure out the receiver of the function call
   Receiver_T getReceiver(VALUE receiver);

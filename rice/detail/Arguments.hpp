@@ -1,10 +1,11 @@
 #ifndef Rice__Arguments__hpp_
 #define Rice__Arguments__hpp_
 
-#include "../Arg_impl.hpp"
 #include <sstream>
 #include <vector>
-#include "../to_from_ruby_defn.hpp"
+
+#include "../Arg_impl.hpp"
+#include "from_ruby_defn.hpp"
 
 namespace Rice {
 
@@ -93,16 +94,9 @@ namespace Rice {
        * defaults and if that VALUE is nil or not
        */
       template<typename Arg_T>
-      Arg_T getArgumentOrDefault(int pos, VALUE in)
+      Arg_T& defaultValue(int pos)
       {
-        if(isOptional(pos) && NIL_P(in))
-        {
-          return args_[pos].getDefaultValue<Arg_T>();
-        }
-        else
-        {
-          return from_ruby<Arg_T>(in);
-        }
+        return args_[pos].defaultValue<Arg_T>();
       }
 
     private:

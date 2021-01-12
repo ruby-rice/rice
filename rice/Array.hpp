@@ -195,12 +195,13 @@ private:
 } // namespace Rice
 
 template<>
-inline
-Rice::Array from_ruby<Rice::Array>(VALUE x)
+struct Rice::detail::From_Ruby<Rice::Array>
 {
-  return Rice::Array(x);
-}
-
+  static Rice::Array convert(VALUE value)
+  {
+    return Rice::Array(value);
+  }
+};
 template<>
 inline
 VALUE to_ruby<Rice::Array>(Rice::Array const & x)

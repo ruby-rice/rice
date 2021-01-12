@@ -211,11 +211,13 @@ private:
 } // namespace Rice
 
 template<>
-inline
-Rice::Hash from_ruby<Rice::Hash>(VALUE x)
+struct Rice::detail::From_Ruby<Rice::Hash>
 {
-  return Rice::Hash(x);
-}
+  static Rice::Hash convert(VALUE value)
+  {
+    return Rice::Hash(value);
+  }
+};
 
 template<>
 inline

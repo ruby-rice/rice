@@ -72,11 +72,14 @@ public:
 } // namespace Rice
 
 template<>
-inline
-Rice::String from_ruby<Rice::String>(VALUE x)
+struct Rice::detail::From_Ruby<Rice::String>
 {
-  return Rice::String(x);
-}
+  static Rice::String convert(VALUE value)
+  {
+    return Rice::String(value);
+  }
+};
+
 
 template<>
 inline

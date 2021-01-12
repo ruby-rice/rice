@@ -252,8 +252,37 @@ private:
   }
 };
 
-
 } // namespace Rice
+
+template<typename T>
+struct Rice::detail::From_Ruby
+{
+  static T& convert(VALUE value)
+  {
+    using Base_T = std::decay_t<T>;
+    return *Data_Type<Base_T>::from_ruby(value);
+  }
+};
+
+template<typename T>
+struct Rice::detail::From_Ruby<T&>
+{
+  static T& convert(VALUE value)
+  {
+    using Base_T = std::decay_t<T>;
+    return *Data_Type<Base_T>::from_ruby(value);
+  }
+};
+
+template<typename T>
+struct Rice::detail::From_Ruby<T*>
+{
+  static T* convert(VALUE value)
+  {
+    using Base_T = std::decay_t<T>;
+    return Data_Type<Base_T>::from_ruby(value);
+  }
+};
 
 #include "Data_Type.ipp"
 

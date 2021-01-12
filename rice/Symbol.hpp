@@ -47,11 +47,14 @@ public:
 } // namespace Rice
 
 template<>
-inline
-Rice::Symbol from_ruby<Rice::Symbol>(VALUE x)
+struct Rice::detail::From_Ruby<Rice::Symbol>
 {
-  return Rice::Symbol(x);
-}
+  static Rice::Symbol convert(VALUE value)
+  {
+    return Rice::Symbol(value);
+  }
+};
+
 
 template<>
 inline

@@ -5,7 +5,7 @@
  */
 
 #include "Identifier.hpp"
-#include "detail/ruby.hpp"
+#include "detail/from_ruby_defn.hpp"
 
 #include <iosfwd>
 #include <vector>
@@ -209,6 +209,16 @@ extern Object const False;
 extern Object const Undef;
 
 } // namespace Rice
+
+template<>
+struct Rice::detail::From_Ruby<Rice::Object>
+{
+  static Rice::Object convert(VALUE value)
+  {
+    return Rice::Object(value);
+  }
+};
+
 
 #endif // Rice__Object_defn__hpp_
 

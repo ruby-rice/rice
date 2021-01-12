@@ -191,7 +191,7 @@ TESTCASE(iterate_and_change)
   for(int j = 0; it != end; ++j, ++it)
   {
     it->second = j;
-    m[from_ruby<int>(it->first)] = j;
+    m[detail::From_Ruby<int>::convert(it->first)] = j;
   }
   ASSERT_EQUAL(3u, m.size());
   ASSERT_EQUAL(to_ruby(m[1]), h[1]);
