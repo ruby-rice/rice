@@ -16,7 +16,7 @@ long Rice::Default_Enum_Traits<Enum_T>::as_long(Enum_T value)
 template<typename Enum_T, typename Enum_Traits>
 Rice::Enum<Enum_T, Enum_Traits>::
 Enum()
-  : Module_impl<Data_Type<Enum_T>, Enum<Enum_T, Enum_Traits> >()
+  : Data_Type<Enum_T>()
   , enums_()
   , enums_guard_(&enums_)
   , names_()
@@ -29,7 +29,7 @@ Rice::Enum<Enum_T, Enum_Traits>::
 Enum(
     char const * name,
     Module module)
-  : Module_impl<Data_Type<Enum_T>, Enum<Enum_T, Enum_Traits> >()
+  : Data_Type<Enum_T>()
   , enums_()
   , enums_guard_(&enums_)
   , names_()
@@ -41,7 +41,7 @@ Enum(
 template<typename Enum_T, typename Enum_Traits>
 Rice::Enum<Enum_T, Enum_Traits>::
 Enum(Enum<Enum_T, Enum_Traits> const & other)
-  : Module_impl<Data_Type<Enum_T>, Enum<Enum_T, Enum_Traits> >(other)
+  : Data_Type<Enum_T>(other)
   , enums_(other.enums_)
   , enums_guard_(&enums_)
   , names_(other.names_)

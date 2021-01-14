@@ -1,11 +1,7 @@
 #ifndef Rice__Class_defn__hpp_
 #define Rice__Class_defn__hpp_
 
-#include "detail/from_ruby_defn.hpp"
-#include "Object_defn.hpp"
-#include "Module_impl.hpp"
 #include "Module_defn.hpp"
-#include "Identifier.hpp"
 
 /*!
  *  \example inheritance/animals.cpp
@@ -20,7 +16,7 @@ namespace Rice
  *  for defining methods on that class.
  */
 class Class
-  : public Module_impl<Module, Class>
+  : public Module
 {
 public:
   //! Default construct a new class wrapper and initialize it to
@@ -35,6 +31,25 @@ public:
    *  version of ruby prior to 1.7) and the instance method initialize.
    */
   Class & undef_creation_funcs();
+
+  //! Define an iterator.
+  /*! Essentially this is a conversion from a C++-style begin/end
+   *  iterator to a Ruby-style \#each iterator.
+   *  \param begin a member function pointer to a function that returns
+   *  an iterator to the beginning of the sequence.
+   *  \param end a member function pointer to a function that returns an
+   *  iterator to the end of the sequence.
+   *  \param name the name of the iterator.
+   *  \return *this
+   */
+
+  template<typename T, typename Iterator_T>
+  Class & define_iterator(
+    Iterator_T(T::* begin)(),
+    Iterator_T(T::* end)(),
+    Identifier name = "each");
+
+  #include "Module_Impl_override.hpp"
 };
 
 //! Define a new class in the namespace given by module.

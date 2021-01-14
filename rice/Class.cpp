@@ -1,16 +1,18 @@
 #include "Class.hpp"
 #include "Exception.hpp"
+#include "Data_Type_defn.hpp"
+#include "detail/Iterator.hpp"
 #include "detail/creation_funcs.hpp"
 
 Rice::Class::
 Class()
-  : Module_impl<Module, Class>()
+  : Module()
 {
 }
 
 Rice::Class::
 Class(VALUE v)
-  : Module_impl<Module, Class>(v)
+  : Module(v)
 {
   if(::rb_type(v) != T_CLASS)
   {
@@ -55,3 +57,15 @@ anonymous_class(
   return Class(v);
 }
 
+template<typename T, typename Iterator_T>
+inline
+Rice::Class&
+Rice::Class::
+define_iterator(
+  Iterator_T(T::* begin)(),
+  Iterator_T(T::* end)(),
+  Identifier name)
+{
+  detail::define_iterator(*this, name, begin, end);
+  return *this;
+}

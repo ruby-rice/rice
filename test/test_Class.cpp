@@ -2,6 +2,7 @@
 #include "embed_ruby.hpp"
 #include "rice/Class.hpp"
 #include "rice/Constructor.hpp"
+#include "rice/Data_Type.hpp"
 #include "rice/protect.hpp"
 #include "rice/Exception.hpp"
 #include "rice/Array.hpp"
@@ -324,11 +325,17 @@ Container * detail::From_Ruby<Container *>::convert(VALUE x)
   return retval;
 }
 
+#include "rice/detail/Iterator.hpp"
+
 TESTCASE(define_iterator)
 {
   int array[] = { 1, 2, 3 };
   Class c(anonymous_class());
-  c.define_iterator(&Container::beginFoo, &Container::endBar);
+  // CFIS
+  //c.define_iterator(&Container::beginFoo, &Container::endBar);
+
+  detail::define_iterator(c, "each", &Container::beginFoo, &Container::endBar);
+
   Container * container = new Container(array, 3);
   Object wrapped_container = Data_Wrap_Struct(
       c, 0, Default_Free_Function<Container>::free, container);

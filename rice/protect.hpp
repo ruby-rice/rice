@@ -4,7 +4,6 @@
 // This causes problems with certain C++ libraries
 #undef TYPE
 
-#include "Object_defn.hpp"
 #include "detail/Ruby_Function.hpp"
 #include "detail/protect.hpp"
 

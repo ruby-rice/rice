@@ -5,7 +5,7 @@
 
 Rice::Struct::
 Struct()
-  : Module_impl<Class, Struct>(rb_cObject)
+  : Class(rb_cObject)
   , members_()
   , members_guard_(&members_)
   , member_offset_()
@@ -15,7 +15,7 @@ Struct()
 
 Rice::Struct::
 Struct(Rice::Struct const & s)
-  : Module_impl<Class, Struct>(s)
+  : Class(s)
   , members_(s.members_.value())
   , members_guard_(&members_)
   , member_offset_(s.member_offset_.value())

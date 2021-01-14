@@ -1,19 +1,7 @@
+#ifndef Rice__Module_impl__ipp_
+#define Rice__Module_impl__ipp_
+
 #include "detail/define_method_and_auto_wrap.hpp"
-#include "Object.hpp"
-#include "Address_Registration_Guard.hpp"
-#include "Data_Object.hpp"
-#include "Data_Type.hpp"
-#include "Symbol.hpp"
-#include "protect.hpp"
-
-#include "Module.hpp"
-#include "Class.hpp"
-#include "Data_Type.hpp"
-
-#include "detail/ruby.hpp"
-#include "detail/method_data.hpp"
-#include "detail/Iterator.hpp"
-
 
 inline
 Rice::Module_base::
@@ -56,7 +44,7 @@ Rice::Module_base::
 add_handler(Functor_T functor)
 {
   // Create a new exception handler and pass ownership of the current handler to it (they
-  // get chained togehter). Then take ownership of the new handler.
+  // get chained together). Then take ownership of the new handler.
   this->handler_ = std::make_shared<detail::Functor_Exception_Handler<Exception_T, Functor_T>>(
     functor, std::move(this->handler_));
 }
@@ -69,40 +57,36 @@ handler() const
   return this->handler_;
 }
 
-template<typename Base_T, typename Derived_T>
 inline
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl::
 Module_impl()
-  : Base_T()
+  : Module_base()
 {
 }
 
-template<typename Base_T, typename Derived_T>
 template<typename T>
 inline
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl::
 Module_impl(T const & arg)
-  : Base_T(arg)
+  : Module_base(arg)
 {
 }
 
-template<typename Base_T, typename Derived_T>
 template<typename Exception_T, typename Functor_T>
 inline
-Derived_T &
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl&
+Rice::Module_impl::
 add_handler(
     Functor_T functor)
 {
   Module_base::add_handler<Exception_T>(functor);
-  return (Derived_T &)*this;
+  return *this;
 }
 
-template<typename Base_T, typename Derived_T>
 template<typename Func_T>
 inline
-Derived_T &
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl&
+Rice::Module_impl::
 define_method(
     Identifier name,
     Func_T func,
@@ -110,14 +94,13 @@ define_method(
 {
   detail::define_method_and_auto_wrap(
       *this, name, func, this->handler(), arguments);
-  return (Derived_T &)*this;
+  return *this;
 }
 
-template<typename Base_T, typename Derived_T>
 template<typename Func_T>
 inline
-Derived_T &
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl&
+Rice::Module_impl::
 define_method(
     Identifier name,
     Func_T func,
@@ -129,11 +112,10 @@ define_method(
 }
 
 
-template<typename Base_T, typename Derived_T>
 template<typename Func_T>
 inline
-Derived_T &
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl&
+Rice::Module_impl::
 define_singleton_method(
     Identifier name,
     Func_T func,
@@ -141,14 +123,13 @@ define_singleton_method(
 {
   detail::define_method_and_auto_wrap(
       rb_singleton_class(*this), name, func, this->handler(), arguments);
-  return (Derived_T &)*this;
+  return *this;
 }
 
-template<typename Base_T, typename Derived_T>
 template<typename Func_T>
 inline
-Derived_T &
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl&
+Rice::Module_impl::
 define_singleton_method(
     Identifier name,
     Func_T func,
@@ -159,11 +140,10 @@ define_singleton_method(
   return define_singleton_method(name, func, args);
 }
 
-template<typename Base_T, typename Derived_T>
 template<typename Func_T>
 inline
-Derived_T &
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl&
+Rice::Module_impl::
 define_module_function(
     Identifier name,
     Func_T func,
@@ -176,14 +156,13 @@ define_module_function(
 
   define_method(name, func, arguments);
   define_singleton_method(name, func, arguments);
-  return (Derived_T &)*this;
+  return *this;
 }
 
-template<typename Base_T, typename Derived_T>
 template<typename Func_T>
 inline
-Derived_T &
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl&
+Rice::Module_impl::
 define_module_function(
     Identifier name,
     Func_T func,
@@ -194,32 +173,12 @@ define_module_function(
   return define_module_function(name, func, args);
 }
 
-template<typename Base_T, typename Derived_T>
-template<typename T, typename Iterator_T>
-inline
-Derived_T &
-Rice::Module_impl<Base_T, Derived_T>::
-define_iterator(
-    Iterator_T (T::*begin)(),
-    Iterator_T (T::*end)(),
-    Identifier name)
-{
-  detail::define_iterator(*this, name, begin, end);
-  return (Derived_T &)*this;
-}
-
 namespace Rice
 {
 
 namespace detail
 {
 
-inline VALUE
-  include_module(VALUE mod, VALUE inc)
-{
-  rb_include_module(mod, inc);
-  return Qnil;
-}
 
 inline VALUE
 const_set(VALUE mod, ID name, VALUE value)
@@ -232,95 +191,66 @@ const_set(VALUE mod, ID name, VALUE value)
 
 } // namespace Rice
 
-template<typename Base_T, typename Derived_T>
 inline
-Derived_T &
-Rice::Module_impl<Base_T, Derived_T>::
-include_module(
-    Module const & inc)
-{
-  protect(detail::include_module, *this, inc);
-  return (Derived_T &)*this;
-}
-
-template<typename Base_T, typename Derived_T>
-inline
-Derived_T &
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl&
+Rice::Module_impl::
 const_set(
     Identifier name,
     Object value)
 {
   protect(detail::const_set, *this, name, value);
-  return (Derived_T &)*this;
+  return *this;
 }
 
-template<typename Base_T, typename Derived_T>
 inline
 Rice::Object
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl::
 const_get(
     Identifier name) const
 {
   return protect(rb_const_get, *this, name);
 }
 
-template<typename Base_T, typename Derived_T>
 inline
 bool
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl::
 const_defined(Identifier name) const
 {
   size_t result = protect(rb_const_defined, *this, name);
   return bool(result);
 }
 
-template<typename Base_T, typename Derived_T>
 inline
 void
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl::
 remove_const(Identifier name)
 {
   protect(rb_mod_remove_const, *this, name.to_sym());
 }
 
-template<typename Base_T, typename Derived_T>
-inline
-Rice::Module
-Rice::Module_impl<Base_T, Derived_T>::
-define_module(
-    char const * name)
-{
-  return Rice::define_module_under(*this, name);
-}
-
-template<typename Base_T, typename Derived_T>
-inline
-Rice::Class
-Rice::Module_impl<Base_T, Derived_T>::
+template<typename T>
+Rice::Data_Type<T>
+Rice::Module_impl::
 define_class(
-    char const * name,
-    Object superclass)
+  char const* name)
 {
-  return Rice::define_class_under(*this, name, superclass);
+  return this->define_class_with_object_as_base<T>(name);
 }
 
-template<typename Base_T, typename Derived_T>
 template<typename T>
 inline
 Rice::Data_Type<T>
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl::
 define_class_with_object_as_base(
     char const * name)
 {
   return Rice::define_class_under<T>(*this, name);
 }
 
-template<typename Base_T, typename Derived_T>
 template<typename T, typename T_Base_T>
 inline
 Rice::Data_Type<T>
-Rice::Module_impl<Base_T, Derived_T>::
+Rice::Module_impl::
 define_class(
     char const * name)
 {
@@ -329,3 +259,4 @@ define_class(
       name);
 }
 
+#endif 

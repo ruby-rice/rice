@@ -23,7 +23,7 @@ class Module;
 
 //! The base class for all instantiations of Data_Type.
 class Data_Type_Base
-  : public Module_impl<Class, Data_Type_Base>
+  : public Class
 {
 public:
   //! Default constructor.
@@ -107,7 +107,7 @@ void define_implicit_cast();
  */
 template<typename T>
 class Data_Type
-  : public Module_impl<Data_Type_Base, Data_Type<T> >
+  : public Data_Type_Base
 {
 public:
   //! The C++ type being held.

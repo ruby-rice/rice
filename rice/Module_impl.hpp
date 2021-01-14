@@ -2,16 +2,13 @@
 #define Rice__Module_impl__hpp_
 
 #include "detail/Exception_Handler_defn.hpp"
-#include "detail/ruby.hpp"
 #include "Object_defn.hpp"
-#include "Address_Registration_Guard_defn.hpp"
 #include "Arg.hpp"
+#include "protect.hpp"
 
 namespace Rice
 {
 
-class Module;
-class Class;
 template<typename T> class Data_Type;
 
 /*! Holds all member data of Module_impl so it only exists in one place
@@ -42,9 +39,8 @@ private:
  *  type (Module, Class, Data_Type, ...) without having to re-implement
  *  each function for each derived class.
  */
-template<typename Base_T, typename Derived_T>
 class Module_impl
-  : public Base_T
+  : public Module_base
 {
 public:
   Module_impl();
@@ -85,7 +81,7 @@ public:
    *  \endcode
    */
   template<typename Exception_T, typename Functor_T>
-  Derived_T & add_handler(
+  Rice::Module_impl& add_handler(
       Functor_T functor);
 
   //! Define an instance method.
@@ -102,7 +98,7 @@ public:
    *  \return *this
    */
   template<typename Func_T>
-  Derived_T & define_method(
+  Rice::Module_impl& define_method(
       Identifier name,
       Func_T func,
       Arguments* arguments = 0);
@@ -111,7 +107,7 @@ public:
   // do this. Handles the case where there is a single
   // argument defined for this method
   template<typename Func_T>
-  Derived_T & define_method(
+  Rice::Module_impl& define_method(
       Identifier name,
       Func_T func,
       Arg const& arg);
@@ -130,14 +126,14 @@ public:
    *  \return *this
    */
   template<typename Func_T>
-  Derived_T & define_singleton_method(
+  Rice::Module_impl& define_singleton_method(
       Identifier name,
       Func_T func,
       Arguments* arguments = 0);
 
   // FIXME: See define_method with Arg above
   template<typename Func_T>
-  Derived_T & define_singleton_method(
+  Rice::Module_impl& define_singleton_method(
       Identifier name,
       Func_T func,
       Arg const& arg);
@@ -158,47 +154,24 @@ public:
    *  \return *this
    */
   template<typename Func_T>
-  Derived_T & define_module_function(
+  Rice::Module_impl& define_module_function(
       Identifier name,
       Func_T func,
       Arguments* arguments = 0);
 
   // FIXME: See define_method with Arg above
   template<typename Func_T>
-  Derived_T & define_module_function(
+  Rice::Module_impl& define_module_function(
       Identifier name,
       Func_T func,
       Arg const& arg);
-
-  //! Define an iterator.
-  /*! Essentially this is a conversion from a C++-style begin/end
-   *  iterator to a Ruby-style \#each iterator.
-   *  \param begin a member function pointer to a function that returns
-   *  an iterator to the beginning of the sequence.
-   *  \param end a member function pointer to a function that returns an
-   *  iterator to the end of the sequence.
-   *  \param name the name of the iterator.
-   *  \return *this
-   */
-  template<typename T, typename Iterator_T>
-  Derived_T & define_iterator(
-      Iterator_T (T::*begin)(),
-      Iterator_T (T::*end)(),
-      Identifier name = "each");
-
-  //! Include a module.
-  /*! \param inc the module to be included.
-   *  \return *this
-   */
-  Derived_T & include_module(
-      Module const & inc);
 
   //! Set a constant.
   /*! \param name the name of the constant to set.
    *  \param value the value of the constant.
    *  \return *this
    */
-  Derived_T & const_set(
+  Rice::Module_impl& const_set(
       Identifier name,
       Object value);
 
@@ -223,36 +196,15 @@ public:
   void remove_const(
       Identifier name);
 
-  //! Define a module under this module.
-  /*! \param name the name of the module.
-   *  \return the new class.
-   */
-  Module define_module(
-      char const * name);
-
-  //! Define a class under this module.
-  /*! \param name the name of the class.
-   *  \param superclass the base class to use.
-   *  \return the new class.
-   */
-  Class define_class(
-      char const * name,
-      Object superclass = rb_cObject);
-
   //! Define a new data class under this module.
   /*! The class will have a base class of Object.
    *  \param T the C++ type of the wrapped class.
    *  \return the new class.
    */
-  // This function needs to be defined inline to work around a bug in
-  // g++ 3.3.3.
   template<typename T>
   Data_Type<T>
-  define_class(
-      char const * name)
-  {
-    return this->define_class_with_object_as_base<T>(name);
-  }
+    define_class(
+      char const* name);
 
   //! Define a new data class under this module.
   /*! The class with have a base class determined by Base_T (specifically,
@@ -267,7 +219,6 @@ public:
       char const * name);
 
 private:
-  // Workaround for g++ 3.3.3 (see above).
   template<typename T>
   Data_Type<T>
   define_class_with_object_as_base(

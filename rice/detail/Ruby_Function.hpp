@@ -34,8 +34,15 @@ namespace detail
   inline VALUE Ruby_Function<Function_T, Return_T, Arg_Ts...>::
     call(Ruby_Function* rubyFunction)
   {
-    Object result(rubyFunction->operator()());
-    return result.value();
+    if constexpr (std::is_void_v<Return_T>)
+    {
+      rubyFunction->operator()();
+      return Qnil;
+    }
+    else
+    {
+      return rubyFunction->operator()();
+    }
   }
 
   template<typename Function_T, typename Return_T, typename...Arg_Ts>
@@ -62,7 +69,6 @@ namespace detail
       using Return_T = std::invoke_result_t<decltype(func), Arg_Ts...>;
       return Ruby_Function<Function_T, Return_T, Arg_Ts...>(func, std::forward<Arg_Ts>(args)...);
     }
-
 
 } // namespace detail
 

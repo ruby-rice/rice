@@ -4,7 +4,6 @@
 #include <memory>
 
 #include "detail/from_ruby_defn.hpp"
-#include "Object_defn.hpp"
 #include "Module_impl.hpp"
 #include "to_from_ruby_defn.hpp"
 
@@ -25,7 +24,7 @@ class String;
 class Module
   // TODO: we can't inherit from Builtin_Object, because Class needs
   // type T_CLASS and Module needs type T_MODULE
-  : public Module_impl<Module_base, Module>
+  : public Module_impl
 {
 public:
   //! Default construct a Module and initialize it to rb_cObject.
@@ -48,7 +47,17 @@ public:
   //! Return the module's singleton class.
   /*! You will need to include Class.hpp to use this function.
    */
-  Class singleton_class() const;
+  //Class singleton_class() const;
+
+  #include "Module_Impl_override.hpp"
+
+ //! Define a class under this module.
+  /*! \param name the name of the class.
+   *  \param superclass the base class to use.
+   *  \return the new class.
+   */
+  Class define_class(char const* name, Object superclass = rb_cObject);
+
 };
 
 //! Define a new module in the namespace given by module.

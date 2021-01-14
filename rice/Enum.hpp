@@ -44,7 +44,7 @@ struct Default_Enum_Traits
  */
 template<typename Enum_T, typename Enum_Traits = Default_Enum_Traits<Enum_T> >
 class Enum
-  : public Module_impl<Data_Type<Enum_T>, Enum<Enum_T, Enum_Traits> >
+  : public Data_Type<Enum_T>
 {
 public:
   //! Default constructor.

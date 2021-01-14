@@ -67,7 +67,7 @@ bind(Module const & klass)
 template<typename T>
 inline Rice::Data_Type<T>::
 Data_Type()
-  : Module_impl<Data_Type_Base, Data_Type<T> >(
+  : Data_Type_Base(
       klass_ == Qnil ? rb_cObject : klass_)
 {
   if(!is_bound())
@@ -79,7 +79,7 @@ Data_Type()
 template<typename T>
 inline Rice::Data_Type<T>::
 Data_Type(Module const & klass)
-  : Module_impl<Data_Type_Base, Data_Type<T> >(
+  : Data_Type_Base(
       klass)
 {
   this->bind<void>(klass);

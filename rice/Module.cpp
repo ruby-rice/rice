@@ -1,4 +1,5 @@
 #include "Module.hpp"
+#include "Class_defn.hpp"
 #include "Symbol.hpp"
 #include "String.hpp"
 #include "Array.hpp"
@@ -7,13 +8,13 @@
 
 Rice::Module::
 Module()
-  : Module_impl<Module_base, Module>(rb_cObject)
+  : Module_impl(rb_cObject)
 {
 }
 
 Rice::Module::
 Module(VALUE v)
-  : Module_impl<Module_base, Module>(v)
+  : Module_impl(v)
 {
   if(::rb_type(v) != T_CLASS && ::rb_type(v) != T_MODULE)
   {
@@ -75,10 +76,19 @@ ancestors() const
   return protect(rb_mod_ancestors, *this);
 }
 
-Rice::Class
+// CFIS
+/*Rice::Class
 Rice::Module::
 singleton_class() const
 {
   return CLASS_OF(value());
-}
+}*/
 
+Rice::Class
+Rice::Module::
+define_class(
+  char const* name,
+  Object superclass)
+{
+  return Rice::define_class_under(*this, name, superclass);
+}
