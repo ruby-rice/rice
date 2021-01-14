@@ -2,6 +2,7 @@
 #define Rice__Class_defn__hpp_
 
 #include "Module_defn.hpp"
+#include "protect.hpp"
 
 /*!
  *  \example inheritance/animals.cpp

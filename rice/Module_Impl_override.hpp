@@ -1,10 +1,6 @@
 // Hack to return this when calling base functions
 
 
-//! Include a module.
-/*! \param inc the module to be included.
-*  \return *this
-*/
 auto& include_module(Module const& inc)
 {
   protect(rb_include_module, *this, inc);
@@ -13,38 +9,38 @@ auto& include_module(Module const& inc)
 
 auto& const_set(Identifier name, Object value)
 {
-  return dynamic_cast<decltype(*this)>(Module_impl::const_set(name, value));
+  return dynamic_cast<decltype(*this)>(Module::const_set(name, value));
 }
 
 template<typename Func_T>
 auto& define_method(Identifier name, Func_T func, Arguments* arguments = 0)
 {
-  return dynamic_cast<decltype(*this)>(Module_impl::define_method(name, func, arguments));
+  return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arguments));
 }
 
 template<typename Func_T>
 auto& define_method(Identifier name, Func_T func, Arg const& arg)
 {
-  return dynamic_cast<decltype(*this)>(Module_impl::define_method(name, func, arg));
+  return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arg));
 }
 
 template<typename Func_T>
 auto& define_singleton_method(Identifier name, Func_T func, Arguments* arguments = 0)
 {
-  return dynamic_cast<decltype(*this)>(Module_impl::define_singleton_method(name, func, arguments));
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arguments));
 }
 
 template<typename Func_T>
 auto& define_singleton_method(Identifier name, Func_T func, Arg const& arg)
 {
-  return dynamic_cast<decltype(*this)>(Module_impl::define_singleton_method(name, func, arg));
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arg));
 }
 
 /*
 * 
 inline
 Rice::Module
-Rice::Module_impl::
+Rice::Module::
 define_module(
   char const* name)
 {
