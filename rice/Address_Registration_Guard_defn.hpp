@@ -64,8 +64,8 @@ public:
   static void disable();
 
 private:
-  static bool enabled;
-  static bool exit_handler_registered;
+  inline static bool enabled = true;
+  inline static bool exit_handler_registered = false;
 
   static void registerExitHandler();
 

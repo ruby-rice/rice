@@ -35,3 +35,20 @@ swap(Rice::Address_Registration_Guard & other)
 {
   std::swap(address_, other.address_);
 }
+
+static void disable_all_guards(VALUE)
+{
+  Rice::Address_Registration_Guard::disable();
+}
+
+inline void Rice::Address_Registration_Guard::registerExitHandler()
+{
+  if (exit_handler_registered) return;
+  rb_set_end_proc(&disable_all_guards, Qnil);
+  exit_handler_registered = true;
+}
+
+inline void Rice::Address_Registration_Guard::disable()
+{
+  enabled = false;
+}
