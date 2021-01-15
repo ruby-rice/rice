@@ -4,8 +4,6 @@
 #include "Identifier.hpp"
 #include "Builtin_Object_defn.hpp"
 #include "to_from_ruby_defn.hpp"
-#include "detail/ruby.hpp"
-#include <string>
 
 namespace Rice
 {
@@ -43,7 +41,8 @@ public:
   String(std::string const & s);
 
   //! Format a string using printf-style formatting.
-  static String format(char const * s, ...);
+  template <typename... Arg_Ts>
+  static inline String format(char const* fmt, Arg_Ts&&...args);
 
   //! Get the length of the String.
   /*! \return the length of the string.
@@ -88,7 +87,7 @@ VALUE to_ruby<Rice::String>(Rice::String const & x)
   return x.value();
 }
 
-#include "Builtin_Object.ipp"
+#include "String.ipp"
 
 #endif // Rice__String__hpp_
 
