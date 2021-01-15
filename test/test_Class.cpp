@@ -34,10 +34,7 @@ TESTCASE(undef_creation_funcs)
   ASSERT_EXCEPTION_CHECK(
       Exception,
       c.call("new"),
-      ASSERT_EQUAL(
-          Object(rb_eTypeError), // TODO: 1.6.x?
-          Object(CLASS_OF(ex.value()))
-          )
+      ASSERT_EQUAL(rb_eTypeError, ex.class_of())
       );
 }
 
@@ -194,11 +191,8 @@ TESTCASE(define_method_int_passed_two_args)
   ASSERT_EXCEPTION_CHECK(
       Exception,
       o.call("foo", 1, 2),
-      ASSERT_EQUAL(
-          Object(rb_eArgError),
-          Object(CLASS_OF(ex.value()))
-          )
-      );
+      ASSERT_EQUAL(rb_eArgError, ex.class_of())
+    );
 }
 
 TESTCASE(define_method_int_passed_no_args)
@@ -213,10 +207,7 @@ TESTCASE(define_method_int_passed_no_args)
   ASSERT_EXCEPTION_CHECK(
       Exception,
       o.call("foo"),
-      ASSERT_EQUAL(
-          Object(rb_eArgError),
-          Object(CLASS_OF(ex.value()))
-          )
+      ASSERT_EQUAL(rb_eArgError, ex.class_of())
       );
 }
 

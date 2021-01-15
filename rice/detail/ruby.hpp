@@ -68,6 +68,13 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
   #undef bind
 #endif
 
+// And some c library conflicts
+#if defined(_MSC_VER)
+#undef snprintf
+#undef vsnprintf
+#endif
+
+
 #define std_unique_ptr std::unique_ptr
 
 #endif // Rice__detail__ruby__hpp_

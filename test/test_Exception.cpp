@@ -31,13 +31,13 @@ TESTCASE(copy_construct)
 TESTCASE(construct_from_format_string)
 {
   Exception ex(rb_eRuntimeError, "%s", "foo");
-  ASSERT_EQUAL(ex.class_of(), Object(rb_eRuntimeError));
+  ASSERT_EQUAL(rb_eRuntimeError, ex.class_of());
 }
 
 TESTCASE(message)
 {
   Exception ex(rb_eRuntimeError, "%s", "foo");
-  ASSERT_EQUAL(String("foo"), ex.message());
+  ASSERT_EQUAL("foo", ex.message());
 }
 
 TESTCASE(what)
