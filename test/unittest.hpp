@@ -15,6 +15,8 @@
 #include <sstream>
 #include <iostream>
 
+#include "ruby.h"
+
 class Failure
 {
 public:
@@ -204,6 +206,11 @@ inline bool is_equal(char * lhs, char const * rhs)
 inline bool is_equal(char const * lhs, char * rhs)
 {
   return std::string(lhs) == std::string(rhs);
+}
+
+inline bool is_equal(VALUE lhs, VALUE rhs)
+{
+  return rb_equal(lhs, rhs);
 }
 
 template<typename T, typename U>
