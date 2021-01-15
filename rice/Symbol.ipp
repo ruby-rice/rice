@@ -1,8 +1,16 @@
-#ifndef Rice__Symbol__ipp_
-#define Rice__Symbol__ipp_
+inline Rice::Symbol::
+Symbol(VALUE v)
+  : Object(v)
+{
+  protect(rb_check_type, v, T_SYMBOL);
+}
 
-#include "protect.hpp"
-#include "detail/ruby.hpp"
+inline Rice::Symbol::
+Symbol(Object v)
+  : Object(v)
+{
+  protect(rb_check_type, v, T_SYMBOL);
+}
 
 inline Rice::Symbol::
 Symbol(char const * s)
@@ -39,6 +47,3 @@ to_id() const
 {
   return rb_to_id(value());
 }
-
-#endif // Rice__Symbol__ipp_
-
