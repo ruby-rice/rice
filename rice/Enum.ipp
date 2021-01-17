@@ -203,7 +203,7 @@ Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
 eql(Object lhs, Object rhs)
 {
   bool is_equal = detail::From_Ruby<int>::convert(compare(lhs, rhs)) == 0;
-  return to_ruby(is_equal);
+  return detail::To_Ruby<bool>::convert(is_equal);
 }
 
 template<typename Enum_T, typename Enum_Traits>

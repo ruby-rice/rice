@@ -52,7 +52,7 @@ public:
     Iterator_T end = (*obj.*end_)();
     for(; it != end; ++it)
     {
-      Rice::protect(rb_yield, to_ruby(*it));
+      Rice::protect(rb_yield, detail::To_Ruby<Iterator_T>::convert(it));
     }
     return self;
   }

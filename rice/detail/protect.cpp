@@ -19,7 +19,7 @@ protect(
     if(state == TAG_RAISE && RTEST(err))
     {
       // TODO: convert NoMemoryError into bad_alloc?
-      rb_set_errinfo(Rice::Nil);
+      rb_set_errinfo(Qnil);
       throw Rice::Exception(err);
     }
     throw Jump_Tag(state);

@@ -26,6 +26,8 @@ class Data_Type_Base
   : public Class
 {
 public:
+  using Casters = std::map<VALUE, detail::Abstract_Caster*>;
+
   //! Default constructor.
   Data_Type_Base();
 
@@ -34,9 +36,6 @@ public:
 
   //! Destructor.
   virtual ~Data_Type_Base() = 0;
-
-  // Must be public to workaround gcc 3.3
-  typedef std::map<VALUE, detail::Abstract_Caster *> Casters;
 
   virtual detail::Abstract_Caster * caster() const = 0;
 
@@ -200,6 +199,7 @@ public:
   /*! \return true if the object is bound, false otherwise.
    */
   static bool is_bound();
+  static void check_is_bound();
 
   virtual detail::Abstract_Caster * caster() const;
 
@@ -238,7 +238,6 @@ private:
   template<typename T_>
   friend class Data_Type;
 
-  static void check_is_bound();
 
   static VALUE klass_;
 
@@ -280,6 +279,36 @@ struct Rice::detail::From_Ruby<T*>
   {
     using Base_T = std::decay_t<T>;
     return Data_Type<Base_T>::from_ruby(value);
+  }
+};
+
+namespace Rice
+{
+  // Forward declaration
+  template<typename T>
+  class Data_Object;
+}
+
+template<typename T, typename>
+struct Rice::detail::To_Ruby
+{
+  static VALUE convert(T const& x)
+  {
+    using Base_T = base_type<T>;
+    Data_Type<Base_T>::check_is_bound();
+    return Rice::Data_Object<Base_T>(new Base_T(x));
+  }
+};
+
+template <typename T>
+struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<T> &&
+                                                  !Rice::detail::is_kind_of_object<T>>>
+{
+  static VALUE convert(T* x)
+  {
+    using Base_T = base_type<T>;
+    Data_Type<Base_T>::check_is_bound();
+    return Data_Object<Base_T>(x);
   }
 };
 

@@ -1,6 +1,7 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include "rice/to_from_ruby.hpp"
+#include "rice/detail/to_ruby.hpp"
+#include "rice/Data_Type_defn.hpp"
 #include "rice/String.hpp"
 #include "rice/Array.hpp"
 #include "rice/Hash.hpp"
@@ -19,7 +20,7 @@ SETUP(To_From_Ruby)
 TESTCASE(object_to_ruby)
 {
   Object o(rb_str_new2("foo"));
-  ASSERT_EQUAL(o.value(), to_ruby(o));
+  ASSERT_EQUAL(o.value(), detail::to_ruby(o));
 }
 
 TESTCASE(object_from_ruby)
@@ -30,15 +31,15 @@ TESTCASE(object_from_ruby)
 
 TESTCASE(short_to_ruby)
 {
-  ASSERT_EQUAL(INT2NUM(0), to_ruby((short)0));
-  ASSERT_EQUAL(INT2NUM(-1), to_ruby((short)-1));
-  ASSERT_EQUAL(INT2NUM(1), to_ruby((short)1));
+  ASSERT_EQUAL(INT2NUM(0), detail::to_ruby((short)0));
+  ASSERT_EQUAL(INT2NUM(-1), detail::to_ruby((short)-1));
+  ASSERT_EQUAL(INT2NUM(1), detail::to_ruby((short)1));
   ASSERT_EQUAL(
       INT2NUM(std::numeric_limits<short>::min()),
-      to_ruby(std::numeric_limits<short>::min()));
+      detail::to_ruby(std::numeric_limits<short>::min()));
   ASSERT_EQUAL(
       INT2NUM(std::numeric_limits<short>::max()),
-      to_ruby(std::numeric_limits<short>::max()));
+      detail::to_ruby(std::numeric_limits<short>::max()));
 }
 
 TESTCASE(short_from_ruby)
@@ -56,11 +57,11 @@ TESTCASE(short_from_ruby)
 
 TESTCASE(int_to_ruby)
 {
-  ASSERT(rb_equal(INT2NUM(0), to_ruby((int)0)));
-  ASSERT(rb_equal(INT2NUM(-1), to_ruby((int)-1)));
-  ASSERT(rb_equal(INT2NUM(1), to_ruby((int)1)));
-  ASSERT(rb_equal(INT2NUM(std::numeric_limits<int>::min()), to_ruby(std::numeric_limits<int>::min())));
-  ASSERT(rb_equal(INT2NUM(std::numeric_limits<int>::max()), to_ruby(std::numeric_limits<int>::max())));
+  ASSERT(rb_equal(INT2NUM(0), detail::to_ruby((int)0)));
+  ASSERT(rb_equal(INT2NUM(-1), detail::to_ruby((int)-1)));
+  ASSERT(rb_equal(INT2NUM(1), detail::to_ruby((int)1)));
+  ASSERT(rb_equal(INT2NUM(std::numeric_limits<int>::min()), detail::to_ruby(std::numeric_limits<int>::min())));
+  ASSERT(rb_equal(INT2NUM(std::numeric_limits<int>::max()), detail::to_ruby(std::numeric_limits<int>::max())));
 }
 
 TESTCASE(int_from_ruby)
@@ -78,13 +79,13 @@ TESTCASE(int_from_ruby)
 
 TESTCASE(long_to_ruby)
 {
-  ASSERT(rb_equal(LONG2NUM(0), to_ruby((long)0)));
-  ASSERT(rb_equal(LONG2NUM(-1), to_ruby((long)-1)));
-  ASSERT(rb_equal(LONG2NUM(1), to_ruby((long)1)));
-  ASSERT(rb_equal(LONG2NUM(FIXNUM_MAX), to_ruby(FIXNUM_MAX)));
-  ASSERT(rb_equal(LONG2NUM(FIXNUM_MIN), to_ruby(FIXNUM_MIN)));
-  ASSERT(rb_equal(LONG2NUM(std::numeric_limits<long>::min()), to_ruby(std::numeric_limits<long>::min())));
-  ASSERT(rb_equal(LONG2NUM(std::numeric_limits<long>::max()), to_ruby(std::numeric_limits<long>::max())));
+  ASSERT(rb_equal(LONG2NUM(0), detail::to_ruby((long)0)));
+  ASSERT(rb_equal(LONG2NUM(-1), detail::to_ruby((long)-1)));
+  ASSERT(rb_equal(LONG2NUM(1), detail::to_ruby((long)1)));
+  ASSERT(rb_equal(LONG2NUM(FIXNUM_MAX), detail::to_ruby(FIXNUM_MAX)));
+  ASSERT(rb_equal(LONG2NUM(FIXNUM_MIN), detail::to_ruby(FIXNUM_MIN)));
+  ASSERT(rb_equal(LONG2NUM(std::numeric_limits<long>::min()), detail::to_ruby(std::numeric_limits<long>::min())));
+  ASSERT(rb_equal(LONG2NUM(std::numeric_limits<long>::max()), detail::to_ruby(std::numeric_limits<long>::max())));
 }
 
 TESTCASE(long_from_ruby)
@@ -108,11 +109,11 @@ TESTCASE(long_from_ruby)
 
 TESTCASE(long_long_to_ruby)
 {
-  ASSERT(rb_equal(LL2NUM(0), to_ruby((long long)0)));
-  ASSERT(rb_equal(LL2NUM(-1), to_ruby((long long)-1)));
-  ASSERT(rb_equal(LL2NUM(1), to_ruby((long long)1)));
-  ASSERT(rb_equal(LL2NUM(std::numeric_limits<long long>::min()), to_ruby(std::numeric_limits<long long>::min())));
-  ASSERT(rb_equal(LL2NUM(std::numeric_limits<long long>::max()), to_ruby(std::numeric_limits<long long>::max())));
+  ASSERT(rb_equal(LL2NUM(0), detail::to_ruby((long long)0)));
+  ASSERT(rb_equal(LL2NUM(-1), detail::to_ruby((long long)-1)));
+  ASSERT(rb_equal(LL2NUM(1), detail::to_ruby((long long)1)));
+  ASSERT(rb_equal(LL2NUM(std::numeric_limits<long long>::min()), detail::to_ruby(std::numeric_limits<long long>::min())));
+  ASSERT(rb_equal(LL2NUM(std::numeric_limits<long long>::max()), detail::to_ruby(std::numeric_limits<long long>::max())));
 }
 
 TESTCASE(long_long_from_ruby)
@@ -130,10 +131,10 @@ TESTCASE(long_long_from_ruby)
 
 TESTCASE(unsigned_short_to_ruby)
 {
-  ASSERT(rb_equal(UINT2NUM(0), to_ruby((unsigned short)0)));
-  ASSERT(rb_equal(UINT2NUM(1), to_ruby((unsigned short)1)));
-  ASSERT(rb_equal(UINT2NUM(std::numeric_limits<unsigned short>::min()), to_ruby(std::numeric_limits<unsigned short>::min())));
-  ASSERT(rb_equal(UINT2NUM(std::numeric_limits<unsigned short>::max()), to_ruby(std::numeric_limits<unsigned short>::max())));
+  ASSERT(rb_equal(UINT2NUM(0), detail::to_ruby((unsigned short)0)));
+  ASSERT(rb_equal(UINT2NUM(1), detail::to_ruby((unsigned short)1)));
+  ASSERT(rb_equal(UINT2NUM(std::numeric_limits<unsigned short>::min()), detail::to_ruby(std::numeric_limits<unsigned short>::min())));
+  ASSERT(rb_equal(UINT2NUM(std::numeric_limits<unsigned short>::max()), detail::to_ruby(std::numeric_limits<unsigned short>::max())));
 }
 
 TESTCASE(unsigned_short_from_ruby)
@@ -150,10 +151,10 @@ TESTCASE(unsigned_short_from_ruby)
 
 TESTCASE(unsigned_int_to_ruby)
 {
-  ASSERT(rb_equal(UINT2NUM(0), to_ruby((unsigned int)0)));
-  ASSERT(rb_equal(UINT2NUM(1), to_ruby((unsigned int)1)));
-  ASSERT(rb_equal(UINT2NUM(std::numeric_limits<unsigned int>::min()), to_ruby(std::numeric_limits<unsigned int>::min())));
-  ASSERT(rb_equal(UINT2NUM(std::numeric_limits<unsigned int>::max()), to_ruby(std::numeric_limits<unsigned int>::max())));
+  ASSERT(rb_equal(UINT2NUM(0), detail::to_ruby((unsigned int)0)));
+  ASSERT(rb_equal(UINT2NUM(1), detail::to_ruby((unsigned int)1)));
+  ASSERT(rb_equal(UINT2NUM(std::numeric_limits<unsigned int>::min()), detail::to_ruby(std::numeric_limits<unsigned int>::min())));
+  ASSERT(rb_equal(UINT2NUM(std::numeric_limits<unsigned int>::max()), detail::to_ruby(std::numeric_limits<unsigned int>::max())));
 }
 
 TESTCASE(unsigned_int_from_ruby)
@@ -170,11 +171,11 @@ TESTCASE(unsigned_int_from_ruby)
 
 TESTCASE(unsigned_long_to_ruby)
 {
-  ASSERT(rb_equal(ULONG2NUM(0), to_ruby((unsigned long)0)));
-  ASSERT(rb_equal(ULONG2NUM(1), to_ruby((unsigned long)1)));
-  ASSERT(rb_equal(ULONG2NUM(FIXNUM_MAX), to_ruby(FIXNUM_MAX)));
-  ASSERT(rb_equal(ULONG2NUM(std::numeric_limits<unsigned long>::min()), to_ruby(std::numeric_limits<unsigned long>::min())));
-  ASSERT(rb_equal(ULONG2NUM(std::numeric_limits<unsigned long>::max()), to_ruby(std::numeric_limits<unsigned long>::max())));
+  ASSERT(rb_equal(ULONG2NUM(0), detail::to_ruby((unsigned long)0)));
+  ASSERT(rb_equal(ULONG2NUM(1), detail::to_ruby((unsigned long)1)));
+  ASSERT(rb_equal(ULONG2NUM(FIXNUM_MAX), detail::to_ruby(FIXNUM_MAX)));
+  ASSERT(rb_equal(ULONG2NUM(std::numeric_limits<unsigned long>::min()), detail::to_ruby(std::numeric_limits<unsigned long>::min())));
+  ASSERT(rb_equal(ULONG2NUM(std::numeric_limits<unsigned long>::max()), detail::to_ruby(std::numeric_limits<unsigned long>::max())));
 }
 
 TESTCASE(unsigned_long_from_ruby)
@@ -194,10 +195,10 @@ TESTCASE(unsigned_long_from_ruby)
 
 TESTCASE(unsigned_long_long_to_ruby)
 {
-  ASSERT(rb_equal(ULL2NUM(0), to_ruby((unsigned long long)0)));
-  ASSERT(rb_equal(ULL2NUM(1), to_ruby((unsigned long long)1)));
-  ASSERT(rb_equal(ULL2NUM(std::numeric_limits<unsigned long long>::min()), to_ruby(std::numeric_limits<unsigned long long>::min())));
-  ASSERT(rb_equal(ULL2NUM(std::numeric_limits<unsigned long long>::max()), to_ruby(std::numeric_limits<unsigned long long>::max())));
+  ASSERT(rb_equal(ULL2NUM(0), detail::to_ruby((unsigned long long)0)));
+  ASSERT(rb_equal(ULL2NUM(1), detail::to_ruby((unsigned long long)1)));
+  ASSERT(rb_equal(ULL2NUM(std::numeric_limits<unsigned long long>::min()), detail::to_ruby(std::numeric_limits<unsigned long long>::min())));
+  ASSERT(rb_equal(ULL2NUM(std::numeric_limits<unsigned long long>::max()), detail::to_ruby(std::numeric_limits<unsigned long long>::max())));
 }
 
 TESTCASE(unsigned_long_long_from_ruby)
@@ -214,8 +215,8 @@ TESTCASE(unsigned_long_long_from_ruby)
 
 TESTCASE(bool_to_ruby)
 {
-  ASSERT(rb_equal(Qfalse, to_ruby(false)));
-  ASSERT(rb_equal(Qtrue, to_ruby(true)));
+  ASSERT(rb_equal(Qfalse, detail::to_ruby(false)));
+  ASSERT(rb_equal(Qtrue, detail::to_ruby(true)));
 }
 
 TESTCASE(bool_from_ruby)
@@ -226,19 +227,19 @@ TESTCASE(bool_from_ruby)
 
 TESTCASE(float_to_ruby)
 {
-  ASSERT(rb_equal(rb_float_new(0.0f), to_ruby(0.0f)));
-  ASSERT(rb_equal(rb_float_new(-1.0f), to_ruby(-1.0f)));
-  ASSERT(rb_equal(rb_float_new(1.0f), to_ruby(1.0f)));
-  ASSERT(rb_equal(rb_float_new(0.5f), to_ruby(0.5f)));
-  ASSERT(rb_equal(rb_float_new(std::numeric_limits<float>::min()), to_ruby(std::numeric_limits<float>::min())));
-  ASSERT(rb_equal(rb_float_new(std::numeric_limits<float>::max()), to_ruby(std::numeric_limits<float>::max())));
+  ASSERT(rb_equal(rb_float_new(0.0f), detail::to_ruby(0.0f)));
+  ASSERT(rb_equal(rb_float_new(-1.0f), detail::to_ruby(-1.0f)));
+  ASSERT(rb_equal(rb_float_new(1.0f), detail::to_ruby(1.0f)));
+  ASSERT(rb_equal(rb_float_new(0.5f), detail::to_ruby(0.5f)));
+  ASSERT(rb_equal(rb_float_new(std::numeric_limits<float>::min()), detail::to_ruby(std::numeric_limits<float>::min())));
+  ASSERT(rb_equal(rb_float_new(std::numeric_limits<float>::max()), detail::to_ruby(std::numeric_limits<float>::max())));
   ASSERT(
-      Object(to_ruby(std::numeric_limits<float>::quiet_NaN())).call("nan?"));
+      Object(detail::to_ruby(std::numeric_limits<float>::quiet_NaN())).call("nan?"));
   ASSERT(
-      Object(to_ruby(std::numeric_limits<float>::signaling_NaN())).call("nan?"));
+      Object(detail::to_ruby(std::numeric_limits<float>::signaling_NaN())).call("nan?"));
   ASSERT_EQUAL(
       rb_float_new(std::numeric_limits<float>::epsilon()),
-      to_ruby(std::numeric_limits<float>::epsilon()));
+      detail::to_ruby(std::numeric_limits<float>::epsilon()));
 }
 
 TESTCASE(float_from_ruby)
@@ -263,15 +264,15 @@ TESTCASE(float_from_ruby)
 
 TESTCASE(double_to_ruby)
 {
-  ASSERT(rb_equal(rb_float_new(0.0f), to_ruby(0.0f)));
-  ASSERT(rb_equal(rb_float_new(-1.0f), to_ruby(-1.0f)));
-  ASSERT(rb_equal(rb_float_new(1.0f), to_ruby(1.0f)));
-  ASSERT(rb_equal(rb_float_new(0.5f), to_ruby(0.5f)));
-  ASSERT(rb_equal(rb_float_new(std::numeric_limits<double>::min()), to_ruby(std::numeric_limits<double>::min())));
-  ASSERT(rb_equal(rb_float_new(std::numeric_limits<double>::max()), to_ruby(std::numeric_limits<double>::max())));
-  ASSERT(Object(to_ruby(std::numeric_limits<double>::quiet_NaN())).call("nan?"));
-  ASSERT(Object(to_ruby(std::numeric_limits<double>::signaling_NaN())).call("nan?"));
-  ASSERT(rb_equal(rb_float_new(std::numeric_limits<double>::epsilon()), to_ruby(std::numeric_limits<double>::epsilon())));
+  ASSERT(rb_equal(rb_float_new(0.0f), detail::to_ruby(0.0f)));
+  ASSERT(rb_equal(rb_float_new(-1.0f), detail::to_ruby(-1.0f)));
+  ASSERT(rb_equal(rb_float_new(1.0f), detail::to_ruby(1.0f)));
+  ASSERT(rb_equal(rb_float_new(0.5f), detail::to_ruby(0.5f)));
+  ASSERT(rb_equal(rb_float_new(std::numeric_limits<double>::min()), detail::to_ruby(std::numeric_limits<double>::min())));
+  ASSERT(rb_equal(rb_float_new(std::numeric_limits<double>::max()), detail::to_ruby(std::numeric_limits<double>::max())));
+  ASSERT(Object(detail::to_ruby(std::numeric_limits<double>::quiet_NaN())).call("nan?"));
+  ASSERT(Object(detail::to_ruby(std::numeric_limits<double>::signaling_NaN())).call("nan?"));
+  ASSERT(rb_equal(rb_float_new(std::numeric_limits<double>::epsilon()), detail::to_ruby(std::numeric_limits<double>::epsilon())));
 }
 
 TESTCASE(double_from_ruby)
@@ -296,8 +297,8 @@ TESTCASE(double_from_ruby)
 
 TESTCASE(char_const_ptr_to_ruby)
 {
-  ASSERT(rb_equal(String("").value(), to_ruby((char const *)"")));
-  ASSERT(rb_equal(String("foo").value(), to_ruby((char const *)"foo")));
+  ASSERT(rb_equal(String("").value(), detail::to_ruby((char const *)"")));
+  ASSERT(rb_equal(String("foo").value(), detail::to_ruby((char const *)"foo")));
 }
 
 TESTCASE(char_const_ptr_from_ruby)
@@ -333,8 +334,8 @@ TESTCASE(char_star_from_ruby)
 
 TESTCASE(std_string_to_ruby)
 {
-  ASSERT(rb_equal(String("").value(), to_ruby(std::string(""))));
-  ASSERT(rb_equal(String("foo").value(), to_ruby(std::string("foo"))));
+  ASSERT(rb_equal(String("").value(), detail::to_ruby(std::string(""))));
+  ASSERT(rb_equal(String("foo").value(), detail::to_ruby(std::string("foo"))));
 }
 
 TESTCASE(std_string_from_ruby)
@@ -345,7 +346,7 @@ TESTCASE(std_string_from_ruby)
 
 TESTCASE(std_string_to_ruby_with_binary)
 {
-  Rice::String got = to_ruby(std::string("\000test", 5));
+  Rice::String got = detail::to_ruby(std::string("\000test", 5));
 
   ASSERT_EQUAL(String(std::string("\000test", 5)), got);
   ASSERT_EQUAL(5, got.length());
@@ -361,7 +362,21 @@ TESTCASE(std_string_from_ruby_with_binary)
 TESTCASE(array_to_ruby)
 {
   Array a(rb_ary_new());
-  ASSERT(rb_equal(a.value(), to_ruby(a)));
+  ASSERT(rb_equal(a.value(), detail::to_ruby(a)));
+}
+
+TESTCASE(array_ref_to_ruby)
+{
+  Array a(rb_ary_new());
+  Array& ref = a;
+  ASSERT(rb_equal(a.value(), detail::to_ruby(ref)));
+}
+
+TESTCASE(array_ptr_to_ruby)
+{
+  Array a(rb_ary_new());
+  Array* ptr = &a;
+  ASSERT(rb_equal(a.value(), detail::to_ruby(ptr)));
 }
 
 TESTCASE(array_from_ruby)
@@ -373,7 +388,7 @@ TESTCASE(array_from_ruby)
 TESTCASE(hash_to_ruby)
 {
   Hash h(rb_hash_new());
-  ASSERT(rb_equal(h.value(), to_ruby(h)));
+  ASSERT(rb_equal(h.value(), detail::to_ruby(h)));
 }
 
 TESTCASE(hash_from_ruby)

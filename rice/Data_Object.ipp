@@ -122,12 +122,5 @@ check_cpp_type(Data_Type<T> const & /* klass */)
 {
 }
 
-template<typename T>
-Rice::Object Rice::detail::to_ruby_<Rice::Data_Object<T> >::
-convert(Rice::Data_Object<T> const & x)
-{
-  return x;
-}
-
 #endif // Rice__Data_Object__ipp_
 

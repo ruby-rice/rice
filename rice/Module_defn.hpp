@@ -1,10 +1,9 @@
 #ifndef Rice__Module_defn__hpp_
 #define Rice__Module_defn__hpp_
 
-#include "detail/from_ruby_defn.hpp"
 #include "detail/Exception_Handler_defn.hpp"
-#include "to_from_ruby_defn.hpp"
 #include "Arg.hpp"
+#include "Object_defn.hpp"
 
 namespace Rice
 {
@@ -271,13 +270,6 @@ struct Rice::detail::From_Ruby<Rice::Module>
     return Rice::Module(value);
   }
 };
-
-template<>
-inline
-VALUE to_ruby<Rice::Module>(Rice::Module const & x)
-{
-  return x.value();
-}
 
 #endif // Rice__Module_defn__hpp_
 

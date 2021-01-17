@@ -58,7 +58,7 @@ TESTCASE(include_module)
 TESTCASE(const_set_get_by_id)
 {
   Class c(anonymous_class());
-  Object v = to_ruby(42);
+  Object v = detail::to_ruby(42);
   Class & c2(c.const_set(rb_intern("FOO"), v));
   ASSERT_EQUAL(&c, &c2);
   ASSERT_EQUAL(v, c.const_get(rb_intern("FOO")));
@@ -67,7 +67,7 @@ TESTCASE(const_set_get_by_id)
 TESTCASE(const_set_get_by_identifier)
 {
   Class c(anonymous_class());
-  Object v = to_ruby(42);
+  Object v = detail::to_ruby(42);
   Class & c2(c.const_set(Identifier("FOO"), v));
   ASSERT_EQUAL(&c, &c2);
   ASSERT_EQUAL(v, c.const_get(Identifier("FOO")));
@@ -76,7 +76,7 @@ TESTCASE(const_set_get_by_identifier)
 TESTCASE(const_set_get_by_string)
 {
   Class c(anonymous_class());
-  Object v = to_ruby(42);
+  Object v = detail::to_ruby(42);
   Class & c2(c.const_set("FOO", v));
   ASSERT_EQUAL(&c, &c2);
   ASSERT_EQUAL(v, c.const_get("FOO"));
@@ -332,9 +332,9 @@ TESTCASE(define_iterator)
       c, 0, Default_Free_Function<Container>::free, container);
   Array a = wrapped_container.instance_eval("a = []; each() { |x| a << x }; a");
   ASSERT_EQUAL(3u, a.size());
-  ASSERT_EQUAL(to_ruby(1), Object(a[0]).value());
-  ASSERT_EQUAL(to_ruby(2), Object(a[1]).value());
-  ASSERT_EQUAL(to_ruby(3), Object(a[2]).value());
+  ASSERT_EQUAL(detail::to_ruby(1), Object(a[0]).value());
+  ASSERT_EQUAL(detail::to_ruby(2), Object(a[1]).value());
+  ASSERT_EQUAL(detail::to_ruby(3), Object(a[2]).value());
 }
 
 TESTCASE(define_class)

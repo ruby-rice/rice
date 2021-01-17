@@ -3,7 +3,6 @@
 
 #include "Identifier.hpp"
 #include "Builtin_Object_defn.hpp"
-#include "to_from_ruby_defn.hpp"
 
 namespace Rice
 {
@@ -78,14 +77,6 @@ struct Rice::detail::From_Ruby<Rice::String>
     return Rice::String(value);
   }
 };
-
-
-template<>
-inline
-VALUE to_ruby<Rice::String>(Rice::String const & x)
-{
-  return x.value();
-}
 
 #include "String.ipp"
 

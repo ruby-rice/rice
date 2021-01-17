@@ -65,7 +65,7 @@ template<typename T>
 inline Rice::Object Rice::Array::
 push(T const & obj)
 {
-  return protect(rb_ary_push, value(), to_ruby(obj));
+  return protect(rb_ary_push, value(), detail::To_Ruby<T>::convert(obj));
 }
 
 inline Rice::Object Rice::Array::
@@ -78,7 +78,7 @@ template<typename T>
 inline Rice::Object Rice::Array::
 unshift(T const & obj)
 {
-  return protect(rb_ary_unshift, value(), to_ruby(obj));
+  return protect(rb_ary_unshift, value(), detail::To_Ruby<T>::convert(obj));
 }
 
 inline Rice::Object Rice::Array::
@@ -123,7 +123,7 @@ template<typename T>
 Rice::Object Rice::Array::Proxy::
 operator=(T const & value)
 {
-  Object o = to_ruby(value);
+  Object o = detail::To_Ruby<T>::convert(value);
   rb_ary_store(array_.value(), index_, o.value());
   return o;
 }

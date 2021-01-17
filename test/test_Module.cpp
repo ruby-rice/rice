@@ -227,7 +227,7 @@ TESTCASE(include_module)
 TESTCASE(const_set_get_by_id)
 {
   Module m(anonymous_module());
-  Object v = to_ruby(42);
+  Object v = detail::to_ruby(42);
   Module & m2(m.const_set(rb_intern("FOO"), v));
   ASSERT_EQUAL(&m, &m2);
   ASSERT_EQUAL(v, m.const_get(rb_intern("FOO")));
@@ -236,7 +236,7 @@ TESTCASE(const_set_get_by_id)
 TESTCASE(const_set_get_by_identifier)
 {
   Module m(anonymous_module());
-  Object v = to_ruby(42);
+  Object v = detail::to_ruby(42);
   Module & m2(m.const_set(Identifier("FOO"), v));
   ASSERT_EQUAL(&m, &m2);
   ASSERT_EQUAL(v, m.const_get(Identifier("FOO")));
@@ -245,7 +245,7 @@ TESTCASE(const_set_get_by_identifier)
 TESTCASE(const_set_get_by_string)
 {
   Module m(anonymous_module());
-  Object v = to_ruby(42);
+  Object v = detail::to_ruby(42);
   Module & m2(m.const_set("FOO", v));
   ASSERT_EQUAL(&m, &m2);
   ASSERT_EQUAL(v, m.const_get("FOO"));
@@ -254,7 +254,7 @@ TESTCASE(const_set_get_by_string)
 TESTCASE(remove_const)
 {
   Module m(anonymous_module());
-  Object v = to_ruby(42);
+  Object v = detail::to_ruby(42);
   m.const_set("FOO", v);
   ASSERT_EQUAL(v, m.const_get("FOO"));
   m.remove_const("FOO");

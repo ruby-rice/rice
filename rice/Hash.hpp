@@ -3,7 +3,6 @@
 
 #include "Builtin_Object_defn.hpp"
 #include "Array.hpp"
-#include "to_from_ruby_defn.hpp"
 #include "detail/ruby.hpp"
 #include <iterator>
 #include <type_traits>
@@ -218,13 +217,6 @@ struct Rice::detail::From_Ruby<Rice::Hash>
     return Rice::Hash(value);
   }
 };
-
-template<>
-inline
-VALUE to_ruby<Rice::Hash>(Rice::Hash const & x)
-{
-  return x.value();
-}
 
 #include "Hash.ipp"
 

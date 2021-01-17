@@ -2,7 +2,7 @@
 #define Rice__Symbol__hpp_
 
 #include "Identifier.hpp"
-#include "Object.hpp"
+#include "Object_defn.hpp"
 #include "detail/ruby.hpp"
 #include <string>
 
@@ -54,14 +54,6 @@ struct Rice::detail::From_Ruby<Rice::Symbol>
     return Rice::Symbol(value);
   }
 };
-
-
-template<>
-inline
-VALUE to_ruby<Rice::Symbol>(Rice::Symbol const & x)
-{
-  return x.value();
-}
 
 #include "Symbol.ipp"
 

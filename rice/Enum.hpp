@@ -1,7 +1,6 @@
 #ifndef Rice__Enum__hpp_
 #define Rice__Enum__hpp_
 
-#include "to_from_ruby_defn.hpp"
 #include "Address_Registration_Guard.hpp"
 #include "Array.hpp"
 #include "Hash.hpp"

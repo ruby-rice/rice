@@ -2,6 +2,7 @@
 #define Rice__detail__Exception_Handler_defn__hpp_
 
 #include <memory>
+#include "ruby.hpp"
 
 namespace Rice
 {

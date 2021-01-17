@@ -6,6 +6,7 @@
 
 #include "Identifier.hpp"
 #include "detail/from_ruby_defn.hpp"
+#include "detail/to_ruby_defn.hpp"
 
 #include <iosfwd>
 #include <vector>
@@ -210,6 +211,15 @@ extern Object const Undef;
 
 } // namespace Rice
 
+namespace Rice
+{
+  namespace detail
+  {
+    template <typename T>
+    constexpr bool is_kind_of_object = std::is_base_of_v<Rice::Object, T>;
+  }
+}
+
 template<>
 struct Rice::detail::From_Ruby<Rice::Object>
 {
@@ -219,6 +229,32 @@ struct Rice::detail::From_Ruby<Rice::Object>
   }
 };
 
+template<typename T>
+struct Rice::detail::To_Ruby<T, std::enable_if_t<Rice::detail::is_kind_of_object<T>>>
+{
+  static VALUE convert(Rice::Object const& x)
+  {
+    return x.value();
+  }
+};
+
+template<typename T>
+struct Rice::detail::To_Ruby<T&, std::enable_if_t<Rice::detail::is_kind_of_object<T>>>
+{
+  static VALUE convert(Rice::Object const& x)
+  {
+    return x.value();
+  }
+};
+
+template<typename T>
+struct Rice::detail::To_Ruby<T*, std::enable_if_t<std::is_base_of_v<Rice::Object, T>>>
+{
+  static VALUE convert(Rice::Object const* x)
+  {
+    return x->value();
+  }
+};
 
 #endif // Rice__Object_defn__hpp_
 

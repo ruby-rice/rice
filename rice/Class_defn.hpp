@@ -91,12 +91,5 @@ struct Rice::detail::From_Ruby<Rice::Class>
   }
 };
 
-template<>
-inline
-VALUE to_ruby<Rice::Class>(Rice::Class const & x)
-{
-  return x.value();
-}
-
 #endif // Rice__Class_defn__hpp_
 

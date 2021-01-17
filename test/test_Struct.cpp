@@ -77,9 +77,9 @@ TESTCASE(new_instance_with_args)
   Array args(a);
   Struct s(define_3d_point());
   Struct::Instance p(s.new_instance(args));
-  ASSERT_EQUAL(to_ruby(1), rb_struct_getmember(p, rb_intern("x")));
-  ASSERT_EQUAL(to_ruby(2), rb_struct_getmember(p, rb_intern("y")));
-  ASSERT_EQUAL(to_ruby(3), rb_struct_getmember(p, rb_intern("z")));
+  ASSERT_EQUAL(detail::to_ruby(1), rb_struct_getmember(p, rb_intern("x")));
+  ASSERT_EQUAL(detail::to_ruby(2), rb_struct_getmember(p, rb_intern("y")));
+  ASSERT_EQUAL(detail::to_ruby(3), rb_struct_getmember(p, rb_intern("z")));
 }
 
 TESTCASE(swap)
@@ -121,9 +121,9 @@ TESTCASE(construct_instance)
   Array args(a);
   Struct s(define_3d_point());
   Struct::Instance p(s, args);
-  ASSERT_EQUAL(to_ruby(1), rb_struct_getmember(p, rb_intern("x")));
-  ASSERT_EQUAL(to_ruby(2), rb_struct_getmember(p, rb_intern("y")));
-  ASSERT_EQUAL(to_ruby(3), rb_struct_getmember(p, rb_intern("z")));
+  ASSERT_EQUAL(detail::to_ruby(1), rb_struct_getmember(p, rb_intern("x")));
+  ASSERT_EQUAL(detail::to_ruby(2), rb_struct_getmember(p, rb_intern("y")));
+  ASSERT_EQUAL(detail::to_ruby(3), rb_struct_getmember(p, rb_intern("z")));
 }
 
 TESTCASE(wrap_instance)
@@ -131,9 +131,9 @@ TESTCASE(wrap_instance)
   Struct s(define_3d_point());
   Object o = s.instance_eval("new(1, 2, 3)");
   Struct::Instance p(s, o);
-  ASSERT_EQUAL(to_ruby(1), rb_struct_getmember(p, rb_intern("x")));
-  ASSERT_EQUAL(to_ruby(2), rb_struct_getmember(p, rb_intern("y")));
-  ASSERT_EQUAL(to_ruby(3), rb_struct_getmember(p, rb_intern("z")));
+  ASSERT_EQUAL(detail::to_ruby(1), rb_struct_getmember(p, rb_intern("x")));
+  ASSERT_EQUAL(detail::to_ruby(2), rb_struct_getmember(p, rb_intern("y")));
+  ASSERT_EQUAL(detail::to_ruby(3), rb_struct_getmember(p, rb_intern("z")));
 }
 
 TESTCASE(instance_bracket_identifier)
@@ -142,9 +142,9 @@ TESTCASE(instance_bracket_identifier)
   Array args(a);
   Struct s(define_3d_point());
   Struct::Instance p(s, args);
-  ASSERT_EQUAL(to_ruby(1), p[Identifier("x")].value());
-  ASSERT_EQUAL(to_ruby(2), p[Identifier("y")].value());
-  ASSERT_EQUAL(to_ruby(3), p[Identifier("z")].value());
+  ASSERT_EQUAL(detail::to_ruby(1), p[Identifier("x")].value());
+  ASSERT_EQUAL(detail::to_ruby(2), p[Identifier("y")].value());
+  ASSERT_EQUAL(detail::to_ruby(3), p[Identifier("z")].value());
 }
 
 TESTCASE(instance_bracket_name)
@@ -153,9 +153,9 @@ TESTCASE(instance_bracket_name)
   Array args(a);
   Struct s(define_3d_point());
   Struct::Instance p(s, args);
-  ASSERT_EQUAL(to_ruby(1), p["x"].value());
-  ASSERT_EQUAL(to_ruby(2), p["y"].value());
-  ASSERT_EQUAL(to_ruby(3), p["z"].value());
+  ASSERT_EQUAL(detail::to_ruby(1), p["x"].value());
+  ASSERT_EQUAL(detail::to_ruby(2), p["y"].value());
+  ASSERT_EQUAL(detail::to_ruby(3), p["z"].value());
 }
 
 TESTCASE(instance_bracket_index)
@@ -164,9 +164,9 @@ TESTCASE(instance_bracket_index)
   Array args(a);
   Struct s(define_3d_point());
   Struct::Instance p(s, args);
-  ASSERT_EQUAL(to_ruby(1), p[0].value());
-  ASSERT_EQUAL(to_ruby(2), p[1].value());
-  ASSERT_EQUAL(to_ruby(3), p[2].value());
+  ASSERT_EQUAL(detail::to_ruby(1), p[0].value());
+  ASSERT_EQUAL(detail::to_ruby(2), p[1].value());
+  ASSERT_EQUAL(detail::to_ruby(3), p[2].value());
 }
 
 TESTCASE(instance_swap)
@@ -183,13 +183,13 @@ TESTCASE(instance_swap)
 
   p1.swap(p2);
 
-  ASSERT_EQUAL(to_ruby(4), rb_struct_getmember(p1, rb_intern("x")));
-  ASSERT_EQUAL(to_ruby(5), rb_struct_getmember(p1, rb_intern("y")));
-  ASSERT_EQUAL(to_ruby(6), rb_struct_getmember(p1, rb_intern("z")));
+  ASSERT_EQUAL(detail::to_ruby(4), rb_struct_getmember(p1, rb_intern("x")));
+  ASSERT_EQUAL(detail::to_ruby(5), rb_struct_getmember(p1, rb_intern("y")));
+  ASSERT_EQUAL(detail::to_ruby(6), rb_struct_getmember(p1, rb_intern("z")));
 
-  ASSERT_EQUAL(to_ruby(1), rb_struct_getmember(p2, rb_intern("x")));
-  ASSERT_EQUAL(to_ruby(2), rb_struct_getmember(p2, rb_intern("y")));
-  ASSERT_EQUAL(to_ruby(3), rb_struct_getmember(p2, rb_intern("z")));
+  ASSERT_EQUAL(detail::to_ruby(1), rb_struct_getmember(p2, rb_intern("x")));
+  ASSERT_EQUAL(detail::to_ruby(2), rb_struct_getmember(p2, rb_intern("y")));
+  ASSERT_EQUAL(detail::to_ruby(3), rb_struct_getmember(p2, rb_intern("z")));
 }
 
 /**

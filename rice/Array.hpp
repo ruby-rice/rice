@@ -2,7 +2,6 @@
 #define Rice__Array__hpp_
 
 #include "Builtin_Object.hpp"
-#include "to_from_ruby_defn.hpp"
 #include "detail/ruby.hpp"
 #include <iterator>
 
@@ -202,12 +201,6 @@ struct Rice::detail::From_Ruby<Rice::Array>
     return Rice::Array(value);
   }
 };
-template<>
-inline
-VALUE to_ruby<Rice::Array>(Rice::Array const & x)
-{
-  return x.value();
-}
 
 #include "Array.ipp"
 

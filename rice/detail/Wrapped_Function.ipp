@@ -6,6 +6,7 @@
 
 #include "method_data.hpp"
 #include "../ruby_try_catch.hpp"
+#include "to_ruby_defn.hpp"
 #include "../Data_Object_defn.hpp"
 
 namespace Rice
@@ -128,7 +129,7 @@ invokeNative(NativeTypes& nativeArgs)
   else
   {
     Return_T result = std::apply(this->func_, nativeArgs);
-    return to_ruby(result);
+    return To_Ruby<Return_T>::convert(result);
   }
 }
 

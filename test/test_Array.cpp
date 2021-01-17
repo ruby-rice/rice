@@ -29,9 +29,9 @@ TESTCASE(construct_from_vector_of_int)
   v.push_back(42);
   Array a(v.begin(), v.end());
   ASSERT_EQUAL(3u, a.size());
-  ASSERT(rb_equal(to_ruby(10), a[0].value()));
-  ASSERT(rb_equal(to_ruby(6), a[1].value()));
-  ASSERT(rb_equal(to_ruby(42), a[2].value()));
+  ASSERT(rb_equal(detail::to_ruby(10), a[0].value()));
+  ASSERT(rb_equal(detail::to_ruby(6), a[1].value()));
+  ASSERT(rb_equal(detail::to_ruby(42), a[2].value()));
 }
 
 TESTCASE(construct_from_c_array)
@@ -39,9 +39,9 @@ TESTCASE(construct_from_c_array)
   int arr[] = { 10, 6, 42 };
   Array a(arr);
   ASSERT_EQUAL(3u, a.size());
-  ASSERT(rb_equal(to_ruby(10), a[0].value()));
-  ASSERT(rb_equal(to_ruby(6), a[1].value()));
-  ASSERT(rb_equal(to_ruby(42), a[2].value()));
+  ASSERT(rb_equal(detail::to_ruby(10), a[0].value()));
+  ASSERT(rb_equal(detail::to_ruby(6), a[1].value()));
+  ASSERT(rb_equal(detail::to_ruby(42), a[2].value()));
 }
 
 
@@ -86,7 +86,7 @@ TESTCASE(push_int)
   Array a;
   a.push(42);
   ASSERT_EQUAL(1u, a.size());
-  ASSERT(rb_equal(to_ruby(42), a[0].value()));
+  ASSERT(rb_equal(detail::to_ruby(42), a[0].value()));
 }
 
 TESTCASE(bracket_equals)
@@ -142,7 +142,7 @@ TESTCASE(unshift_int)
   Array a;
   a.unshift(42);
   ASSERT_EQUAL(1u, a.size());
-  ASSERT(rb_equal(to_ruby(42), a[0].value()));
+  ASSERT(rb_equal(detail::to_ruby(42), a[0].value()));
 }
 
 TESTCASE(shift)

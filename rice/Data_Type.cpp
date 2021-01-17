@@ -1,4 +1,5 @@
 #include "Data_Type.hpp"
+#include "Data_Object_defn.hpp"
 
 Rice::Data_Type_Base::Casters * Rice::Data_Type_Base::casters_ = 0;
 

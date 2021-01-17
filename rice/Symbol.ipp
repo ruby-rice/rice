@@ -1,3 +1,5 @@
+#include "protect.hpp"
+
 inline Rice::Symbol::
 Symbol(VALUE v)
   : Object(v)

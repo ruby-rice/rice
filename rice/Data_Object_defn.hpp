@@ -125,15 +125,6 @@ private:
   T * obj_;
 };
 
-namespace detail
-{
-  template<typename T>
-  struct to_ruby_<Data_Object<T> >
-  {
-    static Rice::Object convert(Data_Object<T> const & x);
-  };
-}
-
 } // namespace Rice
 
 #endif // Rice__Data_Object_defn__hpp_
