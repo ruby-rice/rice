@@ -1,12 +1,10 @@
-#include "demangle.hpp"
-
 #ifdef __GNUC__
 #include <cxxabi.h>
 #include <cstdlib>
 #include <cstring>
 #endif
 
-std::string
+inline std::string
 Rice::detail::
 demangle(char const * mangled_name)
 {
@@ -47,8 +45,7 @@ demangle(char const * mangled_name)
 #endif
 }
 
-
-std::string
+inline std::string
 Rice::detail::
 demangle(std::string const & mangled_name)
 {

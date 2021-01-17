@@ -16,4 +16,6 @@ std::string demangle(std::string const & mangled_name);
 
 } // Rice
 
+#include "demangle.ipp"
+
 #endif // Rice__detail__demangle__hpp_
