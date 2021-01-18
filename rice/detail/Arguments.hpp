@@ -4,7 +4,7 @@
 #include <sstream>
 #include <vector>
 
-#include "../Arg_impl.hpp"
+#include "../Arg.ipp"
 #include "from_ruby_defn.hpp"
 
 namespace Rice {
