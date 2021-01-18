@@ -3,7 +3,8 @@
 #undef PACKAGE_STRING
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
-#include "../config.hpp"*/
+#include "../config.hpp"
+*/
 
 #define RICE_ID rb_intern("__rice__")
 
