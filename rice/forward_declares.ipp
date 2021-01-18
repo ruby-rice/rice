@@ -59,4 +59,45 @@ Identifier(Symbol const& symbol)
 {
 }
 
+inline
+Rice::String Rice::Module::
+name() const
+{
+  Object name = rb_mod_name(*this);
+  if (name.is_nil())
+  {
+    // 1.9
+    return String("");
+  }
+  else
+  {
+    return name;
+  }
+}
+
+inline
+Rice::Array
+Rice::Module::
+ancestors() const
+{
+  return protect(rb_mod_ancestors, *this);
+}
+
+inline Rice::Class
+Rice::Module::
+singleton_class() const
+{
+  return CLASS_OF(value());
+}
+
+inline
+Rice::Class
+Rice::Module::
+define_class(
+  char const* name,
+  Object superclass)
+{
+  return Rice::define_class_under(*this, name, superclass);
+}
+
 #endif Rice__Forward_Declares__ipp_

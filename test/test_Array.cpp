@@ -1,6 +1,7 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include "rice/detail/from_ruby.hpp"
+#include "rice/Class.hpp"
 #include "rice/Array.hpp"
 #include "rice/String.hpp"
 #include "rice/Symbol.hpp"

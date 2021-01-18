@@ -15,16 +15,8 @@
 #endif
 
 #include "ruby_version_code.hpp"
-#include "../config.hpp"
 
 #include <ruby.h>
-
-#ifdef WIN32
-#include "win32.hpp"
-#endif
-
-// This causes problems with certain C++ libraries
-#undef TYPE
 
 //! A function that takes a VALUE as a parameter and returns a VALUE.
 // TODO: Casting from a C++ function to an extern "C" function won't
@@ -73,7 +65,6 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 #undef snprintf
 #undef vsnprintf
 #endif
-
 
 #define std_unique_ptr std::unique_ptr
 

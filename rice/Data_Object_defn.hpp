@@ -1,10 +1,10 @@
 #ifndef Rice__Data_Object_defn__hpp_
 #define Rice__Data_Object_defn__hpp_
 
-#include "Object_defn.hpp"
-#include "ruby_mark.hpp"
 #include "detail/to_ruby.hpp"
 #include "detail/ruby.hpp"
+#include "Object_defn.hpp"
+#include "ruby_mark.hpp"
 
 /*! \file
  *  \brief Provides a helper class for wrapping and unwrapping C++
@@ -79,7 +79,7 @@ public:
    */
   Data_Object(
       T * obj,
-      VALUE klass = Data_Type<T>::klass(),
+      VALUE klass = Qnil,
       Ruby_Data_Func mark_func = Default_Mark_Function<T>::mark,
       Ruby_Data_Func free_func = Default_Free_Function<T>::free);
 
@@ -101,7 +101,7 @@ public:
   template<typename U>
   Data_Object(
       Object value,
-      Data_Type<U> const & klass = Data_Type<T>::klass());
+      Data_Type<U> const & klass);
 
   //! Make a copy of a Data_Object
   /*! \param other the Data_Object to copy.

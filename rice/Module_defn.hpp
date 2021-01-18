@@ -7,10 +7,6 @@
 
 namespace Rice
 {
-
-class Class;
-class String;
-
 template<typename T>
 class Data_Type;
 
@@ -44,7 +40,7 @@ public:
   //! Return the module's singleton class.
   /*! You will need to include Class.hpp to use this function.
    */
-  //Class singleton_class() const;
+  Class singleton_class() const;
 
    //! Define a class under this module.
   /*! \param name the name of the class.
@@ -234,9 +230,11 @@ protected:
 
 private:
   template<typename T>
-  Data_Type<T>
-    define_class_with_object_as_base(
-      char const* name);
+  Data_Type<T> define_class_with_object_as_base(char const* name);
+
+  template<typename Fun_T>
+  void define_method_and_auto_wrap(VALUE klass, Identifier name, Fun_T function,
+                                   std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments = 0);
 
   mutable std::shared_ptr<detail::Exception_Handler> handler_ = std::make_shared<Rice::detail::Default_Exception_Handler>();
 };

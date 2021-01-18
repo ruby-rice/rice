@@ -8,6 +8,7 @@
 #include "rice/Array.hpp"
 #include "rice/String.hpp"
 #include "rice/Symbol.hpp"
+#include "rice/forward_declares.ipp"
 #include <iostream>
 
 using namespace Rice;

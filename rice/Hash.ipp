@@ -3,8 +3,7 @@
 
 #include "protect.hpp"
 #include "Exception.hpp"
-#include "Builtin_Object.hpp"
-#include "detail/st.hpp"
+#include "String.hpp"
 #include <algorithm>
 
 inline Rice::Hash::

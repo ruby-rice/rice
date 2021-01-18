@@ -2,6 +2,10 @@
 #include "rice/Constructor.hpp"
 #include "rice/Data_Type.hpp"
 #include "rice/Data_Object.hpp"
+#include "rice/Array.hpp"
+#include "rice/String.hpp"
+#include "rice/Symbol.hpp"
+#include "rice/forward_declares.ipp"
 
 #include "rice/detail/env.hpp"
 

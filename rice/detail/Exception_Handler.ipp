@@ -1,6 +1,3 @@
-#include "../Data_Type_defn.hpp"
-
-
 inline
 VALUE
 Rice::detail::Default_Exception_Handler::

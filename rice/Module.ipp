@@ -1,8 +1,7 @@
 #ifndef Rice__Module__ipp_
 #define Rice__Module__ipp_
 
-#include "detail/define_method_and_auto_wrap.hpp"
-#include "Array.hpp"
+#include "detail/wrap_function.hpp"
 #include "Exception.hpp"
 #include "protect.hpp"
 
@@ -24,22 +23,6 @@ Module(VALUE v)
       rb_eTypeError,
       "Expected a Module but got a %s",
       rb_class2name(CLASS_OF(v))); // TODO: might raise an exception
-  }
-}
-
-inline
-Rice::String Rice::Module::
-name() const
-{
-  Object name = rb_mod_name(*this);
-  if (name.is_nil())
-  {
-    // 1.9
-    return String("");
-  }
-  else
-  {
-    return name;
   }
 }
 
@@ -67,32 +50,6 @@ Rice::Module Rice::
 anonymous_module()
 {
   return Module(protect(rb_module_new));
-}
-
-inline
-Rice::Array
-Rice::Module::
-ancestors() const
-{
-  return protect(rb_mod_ancestors, *this);
-}
-
-// CFIS
-/*Rice::Class
-Rice::Module::
-singleton_class() const
-{
-  return CLASS_OF(value());
-}*/
-
-inline
-Rice::Class
-Rice::Module::
-define_class(
-  char const* name,
-  Object superclass)
-{
-  return Rice::define_class_under(*this, name, superclass);
 }
 
 template<typename Exception_T, typename Functor_T>
@@ -127,6 +84,25 @@ include_module(Rice::Module const& inc)
   return *this;
 }
 
+template<typename Fun_T>
+inline void Rice::Module::define_method_and_auto_wrap(VALUE klass, Identifier name, Fun_T function,
+                                                      std::shared_ptr<detail::Exception_Handler> handler,
+                                                      Arguments* arguments)
+{
+  auto* wrapper = detail::wrap_function(function, handler, arguments);
+  using WrapperType = std::remove_pointer_t<decltype(wrapper)>;
+
+  Data_Object<WrapperType> f(wrapper, rb_cObject);
+
+  Rice::protect(
+    detail::define_method_with_data,
+    klass,
+    name.id(),
+    RUBY_METHOD_FUNC(&WrapperType::call),
+    -1,
+    f);
+}
+
 template<typename Func_T>
 inline
 Rice::Module&
@@ -136,8 +112,7 @@ define_method(
   Func_T func,
   Arguments* arguments)
 {
-  detail::define_method_and_auto_wrap(
-    *this, name, func, this->handler(), arguments);
+  this->define_method_and_auto_wrap(*this, name, func, this->handler(), arguments);
   return *this;
 }
 
@@ -165,8 +140,7 @@ define_singleton_method(
   Func_T func,
   Arguments* arguments)
 {
-  detail::define_method_and_auto_wrap(
-    rb_singleton_class(*this), name, func, this->handler(), arguments);
+  this->define_method_and_auto_wrap(rb_singleton_class(*this), name, func, this->handler(), arguments);
   return *this;
 }
 

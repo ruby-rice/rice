@@ -1,4 +1,4 @@
-#include "detail/define_method_and_auto_wrap.hpp"
+#include "Module.hpp"
 
 template<typename Func_T>
 void Rice::define_global_function(

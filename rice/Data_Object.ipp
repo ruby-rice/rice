@@ -2,6 +2,7 @@
 #define Rice__Data_Object__ipp_
 
 #include "protect.hpp"
+#include "Data_Type_defn.hpp"
 
 #include <algorithm>
 
@@ -68,9 +69,15 @@ Data_Object(
     VALUE klass,
     Ruby_Data_Func mark_func,
     Ruby_Data_Func free_func)
-  : Object(detail::wrap(klass, mark_func, free_func, obj))
-  , obj_(obj)
+  : obj_(obj)
 {
+  if (klass == Qnil)
+  {
+    klass = Data_Type<T>::klass();
+  }
+
+  VALUE value = detail::wrap(klass, mark_func, free_func, obj);
+  this->set_value(value);
 }
 
 template<typename T>
