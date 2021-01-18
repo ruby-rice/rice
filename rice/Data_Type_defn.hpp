@@ -16,6 +16,7 @@ namespace Rice
 
 namespace detail
 {
+  // TODO - forward declaration
   class Abstract_Caster;
 }
 
@@ -205,6 +206,20 @@ public:
   virtual detail::Abstract_Caster * caster() const;
 
   static std_unique_ptr<detail::Abstract_Caster> caster_;
+
+  //! Define an iterator.
+  /*! Essentially this is a conversion from a C++-style begin/end
+   *  iterator to a Ruby-style \#each iterator.
+   *  \param begin a member function pointer to a function that returns
+   *  an iterator to the beginning of the sequence.
+   *  \param end a member function pointer to a function that returns an
+   *  iterator to the end of the sequence.
+   *  \param name the name of the iterator.
+   *  \return *this
+   */
+
+  template<typename U = T, typename Iterator_Return_T>
+  Data_Type<T>& define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name = "each");
 
 protected:
   //! Bind a Data_Type to a VALUE.

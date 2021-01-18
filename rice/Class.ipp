@@ -3,7 +3,6 @@
 
 #include "Exception.hpp"
 #include "Data_Type_defn.hpp"
-#include "detail/Iterator.hpp"
 #include "detail/creation_funcs.hpp"
 
 inline
@@ -64,19 +63,5 @@ anonymous_class(
   VALUE v = Class(rb_cClass).call("new");
   return Class(v);
 }
-
-template<typename T, typename Iterator_T>
-inline
-Rice::Class&
-Rice::Class::
-define_iterator(
-  Iterator_T(T::* begin)(),
-  Iterator_T(T::* end)(),
-  Identifier name)
-{
-  detail::define_iterator(*this, name, begin, end);
-  return *this;
-}
-
 
 #endif // Rice__Class__ipp_

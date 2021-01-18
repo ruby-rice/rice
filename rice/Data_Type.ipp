@@ -1,14 +1,16 @@
 #ifndef Rice__Data_Type__ipp_
 #define Rice__Data_Type__ipp_
 
-#include "Class.hpp"
-#include "String.hpp"
-#include "Data_Object_defn.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "detail/creation_funcs.hpp"
 #include "detail/method_data.hpp"
 #include "detail/Caster.hpp"
 #include "detail/demangle.hpp"
+#include "detail/Iterator.hpp"
+
+#include "Class.hpp"
+#include "String.hpp"
+#include "Data_Object_defn.hpp"
 
 #include <stdexcept>
 #include <typeinfo>
@@ -367,6 +369,27 @@ define_class(
   Class c(define_class(name, base_dt));
   c.undef_creation_funcs();
   return Data_Type<T>::template bind<Base_T>(c);
+}
+
+template<typename T>
+template<typename U, typename Iterator_Return_T>
+inline Rice::Data_Type<T>& Rice::Data_Type<T>::
+define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name)
+{
+  using Iterator_T = detail::Iterator<U, Iterator_Return_T>;
+  Iterator_T* iterator = new Iterator_T(begin, end);
+
+  Data_Type<Iterator_T> iterator_klass;
+  Data_Object<Iterator_T> iteratorWrapper(iterator, iterator_klass);
+
+  detail::define_method_with_data(
+    Data_Type<T>::klass(),
+    name,
+    (RUBY_METHOD_FUNC)iterator->call,
+    0,
+    iteratorWrapper);
+
+  return *this;
 }
 
 template<typename From_T, typename To_T>

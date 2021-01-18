@@ -289,11 +289,6 @@ public:
   {
   }
 
-  // Custom names to make sure we call the function pointers rather than
-  // expectable default names.
-  int * beginFoo() { return array_; }
-  int * endBar() { return array_ + length_; }
-
 private:
   int * array_;
   size_t length_;
@@ -307,27 +302,6 @@ Container * detail::From_Ruby<Container *>::convert(VALUE x)
   Container * retval;
   Data_Get_Struct(x, Container, retval);
   return retval;
-}
-
-#include "rice/detail/Iterator.hpp"
-
-TESTCASE(define_iterator)
-{
-  int array[] = { 1, 2, 3 };
-  Class c(anonymous_class());
-  // CFIS
-  //c.define_iterator(&Container::beginFoo, &Container::endBar);
-
-  detail::define_iterator(c, "each", &Container::beginFoo, &Container::endBar);
-
-  Container * container = new Container(array, 3);
-  Object wrapped_container = Data_Wrap_Struct(
-      c, 0, Default_Free_Function<Container>::free, container);
-  Array a = wrapped_container.instance_eval("a = []; each() { |x| a << x }; a");
-  ASSERT_EQUAL(3u, a.size());
-  ASSERT_EQUAL(detail::to_ruby(1), Object(a[0]).value());
-  ASSERT_EQUAL(detail::to_ruby(2), Object(a[1]).value());
-  ASSERT_EQUAL(detail::to_ruby(3), Object(a[2]).value());
 }
 
 TESTCASE(define_class)

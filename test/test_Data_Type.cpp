@@ -279,6 +279,47 @@ TESTCASE(supports_multiple_implicit_conversions_for_a_type)
   ASSERT_EQUAL(75.0, detail::From_Ruby<float>::convert(result.value()));
 }
 
+namespace
+{
+
+  class Container
+  {
+  public:
+    Container(int* array, size_t length)
+      : array_(array)
+      , length_(length)
+    {
+    }
+
+    // Custom names to make sure we call the function pointers rather than
+    // expectable default names.
+    int* beginFoo() { return array_; }
+    int* endBar() { return array_ + length_; }
+
+  private:
+    int* array_;
+    size_t length_;
+  };
+} // namespace
+
+TESTCASE(define_iterator)
+{
+  define_class<Container>("Container")
+    .define_constructor(Constructor<Container, int*, size_t>())
+    .define_iterator(&Container::beginFoo, &Container::endBar);
+
+  int array[] = { 1, 2, 3 };
+  Container* container = new Container(array, 3);
+
+  Object wrapped_container = Data_Object<Container>(container);
+
+  Array a = wrapped_container.instance_eval("a = []; each() { |x| a << x }; a");
+  ASSERT_EQUAL(3u, a.size());
+  ASSERT_EQUAL(detail::to_ruby(1), Object(a[0]).value());
+  ASSERT_EQUAL(detail::to_ruby(2), Object(a[1]).value());
+  ASSERT_EQUAL(detail::to_ruby(3), Object(a[2]).value());
+}
+
 /**
  * Sample taken and modified from boost::python::implicit:
  * http://www.boost.org/doc/libs/1_41_0/libs/python/doc/v2/implicit.html

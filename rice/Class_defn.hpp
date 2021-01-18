@@ -33,23 +33,6 @@ public:
    */
   Class & undef_creation_funcs();
 
-  //! Define an iterator.
-  /*! Essentially this is a conversion from a C++-style begin/end
-   *  iterator to a Ruby-style \#each iterator.
-   *  \param begin a member function pointer to a function that returns
-   *  an iterator to the beginning of the sequence.
-   *  \param end a member function pointer to a function that returns an
-   *  iterator to the end of the sequence.
-   *  \param name the name of the iterator.
-   *  \return *this
-   */
-
-  template<typename T, typename Iterator_T>
-  Class & define_iterator(
-    Iterator_T(T::* begin)(),
-    Iterator_T(T::* end)(),
-    Identifier name = "each");
-
   #include "Module_Impl_override.hpp"
 };
 
