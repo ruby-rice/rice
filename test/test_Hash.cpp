@@ -2,6 +2,8 @@
 #include "embed_ruby.hpp"
 #include "rice/Hash.hpp"
 #include "rice/global_function.hpp"
+#include "rice/Data_Object.hpp"
+
 #include <vector>
 #include <map>
 #include <algorithm>

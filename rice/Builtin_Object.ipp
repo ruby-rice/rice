@@ -3,7 +3,6 @@
 
 #include "Object.hpp"
 #include "protect.hpp"
-#include "detail/check_ruby_type.hpp"
 
 #include <algorithm>
 

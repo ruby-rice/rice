@@ -1,6 +1,7 @@
 #include "unittest.hpp"
 #include "rice/Constructor.hpp"
 #include "rice/Data_Type.hpp"
+#include "rice/Data_Object.hpp"
 
 #include "rice/detail/env.hpp"
 

@@ -120,6 +120,7 @@ public:
 
 private:
   static void check_cpp_type(Data_Type<T> const & klass);
+  static void check_ruby_type(VALUE value, VALUE klass, bool include_super);
 
 private:
   T * obj_;

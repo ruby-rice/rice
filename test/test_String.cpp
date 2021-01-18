@@ -2,6 +2,7 @@
 #include "embed_ruby.hpp"
 #include "rice/String.hpp"
 #include "rice/global_function.hpp"
+#include "rice/Data_Object.hpp"
 
 using namespace Rice;
 
