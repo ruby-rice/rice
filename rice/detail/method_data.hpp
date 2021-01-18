@@ -18,4 +18,6 @@ VALUE method_data();
 
 } // namespace Rice
 
+#include "method_data.ipp"
+
 #endif // Rice__detail__method_data__hpp

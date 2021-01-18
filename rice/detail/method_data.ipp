@@ -1,16 +1,13 @@
-#include "method_data.hpp"
-#include "ruby.hpp"
-
 // TODO: This is silly, autoconf...
-#undef PACKAGE_NAME
+/*#undef PACKAGE_NAME
 #undef PACKAGE_STRING
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
-#include "../config.hpp"
+#include "../config.hpp"*/
 
 #define RICE_ID rb_intern("__rice__")
 
-VALUE
+inline VALUE
 Rice::detail::
 method_data()
 {
@@ -62,7 +59,7 @@ method_data()
 // of the class. The data item is then used to determine how to convert
 // arguments and return type, how to handle exceptions, etc.
 //
-VALUE
+inline VALUE
 Rice::detail::
 define_method_with_data(
     VALUE klass, ID id, VALUE (*cfunc)(ANYARGS), int arity, VALUE data)
@@ -89,4 +86,3 @@ define_method_with_data(
 
   return Qnil;
 }
-
