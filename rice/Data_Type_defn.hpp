@@ -29,20 +29,21 @@ public:
   using Casters = std::map<VALUE, detail::Abstract_Caster*>;
 
   //! Default constructor.
-  Data_Type_Base();
+  Data_Type_Base() = default;
 
   //! Constructor.
   Data_Type_Base(VALUE v);
 
   //! Destructor.
-  virtual ~Data_Type_Base() = 0;
+  virtual ~Data_Type_Base() = default;
 
   virtual detail::Abstract_Caster * caster() const = 0;
 
   static Casters & casters();
 
 private:
-  static Casters * casters_;
+  inline static Casters * casters_ = nullptr;
+
 };
 
 //! Define a new data class in the namespace given by module.

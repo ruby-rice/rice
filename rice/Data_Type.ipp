@@ -19,6 +19,45 @@ VALUE Rice::Data_Type<T>::klass_ = Qnil;
 template<typename T>
 std_unique_ptr<Rice::detail::Abstract_Caster> Rice::Data_Type<T>::caster_;
 
+inline Rice::Data_Type_Base::
+Data_Type_Base(VALUE v)
+  : Class(v)
+{
+}
+
+inline Rice::Data_Type_Base::Casters&
+Rice::Data_Type_Base::
+casters()
+{
+  // Initialize the casters_ if it is null
+  if (!casters_)
+  {
+    // First, see if it has been previously registered with the
+    // interpreter (possibly by another extension)
+    Class object(rb_cObject);
+    Object casters_object(object.attr_get("__rice_casters__"));
+
+    if (casters_object.is_nil())
+    {
+      // If it is unset, then set it for the first time
+      Data_Object<Casters> casters(
+        new Casters,
+        rb_cObject);
+      object.iv_set("__rice_casters__", casters);
+      casters_ = casters.get();
+    }
+    else
+    {
+      // If it is set, then use the existing value
+      Data_Object<Casters> casters(
+        casters_object);
+      casters_ = casters.get();
+    }
+  }
+
+  return *casters_;
+}
+
 template<typename T>
 template<typename Base_T>
 inline Rice::Data_Type<T> Rice::Data_Type<T>::
