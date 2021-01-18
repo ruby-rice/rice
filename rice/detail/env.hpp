@@ -8,4 +8,4 @@
 
 #include "ruby_version_code.hpp"
 
-#endif
+#endif // Rice__detail__env__hpp_
