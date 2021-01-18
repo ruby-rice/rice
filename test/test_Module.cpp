@@ -4,6 +4,7 @@
 #include "rice/Exception.hpp"
 #include "rice/Array.hpp"
 #include "rice/Arg.hpp"
+#include "rice/Symbol.hpp"
 #include "rice/global_function.hpp"
 #include "rice/Constructor.hpp"
 #include "rice/forward_declares.ipp"

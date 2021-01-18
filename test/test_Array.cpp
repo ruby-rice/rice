@@ -3,6 +3,7 @@
 #include "rice/detail/from_ruby.hpp"
 #include "rice/Array.hpp"
 #include "rice/String.hpp"
+#include "rice/Symbol.hpp"
 #include "rice/global_function.hpp"
 #include "rice/forward_declares.ipp"
 

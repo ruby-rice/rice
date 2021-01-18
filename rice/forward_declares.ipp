@@ -53,4 +53,10 @@ operator<<(std::ostream& out, Rice::Object const& obj)
   return out;
 }
 
+inline Rice::Identifier::
+Identifier(Symbol const& symbol)
+  : id_(SYM2ID(symbol.value()))
+{
+}
+
 #endif Rice__Forward_Declares__ipp_
