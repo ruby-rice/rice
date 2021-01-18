@@ -45,12 +45,6 @@ public:
   //! Destructor
   virtual ~Exception() noexcept = default;
 
-  //! Get the message the exception holds
-  /*! \return the result of calling message() on the underlying
-   *  exception object.
-   */
-  const std::string message() const;
-
   //! Get message as a char const *.
   /*! If message is a non-string object, then this function will attempt
    *  to throw an exception (which it can't do because of the no-throw
@@ -66,10 +60,9 @@ public:
   VALUE value() const;
 
 private:
-  std::string message_;
-  // Assume there is no need to mark a Ruby exception class like rb_eStandardError
-  VALUE exceptionClass_ = Qnil;
+  // TODO: Do we need to tell the Ruby gc about an exception instance?
   mutable VALUE exception_ = Qnil;
+  mutable std::string message_;
 };
 
 } // namespace Rice

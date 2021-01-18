@@ -50,7 +50,7 @@ TESTCASE(add_handler)
   Object exc = m.instance_eval("begin; foo; rescue Exception; $!; end");
   ASSERT_EQUAL(rb_eRuntimeError, CLASS_OF(exc));
   Exception ex(exc);
-  ASSERT_EQUAL(String("SILLY"), String(ex.message()));
+  ASSERT_EQUAL(String("SILLY"), String(ex.what()));
 }
 
 namespace

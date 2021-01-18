@@ -281,7 +281,7 @@ TESTCASE(add_handler)
   Object exc = protect(rb_eval_string, "begin; foo; rescue Exception; $!; end");
   ASSERT_EQUAL(rb_eRuntimeError, CLASS_OF(exc));
   Exception ex(exc);
-  ASSERT_EQUAL(String("SILLY"), String(ex.message()));
+  ASSERT_EQUAL("SILLY", ex.what());
 }
 
 namespace

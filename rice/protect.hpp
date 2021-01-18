@@ -6,6 +6,7 @@
 
 #include "detail/Ruby_Function.hpp"
 #include "detail/protect.hpp"
+#include "detail/protect.ipp"
 
 namespace Rice
 {

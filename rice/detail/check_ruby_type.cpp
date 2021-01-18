@@ -1,4 +1,6 @@
 #include "check_ruby_type.hpp"
+#include "protect.hpp"
+// TODO - don't like pulling in Rice headers
 #include "../Exception.hpp"
 
 void Rice::detail::

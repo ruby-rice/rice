@@ -1,10 +1,10 @@
 #ifndef Rice__ruby_try_catch__hpp_
 #define Rice__ruby_try_catch__hpp_
 
-#include "Exception_defn.hpp"
-#include "Jump_Tag.hpp"
-#include "detail/ruby.hpp"
 #include <stdexcept>
+
+#include "detail/Jump_Tag.hpp"
+#include "Exception_defn.hpp"
 
 /*! \def RUBY_TRY
  *  \brief Start a block to catch Ruby exceptions and rethrow them.

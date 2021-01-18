@@ -1,5 +1,5 @@
-#ifndef Rice__Jump_Tag__hpp_
-#define Rice__Jump_Tag__hpp_
+#ifndef Rice__detail__Jump_Tag__hpp_
+#define Rice__detail__Jump_Tag__hpp_
 
 namespace Rice
 {
@@ -20,5 +20,5 @@ struct Jump_Tag
 
 } // namespace Rice
 
-#endif // Rice__Jump_Tag__hpp_
+#endif // Rice__detail__Jump_Tag__hpp_
 

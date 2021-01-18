@@ -2,7 +2,6 @@
 #include "embed_ruby.hpp"
 #include "rice/Exception.hpp"
 #include "rice/Class.hpp"
-#include "rice/String.hpp"
 
 using namespace Rice;
 
@@ -37,7 +36,7 @@ TESTCASE(construct_from_format_string)
 TESTCASE(message)
 {
   Exception ex(rb_eRuntimeError, "%s", "foo");
-  ASSERT_EQUAL("foo", ex.message());
+  ASSERT_EQUAL("foo", ex.what());
 }
 
 TESTCASE(what)
