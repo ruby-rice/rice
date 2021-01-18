@@ -2,7 +2,6 @@
 #define Rice__detail__Iterator__hpp_
 
 #include "method_data.hpp"
-#include "ruby.hpp"
 #include "../protect.hpp"
 #include "../Data_Object.hpp"
 #include "../Identifier.hpp"

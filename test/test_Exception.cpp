@@ -1,7 +1,6 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include "rice/Exception.hpp"
-#include "rice/Class.hpp"
+#include "rice/rice.hpp"
 
 using namespace Rice;
 

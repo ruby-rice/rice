@@ -1,7 +1,6 @@
 #ifndef Rice__Identifier__hpp_
 #define Rice__Identifier__hpp_
 
-#include "detail/ruby.hpp"
 #include <string>
 
 namespace Rice

@@ -1,10 +1,7 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include "rice/detail/to_ruby.hpp"
-#include "rice/Data_Type_defn.hpp"
-#include "rice/String.hpp"
-#include "rice/Array.hpp"
-#include "rice/Hash.hpp"
+#include "rice/rice.hpp"
+
 #include <limits>
 #include <cmath>
 

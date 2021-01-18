@@ -1,11 +1,9 @@
 #ifndef Rice__ruby_struct__hpp_
 #define Rice__ruby_struct__hpp_
 
+#include "Class.hpp"
 #include "Array.hpp"
 #include "Hash.hpp"
-#include "Module.hpp"
-#include "Class.hpp"
-#include "Builtin_Object.hpp"
 #include "Address_Registration_Guard.hpp"
 
 namespace Rice

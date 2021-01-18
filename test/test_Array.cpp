@@ -1,12 +1,6 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include "rice/detail/from_ruby.hpp"
-#include "rice/Class.hpp"
-#include "rice/Array.hpp"
-#include "rice/String.hpp"
-#include "rice/Symbol.hpp"
-#include "rice/global_function.hpp"
-#include "rice/forward_declares.ipp"
+#include "rice/rice.hpp"
 
 using namespace Rice;
 
