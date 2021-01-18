@@ -5,6 +5,7 @@
 #include "rice/String.hpp"
 #include "rice/Constructor.hpp"
 #include "rice/global_function.hpp"
+#include "rice/forward_declares.ipp"
 #include <iostream>
 
 using namespace Rice;

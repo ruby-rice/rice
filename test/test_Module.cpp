@@ -6,6 +6,7 @@
 #include "rice/Arg.hpp"
 #include "rice/global_function.hpp"
 #include "rice/Constructor.hpp"
+#include "rice/forward_declares.ipp"
 
 using namespace Rice;
 

@@ -4,6 +4,7 @@
 #include "rice/Array.hpp"
 #include "rice/String.hpp"
 #include "rice/global_function.hpp"
+#include "rice/forward_declares.ipp"
 
 using namespace Rice;
 
