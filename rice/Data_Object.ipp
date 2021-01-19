@@ -71,11 +71,6 @@ Data_Object(
     Ruby_Data_Func free_func)
   : obj_(obj)
 {
-  if (klass == Qnil)
-  {
-    klass = Data_Type<T>::klass();
-  }
-
   VALUE value = detail::wrap(klass, mark_func, free_func, obj);
   this->set_value(value);
 }

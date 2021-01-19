@@ -79,7 +79,7 @@ public:
    */
   Data_Object(
       T * obj,
-      VALUE klass = Qnil,
+      VALUE klass = Data_Type<T>::klass(),
       Ruby_Data_Func mark_func = Default_Mark_Function<T>::mark,
       Ruby_Data_Func free_func = Default_Free_Function<T>::free);
 
