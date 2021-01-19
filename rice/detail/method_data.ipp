@@ -36,23 +36,10 @@ method_data()
 // back to the C-API underneath again.
 #undef rb_define_method_id
 
-// Define a method and attach data to it.
-// The method looks to ruby like a normal aliased CFUNC, with a modified
-// origin class.
-//
-// How this works:
-//
-// To store method data and have it registered with the GC, we need a
-// "slot" to put it in.  This "slot" must be recognized and marked by
-// the garbage collector.  There happens to be such a place we can put
-// data, and it has to do with aliased methods.  When Ruby creates an
-// alias for a method, it stores a reference to the original class in
-// the method entry.  The form of the method entry differs from ruby
-// version to ruby version, but the concept is the same across all of
-// them.
-// 
-// In Rice, we make use of this by attach the data to a dummy object 
-// (store) in the class variables table.
+// Define a method and attach metadata about the method to its owning class.
+// This is done by wrapping data in a VALUE (via Data_Object) and then
+// adding it as a hidden ivar to a storage object (an instance of a Ruby
+// object) that is itself added as a hidden ivar to the method's class.
 // 
 // When Ruby makes a method call, it stores the class Object and method
 // ID in the current stack frame.  When Ruby calls into Rice, we grab
@@ -67,7 +54,8 @@ define_method_with_data(
 {
   VALUE store = rb_attr_get(klass, RICE_ID);
 
-  if (store == Qnil) {
+  if (store == Qnil)
+  {
     store = rb_obj_alloc(rb_cObject);
     // store is stored in the instance variables table with
     // name "__rice__".
