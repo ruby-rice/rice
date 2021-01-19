@@ -17,8 +17,8 @@ namespace Rice
     inline VALUE Iterator<T, Iterator_Return_T>::
       call(VALUE self)
     {
-      VALUE data = detail::method_data();
-      Data_Object<Iterator> iterator(data, Data_Type<Iterator>());
+      using Iterator_T = Iterator<T, Iterator_Return_T>;
+      Iterator_T* iterator = std::any_cast<Iterator_T*>(detail::MethodData::data());
       return iterator->operator()(self);
     }
 

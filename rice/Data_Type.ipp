@@ -378,16 +378,7 @@ define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), 
 {
   using Iterator_T = detail::Iterator<U, Iterator_Return_T>;
   Iterator_T* iterator = new Iterator_T(begin, end);
-
-  Data_Type<Iterator_T> iterator_klass;
-  Data_Object<Iterator_T> iteratorWrapper(iterator, iterator_klass);
-
-  detail::define_method_with_data(
-    Data_Type<T>::klass(),
-    name,
-    (RUBY_METHOD_FUNC)iterator->call,
-    0,
-    iteratorWrapper);
+  detail::MethodData::define_method(Data_Type<T>::klass(), name, (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
 
   return *this;
 }

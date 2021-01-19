@@ -128,17 +128,12 @@ inline void Rice::Module::define_method_and_auto_wrap(VALUE klass, Identifier na
   Arguments* arguments)
 {
   auto* wrapper = detail::wrap_function(function, handler, arguments);
-  using WrapperType = std::remove_pointer_t<decltype(wrapper)>;
+  using Wrapper_T = typename std::remove_pointer_t<decltype(wrapper)>;
 
-  Data_Object<WrapperType> f(wrapper, rb_cObject);
-
-  Rice::protect(
-    detail::define_method_with_data,
-    klass,
-    name.id(),
-    RUBY_METHOD_FUNC(&WrapperType::call),
-    -1,
-    f);
+  Rice::protect(detail::MethodData::define_method, klass, name.id(),
+                RUBY_METHOD_FUNC(&Wrapper_T::call),
+    -1, 
+    wrapper);
 }
 
 #endif // Rice__Forward_Declares__ipp_

@@ -8,7 +8,6 @@
 #include "../ruby_try_catch.hpp"
 #include "to_ruby_defn.hpp"
 #include "../Class_defn.hpp"
-#include "../Data_Object_defn.hpp"
 
 namespace Rice
 {
@@ -20,10 +19,10 @@ template<typename Function_T, typename Return_T, typename Receiver_T, typename..
 VALUE Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
 call(int argc, VALUE* argv, VALUE self)
 {
-  using WrapperType = Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>;
+  using Wrapper_T = Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>;
 
-  Data_Object<WrapperType> data(detail::method_data());
-  WrapperType* wrapper = (WrapperType*)data.get();
+  std::any foo = detail::MethodData::data();
+  Wrapper_T* wrapper = std::any_cast<Wrapper_T*>(foo);
   return wrapper->operator()(argc, argv, self);
 }
 

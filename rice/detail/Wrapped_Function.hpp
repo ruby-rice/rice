@@ -70,4 +70,5 @@ private:
 
 } // Rice
 
+
 #endif // Rice__detail__Wrapped_Function__hpp_

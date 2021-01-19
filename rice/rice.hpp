@@ -19,6 +19,8 @@
 #include "detail/protect.hpp"
 #include "detail/to_ruby.hpp"
 #include "detail/Ruby_Function.hpp"
+#include "detail/Wrapped_Function.hpp"
+#include "detail/wrap_Function.hpp"
 
 #include "Arg_operators.hpp"
 #include "Exception.hpp"
@@ -30,9 +32,6 @@
 #include "Identifier.hpp"
 
 #include "Object.hpp"
-
-#include "detail/Wrapped_Function.hpp"
-#include "detail/wrap_Function.hpp"
 
 #include "Builtin_Object.hpp"
 #include "String.hpp"
