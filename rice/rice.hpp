@@ -7,6 +7,7 @@
 
 #include "Arg.hpp"
 #include "detail/Arguments.hpp"
+#include "detail/creation_funcs.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "detail/demangle.hpp"
 #include "detail/env.hpp"
@@ -23,6 +24,9 @@
 #include "Exception.hpp"
 #include "protect.hpp"
 
+#include "ruby_mark.hpp"
+#include "ruby_try_catch.hpp"
+
 #include "Identifier.hpp"
 
 #include "Object.hpp"
@@ -34,7 +38,6 @@
 #include "String.hpp"
 #include "Array.hpp"
 #include "Hash.hpp"
-#include "String.hpp"
 #include "Symbol.hpp"
 
 #include "Address_Registration_Guard.hpp"
@@ -46,15 +49,22 @@
 
 #include "detail/creation_funcs.hpp"
 
+#include "detail/Iterator.hpp"
 #include "Constructor.hpp"
 #include "Director.hpp"
-#include "Data_Type.hpp"
+#include "Data_Type_defn.hpp"
 #include "Data_Object.hpp"
-#include "detail/Iterator.hpp"
+#include "Data_Type.ipp"
+
+// Dependent on Data_Object due to the way method metadata is stored in the Ruby class
+#include "detail/default_allocation_func.ipp"
+#include "detail/Iterator.ipp"
+#include "detail/Wrapped_Function.ipp"
 
 #include "Enum.hpp"
 #include "Struct.hpp"
 
+// Dependent on Module, Class, Array and String
 #include "forward_declares.ipp"
 
 #endif // Rice__hpp_

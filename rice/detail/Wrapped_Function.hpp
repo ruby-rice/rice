@@ -70,6 +70,4 @@ private:
 
 } // Rice
 
-#include "Wrapped_Function.ipp"
-
 #endif // Rice__detail__Wrapped_Function__hpp_

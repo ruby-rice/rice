@@ -17,7 +17,5 @@ VALUE default_allocation_func(VALUE klass);
 
 } // Rice
 
-#include "default_allocation_func.ipp"
-
 #endif // Rice__detail__default_allocation_func__hpp_
 

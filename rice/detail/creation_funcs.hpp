@@ -13,19 +13,19 @@ namespace detail
 //! "initialize" method too.
 template<typename Initialize_Func_T>
 void define_creation_funcs(
-    Class const & klass,
+    VALUE const & klass,
     RUBY_VALUE_FUNC allocate_func,
     Initialize_Func_T initialize_func);
 
 //! This is just the opposite of define_alloc_func.  It can be
 //! used to create a class that cannot be instantiated by the user.
 void undef_alloc_func(
-    Class const & klass);
+    VALUE const & klass);
 
 //! This is just the opposite of define_creation_func.  It can be
 //! used to create a class that cannot be instantiated by the user.
 void undef_creation_funcs(
-    Class const & klass);
+    VALUE const & klass);
 
 } // namespace detail
 

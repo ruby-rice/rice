@@ -3,7 +3,6 @@
 
 #include "detail/method_data.hpp"
 #include "protect.hpp"
-#include "Data_Object.hpp"
 #include "Identifier.hpp"
 
 namespace Rice
@@ -29,8 +28,6 @@ namespace Rice
 
   } // detail
 } // Rice
-
-#include "Iterator.ipp"
 
 #endif // Rice_Iterator__hpp_
 

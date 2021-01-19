@@ -9,7 +9,7 @@ namespace detail
 
 template<typename Initialize_Func_T>
 inline void define_creation_funcs(
-    Class const & klass,
+    VALUE const & klass,
     RUBY_VALUE_FUNC allocate_func,
     Initialize_Func_T initialize_func)
 {
@@ -17,12 +17,12 @@ inline void define_creation_funcs(
   klass.define_method("initialize", initialize_func);
 }
 
-inline void undef_alloc_func(Class const & klass)
+inline void undef_alloc_func(VALUE const & klass)
 {
   rb_undef_alloc_func(klass);
 }
 
-inline void undef_creation_funcs(Class const & klass)
+inline void undef_creation_funcs(VALUE const & klass)
 {
   undef_alloc_func(klass);
   rb_undef_method(klass, "initialize");

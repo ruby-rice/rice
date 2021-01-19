@@ -84,25 +84,6 @@ include_module(Rice::Module const& inc)
   return *this;
 }
 
-template<typename Fun_T>
-inline void Rice::Module::define_method_and_auto_wrap(VALUE klass, Identifier name, Fun_T function,
-                                                      std::shared_ptr<detail::Exception_Handler> handler,
-                                                      Arguments* arguments)
-{
-  auto* wrapper = detail::wrap_function(function, handler, arguments);
-  using WrapperType = std::remove_pointer_t<decltype(wrapper)>;
-
-  Data_Object<WrapperType> f(wrapper, rb_cObject);
-
-  Rice::protect(
-    detail::define_method_with_data,
-    klass,
-    name.id(),
-    RUBY_METHOD_FUNC(&WrapperType::call),
-    -1,
-    f);
-}
-
 template<typename Func_T>
 inline
 Rice::Module&
@@ -254,28 +235,5 @@ define_class(
 {
   return this->define_class_with_object_as_base<T>(name);
 }
-
-template<typename T>
-inline
-Rice::Data_Type<T>
-Rice::Module::
-define_class_with_object_as_base(
-  char const* name)
-{
-  return Rice::define_class_under<T>(*this, name);
-}
-
-template<typename T, typename T_Base_T>
-inline
-Rice::Data_Type<T>
-Rice::Module::
-define_class(
-  char const* name)
-{
-  return Rice::define_class_under<T, T_Base_T>(
-    *this,
-    name);
-}
-
 
 #endif // Rice__Module__ipp_

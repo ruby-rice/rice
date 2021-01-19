@@ -1,17 +1,16 @@
 #ifndef Rice__detail__wrap_function__hpp_
 #define Rice__detail__wrap_function__hpp_
 
-// This causes problems with certain C++ libraries
-#undef TYPE
-
 #include "Exception_Handler.hpp"
 #include "Wrapped_Function.hpp"
-#include "../Object_defn.hpp"
-#include "../Data_Object.hpp"
 #include "Arguments.hpp"
 
 namespace Rice
 {
+
+// TODO - forward declarations
+class Class;
+class Object;
 
 namespace detail
 {
