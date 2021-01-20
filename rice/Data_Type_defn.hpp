@@ -205,7 +205,7 @@ public:
 
   virtual detail::Abstract_Caster * caster() const;
 
-  static std_unique_ptr<detail::Abstract_Caster> caster_;
+  static std::unique_ptr<detail::Abstract_Caster> caster_;
 
   //! Define an iterator.
   /*! Essentially this is a conversion from a C++-style begin/end
