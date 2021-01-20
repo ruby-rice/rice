@@ -36,7 +36,7 @@ casters()
   {
     // First, see if it has been previously registered with the
     // interpreter (possibly by another extension)
-    Class object(rb_cObject);
+    Class object(rb_cData);
     Object casters_object(object.attr_get("__rice_casters__"));
 
     if (casters_object.is_nil())
@@ -44,7 +44,7 @@ casters()
       // If it is unset, then set it for the first time
       Data_Object<Casters> casters(
         new Casters,
-        rb_cObject);
+        rb_cData);
       object.iv_set("__rice_casters__", casters);
       casters_ = casters.get();
     }
@@ -109,7 +109,7 @@ template<typename T>
 inline Rice::Data_Type<T>::
 Data_Type()
   : Data_Type_Base(
-      klass_ == Qnil ? rb_cObject : klass_)
+      klass_ == Qnil ? rb_cData : klass_)
 {
   if(!is_bound())
   {
@@ -333,7 +333,7 @@ define_class_under(
     Object module,
     char const * name)
 {
-  Class c(define_class_under(module, name, rb_cObject));
+  Class c(define_class_under(module, name, rb_cData));
   c.undef_creation_funcs();
   return Data_Type<T>::template bind<void>(c);
 }
@@ -355,7 +355,7 @@ inline Rice::Data_Type<T> Rice::
 define_class(
     char const * name)
 {
-  Class c(define_class(name, rb_cObject));
+  Class c(define_class(name, rb_cData));
   c.undef_creation_funcs();
   return Data_Type<T>::template bind<void>(c);
 }
