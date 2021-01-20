@@ -19,6 +19,26 @@ namespace
       .define_value("GREEN", GREEN);
     return colors;
   }
+  
+  enum class Season { Spring, Summer, Fall, Winter };
+
+  // This is needed to make unittest compile (it uses ostream to report errors)
+  inline std::ostream& operator<<(std::ostream& os, const Season& season)
+  {
+    os << static_cast<std::underlying_type<Season>::type>(season);
+    return os;
+  }
+
+  Enum<Season> define_season_enum()
+  {
+    static Enum<Season> seasons = define_enum<Season>("Season")
+      .define_value("Spring", Season::Spring)
+      .define_value("Summer", Season::Summer)
+      .define_value("Fall", Season::Fall)
+      .define_value("Winter", Season::Winter);
+
+    return seasons;
+  }
 }
 
 SETUP(Enum)
@@ -47,6 +67,17 @@ TESTCASE(each)
   ASSERT_EQUAL(RED, detail::From_Ruby<Color>::convert(a[0].value()));
   ASSERT_EQUAL(BLACK, detail::From_Ruby<Color>::convert(a[1].value()));
   ASSERT_EQUAL(GREEN, detail::From_Ruby<Color>::convert(a[2].value()));
+}
+
+TESTCASE(each_seasons)
+{
+  Enum<Season> rb_cSeason = define_season_enum();
+  Array a = protect(rb_eval_string, "a = []; Season.each { |x| a << x }; a");
+  ASSERT_EQUAL(4u, a.size());
+  ASSERT_EQUAL(Season::Spring, detail::From_Ruby<Season>::convert(a[0].value()));
+  ASSERT_EQUAL(Season::Summer, detail::From_Ruby<Season>::convert(a[1].value()));
+  ASSERT_EQUAL(Season::Fall, detail::From_Ruby<Season>::convert(a[2].value()));
+  ASSERT_EQUAL(Season::Winter, detail::From_Ruby<Season>::convert(a[3].value()));
 }
 
 TESTCASE(to_s)
