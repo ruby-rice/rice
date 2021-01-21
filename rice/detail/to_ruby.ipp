@@ -90,6 +90,24 @@ namespace Rice
     };
 
     template<>
+    struct To_Ruby<float>
+    {
+      static VALUE convert(float const& x)
+      {
+        return rb_float_new(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<double>
+    {
+      static VALUE convert(double const& x)
+      {
+        return rb_float_new(x);
+      }
+    };
+
+    template<>
     struct To_Ruby<bool>
     {
       static VALUE convert(bool const& x)
@@ -117,27 +135,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<float>
+    struct To_Ruby<const char*>
     {
-      static VALUE convert(float const& x)
-      {
-        return rb_float_new(x);
-      }
-    };
-
-    template<>
-    struct To_Ruby<double>
-    {
-      static VALUE convert(double const& x)
-      {
-        return rb_float_new(x);
-      }
-    };
-
-    template<>
-    struct To_Ruby<char const*>
-    {
-      static VALUE convert(char const* const& x)
+      static VALUE convert(const char* x)
       {
         return rb_str_new2(x);
       }
