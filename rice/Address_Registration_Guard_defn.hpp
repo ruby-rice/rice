@@ -48,15 +48,16 @@ public:
    */
   ~Address_Registration_Guard();
 
-  // Don't allow copying or assignment
-  Address_Registration_Guard(Address_Registration_Guard const&) = delete;
-  Address_Registration_Guard& operator=(Address_Registration_Guard const&) = delete;
+  // Disable copying
+  Address_Registration_Guard(Address_Registration_Guard const& other) = delete;
+  Address_Registration_Guard& operator=(Address_Registration_Guard const& other) = delete;
+
+  // Enable moving
+  Address_Registration_Guard(Address_Registration_Guard&& other);
+  Address_Registration_Guard& operator=(Address_Registration_Guard&& other);
 
   //! Get the address that is registered with the GC.
   VALUE * address() const;
-
-  //! Swap with another Address_Registration_Guard.
-  void swap(Address_Registration_Guard & other);
 
   /** Called during Ruby's exit process since we should not call
    * rb_gc unregister_address there
@@ -66,10 +67,13 @@ public:
 private:
   inline static bool enabled = true;
   inline static bool exit_handler_registered = false;
-
   static void registerExitHandler();
 
-  VALUE * address_;
+private:
+  void registerAddress() const;
+  void unregisterAddress();
+
+  VALUE* address_ = nullptr;
 };
 
 } // namespace Rice
