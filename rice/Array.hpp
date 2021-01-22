@@ -99,17 +99,17 @@ public:
   Object shift();
 
 private:
-  template<typename Array_Ref_T, typename Value_T>
+  template<typename Array_Ptr_T, typename Value_T>
   class Iterator;
 
   long position_of(long index) const;
 
 public:
   //! An iterator.
-  typedef Iterator<Array &, Proxy> iterator;
+  typedef Iterator<Array *, Proxy> iterator;
 
   //! A const iterator.
-  typedef Iterator<Array const &, Object> const_iterator;
+  typedef Iterator<Array const *, Object> const_iterator;
 
   //! Return an iterator to the beginning of the array.
   iterator begin();
@@ -148,7 +148,7 @@ private:
 
 //! A helper class for implementing iterators for a Array.
 // TODO: This really should be a random-access iterator.
-template<typename Array_Ref_T, typename Value_T>
+template<typename Array_Ptr_T, typename Value_T>
 class Array::Iterator
 {
 public:
@@ -158,34 +158,30 @@ public:
   using pointer = Object*;
   using reference = Value_T&;  
   
-  Iterator(Array_Ref_T array, long index);
+  Iterator(Array_Ptr_T array, long index);
 
-  template<typename Array_Ref_T_, typename Value_T_>
-  Iterator(Iterator<Array_Ref_T_, Value_T_> const & rhs);
+  template<typename Array_Ptr_T_, typename Value_T_>
+  Iterator(Iterator<Array_Ptr_T_, Value_T_> const & rhs);
 
-  template<typename Array_Ref_T_, typename Value_T_>
-  Iterator & operator=(Iterator<Array_Ref_T_, Value_T_> const & rhs);
+  template<typename Array_Ptr_T_, typename Value_T_>
+  Iterator & operator=(Iterator<Array_Ptr_T_, Value_T_> const & rhs);
 
   Iterator & operator++();
   Iterator operator++(int);
   Value_T operator*();
   Object * operator->();
 
-  template<typename Array_Ref_T_, typename Value_T_>
-  bool operator==(Iterator<Array_Ref_T_, Value_T_> const & rhs) const;
+  template<typename Array_Ptr_T_, typename Value_T_>
+  bool operator==(Iterator<Array_Ptr_T_, Value_T_> const & rhs) const;
 
-  template<typename Array_Ref_T_, typename Value_T_>
-  bool operator!=(Iterator<Array_Ref_T_, Value_T_> const & rhs) const;
+  template<typename Array_Ptr_T_, typename Value_T_>
+  bool operator!=(Iterator<Array_Ptr_T_, Value_T_> const & rhs) const;
 
-  // Causes ICE on g++ 3.3.3
-  // template<typename Array_Ref_T_, typename Value_T_>
-  // friend class Iterator;
-
-  Array_Ref_T array() const;
+  Array_Ptr_T array() const;
   long index() const;
 
 private:
-  Array_Ref_T array_;
+  Array_Ptr_T array_;
   long index_;
 
   Object tmp_;

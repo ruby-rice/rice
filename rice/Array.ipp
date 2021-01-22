@@ -128,48 +128,48 @@ operator=(T const & value)
   return o;
 }
 
-template<typename Array_Ref_T, typename Value_T>
-inline Rice::Array::Iterator<Array_Ref_T, Value_T>::
-Iterator(Array_Ref_T array, long index)
+template<typename Array_Ptr_T, typename Value_T>
+inline Rice::Array::Iterator<Array_Ptr_T, Value_T>::
+Iterator(Array_Ptr_T array, long index)
   : array_(array)
   , index_(index)
 {
 }
 
-template<typename Array_Ref_T, typename Value_T>
-template<typename Array_Ref_T_, typename Value_T_>
+template<typename Array_Ptr_T, typename Value_T>
+template<typename Array_Ptr_T_, typename Value_T_>
 inline
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
-Iterator(Iterator<Array_Ref_T_, Value_T_> const & rhs)
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
+Iterator(Iterator<Array_Ptr_T_, Value_T_> const & rhs)
   : array_(rhs.array())
   , index_(rhs.index())
   , tmp_()
 {
 }
 
-template<typename Array_Ref_T, typename Value_T>
-template<typename Array_Ref_T_, typename Value_T_>
-inline Rice::Array::Iterator<Array_Ref_T, Value_T> &
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
-operator=(Iterator<Array_Ref_T_, Value_T_> const & rhs)
+template<typename Array_Ptr_T, typename Value_T>
+template<typename Array_Ptr_T_, typename Value_T_>
+inline Rice::Array::Iterator<Array_Ptr_T, Value_T> &
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
+operator=(Iterator<Array_Ptr_T_, Value_T_> const & rhs)
 {
   array_ = rhs.array_;
   index_ = rhs.index_;
   return *this;
 }
 
-template<typename Array_Ref_T, typename Value_T>
-inline Rice::Array::Iterator<Array_Ref_T, Value_T> &
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
+template<typename Array_Ptr_T, typename Value_T>
+inline Rice::Array::Iterator<Array_Ptr_T, Value_T> &
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
 operator++()
 {
   ++index_;
   return *this;
 }
 
-template<typename Array_Ref_T, typename Value_T>
-inline Rice::Array::Iterator<Array_Ref_T, Value_T>
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
+template<typename Array_Ptr_T, typename Value_T>
+inline Rice::Array::Iterator<Array_Ptr_T, Value_T>
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
 operator++(int)
 {
   Array copy(*this);
@@ -177,52 +177,52 @@ operator++(int)
   return *this;
 }
 
-template<typename Array_Ref_T, typename Value_T>
+template<typename Array_Ptr_T, typename Value_T>
 inline Value_T
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
 operator*()
 {
-  return array_[index_];
+  return (*array_)[index_];
 }
 
-template<typename Array_Ref_T, typename Value_T>
+template<typename Array_Ptr_T, typename Value_T>
 inline Rice::Object *
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
 operator->()
 {
-  tmp_ = array_[index_];
+  tmp_ = (*array_)[index_];
   return &tmp_;
 }
 
-template<typename Array_Ref_T, typename Value_T>
-template<typename Array_Ref_T_, typename Value_T_>
+template<typename Array_Ptr_T, typename Value_T>
+template<typename Array_Ptr_T_, typename Value_T_>
 inline bool
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
-operator==(Iterator<Array_Ref_T_, Value_T_> const & rhs) const
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
+operator==(Iterator<Array_Ptr_T_, Value_T_> const & rhs) const
 {
-  return array_.value() == rhs.array_.value() && index_ == rhs.index_;
+  return array_->value() == rhs.array_->value() && index_ == rhs.index_;
 }
 
-template<typename Array_Ref_T, typename Value_T>
-template<typename Array_Ref_T_, typename Value_T_>
+template<typename Array_Ptr_T, typename Value_T>
+template<typename Array_Ptr_T_, typename Value_T_>
 inline bool
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
-operator!=(Iterator<Array_Ref_T_, Value_T_> const & rhs) const
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
+operator!=(Iterator<Array_Ptr_T_, Value_T_> const & rhs) const
 {
   return !(*this == rhs);
 }
 
-template<typename Array_Ref_T, typename Value_T>
-Array_Ref_T
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
+template<typename Array_Ptr_T, typename Value_T>
+Array_Ptr_T
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
 array() const
 {
   return array_;
 }
 
-template<typename Array_Ref_T, typename Value_T>
+template<typename Array_Ptr_T, typename Value_T>
 long
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
 index() const
 {
   return index_;
@@ -231,25 +231,25 @@ index() const
 inline Rice::Array::iterator Rice::Array::
 begin()
 {
-  return iterator(*this, 0);
+  return iterator(this, 0);
 }
 
 inline Rice::Array::const_iterator Rice::Array::
 begin() const
 {
-  return const_iterator(*this, 0);
+  return const_iterator(this, 0);
 }
 
 inline Rice::Array::iterator Rice::Array::
 end()
 {
-  return iterator(*this, size());
+  return iterator(this, size());
 }
 
 inline Rice::Array::const_iterator Rice::Array::
 end() const
 {
-  return const_iterator(*this, size());
+  return const_iterator(this, size());
 }
 
 #endif // Rice__Array__ipp_

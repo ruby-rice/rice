@@ -2,9 +2,21 @@
 #include "embed_ruby.hpp"
 #include "rice/rice.hpp"
 
+#include <vector>
+
 using namespace Rice;
 
 TESTSUITE(Array);
+
+// This is needed to make unittest compile (it uses ostream to report errors)
+inline std::ostream& operator<<(std::ostream& os, const std::vector<int32_t>& vector)
+{
+  for (auto i : vector)
+  {
+    os << i << ", ";
+  }
+  return os;
+}
 
 SETUP(Array)
 {
@@ -40,7 +52,6 @@ TESTCASE(construct_from_c_array)
   ASSERT(rb_equal(detail::to_ruby(6), a[1].value()));
   ASSERT(rb_equal(detail::to_ruby(42), a[2].value()));
 }
-
 
 TESTCASE(push_no_items)
 {
@@ -223,6 +234,22 @@ TESTCASE(iterate_and_call_member)
   ASSERT_EQUAL(Object(a[0]).to_s(), v[0]);
   ASSERT_EQUAL(Object(a[1]).to_s(), v[1]);
   ASSERT_EQUAL(Object(a[2]).to_s(), v[2]);
+}
+
+TESTCASE(find_if)
+{
+  Array rubyValues;
+  rubyValues.push(42);
+  rubyValues.push(43);
+  rubyValues.push(44);
+
+  auto iter = std::find_if(rubyValues.begin(), rubyValues.end(),
+    [&rubyValues](const Object& object)
+    {
+      return object == rubyValues[1];
+    });
+
+  ASSERT_EQUAL(43, detail::From_Ruby<int>::convert(iter->value()));
 }
 
 TESTCASE(assign_int)
