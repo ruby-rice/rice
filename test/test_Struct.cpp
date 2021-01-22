@@ -52,14 +52,6 @@ TESTCASE(copy_construct)
   ASSERT_EQUAL("z", Symbol(members[2]).c_str());
 }
 
-TESTCASE(offset_of)
-{
-  Struct s(define_3d_point());
-  ASSERT_EQUAL(0, s.offset_of("x"));
-  ASSERT_EQUAL(1, s.offset_of("y"));
-  ASSERT_EQUAL(2, s.offset_of("z"));
-}
-
 TESTCASE(new_instance_no_args)
 {
   Struct s(define_3d_point());

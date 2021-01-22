@@ -56,15 +56,6 @@ class Struct
   : public Class
 {
 public:
-  //! Create a new Struct.
-  Struct();
-
-  //! Copy constructor.
-  Struct(Struct const & s);
-
-  //! Destructor.
-  virtual ~Struct();
-
   //! Define a new Struct member.
   /*! Defines a new member of the Struct.  Must be called before the
    *  Struct is initialized.
@@ -82,14 +73,8 @@ public:
       Module module,
       Identifier name);
 
-  //! Get the offset of a member in the Struct.
-  /*! Internally, Struct members are stored as a single array of VALUE.
-   *  This function determines the offset of a given member in that
-   *  array.
-   *  \param member the name of the desired member.
-   *  \return the index of the given member.
-   */
-  unsigned long offset_of(Identifier name) const;
+  //! Get the members in Struct.
+  Array members() const;
 
   class Instance;
   friend class Instance;
@@ -101,17 +86,8 @@ public:
    */
   Instance new_instance(Array args = Array()) const;
 
-  //! Swap with another Struct.
-  void swap(Struct & other);
-
-  Array members() const { return members_; }
-
 private:
-  Array members_;
-  Address_Registration_Guard members_guard_;
-
-  Hash member_offset_;
-  Address_Registration_Guard member_offset_guard_;
+  std::vector<Symbol> members_;
 };
 
 
@@ -144,9 +120,6 @@ public:
    */
   template<typename T>
   Object operator[](T index);
-
-  //! Swap with another Struct::Instance.
-  void swap(Instance & other);
 
 private:
   Struct type_;

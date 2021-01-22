@@ -1,37 +1,13 @@
 #include "Symbol.hpp"
 
-inline Rice::Struct::
-Struct()
-  : Class(rb_cObject)
-  , members_()
-  , members_guard_(&members_)
-  , member_offset_()
-  , member_offset_guard_(&member_offset_)
-{
-}
-
-inline Rice::Struct::
-Struct(Rice::Struct const& s)
-  : Class(s)
-  , members_(s.members_.value())
-  , members_guard_(&members_)
-  , member_offset_(s.member_offset_.value())
-  , member_offset_guard_(&member_offset_)
-{
-}
-
-inline Rice::Struct::
-~Struct()
-{
-}
-
 inline Rice::Struct& Rice::Struct::
 initialize(
     Module module,
     Identifier name)
 {
   Class struct_class(rb_cStruct);
-  Object type = struct_class.vcall("new", members_);
+
+  Object type = struct_class.vcall("new", this->members());
 
   set_value(type);
   module.const_set(name, type);
@@ -48,29 +24,24 @@ define_member(
     throw std::runtime_error("struct is already initialized");
   }
 
-  // TODO: not exception-safe
-  Symbol ruby_name(name);
-  member_offset_[ruby_name] = members_.size();
-  members_.push(ruby_name);
+  members_.push_back(name.to_sym());
 
   return *this;
 }
 
-inline unsigned long Rice::Struct::
-offset_of(Identifier name) const
+inline Rice::Array Rice::Struct::
+members() const
 {
-  Symbol ruby_name(name);
-  return Rice::detail::From_Ruby<unsigned long>::convert(member_offset_[ruby_name].value());
-}
-
-inline void Rice::Struct::
-swap(Rice::Struct& other)
-{
-  members_.swap(other.members_);
-  members_guard_.swap(other.members_guard_);
-  member_offset_.swap(other.member_offset_);
-  member_offset_guard_.swap(other.member_offset_guard_);
-  Class::swap(other);
+  if (value() == rb_cObject)
+  {
+    // Struct is not yet defined
+    return Array(members_.begin(), members_.end());
+  }
+  else
+  {
+    // Struct is defined, call Ruby API
+    return rb_struct_s_members(this->value());
+  }
 }
 
 inline Rice::Struct::Instance
@@ -99,19 +70,11 @@ Instance(
 {
 }
 
-inline void Rice::Struct::Instance::
-swap(Instance& other)
-{
-  type_.swap(other.type_);
-  Builtin_Object<T_STRUCT>::swap(other);
-}
-
 inline Rice::Struct Rice::
 define_struct()
 {
   return Struct();
 }
-
 
 template<typename T>
 inline Rice::Object Rice::Struct::Instance::
@@ -124,8 +87,7 @@ template<>
 inline Rice::Object Rice::Struct::Instance::
 operator[]<Rice::Identifier>(Rice::Identifier member)
 {
-  unsigned long index = type_.offset_of(member);
-  return (*this)[index];
+  return rb_struct_aref(value(), Symbol(member));
 }
 
 template<>
