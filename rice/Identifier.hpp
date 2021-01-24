@@ -20,8 +20,11 @@ public:
   //! Construct a new Identifier from a Symbol.
   Identifier(Symbol const & symbol);
 
+  //! Construct a new Identifier from a c string.
+  Identifier(char const * s);
+
   //! Construct a new Identifier from a string.
-  Identifier(char const * s = "");
+  Identifier(std::string const string);
 
   //! Return a string representation of the Identifier.
   char const * c_str() const;
