@@ -1,5 +1,4 @@
-#include "rice/Data_Type.hpp"
-#include "rice/Constructor.hpp"
+#include "rice.hpp"
 
 using namespace Rice;
 
@@ -76,8 +75,6 @@ public:
 extern "C"
 void Init_animals(void)
 {
-  RUBY_TRY
-  {
     define_class<Organism>("Organism")
       .define_method("name", &Organism::name);
 
@@ -92,7 +89,5 @@ void Init_animals(void)
 
     define_class<Rabbit, Animal>("Rabbit")
       .define_constructor(Constructor<Rabbit>());
-  }
-  RUBY_CATCH
 }
 

@@ -1,4 +1,4 @@
-require 'animals'
+require_relative 'animals'
 
 [ Bear, Dog, Rabbit].each do |klass|
   animal = klass.new

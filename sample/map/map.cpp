@@ -1,5 +1,4 @@
-#include "rice/Data_Type.hpp"
-#include "rice/Constructor.hpp"
+#include "rice.hpp"
 
 #include <map>
 
@@ -45,37 +44,32 @@ private:
   Value_Map map_;
 };
 
-Data_Type<Map> rb_cMap;
-
 } // namespace
 
 template<>
-Object to_ruby<Map::value_type>(Map::value_type const & p)
+struct detail::To_Ruby<Map::value_type>
 {
-  return protect(rb_assoc_new, p.first, p.second);
-}
+    VALUE convert(Map::value_type const & p)
+    {
+        return protect(rb_assoc_new, p.first, p.second);
+    }
+};
 
 #include <iostream>
 extern "C"
 void Init_map(void)
 {
-  RUBY_TRY
-  {
     Map::iterator (Map::*begin)() = &Map::begin;
     Map::iterator (Map::*end)() = &Map::end;
     Rice::Module rb_mStd = define_module("Std");
 
     // TODO: no delete method on the map, because I'm not sure how to
     // make delete work properly while iterating
-    rb_cMap =
+    Data_Type<Map> rb_cMap =
       define_class_under<Map>(rb_mStd, "Map")
       .define_constructor(Constructor<Map>())
       .define_method("[]", &Map::bracket)
       .define_method("[]=", &Map::bracket_equals)
       .define_iterator(begin, end)
-      .include_module(rb_mEnumerable)
-      ;
-  }
-  RUBY_CATCH
+      .include_module(rb_mEnumerable);
 }
-
