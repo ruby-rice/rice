@@ -12,6 +12,7 @@
 #include "detail/env.hpp"
 #include "detail/from_ruby.hpp"
 #include "detail/Exception_Handler.hpp"
+#include "detail/Iterator.hpp"
 #include "detail/Jump_Tag.hpp"
 #include "detail/method_data.hpp"
 #include "detail/NativeArg.hpp"
@@ -45,16 +46,15 @@
 
 #include "Class.hpp"
 
-#include "detail/Iterator.hpp"
 #include "Constructor.hpp"
 #include "Director.hpp"
 #include "Data_Type_defn.hpp"
 #include "Data_Object.hpp"
+#include "detail/Iterator.ipp"
 #include "Data_Type.ipp"
 
 // Dependent on Data_Object due to the way method metadata is stored in the Ruby class
 #include "detail/default_allocation_func.ipp"
-#include "detail/Iterator.ipp"
 #include "detail/Wrapped_Function.ipp"
 
 #include "Enum.hpp"

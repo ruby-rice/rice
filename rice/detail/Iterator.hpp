@@ -10,20 +10,20 @@ namespace Rice
   namespace detail
   {
 
-    template<typename T, typename Iterator_Return_T>
+    template<typename T, typename Iterator_T>
     class Iterator
     {
     public:
       static VALUE call(VALUE self);
 
     public:
-      Iterator(Iterator_Return_T(T::* begin)(), Iterator_Return_T(T::* end)());
+      Iterator(Iterator_T(T::* begin)(), Iterator_T(T::* end)());
       virtual ~Iterator() = default;
       VALUE operator()(VALUE self);
 
     private:
-      Iterator_Return_T(T::* begin_)();
-      Iterator_Return_T(T::* end_)();
+      Iterator_T(T::* begin_)();
+      Iterator_T(T::* end_)();
     };
 
   } // detail

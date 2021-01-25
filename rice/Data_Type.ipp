@@ -371,13 +371,14 @@ define_class(
 }
 
 template<typename T>
-template<typename U, typename Iterator_Return_T>
+template<typename U, typename Iterator_T>
 inline Rice::Data_Type<T>& Rice::Data_Type<T>::
-define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name)
+define_iterator(Iterator_T(U::* begin)(), Iterator_T(U::* end)(), Identifier name)
 {
-  using Iterator_T = detail::Iterator<U, Iterator_Return_T>;
-  Iterator_T* iterator = new Iterator_T(begin, end);
-  detail::MethodData::define_method(Data_Type<T>::klass(), name, (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
+  using Iter_T = detail::Iterator<U, Iterator_T>;
+  Iter_T* iterator = new Iter_T(begin, end);
+  detail::MethodData::define_method(Data_Type<T>::klass(), name, 
+    (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
 
   return *this;
 }
