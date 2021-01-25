@@ -67,15 +67,15 @@ public:
   class Entry;
 
   //! A helper class for implementing iterators for a Hash.
-  template<typename Hash_Ref_T, typename Value_T>
+  template<typename Hash_Ptr_T, typename Value_T>
   class Iterator;
 
 public:
   //! An iterator.
-  typedef Iterator<Hash &, Entry> iterator;
+  typedef Iterator<Hash *, Entry> iterator;
 
   //! A const iterator.
-  typedef Iterator<Hash const &, Entry const> const_iterator;
+  typedef Iterator<Hash const *, Entry const> const_iterator;
 
 public:
   //! Return an iterator to the beginning of the hash.
@@ -96,7 +96,7 @@ class Hash::Proxy
 {
 public:
   //! Construct a new Proxy.
-  Proxy(Hash hash, Object key);
+  Proxy(Hash* hash, Object key);
 
   //! Implicit conversion to Object.
   operator Object() const;
@@ -109,7 +109,7 @@ public:
   Object operator=(T const & value);
 
 private:
-  Hash hash_;
+  Hash* hash_;
   Object key_;
 };
 
@@ -120,7 +120,7 @@ class Hash::Entry
 {
 public:
   //! Construct a new Entry.
-  Entry(Hash hash, Object key);
+  Entry(Hash* hash, Object key);
 
   //! Copy constructor.
   Entry(Entry const & entry);
@@ -139,7 +139,7 @@ public:
 bool operator<(Hash::Entry const & lhs, Hash::Entry const & rhs);
 
 //! A helper class for implementing iterators for a Hash.
-template<typename Hash_Ref_T, typename Value_T>
+template<typename Hash_Ptr_T, typename Value_T>
 class Hash::Iterator
 {
 public:
@@ -150,10 +150,10 @@ public:
   using reference = Value_T&;
 
   //! Construct a new Iterator.
-  Iterator(Hash_Ref_T hash);
+  Iterator(Hash_Ptr_T hash);
 
   //! Construct a new Iterator with a given start-at index point
-  Iterator(Hash_Ref_T hash, int start_at);
+  Iterator(Hash_Ptr_T hash, int start_at);
 
   //! Construct an Iterator from another Iterator of a different const
   //! qualification.
@@ -178,7 +178,7 @@ public:
   //! Inequality operator.
   bool operator!=(Iterator const & rhs) const;
 
-  template<typename Hash_Ref_T_, typename Value_T_>
+  template<typename Hash_Ptr_T_, typename Value_T_>
   friend class Hash::Iterator;
 
 protected:
@@ -187,7 +187,7 @@ protected:
   Array hash_keys();
 
 private:
-  Hash hash_;
+  Hash_Ptr_T hash_;
   long current_index_;
   VALUE keys_;
 
