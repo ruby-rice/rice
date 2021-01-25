@@ -47,11 +47,11 @@ private:
 } // namespace
 
 template<>
-struct detail::To_Ruby<Map::value_type>
+struct detail::To_Ruby<Map::value_type&>
 {
-    VALUE convert(Map::value_type const & p)
+    static VALUE convert(Map::value_type const & pair)
     {
-        return protect(rb_assoc_new, p.first, p.second);
+        return protect(rb_assoc_new, pair.first, pair.second);
     }
 };
 
@@ -59,8 +59,6 @@ struct detail::To_Ruby<Map::value_type>
 extern "C"
 void Init_map(void)
 {
-    Map::iterator (Map::*begin)() = &Map::begin;
-    Map::iterator (Map::*end)() = &Map::end;
     Rice::Module rb_mStd = define_module("Std");
 
     // TODO: no delete method on the map, because I'm not sure how to
@@ -70,6 +68,6 @@ void Init_map(void)
       .define_constructor(Constructor<Map>())
       .define_method("[]", &Map::bracket)
       .define_method("[]=", &Map::bracket_equals)
-      .define_iterator(begin, end)
+      .define_iterator(&Map::begin, &Map::end)
       .include_module(rb_mEnumerable);
 }
