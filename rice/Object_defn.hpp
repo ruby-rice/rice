@@ -241,15 +241,6 @@ struct Rice::detail::To_Ruby<T, std::enable_if_t<Rice::detail::is_kind_of_object
 };
 
 template<typename T>
-struct Rice::detail::To_Ruby<T&, std::enable_if_t<Rice::detail::is_kind_of_object<T>>>
-{
-  static VALUE convert(Rice::Object const& x)
-  {
-    return x.value();
-  }
-};
-
-template<typename T>
 struct Rice::detail::To_Ruby<T*, std::enable_if_t<std::is_base_of_v<Rice::Object, T>>>
 {
   static VALUE convert(Rice::Object const* x)

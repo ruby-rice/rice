@@ -26,17 +26,7 @@ namespace Rice
      */
     template <typename T, typename = void>
     struct To_Ruby;
-
-    // Supports int&, bool&, std::string&, etc but *NOT* any C++ structs/classes
-    template<typename T>
-    struct To_Ruby<T&, std::enable_if_t<is_primitive_v<T>>>
-    {
-      static VALUE convert(T const& x)
-      {
-        return To_Ruby<base_type<T>>::convert(x);
-      }
-    };
-
+   
     // Supports int*, bool*, std::string*, etc but *NOT* any C++ structs/classes
     template<typename T>
     struct To_Ruby<T*, std::enable_if_t<is_primitive_v<T>>>
@@ -44,6 +34,15 @@ namespace Rice
       static VALUE convert(T const* x)
       {
         return To_Ruby<base_type<T>>::convert(*x);
+      }
+    };
+
+    template<typename T>
+    struct To_Ruby<T&>
+    {
+      static VALUE convert(T const& x)
+      {
+        return To_Ruby<base_type<T>>::convert(x);
       }
     };
 

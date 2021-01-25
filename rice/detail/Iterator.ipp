@@ -28,7 +28,7 @@ namespace Rice
     inline VALUE Iterator<T, Iterator_T>::
       operator()(VALUE self)
     {
-      using Return_T = typename std::iterator_traits<Iterator_T>::reference;
+      using Value_T = typename std::iterator_traits<Iterator_T>::value_type;
 
       Data_Object<T> obj(self);
       Iterator_T it = std::invoke(this->begin_, *obj);
@@ -36,7 +36,7 @@ namespace Rice
 
       for (; it != end; ++it)
       {
-        Rice::protect(rb_yield, detail::To_Ruby<Return_T>::convert(*it));
+        Rice::protect(rb_yield, detail::To_Ruby<Value_T>::convert(*it));
       }
 
       return self;

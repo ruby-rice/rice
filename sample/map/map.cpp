@@ -47,7 +47,7 @@ private:
 } // namespace
 
 template<>
-struct detail::To_Ruby<Map::value_type&>
+struct detail::To_Ruby<Map::value_type>
 {
     static VALUE convert(Map::value_type const & pair)
     {
