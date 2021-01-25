@@ -1,6 +1,7 @@
 require 'mkmf'
 
-# The cpp_command is not overwridden in the C++ support for mkmf so do that
+# The cpp_command is not overwritten in the experimental mkmf C++ support.
+# See https://bugs.ruby-lang.org/issues/17578
 MakeMakefile['C++'].module_eval do
   def cpp_command(outfile, opt="")
     conf = cc_config(opt)
