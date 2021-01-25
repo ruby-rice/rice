@@ -1,5 +1,5 @@
 #include "unittest.hpp"
-#include "rice/detail/Jump_Tag.hpp"
+#include "rice.hpp"
 
 using namespace Rice;
 
