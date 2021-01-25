@@ -69,7 +69,7 @@ template<typename Key_T>
 inline Rice::Hash::Proxy Rice::Hash::
 operator[](Key_T const & key)
 {
-  return Proxy(*this, detail::To_Ruby<Key_T>::convert(key));
+  return Proxy(this, detail::To_Ruby<Key_T>::convert(key));
 }
 
 template<typename Value_T, typename Key_T>
@@ -146,7 +146,7 @@ template<typename Hash_Ptr_T, typename Value_T>
 template<typename Iterator_T>
 inline Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 Iterator(Iterator_T const & iterator)
-  : hash_(iterator.hash_.value())
+  : hash_(iterator.hash_)
   , current_index_(iterator.current_index_)
   , keys_(Qnil)
   , tmp_(iterator.hash_, Qnil)
@@ -181,7 +181,7 @@ inline Value_T
 Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 operator*()
 {
-  return Value_T(hash_, current_key());
+  return Value_T(const_cast<Hash*>(hash_), current_key());
 }
 
 template<typename Hash_Ptr_T, typename Value_T>
@@ -189,7 +189,7 @@ inline Value_T *
 Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 operator->()
 {
-  this->tmp_ = Entry(hash_, current_key());
+  this->tmp_ = Entry(const_cast<Hash*>(hash_), current_key());
   return &tmp_;
 }
 
@@ -197,7 +197,7 @@ template<typename Hash_Ptr_T, typename Value_T>
 inline bool Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 operator==(Iterator const & rhs) const
 {
-  return hash_.value() == rhs.hash_.value()
+  return hash_->value() == rhs.hash_->value()
     && current_index_ == rhs.current_index_;
 }
 
@@ -222,7 +222,7 @@ Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 hash_keys()
 {
   if(NIL_P(keys_)) {
-    keys_ = rb_funcall(hash_, rb_intern("keys"), 0, 0);
+    keys_ = rb_funcall(hash_->value(), rb_intern("keys"), 0, 0);
   }
 
   return Rice::Array(keys_);
