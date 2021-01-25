@@ -201,6 +201,34 @@ TESTCASE(copy_construct)
   ASSERT_EQUAL(foo, DATA_PTR(data_object_foo.value()));
 }
 
+TESTCASE(move_construct)
+{
+  Data_Type<Foo> rb_cFoo;
+  Foo* foo = new Foo;
+
+  Data_Object<Foo> wrapper1(foo, rb_cFoo);
+  Data_Object<Foo> wrapper2(std::move(wrapper1));
+
+  ASSERT_EQUAL(foo, wrapper2.get());
+  ASSERT_EQUAL(nullptr, wrapper1.get());
+}
+
+TESTCASE(move_assign)
+{
+  Data_Type<Foo> rb_cFoo;
+
+  Foo* foo1 = new Foo;
+  Data_Object<Foo> wrapper1(foo1, rb_cFoo);
+
+  Foo* foo2 = new Foo;
+  Data_Object<Foo> wrapper2(foo2, rb_cFoo);
+
+  wrapper2 = std::move(wrapper1);
+
+  ASSERT_EQUAL(foo1, wrapper2.get());
+  ASSERT_EQUAL(nullptr, wrapper1.get());
+}
+
 TESTCASE(dereference)
 {
   Data_Type<Foo> rb_cFoo;
@@ -271,4 +299,3 @@ TESTCASE(ruby_mark)
 
   ASSERT_EQUAL(true, test_ruby_mark__marked);
 }
-

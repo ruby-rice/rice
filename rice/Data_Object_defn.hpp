@@ -103,20 +103,17 @@ public:
       Object value,
       Data_Type<U> const & klass);
 
-  //! Make a copy of a Data_Object
-  /*! \param other the Data_Object to copy.
-   */
-  Data_Object(Data_Object const & other);
+  // Enable copying
+  Data_Object(const Data_Object& other) = default;
+  Data_Object& operator=(const Data_Object& other) = default;
 
-  T & operator*() const { return *obj_; } //!< Return a reference to obj_
-  T * operator->() const { return obj_; } //!< Return a pointer to obj_
-  T * get() const { return obj_; }        //!< Return a pointer to obj_
+  // Enable moving
+  Data_Object(Data_Object&& other);
+  Data_Object& operator=(Data_Object&& other);
 
-  //! Swap with another data object of the same type
-  /*! \param ref the object with which to swap.
-   */
-  template<typename U>
-  void swap(Data_Object<U> & ref);
+  T& operator*() const; //!< Return a reference to obj_
+  T* operator->() const; //!< Return a pointer to obj_
+  T* get() const;        //!< Return a pointer to obj_
 
 private:
   static void check_cpp_type(Data_Type<T> const & klass);

@@ -7,13 +7,6 @@
 
 inline
 Rice::Class::
-Class()
-  : Module()
-{
-}
-
-inline
-Rice::Class::
 Class(VALUE v)
   : Module(v)
 {

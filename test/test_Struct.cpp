@@ -72,7 +72,7 @@ TESTCASE(new_instance_with_args)
   ASSERT_EQUAL(detail::to_ruby(3), rb_struct_getmember(p, rb_intern("z")));
 }
 
-TESTCASE(swap)
+/*TESTCASE(swap)
 {
   Struct s(define_3d_point());
   Struct s2;
@@ -93,7 +93,7 @@ TESTCASE(swap)
   }
 
   s2.swap(s);
-}
+}*/
 
 TESTCASE(members)
 {
@@ -159,7 +159,7 @@ TESTCASE(instance_bracket_index)
   ASSERT_EQUAL(detail::to_ruby(3), p[2].value());
 }
 
-TESTCASE(instance_swap)
+/*TESTCASE(instance_swap)
 {
   Struct s(define_3d_point());
 
@@ -180,7 +180,7 @@ TESTCASE(instance_swap)
   ASSERT_EQUAL(detail::to_ruby(1), rb_struct_getmember(p2, rb_intern("x")));
   ASSERT_EQUAL(detail::to_ruby(2), rb_struct_getmember(p2, rb_intern("y")));
   ASSERT_EQUAL(detail::to_ruby(3), rb_struct_getmember(p2, rb_intern("z")));
-}
+}*/
 
 /**
  * Issue 59 - Copy constructor compilation problem.

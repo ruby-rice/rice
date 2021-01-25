@@ -25,9 +25,34 @@ TESTCASE(construct_with_value)
 
 TESTCASE(copy_construct)
 {
-  Object o(INT2NUM(42));
-  Object o2(o);
-  ASSERT_EQUAL(INT2NUM(42), o2.value());
+  Object o1(INT2NUM(42));
+  Object o2(o1);
+  ASSERT_EQUAL(o2.value(), o1.value());
+}
+
+TESTCASE(copy_assign)
+{
+  Object o1(INT2NUM(42));
+  Object o2(INT2NUM(43));
+  o2 = o1;
+  ASSERT_EQUAL(o2.value(), o1.value());
+}
+
+TESTCASE(move_construct)
+{
+  Object o1(INT2NUM(42));
+  Object o2(std::move(o1));
+  ASSERT_EQUAL(o2.value(), INT2NUM(42));
+  ASSERT_EQUAL(o1.value(), Qnil);
+}
+
+TESTCASE(move_assign)
+{
+  Object o1(INT2NUM(42));
+  Object o2(INT2NUM(43));
+  o2 = std::move(o1);
+  ASSERT_EQUAL(o2.value(), INT2NUM(42));
+  ASSERT_EQUAL(o1.value(), Qnil);
 }
 
 TESTCASE(test)
@@ -61,7 +86,7 @@ TESTCASE(is_nil)
 
 TESTCASE(implicit_conversion_to_value)
 {
-  // g++ 3.3.3 can't handle constructor-style inside the assert, which
+  // Compilers (g++, msvc) can't handle constructor-style inside the assert, which
   // is why we use cast-style here.
   ASSERT_EQUAL(Qtrue, (VALUE)Object(Qtrue));
   ASSERT_EQUAL(INT2NUM(42), (VALUE)Object(INT2NUM(42)));
@@ -117,15 +142,6 @@ TESTCASE(is_frozen)
   ASSERT(!o.is_frozen());
   rb_obj_freeze(o);
   ASSERT(o.is_frozen());
-}
-
-TESTCASE(swap)
-{
-  Object o1(INT2NUM(42));
-  Object o2(rb_ary_new());
-  o1.swap(o2);
-  ASSERT_EQUAL(detail::to_ruby(42), o2.value());
-  ASSERT_EQUAL(Class(rb_cArray), o1.class_of());
 }
 
 TESTCASE(instance_eval)

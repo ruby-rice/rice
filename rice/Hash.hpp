@@ -108,8 +108,6 @@ public:
   template<typename T>
   Object operator=(T const & value);
 
-  void swap(Proxy & proxy);
-
 private:
   Hash hash_;
   Object key_;
@@ -135,8 +133,6 @@ public:
 
   Entry & operator=(Entry const & rhs);
 
-  void swap(Entry & entry);
-
   friend bool operator<(Entry const & lhs, Entry const & rhs);
 };
 
@@ -159,16 +155,10 @@ public:
   //! Construct a new Iterator with a given start-at index point
   Iterator(Hash_Ref_T hash, int start_at);
 
-  //! Copy construct an Iterator.
-  Iterator(Iterator const & iterator);
-
   //! Construct an Iterator from another Iterator of a different const
   //! qualification.
   template<typename Iterator_T>
   Iterator(Iterator_T const & iterator);
-
-  //! Assignment operator.
-  Iterator & operator=(Iterator const & rhs);
 
   //! Preincrement operator.
   Iterator & operator++();
@@ -190,9 +180,6 @@ public:
 
   template<typename Hash_Ref_T_, typename Value_T_>
   friend class Hash::Iterator;
-
-  //! Swap with another iterator of the same type.
-  void swap(Iterator & iterator);
 
 protected:
   Object current_key();

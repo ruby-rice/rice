@@ -22,7 +22,7 @@ class Class
 public:
   //! Default construct a new class wrapper and initialize it to
   //! rb_cObject.
-  Class();
+  Class() = default;
 
   //! Construct a new class wrapper from a ruby object of type T_CLASS.
   Class(VALUE v);

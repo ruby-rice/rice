@@ -102,19 +102,22 @@ Data_Object(
 
 template<typename T>
 inline Rice::Data_Object<T>::
-Data_Object(Data_Object const & other)
-  : Object(other.value())
-  , obj_(other.obj_)
+Data_Object(Data_Object&& other): Object(other)
 {
+  this->obj_ = other.obj_;
+  other.obj_ = nullptr;
 }
 
 template<typename T>
-template<typename U>
-inline void Rice::Data_Object<T>::
-swap(Data_Object<U> & ref)
+inline Rice::Data_Object<T>& Rice::Data_Object<T>::
+operator=(Data_Object&& other)
 {
-  std::swap(obj_, ref.obj_);
-  Object::swap(ref);
+  Object::operator=(other);
+
+  this->obj_ = other.obj_;
+  other.obj_ = nullptr;
+
+  return *this;
 }
 
 template<typename T>
@@ -141,6 +144,27 @@ check_ruby_type(VALUE value, VALUE klass, bool include_super)
       got, expected
     );
   }
+}
+
+template<typename T>
+inline T& Rice::Data_Object<T>::
+operator*() const
+{
+  return *obj_;
+}
+
+template<typename T>
+inline T* Rice::Data_Object<T>::
+operator->() const
+{
+  return obj_;
+}
+
+template<typename T>
+inline T* Rice::Data_Object<T>::
+get() const
+{
+  return obj_;
 }
 
 #endif // Rice__Data_Object__ipp_

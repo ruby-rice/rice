@@ -11,6 +11,21 @@ namespace Rice
   inline const Object Undef(Qundef);
 }
 
+inline Rice::Object::
+Object(Object&& other)
+{
+  this->value_ = other.value_;
+  other.value_ = Qnil;
+}
+
+inline Rice::Object& Rice::Object::
+operator=(Object&& other)
+{
+  this->value_ = other.value_;
+  other.value_ = Qnil;
+  return *this;
+}
+
 template<typename ...ArgT>
 inline Rice::Object Rice::Object::
 call(Identifier id, ArgT... args) const
@@ -50,12 +65,6 @@ inline bool Rice::Object::
 is_frozen() const
 {
   return bool(OBJ_FROZEN(value()));
-}
-
-inline void Rice::Object::
-swap(Rice::Object& other)
-{
-  std::swap(value_, other.value_);
 }
 
 inline int Rice::Object::

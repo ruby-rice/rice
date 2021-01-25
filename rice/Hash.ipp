@@ -58,13 +58,6 @@ operator=(T const & value)
   return protect(rb_hash_aset, hash_, key_, detail::To_Ruby<T>::convert(value));
 }
 
-inline void Rice::Hash::Proxy::
-swap(Proxy & proxy)
-{
-  hash_.swap(proxy.hash_);
-  key_.swap(proxy.key_);
-}
-
 template<typename Key_T>
 inline Rice::Hash::Proxy const Rice::Hash::
 operator[](Key_T const & key) const
@@ -119,18 +112,14 @@ Entry(Entry const & entry)
 }
 
 inline Rice::Hash::Entry & Rice::Hash::Entry::
-operator=(Rice::Hash::Entry const & rhs)
+operator=(Rice::Hash::Entry const & other)
 {
-  Entry tmp(rhs);
-  swap(tmp);
-  return *this;
-}
+  const_cast<Object&>(key) = const_cast<Object&>(other.key);
 
-inline void Rice::Hash::Entry::
-swap(Rice::Hash::Entry & entry)
-{
-  const_cast<Object &>(key).swap(const_cast<Object &>(entry.key));
-  value.swap(entry.value);
+  this->value = other.value;
+  this->second = this->value;
+
+  return *this;
 }
 
 template<typename Hash_Ref_T, typename Value_T>
@@ -154,16 +143,6 @@ Iterator(Hash_Ref_T hash, int start_at)
 }
 
 template<typename Hash_Ref_T, typename Value_T>
-inline Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
-Iterator(Iterator const & iterator)
-  : hash_(iterator.hash_.value())
-  , current_index_(iterator.current_index_)
-  , keys_(Qnil)
-  , tmp_(iterator.hash_, Qnil)
-{
-}
-
-template<typename Hash_Ref_T, typename Value_T>
 template<typename Iterator_T>
 inline Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
 Iterator(Iterator_T const & iterator)
@@ -172,18 +151,6 @@ Iterator(Iterator_T const & iterator)
   , keys_(Qnil)
   , tmp_(iterator.hash_, Qnil)
 {
-}
-
-template<typename Hash_Ref_T, typename Value_T>
-inline Rice::Hash::Iterator<Hash_Ref_T, Value_T> &
-Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
-operator=(Iterator const & iterator)
-{
-  Iterator tmp(iterator);
-
-  this->swap(tmp);
-
-  return *this;
 }
 
 template<typename Hash_Ref_T, typename Value_T>
@@ -222,8 +189,7 @@ inline Value_T *
 Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
 operator->()
 {
-  Entry tmp(hash_, current_key());
-  this->tmp_.swap(tmp);
+  this->tmp_ = Entry(hash_, current_key());
   return &tmp_;
 }
 
@@ -243,25 +209,12 @@ operator!=(Iterator const & rhs) const
 }
 
 template<typename Hash_Ref_T, typename Value_T>
-inline void
-Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
-swap(Iterator& iterator)
-{
-  using namespace std;
-
-  hash_.swap(iterator.hash_);
-  swap(keys_, iterator.keys_);
-  swap(current_index_, iterator.current_index_);
-}
-
-template<typename Hash_Ref_T, typename Value_T>
 inline Rice::Object
 Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
 current_key()
 {
   return hash_keys()[current_index_];
 }
-
 
 template<typename Hash_Ref_T, typename Value_T>
 inline Rice::Array

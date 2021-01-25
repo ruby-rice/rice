@@ -22,25 +22,29 @@ template<int Builtin_Type>
 inline Builtin_Object<Builtin_Type>::
 Builtin_Object(Object value)
   : Object(value)
-  , obj_((RObject*)(value.value()))
 {
   protect(detail::check_type, value, Builtin_Type);
 }
 
 template<int Builtin_Type>
-inline Builtin_Object<Builtin_Type>::
-Builtin_Object(Builtin_Object<Builtin_Type> const & other)
-  : Object(other.value())
-  , obj_(other.obj_)
+inline RObject& Builtin_Object<Builtin_Type>::
+operator*() const
 {
+  return *ROBJECT(this->value());
 }
 
 template<int Builtin_Type>
-inline void Builtin_Object<Builtin_Type>::
-swap(Builtin_Object<Builtin_Type> & ref)
+inline RObject* Builtin_Object<Builtin_Type>::
+operator->() const
 {
-  std::swap(obj_, ref.obj_);
-  Object::swap(ref);
+  return ROBJECT(this->value());
+}
+
+template<int Builtin_Type>
+inline RObject* Builtin_Object<Builtin_Type>::
+get() const
+{
+  return ROBJECT(this->value());
 }
 
 } // namespace Rice

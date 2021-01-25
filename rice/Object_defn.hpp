@@ -28,11 +28,16 @@ public:
   //! Encapsulate an existing ruby object.
   Object(VALUE value = Qnil) : value_(value) { }
 
-  //! Copy constructor
-  Object(Object const & other) : value_(other.value()) { }
-
   //! Destructor
-  virtual ~Object() { }
+  virtual ~Object() = default;
+
+  // Enable copying
+  Object(const Object& other) = default;
+  Object& operator=(const Object& other) = default;
+
+  // Enable moving
+  Object(Object&& other);
+  Object& operator=(Object&& other);
 
   //! Returns false if the object is nil or false; returns true
   //! otherwise.
@@ -89,9 +94,6 @@ public:
   /*! \return true if the object is frozen, false otherwise.
    */
   bool is_frozen() const;
-
-  //! Swap with another Object.
-  void swap(Object & other);
 
   //! Evaluate the given string in the context of the object.
   /*! This is equivalant to calling obj.instance_eval(s) from inside the

@@ -50,6 +50,7 @@ TESTCASE(assignment)
   Hash h;
   Hash h2;
   h = h2;
+  ASSERT_EQUAL(h.value(), h2.value());
 }
 
 TESTCASE(size)

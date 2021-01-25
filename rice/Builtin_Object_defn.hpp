@@ -24,23 +24,10 @@ public:
    *  \param value the object to be wrapped.
    */
   Builtin_Object(Object value);
-
-  //! Make a copy of a Builtin_Object
-  /*! \param other the Builtin_Object to be copied.
-   */
-  Builtin_Object(Builtin_Object const & other);
-
-  RObject & operator*() const { return *obj_; } //!< Return a reference to obj_
-  RObject * operator->() const { return obj_; } //!< Return a pointer to obj_
-  RObject * get() const { return obj_; }        //!< Return a pointer to obj_
-
-  //! Swap with another builtin object of the same type
-  /*! \param ref the object with which to swap.
-   */
-  void swap(Builtin_Object<Builtin_Type> & ref);
-
-private:
-  RObject * obj_;
+  
+  RObject& operator*() const; //!< Return a reference to obj_
+  RObject* operator->() const; //!< Return a pointer to obj_
+  RObject* get() const;       //!< Return a pointer to obj_
 };
 
 } // namespace Rice
