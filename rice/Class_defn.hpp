@@ -33,41 +33,7 @@ public:
    */
   Class & undef_creation_funcs();
 
-  // Overwrite (not override!) methods from Module
-  Class & include_module(Module const& inc)
-  {
-    protect(rb_include_module, *this, inc);
-    return *this;
-  }
-
-  Class& const_set(Identifier name, Object value)
-  {
-    return dynamic_cast<decltype(*this)>(Module::const_set(name, value));
-  }
-
-  template<typename Func_T>
-  Class& define_method(Identifier name, Func_T func, Arguments* arguments = 0)
-  {
-    return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arguments));
-  }
-
-  template<typename Func_T>
-  Class & define_method(Identifier name, Func_T func, Arg const& arg)
-  {
-    return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arg));
-  }
-
-  template<typename Func_T>
-  Class & define_singleton_method(Identifier name, Func_T func, Arguments* arguments = 0)
-  {
-    return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arguments));
-  }
-
-  template<typename Func_T>
-  Class & define_singleton_method(Identifier name, Func_T func, Arg const& arg)
-  {
-    return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arg));
-  }
+  #include "shared_methods.hpp"
 };
 
 //! Define a new class in the namespace given by module.

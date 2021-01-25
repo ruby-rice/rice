@@ -221,6 +221,8 @@ public:
   template<typename U = T, typename Iterator_Return_T>
   Data_Type<T>& define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name = "each");
 
+  #include "shared_methods.hpp"
+
 protected:
   //! Bind a Data_Type to a VALUE.
   /*! Throws an exception if the Data_Type is already bound to a
