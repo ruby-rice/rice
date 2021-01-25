@@ -2,7 +2,6 @@
 #define Rice__Data_Type__ipp_
 
 #include "detail/default_allocation_func.hpp"
-#include "detail/creation_funcs.hpp"
 #include "detail/method_data.hpp"
 #include "detail/Caster.hpp"
 #include "detail/demangle.hpp"

@@ -41,17 +41,16 @@ namespace Rice
     template<typename T, typename Iterator_Return_T>
     void define_iterator(Identifier name, Iterator_Return_T(T::* begin)(), Iterator_Return_T(T::* end)())
     {
-      Iterator* iterator = new Iterator<T, Iterator_Return_T>(begin, end);
-
-      Data_Type<Iterator> iterator_klass;
-      Data_Object<Iterator> iterator(iterator, iterator_klass);
+      using Iterator_T = Iterator<T, Iterator_Return_T>;
+      Iterator_T* iterator = new Iterator_T(begin, end);
+      Data_Object<Iterator_T> wrapper(iterator);
 
       define_method_with_data(
         Data_Type<T>::klass(),
         name,
-        (RUBY_METHOD_FUNC)iterator->call,
+        (RUBY_METHOD_FUNC)wrapper->call,
         0,
-        iterator);
+        wrapper);
     }
   } // namespace detail
 } // namespace Rice

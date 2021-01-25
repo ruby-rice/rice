@@ -1,9 +1,9 @@
 #ifndef Rice_Iterator__hpp_
 #define Rice_Iterator__hpp_
 
-#include "detail/method_data.hpp"
+#include "method_data.hpp"
 #include "protect.hpp"
-#include "Identifier.hpp"
+#include "../Identifier.hpp"
 
 namespace Rice
 {

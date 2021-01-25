@@ -9,7 +9,7 @@ namespace Rice
   {
     const int TAG_RAISE = 0x6;
 
-    inline VALUE Rice::detail::
+    inline VALUE
     protect(
         RUBY_VALUE_FUNC f,
         VALUE arg)

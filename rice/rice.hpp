@@ -7,7 +7,6 @@
 
 #include "Arg.hpp"
 #include "detail/Arguments.hpp"
-#include "detail/creation_funcs.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "detail/demangle.hpp"
 #include "detail/env.hpp"
@@ -45,8 +44,6 @@
 #include "detail/Caster.hpp"
 
 #include "Class.hpp"
-
-#include "detail/creation_funcs.hpp"
 
 #include "detail/Iterator.hpp"
 #include "Constructor.hpp"

@@ -3,7 +3,6 @@
 
 #include "Exception.hpp"
 #include "Data_Type_defn.hpp"
-#include "detail/creation_funcs.hpp"
 
 inline
 Rice::Class::
@@ -23,7 +22,8 @@ inline
 Rice::Class& Rice::Class::
 undef_creation_funcs()
 {
-  detail::undef_creation_funcs(*this);
+  rb_undef_alloc_func(value());
+  rb_undef_method(value(), "initialize");
   return *this;
 }
 
