@@ -7,9 +7,18 @@ OTHER_INCLUDE_REGEX = %r{#include <(.*)>}
 RICE_HEADER_GUARD_1 = %r{#ifndef Rice__}
 RICE_HEADER_GUARD_2 = %r{#define Rice__}
 RICE_HEADER_GUARD_3 = %r{#endif\s*//\s*Rice__}
+SHARED_METHODS_INCLUDE = '#include "shared_methods.hpp"'
 
 def load_file(relative_path)
-  File.read(relative_path, mode: 'rb')
+  content = File.read(relative_path, mode: 'rb')
+
+  index = content.index(SHARED_METHODS_INCLUDE)
+  if index
+    shared_path = File.join(File.dirname(relative_path), "shared_methods.hpp")
+    content.gsub!(SHARED_METHODS_INCLUDE, File.read(shared_path, mode: 'rb'))
+  end
+
+  content
 end
 
 def strip_includes(content)
