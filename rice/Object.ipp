@@ -55,6 +55,18 @@ compare(Object const& other) const
   return Rice::detail::From_Ruby<int>::convert(result);
 }
 
+inline bool Rice::Object::
+is_equal(const Object& other) const
+{
+  return rb_equal(this->value_, other.value_);
+}
+
+inline bool Rice::Object::
+is_eql(const Object& other) const
+{
+  return rb_eql(this->value_, other.value_);
+}
+
 inline void Rice::Object::
 freeze()
 {

@@ -129,6 +129,18 @@ public:
    */
   bool is_instance_of(Object klass) const;
 
+  //! Determine whether the Ruby VALUEs wrapped by this
+  //! object are the same object. Maps to Object::equal?
+  /*! \param other a Object.
+   */
+  bool is_equal(const Object& other) const;
+
+  //! Determine whether the Ruby VALUEs wrapped by this
+  //! object are equivalent. Maps to Object::eql?
+  /*! \param other a Object.
+   */
+  bool is_eql(const Object& other) const;
+
   //! Set an instance variable.
   /*! \param name the name of the instance variable to set (including
    *  the leading @ sign)
