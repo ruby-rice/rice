@@ -24,21 +24,6 @@ namespace Rice
     template <typename T>
     constexpr bool is_primitive_v = is_primitive<T>::value;
 
-    // Helper to find out if a template has been specialized for provided type
-    template<template<typename...> class, typename, typename = void>
-    struct is_specialized : std::false_type {};
-
-    template<template<typename...> class Template, typename T>
-    struct is_specialized<Template, T, std::void_t<decltype(Template<T>{})>> : std::true_type {};
-    
-    /*template <class T, template <class...> class Template>
-    struct is_specialization : std::false_type {};
-
-    template <template <class...> class Template, class... Args>
-    struct is_specialization<Template<Args...>, Template> : std::true_type {};*/
-
-
-
   } // detail
 } // Rice
 
