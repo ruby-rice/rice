@@ -20,7 +20,7 @@
 #include "detail/to_ruby.hpp"
 #include "detail/Ruby_Function.hpp"
 #include "detail/Wrapped_Function.hpp"
-#include "detail/wrap_Function.hpp"
+#include "detail/wrap_function.hpp"
 
 #include "Arg_operators.hpp"
 #include "Exception.hpp"
