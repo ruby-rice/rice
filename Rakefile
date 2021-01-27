@@ -13,7 +13,8 @@ def run_command(*args)
   end
 end
 
-MAKE = RbConfig::CONFIG["configure_args"].match(/--with-make-prog=([^ ]*)/)[1]
+is_mswin = !RbConfig::CONFIG['host_os'].match(/mswin/).nil?
+MAKE = is_mswin ? 'nmake' : 'make'
 
 unittest = File.join(__dir__, "test", "unittest#{RbConfig::CONFIG['EXEEXT']}")
 sample_enum = File.join(__dir__, "sample", "enum", "sample_enum.so")
