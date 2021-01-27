@@ -1,6 +1,7 @@
 $: << File.join(__dir__, '..', 'ext')
 
 require 'minitest'
+require 'minitest/autorun'
 
 class MultipleExtensionsSameClassTest < Minitest::Test
   def test_multiple_extensions_same_class
