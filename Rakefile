@@ -31,8 +31,19 @@ binaries.each do |asset|
   end
 end
 
+task :build => binaries
+
+task :clean do
+  binaries.each do |asset|
+    dir = File.dirname(asset)
+    cd dir do
+      run_command("make", "clean")
+    end
+  end
+end
+
 # ---------  Testing --------------
-task :test_cpp => binaries do
+task :test_cpp => :build do
   cd "test" do
     run_command(unittest)
   end
