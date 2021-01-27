@@ -16,8 +16,10 @@ end
 # Now pull in the C++ support
 include MakeMakefile['C++']
 
+IS_MSWIN = !RbConfig::CONFIG['host_os'].match(/mswin/).nil?
+
 # Rice needs c++17. Check if we are using msvc
-if RbConfig::CONFIG['COMPILE_CXX'].match(/^cl /)
+if IS_MSWIN
   $CXXFLAGS += " /std:c++17 /EHsc /permissive-"
   $CPPFLAGS += " -D_ALLOW_KEYWORD_MACROS"
 else
