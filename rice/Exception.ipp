@@ -19,6 +19,11 @@ template <typename... Arg_Ts>
 inline Rice::Exception::
 Exception(const VALUE exceptionClass, char const* fmt, Arg_Ts&&...args)
 {
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
+#endif
+
   size_t size = std::snprintf(nullptr, 0, fmt, std::forward<Arg_Ts>(args)...);
   this->message_ = std::string(size, '\0');
 
@@ -26,6 +31,10 @@ Exception(const VALUE exceptionClass, char const* fmt, Arg_Ts&&...args)
   // to allow space for null character but we don't need that since std::string
   // will add a null character internally at n + 1
   std::snprintf(&this->message_[0], size + 1, fmt, std::forward<Arg_Ts>(args)...);
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
   // Now create the Ruby exception
   this->exception_ = rb_exc_new2(exceptionClass, this->message_.c_str());
