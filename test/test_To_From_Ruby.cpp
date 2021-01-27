@@ -346,13 +346,13 @@ TESTCASE(std_string_to_ruby_with_binary)
   Rice::String got = detail::to_ruby(std::string("\000test", 5));
 
   ASSERT_EQUAL(String(std::string("\000test", 5)), got);
-  ASSERT_EQUAL(5, got.length());
+  ASSERT_EQUAL(5ul, got.length());
 }
 
 TESTCASE(std_string_from_ruby_with_binary)
 {
   std::string got = detail::From_Ruby<std::string>::convert(rb_str_new("\000test", 5));
-  ASSERT_EQUAL(5, got.length());
+  ASSERT_EQUAL(5ul, got.length());
   ASSERT_EQUAL(std::string("\000test", 5), got);
 }
 
