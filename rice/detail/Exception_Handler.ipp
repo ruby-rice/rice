@@ -12,8 +12,8 @@ Rice::detail::Functor_Exception_Handler<Exception_T, Functor_T>::
 Functor_Exception_Handler(
     Functor_T handler,
     std::shared_ptr<Exception_Handler> next_exception_handler)
-  : next_exception_handler_(next_exception_handler)
-  , handler_(handler)
+  : handler_(handler)
+  , next_exception_handler_(next_exception_handler)
 {
 }
 
