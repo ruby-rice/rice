@@ -238,11 +238,3 @@ TESTCASE(nested_enums)
   ASSERT_EQUAL(detail::to_ruby(int(1)), protect(rb_eval_string, "Inner::Props::VALUE2.to_i"));
   ASSERT_EQUAL(detail::to_ruby(int(2)), protect(rb_eval_string, "Inner::Props::VALUE3.to_i"));
 }
-
-namespace
-{
-  Color getEnum()
-  {
-    return GREEN;
-  }
-}

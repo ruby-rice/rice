@@ -295,14 +295,6 @@ private:
 
 } // namespace
 
-template<>
-Container * detail::From_Ruby<Container *>::convert(VALUE x)
-{
-  Container * retval;
-  Data_Get_Struct(x, Container, retval);
-  return retval;
-}
-
 TESTCASE(define_class)
 {
   Class object(rb_cObject);

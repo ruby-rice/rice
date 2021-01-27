@@ -192,7 +192,7 @@ from_int(Class klass, Object i)
   {
     rb_raise(
       rb_eArgError,
-      "Invalid Enum value %i", i);
+      "Invalid Enum value %i", enumValue);
   }
 
   return *iter;
