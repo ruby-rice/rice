@@ -5,7 +5,6 @@
 #include <vector>
 #include <iostream>
 
-using namespace std;
 using namespace Rice;
 
 TESTSUITE(Director);

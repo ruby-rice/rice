@@ -1,8 +1,6 @@
-$: << File.join(File.dirname(__FILE__), '..', 'sample')
+$: << File.join(__dir__, '..', '..', 'sample')
 
-require 'rubygems'
-gem 'minitest'
-require 'minitest/autorun'
+require 'minitest'
 
 class MultipleExtensionTest < Minitest::Test
   def test_multiple_extensions_with_inheritance

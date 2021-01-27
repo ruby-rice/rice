@@ -4,7 +4,6 @@
 #include <iostream>
 
 using namespace Rice;
-using namespace std;
 
 TESTSUITE(Class);
 
