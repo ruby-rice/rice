@@ -13,6 +13,8 @@ def run_command(*args)
   end
 end
 
+MAKE = RbConfig::CONFIG["configure_args"].match(/--with-make-prog=([^ ]*)/)[1]
+
 unittest = File.join(__dir__, "test", "unittest#{RbConfig::CONFIG['EXEEXT']}")
 sample_enum = File.join(__dir__, "sample", "enum", "sample_enum.so")
 sample_inheritance = File.join(__dir__, "sample", "inheritance", "animals.so")
@@ -26,7 +28,7 @@ binaries.each do |asset|
     dir = File.dirname(asset)
     cd dir do
       run_command(Gem.ruby, "extconf.rb")
-      run_command("make")
+      run_command(MAKE)
     end
   end
 end
@@ -37,7 +39,7 @@ task :clean do
   binaries.each do |asset|
     dir = File.dirname(asset)
     cd dir do
-      run_command("make", "clean")
+      run_command(MAKE, "clean")
     end
   end
 end

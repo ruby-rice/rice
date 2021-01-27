@@ -16,11 +16,13 @@ end
 # Now pull in the C++ support
 include MakeMakefile['C++']
 
-# Rice needs c++17
-$CXXFLAGS += " -std=c++17"
-
-# Rice needs to have the C++ library available
-have_library("stdc++")
+# Rice needs c++17. Check if we are using msvc
+if RbConfig::CONFIG['COMPILE_CXX'].match(/^cl /)
+  $CXXFLAGS += " /std:c++17 /EHsc /permissive-"
+  $CPPFLAGS += " -D_ALLOW_KEYWORD_MACROS"
+else
+  $CXXFLAGS += " -std=c++17"
+end
 
 # Rice needs to include its header. Let's setup the include path
 # to make this easy
