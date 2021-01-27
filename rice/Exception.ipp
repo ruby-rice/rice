@@ -19,21 +19,13 @@ template <typename... Arg_Ts>
 inline Rice::Exception::
 Exception(const VALUE exceptionClass, char const* fmt, Arg_Ts&&...args)
 {
-  if constexpr (sizeof...(args) == 0)
-  {
-    size_t size = std::snprintf(nullptr, 0, fmt);
-    this->message_ = std::string(size, '\0');
-    // size+1 avoids truncating the string. Otherwise snprintf writes n - 1 characters
-    // to allow space for null character but we don't need that since std::string
-    // will add a null character internally at n + 1
-    std::snprintf(&this->message_[0], size + 1, fmt);
-  }
-  else
-  {
-    size_t size = std::snprintf(nullptr, 0, fmt, std::forward<Arg_Ts>(args)...);
-    this->message_ = std::string(size, '\0');
-    std::snprintf(&this->message_[0], size + 1, fmt, std::forward<Arg_Ts>(args)...);
-  }
+  size_t size = std::snprintf(nullptr, 0, fmt, std::forward<Arg_Ts>(args)...);
+  this->message_ = std::string(size, '\0');
+
+  // size+1 avoids trunctaing the string. Otherwise snprintf writes n - 1 characters
+  // to allow space for null character but we don't need that since std::string
+  // will add a null character internally at n + 1
+  std::snprintf(&this->message_[0], size + 1, fmt, std::forward<Arg_Ts>(args)...);
 
   // Now create the Ruby exception
   this->exception_ = rb_exc_new2(exceptionClass, this->message_.c_str());
