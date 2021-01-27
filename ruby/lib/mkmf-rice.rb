@@ -22,6 +22,9 @@ $CXXFLAGS += " -std=c++17"
 # Rice needs to have the C++ library available
 have_library("stdc++")
 
-# And of course we need to know where the Rice header is
-# TODO - right now this uses rice/rice.hpp instead of include/rice.hpp
-find_header('rice.hpp', "../../rice")
+# Rice needs to include its header. Let's setup the include path
+# to make this easy
+path = File.expand_path(File.join(__dir__, '../../rice'))
+
+find_header('rice.hpp', path)
+

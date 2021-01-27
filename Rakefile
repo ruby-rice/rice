@@ -3,6 +3,7 @@ require "rake/testtask"
 require 'rbconfig'
 require 'open3'
 
+# ---------  Binaries --------------
 def run_command(*args)
   Open3.popen2(*args) do |stdin_child, stdout_child, status_thread|
     stdout_child.each_line do |line|
@@ -30,9 +31,8 @@ binaries.each do |asset|
   end
 end
 
-task :build => binaries
-
-task :test_cpp => :build do
+# ---------  Testing --------------
+task :test_cpp => binaries do
   cd "test" do
     run_command(unittest)
   end
@@ -47,6 +47,18 @@ end
 
 task :test => :test_cpp
 
+# ---------  Header  --------------
+rice_hpp = File.join(__dir__, 'include', 'rice.hpp')
+
+desc "Build rice.hpp"
+file rice_hpp do
+  Dir.mkdir('include')
+  path = File.join(__dir__, 'make_rice_hpp.rb')
+  run_command(Gem.ruby, path)
+end
+
+
+# ---------  Documentation  --------------
 desc "Build the documentation"
 task :doc do
   sh "make doc"
@@ -54,7 +66,9 @@ end
 
 task :default => :test
 
-# Gemspec kept externally
+# ---------  Packaging  --------------
 spec = Gem::Specification.load("rice.gemspec")
 Gem::PackageTask.new(spec) do |pkg|
 end
+
+task :package => rice_hpp

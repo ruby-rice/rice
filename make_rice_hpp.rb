@@ -66,5 +66,6 @@ def combine_header_files
   end
 end
 
+puts "Building rice.hpp"
 combine_header_files
-
+puts "Success"

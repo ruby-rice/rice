@@ -65,12 +65,8 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 #endif
 
 // And some c library conflicts
-#if defined(_MSC_VER)
 #undef snprintf
 #undef vsnprintf
-#endif
-
-#define std_unique_ptr std::unique_ptr
 
 
 
@@ -98,21 +94,6 @@ namespace Rice
 
     template <typename T>
     constexpr bool is_primitive_v = is_primitive<T>::value;
-
-    // Helper to find out if a template has been specialized for provided type
-    template<template<typename...> class, typename, typename = void>
-    struct is_specialized : std::false_type {};
-
-    template<template<typename...> class Template, typename T>
-    struct is_specialized<Template, T, std::void_t<decltype(Template<T>{})>> : std::true_type {};
-    
-    /*template <class T, template <class...> class Template>
-    struct is_specialization : std::false_type {};
-
-    template <template <class...> class Template, class... Args>
-    struct is_specialization<Template<Args...>, Template> : std::true_type {};*/
-
-
 
   } // detail
 } // Rice
@@ -324,79 +305,6 @@ namespace Rice {
   };
 
 }
-
-
-// =========   creation_funcs.hpp   =========
-
-namespace Rice
-{
-
-class Class;
-
-namespace detail
-{
-
-//! Like define_alloc_func, but allows the user to define an
-//! "initialize" method too.
-template<typename Initialize_Func_T>
-void define_creation_funcs(
-    VALUE const & klass,
-    RUBY_VALUE_FUNC allocate_func,
-    Initialize_Func_T initialize_func);
-
-//! This is just the opposite of define_alloc_func.  It can be
-//! used to create a class that cannot be instantiated by the user.
-void undef_alloc_func(
-    VALUE const & klass);
-
-//! This is just the opposite of define_creation_func.  It can be
-//! used to create a class that cannot be instantiated by the user.
-void undef_creation_funcs(
-    VALUE const & klass);
-
-} // namespace detail
-
-} // namespace Rice
-
-
-// ---------   creation_funcs.ipp   ---------
-#ifndef Rice__detail__creation_funcs__ipp_
-#define Rice__detail__creation_funcs__ipp_
-
-namespace Rice
-{
-
-namespace detail
-{
-
-template<typename Initialize_Func_T>
-inline void define_creation_funcs(
-    VALUE const & klass,
-    RUBY_VALUE_FUNC allocate_func,
-    Initialize_Func_T initialize_func)
-{
-  rb_define_alloc_func(klass, allocate_func);
-  klass.define_method("initialize", initialize_func);
-}
-
-inline void undef_alloc_func(VALUE const & klass)
-{
-  rb_undef_alloc_func(klass);
-}
-
-inline void undef_creation_funcs(VALUE const & klass)
-{
-  undef_alloc_func(klass);
-  rb_undef_method(klass, "initialize");
-}
-
-} // namespace detail
-
-} // namespace Rice
-
-#endif // Rice__detail__creation_funcs__ipp_
-
-
 
 
 // =========   default_allocation_func.hpp   =========
@@ -845,6 +753,38 @@ handle_exception() const
 }
 
 
+// =========   Iterator.hpp   =========
+#ifndef Rice_Iterator__hpp_
+#define Rice_Iterator__hpp_
+
+
+namespace Rice
+{
+  namespace detail
+  {
+
+    template<typename T, typename Iterator_T>
+    class Iterator
+    {
+    public:
+      static VALUE call(VALUE self);
+
+    public:
+      Iterator(Iterator_T(T::* begin)(), Iterator_T(T::* end)());
+      virtual ~Iterator() = default;
+      VALUE operator()(VALUE self);
+
+    private:
+      Iterator_T(T::* begin_)();
+      Iterator_T(T::* end_)();
+    };
+
+  } // detail
+} // Rice
+
+#endif // Rice_Iterator__hpp_
+
+
 // =========   Jump_Tag.hpp   =========
 
 namespace Rice
@@ -870,52 +810,31 @@ struct Jump_Tag
 
 // =========   method_data.hpp   =========
 
+#include <unordered_map>
+#include <any>
+
 
 namespace Rice
 {
+  namespace detail
+  {
+    class MethodData
+    {
+    public:
+      // Defines a new Ruby method and stores the Rice metadata about it
+      static void define_method(VALUE klass, ID id, VALUE(*cfunc)(ANYARGS), int arity, std::any data);
 
-namespace detail
-{
+      // Returns the Rice data for the currently active Ruby method
+      static std::any data();
 
-VALUE define_method_with_data(VALUE klass, ID id, VALUE (*cfunc)(ANYARGS), int arity, VALUE data);
-
-VALUE method_data();
-
-} // namespace detail
-
-} // namespace Rice
-
+    private:
+      static size_t key(VALUE klass, ID id);
+      inline static std::unordered_map<size_t, std::any> methodWrappers_ = {};
+    };
+  }
+} 
 
 // ---------   method_data.ipp   ---------
-// TODO: This is silly, autoconf...
-/*#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-*/
-
-#define RICE_ID rb_intern("__rice__")
-
-inline VALUE
-Rice::detail::
-method_data()
-{
-  ID id;
-  VALUE klass;
-  if (!rb_frame_method_id_and_class(&id, &klass))
-  {
-    rb_raise(
-        rb_eRuntimeError,
-        "Cannot get method id and class for function");
-  }
-
-  if (rb_type(klass) == T_ICLASS) {
-    klass = rb_class_of(klass);
-  }
-
-  VALUE store = rb_ivar_get(klass, RICE_ID);
-  return (store == Qnil) ? Qnil : rb_ivar_get(store, id);
-}
 
 // Ruby 2.7 now includes a similarly named macro that uses templates to
 // pick the right overload for the underlying function. That doesn't work
@@ -924,45 +843,53 @@ method_data()
 // back to the C-API underneath again.
 #undef rb_define_method_id
 
-// Define a method and attach metadata about the method to its owning class.
-// This is done by wrapping data in a VALUE (via Data_Object) and then
-// adding it as a hidden ivar to a storage object (an instance of a Ruby
-// object) that is itself added as a hidden ivar to the method's class.
-// 
-// When Ruby makes a method call, it stores the class Object and method
-// ID in the current stack frame.  When Ruby calls into Rice, we grab
-// the class and method ID from the stack frame, then pull the data out
-// of the class. The data item is then used to determine how to convert
-// arguments and return type, how to handle exceptions, etc.
-//
-inline VALUE
-Rice::detail::
-define_method_with_data(
-    VALUE klass, ID id, VALUE (*cfunc)(ANYARGS), int arity, VALUE data)
+namespace Rice
 {
-  VALUE store = rb_attr_get(klass, RICE_ID);
-
-  if (store == Qnil)
+  namespace detail
   {
-    store = rb_obj_alloc(rb_cObject);
-    // store is stored in the instance variables table with
-    // name "__rice__".
-    // since "__rice__" does not have the @ prefix,
-    // so it can never be read at the Ruby level.
-    rb_ivar_set(klass, RICE_ID, store);
+    // Effective Java (2nd edition)
+    // https://stackoverflow.com/a/2634715
+    inline size_t MethodData::key(VALUE klass, ID id)
+    {
+      if (rb_type(klass) == T_ICLASS)
+      {
+        klass = rb_class_of(klass);
+      }
+
+      uint32_t prime = 53;
+      return (prime + klass) * prime + id;
+    }
+
+    inline std::any MethodData::data()
+    {
+      ID id;
+      VALUE klass;
+      if (!rb_frame_method_id_and_class(&id, &klass))
+      {
+        rb_raise(rb_eRuntimeError, "Cannot get method id and class for function");
+      }
+
+      auto iter = methodWrappers_.find(key(klass, id));
+      if (iter == methodWrappers_.end())
+      {
+        rb_raise(rb_eRuntimeError, "Could not find data for klass and method id");
+      }
+
+      return iter->second;
+    }
+
+    inline void
+    MethodData::define_method(VALUE klass, ID id, VALUE(*cfunc)(ANYARGS), int arity, std::any data)
+    {
+      // Define the method
+      rb_define_method_id(klass, id, cfunc, arity);
+
+      // Now store data about it
+      methodWrappers_[key(klass, id)] = data;
+    }
   }
-
-  rb_ivar_set(store, id, data);
-
-  // Create the aliased method on the origin class
-  rb_define_method_id(
-      klass,
-      id,
-      cfunc,
-      arity);
-
-  return Qnil;
 }
+
 
 // =========   NativeArg.hpp   =========
 
@@ -1083,24 +1010,23 @@ namespace Rice
      */
     template <typename T, typename = void>
     struct To_Ruby;
-
-    // Supports int&, bool&, std::string&, etc but *NOT* any C++ structs/classes
-    template<typename T>
-    struct Rice::detail::To_Ruby<T&, std::enable_if_t<is_primitive_v<T>>>
-    {
-      static VALUE convert(T const& x)
-      {
-        return To_Ruby<base_type<T>>::convert(x);
-      }
-    };
-
+   
     // Supports int*, bool*, std::string*, etc but *NOT* any C++ structs/classes
     template<typename T>
-    struct Rice::detail::To_Ruby<T*, std::enable_if_t<is_primitive_v<T>>>
+    struct To_Ruby<T*, std::enable_if_t<is_primitive_v<T>>>
     {
       static VALUE convert(T const* x)
       {
         return To_Ruby<base_type<T>>::convert(*x);
+      }
+    };
+
+    template<typename T>
+    struct To_Ruby<T&>
+    {
+      static VALUE convert(T const& x)
+      {
+        return To_Ruby<base_type<T>>::convert(x);
       }
     };
 
@@ -1216,6 +1142,24 @@ namespace Rice
     };
 
     template<>
+    struct To_Ruby<float>
+    {
+      static VALUE convert(float const& x)
+      {
+        return rb_float_new(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<double>
+    {
+      static VALUE convert(double const& x)
+      {
+        return rb_float_new(x);
+      }
+    };
+
+    template<>
     struct To_Ruby<bool>
     {
       static VALUE convert(bool const& x)
@@ -1243,27 +1187,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<float>
+    struct To_Ruby<const char*>
     {
-      static VALUE convert(float const& x)
-      {
-        return rb_float_new(x);
-      }
-    };
-
-    template<>
-    struct To_Ruby<double>
-    {
-      static VALUE convert(double const& x)
-      {
-        return rb_float_new(x);
-      }
-    };
-
-    template<>
-    struct To_Ruby<char const*>
-    {
-      static VALUE convert(char const* const& x)
+      static VALUE convert(const char* x)
       {
         return rb_str_new2(x);
       }
@@ -1354,6 +1280,146 @@ namespace detail
 
 } // namespace rice
 
+
+
+
+// =========   Wrapped_Function.hpp   =========
+
+
+namespace Rice
+{
+
+namespace detail
+{
+/* This class wraps a native function call. The most important template parameters
+   are Receiver_T and Return_T.
+
+   Receiver_T can have one of the following values:
+   
+   * std::null_ptr - There is no reciever, thus this is a function or static member function
+   * Object - This is used for calling constructors.
+   * Class - This is used for translating enums values
+   * C++ Object - This is the most common value and is used to invoke a member function 
+     on a wrapped instance of a C++ object
+   
+   Return_T which specifies the return value. It can either be:
+
+   * void - Meaning there is no return value. This is mapped to Qnil in Ruby
+   * any other possible value */
+  
+template<typename Function_T, typename Return_T, typename Receiver_T, typename... Arg_Ts>
+class Wrapped_Function
+{
+// NativeTypes are the types that we pass to the native function. They may or may not include
+// the receiver as the first argument. This alias makes it possible to have just one
+// implemenation of invokeNative
+using NativeTypes = typename std::conditional_t<std::is_same_v<Receiver_T, std::nullptr_t>,
+                                                std::tuple<Arg_Ts...>, 
+                                                std::tuple<Receiver_T, Arg_Ts...>>;
+
+public:
+  // Static member function that Ruby calls
+  static VALUE call(int argc, VALUE* argv, VALUE self);
+
+public:
+  Wrapped_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
+  virtual ~Wrapped_Function();
+
+  // Invokes the wrapped function
+  VALUE operator()(int argc, VALUE* argv, VALUE self);
+
+private:
+  // Convert Ruby argv pointer to Ruby values
+  std::vector<VALUE> getRubyValues(int argc, VALUE* argv);
+
+  // Convert Ruby values to C++ values
+  template<typename std::size_t... I>
+  std::tuple<Arg_Ts...> getNativeValues(std::vector<VALUE>& values, std::tuple<NativeArg<Arg_Ts>...>& nativeArgs, std::index_sequence<I...>& indices);
+
+  // Figure out the receiver of the function call
+  Receiver_T getReceiver(VALUE receiver);
+
+  // Call the underlying C++ function
+  VALUE invokeNative(NativeTypes& nativeArgs);
+  
+private:
+  Function_T func_;
+  Arguments* arguments_;
+  std::shared_ptr<Exception_Handler> handler_;
+};
+
+} // detail
+
+} // Rice
+
+
+
+// =========   wrap_Function.hpp   =========
+
+
+namespace Rice
+{
+
+// TODO - forward declarations
+class Class;
+class Object;
+
+namespace detail
+{
+
+// Used for calling Constructor
+template<typename Return_T, typename ...Arg_T>
+auto* wrap_function(Return_T(*func)(Object, Arg_T...),
+  std::shared_ptr<Exception_Handler> handler,
+  Arguments* arguments)
+{
+  using Function_T = Return_T(*)(Object, Arg_T...);
+  return new Wrapped_Function<Function_T, Return_T, Object, Arg_T...>(func, handler, arguments);
+}
+
+// Used by Enums
+template<typename Return_T, typename ...Arg_T>
+auto* wrap_function(Return_T(*func)(Class, Arg_T...),
+  std::shared_ptr<Exception_Handler> handler,
+  Arguments* arguments)
+{
+  using Function_T = Return_T(*)(Class, Arg_T...);
+  return new Wrapped_Function<Function_T, Return_T, Class, Arg_T...>(func, handler, arguments);
+}
+
+// A plain function or static member call
+template<typename Return_T, typename ...Arg_T>
+auto* wrap_function(Return_T (*func)(Arg_T...),
+    std::shared_ptr<Exception_Handler> handler,
+    Arguments* arguments)
+{
+  using Function_T = Return_T(*)(Arg_T...);
+  return new Wrapped_Function<Function_T, Return_T, std::nullptr_t, Arg_T...>(func, handler, arguments);
+}
+
+// Call a member function on a C++ object
+template<typename Return_T, typename Self_T, typename ...Arg_T>
+auto* wrap_function(Return_T (Self_T::*func)(Arg_T...),
+    std::shared_ptr<Exception_Handler> handler,
+    Arguments* arguments)
+{
+  using Function_T = Return_T(Self_T::*)(Arg_T...);
+  return new Wrapped_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, arguments);
+}
+
+// Call a const member function on a C++ object
+template<typename Return_T, typename Self_T, typename ...Arg_T>
+auto* wrap_function(Return_T (Self_T::*func)(Arg_T...) const,
+    std::shared_ptr<Exception_Handler> handler,
+    Arguments* arguments)
+{
+  using Function_T = Return_T(Self_T::*)(Arg_T...) const;
+  return new Wrapped_Function<Function_T, Return_T, Self_T, Arg_T...>(func, handler, arguments);
+}
+
+} // namespace detail
+
+} // namespace Rice
 
 
 
@@ -1532,7 +1598,7 @@ namespace Rice
   {
     const int TAG_RAISE = 0x6;
 
-    inline VALUE Rice::detail::
+    inline VALUE
     protect(
         RUBY_VALUE_FUNC f,
         VALUE arg)
@@ -1713,8 +1779,11 @@ public:
   //! Construct a new Identifier from a Symbol.
   Identifier(Symbol const & symbol);
 
+  //! Construct a new Identifier from a c string.
+  Identifier(char const * s);
+
   //! Construct a new Identifier from a string.
-  Identifier(char const * s = "");
+  Identifier(std::string const string);
 
   //! Return a string representation of the Identifier.
   char const * c_str() const;
@@ -1748,6 +1817,12 @@ Identifier(ID id)
 inline Rice::Identifier::
 Identifier(char const * s)
   : id_(rb_intern(s))
+{
+}
+
+inline Rice::Identifier::
+Identifier(std::string const s)
+  : id_(rb_intern(s.c_str()))
 {
 }
 
@@ -1805,11 +1880,16 @@ public:
   //! Encapsulate an existing ruby object.
   Object(VALUE value = Qnil) : value_(value) { }
 
-  //! Copy constructor
-  Object(Object const & other) : value_(other.value()) { }
-
   //! Destructor
-  virtual ~Object() { }
+  virtual ~Object() = default;
+
+  // Enable copying
+  Object(const Object& other) = default;
+  Object& operator=(const Object& other) = default;
+
+  // Enable moving
+  Object(Object&& other);
+  Object& operator=(Object&& other);
 
   //! Returns false if the object is nil or false; returns true
   //! otherwise.
@@ -1867,9 +1947,6 @@ public:
    */
   bool is_frozen() const;
 
-  //! Swap with another Object.
-  void swap(Object & other);
-
   //! Evaluate the given string in the context of the object.
   /*! This is equivalant to calling obj.instance_eval(s) from inside the
    *  interpreter.
@@ -1903,6 +1980,18 @@ public:
    *  \return true if the object is an instance of the given class.
    */
   bool is_instance_of(Object klass) const;
+
+  //! Determine whether the Ruby VALUEs wrapped by this
+  //! object are the same object. Maps to Object::equal?
+  /*! \param other a Object.
+   */
+  bool is_equal(const Object& other) const;
+
+  //! Determine whether the Ruby VALUEs wrapped by this
+  //! object are equivalent. Maps to Object::eql?
+  /*! \param other a Object.
+   */
+  bool is_eql(const Object& other) const;
 
   //! Set an instance variable.
   /*! \param name the name of the instance variable to set (including
@@ -2016,15 +2105,6 @@ struct Rice::detail::To_Ruby<T, std::enable_if_t<Rice::detail::is_kind_of_object
 };
 
 template<typename T>
-struct Rice::detail::To_Ruby<T&, std::enable_if_t<Rice::detail::is_kind_of_object<T>>>
-{
-  static VALUE convert(Rice::Object const& x)
-  {
-    return x.value();
-  }
-};
-
-template<typename T>
 struct Rice::detail::To_Ruby<T*, std::enable_if_t<std::is_base_of_v<Rice::Object, T>>>
 {
   static VALUE convert(Rice::Object const* x)
@@ -2047,6 +2127,21 @@ namespace Rice
   inline const Object True(Qtrue);
   inline const Object False(Qfalse);
   inline const Object Undef(Qundef);
+}
+
+inline Rice::Object::
+Object(Object&& other)
+{
+  this->value_ = other.value_;
+  other.value_ = Qnil;
+}
+
+inline Rice::Object& Rice::Object::
+operator=(Object&& other)
+{
+  this->value_ = other.value_;
+  other.value_ = Qnil;
+  return *this;
 }
 
 template<typename ...ArgT>
@@ -2078,6 +2173,18 @@ compare(Object const& other) const
   return Rice::detail::From_Ruby<int>::convert(result);
 }
 
+inline bool Rice::Object::
+is_equal(const Object& other) const
+{
+  return rb_equal(this->value_, other.value_);
+}
+
+inline bool Rice::Object::
+is_eql(const Object& other) const
+{
+  return rb_eql(this->value_, other.value_);
+}
+
 inline void Rice::Object::
 freeze()
 {
@@ -2088,12 +2195,6 @@ inline bool Rice::Object::
 is_frozen() const
 {
   return bool(OBJ_FROZEN(value()));
-}
-
-inline void Rice::Object::
-swap(Rice::Object& other)
-{
-  std::swap(value_, other.value_);
 }
 
 inline int Rice::Object::
@@ -2180,145 +2281,6 @@ operator>(Rice::Object const& lhs, Rice::Object const& rhs)
 
 
 
-// =========   Wrapped_Function.hpp   =========
-
-
-namespace Rice
-{
-
-namespace detail
-{
-/* This class wraps a native function call. The most important template parameters
-   are Receiver_T and Return_T.
-
-   Receiver_T can have one of the following values:
-   
-   * std::null_ptr - There is no reciever, thus this is a function or static member function
-   * Object - This is used for calling constructors.
-   * Class - This is used for translating enums values
-   * C++ Object - This is the most common value and is used to invoke a member function 
-     on a wrapped instance of a C++ object
-   
-   Return_T which specifies the return value. It can either be:
-
-   * void - Meaning there is no return value. This is mapped to Qnil in Ruby
-   * any other possible value */
-  
-template<typename Function_T, typename Return_T, typename Receiver_T, typename... Arg_Ts>
-class Wrapped_Function
-{
-// NativeTypes are the types that we pass to the native function. They may or may not include
-// the receiver as the first argument. This alias makes it possible to have just one
-// implemenation of invokeNative
-using NativeTypes = typename std::conditional_t<std::is_same_v<Receiver_T, std::nullptr_t>,
-                                                std::tuple<Arg_Ts...>, 
-                                                std::tuple<Receiver_T, Arg_Ts...>>;
-
-public:
-  // Static member function that Ruby calls
-  static VALUE call(int argc, VALUE* argv, VALUE self);
-
-public:
-  Wrapped_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
-  virtual ~Wrapped_Function();
-
-  // Invokes the wrapped function
-  VALUE operator()(int argc, VALUE* argv, VALUE self);
-
-private:
-  // Convert Ruby argv pointer to Ruby values
-  std::vector<VALUE> getRubyValues(int argc, VALUE* argv);
-
-  // Convert Ruby values to C++ values
-  template<typename std::size_t... I>
-  std::tuple<Arg_Ts...> getNativeValues(std::vector<VALUE>& values, std::tuple<NativeArg<Arg_Ts>...>& nativeArgs, std::index_sequence<I...>& indices);
-
-  // Figure out the receiver of the function call
-  Receiver_T getReceiver(VALUE receiver);
-
-  // Call the underlying C++ function
-  VALUE invokeNative(NativeTypes& nativeArgs);
-  
-private:
-  Function_T func_;
-  Arguments* arguments_;
-  std::shared_ptr<Exception_Handler> handler_;
-};
-
-} // detail
-
-} // Rice
-
-
-// =========   wrap_Function.hpp   =========
-
-
-namespace Rice
-{
-
-// TODO - forward declarations
-class Class;
-class Object;
-
-namespace detail
-{
-
-// Used for calling Constructor
-template<typename Return_T, typename ...Arg_T>
-auto* wrap_function(Return_T(*func)(Object, Arg_T...),
-  std::shared_ptr<Exception_Handler> handler,
-  Arguments* arguments)
-{
-  using Function_T = Return_T(*)(Object, Arg_T...);
-  return new Wrapped_Function<Function_T, Return_T, Object, Arg_T...>(func, handler, arguments);
-}
-
-// Used by Enums
-template<typename Return_T, typename ...Arg_T>
-auto* wrap_function(Return_T(*func)(Class, Arg_T...),
-  std::shared_ptr<Exception_Handler> handler,
-  Arguments* arguments)
-{
-  using Function_T = Return_T(*)(Class, Arg_T...);
-  return new Wrapped_Function<Function_T, Return_T, Class, Arg_T...>(func, handler, arguments);
-}
-
-// A plain function or static member call
-template<typename Return_T, typename ...Arg_T>
-auto* wrap_function(Return_T (*func)(Arg_T...),
-    std::shared_ptr<Exception_Handler> handler,
-    Arguments* arguments)
-{
-  using Function_T = Return_T(*)(Arg_T...);
-  return new Wrapped_Function<Function_T, Return_T, std::nullptr_t, Arg_T...>(func, handler, arguments);
-}
-
-// Call a member function on a C++ object
-template<typename Return_T, typename Self_T, typename ...Arg_T>
-auto* wrap_function(Return_T (Self_T::*func)(Arg_T...),
-    std::shared_ptr<Exception_Handler> handler,
-    Arguments* arguments)
-{
-  using Function_T = Return_T(Self_T::*)(Arg_T...);
-  return new Wrapped_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, arguments);
-}
-
-// Call a const member function on a C++ object
-template<typename Return_T, typename Self_T, typename ...Arg_T>
-auto* wrap_function(Return_T (Self_T::*func)(Arg_T...) const,
-    std::shared_ptr<Exception_Handler> handler,
-    Arguments* arguments)
-{
-  using Function_T = Return_T(Self_T::*)(Arg_T...) const;
-  return new Wrapped_Function<Function_T, Return_T, Self_T, Arg_T...>(func, handler, arguments);
-}
-
-} // namespace detail
-
-} // namespace Rice
-
-
-
 // =========   Builtin_Object.hpp   =========
 
 
@@ -2348,23 +2310,10 @@ public:
    *  \param value the object to be wrapped.
    */
   Builtin_Object(Object value);
-
-  //! Make a copy of a Builtin_Object
-  /*! \param other the Builtin_Object to be copied.
-   */
-  Builtin_Object(Builtin_Object const & other);
-
-  RObject & operator*() const { return *obj_; } //!< Return a reference to obj_
-  RObject * operator->() const { return obj_; } //!< Return a pointer to obj_
-  RObject * get() const { return obj_; }        //!< Return a pointer to obj_
-
-  //! Swap with another builtin object of the same type
-  /*! \param ref the object with which to swap.
-   */
-  void swap(Builtin_Object<Builtin_Type> & ref);
-
-private:
-  RObject * obj_;
+  
+  RObject& operator*() const; //!< Return a reference to obj_
+  RObject* operator->() const; //!< Return a pointer to obj_
+  RObject* get() const;       //!< Return a pointer to obj_
 };
 
 } // namespace Rice
@@ -2395,25 +2344,29 @@ template<int Builtin_Type>
 inline Builtin_Object<Builtin_Type>::
 Builtin_Object(Object value)
   : Object(value)
-  , obj_((RObject*)(value.value()))
 {
   protect(detail::check_type, value, Builtin_Type);
 }
 
 template<int Builtin_Type>
-inline Builtin_Object<Builtin_Type>::
-Builtin_Object(Builtin_Object<Builtin_Type> const & other)
-  : Object(other.value())
-  , obj_(other.obj_)
+inline RObject& Builtin_Object<Builtin_Type>::
+operator*() const
 {
+  return *ROBJECT(this->value());
 }
 
 template<int Builtin_Type>
-inline void Builtin_Object<Builtin_Type>::
-swap(Builtin_Object<Builtin_Type> & ref)
+inline RObject* Builtin_Object<Builtin_Type>::
+operator->() const
 {
-  std::swap(obj_, ref.obj_);
-  Object::swap(ref);
+  return ROBJECT(this->value());
+}
+
+template<int Builtin_Type>
+inline RObject* Builtin_Object<Builtin_Type>::
+get() const
+{
+  return ROBJECT(this->value());
 }
 
 } // namespace Rice
@@ -2684,17 +2637,17 @@ public:
   Object shift();
 
 private:
-  template<typename Array_Ref_T, typename Value_T>
+  template<typename Array_Ptr_T, typename Value_T>
   class Iterator;
 
   long position_of(long index) const;
 
 public:
   //! An iterator.
-  typedef Iterator<Array &, Proxy> iterator;
+  typedef Iterator<Array *, Proxy> iterator;
 
   //! A const iterator.
-  typedef Iterator<Array const &, Object> const_iterator;
+  typedef Iterator<Array const *, Object> const_iterator;
 
   //! Return an iterator to the beginning of the array.
   iterator begin();
@@ -2733,7 +2686,7 @@ private:
 
 //! A helper class for implementing iterators for a Array.
 // TODO: This really should be a random-access iterator.
-template<typename Array_Ref_T, typename Value_T>
+template<typename Array_Ptr_T, typename Value_T>
 class Array::Iterator
 {
 public:
@@ -2743,34 +2696,30 @@ public:
   using pointer = Object*;
   using reference = Value_T&;  
   
-  Iterator(Array_Ref_T array, long index);
+  Iterator(Array_Ptr_T array, long index);
 
-  template<typename Array_Ref_T_, typename Value_T_>
-  Iterator(Iterator<Array_Ref_T_, Value_T_> const & rhs);
+  template<typename Array_Ptr_T_, typename Value_T_>
+  Iterator(Iterator<Array_Ptr_T_, Value_T_> const & rhs);
 
-  template<typename Array_Ref_T_, typename Value_T_>
-  Iterator & operator=(Iterator<Array_Ref_T_, Value_T_> const & rhs);
+  template<typename Array_Ptr_T_, typename Value_T_>
+  Iterator & operator=(Iterator<Array_Ptr_T_, Value_T_> const & rhs);
 
   Iterator & operator++();
   Iterator operator++(int);
   Value_T operator*();
   Object * operator->();
 
-  template<typename Array_Ref_T_, typename Value_T_>
-  bool operator==(Iterator<Array_Ref_T_, Value_T_> const & rhs) const;
+  template<typename Array_Ptr_T_, typename Value_T_>
+  bool operator==(Iterator<Array_Ptr_T_, Value_T_> const & rhs) const;
 
-  template<typename Array_Ref_T_, typename Value_T_>
-  bool operator!=(Iterator<Array_Ref_T_, Value_T_> const & rhs) const;
+  template<typename Array_Ptr_T_, typename Value_T_>
+  bool operator!=(Iterator<Array_Ptr_T_, Value_T_> const & rhs) const;
 
-  // Causes ICE on g++ 3.3.3
-  // template<typename Array_Ref_T_, typename Value_T_>
-  // friend class Iterator;
-
-  Array_Ref_T array() const;
+  Array_Ptr_T array() const;
   long index() const;
 
 private:
-  Array_Ref_T array_;
+  Array_Ptr_T array_;
   long index_;
 
   Object tmp_;
@@ -2918,48 +2867,48 @@ operator=(T const & value)
   return o;
 }
 
-template<typename Array_Ref_T, typename Value_T>
-inline Rice::Array::Iterator<Array_Ref_T, Value_T>::
-Iterator(Array_Ref_T array, long index)
+template<typename Array_Ptr_T, typename Value_T>
+inline Rice::Array::Iterator<Array_Ptr_T, Value_T>::
+Iterator(Array_Ptr_T array, long index)
   : array_(array)
   , index_(index)
 {
 }
 
-template<typename Array_Ref_T, typename Value_T>
-template<typename Array_Ref_T_, typename Value_T_>
+template<typename Array_Ptr_T, typename Value_T>
+template<typename Array_Ptr_T_, typename Value_T_>
 inline
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
-Iterator(Iterator<Array_Ref_T_, Value_T_> const & rhs)
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
+Iterator(Iterator<Array_Ptr_T_, Value_T_> const & rhs)
   : array_(rhs.array())
   , index_(rhs.index())
   , tmp_()
 {
 }
 
-template<typename Array_Ref_T, typename Value_T>
-template<typename Array_Ref_T_, typename Value_T_>
-inline Rice::Array::Iterator<Array_Ref_T, Value_T> &
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
-operator=(Iterator<Array_Ref_T_, Value_T_> const & rhs)
+template<typename Array_Ptr_T, typename Value_T>
+template<typename Array_Ptr_T_, typename Value_T_>
+inline Rice::Array::Iterator<Array_Ptr_T, Value_T> &
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
+operator=(Iterator<Array_Ptr_T_, Value_T_> const & rhs)
 {
   array_ = rhs.array_;
   index_ = rhs.index_;
   return *this;
 }
 
-template<typename Array_Ref_T, typename Value_T>
-inline Rice::Array::Iterator<Array_Ref_T, Value_T> &
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
+template<typename Array_Ptr_T, typename Value_T>
+inline Rice::Array::Iterator<Array_Ptr_T, Value_T> &
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
 operator++()
 {
   ++index_;
   return *this;
 }
 
-template<typename Array_Ref_T, typename Value_T>
-inline Rice::Array::Iterator<Array_Ref_T, Value_T>
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
+template<typename Array_Ptr_T, typename Value_T>
+inline Rice::Array::Iterator<Array_Ptr_T, Value_T>
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
 operator++(int)
 {
   Array copy(*this);
@@ -2967,52 +2916,52 @@ operator++(int)
   return *this;
 }
 
-template<typename Array_Ref_T, typename Value_T>
+template<typename Array_Ptr_T, typename Value_T>
 inline Value_T
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
 operator*()
 {
-  return array_[index_];
+  return (*array_)[index_];
 }
 
-template<typename Array_Ref_T, typename Value_T>
+template<typename Array_Ptr_T, typename Value_T>
 inline Rice::Object *
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
 operator->()
 {
-  tmp_ = array_[index_];
+  tmp_ = (*array_)[index_];
   return &tmp_;
 }
 
-template<typename Array_Ref_T, typename Value_T>
-template<typename Array_Ref_T_, typename Value_T_>
+template<typename Array_Ptr_T, typename Value_T>
+template<typename Array_Ptr_T_, typename Value_T_>
 inline bool
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
-operator==(Iterator<Array_Ref_T_, Value_T_> const & rhs) const
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
+operator==(Iterator<Array_Ptr_T_, Value_T_> const & rhs) const
 {
-  return array_.value() == rhs.array_.value() && index_ == rhs.index_;
+  return array_->value() == rhs.array_->value() && index_ == rhs.index_;
 }
 
-template<typename Array_Ref_T, typename Value_T>
-template<typename Array_Ref_T_, typename Value_T_>
+template<typename Array_Ptr_T, typename Value_T>
+template<typename Array_Ptr_T_, typename Value_T_>
 inline bool
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
-operator!=(Iterator<Array_Ref_T_, Value_T_> const & rhs) const
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
+operator!=(Iterator<Array_Ptr_T_, Value_T_> const & rhs) const
 {
   return !(*this == rhs);
 }
 
-template<typename Array_Ref_T, typename Value_T>
-Array_Ref_T
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
+template<typename Array_Ptr_T, typename Value_T>
+Array_Ptr_T
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
 array() const
 {
   return array_;
 }
 
-template<typename Array_Ref_T, typename Value_T>
+template<typename Array_Ptr_T, typename Value_T>
 long
-Rice::Array::Iterator<Array_Ref_T, Value_T>::
+Rice::Array::Iterator<Array_Ptr_T, Value_T>::
 index() const
 {
   return index_;
@@ -3021,25 +2970,25 @@ index() const
 inline Rice::Array::iterator Rice::Array::
 begin()
 {
-  return iterator(*this, 0);
+  return iterator(this, 0);
 }
 
 inline Rice::Array::const_iterator Rice::Array::
 begin() const
 {
-  return const_iterator(*this, 0);
+  return const_iterator(this, 0);
 }
 
 inline Rice::Array::iterator Rice::Array::
 end()
 {
-  return iterator(*this, size());
+  return iterator(this, size());
 }
 
 inline Rice::Array::const_iterator Rice::Array::
 end() const
 {
-  return const_iterator(*this, size());
+  return const_iterator(this, size());
 }
 
 #endif // Rice__Array__ipp_
@@ -3112,15 +3061,15 @@ public:
   class Entry;
 
   //! A helper class for implementing iterators for a Hash.
-  template<typename Hash_Ref_T, typename Value_T>
+  template<typename Hash_Ptr_T, typename Value_T>
   class Iterator;
 
 public:
   //! An iterator.
-  typedef Iterator<Hash &, Entry> iterator;
+  typedef Iterator<Hash *, Entry> iterator;
 
   //! A const iterator.
-  typedef Iterator<Hash const &, Entry const> const_iterator;
+  typedef Iterator<Hash const *, Entry const> const_iterator;
 
 public:
   //! Return an iterator to the beginning of the hash.
@@ -3141,7 +3090,7 @@ class Hash::Proxy
 {
 public:
   //! Construct a new Proxy.
-  Proxy(Hash hash, Object key);
+  Proxy(Hash* hash, Object key);
 
   //! Implicit conversion to Object.
   operator Object() const;
@@ -3153,10 +3102,8 @@ public:
   template<typename T>
   Object operator=(T const & value);
 
-  void swap(Proxy & proxy);
-
 private:
-  Hash hash_;
+  Hash* hash_;
   Object key_;
 };
 
@@ -3167,7 +3114,7 @@ class Hash::Entry
 {
 public:
   //! Construct a new Entry.
-  Entry(Hash hash, Object key);
+  Entry(Hash* hash, Object key);
 
   //! Copy constructor.
   Entry(Entry const & entry);
@@ -3180,15 +3127,13 @@ public:
 
   Entry & operator=(Entry const & rhs);
 
-  void swap(Entry & entry);
-
   friend bool operator<(Entry const & lhs, Entry const & rhs);
 };
 
 bool operator<(Hash::Entry const & lhs, Hash::Entry const & rhs);
 
 //! A helper class for implementing iterators for a Hash.
-template<typename Hash_Ref_T, typename Value_T>
+template<typename Hash_Ptr_T, typename Value_T>
 class Hash::Iterator
 {
 public:
@@ -3199,21 +3144,15 @@ public:
   using reference = Value_T&;
 
   //! Construct a new Iterator.
-  Iterator(Hash_Ref_T hash);
+  Iterator(Hash_Ptr_T hash);
 
   //! Construct a new Iterator with a given start-at index point
-  Iterator(Hash_Ref_T hash, int start_at);
-
-  //! Copy construct an Iterator.
-  Iterator(Iterator const & iterator);
+  Iterator(Hash_Ptr_T hash, int start_at);
 
   //! Construct an Iterator from another Iterator of a different const
   //! qualification.
   template<typename Iterator_T>
   Iterator(Iterator_T const & iterator);
-
-  //! Assignment operator.
-  Iterator & operator=(Iterator const & rhs);
 
   //! Preincrement operator.
   Iterator & operator++();
@@ -3233,11 +3172,8 @@ public:
   //! Inequality operator.
   bool operator!=(Iterator const & rhs) const;
 
-  template<typename Hash_Ref_T_, typename Value_T_>
+  template<typename Hash_Ptr_T_, typename Value_T_>
   friend class Hash::Iterator;
-
-  //! Swap with another iterator of the same type.
-  void swap(Iterator & iterator);
 
 protected:
   Object current_key();
@@ -3245,7 +3181,7 @@ protected:
   Array hash_keys();
 
 private:
-  Hash hash_;
+  Hash_Ptr_T hash_;
   long current_index_;
   VALUE keys_;
 
@@ -3289,7 +3225,7 @@ size() const
 }
 
 inline Rice::Hash::Proxy::
-Proxy(Hash hash, Object key)
+Proxy(Hash* hash, Object key)
   : hash_(hash)
   , key_(key)
 {
@@ -3312,21 +3248,14 @@ operator Rice::Object() const
 inline VALUE Rice::Hash::Proxy::
 value() const
 {
-  return protect(rb_hash_aref, hash_, key_);
+  return protect(rb_hash_aref, hash_->value(), key_);
 }
 
 template<typename T>
 inline Rice::Object Rice::Hash::Proxy::
 operator=(T const & value)
 {
-  return protect(rb_hash_aset, hash_, key_, detail::To_Ruby<T>::convert(value));
-}
-
-inline void Rice::Hash::Proxy::
-swap(Proxy & proxy)
-{
-  hash_.swap(proxy.hash_);
-  key_.swap(proxy.key_);
+  return protect(rb_hash_aset, hash_->value(), key_, detail::To_Ruby<T>::convert(value));
 }
 
 template<typename Key_T>
@@ -3340,7 +3269,7 @@ template<typename Key_T>
 inline Rice::Hash::Proxy Rice::Hash::
 operator[](Key_T const & key)
 {
-  return Proxy(*this, detail::To_Ruby<Key_T>::convert(key));
+  return Proxy(this, detail::To_Ruby<Key_T>::convert(key));
 }
 
 template<typename Value_T, typename Key_T>
@@ -3365,7 +3294,7 @@ get(Key_T const & key)
 }
 
 inline Rice::Hash::Entry::
-Entry(Hash hash, Object key)
+Entry(Hash* hash, Object key)
   : key(key)
   , first(Hash::Entry::key)
   , value(hash, key)
@@ -3383,76 +3312,50 @@ Entry(Entry const & entry)
 }
 
 inline Rice::Hash::Entry & Rice::Hash::Entry::
-operator=(Rice::Hash::Entry const & rhs)
+operator=(Rice::Hash::Entry const & other)
 {
-  Entry tmp(rhs);
-  swap(tmp);
+  const_cast<Object&>(key) = const_cast<Object&>(other.key);
+
+  this->value = other.value;
+  this->second = this->value;
+
   return *this;
 }
 
-inline void Rice::Hash::Entry::
-swap(Rice::Hash::Entry & entry)
-{
-  const_cast<Object &>(key).swap(const_cast<Object &>(entry.key));
-  value.swap(entry.value);
-}
-
-template<typename Hash_Ref_T, typename Value_T>
-inline Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
-Iterator(Hash_Ref_T hash)
+template<typename Hash_Ptr_T, typename Value_T>
+inline Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
+Iterator(Hash_Ptr_T hash)
   : hash_(hash)
   , current_index_(0)
   , keys_(Qnil)
-  , tmp_(hash, Qnil)
+  , tmp_(const_cast<Hash*>(hash), Qnil)
 {
 }
 
-template<typename Hash_Ref_T, typename Value_T>
-inline Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
-Iterator(Hash_Ref_T hash, int start_at)
+template<typename Hash_Ptr_T, typename Value_T>
+inline Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
+Iterator(Hash_Ptr_T hash, int start_at)
   : hash_(hash)
   , current_index_(start_at)
   , keys_(Qnil)
-  , tmp_(hash, Qnil)
+  , tmp_(const_cast<Hash*>(hash), Qnil)
 {
 }
 
-template<typename Hash_Ref_T, typename Value_T>
-inline Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
-Iterator(Iterator const & iterator)
-  : hash_(iterator.hash_.value())
-  , current_index_(iterator.current_index_)
-  , keys_(Qnil)
-  , tmp_(iterator.hash_, Qnil)
-{
-}
-
-template<typename Hash_Ref_T, typename Value_T>
+template<typename Hash_Ptr_T, typename Value_T>
 template<typename Iterator_T>
-inline Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
+inline Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 Iterator(Iterator_T const & iterator)
-  : hash_(iterator.hash_.value())
+  : hash_(iterator.hash_)
   , current_index_(iterator.current_index_)
   , keys_(Qnil)
   , tmp_(iterator.hash_, Qnil)
 {
 }
 
-template<typename Hash_Ref_T, typename Value_T>
-inline Rice::Hash::Iterator<Hash_Ref_T, Value_T> &
-Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
-operator=(Iterator const & iterator)
-{
-  Iterator tmp(iterator);
-
-  this->swap(tmp);
-
-  return *this;
-}
-
-template<typename Hash_Ref_T, typename Value_T>
-inline Rice::Hash::Iterator<Hash_Ref_T, Value_T> &
-Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
+template<typename Hash_Ptr_T, typename Value_T>
+inline Rice::Hash::Iterator<Hash_Ptr_T, Value_T> &
+Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 operator++()
 {
   // Ensure we're within the range
@@ -3463,9 +3366,9 @@ operator++()
   return *this;
 }
 
-template<typename Hash_Ref_T, typename Value_T>
-inline Rice::Hash::Iterator<Hash_Ref_T, Value_T>
-Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
+template<typename Hash_Ptr_T, typename Value_T>
+inline Rice::Hash::Iterator<Hash_Ptr_T, Value_T>
+Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 operator++(int)
 {
   Iterator copy(*this);
@@ -3473,67 +3376,53 @@ operator++(int)
   return copy;
 }
 
-template<typename Hash_Ref_T, typename Value_T>
+template<typename Hash_Ptr_T, typename Value_T>
 inline Value_T
-Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
+Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 operator*()
 {
-  return Value_T(hash_, current_key());
+  return Value_T(const_cast<Hash*>(hash_), current_key());
 }
 
-template<typename Hash_Ref_T, typename Value_T>
+template<typename Hash_Ptr_T, typename Value_T>
 inline Value_T *
-Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
+Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 operator->()
 {
-  Entry tmp(hash_, current_key());
-  this->tmp_.swap(tmp);
+  this->tmp_ = Entry(const_cast<Hash*>(hash_), current_key());
   return &tmp_;
 }
 
-template<typename Hash_Ref_T, typename Value_T>
-inline bool Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
+template<typename Hash_Ptr_T, typename Value_T>
+inline bool Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 operator==(Iterator const & rhs) const
 {
-  return hash_.value() == rhs.hash_.value()
+  return hash_->value() == rhs.hash_->value()
     && current_index_ == rhs.current_index_;
 }
 
-template<typename Hash_Ref_T, typename Value_T>
-inline bool Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
+template<typename Hash_Ptr_T, typename Value_T>
+inline bool Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 operator!=(Iterator const & rhs) const
 {
   return !(*this == rhs);
 }
 
-template<typename Hash_Ref_T, typename Value_T>
-inline void
-Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
-swap(Iterator& iterator)
-{
-  using namespace std;
-
-  hash_.swap(iterator.hash_);
-  swap(keys_, iterator.keys_);
-  swap(current_index_, iterator.current_index_);
-}
-
-template<typename Hash_Ref_T, typename Value_T>
+template<typename Hash_Ptr_T, typename Value_T>
 inline Rice::Object
-Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
+Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 current_key()
 {
   return hash_keys()[current_index_];
 }
 
-
-template<typename Hash_Ref_T, typename Value_T>
+template<typename Hash_Ptr_T, typename Value_T>
 inline Rice::Array
-Rice::Hash::Iterator<Hash_Ref_T, Value_T>::
+Rice::Hash::Iterator<Hash_Ptr_T, Value_T>::
 hash_keys()
 {
   if(NIL_P(keys_)) {
-    keys_ = rb_funcall(hash_, rb_intern("keys"), 0, 0);
+    keys_ = rb_funcall(hash_->value(), rb_intern("keys"), 0, 0);
   }
 
   return Rice::Array(keys_);
@@ -3542,25 +3431,25 @@ hash_keys()
 inline Rice::Hash::iterator Rice::Hash::
 begin()
 {
-  return iterator(*this);
+  return iterator(this);
 }
 
 inline Rice::Hash::const_iterator Rice::Hash::
 begin() const
 {
-  return const_iterator(*this);
+  return const_iterator(this);
 }
 
 inline Rice::Hash::iterator Rice::Hash::
 end()
 {
-  return iterator(*this, (int)size());
+  return iterator(this, (int)size());
 }
 
 inline Rice::Hash::const_iterator Rice::Hash::
 end() const
 {
-  return const_iterator(*this, (int)size());
+  return const_iterator(this, (int)size());
 }
 
 inline bool Rice::
@@ -3752,15 +3641,16 @@ public:
    */
   ~Address_Registration_Guard();
 
-  // Don't allow copying or assignment
-  Address_Registration_Guard(Address_Registration_Guard const&) = delete;
-  Address_Registration_Guard& operator=(Address_Registration_Guard const&) = delete;
+  // Disable copying
+  Address_Registration_Guard(Address_Registration_Guard const& other) = delete;
+  Address_Registration_Guard& operator=(Address_Registration_Guard const& other) = delete;
+
+  // Enable moving
+  Address_Registration_Guard(Address_Registration_Guard&& other);
+  Address_Registration_Guard& operator=(Address_Registration_Guard&& other);
 
   //! Get the address that is registered with the GC.
   VALUE * address() const;
-
-  //! Swap with another Address_Registration_Guard.
-  void swap(Address_Registration_Guard & other);
 
   /** Called during Ruby's exit process since we should not call
    * rb_gc unregister_address there
@@ -3770,10 +3660,13 @@ public:
 private:
   inline static bool enabled = true;
   inline static bool exit_handler_registered = false;
-
   static void registerExitHandler();
 
-  VALUE * address_;
+private:
+  void registerAddress() const;
+  void unregisterAddress();
+
+  VALUE* address_ = nullptr;
 };
 
 } // namespace Rice
@@ -3783,58 +3676,91 @@ private:
 // ---------   Address_Registration_Guard.ipp   ---------
 #include <algorithm>
 
-inline Rice::Address_Registration_Guard::
+namespace Rice
+{
+
+inline Address_Registration_Guard::
 Address_Registration_Guard(VALUE * address)
   : address_(address)
 {
   registerExitHandler();
-  rb_gc_register_address(address);
+  registerAddress();
 }
 
-inline Rice::Address_Registration_Guard::
+inline Address_Registration_Guard::
 Address_Registration_Guard(Object * object)
-  : address_(const_cast<VALUE *>(&object->value()))
+  : address_(const_cast<VALUE*>(&object->value()))
 {
   registerExitHandler();
-  rb_gc_register_address(address_);
+  registerAddress();
 }
 
-inline Rice::Address_Registration_Guard::
+inline Address_Registration_Guard::
 ~Address_Registration_Guard()
 {
-  if (enabled)
-    rb_gc_unregister_address(address_);
+  unregisterAddress();
 }
 
-inline VALUE * Rice::Address_Registration_Guard::
+inline Address_Registration_Guard::
+Address_Registration_Guard(Address_Registration_Guard&& other)
+{
+  // We don't use the constructor because we don't want to double register this address
+  address_ = other.address_;
+  other.address_ = nullptr;
+}
+
+inline Address_Registration_Guard & Address_Registration_Guard::
+operator=(Address_Registration_Guard && other)
+{
+  this->unregisterAddress();
+
+  this->address_ = other.address_;
+  other.address_ = nullptr;
+  return *this;
+}
+
+inline void Address_Registration_Guard::
+registerAddress() const
+{
+  if (enabled)
+    rb_gc_register_address(address_);
+}
+
+inline void Address_Registration_Guard::
+unregisterAddress()
+{
+  if (enabled && address_)
+    rb_gc_unregister_address(address_);
+
+  address_ = nullptr;
+}
+
+inline VALUE * Address_Registration_Guard::
 address() const
 {
   return address_;
 }
 
-inline void Rice::Address_Registration_Guard::
-swap(Rice::Address_Registration_Guard & other)
-{
-  std::swap(address_, other.address_);
-}
-
 static void disable_all_guards(VALUE)
 {
-  Rice::Address_Registration_Guard::disable();
+  Address_Registration_Guard::disable();
 }
 
-inline void Rice::Address_Registration_Guard::registerExitHandler()
+inline void Address_Registration_Guard::registerExitHandler()
 {
-  if (exit_handler_registered) return;
+  if (exit_handler_registered)
+    return;
+
   rb_set_end_proc(&disable_all_guards, Qnil);
   exit_handler_registered = true;
 }
 
-inline void Rice::Address_Registration_Guard::disable()
+inline void Address_Registration_Guard::disable()
 {
   enabled = false;
 }
 
+} // Rice
 
 // =========   Module.hpp   =========
 
@@ -4530,7 +4456,7 @@ class Class
 public:
   //! Default construct a new class wrapper and initialize it to
   //! rb_cObject.
-  Class();
+  Class() = default;
 
   //! Construct a new class wrapper from a ruby object of type T_CLASS.
   Class(VALUE v);
@@ -4541,41 +4467,45 @@ public:
    */
   Class & undef_creation_funcs();
 
-  // Overwrite (not override!) methods from Module
-  Class & include_module(Module const& inc)
-  {
-    protect(rb_include_module, *this, inc);
-    return *this;
-  }
+  // Include these methods to call methods from Module but return
+// an instance of the current classes. This is an alternative to
+// using CRTP.
 
-  Class& const_set(Identifier name, Object value)
-  {
-    return dynamic_cast<decltype(*this)>(Module::const_set(name, value));
-  }
+auto& include_module(Module const& inc)
+{
+  protect(rb_include_module, *this, inc);
+  return *this;
+}
 
-  template<typename Func_T>
-  Class& define_method(Identifier name, Func_T func, Arguments* arguments = 0)
-  {
-    return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arguments));
-  }
+auto& const_set(Identifier name, Object value)
+{
+  return dynamic_cast<decltype(*this)>(Module::const_set(name, value));
+}
 
-  template<typename Func_T>
-  auto& define_method(Identifier name, Func_T func, Arg const& arg)
-  {
-    return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arg));
-  }
+template<typename Func_T>
+auto& define_method(Identifier name, Func_T func, Arguments* arguments = 0)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arguments));
+}
 
-  template<typename Func_T>
-  auto& define_singleton_method(Identifier name, Func_T func, Arguments* arguments = 0)
-  {
-    return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arguments));
-  }
+template<typename Func_T>
+auto& define_method(Identifier name, Func_T func, Arg const& arg)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arg));
+}
 
-  template<typename Func_T>
-  auto& define_singleton_method(Identifier name, Func_T func, Arg const& arg)
-  {
-    return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arg));
-  }
+template<typename Func_T>
+auto& define_singleton_method(Identifier name, Func_T func, Arguments* arguments = 0)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arguments));
+}
+
+template<typename Func_T>
+auto& define_singleton_method(Identifier name, Func_T func, Arg const& arg)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arg));
+}
+
 };
 
 //! Define a new class in the namespace given by module.
@@ -4626,13 +4556,6 @@ struct Rice::detail::From_Ruby<Rice::Class>
 
 inline
 Rice::Class::
-Class()
-  : Module()
-{
-}
-
-inline
-Rice::Class::
 Class(VALUE v)
   : Module(v)
 {
@@ -4649,7 +4572,8 @@ inline
 Rice::Class& Rice::Class::
 undef_creation_funcs()
 {
-  detail::undef_creation_funcs(*this);
+  rb_undef_alloc_func(value());
+  rb_undef_method(value(), "initialize");
   return *this;
 }
 
@@ -4685,111 +4609,6 @@ anonymous_class(
 
 #endif // Rice__Class__ipp_
 
-
-
-// =========   creation_funcs.hpp   =========
-
-namespace Rice
-{
-
-class Class;
-
-namespace detail
-{
-
-//! Like define_alloc_func, but allows the user to define an
-//! "initialize" method too.
-template<typename Initialize_Func_T>
-void define_creation_funcs(
-    VALUE const & klass,
-    RUBY_VALUE_FUNC allocate_func,
-    Initialize_Func_T initialize_func);
-
-//! This is just the opposite of define_alloc_func.  It can be
-//! used to create a class that cannot be instantiated by the user.
-void undef_alloc_func(
-    VALUE const & klass);
-
-//! This is just the opposite of define_creation_func.  It can be
-//! used to create a class that cannot be instantiated by the user.
-void undef_creation_funcs(
-    VALUE const & klass);
-
-} // namespace detail
-
-} // namespace Rice
-
-
-// ---------   creation_funcs.ipp   ---------
-#ifndef Rice__detail__creation_funcs__ipp_
-#define Rice__detail__creation_funcs__ipp_
-
-namespace Rice
-{
-
-namespace detail
-{
-
-template<typename Initialize_Func_T>
-inline void define_creation_funcs(
-    VALUE const & klass,
-    RUBY_VALUE_FUNC allocate_func,
-    Initialize_Func_T initialize_func)
-{
-  rb_define_alloc_func(klass, allocate_func);
-  klass.define_method("initialize", initialize_func);
-}
-
-inline void undef_alloc_func(VALUE const & klass)
-{
-  rb_undef_alloc_func(klass);
-}
-
-inline void undef_creation_funcs(VALUE const & klass)
-{
-  undef_alloc_func(klass);
-  rb_undef_method(klass, "initialize");
-}
-
-} // namespace detail
-
-} // namespace Rice
-
-#endif // Rice__detail__creation_funcs__ipp_
-
-
-
-
-// =========   Iterator.hpp   =========
-#ifndef Rice_Iterator__hpp_
-#define Rice_Iterator__hpp_
-
-
-namespace Rice
-{
-  namespace detail
-  {
-
-    template<typename T, typename Iterator_Return_T>
-    class Iterator
-    {
-    public:
-      static VALUE call(VALUE self);
-
-    public:
-      Iterator(Iterator_Return_T(T::* begin)(), Iterator_Return_T(T::* end)());
-      virtual ~Iterator() = default;
-      VALUE operator()(VALUE self);
-
-    private:
-      Iterator_Return_T(T::* begin_)();
-      Iterator_Return_T(T::* end_)();
-    };
-
-  } // detail
-} // Rice
-
-#endif // Rice_Iterator__hpp_
 
 
 // =========   Constructor.hpp   =========
@@ -5080,7 +4899,7 @@ public:
 
   virtual detail::Abstract_Caster * caster() const;
 
-  static std_unique_ptr<detail::Abstract_Caster> caster_;
+  static std::unique_ptr<detail::Abstract_Caster> caster_;
 
   //! Define an iterator.
   /*! Essentially this is a conversion from a C++-style begin/end
@@ -5095,6 +4914,46 @@ public:
 
   template<typename U = T, typename Iterator_Return_T>
   Data_Type<T>& define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name = "each");
+
+  // Include these methods to call methods from Module but return
+// an instance of the current classes. This is an alternative to
+// using CRTP.
+
+auto& include_module(Module const& inc)
+{
+  protect(rb_include_module, *this, inc);
+  return *this;
+}
+
+auto& const_set(Identifier name, Object value)
+{
+  return dynamic_cast<decltype(*this)>(Module::const_set(name, value));
+}
+
+template<typename Func_T>
+auto& define_method(Identifier name, Func_T func, Arguments* arguments = 0)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arguments));
+}
+
+template<typename Func_T>
+auto& define_method(Identifier name, Func_T func, Arg const& arg)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arg));
+}
+
+template<typename Func_T>
+auto& define_singleton_method(Identifier name, Func_T func, Arguments* arguments = 0)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arguments));
+}
+
+template<typename Func_T>
+auto& define_singleton_method(Identifier name, Func_T func, Arg const& arg)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arg));
+}
+
 
 protected:
   //! Bind a Data_Type to a VALUE.
@@ -5311,20 +5170,17 @@ public:
       Object value,
       Data_Type<U> const & klass);
 
-  //! Make a copy of a Data_Object
-  /*! \param other the Data_Object to copy.
-   */
-  Data_Object(Data_Object const & other);
+  // Enable copying
+  Data_Object(const Data_Object& other) = default;
+  Data_Object& operator=(const Data_Object& other) = default;
 
-  T & operator*() const { return *obj_; } //!< Return a reference to obj_
-  T * operator->() const { return obj_; } //!< Return a pointer to obj_
-  T * get() const { return obj_; }        //!< Return a pointer to obj_
+  // Enable moving
+  Data_Object(Data_Object&& other);
+  Data_Object& operator=(Data_Object&& other);
 
-  //! Swap with another data object of the same type
-  /*! \param ref the object with which to swap.
-   */
-  template<typename U>
-  void swap(Data_Object<U> & ref);
+  T& operator*() const; //!< Return a reference to obj_
+  T* operator->() const; //!< Return a pointer to obj_
+  T* get() const;        //!< Return a pointer to obj_
 
 private:
   static void check_cpp_type(Data_Type<T> const & klass);
@@ -5442,19 +5298,22 @@ Data_Object(
 
 template<typename T>
 inline Rice::Data_Object<T>::
-Data_Object(Data_Object const & other)
-  : Object(other.value())
-  , obj_(other.obj_)
+Data_Object(Data_Object&& other): Object(other)
 {
+  this->obj_ = other.obj_;
+  other.obj_ = nullptr;
 }
 
 template<typename T>
-template<typename U>
-inline void Rice::Data_Object<T>::
-swap(Data_Object<U> & ref)
+inline Rice::Data_Object<T>& Rice::Data_Object<T>::
+operator=(Data_Object&& other)
 {
-  std::swap(obj_, ref.obj_);
-  Object::swap(ref);
+  Object::operator=(other);
+
+  this->obj_ = other.obj_;
+  other.obj_ = nullptr;
+
+  return *this;
 }
 
 template<typename T>
@@ -5483,9 +5342,80 @@ check_ruby_type(VALUE value, VALUE klass, bool include_super)
   }
 }
 
+template<typename T>
+inline T& Rice::Data_Object<T>::
+operator*() const
+{
+  return *obj_;
+}
+
+template<typename T>
+inline T* Rice::Data_Object<T>::
+operator->() const
+{
+  return obj_;
+}
+
+template<typename T>
+inline T* Rice::Data_Object<T>::
+get() const
+{
+  return obj_;
+}
+
 #endif // Rice__Data_Object__ipp_
 
 
+
+
+// =========   Iterator.ipp   =========
+#ifndef Rice_Iterator__ipp_
+#define Rice_Iterator__ipp_
+
+#include <iterator>
+
+namespace Rice
+{
+  namespace detail
+  {
+
+    template <typename T, typename Iterator_T>
+    inline Iterator<T, Iterator_T>::
+      Iterator(Iterator_T(T::* begin)(), Iterator_T(T::* end)()) :
+      begin_(begin), end_(end)
+    {
+    }
+
+    template<typename T, typename Iterator_T>
+    inline VALUE Iterator<T, Iterator_T>::
+      call(VALUE self)
+    {
+      using Iter_T = Iterator<T, Iterator_T>;
+      Iter_T* iterator = std::any_cast<Iter_T*>(detail::MethodData::data());
+      return iterator->operator()(self);
+    }
+
+    template<typename T, typename Iterator_T>
+    inline VALUE Iterator<T, Iterator_T>::
+      operator()(VALUE self)
+    {
+      using Value_T = typename std::iterator_traits<Iterator_T>::value_type;
+
+      Data_Object<T> obj(self);
+      Iterator_T it = std::invoke(this->begin_, *obj);
+      Iterator_T end = std::invoke(this->end_, *obj);
+
+      for (; it != end; ++it)
+      {
+        Rice::protect(rb_yield, detail::To_Ruby<Value_T>::convert(*it));
+      }
+
+      return self;
+    }
+  } // namespace detail
+} // namespace Rice
+
+#endif // Rice_Iterator__ipp_
 
 
 // =========   Data_Type.ipp   =========
@@ -5499,7 +5429,7 @@ template<typename T>
 VALUE Rice::Data_Type<T>::klass_ = Qnil;
 
 template<typename T>
-std_unique_ptr<Rice::detail::Abstract_Caster> Rice::Data_Type<T>::caster_;
+std::unique_ptr<Rice::detail::Abstract_Caster> Rice::Data_Type<T>::caster_;
 
 inline Rice::Data_Type_Base::
 Data_Type_Base(VALUE v)
@@ -5516,7 +5446,7 @@ casters()
   {
     // First, see if it has been previously registered with the
     // interpreter (possibly by another extension)
-    Class object(rb_cObject);
+    Class object(rb_cData);
     Object casters_object(object.attr_get("__rice_casters__"));
 
     if (casters_object.is_nil())
@@ -5524,7 +5454,7 @@ casters()
       // If it is unset, then set it for the first time
       Data_Object<Casters> casters(
         new Casters,
-        rb_cObject);
+        rb_cData);
       object.iv_set("__rice_casters__", casters);
       casters_ = casters.get();
     }
@@ -5589,7 +5519,7 @@ template<typename T>
 inline Rice::Data_Type<T>::
 Data_Type()
   : Data_Type_Base(
-      klass_ == Qnil ? rb_cObject : klass_)
+      klass_ == Qnil ? rb_cData : klass_)
 {
   if(!is_bound())
   {
@@ -5813,7 +5743,7 @@ define_class_under(
     Object module,
     char const * name)
 {
-  Class c(define_class_under(module, name, rb_cObject));
+  Class c(define_class_under(module, name, rb_cData));
   c.undef_creation_funcs();
   return Data_Type<T>::template bind<void>(c);
 }
@@ -5835,7 +5765,7 @@ inline Rice::Data_Type<T> Rice::
 define_class(
     char const * name)
 {
-  Class c(define_class(name, rb_cObject));
+  Class c(define_class(name, rb_cData));
   c.undef_creation_funcs();
   return Data_Type<T>::template bind<void>(c);
 }
@@ -5852,22 +5782,14 @@ define_class(
 }
 
 template<typename T>
-template<typename U, typename Iterator_Return_T>
+template<typename U, typename Iterator_T>
 inline Rice::Data_Type<T>& Rice::Data_Type<T>::
-define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name)
+define_iterator(Iterator_T(U::* begin)(), Iterator_T(U::* end)(), Identifier name)
 {
-  using Iterator_T = detail::Iterator<U, Iterator_Return_T>;
-  Iterator_T* iterator = new Iterator_T(begin, end);
-
-  Data_Type<Iterator_T> iterator_klass;
-  Data_Object<Iterator_T> iteratorWrapper(iterator, iterator_klass);
-
-  detail::define_method_with_data(
-    Data_Type<T>::klass(),
-    name,
-    (RUBY_METHOD_FUNC)iterator->call,
-    0,
-    iteratorWrapper);
+  using Iter_T = detail::Iterator<U, Iterator_T>;
+  Iter_T* iterator = new Iter_T(begin, end);
+  detail::MethodData::define_method(Data_Type<T>::klass(), name, 
+    (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
 
   return *this;
 }
@@ -5917,68 +5839,6 @@ default_allocation_func(VALUE klass)
 
 
 
-// =========   Iterator.ipp   =========
-#ifndef Rice_Iterator__ipp_
-#define Rice_Iterator__ipp_
-
-namespace Rice
-{
-  namespace detail
-  {
-
-    template <typename T, typename Iterator_Return_T>
-    inline Iterator<T, Iterator_Return_T>::
-      Iterator(Iterator_Return_T(T::* begin)(), Iterator_Return_T(T::* end)()) :
-      begin_(begin), end_(end)
-    {
-    }
-
-    template<typename T, typename Iterator_Return_T>
-    inline VALUE Iterator<T, Iterator_Return_T>::
-      call(VALUE self)
-    {
-      VALUE data = detail::method_data();
-      Data_Object<Iterator> iterator(data, Data_Type<Iterator>());
-      return iterator->operator()(self);
-    }
-
-    template<typename T, typename Iterator_Return_T>
-    inline VALUE Iterator<T, Iterator_Return_T>::
-      operator()(VALUE self)
-    {
-      Data_Object<T> obj(self);
-      Iterator_Return_T it = (*obj.*begin_)();
-      Iterator_Return_T end = (*obj.*end_)();
-
-      for (; it != end; ++it)
-      {
-        Rice::protect(rb_yield, detail::To_Ruby<Iterator_Return_T>::convert(it));
-      }
-
-      return self;
-    }
-
-    template<typename T, typename Iterator_Return_T>
-    void define_iterator(Identifier name, Iterator_Return_T(T::* begin)(), Iterator_Return_T(T::* end)())
-    {
-      Iterator* iterator = new Iterator<T, Iterator_Return_T>(begin, end);
-
-      Data_Type<Iterator> iterator_klass;
-      Data_Object<Iterator> iterator(iterator, iterator_klass);
-
-      define_method_with_data(
-        Data_Type<T>::klass(),
-        name,
-        (RUBY_METHOD_FUNC)iterator->call,
-        0,
-        iterator);
-    }
-  } // namespace detail
-} // namespace Rice
-
-#endif // Rice_Iterator__ipp_
-
-
 // =========   Wrapped_Function.ipp   =========
 
 #include <array>
@@ -5995,10 +5855,10 @@ template<typename Function_T, typename Return_T, typename Receiver_T, typename..
 VALUE Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
 call(int argc, VALUE* argv, VALUE self)
 {
-  using WrapperType = Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>;
+  using Wrapper_T = Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>;
 
-  Data_Object<WrapperType> data(detail::method_data());
-  WrapperType* wrapper = (WrapperType*)data.get();
+  std::any foo = detail::MethodData::data();
+  Wrapper_T* wrapper = std::any_cast<Wrapper_T*>(foo);
   return wrapper->operator()(argc, argv, self);
 }
 
@@ -6160,14 +6020,18 @@ operator()(int argc, VALUE* argv, VALUE self)
 
 namespace Rice
 {
+  // The C++ struct that we use to store enum information and is wrapped
+  // via Ruby Objects
+  template<typename Enum_T>
+  struct Enum_Storage
+  {
+    Enum_Storage(std::string name, Enum_T value);
+    bool operator==(const Enum_Storage& other);
+    int32_t compare(const Enum_Storage& other);
 
-//! Default traits for the Enum class template.
-template<typename Enum_T>
-struct Default_Enum_Traits
-{
-  //! Converts the enum value to a long.
-  static long as_long(Enum_T value);
-};
+    std::string enumName;
+    Enum_T enumValue;
+  };
 
 /*!
  *  \example enum/sample_enum.cpp
@@ -6180,7 +6044,6 @@ struct Default_Enum_Traits
  *  and more.
  *
  *  \param Enum_T the enumerated type
- *  \param Enum_Traits specifies the traits of the enumerated type.
  *
  *  Example:
  *  \code
@@ -6191,38 +6054,30 @@ struct Default_Enum_Traits
  *      .define_value("Blue", Blue);
  *  \endcode
  */
-template<typename Enum_T, typename Enum_Traits = Default_Enum_Traits<Enum_T> >
+template<typename Enum_T>
 class Enum
-  : public Data_Type<Enum_T>
+  : public Data_Type<Enum_Storage<Enum_T>>
 {
 public:
+  using Storage_T = Enum_Storage<Enum_T>;
+  using Value_T = Data_Object<Enum_Storage<Enum_T>>;
+
   //! Default constructor.
-  Enum();
+  Enum() = default;
 
   //! Construct and initialize.
   Enum(
       char const * name,
       Module module = rb_cObject);
 
-  //! Copy constructor.
-  Enum(Enum const & other);
-
-  //! Assignment operator.
-  Enum & operator=(Enum const & other);
-
-  //! Destructor.
-  virtual ~Enum();
-
   //! Define a new enum value.
   /*! \param name the name of the enum value.
    *  \param value the value to associate with name.
    *  \return *this
    */
-  Enum<Enum_T, Enum_Traits> & define_value(
-      char const * name,
+  Enum<Enum_T> & define_value(
+      std::string name,
       Enum_T value);
-
-  void swap(Enum & other);
 
 private:
   //! Initialize the enum type.
@@ -6231,7 +6086,7 @@ private:
    *  \param module the module in which to place the enum class.
    *  \return *this
    */
-  Enum<Enum_T, Enum_Traits> & initialize(
+  Enum<Enum_T> & initialize(
       char const * name,
       Module module = rb_cObject);
 
@@ -6244,13 +6099,6 @@ private:
   static Object eql(Object lhs, Object rhs);
   static Object hash(Object self);
   static Object from_int(Class klass, Object i);
-
-private:
-  Array enums_;
-  Address_Registration_Guard enums_guard_;
-
-  Hash names_;
-  Address_Registration_Guard names_guard_;
 };
 
 template<typename T>
@@ -6262,70 +6110,50 @@ Enum<T> define_enum(
 
 
 // ---------   Enum.ipp   ---------
-#ifndef Rice__Enum__ipp_
-#define Rice__Enum__ipp_
-
-#include <memory>
 
 template<typename Enum_T>
-long Rice::Default_Enum_Traits<Enum_T>::as_long(Enum_T value)
-{
-  return static_cast<long>(value);
-}
-
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits>::
-Enum()
-  : Data_Type<Enum_T>()
-  , enums_()
-  , enums_guard_(&enums_)
-  , names_()
-  , names_guard_(&names_)
+inline Rice::Enum_Storage<Enum_T>::
+Enum_Storage(std::string name, Enum_T value) : enumName(name), enumValue(value)
 {
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+inline bool Rice::Enum_Storage<Enum_T>::
+operator==(const Enum_Storage<Enum_T>& other)
+{
+  return this->enumValue == other.enumValue;
+}
+
+template<typename Enum_T>
+inline int32_t Rice::Enum_Storage<Enum_T>::
+compare(const Rice::Enum_Storage<Enum_T>& other)
+{
+  if (this->enumValue == other.enumValue)
+  {
+    return 0;
+  }
+  else if (this->enumValue < other.enumValue)
+  {
+    return -1;
+  }
+  else
+  {
+    return 1;
+  }
+}
+
+template<typename Enum_T>
+Rice::Enum<Enum_T>::
 Enum(
     char const * name,
     Module module)
-  : Data_Type<Enum_T>()
-  , enums_()
-  , enums_guard_(&enums_)
-  , names_()
-  , names_guard_(&names_)
+  : Data_Type<Enum_Storage<Enum_T>>()
 {
   this->template bind<void>(initialize(name, module));
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits>::
-Enum(Enum<Enum_T, Enum_Traits> const & other)
-  : Data_Type<Enum_T>(other)
-  , enums_(other.enums_)
-  , enums_guard_(&enums_)
-  , names_(other.names_)
-  , names_guard_(&names_)
-{
-}
-
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits> & Rice::Enum<Enum_T, Enum_Traits>::
-operator=(Rice::Enum<Enum_T, Enum_Traits> const & other)
-{
-  Rice::Enum<Enum_T, Enum_Traits> tmp(other);
-  this->swap(tmp);
-  return *this;
-}
-
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits>::
-~Enum()
-{
-}
-
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits> & Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Enum<Enum_T> & Rice::Enum<Enum_T>::
 initialize(
     char const * name,
     Module module)
@@ -6343,87 +6171,73 @@ initialize(
     .define_singleton_method("from_int", from_int)
     .include_module(rb_mComparable);
 
-  // TODO: This should be unnecessary (it should be taken care of when
-  // define_class_under binds the C++ and ruby types)
+  // Create a Ruby array that we will use later to store enum values
+  // and attach it to the class
+  Array enums;
+  protect(rb_iv_set, c, "enums", enums);
+
+  // Since we just changed the underlying class we need to rebind this enum
+  // before returning. Otherwise this->value() will bind the wrong class to 
+  // the datatype
   this->set_value(c);
-
-  protect(rb_iv_set, c, "enums", enums_);
-  protect(rb_iv_set, c, "names", names_);
-
   return *this;
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits> & Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Enum<Enum_T> & Rice::Enum<Enum_T>::
 define_value(
-    char const * name,
+    std::string name,
     Enum_T value)
 {
-  std_unique_ptr<Enum_T> copy(new Enum_T(value));
-  Rice::Data_Object<Enum_T> m(copy.get(), *this);
-  copy.release();
-  names_[m] = String(name);
-  this->const_set(name, m);
-  enums_.push(m);
+  // Create a new storage struct for this value
+  Storage_T* storage = new Storage_T(name, value);
+
+  // Now wrap it and store it to the class enums field
+  Value_T wrapper(storage, *this);
+  Array enums = rb_iv_get(this->value(), "enums");
+  enums.push(wrapper);
+
+  // And store it as class constant
+  this->const_set(name, wrapper);
 
   return *this;
 }
 
-
-template<typename Enum_T, typename Enum_Traits>
-void Rice::Enum<Enum_T, Enum_Traits>::
-swap(Enum<Enum_T, Enum_Traits> & other)
-{
-  Data_Type<Enum_T>::swap(other);
-  enums_.swap(other.enums_);
-  names_.swap(other.names_);
-}
-
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 each(Object self)
 {
-  VALUE enums_v = rb_iv_get(self, "enums");
-  Check_Type(enums_v, T_ARRAY);
-  Array enums(enums_v);
-  for(long j = 0; j < enums.size(); ++j)
+  Array enums = rb_iv_get(self, "enums");
+  Check_Type(enums, T_ARRAY);
+  for(long i = 0; i < enums.size(); ++i)
   {
-    rb_yield(enums[j].value());
+    rb_yield(enums[i].value());
   }
   return Qnil;
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 to_s(Object self)
 {
-  Data_Type<Enum_T> klass;
-  Rice::Data_Object<Enum_T> m(self, klass);
-  Object enum_class = rb_class_of(m);
-  Hash names(rb_iv_get(enum_class, "names"));
-  Object name = names[m];
-  if(name.is_nil())
-  {
-    return String::format("INVALID(%d)", Enum_Traits::as_long(*m));
-  }
-  else
-  {
-    return String(name);
-  }
+  Value_T wrapper(self);
+  return detail::to_ruby(wrapper->enumName);
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 inspect(Object self)
 {
+  Value_T wrapper(self);
+
   return String::format(
       "#<%s::%s>",
       String(self.class_of().name()).c_str(),
-      String(to_s(self)).c_str());
+      wrapper->enumName.c_str());
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 compare(Object lhs, Object rhs)
 {
   if(lhs.class_of() != rhs.class_of())
@@ -6437,59 +6251,61 @@ compare(Object lhs, Object rhs)
         rhs_name.c_str());
   }
 
-  Data_Type<Enum_T> klass;
-  Rice::Data_Object<Enum_T> l(lhs, klass);
-  Rice::Data_Object<Enum_T> r(rhs, klass);
+  Value_T left(lhs);
+  Value_T right(rhs);
 
-  Enum_T left(*l);
-  Enum_T right(*r);  
-
-  if(left == right)
-  {
-    return INT2NUM(0);
-  }
-  else if(Enum_Traits::as_long(left) < Enum_Traits::as_long(right))
-  {
-    return INT2NUM(-1);
-  }
-  else
-  {
-    return INT2NUM(1);
-  }
+  int32_t result = left->compare(*right);
+  return detail::To_Ruby<int>::convert(result);
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 eql(Object lhs, Object rhs)
 {
-  bool is_equal = detail::From_Ruby<int>::convert(compare(lhs, rhs)) == 0;
+  Value_T left(lhs);
+  Value_T right(rhs);
+  bool is_equal = (*left == *right);
   return detail::To_Ruby<bool>::convert(is_equal);
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 to_i(Object self)
 {
-  Data_Type<Enum_T> klass;
-  Rice::Data_Object<Enum_T> m(self, klass);
-  return LONG2NUM(Enum_Traits::as_long(*m));
+  using Integral_T = std::underlying_type_t<Enum_T>;
+  Value_T wrapper(self);
+  return detail::To_Ruby<Integral_T>::convert((Integral_T)wrapper->enumValue);
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 hash(Object self)
 {
   return to_i(self);
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 from_int(Class klass, Object i)
 {
-  Rice::Data_Object<Enum_T> m(
-      new Enum_T(static_cast<Enum_T>(detail::From_Ruby<long>::convert(i))),
-      klass);
-  return m.value();
+  Enum_T enumValue = static_cast<Enum_T>(detail::From_Ruby<long>::convert(i));
+  Array enums = rb_iv_get(klass, "enums");
+
+  auto iter = std::find_if(enums.begin(), enums.end(),
+    [enumValue](const Object& object)
+    {
+      Value_T dataObject(object);
+      return dataObject->enumValue == enumValue;
+    });
+
+  if (iter == enums.end())
+  {
+    rb_raise(
+      rb_eArgError,
+      "Invalid Enum value %i", i);
+  }
+
+  return *iter;
 }
 
 template<typename T>
@@ -6500,10 +6316,6 @@ define_enum(
 {
   return Enum<T>(name, module);
 }
-#endif // Rice__Enum__ipp_
-
-
-
 
 // =========   Struct.hpp   =========
 
@@ -6558,15 +6370,6 @@ class Struct
   : public Class
 {
 public:
-  //! Create a new Struct.
-  Struct();
-
-  //! Copy constructor.
-  Struct(Struct const & s);
-
-  //! Destructor.
-  virtual ~Struct();
-
   //! Define a new Struct member.
   /*! Defines a new member of the Struct.  Must be called before the
    *  Struct is initialized.
@@ -6584,14 +6387,8 @@ public:
       Module module,
       Identifier name);
 
-  //! Get the offset of a member in the Struct.
-  /*! Internally, Struct members are stored as a single array of VALUE.
-   *  This function determines the offset of a given member in that
-   *  array.
-   *  \param member the name of the desired member.
-   *  \return the index of the given member.
-   */
-  unsigned long offset_of(Identifier name) const;
+  //! Get the members in Struct.
+  Array members() const;
 
   class Instance;
   friend class Instance;
@@ -6603,17 +6400,8 @@ public:
    */
   Instance new_instance(Array args = Array()) const;
 
-  //! Swap with another Struct.
-  void swap(Struct & other);
-
-  Array members() const { return members_; }
-
 private:
-  Array members_;
-  Address_Registration_Guard members_guard_;
-
-  Hash member_offset_;
-  Address_Registration_Guard member_offset_guard_;
+  std::vector<Symbol> members_;
 };
 
 
@@ -6647,9 +6435,6 @@ public:
   template<typename T>
   Object operator[](T index);
 
-  //! Swap with another Struct::Instance.
-  void swap(Instance & other);
-
 private:
   Struct type_;
 };
@@ -6659,38 +6444,14 @@ private:
 
 // ---------   Struct.ipp   ---------
 
-inline Rice::Struct::
-Struct()
-  : Class(rb_cObject)
-  , members_()
-  , members_guard_(&members_)
-  , member_offset_()
-  , member_offset_guard_(&member_offset_)
-{
-}
-
-inline Rice::Struct::
-Struct(Rice::Struct const& s)
-  : Class(s)
-  , members_(s.members_.value())
-  , members_guard_(&members_)
-  , member_offset_(s.member_offset_.value())
-  , member_offset_guard_(&member_offset_)
-{
-}
-
-inline Rice::Struct::
-~Struct()
-{
-}
-
 inline Rice::Struct& Rice::Struct::
 initialize(
     Module module,
     Identifier name)
 {
   Class struct_class(rb_cStruct);
-  Object type = struct_class.vcall("new", members_);
+
+  Object type = struct_class.vcall("new", this->members());
 
   set_value(type);
   module.const_set(name, type);
@@ -6707,29 +6468,24 @@ define_member(
     throw std::runtime_error("struct is already initialized");
   }
 
-  // TODO: not exception-safe
-  Symbol ruby_name(name);
-  member_offset_[ruby_name] = members_.size();
-  members_.push(ruby_name);
+  members_.push_back(name.to_sym());
 
   return *this;
 }
 
-inline unsigned long Rice::Struct::
-offset_of(Identifier name) const
+inline Rice::Array Rice::Struct::
+members() const
 {
-  Symbol ruby_name(name);
-  return Rice::detail::From_Ruby<unsigned long>::convert(member_offset_[ruby_name].value());
-}
-
-inline void Rice::Struct::
-swap(Rice::Struct& other)
-{
-  members_.swap(other.members_);
-  members_guard_.swap(other.members_guard_);
-  member_offset_.swap(other.member_offset_);
-  member_offset_guard_.swap(other.member_offset_guard_);
-  Class::swap(other);
+  if (value() == rb_cObject)
+  {
+    // Struct is not yet defined
+    return Array(members_.begin(), members_.end());
+  }
+  else
+  {
+    // Struct is defined, call Ruby API
+    return rb_struct_s_members(this->value());
+  }
 }
 
 inline Rice::Struct::Instance
@@ -6758,19 +6514,11 @@ Instance(
 {
 }
 
-inline void Rice::Struct::Instance::
-swap(Instance& other)
-{
-  type_.swap(other.type_);
-  Builtin_Object<T_STRUCT>::swap(other);
-}
-
 inline Rice::Struct Rice::
 define_struct()
 {
   return Struct();
 }
-
 
 template<typename T>
 inline Rice::Object Rice::Struct::Instance::
@@ -6783,8 +6531,7 @@ template<>
 inline Rice::Object Rice::Struct::Instance::
 operator[]<Rice::Identifier>(Rice::Identifier member)
 {
-  unsigned long index = type_.offset_of(member);
-  return (*this)[index];
+  return rb_struct_aref(value(), Symbol(member));
 }
 
 template<>
@@ -6925,16 +6672,11 @@ inline void Rice::Module::define_method_and_auto_wrap(VALUE klass, Identifier na
   Arguments* arguments)
 {
   auto* wrapper = detail::wrap_function(function, handler, arguments);
-  using WrapperType = std::remove_pointer_t<decltype(wrapper)>;
+  using Wrapper_T = typename std::remove_pointer_t<decltype(wrapper)>;
 
-  Data_Object<WrapperType> f(wrapper, rb_cObject);
-
-  Rice::protect(
-    detail::define_method_with_data,
-    klass,
-    name.id(),
-    RUBY_METHOD_FUNC(&WrapperType::call),
-    -1,
-    f);
+  Rice::protect(detail::MethodData::define_method, klass, name.id(),
+                RUBY_METHOD_FUNC(&Wrapper_T::call),
+    -1, 
+    wrapper);
 }
 
