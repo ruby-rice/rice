@@ -66,13 +66,16 @@ rice_hpp = File.join(__dir__, 'include', 'rice.hpp')
 
 desc "Build rice.hpp"
 file rice_hpp do
-  Dir.mkdir('include')
+  Dir.mkdir('include') unless File.exists?('include')
   path = File.join(__dir__, 'make_rice_hpp.rb')
   run_command(Gem.ruby, path)
 end
 
-# Create an easy to use task (versus having to print out the whole file name)
-task :rice_hpp => rice_hpp
+# Regenerate rice_hpp
+task :rice_hpp do
+  File.delete(rice_hpp) if File.exists?(rice_hpp)
+  Rake::Task[rice_hpp].invoke
+end
 
 # ---------  Documentation  --------------
 desc "Build the documentation"
