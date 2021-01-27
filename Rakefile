@@ -71,6 +71,8 @@ file rice_hpp do
   run_command(Gem.ruby, path)
 end
 
+# Create an easy to use task (versus having to print out the whole file name)
+task :rice_hpp => rice_hpp
 
 # ---------  Documentation  --------------
 desc "Build the documentation"
