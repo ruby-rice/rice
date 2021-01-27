@@ -19,7 +19,7 @@ TESTCASE(default_construct)
 {
   Hash h;
   ASSERT_EQUAL(T_HASH, rb_type(h));
-  ASSERT_EQUAL(0, RHASH_SIZE(h.value()));
+  ASSERT_EQUAL(0u, RHASH_SIZE(h.value()));
 }
 
 TESTCASE(construct_from_object)
@@ -27,7 +27,7 @@ TESTCASE(construct_from_object)
   Object o(rb_hash_new());
   Hash h(o);
   ASSERT_EQUAL(T_HASH, rb_type(h));
-  ASSERT_EQUAL(0, RHASH_SIZE(h.value()));
+  ASSERT_EQUAL(0u, RHASH_SIZE(h.value()));
 }
 
 TESTCASE(construct_from_value)
@@ -35,7 +35,7 @@ TESTCASE(construct_from_value)
   VALUE v(rb_hash_new());
   Hash h(v);
   ASSERT_EQUAL(T_HASH, rb_type(h));
-  ASSERT_EQUAL(0, RHASH_SIZE(h.value()));
+  ASSERT_EQUAL(0u, RHASH_SIZE(h.value()));
 }
 
 TESTCASE(copy_construct)
