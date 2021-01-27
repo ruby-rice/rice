@@ -24,7 +24,7 @@ have_library("stdc++")
 
 # Rice needs to include its header. Let's setup the include path
 # to make this easy
-path = File.expand_path(File.join(__dir__, '../../rice'))
+path = File.expand_path(File.join(__dir__, '../../include'))
 
 find_header('rice.hpp', path)
 
