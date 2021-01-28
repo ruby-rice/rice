@@ -20,7 +20,7 @@ namespace Rice
       call(VALUE self)
     {
       using Iter_T = Iterator<T, Iterator_T>;
-      Iter_T* iterator = std::any_cast<Iter_T*>(detail::MethodData::data());
+      Iter_T* iterator = detail::MethodData::data<Iter_T*>();
       return iterator->operator()(self);
     }
 

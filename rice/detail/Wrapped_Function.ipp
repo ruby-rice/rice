@@ -20,9 +20,7 @@ VALUE Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
 call(int argc, VALUE* argv, VALUE self)
 {
   using Wrapper_T = Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>;
-
-  std::any foo = detail::MethodData::data();
-  Wrapper_T* wrapper = std::any_cast<Wrapper_T*>(foo);
+  Wrapper_T* wrapper = detail::MethodData::data<Wrapper_T*>();
   return wrapper->operator()(argc, argv, self);
 }
 

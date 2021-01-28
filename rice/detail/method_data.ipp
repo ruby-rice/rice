@@ -23,7 +23,8 @@ namespace Rice
       return (prime + klass) * prime + id;
     }
 
-    inline std::any MethodData::data()
+    template <typename Return_T>
+    inline Return_T MethodData::data()
     {
       ID id;
       VALUE klass;
@@ -38,7 +39,8 @@ namespace Rice
         rb_raise(rb_eRuntimeError, "Could not find data for klass and method id");
       }
 
-      return iter->second;
+      std::any data = iter->second;
+      return std::any_cast<Return_T>(data);
     }
 
     inline void

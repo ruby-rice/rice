@@ -17,7 +17,8 @@ namespace Rice
       static void define_method(VALUE klass, ID id, VALUE(*cfunc)(ANYARGS), int arity, std::any data);
 
       // Returns the Rice data for the currently active Ruby method
-      static std::any data();
+      template <typename Return_T>
+      static Return_T data();
 
     private:
       static size_t key(VALUE klass, ID id);
