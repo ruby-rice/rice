@@ -14,8 +14,6 @@
 #define HAVE_ISINF
 #endif
 
-#include "ruby_version_code.hpp"
-
 #include <ruby.h>
 
 //! A function that takes a VALUE as a parameter and returns a VALUE.

@@ -1,7 +1,6 @@
 #ifndef Rice__hpp_
 #define Rice__hpp_
 
-#include "detail/ruby_version_code.hpp"
 #include "detail/ruby.hpp"
 #include "detail/rice_traits.hpp"
 
@@ -9,7 +8,6 @@
 #include "detail/Arguments.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "detail/demangle.hpp"
-#include "detail/env.hpp"
 #include "detail/from_ruby.hpp"
 #include "detail/Exception_Handler.hpp"
 #include "detail/Iterator.hpp"
