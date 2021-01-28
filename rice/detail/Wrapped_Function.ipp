@@ -85,7 +85,7 @@ getNativeValues(std::vector<VALUE>& values, std::tuple<NativeArg<Arg_Ts>...>& na
   // will keep a copy of the native value so it can be passed by reference or pointer to a
   // native function.
   return std::forward_as_tuple((values[I] == Qnil && this->arguments_->isOptional(I) ?
-                                this->arguments_->defaultValue<Arg_Ts>(I) :
+                                this->arguments_->template defaultValue<Arg_Ts>(I) :
                                 std::get<I>(nativeArgs).nativeValue(values[I]))...);
 }
 
