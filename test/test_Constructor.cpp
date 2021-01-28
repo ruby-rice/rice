@@ -1,5 +1,5 @@
 #include "unittest.hpp"
-#include <rice.hpp>
+#include <rice/rice.hpp>
 
 #include <iostream>
 

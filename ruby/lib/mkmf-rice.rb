@@ -30,5 +30,5 @@ end
 # to make this easy
 path = File.expand_path(File.join(__dir__, '../../include'))
 
-find_header('rice.hpp', path)
+find_header('rice/rice.hpp', path)
 

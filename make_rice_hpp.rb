@@ -61,7 +61,7 @@ def combine_header_files
     end
   end
 
-  File.open('include/rice.hpp', 'wb') do |file|
+  File.open('include/rice/rice.hpp', 'wb') do |file|
     file << stream.string
   end
 end

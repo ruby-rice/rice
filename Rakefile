@@ -34,8 +34,10 @@ binaries.each do |asset|
   end
 end
 
+desc "Build test binaries"
 task :build => binaries
 
+desc "Clean test binaries"
 task :clean do
   binaries.each do |asset|
     dir = File.dirname(asset)
@@ -64,14 +66,13 @@ task :test => :test_cpp
 # ---------  Header  --------------
 rice_hpp = File.join(__dir__, 'include', 'rice.hpp')
 
-desc "Build rice.hpp"
 file rice_hpp do
   Dir.mkdir('include') unless File.exists?('include')
   path = File.join(__dir__, 'make_rice_hpp.rb')
   run_command(Gem.ruby, path)
 end
 
-# Regenerate rice_hpp
+desc "Update rice.hpp"
 task :rice_hpp do
   File.delete(rice_hpp) if File.exists?(rice_hpp)
   Rake::Task[rice_hpp].invoke

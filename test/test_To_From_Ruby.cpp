@@ -1,6 +1,6 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include <rice.hpp>
+#include <rice/rice.hpp>
 
 #include <limits>
 #include <cmath>

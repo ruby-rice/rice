@@ -1,4 +1,4 @@
-#include "rice.hpp"
+#include <rice/rice.hpp>
 
 using namespace Rice;
 
