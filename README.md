@@ -2,15 +2,19 @@
 
 # Introduction {#intro}
 
-Rice is a C++ interface to Ruby's C API. It provides a type-safe and
-exception-safe interface in order to make embedding Ruby and writing
-Ruby extensions with C++ easier. It is similar to Boost.Python or pybind11
-in many ways, but also attempts to provide an object-oriented interface to all
-of the Ruby C API.
+Rice is a C++ header-only library that serves dual purposes. First, it makes it much
+easier to create Ruby bindings for existing C++ libraries. Second, it provides an
+object oriented interface to Ruby's C API that makes it easy to embed Ruby and write
+Ruby extensions in C++.
+
+Rice is similar to Boost.Python and pybind11 in that it minimizes boilerplate code needed
+to interface with C++. It does this by automatically determining type information allowing
+Ruby object to be converted to C++ and vice versa.
 
 What Rice gives you:
 - A simple C++-based syntax for wrapping and defining classes
-- Automatic conversion of exceptions between C++ and Ruby
+- Automatic type conversions between C++ and Ruby
+- Automatic exception conversions between C++ and Ruby
 - Smart pointers for handling garbage collection
 - Wrappers for most builtin types to simplify calling code
 
@@ -28,17 +32,9 @@ API documentation: http://jasonroelofs.github.io/rice
   gem install rice
 ~~~
 
-Building it locally from a clone of the repository is as follows:
-
-~~~
-  ./bootstrap
-  ruby extconf.rb
-  make
-~~~
-
-Rice is known to work on *nix, OSX, and Windows.
-
-Rice requires a C++ compiler with support for C++14 or later.
+Rice is header-only library and therefore does not need to be built separately.
+Instead it should be #included in your C++ project. Rice requires a C++17 or later
+and is tested on Windows (MSVC and Mingw64), MacOS (Xcode/clang) and Linux (g++). 
 
 # Tutorial {#tutorial}
 
@@ -55,8 +51,8 @@ The first step is to create an extconf.rb file:
 ~~~
 
 Note that we use `mkmf-rice` instead of `mkmf`. This will ensure that the
-extension will be linked with standard C++ library along with the Rice
-library, and allow access to the Rice header files.
+extension will be linked with standard C++ library and allows access to the
+Rice header files.
 
 Next we create our extension and save it to test.cpp:
 
@@ -82,7 +78,7 @@ methods to it.
 Defining a class in Rice is a single call:
 
 ~~~{.cpp}
-  #include "rice/Class.hpp"
+  #include <rice/rice.hpp>
 
   using namespace Rice;
 
@@ -97,7 +93,7 @@ This will create a class called `Test` that inherits from `Object`. If we
 wanted to inherit from a different class, we do so with the second parameter:
 
 ~~~{.cpp}
-  #include "rice/Class.hpp"
+  #include <rice/rice.hpp>
 
   using namespace Rice;
 
@@ -134,8 +130,7 @@ that might include "ruby.h".
 Now let's add a method to our class:
 
 ~~~{.cpp}
-  #include "rice/Class.hpp"
-  #include "rice/String.hpp"
+  #include <rice/rice.hpp>
 
   using namespace Rice;
 
@@ -161,8 +156,7 @@ isn't used, so we comment it out to prevent a compiler warning.
 We could also add an `#initialize` method to our class:
 
 ~~~{.cpp}
-  #include "rice/Class.hpp"
-  #include "rice/String.hpp"
+  #include <rice/rice.hpp>
 
   using namespace Rice;
 
@@ -217,8 +211,7 @@ This is a C++ version of the Ruby class we just created in the previous
 section. To wrap it:
 
 ~~~{.cpp}
-  #include "rice/Data_Type.hpp"
-  #include "rice/Constructor.hpp"
+  #include <rice/rice.hpp>
 
   using namespace Rice;
 
@@ -256,7 +249,7 @@ Let's look again at our example class:
 ~~~
 
 When we wrote our class, we never wrote a single line of code to convert
-the `std::string` returned by `hello()` into a Ruby type. Neverthless, the
+the `std::string` returned by `hello()` into a Ruby type. Nevertheless, the
 conversion works, and when we write:
 
 ~~~{.cpp}
@@ -278,20 +271,29 @@ Ruby types:
 ~~~
 
 Rice includes default specializations for many of the builtin
-types. To define your own conversion, write a template specialization:
+types. To define your own conversion, you need to create two 
+class template specializations:
 
 ~~~{.cpp}
-  template<>
-  Foo from_ruby<Foo>(Object x)
+  namespace Rice::detail
   {
-    // ...
-  }
-
-  template<>
-  Object to_ruby<Foo>(Foo const & x)
-  {
-    // ...
-  }
+    template<>
+    structure From_Ruby<Foo>
+    {
+      static Foo convert(Object x)
+      {
+        // ...
+      }
+    };
+    
+    template<>
+    structure To_Ruby<Foo>
+    {
+      static Object convert(Foo const & x)
+      {
+        // ...
+      }
+    };
 ~~~
 
 The implementation of these functions would, of course, depend on the
@@ -640,8 +642,7 @@ As default parameter information is not available through templates,
 it is necessary to define this in Rice explicitly using `Rice::Arg`:
 
 ~~~{.cpp}
-  #include "rice/Data_Type.hpp"
-  #include "rice/Constructor.hpp"
+  #include <rice/rice.hpp>
 
   using namespace Rice;
 
@@ -720,7 +721,7 @@ To properly wrap both of these methods, use a `Rice::Director` subclass as a pro
 and use this new proxy class as the type to wrap with `define_class`:
 
 ~~~{.cpp}
-  #include "rice/Director.hpp"
+  #include <rice/rice.hpp>
 
   class VirtualBaseProxy : public VirtualBase, public Rice::Director {
     public:
@@ -982,13 +983,14 @@ such popular projects are SWIG and Boost.Python. Rice has some
 distinct features which set it apart from both of these projects.
 
 Rice is not trying to replace SWIG. Rice is not a generic wrapper
-interface generator. Rice is a C++ library for interfacing with the
-Ruby C API. This provides a very natural way for C++ programmers to
-wrap their C++ code, without having to learn a new domain-specific
-language. However, there is no reason why SWIG and Rice could not work
-together; a SWIG module could be written to generate Rice code. Such a
-module would combine the portability of SWIG with the maintainability of
-Rice (I have written extensions using both, and I have found Rice
+interface generator. Rice is a C++ library for creating Ruby bindings
+for C++ libraries and interfacing with the Ruby C API. This provides
+a very natural way for C++ programmers to wrap their C++ code, without
+having to learn a new domain-specific language. However, there is no 
+reason why SWIG and Rice could not work together; a SWIG module could
+be written to generate Rice code. Such a module would combine the 
+portability of SWIG with the maintainability of Rice (I have written 
+extensions using both, and I have found Rice
 extensions to be more maintainable when the interface is constantly
 changing. Your mileage may vary).
 
@@ -1001,8 +1003,7 @@ its interface look like an OO version of the API; this means that class
 declarations look procedural rather than declarative. Secondly, the
 Ruby object model is different from the python object model. This is
 reflected in the interface to Rice; it mimics the Ruby object model at
-the C++ level. Thirdly, Rice uses Ruby as a code generator; I find this
-to be much more readable than using the Boost preprocessor library.
+the C++ level.
 
 
 # History {#history}
