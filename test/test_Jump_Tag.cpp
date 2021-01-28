@@ -1,5 +1,5 @@
 #include "unittest.hpp"
-#include "rice.hpp"
+#include <rice.hpp>
 
 using namespace Rice;
 
