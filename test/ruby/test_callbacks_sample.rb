@@ -3,7 +3,7 @@ $: << File.join(File.dirname(__FILE__), '..', 'sample')
 require 'rubygems'
 gem 'minitest'
 require 'minitest/autorun'
-require 'callbacks/sample_callbacks'
+require_relative '../../sample/callbacks/sample_callbacks'
 
 class CallbacksTest < Minitest::Test
   def test_callbacks_sample_lambda
