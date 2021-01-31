@@ -278,7 +278,7 @@ class template specializations:
   namespace Rice::detail
   {
     template<>
-    structure From_Ruby<Foo>
+    struct From_Ruby<Foo>
     {
       static Foo convert(Object x)
       {
@@ -287,7 +287,7 @@ class template specializations:
     };
     
     template<>
-    structure To_Ruby<Foo>
+    struct To_Ruby<Foo>
     {
       static Object convert(Foo const & x)
       {
