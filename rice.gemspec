@@ -73,7 +73,7 @@ of the Ruby C API.
     'test/ext/t2/*.*pp'
   ]
 
-  s.required_ruby_version = ">= 2.7"
+  s.required_ruby_version = ">= 2.5"
 
   s.add_development_dependency "bundler"
   s.add_development_dependency "rake"
