@@ -31,7 +31,7 @@ def add_include(path, stream)
   basename = File.basename(path)
   basename_no_ext = File.basename(path, ".*")
 
-  stream << "\r\n" << "// =========   #{File.basename(path)}   =========" << "\r\n"
+  stream << "\n" << "// =========   #{File.basename(path)}   =========" << "\n"
 
   load_file(path).each_line do |line|
     if match = line.match(RICE_INCLUDE_REGEX)
@@ -39,7 +39,7 @@ def add_include(path, stream)
       sub_include = File.basename(match[1])
       if ["#{basename_no_ext}_defn.hpp", "#{basename_no_ext}.ipp"].include?(sub_include)
         sub_include_path = File.join(File.dirname(path), match[1])
-        stream << "\r\n" << "// ---------   #{File.basename(sub_include_path)}   ---------" << "\r\n"
+        stream << "\n" << "// ---------   #{File.basename(sub_include_path)}   ---------" << "\n"
         stream << strip_includes(load_file(sub_include_path))
       end
     elsif line.match(RICE_HEADER_GUARD_1) || line.match(RICE_HEADER_GUARD_2) || line.match(RICE_HEADER_GUARD_3)

@@ -363,8 +363,8 @@ Rice::define_implicit_cast()
     new detail::Implicit_Caster<To_T, From_T>(from_caster, to_class);
 
   // Insert our new caster into the list for the from class
-  Data_Type_Base::casters().erase(from_class);
-  Data_Type_Base::casters().insert(
+  Data_Type_Base::casters.erase(from_class);
+  Data_Type_Base::casters.insert(
     std::make_pair(
       from_class,
       new_caster

@@ -4646,7 +4646,7 @@ namespace Rice {
       {
       }
 
-      virtual ~Director() { }
+      virtual ~Director() = default;
 
       //! Raise a ruby exception when a call comes through for a pure virtual method
       /*! If a Ruby script calls 'super' on a method that's otherwise a pure virtual
@@ -4695,7 +4695,6 @@ class Data_Type_Base
   : public Class
 {
 public:
-  using Casters = std::map<VALUE, detail::Abstract_Caster*>;
 
   //! Default constructor.
   Data_Type_Base() = default;
@@ -4708,11 +4707,7 @@ public:
 
   virtual detail::Abstract_Caster * caster() const = 0;
 
-  static Casters & casters();
-
-private:
-  inline static Casters * casters_ = nullptr;
-
+  static inline std::map<VALUE, detail::Abstract_Caster*> casters;
 };
 
 //! Define a new data class in the namespace given by module.
@@ -4873,7 +4868,7 @@ public:
 
   virtual detail::Abstract_Caster * caster() const;
 
-  static std::unique_ptr<detail::Abstract_Caster> caster_;
+  static inline std::unique_ptr<detail::Abstract_Caster> caster_ = nullptr;
 
   //! Define an iterator.
   /*! Essentially this is a conversion from a C++-style begin/end
@@ -4962,8 +4957,7 @@ private:
   template<typename T_>
   friend class Data_Type;
 
-
-  static VALUE klass_;
+  static inline VALUE klass_ = Qnil;
 
   typedef std::set<Data_Type<T> *> Instances;
 
@@ -5399,49 +5393,10 @@ namespace Rice
 #include <stdexcept>
 #include <typeinfo>
 
-template<typename T>
-VALUE Rice::Data_Type<T>::klass_ = Qnil;
-
-template<typename T>
-std::unique_ptr<Rice::detail::Abstract_Caster> Rice::Data_Type<T>::caster_;
-
 inline Rice::Data_Type_Base::
 Data_Type_Base(VALUE v)
   : Class(v)
 {
-}
-
-inline Rice::Data_Type_Base::Casters&
-Rice::Data_Type_Base::
-casters()
-{
-  // Initialize the casters_ if it is null
-  if (!casters_)
-  {
-    // First, see if it has been previously registered with the
-    // interpreter (possibly by another extension)
-    Class object(rb_cData);
-    Object casters_object(object.attr_get("__rice_casters__"));
-
-    if (casters_object.is_nil())
-    {
-      // If it is unset, then set it for the first time
-      Data_Object<Casters> casters(
-        new Casters,
-        rb_cData);
-      object.iv_set("__rice_casters__", casters);
-      casters_ = casters.get();
-    }
-    else
-    {
-      // If it is set, then use the existing value
-      Data_Object<Casters> casters(
-        casters_object);
-      casters_ = casters.get();
-    }
-  }
-
-  return *casters_;
 }
 
 template<typename T>
@@ -5485,7 +5440,7 @@ bind(Module const & klass)
 
   detail::Abstract_Caster * base_caster = Data_Type<Base_T>().caster();
   caster_.reset(new detail::Caster<T, Base_T>(base_caster, klass));
-  Data_Type_Base::casters().insert(std::make_pair(klass, caster_.get()));
+  Data_Type_Base::casters.insert(std::make_pair(klass, caster_.get()));
   return Data_Type<T>();
 }
 
@@ -5603,9 +5558,6 @@ from_ruby(Object x)
     return obj.get();
   }
 
-  Data_Type_Base::Casters::const_iterator it = Data_Type_Base::casters().begin();
-  Data_Type_Base::Casters::const_iterator end = Data_Type_Base::casters().end();
-   
   // Finding the bound type that relates to the given klass is
   // a two step process. We iterate over the list of known type casters,
   // looking for:
@@ -5619,17 +5571,19 @@ from_ruby(Object x)
   //
 
   VALUE ancestors = rb_mod_ancestors(klass.value());
-
   long earliest = RARRAY_LEN(ancestors) + 1;
 
   int index;
   VALUE indexFound;
-  Data_Type_Base::Casters::const_iterator toUse = end;
 
-  for(; it != end; it++) {
+  std::pair<VALUE, detail::Abstract_Caster*> toUse{ Qnil, nullptr };
+
+  for (const auto& pair: casters)
+  {
     // Do we match directly?
-    if(klass.value() == it->first) {
-      toUse = it;
+    if (klass.value() == pair.first)
+    {
+      toUse = pair;
       break;
     }
 
@@ -5638,19 +5592,21 @@ from_ruby(Object x)
     // to the closest C++ type that the Ruby class is subclassing. 
     // There might be multiple ancestors that are also wrapped in
     // the extension, so find the earliest in the list and use that one.
-    indexFound = rb_funcall(ancestors, rb_intern("index"), 1, it->first);
+    indexFound = rb_funcall(ancestors, rb_intern("index"), 1, pair.first);
 
-    if(indexFound != Qnil) {
+    if(indexFound != Qnil)
+    {
       index = NUM2INT(indexFound);
 
-      if(index < earliest) {
+      if(index < earliest)
+      {
         earliest = index;
-        toUse = it;
+        toUse = pair;
       }
     }
   }
   
-  if(toUse == end)
+  if (toUse.first == Qnil)
   {
     std::string s = "Class ";
     s += klass.name().str();
@@ -5658,8 +5614,8 @@ from_ruby(Object x)
     throw std::runtime_error(s);
   }
 
-  detail::Abstract_Caster * caster = toUse->second;
-  if(caster)
+  detail::Abstract_Caster* caster = toUse.second;
+  if (caster)
   {
     T * result = static_cast<T *>(caster->cast_to_base(v, klass_));
     return result;
@@ -5787,8 +5743,8 @@ Rice::define_implicit_cast()
     new detail::Implicit_Caster<To_T, From_T>(from_caster, to_class);
 
   // Insert our new caster into the list for the from class
-  Data_Type_Base::casters().erase(from_class);
-  Data_Type_Base::casters().insert(
+  Data_Type_Base::casters.erase(from_class);
+  Data_Type_Base::casters.insert(
     std::make_pair(
       from_class,
       new_caster
