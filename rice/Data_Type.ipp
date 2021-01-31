@@ -14,12 +14,6 @@
 #include <stdexcept>
 #include <typeinfo>
 
-template<typename T>
-VALUE Rice::Data_Type<T>::klass_ = Qnil;
-
-template<typename T>
-std::unique_ptr<Rice::detail::Abstract_Caster> Rice::Data_Type<T>::caster_;
-
 inline Rice::Data_Type_Base::
 Data_Type_Base(VALUE v)
   : Class(v)

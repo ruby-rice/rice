@@ -205,7 +205,7 @@ public:
 
   virtual detail::Abstract_Caster * caster() const;
 
-  static std::unique_ptr<detail::Abstract_Caster> caster_;
+  static inline std::unique_ptr<detail::Abstract_Caster> caster_ = nullptr;
 
   //! Define an iterator.
   /*! Essentially this is a conversion from a C++-style begin/end
@@ -256,8 +256,7 @@ private:
   template<typename T_>
   friend class Data_Type;
 
-
-  static VALUE klass_;
+  static inline VALUE klass_ = Qnil;
 
   typedef std::set<Data_Type<T> *> Instances;
 
