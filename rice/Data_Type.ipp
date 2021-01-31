@@ -9,7 +9,6 @@
 
 #include "Class.hpp"
 #include "String.hpp"
-#include "Data_Object_defn.hpp"
 
 #include <stdexcept>
 #include <typeinfo>
@@ -18,39 +17,6 @@ inline Rice::Data_Type_Base::
 Data_Type_Base(VALUE v)
   : Class(v)
 {
-}
-
-inline Rice::Data_Type_Base::Casters&
-Rice::Data_Type_Base::
-casters()
-{
-  // Initialize the casters_ if it is null
-  if (!casters_)
-  {
-    // First, see if it has been previously registered with the
-    // interpreter (possibly by another extension)
-    Class object(rb_cData);
-    Object casters_object(object.attr_get("__rice_casters__"));
-
-    if (casters_object.is_nil())
-    {
-      // If it is unset, then set it for the first time
-      Data_Object<Casters> casters(
-        new Casters,
-        rb_cData);
-      object.iv_set("__rice_casters__", casters);
-      casters_ = casters.get();
-    }
-    else
-    {
-      // If it is set, then use the existing value
-      Data_Object<Casters> casters(
-        casters_object);
-      casters_ = casters.get();
-    }
-  }
-
-  return *casters_;
 }
 
 template<typename T>
@@ -94,7 +60,7 @@ bind(Module const & klass)
 
   detail::Abstract_Caster * base_caster = Data_Type<Base_T>().caster();
   caster_.reset(new detail::Caster<T, Base_T>(base_caster, klass));
-  Data_Type_Base::casters().insert(std::make_pair(klass, caster_.get()));
+  Data_Type_Base::casters.insert(std::make_pair(klass, caster_.get()));
   return Data_Type<T>();
 }
 
@@ -212,9 +178,6 @@ from_ruby(Object x)
     return obj.get();
   }
 
-  Data_Type_Base::Casters::const_iterator it = Data_Type_Base::casters().begin();
-  Data_Type_Base::Casters::const_iterator end = Data_Type_Base::casters().end();
-   
   // Finding the bound type that relates to the given klass is
   // a two step process. We iterate over the list of known type casters,
   // looking for:
@@ -228,17 +191,19 @@ from_ruby(Object x)
   //
 
   VALUE ancestors = rb_mod_ancestors(klass.value());
-
   long earliest = RARRAY_LEN(ancestors) + 1;
 
   int index;
   VALUE indexFound;
-  Data_Type_Base::Casters::const_iterator toUse = end;
 
-  for(; it != end; it++) {
+  std::pair<VALUE, detail::Abstract_Caster*> toUse{ Qnil, nullptr };
+
+  for (const auto& pair: casters)
+  {
     // Do we match directly?
-    if(klass.value() == it->first) {
-      toUse = it;
+    if (klass.value() == pair.first)
+    {
+      toUse = pair;
       break;
     }
 
@@ -247,19 +212,21 @@ from_ruby(Object x)
     // to the closest C++ type that the Ruby class is subclassing. 
     // There might be multiple ancestors that are also wrapped in
     // the extension, so find the earliest in the list and use that one.
-    indexFound = rb_funcall(ancestors, rb_intern("index"), 1, it->first);
+    indexFound = rb_funcall(ancestors, rb_intern("index"), 1, pair.first);
 
-    if(indexFound != Qnil) {
+    if(indexFound != Qnil)
+    {
       index = NUM2INT(indexFound);
 
-      if(index < earliest) {
+      if(index < earliest)
+      {
         earliest = index;
-        toUse = it;
+        toUse = pair;
       }
     }
   }
   
-  if(toUse == end)
+  if (toUse.first == Qnil)
   {
     std::string s = "Class ";
     s += klass.name().str();
@@ -267,8 +234,8 @@ from_ruby(Object x)
     throw std::runtime_error(s);
   }
 
-  detail::Abstract_Caster * caster = toUse->second;
-  if(caster)
+  detail::Abstract_Caster* caster = toUse.second;
+  if (caster)
   {
     T * result = static_cast<T *>(caster->cast_to_base(v, klass_));
     return result;

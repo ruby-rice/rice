@@ -27,7 +27,6 @@ class Data_Type_Base
   : public Class
 {
 public:
-  using Casters = std::map<VALUE, detail::Abstract_Caster*>;
 
   //! Default constructor.
   Data_Type_Base() = default;
@@ -40,11 +39,7 @@ public:
 
   virtual detail::Abstract_Caster * caster() const = 0;
 
-  static Casters & casters();
-
-private:
-  inline static Casters * casters_ = nullptr;
-
+  static inline std::map<VALUE, detail::Abstract_Caster*> casters;
 };
 
 //! Define a new data class in the namespace given by module.
