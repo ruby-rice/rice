@@ -19,7 +19,7 @@ namespace Rice {
       {
       }
 
-      virtual ~Director() { }
+      virtual ~Director() = default;
 
       //! Raise a ruby exception when a call comes through for a pure virtual method
       /*! If a Ruby script calls 'super' on a method that's otherwise a pure virtual
