@@ -40,7 +40,7 @@ of the Ruby C API.
     'Rakefile',
 
     # rice.hpp
-    'include/rice.hpp',
+    'include/rice/rice.hpp',
 
     # Source files
     'rice/*.?pp',
