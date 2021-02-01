@@ -41,7 +41,6 @@ public:
 
 public:
   Wrapped_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
-  virtual ~Wrapped_Function();
 
   // Invokes the wrapped function
   VALUE operator()(int argc, VALUE* argv, VALUE self);
@@ -62,7 +61,7 @@ private:
   
 private:
   Function_T func_;
-  Arguments* arguments_;
+  std::unique_ptr<Arguments> arguments_;
   std::shared_ptr<Exception_Handler> handler_;
 };
 

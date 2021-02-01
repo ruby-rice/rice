@@ -27,23 +27,12 @@ call(int argc, VALUE* argv, VALUE self)
 template<typename Function_T, typename Return_T, typename Receiver_T, typename... Arg_Ts>
 Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
 Wrapped_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
-    : func_(func), handler_(handler)
-  {
-    if (arguments == 0)
-    {
-      arguments_ = new Arguments();
-    }
-    else
-    {
-      arguments_ = arguments;
-    }
-  }
-
-template<typename Function_T, typename Return_T, typename Receiver_T, typename... Arg_Ts>
-Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
-~Wrapped_Function()
+    : func_(func), handler_(handler), arguments_(arguments)
 {
-  delete arguments_;
+  if (!arguments_)
+  {
+    arguments_ = std::make_unique<Arguments>();
+  }
 }
 
 template<typename Function_T, typename Return_T, typename Receiver_T, typename... Arg_Ts>
@@ -171,9 +160,7 @@ operator()(int argc, VALUE* argv, VALUE self)
     RUBY_CATCH
   }
 }
-
 } // detail
-
 } // Rice
 
 #endif // Rice__detail__Wrapped_Function__ipp_
