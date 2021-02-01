@@ -62,7 +62,7 @@ Rake::TestTask.new do |t|
   t.warning = true
 end
 
-task :test => :test_cpp
+task :test => [:rice_hpp, :test_cpp]
 
 # ---------  Header  --------------
 rice_hpp = File.join(__dir__, 'include', 'rice.hpp')
