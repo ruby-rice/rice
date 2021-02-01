@@ -46,10 +46,9 @@
 
 #include "Constructor.hpp"
 #include "Director.hpp"
-#include "Data_Type_defn.hpp"
+#include "Data_Type.hpp"
 #include "Data_Object.hpp"
 #include "detail/Iterator.ipp"
-#include "Data_Type.ipp"
 
 // Dependent on Data_Object due to the way method metadata is stored in the Ruby class
 #include "detail/default_allocation_func.ipp"
