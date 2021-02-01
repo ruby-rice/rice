@@ -6,19 +6,23 @@
 namespace Rice
 {
 
-  /**
-   * Helper forwarder method to easily wrap
-   * globally available functions. This simply
-   * forwards off a call to define_module_function
-   * on rb_mKernel
-   */
   template<typename Func_T>
   void define_global_function(
       char const * name,
       Func_T func,
       Arguments* arguments);
 
-  // FIXME: See Module::define_method with Arg
+   //! Define an global function
+   /*! The method's implementation can be any function or static member
+    *  function.  A wrapper will be generated which will convert the arguments
+    *  from ruby types to C++ types before calling the function.  The return
+    *  value will be converted back to ruby.
+    *  \param name the name of the method
+    *  \param func the implementation of the function, either a function
+    *  pointer or a member function pointer.
+    *  \param args a list of Arg instance used to define default parameters (optional)
+    *  \return *this
+    */
   template<typename Func_T, typename...Arg_Ts>
   void define_global_function(
       char const * name,

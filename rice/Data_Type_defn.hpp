@@ -138,6 +138,11 @@ public:
   virtual Data_Type & operator=(Module const & klass);
 
   //! Define a constructor for the class.
+  template<typename Constructor_T>
+  Data_Type<T> & define_constructor(
+      Constructor_T constructor,
+      Arguments * arguments);
+
   /*! Creates a singleton method allocate and an instance method called
    *  initialize which together create a new instance of the class.  The
    *  allocate method allocates memory for the object reference and the
@@ -146,17 +151,14 @@ public:
    *  construct() that constructs a new instance of T and sets the object's data
    *  member to point to the new instance.  A helper class Constructor
    *  is provided that does precisely this.
+   *  \param args a list of Arg instance used to define default parameters (optional)
+   *
    *  For example:
    *  \code
    *    define_class<Foo>("Foo")
    *      .define_constructor(Constructor<Foo>());
    *  \endcode
    */
-  template<typename Constructor_T>
-  Data_Type<T> & define_constructor(
-      Constructor_T constructor,
-      Arguments * arguments);
-
   template<typename Constructor_T, typename...Arg_Ts>
   Data_Type<T> & define_constructor(
       Constructor_T constructor,

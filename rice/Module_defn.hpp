@@ -91,82 +91,71 @@ public:
   */
   Module& include_module(Module const& inc);
 
-  //! Define an instance method.
-  /*! The method's implementation can be any function or member
-   *  function.  A wrapper will be generated which will use from_ruby<>
-   *  to convert the arguments from ruby types to C++ types before
-   *  calling the function.  The return value will be converted back to
-   *  ruby by using to_ruby().
-   *  \param name the name of the method
-   *  \param func the implementation of the function, either a function
-   *  pointer or a member function pointer.
-   *  \param arguments the list of arguments of this function, used for
-   *  defining default parameters (optional)
-   *  \return *this
-   */
   template<typename Func_T>
   Module& define_method(
     Identifier name,
     Func_T func,
     Arguments* arguments);
 
-  // FIXME There's GOT to be a better way to
-  // do this. Handles the case where there is a single
-  // argument defined for this method
+  //! Define an instance method.
+  /*! The method's implementation can be any function or member
+   *  function.  A wrapper will be generated which will convert the arguments
+   *  from ruby types to C++ types before calling the function.  The return
+   *  value will be converted back to ruby.
+   *  \param name the name of the method
+   *  \param func the implementation of the function, either a function
+   *  pointer or a member function pointer.
+   *  \param args a list of Arg instance used to define default parameters (optional)
+   *  \return *this
+   */
   template<typename Func_T, typename...Arg_Ts>
   Module& define_method(
     Identifier name,
     Func_T func,
     Arg_Ts const& ...args);
+
+  template<typename Func_T>
+  Module& define_singleton_method(
+    Identifier name,
+    Func_T func,
+    Arguments* arguments);
 
   //! Define a singleton method.
   /*! The method's implementation can be any function or member
-   *  function.  A wrapper will be generated which will use from_ruby<>
-   *  to convert the arguments from ruby types to C++ types before
-   *  calling the function.  The return value will be converted back to
-   *  ruby by using to_ruby().
+   *  function.  A wrapper will be generated which will convert the arguments
+   *  from ruby types to C++ types before calling the function.  The return
+   *  value will be converted back to ruby.
    *  \param name the name of the method
    *  \param func the implementation of the function, either a function
    *  pointer or a member function pointer.
-   *  \param arguments the list of arguments of this function, used for
-   *  defining default parameters (optional)
+   *  \param args a list of Arg instance used to define default parameters (optional)
    *  \return *this
    */
-  template<typename Func_T>
-  Module& define_singleton_method(
-    Identifier name,
-    Func_T func,
-    Arguments* arguments);
-
-  // FIXME: See define_method with Arg above
   template<typename Func_T, typename...Arg_Ts>
   Module& define_singleton_method(
     Identifier name,
     Func_T func,
     Arg_Ts const& ...args);
 
-  //! Define a module function.
-  /*! A module function is a function that can be accessed either as a
-   *  singleton method or as an instance method.
-   *  The method's implementation can be any function or member
-   *  function.  A wrapper will be generated which will use from_ruby<>
-   *  to convert the arguments from ruby types to C++ types before
-   *  calling the function.  The return value will be converted back to
-   *  ruby by using to_ruby().
-   *  \param name the name of the method
-   *  \param func the implementation of the function, either a function
-   *  pointer or a member function pointer.
-   *  \param arguments the list of arguments of this function, used for
-   *  defining default parameters (optional)
-   *  \return *this
-   */
   template<typename Func_T>
   Module& define_module_function(
     Identifier name,
     Func_T func,
     Arguments* arguments);
 
-  // FIXME: See define_method with Arg above
+  //! Define a module function.
+  /*! A module function is a function that can be accessed either as a
+   *  singleton method or as an instance method.
+   *  The method's implementation can be any function or member
+   *  function.  A wrapper will be generated which will convert the arguments
+   *  from ruby types to C++ types before calling the function.  The return
+   *  value will be converted back to ruby.
+   *  \param name the name of the method
+   *  \param func the implementation of the function, either a function
+   *  pointer or a member function pointer.
+   *  \param args a list of Arg instance used to define default parameters (optional)
+   *  \return *this
+   */
   template<typename Func_T, typename...Arg_Ts>
   Module& define_module_function(
     Identifier name,
