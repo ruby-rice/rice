@@ -139,6 +139,7 @@ public:
 
   //! Define a constructor for the class.
   template<typename Constructor_T>
+  [[deprecated("Please call define_constructor with Arg parameters")]]
   Data_Type<T> & define_constructor(
       Constructor_T constructor,
       Arguments * arguments);

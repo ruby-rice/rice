@@ -146,8 +146,15 @@ define_constructor(
     Constructor_T constructor,
     Arg_Ts const& ...args)
 {
-  Arguments* arguments = new Arguments(args...);
-  return define_constructor(constructor, arguments);
+  check_is_bound();
+
+  // Define a Ruby allocator which creates the Ruby object
+  rb_define_alloc_func(static_cast<VALUE>(*this), detail::default_allocation_func<T>);
+
+  // Define an initialize function that will create the C++ object
+  this->define_method("initialize", &Constructor_T::construct, args...);
+
+  return *this;
 }
 
 template<typename T>

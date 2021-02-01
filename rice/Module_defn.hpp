@@ -92,6 +92,7 @@ public:
   Module& include_module(Module const& inc);
 
   template<typename Func_T>
+  [[deprecated("Please call define_method with Arg parameters")]]
   Module& define_method(
     Identifier name,
     Func_T func,
@@ -115,6 +116,7 @@ public:
     Arg_Ts const& ...args);
 
   template<typename Func_T>
+  [[deprecated("Please call define_singleton_method with Arg parameters")]]
   Module& define_singleton_method(
     Identifier name,
     Func_T func,
@@ -138,6 +140,7 @@ public:
     Arg_Ts const& ...args);
 
   template<typename Func_T>
+  [[deprecated("Please call define_module_function with Arg parameters")]]
   Module& define_module_function(
     Identifier name,
     Func_T func,

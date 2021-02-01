@@ -7,6 +7,7 @@ namespace Rice
 {
 
   template<typename Func_T>
+  [[deprecated("Please call define_global_function with Arg parameters")]]
   void define_global_function(
       char const * name,
       Func_T func,

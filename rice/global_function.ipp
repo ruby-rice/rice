@@ -15,7 +15,6 @@ void Rice::define_global_function(
     Func_T func,
     Arg_Ts const& ...args)
 {
-  Arguments* arguments = new Arguments(args...);
-  define_global_function(name, func, arguments);
+  Module(rb_mKernel).define_module_function(name, func, args...);
 }
 

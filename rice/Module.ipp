@@ -107,7 +107,8 @@ define_method(
   Arg_Ts const& ...args)
 {
   Arguments* arguments = new Arguments(args...);
-  return define_method(name, func, arguments);
+  this->define_method_and_auto_wrap(*this, name, func, this->handler(), arguments);
+  return *this;
 }
 
 template<typename Func_T>
@@ -133,7 +134,8 @@ define_singleton_method(
   Arg_Ts const& ...args)
 {
   Arguments* arguments = new Arguments(args...);
-  return define_singleton_method(name, func, arguments);
+  this->define_method_and_auto_wrap(rb_singleton_class(*this), name, func, this->handler(), arguments);
+  return *this;
 }
 
 template<typename Func_T>
@@ -164,8 +166,14 @@ define_module_function(
   Func_T func,
   Arg_Ts const& ...args)
 {
-  Arguments* arguments = new Arguments(args...);
-  return define_module_function(name, func, arguments);
+  if (this->rb_type() != T_MODULE)
+  {
+    throw std::runtime_error("can only define module functions for modules");
+  }
+
+  define_method(name, func, args...);
+  define_singleton_method(name, func, args...);
+  return *this;
 }
 
 namespace Rice
