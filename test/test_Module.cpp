@@ -289,7 +289,7 @@ namespace
 TESTCASE(define_method_default_arguments)
 {
   Module m(anonymous_module());
-  m.define_method("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
+  m.define_method("foo", &defaults_method_one, Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true);
 
   Object o = m.instance_eval("o = Object.new; o.extend(self); o");
   o.call("foo", 2);
@@ -314,7 +314,7 @@ TESTCASE(define_method_default_arguments)
 TESTCASE(default_arguments_still_throws_argument_error)
 {
   Module m(anonymous_module());
-  m.define_method("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
+  m.define_method("foo", &defaults_method_one, Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true);
 
   ASSERT_EXCEPTION_CHECK(
       Exception,
@@ -370,7 +370,7 @@ TESTCASE(defining_methods_with_single_default_argument)
 TESTCASE(default_arguments_for_define_singleton_method)
 {
   Class c(anonymous_class());
-  c.define_singleton_method("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
+  c.define_singleton_method("foo", &defaults_method_one, Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true);
 
   c.call("foo", 2);
 
@@ -394,7 +394,7 @@ TESTCASE(default_arguments_for_define_singleton_method)
 TESTCASE(default_arguments_for_define_module_function)
 {
   Module m(anonymous_module());
-  m.define_module_function("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
+  m.define_module_function("foo", &defaults_method_one, Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true);
 
   m.call("foo", 2);
 
@@ -430,7 +430,7 @@ TESTCASE(define_method_works_with_reference_arguments)
 {
   Module m(anonymous_module());
   m.define_module_function("foo", &with_defaults_and_references,
-      (Arg("x"), Arg("doIt") = false));
+      Arg("x"), Arg("doIt") = false);
 
   m.call("foo", "test");
 
@@ -485,7 +485,7 @@ TESTCASE(define_method_works_with_reference_const_default_values)
 {
   Module m(anonymous_module());
   m.define_module_function("bar", &with_reference_defaults,
-      (Arg("x"), Arg("str") = std::string("testing")));
+      Arg("x"), Arg("str") = std::string("testing"));
 
   m.call("bar", 3);
 

@@ -155,12 +155,12 @@ public:
   template<typename Constructor_T>
   Data_Type<T> & define_constructor(
       Constructor_T constructor,
-      Arguments * arguments = 0);
+      Arguments * arguments);
 
-  template<typename Constructor_T>
+  template<typename Constructor_T, typename...Arg_Ts>
   Data_Type<T> & define_constructor(
       Constructor_T constructor,
-      Arg const& arg);
+      Arg_Ts const& ...args);
 
   //! Register a Director class for this class.
   /*! For any class that uses Rice::Director to enable polymorphism

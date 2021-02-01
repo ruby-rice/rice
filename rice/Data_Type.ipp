@@ -140,17 +140,15 @@ define_constructor(
 }
 
 template<typename T>
-template<typename Constructor_T>
+template<typename Constructor_T, typename...Arg_Ts>
 inline Rice::Data_Type<T> & Rice::Data_Type<T>::
 define_constructor(
     Constructor_T constructor,
-    Arg const& arg)
+    Arg_Ts const& ...args)
 {
-  Arguments* args = new Arguments();
-  args->add(arg);
-  return define_constructor(constructor, args);
+  Arguments* arguments = new Arguments(args...);
+  return define_constructor(constructor, arguments);
 }
-
 
 template<typename T>
 template<typename Director_T>

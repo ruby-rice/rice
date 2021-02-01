@@ -397,7 +397,7 @@ TESTCASE(define_method_default_arguments)
               .define_constructor(Constructor<DefaultArgs>())
               .define_method("with_defaults",
                   &DefaultArgs::defaults_method_one,
-                  (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
+                  Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true);
 
   Object o = c.call("new");
   o.call("with_defaults", 2);
@@ -441,7 +441,7 @@ TESTCASE(define_method_works_with_reference_const_default_values)
               .define_constructor(Constructor<DefaultArgsRefs>())
               .define_method("bar",
                   &DefaultArgsRefs::with_reference_defaults,
-                  (Arg("x"), Arg("str") = std::string("testing")));
+                  Arg("x"), Arg("str") = std::string("testing"));
 
   Object o = c.call("new");
   o.call("bar", 3);

@@ -93,7 +93,7 @@ TESTCASE(constructor_supports_default_arguments)
 {
   Class klass = define_class<WithDefaultArgs>("WithDefaultArgs").
     define_constructor(Constructor<WithDefaultArgs, int, float, bool>(),
-          ( Arg("x"), Arg("y") = (float)2.0, Arg("yes") = (bool)false ));
+           Arg("x"), Arg("y") = (float)2.0, Arg("yes") = (bool)false);
 
   klass.call("new", 4);
   ASSERT_EQUAL(4, withArgsX);

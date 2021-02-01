@@ -1,112 +1,62 @@
 #ifndef Rice__Arguments__hpp_
 #define Rice__Arguments__hpp_
 
-#include <sstream>
 #include <vector>
 
-#include "../Arg.ipp"
-#include "from_ruby_defn.hpp"
+namespace Rice
+{
 
-namespace Rice {
+// TODO - forward declaration
+class Arg;
 
-  class Arguments
-  {
-    public:
-      Arguments() {
-        required_ = 0;
-        optional_ = 0;
-      }
+class Arguments
+{
+public:
+  template <typename...Arg_Ts>
+  Arguments(Arg_Ts...args);
 
-      ~Arguments() {
-      }
+  /**
+    * Get the full argument count of this
+    * list of arguments.
+    * Returns -1 no defined arguments
+    */
+  int count();
 
-      /**
-       * Get the full argument count of this
-       * list of arguments.
-       * Returns -1 no defined arguments
-       */
-      int count() {
-        if(required_ == 0 && optional_ == 0) {
-          return -1;
-        } else {
-          return required_ + optional_;
-        }
-      }
+  /**
+    * Get the rb_scan_args format string for this
+    * list of arguments.
+    * In the case of no Args (default case), this
+    * method uses the passed in full argument count
+    */
+  std::string formatString(size_t fullArgCount);
 
-      /**
-       * Get the rb_scan_args format string for this
-       * list of arguments.
-       * In the case of no Args (default case), this
-       * method uses the passed in full argument count
-       */
-      std::string formatString(size_t fullArgCount)
-      {
-        std::stringstream s;
-        if(required_ == 0 && optional_ == 0)
-        {
-          s << fullArgCount << 0;
-        }
-        else
-        {
-          s << required_ << optional_;
-        }
+  /**
+    * Add a defined Arg to this list of Arguments
+    */
+  void add(const Arg& arg);
 
-        return s.str();
-      }
+  /**
+    * Is the argument at the request location an optional
+    * argument?
+    */
+  bool isOptional(unsigned int pos);
 
-      /**
-       * Add a defined Arg to this list of Arguments
-       */
-      void add(const Arg& arg)
-      {
-        args_.push_back(arg);
+  /**
+    * Given a position, a type, and a ruby VALUE, figure out
+    * what argument value we need to return according to
+    * defaults and if that VALUE is nil or not
+    */
+  template<typename Arg_T>
+  Arg_T& defaultValue(int pos);
 
-        if(arg.hasDefaultValue())
-        {
-          optional_++;
-        }
-        else
-        {
-          required_++;
-        }
-      }
+private:
+  std::vector<Arg> args_;
 
-      /**
-       * Is the argument at the request location an optional
-       * argument?
-       */
-      bool isOptional(unsigned int pos)
-      {
-        if(required_ == 0 && optional_ == 0)
-        {
-          return false;
-        }
-        if(pos >= args_.size())
-        {
-          return false;
-        }
-        return args_[pos].hasDefaultValue();
-      }
+  /** Keep counts of required and optional parameters */
+  int required_ = 0;
+  int optional_ = 0;
+};
 
-      /**
-       * Given a position, a type, and a ruby VALUE, figure out
-       * what argument value we need to return according to
-       * defaults and if that VALUE is nil or not
-       */
-      template<typename Arg_T>
-      Arg_T& defaultValue(int pos)
-      {
-        return args_[pos].defaultValue<Arg_T>();
-      }
-
-    private:
-      std::vector<Arg> args_;
-
-      /** Keep counts of required and optional parameters */
-      int required_;
-      int optional_;
-  };
-
-}
+} // rice
 
 #endif // Rice__Arguments__hpp_

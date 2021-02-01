@@ -16,16 +16,15 @@ namespace Rice
   void define_global_function(
       char const * name,
       Func_T func,
-      Arguments* arguments = 0);
+      Arguments* arguments);
 
   // FIXME: See Module::define_method with Arg
-  template<typename Func_T>
+  template<typename Func_T, typename...Arg_Ts>
   void define_global_function(
       char const * name,
       Func_T func,
-      Arg const& arg);
+      Arg_Ts const& ...args);
   
-
 } // Rice
 
 #include "global_function.ipp"

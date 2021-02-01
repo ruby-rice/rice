@@ -9,14 +9,13 @@ void Rice::define_global_function(
   Module(rb_mKernel).define_module_function(name, func, arguments);
 }
 
-template<typename Func_T>
+template<typename Func_T, typename...Arg_Ts>
 void Rice::define_global_function(
     char const * name,
     Func_T func,
-    Arg const& arg)
+    Arg_Ts const& ...args)
 {
-  Arguments* args = new Arguments();
-  args->add(arg);
-  define_global_function(name, func, args);
+  Arguments* arguments = new Arguments(args...);
+  define_global_function(name, func, arguments);
 }
 

@@ -65,7 +65,7 @@ namespace
 
 TESTCASE(default_arguments_for_define_global_function)
 {
-  define_global_function("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = (int)3, Arg("arg3") = (bool)true));
+  define_global_function("foo", &defaults_method_one, Arg("arg1"), Arg("arg2") = (int)3, Arg("arg3") = (bool)true);
   Module m(rb_mKernel);
 
   m.call("foo", 2);
@@ -89,7 +89,7 @@ TESTCASE(default_arguments_for_define_global_function)
 
 TESTCASE(default_arguments_for_define_global_function_and_returning)
 {
-  define_global_function("foo_ret", &defaults_returns, (Arg("arg1"), Arg("arg2") = (int)3));
+  define_global_function("foo_ret", &defaults_returns, Arg("arg1"), Arg("arg2") = (int)3);
   Module m(rb_mKernel);
 
   Object o = m.call("foo_ret", 2);

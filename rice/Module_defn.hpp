@@ -108,16 +108,16 @@ public:
   Module& define_method(
     Identifier name,
     Func_T func,
-    Arguments* arguments = 0);
+    Arguments* arguments);
 
   // FIXME There's GOT to be a better way to
   // do this. Handles the case where there is a single
   // argument defined for this method
-  template<typename Func_T>
+  template<typename Func_T, typename...Arg_Ts>
   Module& define_method(
     Identifier name,
     Func_T func,
-    Arg const& arg);
+    Arg_Ts const& ...args);
 
   //! Define a singleton method.
   /*! The method's implementation can be any function or member
@@ -136,14 +136,14 @@ public:
   Module& define_singleton_method(
     Identifier name,
     Func_T func,
-    Arguments* arguments = 0);
+    Arguments* arguments);
 
   // FIXME: See define_method with Arg above
-  template<typename Func_T>
+  template<typename Func_T, typename...Arg_Ts>
   Module& define_singleton_method(
     Identifier name,
     Func_T func,
-    Arg const& arg);
+    Arg_Ts const& ...args);
 
   //! Define a module function.
   /*! A module function is a function that can be accessed either as a
@@ -164,14 +164,14 @@ public:
   Module& define_module_function(
     Identifier name,
     Func_T func,
-    Arguments* arguments = 0);
+    Arguments* arguments);
 
   // FIXME: See define_method with Arg above
-  template<typename Func_T>
+  template<typename Func_T, typename...Arg_Ts>
   Module& define_module_function(
     Identifier name,
     Func_T func,
-    Arg const& arg);
+    Arg_Ts const& ...args);
 
   //! Set a constant.
   /*! \param name the name of the constant to set.

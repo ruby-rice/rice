@@ -69,212 +69,65 @@ namespace Rice
 } // Rice
 
 
-// =========   Arg.hpp   =========
-
-
-// ---------   Arg.ipp   ---------
-#ifndef Rice__Arg_Impl_hpp_
-#define Rice__Arg_Impl_hpp_
-
-#include <any>
-#include <string>
-
-namespace Rice {
-
-  //! Helper for defining default arguments of a method
-  /*! This class exposes the ability to define the default values of a
-   *  wrapped method. Inspired by how Boost.Python handles keyword and
-   *  default arguments, the syntax is simple:
-   *
-   *  \code
-   *    define_method(
-   *      "method",
-   *      &method,
-   *      (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true)
-   *    );
-   *  \endcode
-   *
-   *  which means "for method &method, it takes 3 arguments
-   *  [arg1, arg2, arg3]. Of these arguments, arg2's default is 3
-   *  and arg3's default is true.
-   *
-   *  It may be required to explicitly cast the type of the default
-   *  value to prevent compilation errors.
-   */
-  class Arg
-  {
-    public:
-      //! Initialize a new Arg with the name of the argument
-      /*! We require the name of the argument because 1) it makes code
-       *  easier to read and 2) hopefully Ruby gets keyword arguments
-       *  in the future and this means Rice will be ready for it.
-       */
-      Arg(std::string name)
-        : name_(name)
-      {
-      }
-
-      //! Copy Constructor
-      Arg(const Arg& other)
-        : name_(other.name_), defaultValue_(other.defaultValue_)
-      {
-      }
-
-      //! Set the default value for this Arg
-      /*! Set the default value for this argument.
-       *  If this isn't called on this Arg, then this
-       *  Arg is required in the method call.
-       *
-       *  \param val the value to store as default
-       */
-      template<typename Arg_Type>
-      Arg& operator=(Arg_Type val)
-      {
-        this->defaultValue_ = val;
-        return *this;
-      }
-
-      //! Check if this Arg has a default value associated with it
-      bool hasDefaultValue() const
-      {
-        return this->defaultValue_.has_value();
-      }
-
-      //! Return a reference to the default value associated with this Arg
-      /*! \return the type saved to this Arg
-       */
-      template<typename Arg_Type>
-      Arg_Type& defaultValue()
-      {
-        return std::any_cast<Arg_Type&>(this->defaultValue_);
-      }
-
-      //! Get the name of this Arg
-      const std::string name() const
-      {
-        return name_;
-      }
-
-    private:
-      //! Name of the argument
-      const std::string name_;
-
-      //! Our saved default value
-      std::any defaultValue_;
-  };
-
-}
-
-#endif // Rice__Arg_Impl_hpp_
-
-
 // =========   Arguments.hpp   =========
 
-#include <sstream>
 #include <vector>
 
+namespace Rice
+{
 
-namespace Rice {
+// TODO - forward declaration
+class Arg;
 
-  class Arguments
-  {
-    public:
-      Arguments() {
-        required_ = 0;
-        optional_ = 0;
-      }
+class Arguments
+{
+public:
+  template <typename...Arg_Ts>
+  Arguments(Arg_Ts...args);
 
-      ~Arguments() {
-      }
+  /**
+    * Get the full argument count of this
+    * list of arguments.
+    * Returns -1 no defined arguments
+    */
+  int count();
 
-      /**
-       * Get the full argument count of this
-       * list of arguments.
-       * Returns -1 no defined arguments
-       */
-      int count() {
-        if(required_ == 0 && optional_ == 0) {
-          return -1;
-        } else {
-          return required_ + optional_;
-        }
-      }
+  /**
+    * Get the rb_scan_args format string for this
+    * list of arguments.
+    * In the case of no Args (default case), this
+    * method uses the passed in full argument count
+    */
+  std::string formatString(size_t fullArgCount);
 
-      /**
-       * Get the rb_scan_args format string for this
-       * list of arguments.
-       * In the case of no Args (default case), this
-       * method uses the passed in full argument count
-       */
-      std::string formatString(size_t fullArgCount)
-      {
-        std::stringstream s;
-        if(required_ == 0 && optional_ == 0)
-        {
-          s << fullArgCount << 0;
-        }
-        else
-        {
-          s << required_ << optional_;
-        }
+  /**
+    * Add a defined Arg to this list of Arguments
+    */
+  void add(const Arg& arg);
 
-        return s.str();
-      }
+  /**
+    * Is the argument at the request location an optional
+    * argument?
+    */
+  bool isOptional(unsigned int pos);
 
-      /**
-       * Add a defined Arg to this list of Arguments
-       */
-      void add(const Arg& arg)
-      {
-        args_.push_back(arg);
+  /**
+    * Given a position, a type, and a ruby VALUE, figure out
+    * what argument value we need to return according to
+    * defaults and if that VALUE is nil or not
+    */
+  template<typename Arg_T>
+  Arg_T& defaultValue(int pos);
 
-        if(arg.hasDefaultValue())
-        {
-          optional_++;
-        }
-        else
-        {
-          required_++;
-        }
-      }
+private:
+  std::vector<Arg> args_;
 
-      /**
-       * Is the argument at the request location an optional
-       * argument?
-       */
-      bool isOptional(unsigned int pos)
-      {
-        if(required_ == 0 && optional_ == 0)
-        {
-          return false;
-        }
-        if(pos >= args_.size())
-        {
-          return false;
-        }
-        return args_[pos].hasDefaultValue();
-      }
+  /** Keep counts of required and optional parameters */
+  int required_ = 0;
+  int optional_ = 0;
+};
 
-      /**
-       * Given a position, a type, and a ruby VALUE, figure out
-       * what argument value we need to return according to
-       * defaults and if that VALUE is nil or not
-       */
-      template<typename Arg_T>
-      Arg_T& defaultValue(int pos)
-      {
-        return args_[pos].defaultValue<Arg_T>();
-      }
-
-    private:
-      std::vector<Arg> args_;
-
-      /** Keep counts of required and optional parameters */
-      int required_;
-      int optional_;
-  };
-
-}
+} // rice
 
 
 // =========   default_allocation_func.hpp   =========
@@ -717,7 +570,6 @@ handle_exception() const
 // =========   Iterator.hpp   =========
 #ifndef Rice_Iterator__hpp_
 #define Rice_Iterator__hpp_
-
 
 namespace Rice
 {
@@ -1387,6 +1239,190 @@ auto* wrap_function(Return_T (Self_T::*func)(Arg_T...) const,
 
 
 
+// =========   Arg.hpp   =========
+
+#include <any>
+
+namespace Rice {
+
+  //! Helper for defining default arguments of a method
+  /*! This class exposes the ability to define the default values of a
+   *  wrapped method. Inspired by how Boost.Python handles keyword and
+   *  default arguments, the syntax is simple:
+   *
+   *  \code
+   *    define_method(
+   *      "method",
+   *      &method,
+   *      (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true)
+   *    );
+   *  \endcode
+   *
+   *  which means "for method &method, it takes 3 arguments
+   *  [arg1, arg2, arg3]. Of these arguments, arg2's default is 3
+   *  and arg3's default is true.
+   *
+   *  It may be required to explicitly cast the type of the default
+   *  value to prevent compilation errors.
+   */
+  class Arg
+  {
+  public:
+    //! Initialize a new Arg with the name of the argument
+    /*! We require the name of the argument because 1) it makes code
+     *  easier to read and 2) hopefully Ruby gets keyword arguments
+     *  in the future and this means Rice will be ready for it.
+     */
+    Arg(std::string name);
+
+    //! Set the default value for this Arg
+    /*! Set the default value for this argument.
+     *  If this isn't called on this Arg, then this
+     *  Arg is required in the method call.
+     *
+     *  \param val the value to store as default
+     */
+    template<typename Arg_Type>
+    Arg& operator=(Arg_Type val);
+
+    //! Check if this Arg has a default value associated with it
+    bool hasDefaultValue() const;
+
+    //! Return a reference to the default value associated with this Arg
+    /*! \return the type saved to this Arg
+     */
+    template<typename Arg_Type>
+    Arg_Type& defaultValue();
+
+    //! Get the name of this Arg
+    const std::string name() const;
+
+  private:
+    //! Name of the argument
+    const std::string name_;
+
+    //! Our saved default value
+    std::any defaultValue_;
+  };
+} // Rice
+
+
+// ---------   Arg.ipp   ---------
+#include <any>
+#include <string>
+
+namespace Rice {
+
+inline Arg::Arg(std::string name)
+  : name_(name)
+{
+}
+
+template<typename Arg_Type>
+inline Arg& Arg::operator=(Arg_Type val)
+{
+  this->defaultValue_ = val;
+  return *this;
+}
+
+//! Check if this Arg has a default value associated with it
+inline bool Arg::hasDefaultValue() const
+{
+  return this->defaultValue_.has_value();
+}
+
+//! Return a reference to the default value associated with this Arg
+/*! \return the type saved to this Arg
+  */
+template<typename Arg_Type>
+inline Arg_Type& Arg::defaultValue()
+{
+  return std::any_cast<Arg_Type&>(this->defaultValue_);
+}
+
+//! Get the name of this Arg
+inline const std::string Arg::name() const
+{
+  return name_;
+}
+
+}  // Rice
+
+
+// =========   Arguments.ipp   =========
+#include <sstream>
+
+namespace Rice
+{
+
+template <typename...Arg_Ts>
+inline Arguments::Arguments(Arg_Ts...args)
+{
+  (this->add(args), ...);
+}
+
+inline int Arguments::count()
+{
+  if (required_ == 0 && optional_ == 0)
+  {
+    return -1;
+  }
+  else
+  {
+    return required_ + optional_;
+  }
+}
+
+inline std::string Arguments::formatString(size_t fullArgCount)
+{
+  std::stringstream s;
+  if (required_ == 0 && optional_ == 0)
+  {
+    s << fullArgCount << 0;
+  }
+  else
+  {
+    s << required_ << optional_;
+  }
+
+  return s.str();
+}
+
+inline void Arguments::add(const Arg& arg)
+{
+  args_.push_back(arg);
+
+  if (arg.hasDefaultValue())
+  {
+    optional_++;
+  }
+  else
+  {
+    required_++;
+  }
+}
+
+inline bool Arguments::isOptional(unsigned int pos)
+{
+  if (required_ == 0 && optional_ == 0)
+  {
+    return false;
+  }
+  if (pos >= args_.size())
+  {
+    return false;
+  }
+  return args_[pos].hasDefaultValue();
+}
+
+template<typename Arg_T>
+inline Arg_T& Arguments::defaultValue(int pos)
+{
+  return args_[pos].defaultValue<Arg_T>();
+}
+
+} // Rice
+
 // =========   Arg_operators.hpp   =========
 
 namespace Rice
@@ -1396,6 +1432,7 @@ namespace Rice
   /*! Take a list of Arg objects and build up a single Argument
    *  object used later in method dispatch
    */
+  [[deprecated("You should no longer enclose multiple Args in parentheses.")]]
   inline Arguments* operator,(Arg arg1, Arg arg2)
   {
     Arguments* a = new Arguments();
@@ -1406,6 +1443,7 @@ namespace Rice
 
   /*! @see operator,(Arg, Arg)
    */
+  [[deprecated("You should no longer enclose multiple Args in parentheses.")]]
   inline Arguments* operator,(Arguments* arguments, Arg arg)
   {
     arguments->add(arg);
@@ -3846,16 +3884,16 @@ public:
   Module& define_method(
     Identifier name,
     Func_T func,
-    Arguments* arguments = 0);
+    Arguments* arguments);
 
   // FIXME There's GOT to be a better way to
   // do this. Handles the case where there is a single
   // argument defined for this method
-  template<typename Func_T>
+  template<typename Func_T, typename...Arg_Ts>
   Module& define_method(
     Identifier name,
     Func_T func,
-    Arg const& arg);
+    Arg_Ts const& ...args);
 
   //! Define a singleton method.
   /*! The method's implementation can be any function or member
@@ -3874,14 +3912,14 @@ public:
   Module& define_singleton_method(
     Identifier name,
     Func_T func,
-    Arguments* arguments = 0);
+    Arguments* arguments);
 
   // FIXME: See define_method with Arg above
-  template<typename Func_T>
+  template<typename Func_T, typename...Arg_Ts>
   Module& define_singleton_method(
     Identifier name,
     Func_T func,
-    Arg const& arg);
+    Arg_Ts const& ...args);
 
   //! Define a module function.
   /*! A module function is a function that can be accessed either as a
@@ -3902,14 +3940,14 @@ public:
   Module& define_module_function(
     Identifier name,
     Func_T func,
-    Arguments* arguments = 0);
+    Arguments* arguments);
 
   // FIXME: See define_method with Arg above
-  template<typename Func_T>
+  template<typename Func_T, typename...Arg_Ts>
   Module& define_module_function(
     Identifier name,
     Func_T func,
-    Arg const& arg);
+    Arg_Ts const& ...args);
 
   //! Set a constant.
   /*! \param name the name of the constant to set.
@@ -4107,20 +4145,18 @@ define_method(
   return *this;
 }
 
-template<typename Func_T>
+template<typename Func_T, typename...Arg_Ts>
 inline
 Rice::Module&
 Rice::Module::
 define_method(
   Identifier name,
   Func_T func,
-  Arg const& arg)
+  Arg_Ts const& ...args)
 {
-  Arguments* args = new Arguments();
-  args->add(arg);
-  return define_method(name, func, args);
+  Arguments* arguments = new Arguments(args...);
+  return define_method(name, func, arguments);
 }
-
 
 template<typename Func_T>
 inline
@@ -4135,18 +4171,17 @@ define_singleton_method(
   return *this;
 }
 
-template<typename Func_T>
+template<typename Func_T, typename...Arg_Ts>
 inline
 Rice::Module&
 Rice::Module::
 define_singleton_method(
   Identifier name,
   Func_T func,
-  Arg const& arg)
+  Arg_Ts const& ...args)
 {
-  Arguments* args = new Arguments();
-  args->add(arg);
-  return define_singleton_method(name, func, args);
+  Arguments* arguments = new Arguments(args...);
+  return define_singleton_method(name, func, arguments);
 }
 
 template<typename Func_T>
@@ -4168,18 +4203,17 @@ define_module_function(
   return *this;
 }
 
-template<typename Func_T>
+template<typename Func_T, typename...Arg_Ts>
 inline
 Rice::Module&
 Rice::Module::
 define_module_function(
   Identifier name,
   Func_T func,
-  Arg const& arg)
+  Arg_Ts const& ...args)
 {
-  Arguments* args = new Arguments();
-  args->add(arg);
-  return define_module_function(name, func, args);
+  Arguments* arguments = new Arguments(args...);
+  return define_module_function(name, func, arguments);
 }
 
 namespace Rice
@@ -4266,16 +4300,15 @@ namespace Rice
   void define_global_function(
       char const * name,
       Func_T func,
-      Arguments* arguments = 0);
+      Arguments* arguments);
 
   // FIXME: See Module::define_method with Arg
-  template<typename Func_T>
+  template<typename Func_T, typename...Arg_Ts>
   void define_global_function(
       char const * name,
       Func_T func,
-      Arg const& arg);
+      Arg_Ts const& ...args);
   
-
 } // Rice
 
 
@@ -4290,15 +4323,14 @@ void Rice::define_global_function(
   Module(rb_mKernel).define_module_function(name, func, arguments);
 }
 
-template<typename Func_T>
+template<typename Func_T, typename...Arg_Ts>
 void Rice::define_global_function(
     char const * name,
     Func_T func,
-    Arg const& arg)
+    Arg_Ts const& ...args)
 {
-  Arguments* args = new Arguments();
-  args->add(arg);
-  define_global_function(name, func, args);
+  Arguments* arguments = new Arguments(args...);
+  define_global_function(name, func, arguments);
 }
 
 
@@ -4457,27 +4489,27 @@ auto& const_set(Identifier name, Object value)
 }
 
 template<typename Func_T>
-auto& define_method(Identifier name, Func_T func, Arguments* arguments = 0)
+auto& define_method(Identifier name, Func_T func, Arguments* arguments)
 {
   return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arguments));
 }
 
-template<typename Func_T>
-auto& define_method(Identifier name, Func_T func, Arg const& arg)
+template<typename Func_T, typename...Arg_Ts>
+auto& define_method(Identifier name, Func_T func, Arg_Ts const& ...args)
 {
-  return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arg));
+  return dynamic_cast<decltype(*this)>(Module::define_method(name, func, args...));
 }
 
 template<typename Func_T>
-auto& define_singleton_method(Identifier name, Func_T func, Arguments* arguments = 0)
+auto& define_singleton_method(Identifier name, Func_T func, Arguments* arguments)
 {
   return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arguments));
 }
 
-template<typename Func_T>
-auto& define_singleton_method(Identifier name, Func_T func, Arg const& arg)
+template<typename Func_T, typename...Arg_Ts>
+auto& define_singleton_method(Identifier name, Func_T func, Arg_Ts const& ...args)
 {
-  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arg));
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, args...));
 }
 
 };
@@ -4669,7 +4701,12 @@ namespace Rice {
 }
 
 
-// =========   Data_Type_defn.hpp   =========
+// =========   Data_Type.hpp   =========
+
+
+// ---------   Data_Type_defn.hpp   ---------
+#ifndef Rice__Data_Type_defn__hpp_
+#define Rice__Data_Type_defn__hpp_
 
 #include <memory>
 #include <map>
@@ -4823,12 +4860,12 @@ public:
   template<typename Constructor_T>
   Data_Type<T> & define_constructor(
       Constructor_T constructor,
-      Arguments * arguments = 0);
+      Arguments * arguments);
 
-  template<typename Constructor_T>
+  template<typename Constructor_T, typename...Arg_Ts>
   Data_Type<T> & define_constructor(
       Constructor_T constructor,
-      Arg const& arg);
+      Arg_Ts const& ...args);
 
   //! Register a Director class for this class.
   /*! For any class that uses Rice::Director to enable polymorphism
@@ -4900,27 +4937,27 @@ auto& const_set(Identifier name, Object value)
 }
 
 template<typename Func_T>
-auto& define_method(Identifier name, Func_T func, Arguments* arguments = 0)
+auto& define_method(Identifier name, Func_T func, Arguments* arguments)
 {
   return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arguments));
 }
 
-template<typename Func_T>
-auto& define_method(Identifier name, Func_T func, Arg const& arg)
+template<typename Func_T, typename...Arg_Ts>
+auto& define_method(Identifier name, Func_T func, Arg_Ts const& ...args)
 {
-  return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arg));
+  return dynamic_cast<decltype(*this)>(Module::define_method(name, func, args...));
 }
 
 template<typename Func_T>
-auto& define_singleton_method(Identifier name, Func_T func, Arguments* arguments = 0)
+auto& define_singleton_method(Identifier name, Func_T func, Arguments* arguments)
 {
   return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arguments));
 }
 
-template<typename Func_T>
-auto& define_singleton_method(Identifier name, Func_T func, Arg const& arg)
+template<typename Func_T, typename...Arg_Ts>
+auto& define_singleton_method(Identifier name, Func_T func, Arg_Ts const& ...args)
 {
-  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arg));
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, args...));
 }
 
 
@@ -5030,6 +5067,381 @@ struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<
   }
 };
 
+
+#endif // Rice__Data_Type_defn__hpp_
+
+
+// ---------   Data_Type.ipp   ---------
+#ifndef Rice__Data_Type__ipp_
+#define Rice__Data_Type__ipp_
+
+
+
+#include <stdexcept>
+#include <typeinfo>
+
+inline Rice::Data_Type_Base::
+Data_Type_Base(VALUE v)
+  : Class(v)
+{
+}
+
+template<typename T>
+template<typename Base_T>
+inline Rice::Data_Type<T> Rice::Data_Type<T>::
+bind(Module const & klass)
+{
+  if(klass.value() == klass_)
+  {
+    return Data_Type<T>();
+  }
+
+  if(is_bound())
+  {
+    std::string s;
+    s = "Data type ";
+    s += detail::demangle(typeid(T).name());
+    s += " is already bound to a different type";
+    throw std::runtime_error(s.c_str());
+  }
+
+  // TODO: Make sure base type is bound; throw an exception otherwise.
+  // We can't do this just yet, because we don't have a specialization
+  // for binding to void.
+  klass_ = klass;
+
+  // TODO: do we need to unregister when the program exits?  we have to
+  // be careful if we do, because the ruby interpreter might have
+  // already shut down.  The correct behavior is probably to register an
+  // exit proc with the interpreter, so the proc gets called before the
+  // GC shuts down.
+  rb_gc_register_address(&klass_);
+
+  for(typename Instances::iterator it = unbound_instances().begin(),
+      end = unbound_instances().end();
+      it != end;
+      unbound_instances().erase(it++))
+  {
+    (*it)->set_value(klass);
+  }
+
+  detail::Abstract_Caster * base_caster = Data_Type<Base_T>().caster();
+  caster_.reset(new detail::Caster<T, Base_T>(base_caster, klass));
+  Data_Type_Base::casters.insert(std::make_pair(klass, caster_.get()));
+  return Data_Type<T>();
+}
+
+template<typename T>
+inline Rice::Data_Type<T>::
+Data_Type()
+  : Data_Type_Base(
+      klass_ == Qnil ? rb_cData : klass_)
+{
+  if(!is_bound())
+  {
+    unbound_instances().insert(this);
+  }
+}
+
+template<typename T>
+inline Rice::Data_Type<T>::
+Data_Type(Module const & klass)
+  : Data_Type_Base(
+      klass)
+{
+  this->bind<void>(klass);
+}
+
+template<typename T>
+inline Rice::Data_Type<T>::
+~Data_Type()
+{
+  unbound_instances().erase(this);
+}
+
+template<typename T>
+Rice::Module
+Rice::Data_Type<T>::
+klass() {
+  if(is_bound())
+  {
+    return klass_;
+  }
+  else
+  {
+    std::string s;
+    s += detail::demangle(typeid(T *).name());
+    s += " is unbound";
+    throw std::runtime_error(s.c_str());
+  }
+}
+
+template<typename T>
+Rice::Data_Type<T> & Rice::Data_Type<T>::
+operator=(Module const & klass)
+{
+  this->bind<void>(klass);
+  return *this;
+}
+
+template<typename T>
+template<typename Constructor_T>
+inline Rice::Data_Type<T> & Rice::Data_Type<T>::
+define_constructor(
+    Constructor_T /* constructor */,
+    Arguments* arguments)
+{
+  check_is_bound();
+
+  // Normal constructor pattern with new/initialize
+  rb_define_alloc_func(
+      static_cast<VALUE>(*this),
+      detail::default_allocation_func<T>);
+  this->define_method(
+      "initialize",
+      &Constructor_T::construct,
+      arguments
+      );
+
+  return *this;
+}
+
+template<typename T>
+template<typename Constructor_T, typename...Arg_Ts>
+inline Rice::Data_Type<T> & Rice::Data_Type<T>::
+define_constructor(
+    Constructor_T constructor,
+    Arg_Ts const& ...args)
+{
+  Arguments* arguments = new Arguments(args...);
+  return define_constructor(constructor, arguments);
+}
+
+template<typename T>
+template<typename Director_T>
+inline Rice::Data_Type<T>& Rice::Data_Type<T>::
+define_director()
+{
+  Rice::Data_Type<Director_T>::template bind<T>(*this);
+  return *this;
+}
+
+template<typename T>
+inline T * Rice::Data_Type<T>::
+from_ruby(Object x)
+{
+  check_is_bound();
+
+  void * v = DATA_PTR(x.value());
+  Class klass = x.class_of();
+
+  if(klass.value() == klass_)
+  {
+    // Great, not converting to a base/derived type
+    Data_Type<T> data_klass;
+    Data_Object<T> obj(x, data_klass);
+    return obj.get();
+  }
+
+  // Finding the bound type that relates to the given klass is
+  // a two step process. We iterate over the list of known type casters,
+  // looking for:
+  //
+  // 1) casters that handle this direct type
+  // 2) casters that handle types that are ancestors of klass
+  //
+  // Step 2 allows us to handle the case where a Rice-wrapped class
+  // is subclassed in Ruby but then an instance of that class is passed
+  // back into C++ (say, in a Listener / callback construction)
+  //
+
+  VALUE ancestors = rb_mod_ancestors(klass.value());
+  long earliest = RARRAY_LEN(ancestors) + 1;
+
+  int index;
+  VALUE indexFound;
+
+  std::pair<VALUE, detail::Abstract_Caster*> toUse{ Qnil, nullptr };
+
+  for (const auto& pair: casters)
+  {
+    // Do we match directly?
+    if (klass.value() == pair.first)
+    {
+      toUse = pair;
+      break;
+    }
+
+    // Check for ancestors. Trick is, we need to find the lowest
+    // ancestor that does have a Caster to make sure that we're casting
+    // to the closest C++ type that the Ruby class is subclassing. 
+    // There might be multiple ancestors that are also wrapped in
+    // the extension, so find the earliest in the list and use that one.
+    indexFound = rb_funcall(ancestors, rb_intern("index"), 1, pair.first);
+
+    if(indexFound != Qnil)
+    {
+      index = NUM2INT(indexFound);
+
+      if(index < earliest)
+      {
+        earliest = index;
+        toUse = pair;
+      }
+    }
+  }
+  
+  if (toUse.first == Qnil)
+  {
+    std::string s = "Class ";
+    s += klass.name().str();
+    s += " is not registered/bound in Rice";
+    throw std::runtime_error(s);
+  }
+
+  detail::Abstract_Caster* caster = toUse.second;
+  if (caster)
+  {
+    T * result = static_cast<T *>(caster->cast_to_base(v, klass_));
+    return result;
+  }
+  else
+  {
+    return static_cast<T *>(v);
+  }
+}
+
+template<typename T>
+inline bool Rice::Data_Type<T>::
+is_bound()
+{
+  return klass_ != Qnil;
+}
+
+template<typename T>
+inline Rice::detail::Abstract_Caster * Rice::Data_Type<T>::
+caster() const
+{
+  check_is_bound();
+  return caster_.get();
+}
+
+namespace Rice
+{
+
+template<>
+inline detail::Abstract_Caster * Data_Type<void>::
+caster() const
+{
+  return 0;
+}
+
+template<typename T>
+void Data_Type<T>::
+check_is_bound()
+{
+  if(!is_bound())
+  {
+    std::string s;
+    s = "Data type ";
+    s += detail::demangle(typeid(T).name());
+    s += " is not bound";
+    throw std::runtime_error(s.c_str());
+  }
+}
+
+} // Rice
+
+template<typename T>
+inline Rice::Data_Type<T> Rice::
+define_class_under(
+    Object module,
+    char const * name)
+{
+  Class c(define_class_under(module, name, rb_cData));
+  c.undef_creation_funcs();
+  return Data_Type<T>::template bind<void>(c);
+}
+
+template<typename T, typename Base_T>
+inline Rice::Data_Type<T> Rice::
+define_class_under(
+    Object module,
+    char const * name)
+{
+  Data_Type<Base_T> base_dt;
+  Class c(define_class_under(module, name, base_dt));
+  c.undef_creation_funcs();
+  return Data_Type<T>::template bind<Base_T>(c);
+}
+
+template<typename T>
+inline Rice::Data_Type<T> Rice::
+define_class(
+    char const * name)
+{
+  Class c(define_class(name, rb_cData));
+  c.undef_creation_funcs();
+  return Data_Type<T>::template bind<void>(c);
+}
+
+template<typename T, typename Base_T>
+inline Rice::Data_Type<T> Rice::
+define_class(
+    char const * name)
+{
+  Data_Type<Base_T> base_dt;
+  Class c(define_class(name, base_dt));
+  c.undef_creation_funcs();
+  return Data_Type<T>::template bind<Base_T>(c);
+}
+
+template<typename T>
+template<typename U, typename Iterator_T>
+inline Rice::Data_Type<T>& Rice::Data_Type<T>::
+define_iterator(Iterator_T(U::* begin)(), Iterator_T(U::* end)(), Identifier name)
+{
+  using Iter_T = detail::Iterator<U, Iterator_T>;
+  Iter_T* iterator = new Iter_T(begin, end);
+  detail::MethodData::define_method(Data_Type<T>::klass(), name, 
+    (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
+
+  return *this;
+}
+
+template<typename From_T, typename To_T>
+inline void 
+Rice::define_implicit_cast()
+{
+  // As Rice currently expects only one entry into
+  // this list for a given klass VALUE, we need to get
+  // the current caster for From_T and insert in our
+  // new caster as the head of the caster list
+
+  Class from_class = Data_Type<From_T>::klass().value();
+  Class to_class = Data_Type<To_T>::klass().value();
+
+  detail::Abstract_Caster* from_caster = 
+    Data_Type<From_T>::caster_.release();
+
+  detail::Abstract_Caster* new_caster = 
+    new detail::Implicit_Caster<To_T, From_T>(from_caster, to_class);
+
+  // Insert our new caster into the list for the from class
+  Data_Type_Base::casters.erase(from_class);
+  Data_Type_Base::casters.insert(
+    std::make_pair(
+      from_class,
+      new_caster
+    )
+  );
+
+  // And make sure the from_class has direct access to the
+  // updated caster list
+  Data_Type<From_T>::caster_.reset(new_caster);
+}
+
+#endif // Rice__Data_Type__ipp_
 
 
 
@@ -5384,377 +5796,6 @@ namespace Rice
 } // namespace Rice
 
 #endif // Rice_Iterator__ipp_
-
-
-// =========   Data_Type.ipp   =========
-
-
-
-#include <stdexcept>
-#include <typeinfo>
-
-inline Rice::Data_Type_Base::
-Data_Type_Base(VALUE v)
-  : Class(v)
-{
-}
-
-template<typename T>
-template<typename Base_T>
-inline Rice::Data_Type<T> Rice::Data_Type<T>::
-bind(Module const & klass)
-{
-  if(klass.value() == klass_)
-  {
-    return Data_Type<T>();
-  }
-
-  if(is_bound())
-  {
-    std::string s;
-    s = "Data type ";
-    s += detail::demangle(typeid(T).name());
-    s += " is already bound to a different type";
-    throw std::runtime_error(s.c_str());
-  }
-
-  // TODO: Make sure base type is bound; throw an exception otherwise.
-  // We can't do this just yet, because we don't have a specialization
-  // for binding to void.
-  klass_ = klass;
-
-  // TODO: do we need to unregister when the program exits?  we have to
-  // be careful if we do, because the ruby interpreter might have
-  // already shut down.  The correct behavior is probably to register an
-  // exit proc with the interpreter, so the proc gets called before the
-  // GC shuts down.
-  rb_gc_register_address(&klass_);
-
-  for(typename Instances::iterator it = unbound_instances().begin(),
-      end = unbound_instances().end();
-      it != end;
-      unbound_instances().erase(it++))
-  {
-    (*it)->set_value(klass);
-  }
-
-  detail::Abstract_Caster * base_caster = Data_Type<Base_T>().caster();
-  caster_.reset(new detail::Caster<T, Base_T>(base_caster, klass));
-  Data_Type_Base::casters.insert(std::make_pair(klass, caster_.get()));
-  return Data_Type<T>();
-}
-
-template<typename T>
-inline Rice::Data_Type<T>::
-Data_Type()
-  : Data_Type_Base(
-      klass_ == Qnil ? rb_cData : klass_)
-{
-  if(!is_bound())
-  {
-    unbound_instances().insert(this);
-  }
-}
-
-template<typename T>
-inline Rice::Data_Type<T>::
-Data_Type(Module const & klass)
-  : Data_Type_Base(
-      klass)
-{
-  this->bind<void>(klass);
-}
-
-template<typename T>
-inline Rice::Data_Type<T>::
-~Data_Type()
-{
-  unbound_instances().erase(this);
-}
-
-template<typename T>
-Rice::Module
-Rice::Data_Type<T>::
-klass() {
-  if(is_bound())
-  {
-    return klass_;
-  }
-  else
-  {
-    std::string s;
-    s += detail::demangle(typeid(T *).name());
-    s += " is unbound";
-    throw std::runtime_error(s.c_str());
-  }
-}
-
-template<typename T>
-Rice::Data_Type<T> & Rice::Data_Type<T>::
-operator=(Module const & klass)
-{
-  this->bind<void>(klass);
-  return *this;
-}
-
-template<typename T>
-template<typename Constructor_T>
-inline Rice::Data_Type<T> & Rice::Data_Type<T>::
-define_constructor(
-    Constructor_T /* constructor */,
-    Arguments* arguments)
-{
-  check_is_bound();
-
-  // Normal constructor pattern with new/initialize
-  rb_define_alloc_func(
-      static_cast<VALUE>(*this),
-      detail::default_allocation_func<T>);
-  this->define_method(
-      "initialize",
-      &Constructor_T::construct,
-      arguments
-      );
-
-  return *this;
-}
-
-template<typename T>
-template<typename Constructor_T>
-inline Rice::Data_Type<T> & Rice::Data_Type<T>::
-define_constructor(
-    Constructor_T constructor,
-    Arg const& arg)
-{
-  Arguments* args = new Arguments();
-  args->add(arg);
-  return define_constructor(constructor, args);
-}
-
-
-template<typename T>
-template<typename Director_T>
-inline Rice::Data_Type<T>& Rice::Data_Type<T>::
-define_director()
-{
-  Rice::Data_Type<Director_T>::template bind<T>(*this);
-  return *this;
-}
-
-template<typename T>
-inline T * Rice::Data_Type<T>::
-from_ruby(Object x)
-{
-  check_is_bound();
-
-  void * v = DATA_PTR(x.value());
-  Class klass = x.class_of();
-
-  if(klass.value() == klass_)
-  {
-    // Great, not converting to a base/derived type
-    Data_Type<T> data_klass;
-    Data_Object<T> obj(x, data_klass);
-    return obj.get();
-  }
-
-  // Finding the bound type that relates to the given klass is
-  // a two step process. We iterate over the list of known type casters,
-  // looking for:
-  //
-  // 1) casters that handle this direct type
-  // 2) casters that handle types that are ancestors of klass
-  //
-  // Step 2 allows us to handle the case where a Rice-wrapped class
-  // is subclassed in Ruby but then an instance of that class is passed
-  // back into C++ (say, in a Listener / callback construction)
-  //
-
-  VALUE ancestors = rb_mod_ancestors(klass.value());
-  long earliest = RARRAY_LEN(ancestors) + 1;
-
-  int index;
-  VALUE indexFound;
-
-  std::pair<VALUE, detail::Abstract_Caster*> toUse{ Qnil, nullptr };
-
-  for (const auto& pair: casters)
-  {
-    // Do we match directly?
-    if (klass.value() == pair.first)
-    {
-      toUse = pair;
-      break;
-    }
-
-    // Check for ancestors. Trick is, we need to find the lowest
-    // ancestor that does have a Caster to make sure that we're casting
-    // to the closest C++ type that the Ruby class is subclassing. 
-    // There might be multiple ancestors that are also wrapped in
-    // the extension, so find the earliest in the list and use that one.
-    indexFound = rb_funcall(ancestors, rb_intern("index"), 1, pair.first);
-
-    if(indexFound != Qnil)
-    {
-      index = NUM2INT(indexFound);
-
-      if(index < earliest)
-      {
-        earliest = index;
-        toUse = pair;
-      }
-    }
-  }
-  
-  if (toUse.first == Qnil)
-  {
-    std::string s = "Class ";
-    s += klass.name().str();
-    s += " is not registered/bound in Rice";
-    throw std::runtime_error(s);
-  }
-
-  detail::Abstract_Caster* caster = toUse.second;
-  if (caster)
-  {
-    T * result = static_cast<T *>(caster->cast_to_base(v, klass_));
-    return result;
-  }
-  else
-  {
-    return static_cast<T *>(v);
-  }
-}
-
-template<typename T>
-inline bool Rice::Data_Type<T>::
-is_bound()
-{
-  return klass_ != Qnil;
-}
-
-template<typename T>
-inline Rice::detail::Abstract_Caster * Rice::Data_Type<T>::
-caster() const
-{
-  check_is_bound();
-  return caster_.get();
-}
-
-namespace Rice
-{
-
-template<>
-inline detail::Abstract_Caster * Data_Type<void>::
-caster() const
-{
-  return 0;
-}
-
-template<typename T>
-void Data_Type<T>::
-check_is_bound()
-{
-  if(!is_bound())
-  {
-    std::string s;
-    s = "Data type ";
-    s += detail::demangle(typeid(T).name());
-    s += " is not bound";
-    throw std::runtime_error(s.c_str());
-  }
-}
-
-} // Rice
-
-template<typename T>
-inline Rice::Data_Type<T> Rice::
-define_class_under(
-    Object module,
-    char const * name)
-{
-  Class c(define_class_under(module, name, rb_cData));
-  c.undef_creation_funcs();
-  return Data_Type<T>::template bind<void>(c);
-}
-
-template<typename T, typename Base_T>
-inline Rice::Data_Type<T> Rice::
-define_class_under(
-    Object module,
-    char const * name)
-{
-  Data_Type<Base_T> base_dt;
-  Class c(define_class_under(module, name, base_dt));
-  c.undef_creation_funcs();
-  return Data_Type<T>::template bind<Base_T>(c);
-}
-
-template<typename T>
-inline Rice::Data_Type<T> Rice::
-define_class(
-    char const * name)
-{
-  Class c(define_class(name, rb_cData));
-  c.undef_creation_funcs();
-  return Data_Type<T>::template bind<void>(c);
-}
-
-template<typename T, typename Base_T>
-inline Rice::Data_Type<T> Rice::
-define_class(
-    char const * name)
-{
-  Data_Type<Base_T> base_dt;
-  Class c(define_class(name, base_dt));
-  c.undef_creation_funcs();
-  return Data_Type<T>::template bind<Base_T>(c);
-}
-
-template<typename T>
-template<typename U, typename Iterator_T>
-inline Rice::Data_Type<T>& Rice::Data_Type<T>::
-define_iterator(Iterator_T(U::* begin)(), Iterator_T(U::* end)(), Identifier name)
-{
-  using Iter_T = detail::Iterator<U, Iterator_T>;
-  Iter_T* iterator = new Iter_T(begin, end);
-  detail::MethodData::define_method(Data_Type<T>::klass(), name, 
-    (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
-
-  return *this;
-}
-
-template<typename From_T, typename To_T>
-inline void 
-Rice::define_implicit_cast()
-{
-  // As Rice currently expects only one entry into
-  // this list for a given klass VALUE, we need to get
-  // the current caster for From_T and insert in our
-  // new caster as the head of the caster list
-
-  Class from_class = Data_Type<From_T>::klass().value();
-  Class to_class = Data_Type<To_T>::klass().value();
-
-  detail::Abstract_Caster* from_caster = 
-    Data_Type<From_T>::caster_.release();
-
-  detail::Abstract_Caster* new_caster = 
-    new detail::Implicit_Caster<To_T, From_T>(from_caster, to_class);
-
-  // Insert our new caster into the list for the from class
-  Data_Type_Base::casters.erase(from_class);
-  Data_Type_Base::casters.insert(
-    std::make_pair(
-      from_class,
-      new_caster
-    )
-  );
-
-  // And make sure the from_class has direct access to the
-  // updated caster list
-  Data_Type<From_T>::caster_.reset(new_caster);
-}
 
 
 // =========   default_allocation_func.ipp   =========

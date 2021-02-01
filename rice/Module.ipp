@@ -97,20 +97,18 @@ define_method(
   return *this;
 }
 
-template<typename Func_T>
+template<typename Func_T, typename...Arg_Ts>
 inline
 Rice::Module&
 Rice::Module::
 define_method(
   Identifier name,
   Func_T func,
-  Arg const& arg)
+  Arg_Ts const& ...args)
 {
-  Arguments* args = new Arguments();
-  args->add(arg);
-  return define_method(name, func, args);
+  Arguments* arguments = new Arguments(args...);
+  return define_method(name, func, arguments);
 }
-
 
 template<typename Func_T>
 inline
@@ -125,18 +123,17 @@ define_singleton_method(
   return *this;
 }
 
-template<typename Func_T>
+template<typename Func_T, typename...Arg_Ts>
 inline
 Rice::Module&
 Rice::Module::
 define_singleton_method(
   Identifier name,
   Func_T func,
-  Arg const& arg)
+  Arg_Ts const& ...args)
 {
-  Arguments* args = new Arguments();
-  args->add(arg);
-  return define_singleton_method(name, func, args);
+  Arguments* arguments = new Arguments(args...);
+  return define_singleton_method(name, func, arguments);
 }
 
 template<typename Func_T>
@@ -158,18 +155,17 @@ define_module_function(
   return *this;
 }
 
-template<typename Func_T>
+template<typename Func_T, typename...Arg_Ts>
 inline
 Rice::Module&
 Rice::Module::
 define_module_function(
   Identifier name,
   Func_T func,
-  Arg const& arg)
+  Arg_Ts const& ...args)
 {
-  Arguments* args = new Arguments();
-  args->add(arg);
-  return define_module_function(name, func, args);
+  Arguments* arguments = new Arguments(args...);
+  return define_module_function(name, func, arguments);
 }
 
 namespace Rice
