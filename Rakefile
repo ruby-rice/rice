@@ -36,7 +36,7 @@ binaries.each do |asset|
 end
 
 desc "Build test binaries"
-task :build => binaries
+task :build => [:rice_hpp, *binaries]
 
 desc "Clean test binaries"
 task :clean do
@@ -62,7 +62,7 @@ Rake::TestTask.new do |t|
   t.warning = true
 end
 
-task :test => [:rice_hpp, :test_cpp]
+task :test => [:test_cpp]
 
 # ---------  Header  --------------
 rice_hpp = File.join(__dir__, 'include', 'rice.hpp')
