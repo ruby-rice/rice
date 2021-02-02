@@ -2,7 +2,7 @@ require 'mkmf'
 
 # If we are on versions of Ruby before 2.7 then we need to copy in the experimental C++ support
 # added in Ruby 2.7
-unless MakeMakefile.method('[]')
+unless MakeMakefile.methods.include?(:[])
   MakeMakefile.module_eval do
     @lang = Hash.new(self)
 
