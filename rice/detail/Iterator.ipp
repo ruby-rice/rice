@@ -2,6 +2,8 @@
 #define Rice_Iterator__ipp_
 
 #include <iterator>
+#include <functional>
+
 #include "Data_Object_defn.hpp"
 #include "method_data.hpp"
 #include "protect.hpp"
