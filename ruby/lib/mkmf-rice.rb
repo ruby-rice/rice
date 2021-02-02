@@ -4,6 +4,13 @@ require 'mkmf'
 # added in Ruby 2.7
 unless MakeMakefile.methods.include?(:[])
   MakeMakefile.module_eval do
+    def cc_config(opt="")
+      conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote,
+                                    'arch_hdrdir' => $arch_hdrdir.quote,
+                                    'top_srcdir' => $top_srcdir.quote)
+      conf
+    end
+
     @lang = Hash.new(self)
 
     def self.[](name)
