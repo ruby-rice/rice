@@ -37,7 +37,7 @@ TESTCASE(move_construct)
   Address_Registration_Guard guard1(&value);
   Address_Registration_Guard guard2(std::move(guard1));
 
-  ASSERT_EQUAL(nullptr, guard1.address());
+  ASSERT((guard1.address() == nullptr));
   ASSERT_EQUAL(&value, guard2.address());
 }
 
@@ -51,7 +51,7 @@ TESTCASE(move_assign)
 
   guard2 = std::move(guard1);
 
-  ASSERT_EQUAL(nullptr, guard1.address());
+  ASSERT((guard1.address() == nullptr));
   ASSERT_EQUAL(&value1, guard2.address());
 }
 
