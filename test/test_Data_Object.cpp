@@ -210,7 +210,7 @@ TESTCASE(move_construct)
   Data_Object<Foo> wrapper2(std::move(wrapper1));
 
   ASSERT_EQUAL(foo, wrapper2.get());
-  ASSERT_EQUAL(nullptr, wrapper1.get());
+  ASSERT((wrapper1.get() == nullptr));
 }
 
 TESTCASE(move_assign)
@@ -226,7 +226,7 @@ TESTCASE(move_assign)
   wrapper2 = std::move(wrapper1);
 
   ASSERT_EQUAL(foo1, wrapper2.get());
-  ASSERT_EQUAL(nullptr, wrapper1.get());
+  ASSERT((wrapper1.get() == nullptr));
 }
 
 TESTCASE(dereference)
