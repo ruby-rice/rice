@@ -1,8 +1,16 @@
 require 'mkmf'
 
+IS_MSWIN = !RbConfig::CONFIG['host_os'].match(/mswin/).nil?
+
 # If we are on versions of Ruby before 2.7 then we need to copy in the experimental C++ support
 # added in Ruby 2.7
 unless MakeMakefile.methods.include?(:[])
+
+  # Ruby 2.6 makes this declaration which is not valid with C++17
+  # void rb_mem_clear(register VALUE*, register long);
+  if !IS_MSWIN
+    $CXXFLAGS += " " << "-Wno-register"
+  end
 
   MakeMakefile::CONFTEST_C = "#{CONFTEST}.cc"
 
@@ -94,8 +102,6 @@ end
 
 # Now pull in the C++ support
 include MakeMakefile['C++']
-
-IS_MSWIN = !RbConfig::CONFIG['host_os'].match(/mswin/).nil?
 
 # Rice needs c++17. Check if we are using msvc
 if IS_MSWIN
