@@ -11,6 +11,23 @@ unless MakeMakefile.methods.include?(:[])
       conf
     end
 
+    def link_config(ldflags, opt="", libpath=$DEFLIBPATH|$LIBPATH)
+      librubyarg = $extmk ? $LIBRUBYARG_STATIC : "$(LIBRUBYARG)"
+      conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote,
+                                    'src' => "#{conftest_source}",
+                                    'arch_hdrdir' => $arch_hdrdir.quote,
+                                    'top_srcdir' => $top_srcdir.quote,
+                                    'INCFLAGS' => "#$INCFLAGS",
+                                    'CPPFLAGS' => "#$CPPFLAGS",
+                                    'CFLAGS' => "#$CFLAGS",
+                                    'ARCH_FLAG' => "#$ARCH_FLAG",
+                                    'LDFLAGS' => "#$LDFLAGS #{ldflags}",
+                                    'LOCAL_LIBS' => "#$LOCAL_LIBS #$libs",
+                                    'LIBS' => "#{librubyarg} #{opt} #$LIBS")
+      conf['LIBPATH'] = libpathflag(libpath.map {|s| RbConfig::expand(s.dup, conf)})
+      conf
+    end
+
     @lang = Hash.new(self)
 
     def self.[](name)
