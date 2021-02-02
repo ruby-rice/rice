@@ -1139,7 +1139,6 @@ public:
 
 public:
   Wrapped_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
-  virtual ~Wrapped_Function();
 
   // Invokes the wrapped function
   VALUE operator()(int argc, VALUE* argv, VALUE self);
@@ -1160,7 +1159,7 @@ private:
   
 private:
   Function_T func_;
-  Arguments* arguments_;
+  std::unique_ptr<Arguments> arguments_;
   std::shared_ptr<Exception_Handler> handler_;
 };
 
@@ -3867,82 +3866,74 @@ public:
   */
   Module& include_module(Module const& inc);
 
-  //! Define an instance method.
-  /*! The method's implementation can be any function or member
-   *  function.  A wrapper will be generated which will use from_ruby<>
-   *  to convert the arguments from ruby types to C++ types before
-   *  calling the function.  The return value will be converted back to
-   *  ruby by using to_ruby().
-   *  \param name the name of the method
-   *  \param func the implementation of the function, either a function
-   *  pointer or a member function pointer.
-   *  \param arguments the list of arguments of this function, used for
-   *  defining default parameters (optional)
-   *  \return *this
-   */
   template<typename Func_T>
+  [[deprecated("Please call define_method with Arg parameters")]]
   Module& define_method(
     Identifier name,
     Func_T func,
     Arguments* arguments);
 
-  // FIXME There's GOT to be a better way to
-  // do this. Handles the case where there is a single
-  // argument defined for this method
+  //! Define an instance method.
+  /*! The method's implementation can be any function or member
+   *  function.  A wrapper will be generated which will convert the arguments
+   *  from ruby types to C++ types before calling the function.  The return
+   *  value will be converted back to ruby.
+   *  \param name the name of the method
+   *  \param func the implementation of the function, either a function
+   *  pointer or a member function pointer.
+   *  \param args a list of Arg instance used to define default parameters (optional)
+   *  \return *this
+   */
   template<typename Func_T, typename...Arg_Ts>
   Module& define_method(
     Identifier name,
     Func_T func,
     Arg_Ts const& ...args);
+
+  template<typename Func_T>
+  [[deprecated("Please call define_singleton_method with Arg parameters")]]
+  Module& define_singleton_method(
+    Identifier name,
+    Func_T func,
+    Arguments* arguments);
 
   //! Define a singleton method.
   /*! The method's implementation can be any function or member
-   *  function.  A wrapper will be generated which will use from_ruby<>
-   *  to convert the arguments from ruby types to C++ types before
-   *  calling the function.  The return value will be converted back to
-   *  ruby by using to_ruby().
+   *  function.  A wrapper will be generated which will convert the arguments
+   *  from ruby types to C++ types before calling the function.  The return
+   *  value will be converted back to ruby.
    *  \param name the name of the method
    *  \param func the implementation of the function, either a function
    *  pointer or a member function pointer.
-   *  \param arguments the list of arguments of this function, used for
-   *  defining default parameters (optional)
+   *  \param args a list of Arg instance used to define default parameters (optional)
    *  \return *this
    */
-  template<typename Func_T>
-  Module& define_singleton_method(
-    Identifier name,
-    Func_T func,
-    Arguments* arguments);
-
-  // FIXME: See define_method with Arg above
   template<typename Func_T, typename...Arg_Ts>
   Module& define_singleton_method(
     Identifier name,
     Func_T func,
     Arg_Ts const& ...args);
 
-  //! Define a module function.
-  /*! A module function is a function that can be accessed either as a
-   *  singleton method or as an instance method.
-   *  The method's implementation can be any function or member
-   *  function.  A wrapper will be generated which will use from_ruby<>
-   *  to convert the arguments from ruby types to C++ types before
-   *  calling the function.  The return value will be converted back to
-   *  ruby by using to_ruby().
-   *  \param name the name of the method
-   *  \param func the implementation of the function, either a function
-   *  pointer or a member function pointer.
-   *  \param arguments the list of arguments of this function, used for
-   *  defining default parameters (optional)
-   *  \return *this
-   */
   template<typename Func_T>
+  [[deprecated("Please call define_module_function with Arg parameters")]]
   Module& define_module_function(
     Identifier name,
     Func_T func,
     Arguments* arguments);
 
-  // FIXME: See define_method with Arg above
+  //! Define a module function.
+  /*! A module function is a function that can be accessed either as a
+   *  singleton method or as an instance method.
+   *  The method's implementation can be any function or member
+   *  function.  A wrapper will be generated which will convert the arguments
+   *  from ruby types to C++ types before calling the function.  The return
+   *  value will be converted back to ruby.
+   *  \param name the name of the method
+   *  \param func the implementation of the function, either a function
+   *  pointer or a member function pointer.
+   *  \param args a list of Arg instance used to define default parameters (optional)
+   *  \return *this
+   */
   template<typename Func_T, typename...Arg_Ts>
   Module& define_module_function(
     Identifier name,
@@ -4155,7 +4146,8 @@ define_method(
   Arg_Ts const& ...args)
 {
   Arguments* arguments = new Arguments(args...);
-  return define_method(name, func, arguments);
+  this->define_method_and_auto_wrap(*this, name, func, this->handler(), arguments);
+  return *this;
 }
 
 template<typename Func_T>
@@ -4181,7 +4173,8 @@ define_singleton_method(
   Arg_Ts const& ...args)
 {
   Arguments* arguments = new Arguments(args...);
-  return define_singleton_method(name, func, arguments);
+  this->define_method_and_auto_wrap(rb_singleton_class(*this), name, func, this->handler(), arguments);
+  return *this;
 }
 
 template<typename Func_T>
@@ -4212,8 +4205,14 @@ define_module_function(
   Func_T func,
   Arg_Ts const& ...args)
 {
-  Arguments* arguments = new Arguments(args...);
-  return define_module_function(name, func, arguments);
+  if (this->rb_type() != T_MODULE)
+  {
+    throw std::runtime_error("can only define module functions for modules");
+  }
+
+  define_method(name, func, args...);
+  define_singleton_method(name, func, args...);
+  return *this;
 }
 
 namespace Rice
@@ -4290,19 +4289,24 @@ define_class(
 namespace Rice
 {
 
-  /**
-   * Helper forwarder method to easily wrap
-   * globally available functions. This simply
-   * forwards off a call to define_module_function
-   * on rb_mKernel
-   */
   template<typename Func_T>
+  [[deprecated("Please call define_global_function with Arg parameters")]]
   void define_global_function(
       char const * name,
       Func_T func,
       Arguments* arguments);
 
-  // FIXME: See Module::define_method with Arg
+   //! Define an global function
+   /*! The method's implementation can be any function or static member
+    *  function.  A wrapper will be generated which will convert the arguments
+    *  from ruby types to C++ types before calling the function.  The return
+    *  value will be converted back to ruby.
+    *  \param name the name of the method
+    *  \param func the implementation of the function, either a function
+    *  pointer or a member function pointer.
+    *  \param args a list of Arg instance used to define default parameters (optional)
+    *  \return *this
+    */
   template<typename Func_T, typename...Arg_Ts>
   void define_global_function(
       char const * name,
@@ -4329,8 +4333,7 @@ void Rice::define_global_function(
     Func_T func,
     Arg_Ts const& ...args)
 {
-  Arguments* arguments = new Arguments(args...);
-  define_global_function(name, func, arguments);
+  Module(rb_mKernel).define_module_function(name, func, args...);
 }
 
 
@@ -4489,6 +4492,7 @@ auto& const_set(Identifier name, Object value)
 }
 
 template<typename Func_T>
+[[deprecated("Please call define_method with Arg parameters")]]
 auto& define_method(Identifier name, Func_T func, Arguments* arguments)
 {
   return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arguments));
@@ -4501,6 +4505,7 @@ auto& define_method(Identifier name, Func_T func, Arg_Ts const& ...args)
 }
 
 template<typename Func_T>
+[[deprecated("Please call define_singleton_method with Arg parameters")]]
 auto& define_singleton_method(Identifier name, Func_T func, Arguments* arguments)
 {
   return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arguments));
@@ -4843,6 +4848,12 @@ public:
   virtual Data_Type & operator=(Module const & klass);
 
   //! Define a constructor for the class.
+  template<typename Constructor_T>
+  [[deprecated("Please call define_constructor with Arg parameters")]]
+  Data_Type<T> & define_constructor(
+      Constructor_T constructor,
+      Arguments * arguments);
+
   /*! Creates a singleton method allocate and an instance method called
    *  initialize which together create a new instance of the class.  The
    *  allocate method allocates memory for the object reference and the
@@ -4851,17 +4862,14 @@ public:
    *  construct() that constructs a new instance of T and sets the object's data
    *  member to point to the new instance.  A helper class Constructor
    *  is provided that does precisely this.
+   *  \param args a list of Arg instance used to define default parameters (optional)
+   *
    *  For example:
    *  \code
    *    define_class<Foo>("Foo")
    *      .define_constructor(Constructor<Foo>());
    *  \endcode
    */
-  template<typename Constructor_T>
-  Data_Type<T> & define_constructor(
-      Constructor_T constructor,
-      Arguments * arguments);
-
   template<typename Constructor_T, typename...Arg_Ts>
   Data_Type<T> & define_constructor(
       Constructor_T constructor,
@@ -4937,6 +4945,7 @@ auto& const_set(Identifier name, Object value)
 }
 
 template<typename Func_T>
+[[deprecated("Please call define_method with Arg parameters")]]
 auto& define_method(Identifier name, Func_T func, Arguments* arguments)
 {
   return dynamic_cast<decltype(*this)>(Module::define_method(name, func, arguments));
@@ -4949,6 +4958,7 @@ auto& define_method(Identifier name, Func_T func, Arg_Ts const& ...args)
 }
 
 template<typename Func_T>
+[[deprecated("Please call define_singleton_method with Arg parameters")]]
 auto& define_singleton_method(Identifier name, Func_T func, Arguments* arguments)
 {
   return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, func, arguments));
@@ -5213,8 +5223,15 @@ define_constructor(
     Constructor_T constructor,
     Arg_Ts const& ...args)
 {
-  Arguments* arguments = new Arguments(args...);
-  return define_constructor(constructor, arguments);
+  check_is_bound();
+
+  // Define a Ruby allocator which creates the Ruby object
+  rb_define_alloc_func(static_cast<VALUE>(*this), detail::default_allocation_func<T>);
+
+  // Define an initialize function that will create the C++ object
+  this->define_method("initialize", &Constructor_T::construct, args...);
+
+  return *this;
 }
 
 template<typename T>
@@ -5753,6 +5770,8 @@ get() const
 #define Rice_Iterator__ipp_
 
 #include <iterator>
+#include <functional>
+
 
 namespace Rice
 {
@@ -5834,23 +5853,12 @@ call(int argc, VALUE* argv, VALUE self)
 template<typename Function_T, typename Return_T, typename Receiver_T, typename... Arg_Ts>
 Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
 Wrapped_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
-    : func_(func), handler_(handler)
-  {
-    if (arguments == 0)
-    {
-      arguments_ = new Arguments();
-    }
-    else
-    {
-      arguments_ = arguments;
-    }
-  }
-
-template<typename Function_T, typename Return_T, typename Receiver_T, typename... Arg_Ts>
-Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
-~Wrapped_Function()
+    : func_(func), handler_(handler), arguments_(arguments)
 {
-  delete arguments_;
+  if (!arguments_)
+  {
+    arguments_ = std::make_unique<Arguments>();
+  }
 }
 
 template<typename Function_T, typename Return_T, typename Receiver_T, typename... Arg_Ts>
@@ -5978,9 +5986,7 @@ operator()(int argc, VALUE* argv, VALUE self)
     RUBY_CATCH
   }
 }
-
 } // detail
-
 } // Rice
 
 
