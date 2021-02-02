@@ -3,7 +3,11 @@ require 'mkmf'
 # If we are on versions of Ruby before 2.7 then we need to copy in the experimental C++ support
 # added in Ruby 2.7
 unless MakeMakefile.methods.include?(:[])
+
+  MakeMakefile::CONFTEST_C = "#{CONFTEST}.cc"
+
   MakeMakefile.module_eval do
+    CONFTEST_C = "#{CONFTEST}.cc"
     def cc_config(opt="")
       conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote,
                                     'arch_hdrdir' => $arch_hdrdir.quote,
