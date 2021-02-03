@@ -61,8 +61,8 @@ private:
   
 private:
   Function_T func_;
-  std::unique_ptr<Arguments> arguments_;
   std::shared_ptr<Exception_Handler> handler_;
+  std::unique_ptr<Arguments> arguments_;
 };
 
 } // detail
