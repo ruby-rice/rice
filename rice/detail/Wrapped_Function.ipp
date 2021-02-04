@@ -107,16 +107,23 @@ template<typename Function_T, typename Return_T, typename Receiver_T, typename..
 VALUE Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
 invokeNative(NativeTypes& nativeArgs)
 {
-  // Call the native function
   if constexpr (std::is_void_v<Return_T>)
   {
     std::apply(this->func_, nativeArgs);
     return Qnil;
   }
+  else if constexpr (is_primitive_v<Return_T>)
+  {
+    // TODO - this is a hack to avoid have an ownership parameter for converting basic types
+
+    // Execute the native function
+    Return_T result = std::apply(this->func_, nativeArgs);
+    return To_Ruby<Return_T>::convert(std::forward<Return_T>(result));
+  }
   else
   {
     Return_T result = std::apply(this->func_, nativeArgs);
-    return To_Ruby<Return_T>::convert(result);
+    return To_Ruby<Return_T>::convert(std::forward<Return_T>(result), this->arguments_->takeOwnership());
   }
 }
 

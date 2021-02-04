@@ -184,11 +184,9 @@ void define_method_int_foo_helper(Object o, int i, Foo * x)
 template<>
 struct detail::From_Ruby<Foo*>
 {
-  static Foo* convert(VALUE x)
+  static Foo* convert(VALUE value)
   {
-    Foo* retval;
-    Data_Get_Struct(x, Foo, retval);
-    return retval;
+    return detail::unwrap<Foo>(value);
   }
 };
 
@@ -199,7 +197,7 @@ TESTCASE(define_singleton_method_int_foo)
   define_method_int_result = 0;
   Foo * foo = new Foo;
   foo->x = 1024;
-  VALUE f = Data_Wrap_Struct(rb_cObject, 0, Default_Free_Function<Foo>::free, foo);
+  VALUE f = detail::wrap(rb_cObject, nullptr, (RUBY_DATA_FUNC)Default_Free_Function<Foo>::free, foo);
   m.call("int_and_foo", 42, Object(f));
   ASSERT_EQUAL(42, define_method_int_foo_result_i);
   ASSERT_EQUAL(foo, define_method_int_foo_result_x);

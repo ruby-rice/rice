@@ -10,68 +10,18 @@ template<typename T>
 const typename Rice::Default_Mark_Function<T>::Ruby_Data_Func
 Rice::Default_Mark_Function<T>::mark = ruby_mark<T>;
 
-namespace Rice
-{
-
-namespace detail
-{
-
-inline VALUE data_wrap_struct(
-    VALUE klass,
-    RUBY_DATA_FUNC mark,
-    RUBY_DATA_FUNC free,
-    void * obj)
-{
-  return Data_Wrap_Struct(klass, mark, free, obj);
-}
-
-template<typename T>
-inline VALUE wrap(
-    VALUE klass,
-    typename Data_Object<T>::Ruby_Data_Func mark,
-    typename Data_Object<T>::Ruby_Data_Func free,
-    T * obj)
-{
-  // We cast to obj void* here before passing to Data_Wrap_Struct,
-  // becuase otherwise compilation will fail if obj is const.  It's safe
-  // to do this, because unwrap() will always add the const back when
-  // the object is unwrapped.
-  return Rice::protect(data_wrap_struct,
-      klass,
-      reinterpret_cast<RUBY_DATA_FUNC>(mark),
-      reinterpret_cast<RUBY_DATA_FUNC>(free),
-      (void *)obj);
-}
-
-template<typename T>
-inline VALUE data_get_struct(VALUE value, T * * obj)
-{
-  Data_Get_Struct(value, T, *obj);
-  return Qnil;
-}
-
-template<typename T>
-inline T * unwrap(VALUE value)
-{
-  T * obj;
-  Rice::protect(data_get_struct<T>, value, &obj);
-  return obj;
-}
-
-} // namespace detail
-
-} // namespace Rice
-
 template<typename T>
 inline Rice::Data_Object<T>::
 Data_Object(
-    T * obj,
+    T* data,
     VALUE klass,
     Ruby_Data_Func mark_func,
-    Ruby_Data_Func free_func)
-  : obj_(obj)
+    Ruby_Free_Func free_func)
 {
-  VALUE value = detail::wrap(klass, mark_func, free_func, obj);
+  VALUE value = detail::wrap(klass,
+                            (RUBY_DATA_FUNC)mark_func, 
+                            (RUBY_DATA_FUNC)free_func, 
+                            data);
   this->set_value(value);
 }
 
@@ -80,7 +30,6 @@ inline Rice::Data_Object<T>::
 Data_Object(
     Object value)
   : Object(value)
-  , obj_(detail::unwrap<T>(value))
 {  
   Data_Type<T> klass;
   check_cpp_type(klass);
@@ -94,30 +43,9 @@ Data_Object(
     Object value,
     Data_Type<U> const & klass)
   : Object(value)
-  , obj_(detail::unwrap<T>(value))
 {  
   check_cpp_type(klass);
   check_ruby_type(value, klass, true);
-}
-
-template<typename T>
-inline Rice::Data_Object<T>::
-Data_Object(Data_Object&& other): Object(other)
-{
-  this->obj_ = other.obj_;
-  other.obj_ = nullptr;
-}
-
-template<typename T>
-inline Rice::Data_Object<T>& Rice::Data_Object<T>::
-operator=(Data_Object&& other)
-{
-  Object::operator=(other);
-
-  this->obj_ = other.obj_;
-  other.obj_ = nullptr;
-
-  return *this;
 }
 
 template<typename T>
@@ -150,22 +78,90 @@ template<typename T>
 inline T& Rice::Data_Object<T>::
 operator*() const
 {
-  return *obj_;
+  return *this->get();
 }
 
 template<typename T>
 inline T* Rice::Data_Object<T>::
 operator->() const
 {
-  return obj_;
+  return this->get();
 }
 
 template<typename T>
 inline T* Rice::Data_Object<T>::
 get() const
 {
-  return obj_;
+  if (this->value() == Qnil)
+  {
+    return nullptr;
+  }
+  else
+  {
+    return detail::unwrap<T>(this->value());
+  }
 }
+
+template<typename T, typename>
+struct Rice::detail::To_Ruby
+{
+  static VALUE convert(T&& data, bool takeOwnership)
+  {
+    using Base_T = base_type<T>;
+    Data_Type<Base_T>::check_is_bound();
+    return detail::wrap(Data_Type<Base_T>::klass(),
+      (RUBY_DATA_FUNC)Default_Mark_Function<Base_T>::mark,
+      (RUBY_DATA_FUNC)Default_Free_Function<Base_T>::free, std::forward<T>(data), takeOwnership);
+
+  }
+};
+
+template <typename T>
+struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<T> &&
+  !Rice::detail::is_kind_of_object<T>>>
+{
+  static VALUE convert(T* data, bool takeOwnership)
+  {
+    using Base_T = base_type<T>;
+    return detail::wrap(Data_Type<Base_T>::klass(),
+      (RUBY_DATA_FUNC)Default_Mark_Function<Base_T>::mark, 
+      (RUBY_DATA_FUNC)Default_Free_Function<Base_T>::free, data, takeOwnership);
+  }
+};
+
+template<typename T>
+struct Rice::detail::From_Ruby
+{
+  static T& convert(VALUE value)
+  {
+    using Base_T = base_type<T>;
+    Data_Type<Base_T>::check_descendant(value);
+    return *detail::unwrap<T>(value);
+  }
+};
+
+template<typename T>
+struct Rice::detail::From_Ruby<T&>
+{
+  static T& convert(VALUE value)
+  {
+    using Base_T = base_type<T>;
+    Data_Type<Base_T>::check_descendant(value);
+    return *detail::unwrap<T>(value);
+  }
+};
+
+template<typename T>
+struct Rice::detail::From_Ruby<T*>
+{
+  static T* convert(VALUE value)
+  {
+    using Base_T = base_type<T>;
+    Data_Type<Base_T>::check_descendant(value);
+    return detail::unwrap<T>(value);
+  }
+};
+
 
 #endif // Rice__Data_Object__ipp_
 

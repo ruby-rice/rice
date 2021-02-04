@@ -32,32 +32,59 @@ namespace {
    * This class will recieve a new Listener instance
    * from Ruby
    */
-  class ListenerHandler {
+  class ListenerHandler
+  {
 
     public:
 
-      ListenerHandler() {  }
+      ListenerHandler()
+      {  }
 
-      void addListener(Listener* newList) {
-        mListeners.push_back(newList);
+      void addListener(Listener* listener) 
+      {
+        mListeners.push_back(listener);
       }
 
-      int process() {
+      void removeListener(Listener* listener)
+      {
+        auto iter = std::find(mListeners.begin(), mListeners.end(), listener);
+        mListeners.erase(iter);
+      }
+
+      int process()
+      {
         std::vector<Listener*>::iterator i = mListeners.begin();
         int accum = 0;
-        for(; i != mListeners.end(); i++) {
+        for(; i != mListeners.end(); i++)
+        {
           accum += (*i)->getValue();
         }
 
         return accum;
       }
 
-      size_t listenerCount() { return mListeners.size(); }
+      size_t listenerCount()
+      { 
+        return mListeners.size();
+      }
 
     private:
       std::vector<Listener*> mListeners;
   };
 }
+
+template<>
+void ruby_mark(Listener* container)
+{
+  int a = 1;
+}
+
+template<>
+void ruby_mark(ListenerHandler* container)
+{
+  int a = 1;
+}
+
 
 SETUP(Data_Type)
 {
@@ -73,6 +100,7 @@ SETUP(Data_Type)
     .define_method("process", &ListenerHandler::process)
     .define_method("listener_count", &ListenerHandler::listenerCount);
 
+
 }
 
 TESTCASE(can_send_ruby_instance_back_into_rice)
@@ -82,8 +110,10 @@ TESTCASE(can_send_ruby_instance_back_into_rice)
 
   ASSERT_EQUAL(INT2NUM(0), handler.call("listener_count").value());
 
-  m.instance_eval("class MyListener < Listener; end;");
-  m.instance_eval("@handler.add_listener(MyListener.new)");
+  m.instance_eval(R"EOS(class MyListener < Listener
+                        end
+                        listener = MyListener.new
+                        @handler.add_listener(listener))EOS");
 
   ASSERT_EQUAL(INT2NUM(1), handler.call("listener_count").value());
   ASSERT_EQUAL(INT2NUM(4), handler.call("process").value());

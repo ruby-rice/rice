@@ -58,7 +58,7 @@ private:
 
   // Call the underlying C++ function
   VALUE invokeNative(NativeTypes& nativeArgs);
-  
+
 private:
   Function_T func_;
   std::shared_ptr<Exception_Handler> handler_;

@@ -4,7 +4,11 @@
 #include "detail/ruby.hpp"
 #include "detail/rice_traits.hpp"
 
+#include "Return.hpp"
+#include "Arg.hpp"
 #include "detail/Arguments.hpp"
+
+#include "detail/Wrapper.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "detail/demangle.hpp"
 #include "detail/from_ruby.hpp"
@@ -18,11 +22,6 @@
 #include "detail/Ruby_Function.hpp"
 #include "detail/Wrapped_Function.hpp"
 #include "detail/wrap_function.hpp"
-
-#include "Arg.hpp"
-
-// Arguments implementation is dependent on Arg
-#include "detail/Arguments.ipp"
 
 // Deprecated - this code is deprecated and should be removed in the future
 #include "Arg_operators.hpp"

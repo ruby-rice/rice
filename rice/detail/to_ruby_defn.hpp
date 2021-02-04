@@ -27,7 +27,6 @@ namespace Rice
     template <typename T, typename = void>
     struct To_Ruby;
    
-    // Supports int*, bool*, std::string*, etc but *NOT* any C++ structs/classes
     template<typename T>
     struct To_Ruby<T*, std::enable_if_t<is_primitive_v<T>>>
     {
@@ -38,7 +37,7 @@ namespace Rice
     };
 
     template<typename T>
-    struct To_Ruby<T&>
+    struct To_Ruby<T&, std::enable_if_t<is_primitive_v<T>>>
     {
       static VALUE convert(T const& x)
       {
@@ -50,7 +49,14 @@ namespace Rice
     template <typename T>
     VALUE to_ruby(T&& x)
     {
-      return To_Ruby<T>::convert(std::forward<T>(x));
+      if constexpr (is_primitive_v<T>)
+      {
+        return To_Ruby<T>::convert(std::forward<T>(x));
+      }
+      else
+      {
+        return To_Ruby<T>::convert(std::forward<T>(x), true);
+      }
     }
 
     // Helper template function that let's users avoid having to specify the template type - its deduced

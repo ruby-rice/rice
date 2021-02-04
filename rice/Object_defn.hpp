@@ -230,7 +230,7 @@ namespace Rice
   namespace detail
   {
     template <typename T>
-    constexpr bool is_kind_of_object = std::is_base_of_v<Rice::Object, T>;
+    constexpr bool is_kind_of_object = std::is_base_of_v<Rice::Object, base_type<T>>;
   }
 }
 
@@ -244,16 +244,25 @@ struct Rice::detail::From_Ruby<Rice::Object>
 };
 
 template<typename T>
-struct Rice::detail::To_Ruby<T, std::enable_if_t<Rice::detail::is_kind_of_object<T>>>
+struct Rice::detail::To_Ruby<T, std::enable_if_t<Rice::detail::is_kind_of_object<T> && !std::is_pointer_v<T>>>
 {
-  static VALUE convert(Rice::Object const& x)
+  static VALUE convert(Rice::Object const& x, bool takeOwnership = false)
   {
     return x.value();
   }
 };
 
+/*template<typename T>
+struct Rice::detail::To_Ruby<T&&, std::enable_if_t<Rice::detail::is_kind_of_object<T>>>
+{
+  static VALUE convert(Rice::Object && x, bool takeOwnership = false)
+  {
+    return x.value();
+  }
+};*/
+
 template<typename T>
-struct Rice::detail::To_Ruby<T*, std::enable_if_t<std::is_base_of_v<Rice::Object, T>>>
+struct Rice::detail::To_Ruby<T*, std::enable_if_t<Rice::detail::is_kind_of_object<T>>>
 {
   static VALUE convert(Rice::Object const* x)
   {

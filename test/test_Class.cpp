@@ -203,7 +203,6 @@ TESTCASE(define_method_int_passed_no_args)
       );
 }
 
-
 namespace
 {
 
@@ -226,9 +225,7 @@ void define_method_int_foo_helper(int i, Foo * x)
 template<>
 Foo * detail::From_Ruby<Foo *>::convert(VALUE x)
 {
-  Foo * retval;
-  Data_Get_Struct(x, Foo, retval);
-  return retval;
+  return detail::unwrap<Foo>(x);
 }
 
 TESTCASE(define_method_int_foo)
@@ -239,7 +236,7 @@ TESTCASE(define_method_int_foo)
   define_method_int_result = 0;
   Foo * foo = new Foo;
   foo->x = 1024;
-  VALUE f = Data_Wrap_Struct(rb_cObject, 0, Default_Free_Function<Foo>::free, foo);
+  VALUE f = detail::wrap(rb_cObject, nullptr, (RUBY_DATA_FUNC)Default_Free_Function<Foo>::free, foo);
   o.call("foo", 42, Object(f));
   ASSERT_EQUAL(42, define_method_int_foo_result_i);
   ASSERT_EQUAL(foo, define_method_int_foo_result_x);

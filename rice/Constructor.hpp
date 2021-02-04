@@ -1,6 +1,7 @@
 #ifndef Rice__Constructor__hpp_
 #define Rice__Constructor__hpp_
 
+#include "detail/Wrapper.hpp"
 #include "Object_defn.hpp"
 
 namespace Rice
@@ -24,7 +25,8 @@ namespace Rice
   public:
     static void construct(Object self, Arg_T... args)
     {
-      DATA_PTR(self.value()) = new T(args...);
+      T* data = new T(args...);
+      detail::update<T>(self.value(), data);
     }
   };
 
@@ -35,7 +37,8 @@ namespace Rice
     public:
       static void construct(Object self, Arg_T... args)
       {
-        DATA_PTR(self.value()) = new T(self, args...);
+        T* data = new T(self, args...);
+        detail::update<T>(self.value(), data);
       }
   };
 }

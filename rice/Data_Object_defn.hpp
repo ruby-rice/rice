@@ -13,9 +13,6 @@
 
 namespace Rice
 {
-// Forward declaration
-template<typename T>
-class Data_Type;
 
 template<typename T>
 struct Default_Mark_Function
@@ -27,9 +24,11 @@ struct Default_Mark_Function
 template<typename T>
 struct Default_Free_Function
 {
-  static void free(T * obj) { delete obj; }
+  static void free(detail::Wrapper<T>* wrapper)
+  {
+    delete wrapper;
+  }
 };
-
 
 //! A smartpointer-like wrapper for Ruby data objects.
 /*! A data object is a ruby object of type T_DATA, which is usually
@@ -59,9 +58,15 @@ template<typename T>
 class Data_Object
   : public Object
 {
+  static_assert(!std::is_pointer_v<T>);
+  static_assert(!std::is_reference_v<T>);
+  static_assert(!std::is_const_v<T>);
+  static_assert(!std::is_volatile_v<T>); 
+
 public:
   //! A function that takes a T* and returns void.
-  typedef void (*Ruby_Data_Func)(T * obj);
+  typedef void (*Ruby_Data_Func)(T* obj);
+  typedef void (*Ruby_Free_Func)(detail::Wrapper<T>* obj);
 
   //! Wrap a C++ object.
   /*! This constructor is analogous to calling Data_Wrap_Struct.  Be
@@ -78,10 +83,10 @@ public:
    *  collector to free the object.
    */
   Data_Object(
-      T * obj,
+      T* obj,
       VALUE klass = Data_Type<T>::klass(),
       Ruby_Data_Func mark_func = Default_Mark_Function<T>::mark,
-      Ruby_Data_Func free_func = Default_Free_Function<T>::free);
+      Ruby_Free_Func free_func = Default_Free_Function<T>::free);
 
   //! Unwrap a Ruby object.
   /*! This constructor is analogous to calling Data_Get_Struct.  Uses
@@ -103,14 +108,6 @@ public:
       Object value,
       Data_Type<U> const & klass);
 
-  // Enable copying
-  Data_Object(const Data_Object& other) = default;
-  Data_Object& operator=(const Data_Object& other) = default;
-
-  // Enable moving
-  Data_Object(Data_Object&& other);
-  Data_Object& operator=(Data_Object&& other);
-
   T& operator*() const; //!< Return a reference to obj_
   T* operator->() const; //!< Return a pointer to obj_
   T* get() const;        //!< Return a pointer to obj_
@@ -118,9 +115,6 @@ public:
 private:
   static void check_cpp_type(Data_Type<T> const & klass);
   static void check_ruby_type(VALUE value, VALUE klass, bool include_super);
-
-private:
-  T * obj_;
 };
 
 } // namespace Rice

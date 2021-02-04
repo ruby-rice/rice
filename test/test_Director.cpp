@@ -13,9 +13,10 @@ namespace {
   /**
    * Abstract base class
    */
-  class Worker {
+  class Worker
+  {
     public:
-      virtual ~Worker() {  }
+      virtual ~Worker() = default;
 
       int getNumber() { return 12; }
 
@@ -37,18 +38,24 @@ namespace {
   /**
    * Class to handle workers
    */
-  class Handler {
+  class Handler
+  {
     std::vector<Worker*> mWorkers;
 
     public:
 
-      void addWorker(Worker* worker) { mWorkers.push_back(worker); }
+      void addWorker(Worker* worker)
+      {
+        mWorkers.push_back(worker);
+      }
 
-      int processWorkers(int start) {
+      int processWorkers(int start)
+      {
         std::vector<Worker*>::iterator i = mWorkers.begin();
         int results = start;
 
-        for(; i != mWorkers.end(); i++) {
+        for(; i != mWorkers.end(); i++)
+        {
           results = (*i)->process(results);
         }
 
@@ -59,24 +66,29 @@ namespace {
   /**
    * Our Director wrapper of Worker
    */
-  class WorkerDirector : public Worker, public Rice::Director {
+  class WorkerDirector : public Worker, public Rice::Director
+  {
     public:
       WorkerDirector(Object self) : Director(self) { }
 
-      virtual int process(int num) {
+      virtual int process(int num)
+      {
         return detail::From_Ruby<int>::convert( getSelf().call("process", num) );
       }
 
-      int default_process(int num) {
+      int default_process(int num)
+      {
         raisePureVirtual();
         return 0;
       }
 
-      virtual int doSomething(int num) {
+      virtual int doSomething(int num)
+      {
         return detail::From_Ruby<int>::convert( getSelf().call("do_something", num) );
       }
 
-      int default_doSomething(int num) {
+      int default_doSomething(int num)
+      {
         return Worker::doSomething(num);
       }
   };

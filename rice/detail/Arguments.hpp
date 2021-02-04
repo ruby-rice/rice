@@ -2,12 +2,11 @@
 #define Rice__Arguments__hpp_
 
 #include <vector>
+#include "../Arg.hpp"
+#include "../Return.hpp"
 
 namespace Rice
 {
-
-// TODO - forward declaration
-class Arg;
 
 class Arguments
 {
@@ -42,6 +41,12 @@ public:
   bool isOptional(unsigned int pos);
 
   /**
+    * How should Ruby manage the returned data
+    */
+  bool takeOwnership();
+
+
+  /**
     * Given a position, a type, and a ruby VALUE, figure out
     * what argument value we need to return according to
     * defaults and if that VALUE is nil or not
@@ -50,7 +55,12 @@ public:
   Arg_T& defaultValue(int pos);
 
 private:
+
+  template <typename Arg_T>
+  void processArg(const Arg_T& arg);
+
   std::vector<Arg> args_;
+  Return return_;
 
   /** Keep counts of required and optional parameters */
   int required_ = 0;
@@ -58,5 +68,7 @@ private:
 };
 
 } // rice
+
+#include "Arguments.ipp"
 
 #endif // Rice__Arguments__hpp_

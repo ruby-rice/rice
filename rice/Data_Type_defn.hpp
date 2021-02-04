@@ -3,6 +3,7 @@
 
 #include "Class_defn.hpp"
 #include "detail/ruby.hpp"
+
 #include <memory>
 #include <map>
 #include <set>
@@ -77,6 +78,11 @@ template<typename T>
 class Data_Type
   : public Class
 {
+  static_assert(!std::is_pointer_v<T>);
+  static_assert(!std::is_reference_v<T>);
+  static_assert(!std::is_const_v<T>);
+  static_assert(!std::is_volatile_v<T>);
+
 public:
   //! The C++ type being held.
   typedef T Type;
@@ -161,18 +167,13 @@ public:
   template<typename Director_T>
   Data_Type<T>& define_director();
 
-  //! Convert ruby object x to type T.
-  /*! \param x the object to convert.
-   *  \return the C++ object wrapped inside object x.
-   */
-  static T * from_ruby(Object x);
-
   //! Determine if the type is bound.
   /*! \return true if the object is bound, false otherwise.
    */
   static bool is_bound();
   static void check_is_bound();
-
+  static bool check_descendant(VALUE value);
+  
   //! Define an iterator.
   /*! Essentially this is a conversion from a C++-style begin/end
    *  iterator to a Ruby-style \#each iterator.
@@ -234,67 +235,6 @@ private:
 
 } // namespace Rice
 
-template<typename T>
-struct Rice::detail::From_Ruby
-{
-  static T& convert(VALUE value)
-  {
-    using Base_T = std::decay_t<T>;
-    return *Data_Type<Base_T>::from_ruby(value);
-  }
-};
-
-template<typename T>
-struct Rice::detail::From_Ruby<T&>
-{
-  static T& convert(VALUE value)
-  {
-    using Base_T = std::decay_t<T>;
-    return *Data_Type<Base_T>::from_ruby(value);
-  }
-};
-
-template<typename T>
-struct Rice::detail::From_Ruby<T*>
-{
-  static T* convert(VALUE value)
-  {
-    using Base_T = std::decay_t<T>;
-    return Data_Type<Base_T>::from_ruby(value);
-  }
-};
-
-namespace Rice
-{
-  // Forward declaration
-  template<typename T>
-  class Data_Object;
-}
-
-template<typename T, typename>
-struct Rice::detail::To_Ruby
-{
-  static VALUE convert(T const& x)
-  {
-    using Base_T = base_type<T>;
-    Data_Type<Base_T>::check_is_bound();
-    return Rice::Data_Object<Base_T>(new Base_T(x));
-  }
-};
-
-template <typename T>
-struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<T> &&
-                                                  !Rice::detail::is_kind_of_object<T>>>
-{
-  static VALUE convert(T* x)
-  {
-    using Base_T = base_type<T>;
-    Data_Type<Base_T>::check_is_bound();
-    return Data_Object<Base_T>(x);
-  }
-};
-
 #include "Data_Type.ipp"
 
 #endif // Rice__Data_Type_defn__hpp_
-

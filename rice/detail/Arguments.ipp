@@ -7,7 +7,7 @@ namespace Rice
 template <typename...Arg_Ts>
 inline Arguments::Arguments(Arg_Ts...args)
 {
-  (this->add(args), ...);
+  (this->processArg(args), ...);
 }
 
 inline int Arguments::count()
@@ -35,6 +35,19 @@ inline std::string Arguments::formatString(size_t fullArgCount)
   }
 
   return s.str();
+}
+
+template <typename Arg_T>
+inline void Arguments::processArg(const Arg_T& arg)
+{
+  if constexpr (std::is_same_v<Arg_T, Arg>)
+  {
+    this->add(arg);
+  }
+  else
+  {
+    this->return_ = arg;
+  }
 }
 
 inline void Arguments::add(const Arg& arg)
@@ -68,6 +81,11 @@ template<typename Arg_T>
 inline Arg_T& Arguments::defaultValue(int pos)
 {
   return args_[pos].defaultValue<Arg_T>();
+}
+
+inline bool Arguments::takeOwnership()
+{
+  return this->return_.takeOwnership();
 }
 
 } // Rice
