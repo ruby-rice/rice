@@ -14,34 +14,6 @@
 namespace Rice
 {
 
-namespace detail
-{
-  // TODO - forward declaration
-  class Abstract_Caster;
-}
-
-class Module;
-
-//! The base class for all instantiations of Data_Type.
-class Data_Type_Base
-  : public Class
-{
-public:
-
-  //! Default constructor.
-  Data_Type_Base() = default;
-
-  //! Constructor.
-  Data_Type_Base(VALUE v);
-
-  //! Destructor.
-  virtual ~Data_Type_Base() = default;
-
-  virtual detail::Abstract_Caster * caster() const = 0;
-
-  static inline std::map<VALUE, detail::Abstract_Caster*> casters;
-};
-
 //! Define a new data class in the namespace given by module.
 /*! The class will have a base class of Object.
  *  \param T the C++ type of the wrapped class.
@@ -103,7 +75,7 @@ void define_implicit_cast();
  */
 template<typename T>
 class Data_Type
-  : public Data_Type_Base
+  : public Class
 {
 public:
   //! The C++ type being held.
@@ -170,7 +142,7 @@ public:
    *  across the languages, you need to register that director proxy
    *  class with this method. Not doing so will cause the resulting 
    *  library to die at run time when it tries to convert the base
-   *  type into the Director proxy type, and cannot find an appropriate Caster.
+   *  type into the Director proxy type.
    *
    *  This method takes no arguments, just needs the type of the
    *  Director proxy class.
@@ -201,10 +173,6 @@ public:
   static bool is_bound();
   static void check_is_bound();
 
-  virtual detail::Abstract_Caster * caster() const;
-
-  static inline std::unique_ptr<detail::Abstract_Caster> caster_ = nullptr;
-
   //! Define an iterator.
   /*! Essentially this is a conversion from a C++-style begin/end
    *  iterator to a Ruby-style \#each iterator.
@@ -229,7 +197,6 @@ protected:
    *  \param klass the ruby type to which to bind.
    *  \return *this
    */
-  template<typename Base_T>
   static Data_Type bind(Module const & klass);
 
   template<typename T_>

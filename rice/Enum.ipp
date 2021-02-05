@@ -39,7 +39,7 @@ Enum(
     Module module)
   : Data_Type<Enum_Storage<Enum_T>>()
 {
-  this->template bind<void>(initialize(name, module));
+  this->bind(initialize(name, module));
 }
 
 template<typename Enum_T>
