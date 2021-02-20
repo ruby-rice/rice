@@ -117,3 +117,6 @@ path = File.expand_path(File.join(__dir__, '../../include'))
 
 find_header('rice/rice.hpp', path)
 
+if !IS_MSWIN
+  have_library('stdc++')
+end
