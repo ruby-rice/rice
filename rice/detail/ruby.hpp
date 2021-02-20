@@ -8,12 +8,6 @@
 
 #include <cmath>
 
-// missing.h that comes with the one-click installer doesn't properly
-// check for double-definition of isinf
-#ifdef isinf
-#define HAVE_ISINF
-#endif
-
 #include <ruby.h>
 
 // ruby.h has a few defines that conflict with Visual Studio's STL
@@ -24,6 +18,7 @@
 #endif
 
 // And some c library conflicts
+#undef isnan
 #undef snprintf
 #undef vsnprintf
 
