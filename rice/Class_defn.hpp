@@ -57,11 +57,9 @@ Class define_class(
     Object superclass = rb_cObject);
 
 //! Create a new anonymous class.
-/*! \param superclass the base class to use.
- *  \return the new class.
+/*! \return the new class.
  */
-Class anonymous_class(
-    Object superclass = rb_cObject);
+Class anonymous_class();
 
 } // namespace Rice
 

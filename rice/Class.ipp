@@ -50,11 +50,9 @@ define_class(
 
 inline
 Rice::Class Rice::
-anonymous_class(
-  Rice::Object superclass)
+anonymous_class()
 {
-  VALUE v = Class(rb_cClass).call("new");
-  return Class(v);
+  return Class(rb_class_new(rb_cObject));
 }
 
 #endif // Rice__Class__ipp_
