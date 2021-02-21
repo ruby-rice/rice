@@ -4,7 +4,6 @@
 #include "detail/to_ruby.hpp"
 #include "detail/ruby.hpp"
 #include "Object_defn.hpp"
-#include "ruby_mark.hpp"
 
 /*! \file
  *  \brief Provides a helper class for wrapping and unwrapping C++
@@ -13,22 +12,6 @@
 
 namespace Rice
 {
-
-template<typename T>
-struct Default_Mark_Function
-{
-  typedef void (*Ruby_Data_Func)(T * obj);
-  static const Ruby_Data_Func mark;
-};
-
-template<typename T>
-struct Default_Free_Function
-{
-  static void free(detail::Wrapper<T>* wrapper)
-  {
-    delete wrapper;
-  }
-};
 
 //! A smartpointer-like wrapper for Ruby data objects.
 /*! A data object is a ruby object of type T_DATA, which is usually
@@ -82,11 +65,7 @@ public:
    *  \param free_func a function that gets called by the garbage
    *  collector to free the object.
    */
-  Data_Object(
-      T* obj,
-      VALUE klass = Data_Type<T>::klass(),
-      Ruby_Data_Func mark_func = Default_Mark_Function<T>::mark,
-      Ruby_Free_Func free_func = Default_Free_Function<T>::free);
+  Data_Object(T* obj, Module klass = Data_Type<T>::klass());
 
   //! Unwrap a Ruby object.
   /*! This constructor is analogous to calling Data_Get_Struct.  Uses
@@ -104,17 +83,14 @@ public:
    *  \param klass the expected class of the object.
    */
   template<typename U>
-  Data_Object(
-      Object value,
-      Data_Type<U> const & klass);
+  Data_Object(Object value);
 
   T& operator*() const; //!< Return a reference to obj_
   T* operator->() const; //!< Return a pointer to obj_
   T* get() const;        //!< Return a pointer to obj_
 
 private:
-  static void check_cpp_type(Data_Type<T> const & klass);
-  static void check_ruby_type(VALUE value, VALUE klass, bool include_super);
+  static void check_ruby_type(VALUE value);
 };
 
 } // namespace Rice

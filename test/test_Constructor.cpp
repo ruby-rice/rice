@@ -1,8 +1,9 @@
 #include "unittest.hpp"
+#include "embed_ruby.hpp"
+
 #include <rice/rice.hpp>
 
 #include <iostream>
-
 
 using namespace Rice;
 
@@ -19,12 +20,15 @@ namespace
   };
 }
 
+SETUP(Array)
+{
+  embed_ruby();
+}
+
 TESTCASE(default_constructor)
 {
-  Data_Type<Default_Constructible> rb_cDefault_Constructible(
-      anonymous_class());
-  rb_cDefault_Constructible
-    .define_constructor(Constructor<Default_Constructible>());
+  Data_Type<Default_Constructible> rb_cDefault_Constructible(anonymous_class());
+  rb_cDefault_Constructible.define_constructor(Constructor<Default_Constructible>());
   Object o = rb_cDefault_Constructible.call("new");
   ASSERT_EQUAL(rb_cDefault_Constructible, o.class_of());
 }

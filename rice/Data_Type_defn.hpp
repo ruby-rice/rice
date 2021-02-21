@@ -84,9 +84,6 @@ class Data_Type
   static_assert(!std::is_volatile_v<T>);
 
 public:
-  //! The C++ type being held.
-  typedef T Type;
-
   //! Default constructor which does not bind.
   /*! No member functions must be called on this Data_Type except bind,
    *  until the type is bound.
@@ -103,10 +100,13 @@ public:
   //! Destructor.
   virtual ~Data_Type();
  
-  //! Explictly return the Ruby type.
+  //! Return the Ruby class.
   /*! \return the ruby class to which the type is bound.
    */
   static Module klass();
+
+  //! Return the Ruby type.
+  static rb_data_type_t* rb_type();
 
   //! Assignment operator which takes a Module
   /*! \param klass must be the class to which this data type is already
@@ -223,6 +223,9 @@ private:
   friend class Data_Type;
 
   static inline VALUE klass_ = Qnil;
+
+  // Typed Data support
+  static inline rb_data_type_t* rb_type_ = nullptr;
 
   typedef std::set<Data_Type<T> *> Instances;
 

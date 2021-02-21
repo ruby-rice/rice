@@ -117,133 +117,6 @@ TESTCASE(define_module_function_simple)
 
 namespace
 {
-  class RefTest
-  {
-    public:
-      RefTest() { }
-
-      static std::string& getReference() {
-        static std::string foo = "foo";
-        return foo;
-      }
-  };
-}
-
-TESTCASE(define_singleton_method_returning_reference)
-{
-  Class c = define_class<RefTest>("RefTest")
-    .define_constructor(Constructor<RefTest>())
-    .define_singleton_method("get_reference", &RefTest::getReference);
-
-  Module m(anonymous_module());
-
-  Object result = m.instance_eval("RefTest.get_reference");
-  ASSERT_EQUAL(result, String("foo"));
-}
-
-namespace
-{
-
-  int define_method_int_result;
-
-  class IntHelper {
-    public:
-      IntHelper() { }
-
-      void define_method_int_helper(int i)
-      {
-        define_method_int_result = i;
-      }
-  };
-
-} // namespace
-
-TESTCASE(define_method_int)
-{
-  Class c =
-    define_class<IntHelper>("IntHelper")
-      .define_constructor(Constructor<IntHelper>())
-      .define_method("foo", &IntHelper::define_method_int_helper);
-
-  Object o = c.call("new");
-  define_method_int_result = 0;
-  o.call("foo", 42);
-  ASSERT_EQUAL(42, define_method_int_result);
-}
-
-TESTCASE(define_method_int_passed_two_args)
-{
-  Class c =
-    define_class<IntHelper>("IntHelper")
-      .define_constructor(Constructor<IntHelper>())
-      .define_method("foo", &IntHelper::define_method_int_helper);
-
-  Object o = c.call("new");
-
-  ASSERT_EXCEPTION_CHECK(
-      Exception,
-      o.call("foo", 1, 2),
-      ASSERT_EQUAL(rb_eArgError, ex.class_of())
-    );
-}
-
-TESTCASE(define_method_int_passed_no_args)
-{
-  Class c =
-    define_class<IntHelper>("IntHelper")
-      .define_constructor(Constructor<IntHelper>())
-      .define_method("foo", &IntHelper::define_method_int_helper);
-
-  Object o = c.call("new");
-
-  ASSERT_EXCEPTION_CHECK(
-      Exception,
-      o.call("foo"),
-      ASSERT_EQUAL(rb_eArgError, ex.class_of())
-      );
-}
-
-namespace
-{
-
-struct Foo
-{
-  int x;
-};
-
-int define_method_int_foo_result_i;
-Foo * define_method_int_foo_result_x;
-
-void define_method_int_foo_helper(int i, Foo * x)
-{
-  define_method_int_foo_result_i = i;
-  define_method_int_foo_result_x = x;
-}
-
-} // namespace
-
-template<>
-Foo * detail::From_Ruby<Foo *>::convert(VALUE x)
-{
-  return detail::unwrap<Foo>(x);
-}
-
-TESTCASE(define_method_int_foo)
-{
-  Class c(anonymous_class());
-  c.define_method("foo", &define_method_int_foo_helper);
-  Object o = c.call("new");
-  define_method_int_result = 0;
-  Foo * foo = new Foo;
-  foo->x = 1024;
-  VALUE f = detail::wrap(rb_cObject, nullptr, (RUBY_DATA_FUNC)Default_Free_Function<Foo>::free, foo);
-  o.call("foo", 42, Object(f));
-  ASSERT_EQUAL(42, define_method_int_foo_result_i);
-  ASSERT_EQUAL(foo, define_method_int_foo_result_x);
-}
-
-namespace
-{
 
 class Silly_Exception
   : public std::exception
@@ -273,25 +146,6 @@ TESTCASE(add_handler)
   ASSERT_EQUAL("SILLY", ex.what());
 }
 
-namespace
-{
-
-class Container
-{
-public:
-  Container(int * array, size_t length)
-    : array_(array)
-    , length_(length)
-  {
-  }
-
-private:
-  int * array_;
-  size_t length_;
-};
-
-} // namespace
-
 TESTCASE(define_class)
 {
   Class object(rb_cObject);
@@ -300,10 +154,10 @@ TESTCASE(define_class)
     object.remove_const("Foo");
   }
 
-  Class c = define_class("Foo");
+  Class c = define_class("Foo1");
 
   ASSERT(c.is_a(rb_cClass));
-  ASSERT_EQUAL(c, object.const_get("Foo"));
+  ASSERT_EQUAL(c, object.const_get("Foo1"));
 }
 
 TESTCASE(define_class_under)
@@ -346,28 +200,6 @@ TESTCASE(module_define_class)
   ASSERT(c.is_a(rb_cClass));
   ASSERT_EQUAL(c, math.const_get("Foo"));
   ASSERT(!object.const_defined("Foo"));
-}
-
-namespace {
-  class BaseClass {
-    public:
-      BaseClass() { }
-  };
-}
-
-TESTCASE(subclassing)
-{
-  Module m = define_module("Testing");
-  define_class_under<BaseClass>(m, "BaseClass").
-    define_constructor(Constructor<BaseClass>());
-
-  // Not sure how to make this a true failure case. If the subclassing
-  // doesn't work, Ruby will throw an error:
-  //
-  //    in `new': wrong instance allocation
-  //
-  m.instance_eval("class NewClass < Testing::BaseClass; end;");
-  m.instance_eval("n = NewClass.new");
 }
 
 namespace
@@ -414,35 +246,4 @@ TESTCASE(define_method_default_arguments)
   ASSERT_EQUAL(22, defaults_method_one_arg1);
   ASSERT_EQUAL(33, defaults_method_one_arg2);
   ASSERT(!defaults_method_one_arg3);
-}
-
-namespace {
-  float with_reference_defaults_x;
-  std::string with_reference_defaults_str;
-
-  class DefaultArgsRefs
-  {
-    public:
-      void with_reference_defaults(float x, std::string const& str = std::string("testing"))
-      {
-        with_reference_defaults_x = x;
-        with_reference_defaults_str = str;
-      }
-  };
-
-}
-
-TESTCASE(define_method_works_with_reference_const_default_values)
-{
-  Class c = define_class<DefaultArgsRefs>("DefaultArgsRefs")
-              .define_constructor(Constructor<DefaultArgsRefs>())
-              .define_method("bar",
-                  &DefaultArgsRefs::with_reference_defaults,
-                  Arg("x"), Arg("str") = std::string("testing"));
-
-  Object o = c.call("new");
-  o.call("bar", 3);
-
-  ASSERT_EQUAL(3, with_reference_defaults_x);
-  ASSERT_EQUAL("testing", with_reference_defaults_str);
 }

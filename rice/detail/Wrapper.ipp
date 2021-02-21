@@ -92,42 +92,42 @@ private:
 
 // ---- Helper Functions -------
 template <typename T>
-inline VALUE wrap(VALUE klass, RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free, T&& data, bool takeOwnership)
+inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T&& data, bool takeOwnership)
 {
   using Base_T = std::remove_reference_t<T>;
   if (takeOwnership)
   {
-    WrapperOwner<Base_T>* Wrapper = new WrapperOwner<Base_T>(data);
-    return Data_Wrap_Struct(klass, mark, free, Wrapper);
+    WrapperOwner<Base_T>* wrapper = new WrapperOwner<Base_T>(data);
+    return TypedData_Wrap_Struct(klass, rb_type, wrapper);
   }
   else
   {
-    WrapperReference<Base_T>* Wrapper = new WrapperReference<Base_T>(data);
-    return Data_Wrap_Struct(klass, mark, free, Wrapper);
+    WrapperReference<Base_T>* wrapper = new WrapperReference<Base_T>(data);
+    return TypedData_Wrap_Struct(klass, rb_type, wrapper);
   }
 };
 
 template <typename T>
-inline VALUE wrap(VALUE klass, RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free, T* data, bool takeOwnership)
+inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool takeOwnership)
 {
-  WrapperPointer<T>* Wrapper = new WrapperPointer<T>(data, takeOwnership);
-  return Data_Wrap_Struct(klass, mark, free, Wrapper);
+  WrapperPointer<T>* wrapper = new WrapperPointer<T>(data, takeOwnership);
+  return TypedData_Wrap_Struct(klass, rb_type, wrapper);
 };
 
 template <typename T>
-inline T* unwrap(VALUE value)
+inline T* unwrap(VALUE value, rb_data_type_t* rb_type)
 {
   Wrapper<T>* wrapper = nullptr;
-  Data_Get_Struct(value, Wrapper<T>, wrapper);
+  TypedData_Get_Struct(value, Wrapper<T>, rb_type, wrapper);
   return wrapper->get();
 }
 
 template <typename T>
-inline void update(VALUE value, T* data, bool takeOwnership)
+inline void update(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwnership)
 {
-  WrapperPointer<T>* Wrapper = nullptr;
-  Data_Get_Struct(value, WrapperPointer<T>, Wrapper);
-  Wrapper->update(data, takeOwnership);
+  WrapperPointer<T>* wrapper = nullptr;
+  TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
+  wrapper->update(data, takeOwnership);
 }
 
 } // namespace

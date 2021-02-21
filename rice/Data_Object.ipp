@@ -7,70 +7,39 @@
 #include <algorithm>
 
 template<typename T>
-const typename Rice::Default_Mark_Function<T>::Ruby_Data_Func
-Rice::Default_Mark_Function<T>::mark = ruby_mark<T>;
-
-template<typename T>
 inline Rice::Data_Object<T>::
-Data_Object(
-    T* data,
-    VALUE klass,
-    Ruby_Data_Func mark_func,
-    Ruby_Free_Func free_func)
+Data_Object(T* data, Module klass)
 {
-  VALUE value = detail::wrap(klass,
-                            (RUBY_DATA_FUNC)mark_func, 
-                            (RUBY_DATA_FUNC)free_func, 
-                            data);
+  VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data);
   this->set_value(value);
 }
 
 template<typename T>
 inline Rice::Data_Object<T>::
-Data_Object(
-    Object value)
+Data_Object(Object value)
   : Object(value)
 {  
   Data_Type<T> klass;
-  check_cpp_type(klass);
-  check_ruby_type(value, klass, true);
+  check_ruby_type(value);
 }
 
 template<typename T>
 template<typename U>
 inline Rice::Data_Object<T>::
-Data_Object(
-    Object value,
-    Data_Type<U> const & klass)
+Data_Object(Object value)
   : Object(value)
 {  
-  check_cpp_type(klass);
-  check_ruby_type(value, klass, true);
+  check_ruby_type(value);
 }
 
 template<typename T>
 inline void Rice::Data_Object<T>::
-check_cpp_type(Data_Type<T> const & /* klass */)
+check_ruby_type(VALUE value)
 {
-}
-
-template<typename T>
-inline void Rice::Data_Object<T>::
-check_ruby_type(VALUE value, VALUE klass, bool include_super)
-{
-  if (!rb_obj_is_kind_of(value, klass) || (!include_super && !rb_obj_is_instance_of(value, klass)))
+  if (rb_obj_is_kind_of(value, Data_Type<T>::klass()) == Qfalse)
   {
-    // Not sure why this stuff can't be chained
-    VALUE gotV = protect(rb_class_name, rb_obj_class(value));
-    char* got = StringValueCStr(gotV);
-    VALUE exptV = protect(rb_class_name, klass);
-    char* expected = StringValueCStr(exptV);
-
-    throw Exception(
-      rb_eTypeError,
-      "wrong argument type %s (expected %s)",
-      got, expected
-    );
+    throw Exception(rb_eTypeError, "Wrong argument type. Expected: %s. Received: %s.",
+      rb_class2name(Data_Type<T>::klass()), rb_obj_classname(value));
   }
 }
 
@@ -98,7 +67,7 @@ get() const
   }
   else
   {
-    return detail::unwrap<T>(this->value());
+    return detail::unwrap<T>(this->value(), Data_Type<T>::rb_type());
   }
 }
 
@@ -109,10 +78,7 @@ struct Rice::detail::To_Ruby
   {
     using Base_T = base_type<T>;
     Data_Type<Base_T>::check_is_bound();
-    return detail::wrap(Data_Type<Base_T>::klass(),
-      (RUBY_DATA_FUNC)Default_Mark_Function<Base_T>::mark,
-      (RUBY_DATA_FUNC)Default_Free_Function<Base_T>::free, std::forward<T>(data), takeOwnership);
-
+    return detail::wrap(Data_Type<Base_T>::klass(), Data_Type<Base_T>::rb_type(), std::forward<T>(data), takeOwnership);
   }
 };
 
@@ -123,9 +89,7 @@ struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<
   static VALUE convert(T* data, bool takeOwnership)
   {
     using Base_T = base_type<T>;
-    return detail::wrap(Data_Type<Base_T>::klass(),
-      (RUBY_DATA_FUNC)Default_Mark_Function<Base_T>::mark, 
-      (RUBY_DATA_FUNC)Default_Free_Function<Base_T>::free, data, takeOwnership);
+    return detail::wrap(Data_Type<Base_T>::klass(), Data_Type<Base_T>::rb_type(), data, takeOwnership);
   }
 };
 
@@ -136,7 +100,7 @@ struct Rice::detail::From_Ruby
   {
     using Base_T = base_type<T>;
     Data_Type<Base_T>::check_descendant(value);
-    return *detail::unwrap<T>(value);
+    return *detail::unwrap<T>(value, Data_Type<Base_T>::rb_type());
   }
 };
 
@@ -147,7 +111,7 @@ struct Rice::detail::From_Ruby<T&>
   {
     using Base_T = base_type<T>;
     Data_Type<Base_T>::check_descendant(value);
-    return *detail::unwrap<T>(value);
+    return *detail::unwrap<T>(value, Data_Type<Base_T>::rb_type());
   }
 };
 
@@ -158,10 +122,8 @@ struct Rice::detail::From_Ruby<T*>
   {
     using Base_T = base_type<T>;
     Data_Type<Base_T>::check_descendant(value);
-    return detail::unwrap<T>(value);
+    return detail::unwrap<T>(value, Data_Type<Base_T>::rb_type());
   }
 };
-
-
 #endif // Rice__Data_Object__ipp_
 

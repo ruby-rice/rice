@@ -9,16 +9,16 @@ namespace detail
 {
 
 template <typename T>
-VALUE wrap(VALUE klass, RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free, T&& data, bool takeOwnership = true);
+VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T&& data, bool takeOwnership = true);
 
 template <typename T>
-VALUE wrap(VALUE klass, RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free, T* data, bool takeOwnership = true);
+VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool takeOwnership = true);
 
 template <typename T>
-T* unwrap(VALUE value);
+T* unwrap(VALUE value, rb_data_type_t* rb_type);
 
 template <typename T>
-static void update(VALUE value, T* data, bool takeOwnership = true);
+static void update(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwnership = true);
 
 } // namespace detail
 } // namespace Rice

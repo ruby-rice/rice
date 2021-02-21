@@ -4,25 +4,48 @@
 #include "detail/default_allocation_func.hpp"
 #include "detail/method_data.hpp"
 #include "detail/Caster.hpp"
+#include "detail/Wrapper.hpp"
 #include "detail/demangle.hpp"
 #include "detail/Iterator.hpp"
-
 #include "Class.hpp"
 #include "String.hpp"
 
 #include <stdexcept>
 #include <typeinfo>
 
-template<typename T>
-inline Rice::Data_Type<T> Rice::Data_Type<T>::
-bind(Module const & klass)
+namespace Rice
 {
-  if(klass.value() == klass_)
+
+template<typename T>
+void ruby_mark_internal(detail::Wrapper<T>* wrapper)
+{
+  T* data = wrapper->get();
+  // Call custom mark function
+  ruby_mark<T>(data);
+}
+
+template<typename T>
+void ruby_free_internal(detail::Wrapper<T>* wrapper)
+{
+  delete wrapper;
+}
+
+template<typename T>
+size_t ruby_size_internal(const T* data)
+{
+  return sizeof(T);
+}
+
+template<typename T>
+inline Data_Type<T> Data_Type<T>::
+bind(Module const& klass)
+{
+  if (klass.value() == klass_)
   {
     return Data_Type<T>();
   }
 
-  if(is_bound())
+  if (is_bound())
   {
     std::string s;
     s = "Data type ";
@@ -43,10 +66,18 @@ bind(Module const & klass)
   // GC shuts down.
   rb_gc_register_address(&klass_);
 
-  for(typename Instances::iterator it = unbound_instances().begin(),
-      end = unbound_instances().end();
-      it != end;
-      unbound_instances().erase(it++))
+  rb_type_ = new rb_data_type_t();
+  rb_type_->wrap_struct_name = strdup(rb_class2name(klass));
+  rb_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
+  rb_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
+  rb_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
+  rb_type_->data = nullptr;
+  rb_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
+
+  for (typename Instances::iterator it = unbound_instances().begin(),
+    end = unbound_instances().end();
+    it != end;
+    unbound_instances().erase(it++))
   {
     (*it)->set_value(klass);
   }
@@ -55,52 +86,49 @@ bind(Module const & klass)
 }
 
 template<typename T>
-inline Rice::Data_Type<T>::
+inline Data_Type<T>::
 Data_Type()
   : Class(
-      klass_ == Qnil ? rb_cData : klass_)
+    klass_ == Qnil ? rb_cObject : klass_)
 {
-  if(!is_bound())
+  if (!is_bound())
   {
     unbound_instances().insert(this);
   }
 }
 
 template<typename T>
-inline Rice::Data_Type<T>::
-Data_Type(Module const & klass)
+inline Data_Type<T>::
+  Data_Type(Module const& klass)
   : Class(klass)
 {
   this->bind(klass);
 }
 
 template<typename T>
-inline Rice::Data_Type<T>::
+inline Data_Type<T>::
 ~Data_Type()
 {
   unbound_instances().erase(this);
 }
 
 template<typename T>
-Rice::Module
-Rice::Data_Type<T>::
-klass() {
-  if(is_bound())
-  {
-    return klass_;
-  }
-  else
-  {
-    std::string s;
-    s += detail::demangle(typeid(T *).name());
-    s += " is unbound";
-    throw std::runtime_error(s.c_str());
-  }
+rb_data_type_t* Data_Type<T>::rb_type()
+{
+  check_is_bound();
+  return rb_type_;
 }
 
 template<typename T>
-Rice::Data_Type<T> & Rice::Data_Type<T>::
-operator=(Module const & klass)
+Module Data_Type<T>::klass()
+{
+  check_is_bound();
+  return klass_;
+}
+
+template<typename T>
+Data_Type<T>& Data_Type<T>::
+  operator=(Module const& klass)
 {
   this->bind(klass);
   return *this;
@@ -108,7 +136,7 @@ operator=(Module const & klass)
 
 template<typename T>
 template<typename Constructor_T>
-inline Rice::Data_Type<T> & Rice::Data_Type<T>::
+inline Data_Type<T>& Data_Type<T>::
 define_constructor(
     Constructor_T /* constructor */,
     Arguments* arguments)
@@ -117,20 +145,20 @@ define_constructor(
 
   // Normal constructor pattern with new/initialize
   rb_define_alloc_func(
-      static_cast<VALUE>(*this),
-      detail::default_allocation_func<T>);
+    static_cast<VALUE>(*this),
+    detail::default_allocation_func<T>);
   this->define_method(
-      "initialize",
-      &Constructor_T::construct,
-      arguments
-      );
+    "initialize",
+    &Constructor_T::construct,
+    arguments
+  );
 
   return *this;
 }
 
 template<typename T>
 template<typename Constructor_T, typename...Arg_Ts>
-inline Rice::Data_Type<T> & Rice::Data_Type<T>::
+inline Data_Type<T>& Data_Type<T>::
 define_constructor(
     Constructor_T constructor,
     Arg_Ts const& ...args)
@@ -148,62 +176,48 @@ define_constructor(
 
 template<typename T>
 template<typename Director_T>
-inline Rice::Data_Type<T>& Rice::Data_Type<T>::
+inline Data_Type<T>& Data_Type<T>::
 define_director()
 {
-  Rice::Data_Type<Director_T>::bind(*this);
+  Data_Type<Director_T>::bind(*this);
+
+  // TODO - hack to fake Ruby into thinking that a Director is
+  // the same as the base data type
+  Data_Type<Director_T>::rb_type_ = Data_Type<T>::rb_type_;
   return *this;
 }
 
 template<typename T>
-inline T * Rice::Data_Type<T>::
-from_ruby(Object x)
-{
-  check_is_bound();
-
-  void * v = DATA_PTR(x.value());
-  VALUE klass = rb_class_of(x);
-
-  if (klass == klass_)
-  {
-    // Great, not converting to a base/derived type
-    Data_Type<T> data_klass;
-    Data_Object<T> obj(x, data_klass);
-    return obj.get();
-  }
-  else if (rb_class_inherited_p(klass, klass_) == Qtrue)
-  {
-    // The native function is asking for an ancestor class so we are good to go...
-    return static_cast<T*>(v);
-  }
-  else if (detail::AbstractCaster* caster = detail::AbstractCaster::find(klass, klass_); caster)
-  {
-    // An implicit type conversion has been registered so use it
-    return static_cast<T*>(caster->cast(v));
-  }
-  else
-  {
-      std::string s = "Bad cast. No caster found for ";
-      s += Class(klass).name().str();
-      throw std::runtime_error(s);
-  }
-}
-
-template<typename T>
-inline bool Rice::Data_Type<T>::
+inline bool Data_Type<T>::
 is_bound()
 {
   return klass_ != Qnil;
 }
 
-namespace Rice
+template<typename T>
+bool Data_Type<T>::
+check_descendant(VALUE value)
 {
+  check_is_bound();
+
+  if (rb_obj_is_kind_of(value, klass_) == Qfalse)
+  {
+    std::string expected(rb_class2name(klass_));
+    std::string received(rb_obj_classname(value));
+
+    std::string s = "Wrong argument type. Expected: " + expected + ". " +
+                                          "Received: " + received + ".";
+    throw std::runtime_error(s);
+  }
+
+  return true;
+}
 
 template<typename T>
 void Data_Type<T>::
 check_is_bound()
 {
-  if(!is_bound())
+  if (!is_bound())
   {
     std::string s;
     s = "Data type ";
@@ -213,24 +227,22 @@ check_is_bound()
   }
 }
 
-} // Rice
-
 template<typename T>
-inline Rice::Data_Type<T> Rice::
+inline Data_Type<T> 
 define_class_under(
     Object module,
-    char const * name)
+    char const* name)
 {
-  Class c(define_class_under(module, name, rb_cData));
+  Class c(define_class_under(module, name, rb_cObject));
   c.undef_creation_funcs();
   return Data_Type<T>::bind(c);
 }
 
 template<typename T, typename Base_T>
-inline Rice::Data_Type<T> Rice::
-define_class_under(
+inline Data_Type<T> 
+  define_class_under(
     Object module,
-    char const * name)
+    char const* name)
 {
   Data_Type<Base_T> base_dt;
   Class c(define_class_under(module, name, base_dt));
@@ -239,19 +251,19 @@ define_class_under(
 }
 
 template<typename T>
-inline Rice::Data_Type<T> Rice::
+inline Data_Type<T> 
 define_class(
-    char const * name)
+    char const* name)
 {
-  Class c(define_class(name, rb_cData));
+  Class c(define_class(name, rb_cObject));
   c.undef_creation_funcs();
   return Data_Type<T>::bind(c);
 }
 
 template<typename T, typename Base_T>
-inline Rice::Data_Type<T> Rice::
+inline Data_Type<T> 
 define_class(
-    char const * name)
+    char const* name)
 {
   Data_Type<Base_T> base_dt;
   Class c(define_class(name, base_dt));
@@ -261,20 +273,20 @@ define_class(
 
 template<typename T>
 template<typename U, typename Iterator_T>
-inline Rice::Data_Type<T>& Rice::Data_Type<T>::
-define_iterator(Iterator_T(U::* begin)(), Iterator_T(U::* end)(), Identifier name)
+inline Data_Type<T>& Data_Type<T>::
+  define_iterator(Iterator_T(U::* begin)(), Iterator_T(U::* end)(), Identifier name)
 {
   using Iter_T = detail::Iterator<U, Iterator_T>;
   Iter_T* iterator = new Iter_T(begin, end);
-  detail::MethodData::define_method(Data_Type<T>::klass(), name, 
+  detail::MethodData::define_method(Data_Type<T>::klass(), name,
     (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
 
   return *this;
 }
 
 template<typename From_T, typename To_T>
-inline void 
-Rice::define_implicit_cast()
+inline void
+define_implicit_cast()
 {
   Class from_class = Data_Type<From_T>::klass().value();
   Class to_class = Data_Type<To_T>::klass().value();
@@ -282,4 +294,6 @@ Rice::define_implicit_cast()
   detail::AbstractCaster::registerCaster(from_class, to_class, caster);
 }
 
-#endif // Rice__Data_Type__ipp_
+} //namespace
+
+#endif

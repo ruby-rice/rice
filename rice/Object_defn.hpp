@@ -196,9 +196,6 @@ public:
    */
   Object vcall(Identifier id, Array args);
 
-  //! Mark the object with the garbage collector.
-  void mark() const;
-
 protected:
   //! Set the encapsulated value.
   void set_value(VALUE v);

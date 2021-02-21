@@ -120,12 +120,6 @@ attr_get(
 }
 
 inline void Rice::Object::
-mark() const
-{
-  rb_gc_mark(*this);
-}
-
-inline void Rice::Object::
 set_value(VALUE v)
 {
   value_ = v;
@@ -134,8 +128,7 @@ set_value(VALUE v)
 inline bool Rice::
 operator==(Rice::Object const& lhs, Rice::Object const& rhs)
 {
-  Object result = lhs.call("==", rhs);
-  return result.test();
+  return rb_equal(lhs, rhs) == Qtrue;
 }
 
 inline bool Rice::

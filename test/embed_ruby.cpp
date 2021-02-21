@@ -16,5 +16,7 @@ void embed_ruby()
     ruby_init_loadpath();
 
     initialized__ = true;
+
+   // rb_eval_string("GC.stress = true");
   }
 }

@@ -5,9 +5,13 @@
 /*! This function can be specialized for a particular type to override
  *  the default behavior (which is to not mark any additional objects).
  */
+namespace Rice
+{
+
 template<typename T>
-void ruby_mark(T * /* obj */)
+void ruby_mark(T* data)
 {
 }
 
+}
 #endif // ruby_mark__hpp

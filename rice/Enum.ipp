@@ -83,7 +83,7 @@ define_value(
   Storage_T* storage = new Storage_T(name, value);
 
   // Now wrap it and store it to the class enums field
-  Value_T wrapper(storage, *this);
+  Value_T wrapper(storage);
   Array enums = rb_iv_get(this->value(), "enums");
   enums.push(wrapper);
 
