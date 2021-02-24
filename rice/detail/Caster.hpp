@@ -2,6 +2,7 @@
 #define Rice__detail__Caster__hpp_
 
 #include "ruby.hpp"
+#include <any>
 #include <map>
 
 namespace Rice
@@ -10,27 +11,45 @@ namespace Rice
 namespace detail
 {
 
-class AbstractCaster
+template<typename To_T>
+class CasterAbstract
 {
 public:
-  static void registerCaster(VALUE from_klass, VALUE to_klass, AbstractCaster* caster);
-  static AbstractCaster* find(VALUE from_klass, VALUE to_klass);
-
-public:
-  virtual void* cast(void* from) = 0;
-
-private:
-  static inline std::map<std::pair<VALUE, VALUE>, AbstractCaster*> registry_;
+  virtual ~CasterAbstract() = default;
+  virtual To_T cast(void* from) = 0;
 };
 
 template<typename From_T, typename To_T>
-class Caster : public AbstractCaster
+class Caster: public CasterAbstract<To_T>
 {
 public:
-  void* cast(void* from_void) override;
+  To_T cast(void* from) override;
+};
+
+class CasterRegistry
+{
+public:
+  template <typename To_T>
+  static void add(VALUE from_klass, VALUE to_klass, CasterAbstract<To_T>* caster);
+
+  template <typename To_T>
+  static CasterAbstract<To_T>* find(VALUE from_klass, VALUE to_klass);
+
+private:
+  static inline std::map<std::pair<VALUE, VALUE>, std::any> registry_;
 };
 
 } // detail
+
+//! Define an implicit conversion rule between two types.
+/*! Given two types, which can be custom types already
+ *  wrapped into Rice or fundamental C++ types, this
+ *  tells Rice that the two types can be used interchangably.
+ *  \param From_T The type to convert from
+ *  \param To_T The type to convert to
+ */
+template<typename From_T, typename To_T>
+void define_implicit_cast();
 
 } // Rice
 

@@ -122,6 +122,12 @@ inline T* unwrap(VALUE value, rb_data_type_t* rb_type)
   return wrapper->get();
 }
 
+inline void* unwrap(VALUE value)
+{
+  Wrapper<void>* wrapper = (Wrapper<void>*)RTYPEDDATA_DATA(value);
+  return wrapper->get();
+}
+
 template <typename T>
 inline void update(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwnership)
 {

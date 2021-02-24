@@ -17,6 +17,8 @@ VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool takeOwnership = t
 template <typename T>
 T* unwrap(VALUE value, rb_data_type_t* rb_type);
 
+void* unwrap(VALUE value);
+
 template <typename T>
 static void update(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwnership = true);
 

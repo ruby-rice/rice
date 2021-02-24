@@ -3,34 +3,53 @@ namespace Rice
 
 namespace detail
 {
-
-inline void AbstractCaster::registerCaster(VALUE from_klass, VALUE to_klass, AbstractCaster* caster)
-{
-  registry_[std::pair(from_klass, to_klass)] = caster;
-}
-
-inline AbstractCaster* AbstractCaster::find(VALUE from_klass, VALUE to_klass)
-{
-  auto iter = registry_.find(std::pair(from_klass, to_klass));
-  if (iter != registry_.end())
+  template<typename From_T, typename To_T>
+  inline To_T Caster<From_T, To_T>::cast(void* from)
   {
-    return iter->second;
+    From_T* data = static_cast<From_T*>(from);
+    return *data;
   }
-  else
+
+  template<typename To_T>
+  inline void CasterRegistry::add(VALUE from_klass, VALUE to_klass, CasterAbstract<To_T>* caster)
   {
-    return nullptr;
+    registry_[std::pair(from_klass, to_klass)] = caster;
   }
-}
 
-template <typename From_T, typename To_T>
-inline void* Caster<From_T, To_T>::cast(void* from_void)
-{
-  From_T* from = static_cast<From_T*>(from_void);
-  // TODO - this is a memory leak!!!! Should we return a unique pointer?
-  To_T* to = new To_T(*from);
-  return static_cast<void*>(to);
-}
-
+  template<typename To_T>
+  inline CasterAbstract<To_T>* CasterRegistry::find(VALUE from_klass, VALUE to_klass)
+  {
+    auto iter = registry_.find(std::pair(from_klass, to_klass));
+    if (iter != registry_.end())
+    {
+      std::any anyCaster = iter->second;
+      return std::any_cast<CasterAbstract<To_T>*>(anyCaster);
+    }
+    else
+    {
+      return nullptr;
+    }
+  }
 } // detail
+
+
+template<typename From_T, typename To_T>
+inline void
+define_implicit_cast()
+{
+  static_assert(!std::is_pointer_v<From_T>);
+  static_assert(!std::is_pointer_v<To_T>);
+  static_assert(!std::is_reference_v<From_T>);
+  static_assert(!std::is_reference_v<To_T>);
+
+  static_assert(std::is_convertible_v<From_T, To_T>);
+  static_assert(!std::is_fundamental_v<From_T>);
+  static_assert(!std::is_fundamental_v<To_T>);
+
+  detail::Caster<From_T, To_T>* caster = new detail::Caster<From_T, To_T>();
+  Class from_class = Data_Type<From_T>::klass().value();
+  Class to_class = Data_Type<To_T>::klass().value();
+  detail::CasterRegistry::add(from_class, to_class, caster);
+}
 
 } // Rice

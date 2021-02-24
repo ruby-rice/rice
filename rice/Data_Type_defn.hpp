@@ -60,16 +60,6 @@ template<typename T, typename Base_T>
 Rice::Data_Type<T> define_class(
     char const * name);
 
-//! Define an implicit conversion rule between two types.
-/*! Given two types, which can be custom types already 
- *  wrapped into Rice or fundamental C++ types, this
- *  tells Rice that the two types can be used interchangably.
- *  \param From_T The type to convert from
- *  \param To_T The type to convert to
- */
-template<typename From_T, typename To_T>
-void define_implicit_cast();
-
 //! A mechanism for binding ruby types to C++ types.
 /*! This class binds run-time types (Ruby VALUEs) to compile-time types
  *  (C++ types).  The binding can occur only once.
@@ -172,7 +162,7 @@ public:
    */
   static bool is_bound();
   static void check_is_bound();
-  static bool check_descendant(VALUE value);
+  static bool is_descendant(VALUE value);
   
   //! Define an iterator.
   /*! Essentially this is a conversion from a C++-style begin/end

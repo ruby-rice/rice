@@ -196,21 +196,10 @@ is_bound()
 
 template<typename T>
 bool Data_Type<T>::
-check_descendant(VALUE value)
+is_descendant(VALUE value)
 {
   check_is_bound();
-
-  if (rb_obj_is_kind_of(value, klass_) == Qfalse)
-  {
-    std::string expected(rb_class2name(klass_));
-    std::string received(rb_obj_classname(value));
-
-    std::string s = "Wrong argument type. Expected: " + expected + ". " +
-                                          "Received: " + received + ".";
-    throw std::runtime_error(s);
-  }
-
-  return true;
+  return rb_obj_is_kind_of(value, klass_) == Qtrue;
 }
 
 template<typename T>
@@ -282,16 +271,6 @@ inline Data_Type<T>& Data_Type<T>::
     (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
 
   return *this;
-}
-
-template<typename From_T, typename To_T>
-inline void
-define_implicit_cast()
-{
-  Class from_class = Data_Type<From_T>::klass().value();
-  Class to_class = Data_Type<To_T>::klass().value();
-  detail::AbstractCaster* caster = new detail::Caster<From_T, To_T>();
-  detail::AbstractCaster::registerCaster(from_class, to_class, caster);
 }
 
 } //namespace

@@ -1,6 +1,8 @@
 #ifndef Rice__Data_Object_defn__hpp_
 #define Rice__Data_Object_defn__hpp_
 
+#include <optional>
+
 #include "detail/to_ruby.hpp"
 #include "detail/ruby.hpp"
 #include "Object_defn.hpp"
@@ -47,10 +49,10 @@ class Data_Object
   static_assert(!std::is_volatile_v<T>); 
 
 public:
-  //! A function that takes a T* and returns void.
-  typedef void (*Ruby_Data_Func)(T* obj);
-  typedef void (*Ruby_Free_Func)(detail::Wrapper<T>* obj);
+  static T* from_ruby(VALUE value);
+  static std::optional<T> implicit_from_ruby(VALUE value);
 
+public:
   //! Wrap a C++ object.
   /*! This constructor is analogous to calling Data_Wrap_Struct.  Be
    *  careful not to call this function more than once for the same
