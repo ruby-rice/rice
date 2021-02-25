@@ -166,7 +166,7 @@ TESTCASE(polymorphic_calls_head_down_the_call_chain)
 {
   define_class<Handler>("Handler")
     .define_constructor(Constructor<Handler>())
-    .define_method("add_worker", &Handler::addWorker)
+    .define_method("add_worker", &Handler::addWorker, Arg("worker").keepAlive())
     .define_method("process_workers", &Handler::processWorkers);
 
   define_class<Worker>("Worker")

@@ -14,7 +14,7 @@ namespace Rice {
    *    define_method(
    *      "method",
    *      &method,
-   *      (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true)
+   *      Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true
    *    );
    *  \endcode
    *
@@ -54,13 +54,16 @@ namespace Rice {
     template<typename Arg_Type>
     Arg_Type& defaultValue();
 
-    //! Get the name of this Arg
-    const std::string name() const;
+    //! Tell the receiving object to keep this argument alive
+    //! until the receiving object is freed.
+    Arg& keepAlive();
+
+  public:
+    bool isKeepAlive;
+    const std::string name;
+    int32_t position = -1;
 
   private:
-    //! Name of the argument
-    const std::string name_;
-
     //! Our saved default value
     std::any defaultValue_;
   };

@@ -5,9 +5,14 @@ namespace Rice
 {
 
 template <typename...Arg_Ts>
-inline Arguments::Arguments(Arg_Ts...args)
+inline Arguments::Arguments(const Arg_Ts...args)
 {
   (this->processArg(args), ...);
+  // TODO - so hacky but update the Arg positions
+  for (uint32_t i = 0; i < this->args_.size(); i++)
+  {
+    this->args_[i].position = i;
+  }
 }
 
 inline int Arguments::count()
@@ -52,7 +57,7 @@ inline void Arguments::processArg(const Arg_T& arg)
 
 inline void Arguments::add(const Arg& arg)
 {
-  args_.push_back(arg);
+  this->args_.push_back(arg);
 
   if (arg.hasDefaultValue())
   {
@@ -86,6 +91,16 @@ inline Arg_T& Arguments::defaultValue(int pos)
 inline bool Arguments::takeOwnership()
 {
   return this->return_.takeOwnership();
+}
+
+inline std::vector<Arg>::iterator Arguments::begin()
+{
+  return this->args_.begin();
+}
+
+inline std::vector<Arg>::iterator Arguments::end()
+{
+  return this->args_.end();
 }
 
 } // Rice

@@ -56,6 +56,9 @@ private:
   // Figure out the receiver of the function call
   Receiver_T getReceiver(VALUE receiver);
 
+  // Do we need to keep alive any arguments?
+  void checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues);
+
   // Call the underlying C++ function
   VALUE invokeNative(NativeTypes& nativeArgs);
 

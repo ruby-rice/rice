@@ -128,6 +128,22 @@ invokeNative(NativeTypes& nativeArgs)
 }
 
 template<typename Function_T, typename Return_T, typename Receiver_T, typename... Arg_Ts>
+void Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
+checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues)
+{
+  Wrapper<Receiver_T>* wrapper = nullptr;
+
+  for (const Arg& arg : (*this->arguments_))
+  {
+    if (arg.isKeepAlive)
+    {
+      wrapper = wrapper ? wrapper : getWrapper<Receiver_T>(self);
+      wrapper->addKeepAlive(rubyValues[arg.position]);
+    }
+  }
+}
+
+template<typename Function_T, typename Return_T, typename Receiver_T, typename... Arg_Ts>
 VALUE Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
 operator()(int argc, VALUE* argv, VALUE self)
 {
@@ -152,6 +168,7 @@ operator()(int argc, VALUE* argv, VALUE self)
     }
     else
     {
+      this->checkKeepAlive(self, rubyValues);
       Receiver_T receiver = this->getReceiver(self);
       std::tuple<Receiver_T, Arg_Ts...> nativeArgs = std::tuple_cat(std::tuple(receiver), nativeValues);
       return this->invokeNative(nativeArgs);

@@ -654,7 +654,7 @@ it is necessary to define this in Rice explicitly using `Rice::Arg`:
       .define_constructor(Constructor<Test>())
       .define_method("hello",
          &Test::hello,
-         (Arg("hello"), Arg("second") = "world")
+         Arg("hello"), Arg("second") = "world"
       );
   }
 ~~~
@@ -667,12 +667,12 @@ explicitly cast the default value.
 ~~~{.cpp}
   .define_method("hello",
      &Test::hello,
-     (Arg("hello"), Arg("second") = (std::string)"world")
+     Arg("hello"), Arg("second") = (std::string)"world"
   );
 ~~~
 
-These `Rice::Arg` objects must be in the correct order and must be
-surrounded with parentheses if more than one exists.
+These `Rice::Arg` objects must be in the correct positional order. Thus if the second argument
+has a default value, then there must be two Arg objects.
 
 Now, Ruby will now know about the default arguments, and this wrapper
 can be used as expected:
@@ -687,8 +687,61 @@ This also works with Constructors:
 
 ~~~{.cpp}
   .define_constructor(Constructor<SomeClass, int, int>(),
-      ( Arg("arg1") = 1, Arg("otherArg") = 12 );
+      Arg("arg1") = 1, Arg("otherArg") = 12;
 ~~~
+
+## Keep Alive {#keep_alive}
+
+Sometimes it is necessary to tie the lifetime of one Ruby object to another. This particularly can happen with containers. 
+For example, imagine we have a ```Listener``` and a ```ListenerContainer``` class.
+
+~~~{.cpp}
+  class Listener {
+  };
+
+  class ListenerContainer
+  {
+    public:
+      void addListener(Listener* listener) 
+      {
+        mListeners.push_back(listener);
+      }
+
+      int process()
+      {
+        for(const Listener& listener : mListeners)
+        {
+        }
+      }
+
+    private:
+      std::vector<Listener*> mListeners;
+  };
+~~~
+
+Assuming these classes are wrapped with Rice, next run this Ruby code:
+
+~~~{.rb}
+  @handler = ListenerContainer.new
+  @handler.add_listener(Listener.new)
+  GC.start
+  @handler.process !!!! crash !!!!!
+~~~
+
+After the call to ```add_listener```, there is no longer a reference to the Ruby Listener object. When the GC runs, it will
+notice this and free the Ruby object. That it turn frees the underlying C++ Listener object resulting in a crash when
+```process``` is called.
+
+To prevent this, we want to tie the lifetime of the Ruby listener instance to the container. This is done by calling
+keepAlive() in the argument list:
+
+```ruby
+  define_class<ListenerContainer>("ListenerContainer")
+    .define_method("add_listener", &ListenerContainer::addListener, Arg("listener").keepAlive())
+```
+
+With this change, when a listener is added to the container the container keeps a reference to it and will correctly
+call rb_gc_mark to keep it alive. The added object will not be freed until the container itself goes out of scope.
 
 ## Director {#director}
 

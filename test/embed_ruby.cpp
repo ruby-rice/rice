@@ -17,6 +17,6 @@ void embed_ruby()
 
     initialized__ = true;
 
-   // rb_eval_string("GC.stress = true");
+    rb_eval_string("GC.stress = true");
   }
 }

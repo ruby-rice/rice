@@ -6,6 +6,11 @@ using namespace Rice;
 
 TESTSUITE(Data_Type);
 
+SETUP(Data_Type)
+{
+  embed_ruby();
+}
+
 /**
  * The tests here are for the feature of taking an instance
  * of a Ruby-subclass of a Rice wrapped class and passing
@@ -156,101 +161,6 @@ TESTCASE(define_singleton_method_returning_reference)
 
   Object result = m.instance_eval("RefTest.get_reference");
   ASSERT_EQUAL(result, String("foo"));
-}
-
-namespace {
-
-  /**
-   * The class we will subclass in Ruby
-   */
-  class Listener {
-    public:
-      Listener() {  }
-
-      virtual ~Listener() {  }
-
-      virtual int getValue() { return 4; }
-  };
-
-  /**
-   * This class will recieve a new Listener instance
-   * from Ruby
-   */
-  class ListenerHandler
-  {
-
-    public:
-
-      ListenerHandler()
-      {  }
-
-      void addListener(Listener* listener) 
-      {
-        mListeners.push_back(listener);
-      }
-
-      void removeListener(Listener* listener)
-      {
-        auto iter = std::find(mListeners.begin(), mListeners.end(), listener);
-        mListeners.erase(iter);
-      }
-
-      int process()
-      {
-        std::vector<Listener*>::iterator i = mListeners.begin();
-        int accum = 0;
-        for(; i != mListeners.end(); i++)
-        {
-          accum += (*i)->getValue();
-        }
-
-        return accum;
-      }
-
-      size_t listenerCount()
-      { 
-        return mListeners.size();
-      }
-
-    private:
-      std::vector<Listener*> mListeners;
-  };
-}
-
-SETUP(Data_Type)
-{
-  embed_ruby();
-
-  define_class<Listener>("Listener")
-    .define_constructor(Constructor<Listener>())
-    .define_method("get_value", &Listener::getValue);
-
-  define_class<ListenerHandler>("ListenerHandler")
-    .define_constructor(Constructor<ListenerHandler>())
-    .define_method("add_listener", &ListenerHandler::addListener)
-    .define_method("process", &ListenerHandler::process)
-    .define_method("listener_count", &ListenerHandler::listenerCount);
-}
-
-TESTCASE(can_send_ruby_instance_back_into_rice)
-{
-  Module m = define_module("TestingModule");
-  Object handler = m.instance_eval("@handler = ListenerHandler.new");
-
-  ASSERT_EQUAL(INT2NUM(0), handler.call("listener_count").value());
-
-  m.instance_eval(R"EOS(class MyListener < Listener
-                        end
-                        listener = MyListener.new
-                        @handler.add_listener(listener))EOS");
-
-  ASSERT_EQUAL(INT2NUM(1), handler.call("listener_count").value());
-  ASSERT_EQUAL(INT2NUM(4), handler.call("process").value());
-
-  m.instance_eval("@handler.add_listener(Listener.new)");
-
-  ASSERT_EQUAL(INT2NUM(2), handler.call("listener_count").value());
-  ASSERT_EQUAL(INT2NUM(8), handler.call("process").value());
 }
 
 /**

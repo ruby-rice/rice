@@ -12,7 +12,7 @@ class Arguments
 {
 public:
   template <typename...Arg_Ts>
-  Arguments(Arg_Ts...args);
+  Arguments(const Arg_Ts...args);
 
   /**
     * Get the full argument count of this
@@ -45,7 +45,6 @@ public:
     */
   bool takeOwnership();
 
-
   /**
     * Given a position, a type, and a ruby VALUE, figure out
     * what argument value we need to return according to
@@ -53,6 +52,10 @@ public:
     */
   template<typename Arg_T>
   Arg_T& defaultValue(int pos);
+
+  // Iterator support
+  std::vector<Arg>::iterator begin();
+  std::vector<Arg>::iterator end();
 
 private:
 

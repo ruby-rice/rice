@@ -4,12 +4,19 @@ namespace Rice::detail
 {
 
 template <typename T>
-class Wrapper
+inline void Wrapper<T>::ruby_mark()
 {
-public:
-  virtual ~Wrapper() = default;
-  virtual T* get() = 0;
-};
+  for (VALUE value : this->keepAlive_)
+  {
+    rb_gc_mark(value);
+  }
+}
+
+template <typename T>
+inline void Wrapper<T>::addKeepAlive(VALUE value)
+{
+  this->keepAlive_.push_back(value);
+}
 
 template <typename T>
 class WrapperOwner : public Wrapper<T>
@@ -136,4 +143,9 @@ inline void update(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwner
   wrapper->update(data, takeOwnership);
 }
 
+template <typename T>
+inline Wrapper<T>* getWrapper(VALUE value)
+{
+  return (Wrapper<T>*)RTYPEDDATA_DATA(value);
+}
 } // namespace

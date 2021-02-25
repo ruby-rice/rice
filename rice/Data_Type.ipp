@@ -19,8 +19,11 @@ namespace Rice
 template<typename T>
 void ruby_mark_internal(detail::Wrapper<T>* wrapper)
 {
+  // Tell the wrapper to mark the objects its keeping alive
+  wrapper->ruby_mark();
+
+  // Get the underlying data and call custom mark function (if any)
   T* data = wrapper->get();
-  // Call custom mark function
   ruby_mark<T>(data);
 }
 

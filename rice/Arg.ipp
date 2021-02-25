@@ -4,7 +4,7 @@
 namespace Rice {
 
 inline Arg::Arg(std::string name)
-  : name_(name)
+  : name(name)
 {
 }
 
@@ -30,10 +30,11 @@ inline Arg_Type& Arg::defaultValue()
   return std::any_cast<Arg_Type&>(this->defaultValue_);
 }
 
-//! Get the name of this Arg
-inline const std::string Arg::name() const
+inline Arg& Arg::keepAlive()
 {
-  return name_;
+  this->isKeepAlive = true;
+  return *this;
 }
+
 
 }  // Rice
