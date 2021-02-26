@@ -7,6 +7,44 @@ namespace detail
 {
 
 template <typename T>
+class WrapperOwner : public Wrapper<T>
+{
+public:
+  template <typename U = T>
+  WrapperOwner(U&& data);
+  ~WrapperOwner();
+  T* get() override;
+
+private:
+  T* data_;
+};
+
+template <typename T>
+class WrapperReference : public Wrapper<T>
+{
+public:
+  WrapperReference(const T& data);
+  T* get() override;
+
+private:
+  const T& data_;
+};
+
+template <typename T>
+class WrapperPointer : public Wrapper<T>
+{
+public:
+  WrapperPointer(T* data, bool takeOwnership);
+  ~WrapperPointer();
+  void update(T* data, bool takeOwnership);
+  T* get() override;
+
+private:
+  T* data_ = nullptr;
+  bool isOwner_;
+};
+
+template <typename T>
 inline void Wrapper<T>::ruby_mark()
 {
   for (VALUE value : this->keepAlive_)
@@ -22,83 +60,66 @@ inline void Wrapper<T>::addKeepAlive(VALUE value)
 }
 
 template <typename T>
-class WrapperOwner : public Wrapper<T>
+template <typename U>
+inline WrapperOwner<T>::WrapperOwner(U&& data)
 {
-public:
-  template <typename U = T>
-  WrapperOwner(U&& data)
-  {
-    this->data_ = new T(std::forward<U>(data));
-  }
+  this->data_ = new T(std::forward<U>(data));
+}
 
-  ~WrapperOwner()
+template <typename T>
+inline WrapperOwner<T>::~WrapperOwner()
+{
+  delete this->data_;
+}
+
+template <typename T>
+inline T* WrapperOwner<T>::get()
+{
+  return this->data_;
+}
+
+template <typename T>
+inline WrapperReference<T>::WrapperReference(const T& data) : data_(data)
+{
+}
+
+template <typename T>
+T* WrapperReference<T>::get()
+{
+  return (T*)&this->data_;
+}
+
+template <typename T>
+inline WrapperPointer<T>::WrapperPointer(T* data, bool takeOwnership) :
+  data_(data), isOwner_(takeOwnership)
+{
+}
+
+template <typename T>
+inline WrapperPointer<T>::~WrapperPointer()
+{
+  if (this->isOwner_)
   {
     delete this->data_;
   }
-
-  T* get() override
-  {
-    return this->data_;
-  }
-
-private:
-  T* data_;
-};
+}
 
 template <typename T>
-class WrapperReference : public Wrapper<T>
+inline void WrapperPointer<T>::update(T* data, bool takeOwnership)
 {
-public:
-  WrapperReference(const T& data): data_(data)
+  if (this->isOwner_)
   {
+    delete this->data_;
   }
-
-  T* get() override
-  {
-    return (T*)&this->data_;
-  }
-
-private:
-  const T& data_;
-};
+  this->data_ = data;
+  this->isOwner_ = takeOwnership;
+}
 
 template <typename T>
-class WrapperPointer : public Wrapper<T>
+inline T* WrapperPointer<T>::get()
 {
-public:
-  WrapperPointer(T* data, bool takeOwnership) :
-    data_(data), isOwner_(takeOwnership)
-  {
-  }
-
-  ~WrapperPointer()
-  {
-    if (this->isOwner_)
-    {
-      delete this->data_;
-    }
-  }
-
-  void update(T* data, bool takeOwnership)
-  {
-    if (this->isOwner_)
-    {
-      delete this->data_;
-    }
-    this->data_ = data;
-    this->isOwner_ = takeOwnership;
-  }
-
-  T* get() override
-  {
-    return this->data_;
-  }
-
-private:
-  T* data_ = nullptr;
-  bool isOwner_;
-};
-
+  return this->data_;
+}
 
 // ---- Helper Functions -------
 template <typename T>
