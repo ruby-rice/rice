@@ -1,3 +1,5 @@
+#include "../Class_defn.hpp"
+
 namespace Rice
 {
 
