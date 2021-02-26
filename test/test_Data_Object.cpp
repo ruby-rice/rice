@@ -22,7 +22,6 @@ namespace
   };
 
   int define_method_int_foo_result_i;
-  MyDataType* define_method_int_foo_result_x;
 
   void define_method_int_foo_helper(int i)
   {
