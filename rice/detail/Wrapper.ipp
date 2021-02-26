@@ -1,6 +1,9 @@
 #include <memory>
 
-namespace Rice::detail
+namespace Rice
+{
+
+namespace detail
 {
 
 template <typename T>
@@ -148,4 +151,6 @@ inline Wrapper<T>* getWrapper(VALUE value)
 {
   return (Wrapper<T>*)RTYPEDDATA_DATA(value);
 }
+
+} // namespace
 } // namespace
