@@ -162,6 +162,9 @@ operator()(int argc, VALUE* argv, VALUE self)
     auto indices = std::make_index_sequence<sizeof...(Arg_Ts)>{};
     std::tuple<Arg_Ts...> nativeValues = this->getNativeValues(rubyValues, nativeArgs, indices);
 
+    // Check if any rubyValues need to have their lifetimes tied to the receiver
+    this->checkKeepAlive(self, rubyValues);
+
     // Now call the native method
     if constexpr (std::is_same_v<Receiver_T, std::nullptr_t>)
     {
@@ -169,7 +172,6 @@ operator()(int argc, VALUE* argv, VALUE self)
     }
     else
     {
-      this->checkKeepAlive(self, rubyValues);
       Receiver_T receiver = this->getReceiver(self);
       std::tuple<Receiver_T, Arg_Ts...> nativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeValues);
       return this->invokeNative(nativeArgs);
