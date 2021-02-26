@@ -59,7 +59,7 @@ namespace Rice {
     Arg& keepAlive();
 
   public:
-    bool isKeepAlive;
+    bool isKeepAlive = false;
     const std::string name;
     int32_t position = -1;
 
