@@ -79,7 +79,7 @@ public:
     }
   }
 
-  void update(T* data, bool takeOwnership)
+  void replace(T* data, bool takeOwnership)
   {
     if (this->isOwner_)
     {
@@ -139,11 +139,13 @@ inline void* unwrap(VALUE value)
 }
 
 template <typename T>
-inline void update(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwnership)
+inline void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwnership)
 {
   WrapperPointer<T>* wrapper = nullptr;
   TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
-  wrapper->update(data, takeOwnership);
+  delete wrapper;
+
+  RTYPEDDATA_DATA(value) = new WrapperPointer<T>(data, takeOwnership);
 }
 
 template <typename T>

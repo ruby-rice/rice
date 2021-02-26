@@ -37,7 +37,7 @@ T* unwrap(VALUE value, rb_data_type_t* rb_type);
 void* unwrap(VALUE value);
 
 template <typename T>
-void update(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwnership = true);
+void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwnership = true);
 
 template <typename T>
 Wrapper<T>* getWrapper(VALUE value);
