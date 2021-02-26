@@ -29,8 +29,8 @@ public:
 class CasterRegistry
 {
 public:
-  template <typename To_T>
-  static void add(VALUE from_klass, VALUE to_klass, CasterAbstract<To_T>* caster);
+  template<typename From_T, typename To_T>
+  static void add(VALUE from_klass, VALUE to_klass);
 
   template <typename To_T>
   static CasterAbstract<To_T>* find(VALUE from_klass, VALUE to_klass);
@@ -39,17 +39,8 @@ private:
   static inline std::map<std::pair<VALUE, VALUE>, std::any> registry_;
 };
 
-} // detail
 
-//! Define an implicit conversion rule between two types.
-/*! Given two types, which can be custom types already
- *  wrapped into Rice or fundamental C++ types, this
- *  tells Rice that the two types can be used interchangably.
- *  \param From_T The type to convert from
- *  \param To_T The type to convert to
- */
-template<typename From_T, typename To_T>
-void define_implicit_cast();
+} // detail
 
 } // Rice
 

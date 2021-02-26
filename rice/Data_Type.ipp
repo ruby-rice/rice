@@ -263,6 +263,14 @@ define_class(
   return Data_Type<T>::bind(c);
 }
 
+template<typename From_T, typename To_T>
+void define_implicit_cast()
+{
+  Class from_class = Data_Type<From_T>::klass().value();
+  Class to_class = Data_Type<To_T>::klass().value();
+  detail::CasterRegistry::add<From_T, To_T>(from_class, to_class);
+}
+
 template<typename T>
 template<typename U, typename Iterator_T>
 inline Data_Type<T>& Data_Type<T>::

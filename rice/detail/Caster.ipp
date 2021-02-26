@@ -1,5 +1,3 @@
-#include "../Class_defn.hpp"
-
 namespace Rice
 {
 
@@ -12,9 +10,20 @@ namespace detail
     return *data;
   }
 
-  template<typename To_T>
-  inline void CasterRegistry::add(VALUE from_klass, VALUE to_klass, CasterAbstract<To_T>* caster)
+  template<typename From_T, typename To_T>
+  inline void CasterRegistry::add(VALUE from_klass, VALUE to_klass)
   {
+    static_assert(!std::is_pointer_v<From_T>);
+    static_assert(!std::is_pointer_v<To_T>);
+    static_assert(!std::is_reference_v<From_T>);
+    static_assert(!std::is_reference_v<To_T>);
+
+    static_assert(std::is_convertible_v<From_T, To_T>);
+    static_assert(!std::is_fundamental_v<From_T>);
+    static_assert(!std::is_fundamental_v<To_T>);
+
+    detail::Caster<From_T, To_T>* caster = new detail::Caster<From_T, To_T>();
+
     registry_[std::pair(from_klass, to_klass)] = caster;
   }
 
@@ -34,24 +43,5 @@ namespace detail
   }
 } // detail
 
-
-template<typename From_T, typename To_T>
-inline void
-define_implicit_cast()
-{
-  static_assert(!std::is_pointer_v<From_T>);
-  static_assert(!std::is_pointer_v<To_T>);
-  static_assert(!std::is_reference_v<From_T>);
-  static_assert(!std::is_reference_v<To_T>);
-
-  static_assert(std::is_convertible_v<From_T, To_T>);
-  static_assert(!std::is_fundamental_v<From_T>);
-  static_assert(!std::is_fundamental_v<To_T>);
-
-  detail::Caster<From_T, To_T>* caster = new detail::Caster<From_T, To_T>();
-  Class from_class = Data_Type<From_T>::klass().value();
-  Class to_class = Data_Type<To_T>::klass().value();
-  detail::CasterRegistry::add(from_class, to_class, caster);
-}
 
 } // Rice
