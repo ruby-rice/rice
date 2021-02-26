@@ -147,7 +147,7 @@ struct Rice::detail::From_Ruby
       return *result;
     }
 
-    if constexpr (!std::is_abstract_v<Base_T>)
+    if constexpr (std::is_copy_constructible_v<Base_T>)
     {
       std::optional<Base_T> implicit_result = Data_Object<Base_T>::implicit_from_ruby(value);
       if (implicit_result)
@@ -172,7 +172,7 @@ struct Rice::detail::From_Ruby<T&>
       return *result;
     }
 
-    if constexpr (!std::is_abstract_v<Base_T>)
+    if constexpr (std::is_copy_constructible_v<Base_T>)
     {
       std::optional<Base_T> implicit_result = Data_Object<Base_T>::implicit_from_ruby(value);
       if (implicit_result)
@@ -197,7 +197,7 @@ struct Rice::detail::From_Ruby<T*>
       return result;
     }
 
-    if constexpr (!std::is_abstract_v<Base_T>)
+    if constexpr (std::is_copy_constructible_v<Base_T>)
     {
       std::optional<Base_T> implicit_result = Data_Object<Base_T>::implicit_from_ruby(value);
       if (implicit_result)

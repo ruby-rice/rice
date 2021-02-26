@@ -10,7 +10,7 @@ namespace Rice
   [[deprecated("Please call define_global_function with Arg parameters")]]
   void define_global_function(
       char const * name,
-      Func_T func,
+      Func_T&& func,
       Arguments* arguments);
 
    //! Define an global function
@@ -27,7 +27,7 @@ namespace Rice
   template<typename Func_T, typename...Arg_Ts>
   void define_global_function(
       char const * name,
-      Func_T func,
+      Func_T&& func,
       Arg_Ts const& ...args);
   
 } // Rice

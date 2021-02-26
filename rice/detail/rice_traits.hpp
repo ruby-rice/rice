@@ -23,7 +23,6 @@ namespace Rice
 
     template <typename T>
     constexpr bool is_primitive_v = is_primitive<T>::value;
-
   } // detail
 } // Rice
 

@@ -21,47 +21,94 @@ SETUP(Data_Type)
 
 namespace
 {
-
-  int define_method_int_result;
-
-  class IntHelper
+  class MyClass
   {
   public:
-    IntHelper() {}
+    static inline bool no_return_no_arg_called = false;
+    static inline bool no_arg_called = false;
+    static inline bool int_arg_called = false;
+    static inline bool multiple_args_called = false;
 
-    void define_method_int_helper(int i)
+    static void reset()
     {
-      define_method_int_result = i;
+      no_return_no_arg_called = false;
+      no_arg_called = false;
+      int_arg_called = false;
+      multiple_args_called = false;
+    }
+
+  public:
+    MyClass() = default;
+    MyClass(const MyClass& other) = delete;
+    MyClass(MyClass&& other) = delete;
+
+    void no_return_no_arg()
+    {
+      no_return_no_arg_called = true;
+    }
+
+    bool no_arg()
+    {
+      no_arg_called = true;
+      return true;
+    }
+
+    int int_arg(int i)
+    {
+      int_arg_called = true;
+      return i;
+    }
+
+    std::string multiple_args(int i, bool b, float f, std::string s)
+    {
+      multiple_args_called = true;
+      return "multiple_args(" + std::to_string(i) + ", " + std::to_string(b) + ", " +
+        std::to_string(f) + ", " + s + ")";
     }
   };
-
 } // namespace
 
-TESTCASE(define_method_int)
+TESTCASE(define_methods_with_member_pointers)
 {
-  Class c =
-    define_class<IntHelper>("IntHelper")
-    .define_constructor(Constructor<IntHelper>())
-    .define_method("foo", &IntHelper::define_method_int_helper);
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_method("no_return_no_arg", &MyClass::no_return_no_arg)
+    .define_method("no_arg", &MyClass::no_arg)
+    .define_method("int_arg", &MyClass::int_arg)
+    .define_method("multiple_args", &MyClass::multiple_args);
 
+  MyClass::reset();
   Object o = c.call("new");
-  define_method_int_result = 0;
-  o.call("foo", 42);
-  ASSERT_EQUAL(42, define_method_int_result);
+
+  Object result = o.call("no_return_no_arg");
+  ASSERT(MyClass::no_return_no_arg_called);
+  ASSERT_EQUAL(Qnil, result.value());
+
+  result = o.call("no_arg");
+  ASSERT(MyClass::no_arg_called);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  result = o.call("int_arg", 42);
+  ASSERT(MyClass::int_arg_called);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result.value()));
+
+  result = o.call("multiple_args", 81, true, 7.0, "a string");
+  ASSERT(MyClass::multiple_args_called);
+  ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string)", detail::From_Ruby<std::string>::convert(result.value()));
 }
 
-TESTCASE(define_method_int_passed_two_args)
+TESTCASE(incorrect_number_of_args)
 {
   Class c =
-    define_class<IntHelper>("IntHelper")
-    .define_constructor(Constructor<IntHelper>())
-    .define_method("foo", &IntHelper::define_method_int_helper);
+    define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_method("int_arg", &MyClass::int_arg);
 
   Object o = c.call("new");
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    o.call("foo", 1, 2),
+    o.call("int_arg", 1, 2),
     ASSERT_EQUAL(rb_eArgError, ex.class_of())
   );
 }
@@ -69,17 +116,62 @@ TESTCASE(define_method_int_passed_two_args)
 TESTCASE(define_method_int_passed_no_args)
 {
   Class c =
-    define_class<IntHelper>("IntHelper")
-    .define_constructor(Constructor<IntHelper>())
-    .define_method("foo", &IntHelper::define_method_int_helper);
+    define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_method("int_arg", &MyClass::int_arg);
 
   Object o = c.call("new");
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    o.call("foo"),
+    o.call("int_arg"),
     ASSERT_EQUAL(rb_eArgError, ex.class_of())
   );
+}
+
+TESTCASE(define_methods_with_lambdas)
+{
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_method("no_return_no_arg", 
+        [](MyClass& instance)
+        {
+          instance.no_return_no_arg();
+        })
+    .define_method("no_arg",
+        [](MyClass& instance)
+        {
+          return instance.no_arg();
+        })
+    .define_method("int_arg", 
+        [](MyClass& instance, int anInt)
+        {
+          return instance.int_arg(anInt);
+        })
+    .define_method("multiple_args",
+        [](MyClass& instance, int anInt, bool aBool, float aFloat, std::string aString)
+        {
+          return instance.multiple_args(anInt, aBool, aFloat, aString);
+        });
+
+  MyClass::reset();
+  Object o = c.call("new");
+
+  Object result = o.call("no_return_no_arg");
+  ASSERT(MyClass::no_return_no_arg_called);
+  ASSERT_EQUAL(Qnil, result.value());
+
+  result = o.call("no_arg");
+  ASSERT(MyClass::no_arg_called);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  result = o.call("int_arg", 42);
+  ASSERT(MyClass::int_arg_called);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result.value()));
+
+  result = o.call("multiple_args", 81, true, 7.0, "a string");
+  ASSERT(MyClass::multiple_args_called);
+  ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string)", detail::From_Ruby<std::string>::convert(result.value()));
 }
 
 namespace {

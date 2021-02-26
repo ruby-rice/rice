@@ -30,10 +30,10 @@ namespace Rice
  *  pointers).
  */
 template<typename Func_T, typename ...Arg_Ts>
-VALUE protect(Func_T func, const Arg_Ts&... args)
+VALUE protect(Func_T&& func, const Arg_Ts&... args)
 {
   // Create a functor for calling a Ruby fucntion and define some aliases for readability.
-  auto rubyFunction = detail::ruby_function(func, args...);
+  auto rubyFunction = detail::ruby_function(std::forward<Func_T>(func), args...);
   using RubyFunctionType = decltype(rubyFunction);
   VALUE rubyFunctionAsFakeValue = reinterpret_cast<VALUE>(&rubyFunction);
 

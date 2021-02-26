@@ -123,11 +123,11 @@ define_class(
 }
 
 template<typename Fun_T>
-inline void Rice::Module::define_method_and_auto_wrap(VALUE klass, Identifier name, Fun_T function,
+inline void Rice::Module::define_method_and_auto_wrap(VALUE klass, Identifier name, Fun_T&& function,
   std::shared_ptr<detail::Exception_Handler> handler,
   Arguments* arguments)
 {
-  auto* wrapper = detail::wrap_function(function, handler, arguments);
+  auto* wrapper = detail::wrap_function(std::forward<Fun_T>(function), handler, arguments);
   using Wrapper_T = typename std::remove_pointer_t<decltype(wrapper)>;
 
   Rice::protect(detail::MethodData::define_method, klass, name.id(),

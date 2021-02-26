@@ -90,10 +90,10 @@ Rice::Module&
 Rice::Module::
 define_method(
   Identifier name,
-  Func_T func,
+  Func_T&& func,
   Arguments* arguments)
 {
-  this->define_method_and_auto_wrap(*this, name, func, this->handler(), arguments);
+  this->define_method_and_auto_wrap(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
   return *this;
 }
 
@@ -103,11 +103,11 @@ Rice::Module&
 Rice::Module::
 define_method(
   Identifier name,
-  Func_T func,
+  Func_T&& func,
   Arg_Ts const& ...args)
 {
   Arguments* arguments = new Arguments(args...);
-  this->define_method_and_auto_wrap(*this, name, func, this->handler(), arguments);
+  this->define_method_and_auto_wrap(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
   return *this;
 }
 
@@ -117,10 +117,10 @@ Rice::Module&
 Rice::Module::
 define_singleton_method(
   Identifier name,
-  Func_T func,
+  Func_T&& func,
   Arguments* arguments)
 {
-  this->define_method_and_auto_wrap(rb_singleton_class(*this), name, func, this->handler(), arguments);
+  this->define_method_and_auto_wrap(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
   return *this;
 }
 
@@ -130,11 +130,11 @@ Rice::Module&
 Rice::Module::
 define_singleton_method(
   Identifier name,
-  Func_T func,
+  Func_T&& func,
   Arg_Ts const& ...args)
 {
   Arguments* arguments = new Arguments(args...);
-  this->define_method_and_auto_wrap(rb_singleton_class(*this), name, func, this->handler(), arguments);
+  this->define_method_and_auto_wrap(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
   return *this;
 }
 
@@ -144,7 +144,7 @@ Rice::Module&
 Rice::Module::
 define_module_function(
   Identifier name,
-  Func_T func,
+  Func_T&& func,
   Arguments* arguments)
 {
   if (this->rb_type() != T_MODULE)
@@ -153,7 +153,7 @@ define_module_function(
   }
 
   define_method(name, func, arguments);
-  define_singleton_method(name, func, arguments);
+  define_singleton_method(name, std::forward<Func_T>(func), arguments);
   return *this;
 }
 
@@ -163,7 +163,7 @@ Rice::Module&
 Rice::Module::
 define_module_function(
   Identifier name,
-  Func_T func,
+  Func_T&& func,
   Arg_Ts const& ...args)
 {
   if (this->rb_type() != T_MODULE)
@@ -172,7 +172,7 @@ define_module_function(
   }
 
   define_method(name, func, args...);
-  define_singleton_method(name, func, args...);
+  define_singleton_method(name, std::forward<Func_T>(func), args...);
   return *this;
 }
 

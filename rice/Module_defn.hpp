@@ -95,7 +95,7 @@ public:
   [[deprecated("Please call define_method with Arg parameters")]]
   Module& define_method(
     Identifier name,
-    Func_T func,
+    Func_T&& func,
     Arguments* arguments);
 
   //! Define an instance method.
@@ -112,14 +112,14 @@ public:
   template<typename Func_T, typename...Arg_Ts>
   Module& define_method(
     Identifier name,
-    Func_T func,
+    Func_T&& func,
     Arg_Ts const& ...args);
 
   template<typename Func_T>
   [[deprecated("Please call define_singleton_method with Arg parameters")]]
   Module& define_singleton_method(
     Identifier name,
-    Func_T func,
+    Func_T&& func,
     Arguments* arguments);
 
   //! Define a singleton method.
@@ -136,14 +136,14 @@ public:
   template<typename Func_T, typename...Arg_Ts>
   Module& define_singleton_method(
     Identifier name,
-    Func_T func,
+    Func_T&& func,
     Arg_Ts const& ...args);
 
   template<typename Func_T>
   [[deprecated("Please call define_module_function with Arg parameters")]]
   Module& define_module_function(
     Identifier name,
-    Func_T func,
+    Func_T&& func,
     Arguments* arguments);
 
   //! Define a module function.
@@ -162,7 +162,7 @@ public:
   template<typename Func_T, typename...Arg_Ts>
   Module& define_module_function(
     Identifier name,
-    Func_T func,
+    Func_T&& func,
     Arg_Ts const& ...args);
 
   //! Set a constant.
@@ -225,7 +225,7 @@ private:
   Data_Type<T> define_class_with_object_as_base(char const* name);
 
   template<typename Fun_T>
-  void define_method_and_auto_wrap(VALUE klass, Identifier name, Fun_T function,
+  void define_method_and_auto_wrap(VALUE klass, Identifier name, Fun_T&& function,
                                    std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments = 0);
 
   mutable std::shared_ptr<detail::Exception_Handler> handler_ = std::make_shared<Rice::detail::Default_Exception_Handler>();
