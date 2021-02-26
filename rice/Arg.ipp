@@ -36,5 +36,4 @@ inline Arg& Arg::keepAlive()
   return *this;
 }
 
-
 }  // Rice
