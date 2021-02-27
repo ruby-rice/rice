@@ -143,10 +143,10 @@ TESTCASE(TransferPointer)
                           my_class = factory.transfer_pointer
                           my_class.set_flag(i)
                           my_class = nil
-                        end
-                        GC.start)";
+                        end)";
 
   m.instance_eval(code);
+  rb_gc_start();
 
   ASSERT_EQUAL(10, MyClass::constructorCalls);
   ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
@@ -167,10 +167,10 @@ TESTCASE(KeepPointer)
                         10.times do |i|
                           my_class = factory.keep_pointer
                           my_class.set_flag(i)
-                        end
-                        GC.start)";
+                        end)";
 
   m.instance_eval(code);
+  rb_gc_start();
 
   ASSERT_EQUAL(1, MyClass::constructorCalls);
   ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
@@ -191,10 +191,10 @@ TESTCASE(KeepReference)
                         10.times do |i|
                           my_class = factory.keep_reference
                           my_class.set_flag(i)
-                        end
-                        GC.start)";
+                        end)";
 
   m.instance_eval(code);
+  rb_gc_start();
 
   ASSERT_EQUAL(1, MyClass::constructorCalls);
   ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
@@ -215,10 +215,10 @@ TESTCASE(CopyReference)
                         10.times do |i|
                           my_class = factory.copy_reference
                           my_class.set_flag(i)
-                        end
-                        GC.start)";
+                        end)";
 
   m.instance_eval(code);
+  rb_gc_start();
 
   ASSERT_EQUAL(1, MyClass::constructorCalls);
   ASSERT_EQUAL(10, MyClass::copyConstructorCalls);
@@ -239,10 +239,10 @@ TESTCASE(TransferValue)
                         10.times do |i|
                           my_class = factory.value
                           my_class.set_flag(i)
-                        end
-                        GC.start)";
+                        end)";
 
   m.instance_eval(code);
+  rb_gc_start();
 
   ASSERT_EQUAL(10, MyClass::constructorCalls);
   ASSERT_EQUAL(10, MyClass::copyConstructorCalls);
@@ -263,10 +263,10 @@ TESTCASE(MoveValue)
                         10.times do |i|
                           my_class = factory.move_value
                           my_class.set_flag(i)
-                        end
-                        GC.start)";
+                        end)";
 
   m.instance_eval(code);
+  rb_gc_start();
 
   ASSERT_EQUAL(10, MyClass::constructorCalls);
   ASSERT_EQUAL(10, MyClass::copyConstructorCalls);
