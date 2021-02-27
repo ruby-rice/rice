@@ -1,15 +1,15 @@
 $: << File.join(__dir__, '..', '..', 'sample')
+# Load a library that uses inheritance
+require 'inheritance/animals'
+
+# Then load a different library
+require 'enum/sample_enum'
 
 require 'minitest'
 require 'minitest/autorun'
 
 class MultipleExtensionTest < Minitest::Test
   def test_multiple_extensions_with_inheritance
-    # Load a library that uses inheritance
-    require 'inheritance/animals'
-
-    # Then load a different library
-    require 'enum/sample_enum'
 
     # And make sure we can call methods in the base class on a derived
     # instance
