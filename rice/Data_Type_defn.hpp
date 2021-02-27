@@ -198,7 +198,7 @@ protected:
    *  \param klass the ruby type to which to bind.
    *  \return *this
    */
-  template <typename Base_T = nullptr_t>
+  template <typename Base_T = std::nullptr_t>
   static Data_Type bind(Module const & klass);
 
   template<typename T_>

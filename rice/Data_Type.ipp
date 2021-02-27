@@ -78,7 +78,7 @@ bind(Module const& klass)
   rb_type_->data = nullptr;
   rb_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
 
-  if (!std::is_same_v<Base_T, nullptr_t>)
+  if (!std::is_same_v<Base_T, std::nullptr_t>)
   {
     rb_type_->parent = Data_Type<Base_T>::rb_type();
   }
