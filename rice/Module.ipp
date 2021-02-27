@@ -171,7 +171,7 @@ define_module_function(
     throw std::runtime_error("can only define module functions for modules");
   }
 
-  define_method(name, func, args...);
+  define_method(name, std::forward<Func_T>(func), args...);
   define_singleton_method(name, std::forward<Func_T>(func), args...);
   return *this;
 }

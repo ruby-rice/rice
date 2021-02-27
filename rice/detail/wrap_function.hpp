@@ -42,11 +42,17 @@ auto* wrap_function(Return_T (*func)(Arg_T...), std::shared_ptr<Exception_Handle
 }
 
 // Lambda function helper
-template<typename Function_T, typename Return_T, typename Class_T, typename Self_T, typename ...Arg_T>
+template<typename Function_T, typename Return_T, typename Class_T, typename ...Arg_T>
+auto* wrap_function(Function_T&& func, Return_T(Class_T::*)(Arg_T...) const, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
+{
+  return new Wrapped_Function<Function_T, Return_T, std::nullptr_t, Arg_T...>(std::forward<Function_T>(func), handler, arguments);
+}
+
+/*template<typename Function_T, typename Return_T, typename Class_T, typename Self_T, typename ...Arg_T>
 auto* wrap_function(Function_T&& func, Return_T(Class_T::*)(Self_T, Arg_T...) const, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
 {
   return new Wrapped_Function<Function_T, Return_T, Self_T, Arg_T...>(std::forward<Function_T>(func), handler, arguments);
-}
+}*/
 
 // Lambda function
 template<typename Func_T>

@@ -13,35 +13,55 @@ SETUP(GlobalFunction)
 
 namespace {
 
-  bool method_to_wrap_called = false;
-  void method_to_wrap(Object self) {
-    method_to_wrap_called = true;
+  bool no_args()
+  {
+    return true;
   }
 
-  int method_with_args_arg0;
-
-  void method_with_args(Object self, int arg) {
-    method_with_args_arg0 = arg;
+  int int_arg(int arg)
+  {
+    return 2 * arg;
   }
-
 }
 
-TESTCASE(exposes_global_functions)
+/*TESTCASE(no_args)
 {
-  define_global_function("method_to_wrap", &method_to_wrap);
+  define_global_function("no_args", &no_args);
   Module m = Module(rb_mKernel);
-  m.call("method_to_wrap");
-
-  ASSERT(method_to_wrap_called);
+  Object result = m.call("no_args");
+  ASSERT_EQUAL(Qtrue, result.value());
 }
 
-TESTCASE(exposes_global_functions_with_arguments)
+TESTCASE(no_args_lambda)
 {
-  define_global_function("method_with_args", &method_with_args);
-  Module m = Module(rb_mKernel);
-  m.call("method_with_args", 10);
+  define_global_function("no_args", []()
+    {
+      return no_args();
+    });
 
-  ASSERT_EQUAL(10, method_with_args_arg0);
+  Module m = Module(rb_mKernel);
+  Object result = m.call("no_args");
+  ASSERT_EQUAL(Qtrue, result.value());
+}
+
+TESTCASE(int_arg)
+{
+  define_global_function("method_with_args", &int_arg);
+  Module m = Module(rb_mKernel);
+  Object result = m.call("method_with_args", 10);
+  ASSERT_EQUAL(20, detail::From_Ruby<int>::convert(result));
+}*/
+
+TESTCASE(int_arg_lambda)
+{
+  define_global_function("method_with_args", [](int value)
+    {
+      return int_arg(value);
+    });
+
+  Module m = Module(rb_mKernel);
+  Object result = m.call("method_with_args", 10);
+  ASSERT_EQUAL(20, detail::From_Ruby<int>::convert(result));
 }
 
 namespace
