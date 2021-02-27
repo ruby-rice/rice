@@ -8,12 +8,11 @@ namespace Rice
 namespace detail
 {
 
-template <typename T>
 class Wrapper
 {
 public:
   virtual ~Wrapper() = default;
-  virtual T* get() = 0;
+  virtual void* get() = 0;
 
   void ruby_mark();
   void addKeepAlive(VALUE value);
@@ -39,8 +38,7 @@ void* unwrap(VALUE value);
 template <typename T>
 void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwnership = true);
 
-template <typename T>
-Wrapper<T>* getWrapper(VALUE value);
+Wrapper* getWrapper(VALUE value);
 
 } // namespace detail
 } // namespace Rice

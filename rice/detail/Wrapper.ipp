@@ -6,8 +6,7 @@ namespace Rice
 namespace detail
 {
 
-template <typename T>
-inline void Wrapper<T>::ruby_mark()
+inline void Wrapper::ruby_mark()
 {
   for (VALUE value : this->keepAlive_)
   {
@@ -15,14 +14,13 @@ inline void Wrapper<T>::ruby_mark()
   }
 }
 
-template <typename T>
-inline void Wrapper<T>::addKeepAlive(VALUE value)
+inline void Wrapper::addKeepAlive(VALUE value)
 {
   this->keepAlive_.push_back(value);
 }
 
 template <typename T>
-class WrapperOwner : public Wrapper<T>
+class WrapperOwner : public Wrapper
 {
 public:
   template <typename U = T>
@@ -36,9 +34,9 @@ public:
     delete this->data_;
   }
 
-  T* get() override
+  void* get() override
   {
-    return this->data_;
+    return (void*)this->data_;
   }
 
 private:
@@ -46,16 +44,16 @@ private:
 };
 
 template <typename T>
-class WrapperReference : public Wrapper<T>
+class WrapperReference : public Wrapper
 {
 public:
   WrapperReference(const T& data): data_(data)
   {
   }
 
-  T* get() override
+  void* get() override
   {
-    return (T*)&this->data_;
+    return (void*)&this->data_;
   }
 
 private:
@@ -63,7 +61,7 @@ private:
 };
 
 template <typename T>
-class WrapperPointer : public Wrapper<T>
+class WrapperPointer : public Wrapper
 {
 public:
   WrapperPointer(T* data, bool takeOwnership) :
@@ -89,9 +87,9 @@ public:
     this->isOwner_ = takeOwnership;
   }
 
-  T* get() override
+  void* get() override
   {
-    return this->data_;
+    return (void*)this->data_;
   }
 
 private:
@@ -127,14 +125,16 @@ inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool takeOwners
 template <typename T>
 inline T* unwrap(VALUE value, rb_data_type_t* rb_type)
 {
-  Wrapper<T>* wrapper = nullptr;
-  TypedData_Get_Struct(value, Wrapper<T>, rb_type, wrapper);
-  return wrapper->get();
+  Wrapper* wrapper = nullptr;
+  TypedData_Get_Struct(value, Wrapper, rb_type, wrapper);
+  void* data = wrapper->get();
+  return static_cast<T*>(data);
 }
 
 inline void* unwrap(VALUE value)
 {
-  Wrapper<void>* wrapper = (Wrapper<void>*)RTYPEDDATA_DATA(value);
+  // Direct access to avoid any type checking
+  Wrapper* wrapper = (Wrapper*)RTYPEDDATA_DATA(value);
   return wrapper->get();
 }
 
@@ -148,10 +148,9 @@ inline void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwne
   RTYPEDDATA_DATA(value) = new WrapperPointer<T>(data, takeOwnership);
 }
 
-template <typename T>
-inline Wrapper<T>* getWrapper(VALUE value)
+inline Wrapper* getWrapper(VALUE value)
 {
-  return (Wrapper<T>*)RTYPEDDATA_DATA(value);
+  return static_cast<Wrapper*>(RTYPEDDATA_DATA(value));
 }
 
 } // namespace

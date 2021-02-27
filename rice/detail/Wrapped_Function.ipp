@@ -131,14 +131,12 @@ template<typename Function_T, typename Return_T, typename Receiver_T, typename..
 void Wrapped_Function<Function_T, Return_T, Receiver_T, Arg_Ts...>::
 checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues)
 {
-  using Wrapper_T = base_type<Receiver_T>;
-  Wrapper<Wrapper_T>* wrapper = nullptr;
+  Wrapper* wrapper = getWrapper(self);
 
   for (const Arg& arg : (*this->arguments_))
   {
     if (arg.isKeepAlive)
     {
-      wrapper = wrapper ? wrapper : getWrapper<Wrapper_T>(self);
       wrapper->addKeepAlive(rubyValues[arg.position]);
     }
   }
