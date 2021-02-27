@@ -40,6 +40,7 @@ size_t ruby_size_internal(const T* data)
 }
 
 template<typename T>
+template <typename Base_T>
 inline Data_Type<T> Data_Type<T>::
 bind(Module const& klass)
 {
@@ -76,6 +77,11 @@ bind(Module const& klass)
   rb_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
   rb_type_->data = nullptr;
   rb_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
+
+  if (!std::is_same_v<Base_T, nullptr_t>)
+  {
+    rb_type_->parent = Data_Type<Base_T>::rb_type();
+  }
 
   for (typename Instances::iterator it = unbound_instances().begin(),
     end = unbound_instances().end();
@@ -260,7 +266,7 @@ define_class(
   Data_Type<Base_T> base_dt;
   Class c(define_class(name, base_dt));
   c.undef_creation_funcs();
-  return Data_Type<T>::bind(c);
+  return Data_Type<T>::template bind<Base_T>(c);
 }
 
 template<typename From_T, typename To_T>
