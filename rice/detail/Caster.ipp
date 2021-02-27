@@ -22,9 +22,8 @@ namespace detail
     static_assert(!std::is_fundamental_v<From_T>);
     static_assert(!std::is_fundamental_v<To_T>);
 
-    detail::Caster<From_T, To_T>* caster = new detail::Caster<From_T, To_T>();
-
-    registry_[std::pair(from_klass, to_klass)] = caster;
+    Caster<From_T, To_T>* caster = new Caster<From_T, To_T>();
+    registry_[std::pair(from_klass, to_klass)] = dynamic_cast<CasterAbstract<To_T>*>(caster);
   }
 
   template<typename To_T>
