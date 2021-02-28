@@ -171,3 +171,10 @@ TESTCASE(call_return_rice_object)
   Object three = Object(detail::to_ruby(1)).call("+", 2);
   ASSERT_EQUAL(Object(detail::to_ruby(3)), three);
 }
+
+/*TESTCASE(test_mark)
+{
+  Object o(INT2NUM(42));
+  rb_gc_start();
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(o.value()));
+}*/

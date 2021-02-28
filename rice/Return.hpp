@@ -29,16 +29,11 @@ namespace Rice {
   class Return
   {
   public:
-    //! Initialize a new Arg with the name of the argument
-    /*! We require the name of the argument because 1) it makes code
-     *  easier to read and 2) hopefully Ruby gets keyword arguments
-     *  in the future and this means Rice will be ready for it.
-     */
-    Return(bool takeOwnership = true);
-    bool takeOwnership();
+    Return& takeOwnership(bool value);
+    bool isOwner();
 
   private:
-    bool takeOwnership_;
+    bool isOwner_ = true;
   };
 } // Rice
 

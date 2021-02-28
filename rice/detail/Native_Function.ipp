@@ -113,7 +113,7 @@ invokeNative(NativeTypes& nativeArgs)
   else
   {
     Return_T result = std::apply(this->func_, nativeArgs);
-    return To_Ruby<Return_T>::convert(std::forward<Return_T>(result), this->arguments_->takeOwnership());
+    return To_Ruby<Return_T>::convert(std::forward<Return_T>(result), this->arguments_->isOwner());
   }
 }
 

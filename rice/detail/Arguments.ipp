@@ -88,9 +88,9 @@ inline Arg_T& Arguments::defaultValue(int pos)
   return args_[pos].defaultValue<Arg_T>();
 }
 
-inline bool Arguments::takeOwnership()
+inline bool Arguments::isOwner()
 {
-  return this->return_.takeOwnership();
+  return this->return_.isOwner();
 }
 
 inline std::vector<Arg>::iterator Arguments::begin()

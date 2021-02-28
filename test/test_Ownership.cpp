@@ -126,9 +126,9 @@ SETUP(Ownership)
     define_method("value", &Factory::value).
     define_method("move_value", &Factory::moveValue).
     define_method("transfer_pointer", &Factory::transferPointer).
-    define_method("keep_pointer", &Factory::keepPointer, Return(false)).
+    define_method("keep_pointer", &Factory::keepPointer, Return().takeOwnership(false)).
     define_method("copy_reference", &Factory::keepReference).
-    define_method("keep_reference", &Factory::keepReference, Return(false));
+    define_method("keep_reference", &Factory::keepReference, Return().takeOwnership(false));
 }
 
 TESTCASE(TransferPointer)

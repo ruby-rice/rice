@@ -41,9 +41,9 @@ public:
   bool isOptional(unsigned int pos);
 
   /**
-    * How should Ruby manage the returned data
+    * Specifices if Ruby owns the returned data
     */
-  bool takeOwnership();
+  bool isOwner();
 
   /**
     * Given a position, a type, and a ruby VALUE, figure out

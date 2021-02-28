@@ -3,14 +3,15 @@
 
 namespace Rice {
 
-inline Return::Return(bool takeOwnership)
-  : takeOwnership_(takeOwnership)
+inline Return& Return::takeOwnership(bool value)
 {
+  this->isOwner_ = value;
+  return *this;
 }
 
-inline bool Return::takeOwnership()
+inline bool Return::isOwner()
 {
-  return this->takeOwnership_;
+  return this->isOwner_;
 }
 
 }  // Rice
