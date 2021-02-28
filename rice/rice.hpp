@@ -20,6 +20,7 @@
 #include "detail/protect.hpp"
 #include "detail/to_ruby.hpp"
 #include "detail/Ruby_Function.hpp"
+#include "ruby_try_catch.hpp"
 #include "detail/Native_Function.hpp"
 
 // Deprecated - this code is deprecated and should be removed in the future
@@ -29,7 +30,6 @@
 #include "protect.hpp"
 
 #include "ruby_mark.hpp"
-#include "ruby_try_catch.hpp"
 
 #include "Identifier.hpp"
 
