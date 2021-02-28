@@ -20,13 +20,13 @@
 #include "detail/protect.hpp"
 #include "detail/to_ruby.hpp"
 #include "detail/Ruby_Function.hpp"
+#include "Exception.hpp"
 #include "ruby_try_catch.hpp"
 #include "detail/Native_Function.hpp"
 
-// Deprecated - this code is deprecated and should be removed in the future
+// Deprecated - Arg_operators is deprecated and should be removed in the future
 #include "Arg_operators.hpp"
 
-#include "Exception.hpp"
 #include "protect.hpp"
 
 #include "ruby_mark.hpp"
