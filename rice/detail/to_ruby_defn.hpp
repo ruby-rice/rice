@@ -32,7 +32,7 @@ namespace Rice
     {
       static VALUE convert(T const* x)
       {
-        return To_Ruby<base_type<T>>::convert(*x);
+        return To_Ruby<intrinsic_type<T>>::convert(*x);
       }
     };
 
@@ -41,7 +41,7 @@ namespace Rice
     {
       static VALUE convert(T const& x)
       {
-        return To_Ruby<base_type<T>>::convert(x);
+        return To_Ruby<intrinsic_type<T>>::convert(x);
       }
     };
 

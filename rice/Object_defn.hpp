@@ -227,7 +227,7 @@ namespace Rice
   namespace detail
   {
     template <typename T>
-    constexpr bool is_kind_of_object = std::is_base_of_v<Rice::Object, base_type<T>>;
+    constexpr bool is_kind_of_object = std::is_base_of_v<Rice::Object, intrinsic_type<T>>;
   }
 }
 

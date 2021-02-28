@@ -251,8 +251,8 @@ public:
       char const* name);
 
   //! Define a new data class under this module.
-  /*! The class with have a base class determined by Base_T (specifically,
-   *  Data_Type<Base_T>::klass).  Therefore, the type Base_T must already
+  /*! The class with have a base class determined by Intrinsic_T (specifically,
+   *  Data_Type<Intrinsic_T>::klass).  Therefore, the type Intrinsic_T must already
    *  have been registered using define_class<> or define_class_under<>.
    *  \param T the C++ type of the wrapped class.
    *  \return the new class.

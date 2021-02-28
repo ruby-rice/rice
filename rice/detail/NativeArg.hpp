@@ -20,11 +20,11 @@ namespace Rice
     class NativeArg<T, typename std::enable_if_t<is_primitive_v<T>>>
     {
     public:
-      using Base_T = std::decay_t<std::remove_pointer_t<T>>;
+      using Intrinsic_T = std::decay_t<std::remove_pointer_t<T>>;
 
       T nativeValue(VALUE value)
       {
-        this->native_ = From_Ruby<Base_T>::convert(value);
+        this->native_ = From_Ruby<Intrinsic_T>::convert(value);
 
         if constexpr (std::is_pointer_v<T>)
         {
@@ -37,7 +37,7 @@ namespace Rice
       }
 
     private:
-      Base_T native_;
+      Intrinsic_T native_;
     };
 
     // NativeArg implementation that works on all other types. The primary use is for 

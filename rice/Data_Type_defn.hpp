@@ -27,14 +27,14 @@ Rice::Data_Type<T> define_class_under(
     char const * name);
 
 //! Define a new data class in the namespace given by module.
-/*! The class with have a base class determined by Base_T (specifically,
- *  Data_Type<Base_T>::klass).  Therefore, the type Base_T must already
+/*! The class with have a base class determined by Intrinsic_T (specifically,
+ *  Data_Type<Intrinsic_T>::klass).  Therefore, the type Intrinsic_T must already
  *  have been registered using define_class<> or define_class_under<>.
  *  \param T the C++ type of the wrapped class.
  *  \param module the the Module in which to define the class.
  *  \return the new class.
  */
-template<typename T, typename Base_T>
+template<typename T, typename Intrinsic_T>
 Rice::Data_Type<T> define_class_under(
     Object module,
     char const * name);
@@ -49,14 +49,14 @@ Rice::Data_Type<T> define_class(
     char const * name);
 
 //! Define a new data class in the default namespace.
-/*! The class with have a base class determined by Base_T (specifically,
- *  Data_Type<Base_T>::klass).  Therefore, the type Base_T must already
+/*! The class with have a base class determined by Intrinsic_T (specifically,
+ *  Data_Type<Intrinsic_T>::klass).  Therefore, the type Intrinsic_T must already
  *  have been registered using define_class<> or define_class_under<>.
  *  \param T the C++ type of the wrapped class.
  *  \param module the the Module in which to define the class.
  *  \return the new class.
  */
-template<typename T, typename Base_T>
+template<typename T, typename Parent_T>
 Rice::Data_Type<T> define_class(
     char const * name);
 
@@ -198,7 +198,7 @@ protected:
    *  \param klass the ruby type to which to bind.
    *  \return *this
    */
-  template <typename Base_T = std::nullptr_t>
+  template <typename Intrinsic_T = std::nullptr_t>
   static Data_Type bind(Module const & klass);
 
   template<typename T_>

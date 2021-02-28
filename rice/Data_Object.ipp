@@ -118,9 +118,9 @@ struct Rice::detail::To_Ruby
 {
   static VALUE convert(T&& data, bool takeOwnership)
   {
-    using Base_T = base_type<T>;
-    Data_Type<Base_T>::check_is_bound();
-    return detail::wrap(Data_Type<Base_T>::klass(), Data_Type<Base_T>::rb_type(), std::forward<T>(data), takeOwnership);
+    using Intrinsic_T = intrinsic_type<T>;
+    Data_Type<Intrinsic_T>::check_is_bound();
+    return detail::wrap(Data_Type<Intrinsic_T>::klass(), Data_Type<Intrinsic_T>::rb_type(), std::forward<T>(data), takeOwnership);
   }
 };
 
@@ -130,8 +130,8 @@ struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<
 {
   static VALUE convert(T* data, bool takeOwnership)
   {
-    using Base_T = base_type<T>;
-    return detail::wrap(Data_Type<Base_T>::klass(), Data_Type<Base_T>::rb_type(), data, takeOwnership);
+    using Intrinsic_T = intrinsic_type<T>;
+    return detail::wrap(Data_Type<Intrinsic_T>::klass(), Data_Type<Intrinsic_T>::rb_type(), data, takeOwnership);
   }
 };
 
@@ -140,23 +140,23 @@ struct Rice::detail::From_Ruby
 {
   static T convert(VALUE value)
   {
-    using Base_T = base_type<T>;
-    Base_T* result = Data_Object<Base_T>::from_ruby(value);
+    using Intrinsic_T = intrinsic_type<T>;
+    Intrinsic_T* result = Data_Object<Intrinsic_T>::from_ruby(value);
     if (result)
     {
       return *result;
     }
 
-    if constexpr (std::is_copy_constructible_v<Base_T>)
+    if constexpr (std::is_copy_constructible_v<Intrinsic_T>)
     {
-      std::optional<Base_T> implicit_result = Data_Object<Base_T>::implicit_from_ruby(value);
+      std::optional<Intrinsic_T> implicit_result = Data_Object<Intrinsic_T>::implicit_from_ruby(value);
       if (implicit_result)
       {
         return implicit_result.value();
       }
     }
 
-    throw create_type_exception<Base_T>(value);
+    throw create_type_exception<Intrinsic_T>(value);
   }
 };
  
@@ -165,23 +165,23 @@ struct Rice::detail::From_Ruby<T&>
 {
   static T& convert(VALUE value)
   {
-    using Base_T = base_type<T>;
-    Base_T* result = Data_Object<Base_T>::from_ruby(value);
+    using Intrinsic_T = intrinsic_type<T>;
+    Intrinsic_T* result = Data_Object<Intrinsic_T>::from_ruby(value);
     if (result)
     {
       return *result;
     }
 
-    if constexpr (std::is_copy_constructible_v<Base_T>)
+    if constexpr (std::is_copy_constructible_v<Intrinsic_T>)
     {
-      std::optional<Base_T> implicit_result = Data_Object<Base_T>::implicit_from_ruby(value);
+      std::optional<Intrinsic_T> implicit_result = Data_Object<Intrinsic_T>::implicit_from_ruby(value);
       if (implicit_result)
       {
         return implicit_result.value();
       }
     }
 
-    throw create_type_exception<Base_T>(value);
+    throw create_type_exception<Intrinsic_T>(value);
   }
 };
 
@@ -190,24 +190,24 @@ struct Rice::detail::From_Ruby<T*>
 {
   static T* convert(VALUE value)
   {
-    using Base_T = base_type<T>;
-    Base_T* result = Data_Object<Base_T>::from_ruby(value);
+    using Intrinsic_T = intrinsic_type<T>;
+    Intrinsic_T* result = Data_Object<Intrinsic_T>::from_ruby(value);
     if (result)
     {
       return result;
     }
 
-    if constexpr (std::is_copy_constructible_v<Base_T>)
+    if constexpr (std::is_copy_constructible_v<Intrinsic_T>)
     {
-      std::optional<Base_T> implicit_result = Data_Object<Base_T>::implicit_from_ruby(value);
+      std::optional<Intrinsic_T> implicit_result = Data_Object<Intrinsic_T>::implicit_from_ruby(value);
       if (implicit_result)
       {
         // TODO - Memory Leak
-        return new Base_T(implicit_result.value());
+        return new Intrinsic_T(implicit_result.value());
       }
     }
 
-    throw create_type_exception<Base_T>(value);
+    throw create_type_exception<Intrinsic_T>(value);
   }
 };
 #endif // Rice__Data_Object__ipp_

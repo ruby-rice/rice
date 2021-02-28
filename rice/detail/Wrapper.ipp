@@ -102,15 +102,15 @@ private:
 template <typename T>
 inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T&& data, bool takeOwnership)
 {
-  using Base_T = std::remove_reference_t<T>;
+  using Intrinsic_T = std::remove_reference_t<T>;
   if (takeOwnership)
   {
-    WrapperOwner<Base_T>* wrapper = new WrapperOwner<Base_T>(data);
+    WrapperOwner<Intrinsic_T>* wrapper = new WrapperOwner<Intrinsic_T>(data);
     return TypedData_Wrap_Struct(klass, rb_type, wrapper);
   }
   else
   {
-    WrapperReference<Base_T>* wrapper = new WrapperReference<Base_T>(data);
+    WrapperReference<Intrinsic_T>* wrapper = new WrapperReference<Intrinsic_T>(data);
     return TypedData_Wrap_Struct(klass, rb_type, wrapper);
   }
 };
