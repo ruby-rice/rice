@@ -24,7 +24,7 @@ namespace {
   }
 }
 
-/*TESTCASE(no_args)
+TESTCASE(no_args)
 {
   define_global_function("no_args", &no_args);
   Module m = Module(rb_mKernel);
@@ -50,7 +50,7 @@ TESTCASE(int_arg)
   Module m = Module(rb_mKernel);
   Object result = m.call("method_with_args", 10);
   ASSERT_EQUAL(20, detail::From_Ruby<int>::convert(result));
-}*/
+}
 
 TESTCASE(int_arg_lambda)
 {

@@ -37,6 +37,16 @@ namespace
       multiple_args_called = false;
     }
 
+    static Object singleton_method_object_int(Object object, int anInt)
+    {
+      return object;
+    }
+
+    static int singleton_function_int(int anInt)
+    {
+      return anInt;
+    }
+
   public:
     MyClass() = default;
     MyClass(const MyClass& other) = delete;
@@ -68,7 +78,7 @@ namespace
   };
 } // namespace
 
-TESTCASE(define_methods_with_member_pointers)
+TESTCASE(methods_with_member_pointers)
 {
   Class c = define_class<MyClass>("MyClass")
     .define_constructor(Constructor<MyClass>())
@@ -113,7 +123,7 @@ TESTCASE(incorrect_number_of_args)
   );
 }
 
-TESTCASE(define_method_int_passed_no_args)
+TESTCASE(incorrect_no_args)
 {
   Class c =
     define_class<MyClass>("MyClass")
@@ -129,7 +139,7 @@ TESTCASE(define_method_int_passed_no_args)
   );
 }
 
-TESTCASE(define_methods_with_lambdas)
+TESTCASE(methods_with_lambdas)
 {
   Class c = define_class<MyClass>("MyClass")
     .define_constructor(Constructor<MyClass>())
@@ -172,6 +182,60 @@ TESTCASE(define_methods_with_lambdas)
   result = o.call("multiple_args", 81, true, 7.0, "a string");
   ASSERT(MyClass::multiple_args_called);
   ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string)", detail::From_Ruby<std::string>::convert(result.value()));
+}
+
+TESTCASE(static_singleton_method)
+{
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_singleton_method("singleton_method_object_int", &MyClass::singleton_method_object_int);
+
+  MyClass::reset();
+
+  Object result = c.call("singleton_method_object_int", 42);
+  ASSERT_EQUAL(c, result);
+}
+
+TESTCASE(static_singleton_function)
+{
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_singleton_function("singleton_function_int", &MyClass::singleton_function_int);
+
+  MyClass::reset();
+
+  Object result = c.call("singleton_function_int", 42);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+}
+
+TESTCASE(static_singleton_method_lambda)
+{
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_singleton_method("singleton_method_object_int", [](Object object, int anInt)
+      {
+        return MyClass::singleton_method_object_int(object, anInt);
+      });
+
+  MyClass::reset();
+
+  Object result = c.call("singleton_method_object_int", 42);
+  ASSERT_EQUAL(c, result);
+}
+
+TESTCASE(static_singleton_function_lambda)
+{
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_singleton_function("singleton_function_int", [](int anInt)
+      {
+        return MyClass::singleton_function_int(anInt);
+      });
+
+  MyClass::reset();
+
+  Object result = c.call("singleton_function_int", 42);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
 }
 
 namespace {
@@ -247,7 +311,7 @@ TESTCASE(define_singleton_method_returning_reference)
 {
   Class c = define_class<RefTest>("RefTest")
     .define_constructor(Constructor<RefTest>())
-    .define_singleton_method("get_reference", &RefTest::getReference);
+    .define_singleton_function("get_reference", &RefTest::getReference);
 
   Module m(anonymous_module());
 

@@ -122,18 +122,28 @@ define_class(
     name);
 }
 
-template<typename Fun_T>
-inline void Rice::Module::define_method_and_auto_wrap(VALUE klass, Identifier name, Fun_T&& function,
+template<typename Function_T>
+inline void Rice::Module::wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
   std::shared_ptr<detail::Exception_Handler> handler,
   Arguments* arguments)
 {
-  auto* wrapper = detail::wrap_function(std::forward<Fun_T>(function), handler, arguments);
-  using Wrapper_T = typename std::remove_pointer_t<decltype(wrapper)>;
+  auto* native = detail::Make_Native_Function_With_Self(std::forward<Function_T>(function), handler, arguments);
+  using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
   Rice::protect(detail::MethodData::define_method, klass, name.id(),
-                RUBY_METHOD_FUNC(&Wrapper_T::call),
-    -1, 
-    wrapper);
+    RUBY_METHOD_FUNC(&Native_T::call), -1, native);
+}
+
+template<typename Function_T>
+inline void Rice::Module::wrap_native_function(VALUE klass, Identifier name, Function_T&& function,
+  std::shared_ptr<detail::Exception_Handler> handler,
+  Arguments* arguments)
+{
+  auto* native = detail::Make_Native_Function(std::forward<Function_T>(function), handler, arguments);
+  using Native_T = typename std::remove_pointer_t<decltype(native)>;
+
+  Rice::protect(detail::MethodData::define_method, klass, name.id(),
+    RUBY_METHOD_FUNC(&Native_T::call), -1, native);
 }
 
 #endif // Rice__Forward_Declares__ipp_

@@ -21,13 +21,6 @@ namespace
   {
   };
 
-  int define_method_int_foo_result_i;
-
-  void define_method_int_foo_helper(int i)
-  {
-    define_method_int_foo_result_i = i;
-  }
-
   bool test_ruby_mark_called = false;
 }
 
@@ -98,15 +91,6 @@ TESTCASE(construct_from_ruby_object_and_wrong_class)
     Exception,
     Data_Object<Bar> bar(wrapped_foo),
     ASSERT_EQUAL("Wrong argument type. Expected: Bar. Received: MyDataType.", ex.what()));
-}
-
-TESTCASE(define_method_int_foo)
-{
-  Class c(anonymous_class());
-  c.define_method("int_foo_helper", &define_method_int_foo_helper);
-  Object o = c.call("new");
-  o.call("int_foo_helper", 42);
-  ASSERT_EQUAL(42, define_method_int_foo_result_i);
 }
 
 TESTCASE(copy_construct)

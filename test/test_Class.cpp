@@ -77,41 +77,81 @@ TESTCASE(const_set_get_by_string)
 namespace
 {
 
-bool define_method_simple_ok;
-
-void define_method_simple_helper()
+bool some_function()
 {
-  define_method_simple_ok = true;
+  return true;
 }
+
+Object some_method(Object self)
+{
+  return self;
+}
+
 
 } // namespace
 
-TESTCASE(define_method_simple)
+TESTCASE(methods)
 {
   Class c(anonymous_class());
-  c.define_method("foo", &define_method_simple_helper);
+  c.define_function("some_function", &some_function);
+  c.define_method("some_method", &some_method);
+
   Object o = c.call("new");
-  define_method_simple_ok = false;
-  o.call("foo");
-  ASSERT(define_method_simple_ok);
+  Object result = o.call("some_function");
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  result = o.call("some_method");
+  ASSERT_EQUAL(o, result);
 }
 
-TESTCASE(define_singleton_method_simple)
+TESTCASE(method_lambdas)
 {
   Class c(anonymous_class());
-  c.define_singleton_method("foo", &define_method_simple_helper);
-  define_method_simple_ok = false;
-  Object o = c.call("foo");
-  ASSERT(define_method_simple_ok);
+  c.define_function("some_function", []()
+    {
+      return some_function();
+    });
+  c.define_method("some_method", [](VALUE self)
+  {
+    return some_method(self);
+  });
+
+  Object o = c.call("new");
+  Object result = o.call("some_function");
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  result = o.call("some_method");
+  ASSERT_EQUAL(o, result);
 }
 
-TESTCASE(define_module_function_simple)
+TESTCASE(singleton_methods)
+{
+  Class c(anonymous_class());
+  c.define_singleton_method("some_method", &some_method);
+
+  Object result = c.call("some_method");
+  ASSERT_EQUAL(c, result);
+}
+
+TESTCASE(singleton_method_lambdas)
+{
+  Class c(anonymous_class());
+  c.define_singleton_method("some_method", [](VALUE self)
+    {
+      return some_method(self);
+    });
+
+  Object result = c.call("some_method");
+  ASSERT_EQUAL(c, result);
+}
+
+TESTCASE(module_function)
 {
   // module_function only works with Module, not Class
   Class c(anonymous_class());
   ASSERT_EXCEPTION_CHECK(
     std::runtime_error,
-    c.define_module_function("foo", &define_method_simple_helper),
+    c.define_module_function("some_function", &some_function),
   );
 }
 
@@ -139,7 +179,7 @@ TESTCASE(add_handler)
 {
   Class c(rb_cObject);
   c.add_handler<Silly_Exception>(handle_silly_exception);
-  c.define_method("foo", throw_silly_exception);
+  c.define_function("foo", throw_silly_exception);
   Object exc = protect(rb_eval_string, "begin; foo; rescue Exception; $!; end");
   ASSERT_EQUAL(rb_eRuntimeError, CLASS_OF(exc));
   Exception ex(exc);

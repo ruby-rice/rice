@@ -20,8 +20,7 @@
 #include "detail/protect.hpp"
 #include "detail/to_ruby.hpp"
 #include "detail/Ruby_Function.hpp"
-#include "detail/Wrapped_Function.hpp"
-#include "detail/wrap_function.hpp"
+#include "detail/Native_Function.hpp"
 
 // Deprecated - this code is deprecated and should be removed in the future
 #include "Arg_operators.hpp"
@@ -57,7 +56,6 @@
 
 // Dependent on Data_Object due to the way method metadata is stored in the Ruby class
 #include "detail/default_allocation_func.ipp"
-#include "detail/Wrapped_Function.ipp"
 
 #include "Enum.hpp"
 #include "Struct.hpp"

@@ -26,6 +26,12 @@ auto& define_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
   return dynamic_cast<decltype(*this)>(Module::define_method(name, std::forward<Func_T>(func), args...));
 }
 
+template<typename Func_T, typename...Arg_Ts>
+auto& define_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_function(name, std::forward<Func_T>(func), args...));
+}
+
 template<typename Func_T>
 [[deprecated("Please call define_singleton_method with Arg parameters")]]
 auto& define_singleton_method(Identifier name, Func_T&& func, Arguments* arguments)
@@ -37,4 +43,10 @@ template<typename Func_T, typename...Arg_Ts>
 auto& define_singleton_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
 {
   return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, std::forward<Func_T>(func), args...));
+}
+
+template<typename Func_T, typename...Arg_Ts>
+auto& define_singleton_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_function(name, std::forward<Func_T>(func), args...));
 }

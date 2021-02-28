@@ -1,7 +1,7 @@
 #ifndef Rice__Module__ipp_
 #define Rice__Module__ipp_
 
-#include "detail/wrap_function.hpp"
+#include "detail/Native_Function.hpp"
 #include "Exception.hpp"
 #include "protect.hpp"
 
@@ -93,7 +93,7 @@ define_method(
   Func_T&& func,
   Arguments* arguments)
 {
-  this->define_method_and_auto_wrap(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
+  this->wrap_native_method(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
   return *this;
 }
 
@@ -107,7 +107,21 @@ define_method(
   Arg_Ts const& ...args)
 {
   Arguments* arguments = new Arguments(args...);
-  this->define_method_and_auto_wrap(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
+  this->wrap_native_method(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
+  return *this;
+}
+
+template<typename Func_T, typename...Arg_Ts>
+inline
+Rice::Module&
+Rice::Module::
+define_function(
+  Identifier name,
+  Func_T&& func,
+  Arg_Ts const& ...args)
+{
+  Arguments* arguments = new Arguments(args...);
+  this->wrap_native_function(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
   return *this;
 }
 
@@ -120,7 +134,7 @@ define_singleton_method(
   Func_T&& func,
   Arguments* arguments)
 {
-  this->define_method_and_auto_wrap(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
+  this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
   return *this;
 }
 
@@ -134,7 +148,21 @@ define_singleton_method(
   Arg_Ts const& ...args)
 {
   Arguments* arguments = new Arguments(args...);
-  this->define_method_and_auto_wrap(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
+  this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
+  return *this;
+}
+
+template<typename Func_T, typename...Arg_Ts>
+inline
+Rice::Module&
+Rice::Module::
+define_singleton_function(
+  Identifier name,
+  Func_T&& func,
+  Arg_Ts const& ...args)
+{
+  Arguments* arguments = new Arguments(args...);
+  this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
   return *this;
 }
 
@@ -152,8 +180,8 @@ define_module_function(
     throw std::runtime_error("can only define module functions for modules");
   }
 
-  define_method(name, func, arguments);
-  define_singleton_method(name, std::forward<Func_T>(func), arguments);
+  define_function(name, func, arguments);
+  define_singleton_function(name, std::forward<Func_T>(func), arguments);
   return *this;
 }
 
@@ -171,28 +199,10 @@ define_module_function(
     throw std::runtime_error("can only define module functions for modules");
   }
 
-  define_method(name, std::forward<Func_T>(func), args...);
-  define_singleton_method(name, std::forward<Func_T>(func), args...);
+  define_function(name, std::forward<Func_T>(func), args...);
+  define_singleton_function(name, std::forward<Func_T>(func), args...);
   return *this;
 }
-
-namespace Rice
-{
-
-  namespace detail
-  {
-
-
-    inline VALUE
-      const_set(VALUE mod, ID name, VALUE value)
-    {
-      rb_const_set(mod, name, value);
-      return Qnil;
-    }
-
-  } // namespace detail
-
-} // namespace Rice
 
 inline
 Rice::Module&
@@ -201,7 +211,7 @@ const_set(
   Identifier name,
   Object value)
 {
-  protect(detail::const_set, *this, name, value);
+  protect(rb_const_set, *this, name, value);
   return *this;
 }
 
