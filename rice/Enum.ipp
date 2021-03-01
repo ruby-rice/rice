@@ -37,18 +37,9 @@ Rice::Enum<Enum_T>::
 Enum(
     char const * name,
     Module module)
-  : Data_Type<Enum_Storage<Enum_T>>()
+  : Data_Type<Storage_T>()
 {
-  this->bind(initialize(name, module));
-}
-
-template<typename Enum_T>
-Rice::Enum<Enum_T> & Rice::Enum<Enum_T>::
-initialize(
-    char const * name,
-    Module module)
-{
-  Class c = Rice::define_class_under<Enum_T>(module, name)
+  Class c = Rice::define_class_under<Storage_T>(module, name)
     .define_method("to_s", to_s)
     .define_method("to_i", to_i)
     .define_method("inspect", inspect)
@@ -65,12 +56,6 @@ initialize(
   // and attach it to the class
   Array enums;
   protect(rb_iv_set, c, "enums", enums);
-
-  // Since we just changed the underlying class we need to rebind this enum
-  // before returning. Otherwise this->value() will bind the wrong class to 
-  // the datatype
-  this->set_value(c);
-  return *this;
 }
 
 template<typename Enum_T>
