@@ -40,7 +40,7 @@ size_t ruby_size_internal(const T* data)
 }
 
 template<typename T>
-template <typename Intrinsic_T>
+template <typename Base_T>
 inline Data_Type<T> Data_Type<T>::
 bind(Module const& klass)
 {
@@ -78,9 +78,9 @@ bind(Module const& klass)
   rb_type_->data = nullptr;
   rb_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
 
-  if constexpr (!std::is_same_v<Intrinsic_T, std::nullptr_t>)
+  if constexpr (!std::is_same_v<Base_T, std::nullptr_t>)
   {
-    rb_type_->parent = Data_Type<Intrinsic_T>::rb_type();
+    rb_type_->parent = Data_Type<Base_T>::rb_type();
   }
 
   for (typename Instances::iterator it = unbound_instances().begin(),
@@ -236,13 +236,13 @@ define_class_under(
   return Data_Type<T>::bind(c);
 }
 
-template<typename T, typename Intrinsic_T>
+template<typename T, typename Base_T>
 inline Data_Type<T> 
   define_class_under(
     Object module,
     char const* name)
 {
-  Data_Type<Intrinsic_T> base_dt;
+  Data_Type<Base_T> base_dt;
   Class c(define_class_under(module, name, base_dt));
   c.undef_creation_funcs();
   return Data_Type<T>::bind(c);
@@ -258,15 +258,15 @@ define_class(
   return Data_Type<T>::bind(c);
 }
 
-template<typename T, typename Parent_T>
+template<typename T, typename Base_T>
 inline Data_Type<T> 
 define_class(
     char const* name)
 {
-  Data_Type<Parent_T> parent;
-  Class c(define_class(name, parent));
+  Data_Type<Base_T> base;
+  Class c(define_class(name, base));
   c.undef_creation_funcs();
-  return Data_Type<T>::template bind<Parent_T>(c);
+  return Data_Type<T>::template bind<Base_T>(c);
 }
 
 template<typename From_T, typename To_T>
