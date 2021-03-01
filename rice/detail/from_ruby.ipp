@@ -123,6 +123,31 @@ namespace Rice
     };
 
     template<>
+    struct From_Ruby<char*>
+    {
+      static char const* convert(VALUE x)
+      {
+        if (x == Qnil)
+        {
+          return nullptr;
+        }
+        else
+        {
+          return RSTRING_PTR(x);
+        }
+      }
+    };
+
+    template<>
+    struct From_Ruby<char const*>
+    {
+      static char const* convert(VALUE x)
+      {
+        return RSTRING_PTR(x);
+      }
+    };
+
+    template<>
     struct From_Ruby<float>
     {
       static float convert(VALUE x)
@@ -137,15 +162,6 @@ namespace Rice
       static double convert(VALUE x)
       {
         return rb_num2dbl(x);
-      }
-    };
-
-    template<>
-    struct From_Ruby<char const*>
-    {
-      static char const* convert(VALUE x)
-      {
-        return RSTRING_PTR(x);
       }
     };
 
