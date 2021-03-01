@@ -78,7 +78,7 @@ bind(Module const& klass)
   rb_type_->data = nullptr;
   rb_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
 
-  if (!std::is_same_v<Intrinsic_T, std::nullptr_t>)
+  if constexpr (!std::is_same_v<Intrinsic_T, std::nullptr_t>)
   {
     rb_type_->parent = Data_Type<Intrinsic_T>::rb_type();
   }
@@ -286,6 +286,75 @@ inline Data_Type<T>& Data_Type<T>::
   Iter_T* iterator = new Iter_T(begin, end);
   detail::MethodData::define_method(Data_Type<T>::klass(), name,
     (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
+
+  return *this;
+}
+
+template <typename T>
+template <typename Return_T>
+inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Return_T T::* member, AttrAccess access)
+{
+  using Member_T = Return_T T::*;
+  static_assert(std::is_member_pointer_v<Member_T>);
+
+  if (access == AttrAccess::Read || access == AttrAccess::ReadWrite)
+  {
+    std::string getter = name;
+    this->define_method(getter, [member](const T& instance)
+        {
+          return instance.*member;
+        });
+  }
+
+  if (access == AttrAccess::Write || access == AttrAccess::ReadWrite)
+  {
+    std::string setter = name + "=";
+    if constexpr (!std::is_const_v<T> && !std::is_const_v<Return_T>)
+    {
+      this->define_method(setter, [member](T& instance, Return_T& value)
+        {
+          instance.*member = value;
+          return value;
+        });
+    }
+    else
+    {
+      throw std::runtime_error("Cannot create attribute writer: " + setter);
+    }
+  }
+
+  return *this;
+}
+
+template <typename T>
+template <typename Return_T>
+inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Return_T* staticMember, AttrAccess access)
+{
+  if (access == AttrAccess::Read || access == AttrAccess::ReadWrite)
+  {
+    std::string getter = name;
+    this->define_singleton_function(getter, [staticMember]()
+      {
+        return *staticMember;
+      });
+  }
+
+  if (access == AttrAccess::Write || access == AttrAccess::ReadWrite)
+  {
+    std::string setter = name + "=";
+    if constexpr (!std::is_const_v<Return_T>)
+    {
+      this->define_singleton_function(setter, [staticMember](Return_T& value)
+        {
+          *staticMember = value;
+          return value;
+        });
+    }
+    else
+    {
+      throw std::runtime_error("Cannot create singleton attribute writer: " + setter);
+    }
+  }
 
   return *this;
 }

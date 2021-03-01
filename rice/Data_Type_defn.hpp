@@ -15,6 +15,13 @@
 namespace Rice
 {
 
+  enum class AttrAccess
+  {
+    ReadWrite,
+    Read,
+    Write
+  };
+
 //! Define a new data class in the namespace given by module.
 /*! The class will have a base class of Object.
  *  \param T the C++ type of the wrapped class.
@@ -78,10 +85,7 @@ template<typename T>
 class Data_Type
   : public Class
 {
-  static_assert(!std::is_pointer_v<T>);
-  static_assert(!std::is_reference_v<T>);
-  static_assert(!std::is_const_v<T>);
-  static_assert(!std::is_volatile_v<T>);
+  static_assert(std::is_same_v<detail::intrinsic_type<T>, T>);
 
 public:
   //! Default constructor which does not bind.
@@ -188,7 +192,13 @@ public:
   template<typename U = T, typename Iterator_Return_T>
   Data_Type<T>& define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name = "each");
 
-  #include "shared_methods.hpp"
+  template <typename Return_T>
+  Data_Type<T>& define_attr(std::string name, Return_T T::* member, AttrAccess access = AttrAccess::ReadWrite);
+  
+  template <typename Return_T>
+  Data_Type<T>& define_singleton_attr(std::string name, Return_T* staticMember, AttrAccess access = AttrAccess::ReadWrite);
+
+#include "shared_methods.hpp"
 
 protected:
   //! Bind a Data_Type to a VALUE.
