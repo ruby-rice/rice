@@ -11,7 +11,16 @@ namespace Rice
     template<>
     struct To_Ruby<void>
     {
-      static VALUE convert()
+      static VALUE convert(void*)
+      {
+        return Qnil;
+      }
+    };
+
+    template<>
+    struct To_Ruby<std::nullptr_t>
+    {
+      static VALUE convert(std::nullptr_t)
       {
         return Qnil;
       }

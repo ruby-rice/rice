@@ -131,7 +131,14 @@ struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<
   static VALUE convert(T* data, bool takeOwnership)
   {
     using Intrinsic_T = intrinsic_type<T>;
-    return detail::wrap(Data_Type<Intrinsic_T>::klass(), Data_Type<Intrinsic_T>::rb_type(), data, takeOwnership);
+    if (data)
+    {
+      return detail::wrap(Data_Type<Intrinsic_T>::klass(), Data_Type<Intrinsic_T>::rb_type(), data, takeOwnership);
+    }
+    else
+    {
+      return Qnil;
+    }
   }
 };
 
@@ -191,6 +198,12 @@ struct Rice::detail::From_Ruby<T*>
   static T* convert(VALUE value)
   {
     using Intrinsic_T = intrinsic_type<T>;
+
+    if (value == Qnil)
+    {
+      return nullptr;
+    }
+
     Intrinsic_T* result = Data_Object<Intrinsic_T>::from_ruby(value);
     if (result)
     {

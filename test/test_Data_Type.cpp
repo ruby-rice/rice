@@ -1,3 +1,5 @@
+#include <assert.h> 
+
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
@@ -317,6 +319,39 @@ TESTCASE(define_singleton_method_returning_reference)
 
   Object result = m.instance_eval("RefTest.get_reference");
   ASSERT_EQUAL(result, String("foo"));
+}
+
+namespace
+{
+  struct MyStruct
+  {
+    MyStruct* set(MyStruct* ptr)
+    {
+      assert(ptr == nullptr);
+      return ptr;
+    }
+
+    MyStruct* get()
+    {
+      return nullptr;
+    }
+  };
+}
+
+TESTCASE(null_ptrs)
+{
+  Class c = define_class<MyStruct>("MyStruct")
+    .define_constructor(Constructor<MyStruct>())
+    .define_method("get", &MyStruct::get)
+    .define_method("set", &MyStruct::set);
+
+  Object o = c.call("new");
+
+  Object result = o.call("get");
+  ASSERT_EQUAL(Qnil, result.value());
+
+  result = o.call("set", nullptr);
+  ASSERT_EQUAL(Qnil, result.value());
 }
 
 /**
