@@ -107,7 +107,7 @@ public:
   //! Return the Ruby class.
   /*! \return the ruby class to which the type is bound.
    */
-  static Module klass();
+  static Class klass();
 
   //! Return the Ruby type.
   static rb_data_type_t* rb_type();

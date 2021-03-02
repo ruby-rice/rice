@@ -45,7 +45,7 @@ class Enum
 {
 public:
   using Storage_T = Enum_Storage<Enum_T>;
-  using Value_T = Data_Object<Enum_Storage<Enum_T>>;
+  using Value_T = Data_Object<Storage_T>;
 
   //! Default constructor.
   Enum() = default;
@@ -64,16 +64,11 @@ public:
       std::string name,
       Enum_T value);
 
-private:
-  //! Initialize the enum type.
-  /*! Must be called only once.
-   *  \param name the name of the class to define
-   *  \param module the module in which to place the enum class.
-   *  \return *this
-   */
-  Enum<Enum_T> & initialize(
-      char const * name,
-      Module module = rb_cObject);
+  //! Maps an enum value to the correct Ruby object
+  /*! \param klass The bound Ruby class
+   *  \param enumValue The enum value
+   *  \return Object - The Ruby wrapper */
+  static Object from_enum(Class klass, Enum_T enumValue);
 
 private:
   static Object each(Object self);

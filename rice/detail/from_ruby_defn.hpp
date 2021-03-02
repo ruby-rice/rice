@@ -33,7 +33,7 @@ namespace Rice
        *  \endcode
        */
 
-    template <typename T>
+    template <typename T, typename = void>
     struct From_Ruby;
 
   } // detail

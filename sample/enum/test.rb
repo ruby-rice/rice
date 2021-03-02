@@ -5,4 +5,4 @@ s = Sample_Enum::FOO
 puts s
 puts s.inspect
 puts s < Sample_Enum::BAR
-
+s.description

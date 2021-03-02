@@ -164,6 +164,13 @@ Rice::Object Rice::Enum<Enum_T>::
 from_int(Class klass, Object i)
 {
   Enum_T enumValue = static_cast<Enum_T>(detail::From_Ruby<long>::convert(i));
+  return from_enum(klass, enumValue);
+}
+
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
+  from_enum(Class klass, Enum_T enumValue)
+{
   Array enums = rb_iv_get(klass, "enums");
 
   auto iter = std::find_if(enums.begin(), enums.end(),
@@ -191,3 +198,36 @@ define_enum(
 {
   return Enum<T>(name, module);
 }
+
+
+template<typename T>
+struct Rice::detail::To_Ruby<T, std::enable_if_t<std::is_enum_v<T>>>
+{
+  static VALUE convert(T&& data, bool takeOwnership = true)
+  {
+    Object object = Rice::Enum<T>::from_enum(Rice::Enum<T>::klass(), data);
+    return object.value();
+  }
+};
+
+template <typename T>
+struct Rice::detail::From_Ruby<T, std::enable_if_t<std::is_enum_v<T>>>
+{
+  static T convert(VALUE value)
+  {
+    using Storage_T = Enum_Storage<T>;
+    Storage_T* storage = detail::unwrap<Storage_T>(value, Data_Type<Storage_T>::rb_type());
+    return storage->enumValue;
+  }
+};
+
+template <typename T>
+struct Rice::detail::From_Ruby<T*, std::enable_if_t<std::is_enum_v<T>>>
+{
+  static T convert(VALUE value)
+  {
+    using Storage_T = Enum_Storage<T>;
+    Storage_T* storage = detail::unwrap<Storage_T>(value, Data_Type<Storage_T>::rb_type());
+    return *storage->enumValue;
+  }
+};

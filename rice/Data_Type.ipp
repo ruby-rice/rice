@@ -129,7 +129,7 @@ rb_data_type_t* Data_Type<T>::rb_type()
 }
 
 template<typename T>
-Module Data_Type<T>::klass()
+Class Data_Type<T>::klass()
 {
   check_is_bound();
   return klass_;

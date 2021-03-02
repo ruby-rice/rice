@@ -16,7 +16,7 @@ Rice::Exception create_type_exception(VALUE value)
 
 template<typename T>
 inline Rice::Data_Object<T>::
-Data_Object(T* data, Module klass)
+Data_Object(T* data, Class klass)
 {
   VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data);
   this->set_value(value);
@@ -84,7 +84,7 @@ from_ruby(VALUE value)
 {
   if (Data_Type<T>::is_descendant(value))
   {
-    return detail::unwrap<T>(value, Data_Type<T>::rb_type());;
+    return detail::unwrap<T>(value, Data_Type<T>::rb_type());
   }
   else
   {
@@ -142,7 +142,7 @@ struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<
   }
 };
 
-template <typename T>
+template <typename T, typename>
 struct Rice::detail::From_Ruby
 {
   static T convert(VALUE value)

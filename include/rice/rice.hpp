@@ -752,7 +752,7 @@ namespace Rice
        *  \endcode
        */
 
-    template <typename T>
+    template <typename T, typename = void>
     struct From_Ruby;
 
   } // detail
@@ -5416,7 +5416,7 @@ public:
   //! Return the Ruby class.
   /*! \return the ruby class to which the type is bound.
    */
-  static Module klass();
+  static Class klass();
 
   //! Return the Ruby type.
   static rb_data_type_t* rb_type();
@@ -5735,7 +5735,7 @@ rb_data_type_t* Data_Type<T>::rb_type()
 }
 
 template<typename T>
-Module Data_Type<T>::klass()
+Class Data_Type<T>::klass()
 {
   check_is_bound();
   return klass_;
@@ -6040,7 +6040,7 @@ public:
    *  \param free_func a function that gets called by the garbage
    *  collector to free the object.
    */
-  Data_Object(T* obj, Module klass = Data_Type<T>::klass());
+  Data_Object(T* obj, Class klass = Data_Type<T>::klass());
 
   //! Unwrap a Ruby object.
   /*! This constructor is analogous to calling Data_Get_Struct.  Uses
@@ -6089,7 +6089,7 @@ Rice::Exception create_type_exception(VALUE value)
 
 template<typename T>
 inline Rice::Data_Object<T>::
-Data_Object(T* data, Module klass)
+Data_Object(T* data, Class klass)
 {
   VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data);
   this->set_value(value);
@@ -6157,7 +6157,7 @@ from_ruby(VALUE value)
 {
   if (Data_Type<T>::is_descendant(value))
   {
-    return detail::unwrap<T>(value, Data_Type<T>::rb_type());;
+    return detail::unwrap<T>(value, Data_Type<T>::rb_type());
   }
   else
   {
@@ -6215,7 +6215,7 @@ struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<
   }
 };
 
-template <typename T>
+template <typename T, typename>
 struct Rice::detail::From_Ruby
 {
   static T convert(VALUE value)
@@ -6411,7 +6411,7 @@ class Enum
 {
 public:
   using Storage_T = Enum_Storage<Enum_T>;
-  using Value_T = Data_Object<Enum_Storage<Enum_T>>;
+  using Value_T = Data_Object<Storage_T>;
 
   //! Default constructor.
   Enum() = default;
@@ -6430,16 +6430,11 @@ public:
       std::string name,
       Enum_T value);
 
-private:
-  //! Initialize the enum type.
-  /*! Must be called only once.
-   *  \param name the name of the class to define
-   *  \param module the module in which to place the enum class.
-   *  \return *this
-   */
-  Enum<Enum_T> & initialize(
-      char const * name,
-      Module module = rb_cObject);
+  //! Maps an enum value to the correct Ruby object
+  /*! \param klass The bound Ruby class
+   *  \param enumValue The enum value
+   *  \return Object - The Ruby wrapper */
+  static Object from_enum(Class klass, Enum_T enumValue);
 
 private:
   static Object each(Object self);
@@ -6625,6 +6620,13 @@ Rice::Object Rice::Enum<Enum_T>::
 from_int(Class klass, Object i)
 {
   Enum_T enumValue = static_cast<Enum_T>(detail::From_Ruby<long>::convert(i));
+  return from_enum(klass, enumValue);
+}
+
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
+  from_enum(Class klass, Enum_T enumValue)
+{
   Array enums = rb_iv_get(klass, "enums");
 
   auto iter = std::find_if(enums.begin(), enums.end(),
@@ -6652,6 +6654,39 @@ define_enum(
 {
   return Enum<T>(name, module);
 }
+
+
+template<typename T>
+struct Rice::detail::To_Ruby<T, std::enable_if_t<std::is_enum_v<T>>>
+{
+  static VALUE convert(T&& data, bool takeOwnership = true)
+  {
+    Object object = Rice::Enum<T>::from_enum(Rice::Enum<T>::klass(), data);
+    return object.value();
+  }
+};
+
+template <typename T>
+struct Rice::detail::From_Ruby<T, std::enable_if_t<std::is_enum_v<T>>>
+{
+  static T convert(VALUE value)
+  {
+    using Storage_T = Enum_Storage<T>;
+    Storage_T* storage = detail::unwrap<Storage_T>(value, Data_Type<Storage_T>::rb_type());
+    return storage->enumValue;
+  }
+};
+
+template <typename T>
+struct Rice::detail::From_Ruby<T*, std::enable_if_t<std::is_enum_v<T>>>
+{
+  static T convert(VALUE value)
+  {
+    using Storage_T = Enum_Storage<T>;
+    Storage_T* storage = detail::unwrap<Storage_T>(value, Data_Type<Storage_T>::rb_type());
+    return *storage->enumValue;
+  }
+};
 
 // =========   Struct.hpp   =========
 
