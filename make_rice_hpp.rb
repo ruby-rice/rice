@@ -12,6 +12,8 @@ SHARED_METHODS_INCLUDE = '#include "shared_methods.hpp"'
 def load_file(relative_path)
   content = File.read(relative_path, mode: 'rb')
 
+  # Special case shared_methods.hpp which if requested we want to
+  # merge into the current file
   index = content.index(SHARED_METHODS_INCLUDE)
   if index
     shared_path = File.join(File.dirname(relative_path), "shared_methods.hpp")
@@ -58,6 +60,8 @@ def combine_header_files
     if matches = line.match(RICE_INCLUDE_REGEX)
       path = File.join("rice", matches[1])
       add_include(path, stream)
+    else
+      stream << line
     end
   end
 

@@ -1,3 +1,6 @@
+#ifndef Rice__hpp_
+#define Rice__hpp_
+
 
 // =========   ruby.hpp   =========
 
@@ -61,6 +64,7 @@ namespace Rice
     constexpr bool is_primitive_v = is_primitive<T>::value;
   } // detail
 } // Rice
+
 
 
 // =========   Return.hpp   =========
@@ -413,6 +417,7 @@ inline std::vector<Arg>::iterator Arguments::end()
 }
 
 } // Rice
+
 
 
 // =========   Wrapper.hpp   =========
@@ -2181,6 +2186,8 @@ auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const, s
 } // Rice
 
 
+// Deprecated - Arg_operators is deprecated and should be removed in the future
+
 // =========   Arg_operators.hpp   =========
 
 namespace Rice
@@ -2209,6 +2216,7 @@ namespace Rice
   }
 
 }
+
 
 
 // =========   protect.hpp   =========
@@ -2288,6 +2296,7 @@ VALUE protect(Func_T&& func, const Arg_Ts&... args)
 } // namespace Rice
 
 
+
 // =========   ruby_mark.hpp   =========
 #ifndef ruby_mark__hpp
 #define ruby_mark__hpp
@@ -2306,6 +2315,7 @@ void ruby_mark(T* data)
 
 }
 #endif // ruby_mark__hpp
+
 
 // =========   Identifier.hpp   =========
 
@@ -2395,6 +2405,7 @@ to_sym() const
 {
   return ID2SYM(id_);
 }
+
 
 
 
@@ -2825,6 +2836,7 @@ operator>(Rice::Object const& lhs, Rice::Object const& rhs)
 }
 
 #endif // Rice__Object__ipp_
+
 
 
 
@@ -4137,6 +4149,7 @@ to_id() const
 
 
 
+
 // =========   Address_Registration_Guard.hpp   =========
 
 
@@ -5029,6 +5042,7 @@ namespace detail
 } // Rice
 
 
+
 // =========   Class.hpp   =========
 
 
@@ -5216,6 +5230,7 @@ anonymous_class()
 }
 
 #endif // Rice__Class__ipp_
+
 
 
 
@@ -6353,6 +6368,8 @@ namespace Rice
 #endif // Rice_Iterator__ipp_
 
 
+// Dependent on Data_Object due to the way method metadata is stored in the Ruby class
+
 // =========   default_allocation_func.ipp   =========
 
 template<typename T>
@@ -6363,6 +6380,7 @@ default_allocation_func(VALUE klass)
   // just pass a nullptr. It will be set via the Constructor call
   return TypedData_Wrap_Struct(klass, Data_Type<T>::rb_type(), nullptr);
 } 
+
 
 
 
@@ -6914,6 +6932,8 @@ operator[]<char const *>(char const * name)
 
 
 
+// Dependent on Module, Class, Array and String
+
 // =========   forward_declares.ipp   =========
 
 // These methods cannot be defined where they are declared due to circular dependencies
@@ -7061,3 +7081,5 @@ inline void Rice::Module::wrap_native_function(VALUE klass, Identifier name, Fun
     RUBY_METHOD_FUNC(&Native_T::call), -1, native);
 }
 
+
+#endif // Rice__hpp_
