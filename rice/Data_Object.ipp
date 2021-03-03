@@ -118,9 +118,10 @@ struct Rice::detail::To_Ruby
 {
   static VALUE convert(T&& data, bool takeOwnership)
   {
-    using Intrinsic_T = intrinsic_type<T>;
-    Data_Type<Intrinsic_T>::check_is_bound();
-    return detail::wrap(Data_Type<Intrinsic_T>::klass(), Data_Type<Intrinsic_T>::rb_type(), std::forward<T>(data), takeOwnership);
+    // Note that T could be a pointer or reference to a base class while data is in fact a
+    // child class. Lookup the correct type so we return an instance of the correct Ruby class
+    std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(data);
+    return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, std::forward<T>(data), takeOwnership);
   }
 };
 
@@ -130,10 +131,12 @@ struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<
 {
   static VALUE convert(T* data, bool takeOwnership)
   {
-    using Intrinsic_T = intrinsic_type<T>;
     if (data)
     {
-      return detail::wrap(Data_Type<Intrinsic_T>::klass(), Data_Type<Intrinsic_T>::rb_type(), data, takeOwnership);
+      // Note that T could be a pointer or reference to a base class while data is in fact a
+      // child class. Lookup the correct type so we return an instance of the correct Ruby class
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(*data);
+      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, takeOwnership);
     }
     else
     {

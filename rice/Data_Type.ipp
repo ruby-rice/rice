@@ -4,8 +4,8 @@
 #include "detail/default_allocation_func.hpp"
 #include "detail/method_data.hpp"
 #include "detail/Caster.hpp"
+#include "detail/TypeRegistry.hpp"
 #include "detail/Wrapper.hpp"
-#include "detail/demangle.hpp"
 #include "detail/Iterator.hpp"
 #include "Class.hpp"
 #include "String.hpp"
@@ -51,11 +51,8 @@ bind(Module const& klass)
 
   if (is_bound())
   {
-    std::string s;
-    s = "Data type ";
-    s += detail::demangle(typeid(T).name());
-    s += " is already bound to a different type";
-    throw std::runtime_error(s.c_str());
+    std::string message = "Type " + detail::typeName(typeid(T)) + " is already bound to a different type";
+    throw std::runtime_error(message.c_str());
   }
 
   // TODO: Make sure base type is bound; throw an exception otherwise.
@@ -82,6 +79,9 @@ bind(Module const& klass)
   {
     rb_type_->parent = Data_Type<Base_T>::rb_type();
   }
+
+  // Now register with the type registry
+  detail::TypeRegistry::add<T>(klass_, rb_type_);
 
   for (typename Instances::iterator it = unbound_instances().begin(),
     end = unbound_instances().end();
@@ -217,11 +217,8 @@ check_is_bound()
 {
   if (!is_bound())
   {
-    std::string s;
-    s = "Data type ";
-    s += detail::demangle(typeid(T).name());
-    s += " is not bound";
-    throw std::runtime_error(s.c_str());
+    std::string message = "Type " + detail::typeName(typeid(T)) + " is not bound";
+    throw std::runtime_error(message.c_str());
   }
 }
 

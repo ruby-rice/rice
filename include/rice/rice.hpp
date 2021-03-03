@@ -66,6 +66,145 @@ namespace Rice
 } // Rice
 
 
+// =========   TypeRegistry.hpp   =========
+
+#include <optional>
+#include <typeindex>
+#include <typeinfo>
+#include <unordered_map>
+
+
+/* The type registery keeps track of all C++ types wrapped by Rice. When a native function returns 
+   an instance of a class/struct we look up its type to verity that it has been registered. 
+   
+   We have to do this to support C++ inheritance. If a C++ function returns a pointer/reference
+   to an Abstract class, the actual returned object will be a Child class. However, all we know
+   from the C++ method signature is that it is an Absract class - thus the need for a registry.*/
+
+namespace Rice::detail
+{
+  class TypeRegistry
+  {
+  public:
+    template <typename T>
+    static void add(VALUE klass, rb_data_type_t* rbType);
+
+    template <typename T>
+    static std::pair<VALUE, rb_data_type_t*> figureType(T& object);
+
+  private:
+    static std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
+    static inline std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};
+  };
+
+  // Return the name of a type
+  std::string typeName(const std::type_info& typeInfo);
+}
+
+
+// ---------   TypeRegistry.ipp   ---------
+
+namespace Rice::detail
+{
+#ifdef __GNUC__
+#include <cxxabi.h>
+#include <cstdlib>
+#include <cstring>
+#endif
+
+  inline std::string demangle(char const* mangled_name)
+  {
+#ifdef __GNUC__
+    struct Helper
+    {
+      Helper(
+        char const* mangled_name)
+        : name_(0)
+      {
+        int status = 0;
+        name_ = abi::__cxa_demangle(mangled_name, 0, 0, &status);
+      }
+
+      ~Helper()
+      {
+        std::free(name_);
+      }
+
+      char* name_;
+
+    private:
+      Helper(Helper const&);
+      void operator=(Helper const&);
+    };
+
+    Helper helper(mangled_name);
+    if (helper.name_)
+    {
+      return helper.name_;
+    }
+    else
+    {
+      return mangled_name;
+    }
+#else
+    return mangled_name;
+#endif
+  }
+
+  inline std::string typeName(const std::type_info& typeInfo)
+  {
+    return demangle(typeInfo.name());
+  }
+
+  template <typename T>
+  inline void TypeRegistry::add(VALUE klass, rb_data_type_t* rbType)
+  {
+    std::type_index key(typeid(T));
+    registry_[key] = std::pair(klass, rbType);
+  }
+
+  inline std::optional<std::pair<VALUE, rb_data_type_t*>> TypeRegistry::lookup(const std::type_info& typeInfo)
+  {
+    std::type_index key(typeInfo);
+    auto iter = registry_.find(key);
+
+    if (iter == registry_.end())
+    {
+      return std::nullopt;
+    }
+    else
+    {
+      return iter->second;
+    }
+  }
+
+  template <typename T>
+  static std::pair<VALUE, rb_data_type_t*> TypeRegistry::figureType(T& object)
+  {
+    // First check and see if the actual type of the object is registered
+    std::optional<std::pair<VALUE, rb_data_type_t*>> result = lookup(typeid(object));
+
+    if (result)
+    {
+      return result.value();
+    }
+
+    // If not, then we are willing to accept an ancestor class specified by T. This is needed
+    // to support Directors. Classes inherited from Directors are never actually registered
+    // with Rice - and what we really want it to return the C++ class they inherit from.
+    result = lookup(typeid(T));
+    if (result)
+    {
+      return result.value();
+    }
+
+    // Give up!
+    std::string message = "Type " + typeName(typeid(object)) + " is not registered";
+    throw Rice::Exception(rb_eTypeError, message.c_str());
+  }
+}
+
+
 
 // =========   Return.hpp   =========
 
@@ -643,80 +782,6 @@ VALUE default_allocation_func(VALUE klass);
 
 } // Rice
 
-
-
-// =========   demangle.hpp   =========
-
-#include <string>
-
-namespace Rice
-{
-
-namespace detail
-{
-
-std::string demangle(char const * mangled_name);
-std::string demangle(std::string const & mangled_name);
-
-} // detail
-
-} // Rice
-
-
-// ---------   demangle.ipp   ---------
-#ifdef __GNUC__
-#include <cxxabi.h>
-#include <cstdlib>
-#include <cstring>
-#endif
-
-inline std::string
-Rice::detail::
-demangle(char const * mangled_name)
-{
-#ifdef __GNUC__
-    struct Helper
-  {
-    Helper(
-        char const * mangled_name)
-      : name_(0)
-    {
-      int status = 0;
-      name_ = abi::__cxa_demangle(mangled_name, 0, 0, &status);
-    }
-
-    ~Helper()
-    {
-      std::free(name_);
-    }
-
-    char * name_;
-
-  private:
-    Helper(Helper const &);
-    void operator=(Helper const &);
-  };
-
-  Helper helper(mangled_name);
-  if(helper.name_)
-  {
-    return helper.name_;
-  }
-  else
-  {
-    return mangled_name;
-  }
-#else
-  return mangled_name;
-#endif
-}
-
-inline std::string
-Rice::detail::
-demangle(std::string const & mangled_name)
-{
-  return demangle(mangled_name.c_str());
-}
 
 
 // =========   from_ruby.hpp   =========
@@ -5672,11 +5737,8 @@ bind(Module const& klass)
 
   if (is_bound())
   {
-    std::string s;
-    s = "Data type ";
-    s += detail::demangle(typeid(T).name());
-    s += " is already bound to a different type";
-    throw std::runtime_error(s.c_str());
+    std::string message = "Type " + detail::typeName(typeid(T)) + " is already bound to a different type";
+    throw std::runtime_error(message.c_str());
   }
 
   // TODO: Make sure base type is bound; throw an exception otherwise.
@@ -5703,6 +5765,9 @@ bind(Module const& klass)
   {
     rb_type_->parent = Data_Type<Base_T>::rb_type();
   }
+
+  // Now register with the type registry
+  detail::TypeRegistry::add<T>(klass_, rb_type_);
 
   for (typename Instances::iterator it = unbound_instances().begin(),
     end = unbound_instances().end();
@@ -5838,11 +5903,8 @@ check_is_bound()
 {
   if (!is_bound())
   {
-    std::string s;
-    s = "Data type ";
-    s += detail::demangle(typeid(T).name());
-    s += " is not bound";
-    throw std::runtime_error(s.c_str());
+    std::string message = "Type " + detail::typeName(typeid(T)) + " is not bound";
+    throw std::runtime_error(message.c_str());
   }
 }
 
@@ -6206,9 +6268,10 @@ struct Rice::detail::To_Ruby
 {
   static VALUE convert(T&& data, bool takeOwnership)
   {
-    using Intrinsic_T = intrinsic_type<T>;
-    Data_Type<Intrinsic_T>::check_is_bound();
-    return detail::wrap(Data_Type<Intrinsic_T>::klass(), Data_Type<Intrinsic_T>::rb_type(), std::forward<T>(data), takeOwnership);
+    // Note that T could be a pointer or reference to a base class while data is in fact a
+    // child class. Lookup the correct type so we return an instance of the correct Ruby class
+    std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(data);
+    return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, std::forward<T>(data), takeOwnership);
   }
 };
 
@@ -6218,10 +6281,12 @@ struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<
 {
   static VALUE convert(T* data, bool takeOwnership)
   {
-    using Intrinsic_T = intrinsic_type<T>;
     if (data)
     {
-      return detail::wrap(Data_Type<Intrinsic_T>::klass(), Data_Type<Intrinsic_T>::rb_type(), data, takeOwnership);
+      // Note that T could be a pointer or reference to a base class while data is in fact a
+      // child class. Lookup the correct type so we return an instance of the correct Ruby class
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(*data);
+      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, takeOwnership);
     }
     else
     {

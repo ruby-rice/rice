@@ -3,6 +3,7 @@
 
 #include "detail/ruby.hpp"
 #include "detail/rice_traits.hpp"
+#include "detail/TypeRegistry.hpp"
 
 #include "Return.hpp"
 #include "Arg.hpp"
@@ -10,7 +11,6 @@
 
 #include "detail/Wrapper.hpp"
 #include "detail/default_allocation_func.hpp"
-#include "detail/demangle.hpp"
 #include "detail/from_ruby.hpp"
 #include "detail/Exception_Handler.hpp"
 #include "detail/Iterator.hpp"
