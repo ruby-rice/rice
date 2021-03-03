@@ -2,6 +2,7 @@
 #define Rice__RiceInfo__hpp_
 
 #include <optional>
+#include <string>
 #include <typeindex>
 #include <typeinfo>
 #include <unordered_map>

@@ -69,6 +69,7 @@ namespace Rice
 // =========   TypeRegistry.hpp   =========
 
 #include <optional>
+#include <string>
 #include <typeindex>
 #include <typeinfo>
 #include <unordered_map>
@@ -103,14 +104,17 @@ namespace Rice::detail
 
 
 // ---------   TypeRegistry.ipp   ---------
+#include <stdexcept>
 
-namespace Rice::detail
-{
+
 #ifdef __GNUC__
 #include <cxxabi.h>
 #include <cstdlib>
 #include <cstring>
 #endif
+
+namespace Rice::detail
+{
 
   inline std::string demangle(char const* mangled_name)
   {
@@ -179,7 +183,7 @@ namespace Rice::detail
   }
 
   template <typename T>
-  static std::pair<VALUE, rb_data_type_t*> TypeRegistry::figureType(T& object)
+  inline std::pair<VALUE, rb_data_type_t*> TypeRegistry::figureType(T& object)
   {
     // First check and see if the actual type of the object is registered
     std::optional<std::pair<VALUE, rb_data_type_t*>> result = lookup(typeid(object));
@@ -200,7 +204,7 @@ namespace Rice::detail
 
     // Give up!
     std::string message = "Type " + typeName(typeid(object)) + " is not registered";
-    throw Rice::Exception(rb_eTypeError, message.c_str());
+    throw std::runtime_error(message.c_str());
   }
 }
 
