@@ -176,6 +176,10 @@ public:
    */
   static bool is_bound();
   static void check_is_bound();
+
+  // This is only for testing - DO NOT USE!!!
+  static void unbind();
+
   static bool is_descendant(VALUE value);
   
   //! Define an iterator.

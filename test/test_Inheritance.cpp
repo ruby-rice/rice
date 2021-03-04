@@ -72,6 +72,10 @@ SETUP(Inheritance)
 {
   embed_ruby();
   static Enum<NotificationType> NotificationEnum = createNotificationEnum();
+
+  Data_Type<Notification>::unbind();
+  Data_Type<EmailNotification>::unbind();
+  Data_Type<PushNotification>::unbind();
 }
 
 TESTCASE(return_base_pointer)
@@ -126,7 +130,7 @@ TESTCASE(base_pointer_method_call)
   ASSERT_EQUAL("Push", detail::From_Ruby<std::string>::convert(message));
 }
 
-TESTCASE(base_pointer_funcion_argument)
+TESTCASE(base_pointer_function_argument)
 {
   Class rcNotification = define_class<Notification>("Notification")
     .define_method("message", &Notification::message);
@@ -147,4 +151,69 @@ TESTCASE(base_pointer_funcion_argument)
   message = m.instance_eval(R"EOS(notification = PushNotification.new
                                   process_notification(notification))EOS");
   ASSERT_EQUAL("Push", detail::From_Ruby<std::string>::convert(message));
+}
+
+TESTCASE(module_base_pointer_method_call)
+{
+  Module mInheritance = define_module("Inheritance");
+
+  Class rcNotification = define_class_under<Notification>(mInheritance, "Notification")
+    .define_method("message", &Notification::message);
+
+  Class rcEmailNotification = define_class_under<EmailNotification, Notification>(mInheritance, "EmailNotification")
+    .define_constructor(Constructor<EmailNotification>());
+
+  Class rcPushNotification = define_class_under<PushNotification, Notification>(mInheritance, "PushNotification")
+    .define_constructor(Constructor<PushNotification>());
+
+  Module m = define_module("Testing");
+
+  Object message = m.instance_eval(R"EOS(notification = Inheritance::EmailNotification.new
+                                         notification.message)EOS");
+  ASSERT_EQUAL("Email", detail::From_Ruby<std::string>::convert(message));
+
+  message = m.instance_eval(R"EOS(notification = Inheritance::PushNotification.new
+                                  notification.message)EOS");
+  ASSERT_EQUAL("Push", detail::From_Ruby<std::string>::convert(message));
+}
+
+namespace
+{
+  class Processor
+  {
+  public:
+    Processor(Notification* notification) : notification_(notification)
+    {
+    }
+
+    std::string process()
+    {
+      return notification_->message();
+    }
+
+  private:
+    Notification* notification_;
+  };
+}
+
+TESTCASE(base_pointer_constructor)
+{
+  Class rcNotification = define_class<Notification>("Notification");
+
+  Class rcEmailNotification = define_class<EmailNotification, Notification>("EmailNotification")
+    .define_constructor(Constructor<PushNotification>());
+
+  Class rcPushNotification = define_class<PushNotification, Notification>("PushNotification")
+    .define_constructor(Constructor<PushNotification>());
+
+  Class rcProcessor = define_class<Processor, Notification>("Processor")
+    .define_constructor(Constructor<Processor, Notification*>())
+    .define_method("process", &Processor::process);
+
+  Module m = define_module("Testing");
+
+  Object result = m.instance_eval(R"EOS(notification = PushNotification.new
+                                        processor = Processor.new(notification)
+                                        processor.process)EOS");
+  ASSERT_EQUAL("Push", detail::From_Ruby<std::string>::convert(result));
 }

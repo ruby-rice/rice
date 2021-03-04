@@ -95,6 +95,21 @@ bind(Module const& klass)
 }
 
 template<typename T>
+inline void Data_Type<T>::
+unbind()
+{
+  if (klass_ != Qnil)
+  {
+    rb_gc_unregister_address(&klass_);
+    klass_ = Qnil;
+  }
+
+  // There could be objects floating around using the existing rb_type so 
+  // do not delete it. This is of course a memory leak.
+  rb_type_ = nullptr;
+}
+
+template<typename T>
 inline Data_Type<T>::
 Data_Type()
   : Class(
@@ -242,7 +257,7 @@ inline Data_Type<T>
   Data_Type<Base_T> base_dt;
   Class c(define_class_under(module, name, base_dt));
   c.undef_creation_funcs();
-  return Data_Type<T>::bind(c);
+  return Data_Type<T>::template bind<Base_T>(c);
 }
 
 template<typename T>
