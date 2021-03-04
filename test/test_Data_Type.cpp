@@ -71,11 +71,11 @@ namespace
       return i;
     }
 
-    std::string multiple_args(int i, bool b, float f, std::string s)
+    std::string multiple_args(int i, bool b, float f, std::string s, char* c)
     {
       multiple_args_called = true;
       return "multiple_args(" + std::to_string(i) + ", " + std::to_string(b) + ", " +
-        std::to_string(f) + ", " + s + ")";
+        std::to_string(f) + ", " + s + ", " + std::string(c) + ")";
     }
 
   public:
@@ -109,9 +109,9 @@ TESTCASE(methods_with_member_pointers)
   ASSERT(MyClass::int_arg_called);
   ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result.value()));
 
-  result = o.call("multiple_args", 81, true, 7.0, "a string");
+  result = o.call("multiple_args", 81, true, 7.0, "a string", "a char");
   ASSERT(MyClass::multiple_args_called);
-  ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string)", detail::From_Ruby<std::string>::convert(result.value()));
+  ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string, a char)", detail::From_Ruby<std::string>::convert(result.value()));
 }
 
 TESTCASE(incorrect_number_of_args)
@@ -166,9 +166,9 @@ TESTCASE(methods_with_lambdas)
           return instance.int_arg(anInt);
         })
     .define_method("multiple_args",
-        [](MyClass& instance, int anInt, bool aBool, float aFloat, std::string aString)
+        [](MyClass& instance, int anInt, bool aBool, float aFloat, std::string aString, char* aChar)
         {
-          return instance.multiple_args(anInt, aBool, aFloat, aString);
+          return instance.multiple_args(anInt, aBool, aFloat, aString, aChar);
         });
 
   MyClass::reset();
@@ -186,9 +186,9 @@ TESTCASE(methods_with_lambdas)
   ASSERT(MyClass::int_arg_called);
   ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result.value()));
 
-  result = o.call("multiple_args", 81, true, 7.0, "a string");
+  result = o.call("multiple_args", 81, true, 7.0, "a string", "a char");
   ASSERT(MyClass::multiple_args_called);
-  ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string)", detail::From_Ruby<std::string>::convert(result.value()));
+  ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string, a char)", detail::From_Ruby<std::string>::convert(result.value()));
 }
 
 TESTCASE(static_singleton_method)

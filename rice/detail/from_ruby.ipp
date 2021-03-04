@@ -125,7 +125,7 @@ namespace Rice
     template<>
     struct From_Ruby<char*>
     {
-      static char const* convert(VALUE x)
+      static char* convert(VALUE x)
       {
         if (x == Qnil)
         {
@@ -143,7 +143,14 @@ namespace Rice
     {
       static char const* convert(VALUE x)
       {
-        return RSTRING_PTR(x);
+        if (x == Qnil)
+        {
+          return nullptr;
+        }
+        else
+        {
+          return RSTRING_PTR(x);
+        }
       }
     };
 
