@@ -992,6 +992,46 @@ namespace Rice
     };
 
     template<>
+    struct From_Ruby<unsigned char>
+    {
+      static unsigned char convert(VALUE x)
+      {
+        switch (rb_type(x))
+        {
+        case T_FIXNUM:
+        {
+          return From_Ruby<long>::convert(x) & 0xff;
+          break;
+        }
+        default:
+        {
+          throw std::invalid_argument("Cannot convert Ruby value to unsigned char");
+        }
+        }
+      }
+    };
+
+    template<>
+    struct From_Ruby<signed char>
+    {
+      static signed char convert(VALUE x)
+      {
+        switch (rb_type(x))
+        {
+        case T_FIXNUM:
+        {
+          return From_Ruby<long>::convert(x) & 0xff;
+          break;
+        }
+        default:
+        {
+          throw std::invalid_argument("Cannot convert Ruby value to unsigned char");
+        }
+        }
+      }
+    };
+
+    template<>
     struct From_Ruby<float>
     {
       static float convert(VALUE x)

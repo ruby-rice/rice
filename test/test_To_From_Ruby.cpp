@@ -323,6 +323,18 @@ TESTCASE(char_from_ruby_fixnum)
   ASSERT_EQUAL('1', detail::From_Ruby<char>::convert(INT2NUM(49)));
 }
 
+TESTCASE(unsigned_char_from_ruby)
+{
+  unsigned char expected = -1;
+  ASSERT_EQUAL(expected, detail::From_Ruby<unsigned char>::convert(INT2NUM(-1)));
+}
+
+TESTCASE(signed_char_from_ruby)
+{
+  unsigned char expected = 10;
+  ASSERT_EQUAL(expected, detail::From_Ruby<signed char>::convert(INT2NUM(10)));
+}
+
 TESTCASE(char_star_from_ruby)
 {
   const char* expected = "my string";
