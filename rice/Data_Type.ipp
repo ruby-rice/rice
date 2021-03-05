@@ -315,7 +315,7 @@ inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Return_T T::* m
     this->define_method(getter, [member](const T& instance)
         {
           return instance.*member;
-        });
+        }, Return().takeOwnership(false));
   }
 
   if (access == AttrAccess::Write || access == AttrAccess::ReadWrite)
@@ -327,7 +327,7 @@ inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Return_T T::* m
         {
           instance.*member = value;
           return value;
-        });
+        }, Return().takeOwnership(false));
     }
     else
     {
