@@ -102,18 +102,35 @@ invokeNative(NativeTypes& nativeArgs)
     std::apply(this->func_, nativeArgs);
     return Qnil;
   }
-  else if constexpr (is_primitive_v<Return_T>)
+  else if constexpr (std::is_pointer_v<Return_T>)
   {
-    // TODO - this is a hack to avoid have an ownership parameter for converting basic types
+    Return_T nativeResult = std::apply(this->func_, nativeArgs);
+    VALUE result = To_Ruby<Return_T>::convert(nativeResult);
 
-    // Execute the native function
-    Return_T result = std::apply(this->func_, nativeArgs);
-    return To_Ruby<Return_T>::convert(std::forward<Return_T>(result));
+    // This could be a pointer to a char* from a Ruby string, so check if we are dealing
+    // with a wrapped object
+    if (rb_type(result) == T_DATA)
+    {
+      getWrapper(result)->isOwner_ = this->arguments_->isOwner();
+    }
+    return result;
+  }
+  else if constexpr (std::is_reference_v<Return_T>)
+  {
+    Return_T nativeResult = std::apply(this->func_, nativeArgs);
+    if (this->arguments_->isOwner())
+    {
+      return To_Ruby<Return_T>::convert(std::move(nativeResult));
+    }
+    else
+    {
+      return To_Ruby<Return_T>::convert(nativeResult);
+    }
   }
   else
   {
-    Return_T result = std::apply(this->func_, nativeArgs);
-    return To_Ruby<Return_T>::convert(std::forward<Return_T>(result), this->arguments_->isOwner());
+    Return_T nativeResult = std::apply(this->func_, nativeArgs);
+    return To_Ruby<Return_T>::convert(std::move(nativeResult));
   }
 }
 

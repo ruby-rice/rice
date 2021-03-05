@@ -55,7 +55,7 @@ namespace Rice
       }
       else
       {
-        return To_Ruby<T>::convert(std::forward<T>(x), true);
+        return To_Ruby<T>::convert(std::forward<T>(x));
       }
     }
 

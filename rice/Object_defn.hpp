@@ -222,50 +222,5 @@ extern Object const Undef;
 
 } // namespace Rice
 
-namespace Rice
-{
-  namespace detail
-  {
-    template <typename T>
-    constexpr bool is_kind_of_object = std::is_base_of_v<Rice::Object, intrinsic_type<T>>;
-  }
-}
-
-template<>
-struct Rice::detail::From_Ruby<Rice::Object>
-{
-  static Rice::Object convert(VALUE value)
-  {
-    return Rice::Object(value);
-  }
-};
-
-template<typename T>
-struct Rice::detail::To_Ruby<T, std::enable_if_t<Rice::detail::is_kind_of_object<T> && !std::is_pointer_v<T>>>
-{
-  static VALUE convert(Rice::Object const& x, bool takeOwnership = false)
-  {
-    return x.value();
-  }
-};
-
-/*template<typename T>
-struct Rice::detail::To_Ruby<T&&, std::enable_if_t<Rice::detail::is_kind_of_object<T>>>
-{
-  static VALUE convert(Rice::Object && x, bool takeOwnership = false)
-  {
-    return x.value();
-  }
-};*/
-
-template<typename T>
-struct Rice::detail::To_Ruby<T*, std::enable_if_t<Rice::detail::is_kind_of_object<T>>>
-{
-  static VALUE convert(Rice::Object const* x)
-  {
-    return x->value();
-  }
-};
-
 #endif // Rice__Object_defn__hpp_
 

@@ -23,10 +23,10 @@ template <typename T>
 class WrapperOwner : public Wrapper
 {
 public:
-  template <typename U = T>
-  WrapperOwner(U&& data)
+  WrapperOwner(T& data)
   {
-    this->data_ = new T(std::forward<U>(data));
+    // We own this object so we can call the move constructor
+    this->data_ = new T(std::move(data));
   }
 
   ~WrapperOwner()
@@ -64,8 +64,7 @@ template <typename T>
 class WrapperPointer : public Wrapper
 {
 public:
-  WrapperPointer(T* data, bool takeOwnership) :
-    data_(data), isOwner_(takeOwnership)
+  WrapperPointer(T* data) : data_(data)
   {
   }
 
@@ -77,14 +76,13 @@ public:
     }
   }
 
-  void replace(T* data, bool takeOwnership)
+  void replace(T* data)
   {
     if (this->isOwner_)
     {
       delete this->data_;
     }
     this->data_ = data;
-    this->isOwner_ = takeOwnership;
   }
 
   void* get() override
@@ -94,31 +92,33 @@ public:
 
 private:
   T* data_ = nullptr;
-  bool isOwner_;
 };
 
 
 // ---- Helper Functions -------
 template <typename T>
-inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T&& data, bool takeOwnership)
+inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T&& data)
 {
-  using Intrinsic_T = std::remove_reference_t<T>;
-  if (takeOwnership)
+  // This is confusing! If data is an rvalue, then T is not actually a reference type at all!
+  if constexpr (!std::is_reference_v<T>)
   {
-    WrapperOwner<Intrinsic_T>* wrapper = new WrapperOwner<Intrinsic_T>(data);
+    // This is an rvalue so we are going to move construct it
+    WrapperOwner<T>* wrapper = new WrapperOwner<T>(data);
     return TypedData_Wrap_Struct(klass, rb_type, wrapper);
   }
   else
   {
+    // This is a lvalue and we are just going to store it
+    using Intrinsic_T = std::remove_reference_t<T>;
     WrapperReference<Intrinsic_T>* wrapper = new WrapperReference<Intrinsic_T>(data);
     return TypedData_Wrap_Struct(klass, rb_type, wrapper);
   }
 };
 
 template <typename T>
-inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool takeOwnership)
+inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data)
 {
-  WrapperPointer<T>* wrapper = new WrapperPointer<T>(data, takeOwnership);
+  WrapperPointer<T>* wrapper = new WrapperPointer<T>(data);
   return TypedData_Wrap_Struct(klass, rb_type, wrapper);
 };
 
@@ -139,13 +139,13 @@ inline void* unwrap(VALUE value)
 }
 
 template <typename T>
-inline void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwnership)
+inline void replace(VALUE value, rb_data_type_t* rb_type, T* data)
 {
   WrapperPointer<T>* wrapper = nullptr;
   TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
   delete wrapper;
 
-  RTYPEDDATA_DATA(value) = new WrapperPointer<T>(data, takeOwnership);
+  RTYPEDDATA_DATA(value) = new WrapperPointer<T>(data);
 }
 
 inline Wrapper* getWrapper(VALUE value)

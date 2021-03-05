@@ -199,11 +199,11 @@ define_enum(
   return Enum<T>(name, module);
 }
 
-
 template<typename T>
 struct Rice::detail::To_Ruby<T, std::enable_if_t<std::is_enum_v<T>>>
 {
-  static VALUE convert(T&& data, bool takeOwnership = true)
+  template <typename U = T>
+  static VALUE convert(U&& data)
   {
     Object object = Rice::Enum<T>::from_enum(Rice::Enum<T>::klass(), data);
     return object.value();

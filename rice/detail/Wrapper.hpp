@@ -16,6 +16,8 @@ public:
 
   void ruby_mark();
   void addKeepAlive(VALUE value);
+  
+  bool isOwner_ = true;
 
 private:
   // We use a vector for speed and memory locality versus a set which does
@@ -25,10 +27,10 @@ private:
 };
 
 template <typename T>
-VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T&& data, bool takeOwnership = true);
+VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T&& data);
 
 template <typename T>
-VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool takeOwnership = true);
+VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data);
 
 template <typename T>
 T* unwrap(VALUE value, rb_data_type_t* rb_type);
@@ -36,7 +38,7 @@ T* unwrap(VALUE value, rb_data_type_t* rb_type);
 void* unwrap(VALUE value);
 
 template <typename T>
-void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwnership = true);
+void replace(VALUE value, rb_data_type_t* rb_type, T* data);
 
 Wrapper* getWrapper(VALUE value);
 

@@ -127,7 +127,7 @@ SETUP(Ownership)
     define_method("move_value", &Factory::moveValue).
     define_method("transfer_pointer", &Factory::transferPointer).
     define_method("keep_pointer", &Factory::keepPointer, Return().takeOwnership(false)).
-    define_method("copy_reference", &Factory::keepReference).
+    define_method("tranfer_reference", &Factory::keepReference).
     define_method("keep_reference", &Factory::keepReference, Return().takeOwnership(false));
 }
 
@@ -213,7 +213,7 @@ TESTCASE(CopyReference)
   // Create ruby objects that point to the same instance of MyClass
   std::string code = R"(factory = Factory.new
                         10.times do |i|
-                          my_class = factory.copy_reference
+                          my_class = factory.tranfer_reference
                           my_class.set_flag(i)
                         end)";
 
@@ -221,8 +221,8 @@ TESTCASE(CopyReference)
   rb_gc_start();
 
   ASSERT_EQUAL(1, MyClass::constructorCalls);
-  ASSERT_EQUAL(10, MyClass::copyConstructorCalls);
-  ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
+  ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
+  ASSERT_EQUAL(10, MyClass::moveConstructorCalls);
   ASSERT_EQUAL(10, MyClass::destructorCalls);
   ASSERT_EQUAL(0, Factory::instance_->flag);
 }
@@ -234,7 +234,6 @@ TESTCASE(TransferValue)
 
   Module m = define_module("TestingModule");
 
-  // Create ruby objects that point to the same instance of MyClass
   std::string code = R"(factory = Factory.new
                         10.times do |i|
                           my_class = factory.value
@@ -245,8 +244,8 @@ TESTCASE(TransferValue)
   rb_gc_start();
 
   ASSERT_EQUAL(10, MyClass::constructorCalls);
-  ASSERT_EQUAL(10, MyClass::copyConstructorCalls);
-  ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
+  ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
+  ASSERT_EQUAL(10, MyClass::moveConstructorCalls);
   ASSERT_EQUAL(20, MyClass::destructorCalls);
   ASSERT(!Factory::instance_);
 }
@@ -258,7 +257,6 @@ TESTCASE(MoveValue)
 
   Module m = define_module("TestingModule");
 
-  // Create ruby objects that point to the same instance of MyClass
   std::string code = R"(factory = Factory.new
                         10.times do |i|
                           my_class = factory.move_value
@@ -269,8 +267,8 @@ TESTCASE(MoveValue)
   rb_gc_start();
 
   ASSERT_EQUAL(10, MyClass::constructorCalls);
-  ASSERT_EQUAL(10, MyClass::copyConstructorCalls);
-  ASSERT_EQUAL(10, MyClass::moveConstructorCalls);
+  ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
+  ASSERT_EQUAL(20, MyClass::moveConstructorCalls);
   ASSERT_EQUAL(30, MyClass::destructorCalls);
   ASSERT(!Factory::instance_);
 }

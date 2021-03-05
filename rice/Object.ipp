@@ -151,5 +151,40 @@ operator>(Rice::Object const& lhs, Rice::Object const& rhs)
   return result.test();
 }
 
+namespace Rice
+{
+  namespace detail
+  {
+    template <typename T>
+    constexpr bool is_kind_of_object = std::is_base_of_v<Rice::Object, intrinsic_type<T>>;
+
+    template<>
+    struct From_Ruby<Object>
+    {
+      static Object convert(VALUE value)
+      {
+        return Object(value);
+      }
+    };
+
+    template<typename T>
+    struct To_Ruby<T, std::enable_if_t<is_kind_of_object<T> && !std::is_pointer_v<T>>>
+    {
+      static VALUE convert(Object const& x)
+      {
+        return x.value();
+      }
+    };
+
+    template<typename T>
+    struct To_Ruby<T*, std::enable_if_t<is_kind_of_object<T>>>
+    {
+      static VALUE convert(Object const* x)
+      {
+        return x->value();
+      }
+    };
+  }
+}
 #endif // Rice__Object__ipp_
 
