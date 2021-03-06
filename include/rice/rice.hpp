@@ -579,6 +579,8 @@ public:
 
   void ruby_mark();
   void addKeepAlive(VALUE value);
+  
+  bool isOwner_ = true;
 
 private:
   // We use a vector for speed and memory locality versus a set which does
@@ -588,10 +590,10 @@ private:
 };
 
 template <typename T>
-VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T&& data, bool takeOwnership = true);
+VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T&& data);
 
 template <typename T>
-VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool takeOwnership = true);
+VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data);
 
 template <typename T>
 T* unwrap(VALUE value, rb_data_type_t* rb_type);
@@ -599,7 +601,7 @@ T* unwrap(VALUE value, rb_data_type_t* rb_type);
 void* unwrap(VALUE value);
 
 template <typename T>
-void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwnership = true);
+void replace(VALUE value, rb_data_type_t* rb_type, T* data);
 
 Wrapper* getWrapper(VALUE value);
 
@@ -633,10 +635,10 @@ template <typename T>
 class WrapperOwner : public Wrapper
 {
 public:
-  template <typename U = T>
-  WrapperOwner(U&& data)
+  WrapperOwner(T& data)
   {
-    this->data_ = new T(std::forward<U>(data));
+    // We own this object so we can call the move constructor
+    this->data_ = new T(std::move(data));
   }
 
   ~WrapperOwner()
@@ -674,8 +676,7 @@ template <typename T>
 class WrapperPointer : public Wrapper
 {
 public:
-  WrapperPointer(T* data, bool takeOwnership) :
-    data_(data), isOwner_(takeOwnership)
+  WrapperPointer(T* data) : data_(data)
   {
   }
 
@@ -687,14 +688,13 @@ public:
     }
   }
 
-  void replace(T* data, bool takeOwnership)
+  void replace(T* data)
   {
     if (this->isOwner_)
     {
       delete this->data_;
     }
     this->data_ = data;
-    this->isOwner_ = takeOwnership;
   }
 
   void* get() override
@@ -704,31 +704,33 @@ public:
 
 private:
   T* data_ = nullptr;
-  bool isOwner_;
 };
 
 
 // ---- Helper Functions -------
 template <typename T>
-inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T&& data, bool takeOwnership)
+inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T&& data)
 {
-  using Intrinsic_T = std::remove_reference_t<T>;
-  if (takeOwnership)
+  // This is confusing! If data is an rvalue, then T is not actually a reference type at all!
+  if constexpr (!std::is_reference_v<T>)
   {
-    WrapperOwner<Intrinsic_T>* wrapper = new WrapperOwner<Intrinsic_T>(data);
+    // This is an rvalue so we are going to move construct it
+    WrapperOwner<T>* wrapper = new WrapperOwner<T>(data);
     return TypedData_Wrap_Struct(klass, rb_type, wrapper);
   }
   else
   {
+    // This is a lvalue and we are just going to store it
+    using Intrinsic_T = std::remove_reference_t<T>;
     WrapperReference<Intrinsic_T>* wrapper = new WrapperReference<Intrinsic_T>(data);
     return TypedData_Wrap_Struct(klass, rb_type, wrapper);
   }
 };
 
 template <typename T>
-inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool takeOwnership)
+inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data)
 {
-  WrapperPointer<T>* wrapper = new WrapperPointer<T>(data, takeOwnership);
+  WrapperPointer<T>* wrapper = new WrapperPointer<T>(data);
   return TypedData_Wrap_Struct(klass, rb_type, wrapper);
 };
 
@@ -749,13 +751,13 @@ inline void* unwrap(VALUE value)
 }
 
 template <typename T>
-inline void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool takeOwnership)
+inline void replace(VALUE value, rb_data_type_t* rb_type, T* data)
 {
   WrapperPointer<T>* wrapper = nullptr;
   TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
   delete wrapper;
 
-  RTYPEDDATA_DATA(value) = new WrapperPointer<T>(data, takeOwnership);
+  RTYPEDDATA_DATA(value) = new WrapperPointer<T>(data);
 }
 
 inline Wrapper* getWrapper(VALUE value)
@@ -1496,7 +1498,7 @@ namespace Rice
       }
       else
       {
-        return To_Ruby<T>::convert(std::forward<T>(x), true);
+        return To_Ruby<T>::convert(std::forward<T>(x));
       }
     }
 
@@ -1979,6 +1981,139 @@ value() const
 
 
 
+// =========   Native_Attribute.hpp   =========
+
+
+namespace Rice
+{
+
+enum class AttrAccess
+{
+  ReadWrite,
+  Read,
+  Write
+};
+
+namespace detail
+{
+
+template<typename Return_T, typename Attr_T, typename Self_T = void>
+class Native_Attribute
+{
+public:
+  // Static member functions that Ruby calls
+  static VALUE get(VALUE self);
+  static VALUE set(VALUE self, VALUE value);
+
+public:
+  Native_Attribute(Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
+
+  // Invokes the wrapped function
+  VALUE read(VALUE self);
+  VALUE write(VALUE self, VALUE value);
+
+private:
+  Attr_T attr_;
+  AttrAccess access_;
+};
+
+// A plain function or static member call
+template<typename T>
+auto* Make_Native_Attribute(T* attr, AttrAccess access);
+
+// Lambda function that does not take Self as first parameter
+template<typename Class_T, typename T>
+auto* Make_Native_Attribute(T Class_T::* attr, AttrAccess access);
+
+} // detail
+
+} // Rice
+
+
+// ---------   Native_Attribute.ipp   ---------
+#include <array>
+#include <algorithm>
+
+
+namespace Rice
+{
+  namespace detail
+  {
+    template<typename Return_T, typename Attr_T, typename Self_T>
+    inline VALUE Native_Attribute<Return_T, Attr_T, Self_T>::get(VALUE self)
+    {
+      RUBY_TRY
+      {
+        using Native_Attr_T = Native_Attribute<Return_T, Attr_T, Self_T>;
+        Native_Attr_T* attr = detail::MethodData::data<Native_Attr_T*>();
+        return attr->read(self);
+      }
+      RUBY_CATCH
+    }
+
+    template<typename Return_T, typename Attr_T, typename Self_T>
+    inline VALUE Native_Attribute<Return_T, Attr_T, Self_T>::set(VALUE self, VALUE value)
+    {
+      RUBY_TRY
+      {
+        using Native_Attr_T = Native_Attribute<Return_T, Attr_T, Self_T>;
+        Native_Attr_T* attr = detail::MethodData::data<Native_Attr_T*>();
+        return attr->write(self, value);
+      }
+      RUBY_CATCH
+    }
+
+    template<typename Return_T, typename Attr_T, typename Self_T>
+    Native_Attribute<Return_T, Attr_T, Self_T>::Native_Attribute(Attr_T attr, AttrAccess access)
+      : attr_(attr), access_(access)
+    {
+    }
+
+    template<typename Return_T, typename Attr_T, typename Self_T>
+    inline VALUE Native_Attribute<Return_T, Attr_T, Self_T>::read(VALUE self)
+    {
+      if constexpr (std::is_member_object_pointer_v<Attr_T>)
+      {
+        Self_T* nativeSelf = From_Ruby<Self_T*>::convert(self);
+        return To_Ruby<std::remove_cv_t<Return_T>>::convert(nativeSelf->*attr_);
+      }
+      else
+      {
+        return To_Ruby<std::remove_cv_t<Return_T>>::convert(*attr_);
+      }
+    }
+
+    template<typename Return_T, typename Attr_T, typename Self_T>
+    inline VALUE Native_Attribute<Return_T, Attr_T, Self_T>::write(VALUE self, VALUE value)
+    {
+      if constexpr (!std::is_const_v<std::remove_pointer_t<Attr_T>> && std::is_member_object_pointer_v<Attr_T>)
+      {
+        Self_T* nativeSelf = From_Ruby<Self_T*>::convert(self);
+        nativeSelf->*attr_ = From_Ruby<Return_T>::convert(value);
+      }
+      else if constexpr (!std::is_const_v<std::remove_pointer_t<Attr_T>>)
+      {
+        *attr_ = From_Ruby<Return_T>::convert(value);
+      }
+      return value;
+    }
+
+    template<typename T>
+    auto* Make_Native_Attribute(T* attr, AttrAccess access)
+    {
+      return new Native_Attribute<T, T*>(attr, access);
+    }
+
+    template<typename Class_T, typename T>
+    auto* Make_Native_Attribute(T Class_T::* attr, AttrAccess access)
+    {
+      using Attr_T = T Class_T::*;
+      return new Native_Attribute<T, Attr_T, Class_T>(attr, access);
+    }
+  } // detail
+} // Rice
+
+
 // =========   Native_Function.hpp   =========
 
 
@@ -2177,18 +2312,35 @@ invokeNative(NativeTypes& nativeArgs)
     std::apply(this->func_, nativeArgs);
     return Qnil;
   }
-  else if constexpr (is_primitive_v<Return_T>)
+  else if constexpr (std::is_pointer_v<Return_T>)
   {
-    // TODO - this is a hack to avoid have an ownership parameter for converting basic types
+    Return_T nativeResult = std::apply(this->func_, nativeArgs);
+    VALUE result = To_Ruby<std::remove_cv_t<Return_T>>::convert(nativeResult);
 
-    // Execute the native function
-    Return_T result = std::apply(this->func_, nativeArgs);
-    return To_Ruby<Return_T>::convert(std::forward<Return_T>(result));
+    // This could be a pointer to a char* from a Ruby string, so check if we are dealing
+    // with a wrapped object
+    if (rb_type(result) == T_DATA)
+    {
+      getWrapper(result)->isOwner_ = this->arguments_->isOwner();
+    }
+    return result;
+  }
+  else if constexpr (std::is_reference_v<Return_T>)
+  {
+    Return_T nativeResult = std::apply(this->func_, nativeArgs);
+    if (this->arguments_->isOwner())
+    {
+      return To_Ruby<std::remove_cv_t<Return_T>>::convert(std::move(nativeResult));
+    }
+    else
+    {
+      return To_Ruby<std::remove_cv_t<Return_T>>::convert(nativeResult);
+    }
   }
   else
   {
-    Return_T result = std::apply(this->func_, nativeArgs);
-    return To_Ruby<Return_T>::convert(std::forward<Return_T>(result), this->arguments_->isOwner());
+    Return_T nativeResult = std::apply(this->func_, nativeArgs);
+    return To_Ruby<std::remove_cv_t<Return_T>>::convert(std::move(nativeResult));
   }
 }
 
@@ -2764,51 +2916,6 @@ extern Object const Undef;
 
 } // namespace Rice
 
-namespace Rice
-{
-  namespace detail
-  {
-    template <typename T>
-    constexpr bool is_kind_of_object = std::is_base_of_v<Rice::Object, intrinsic_type<T>>;
-  }
-}
-
-template<>
-struct Rice::detail::From_Ruby<Rice::Object>
-{
-  static Rice::Object convert(VALUE value)
-  {
-    return Rice::Object(value);
-  }
-};
-
-template<typename T>
-struct Rice::detail::To_Ruby<T, std::enable_if_t<Rice::detail::is_kind_of_object<T> && !std::is_pointer_v<T>>>
-{
-  static VALUE convert(Rice::Object const& x, bool takeOwnership = false)
-  {
-    return x.value();
-  }
-};
-
-/*template<typename T>
-struct Rice::detail::To_Ruby<T&&, std::enable_if_t<Rice::detail::is_kind_of_object<T>>>
-{
-  static VALUE convert(Rice::Object && x, bool takeOwnership = false)
-  {
-    return x.value();
-  }
-};*/
-
-template<typename T>
-struct Rice::detail::To_Ruby<T*, std::enable_if_t<Rice::detail::is_kind_of_object<T>>>
-{
-  static VALUE convert(Rice::Object const* x)
-  {
-    return x->value();
-  }
-};
-
 #endif // Rice__Object_defn__hpp_
 
 
@@ -2965,6 +3072,41 @@ operator>(Rice::Object const& lhs, Rice::Object const& rhs)
   return result.test();
 }
 
+namespace Rice
+{
+  namespace detail
+  {
+    template <typename T>
+    constexpr bool is_kind_of_object = std::is_base_of_v<Rice::Object, intrinsic_type<T>>;
+
+    template<>
+    struct From_Ruby<Object>
+    {
+      static Object convert(VALUE value)
+      {
+        return Object(value);
+      }
+    };
+
+    template<typename T>
+    struct To_Ruby<T, std::enable_if_t<is_kind_of_object<T> && !std::is_pointer_v<T>>>
+    {
+      static VALUE convert(Object const& x)
+      {
+        return x.value();
+      }
+    };
+
+    template<typename T>
+    struct To_Ruby<T*, std::enable_if_t<is_kind_of_object<T>>>
+    {
+      static VALUE convert(Object const* x)
+      {
+        return x->value();
+      }
+    };
+  }
+}
 #endif // Rice__Object__ipp_
 
 
@@ -5468,14 +5610,7 @@ namespace Rice {
 
 namespace Rice
 {
-
-  enum class AttrAccess
-  {
-    ReadWrite,
-    Read,
-    Write
-  };
-
+ 
 //! Define a new data class in the namespace given by module.
 /*! The class will have a base class of Object.
  *  \param T the C++ type of the wrapped class.
@@ -5650,11 +5785,11 @@ public:
   template<typename U = T, typename Iterator_Return_T>
   Data_Type<T>& define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name = "each");
 
-  template <typename Return_T>
-  Data_Type<T>& define_attr(std::string name, Return_T T::* member, AttrAccess access = AttrAccess::ReadWrite);
+  template <typename Attr_T>
+  Data_Type<T>& define_attr(std::string name, Attr_T&& attr, AttrAccess access = AttrAccess::ReadWrite);
   
-  template <typename Return_T>
-  Data_Type<T>& define_singleton_attr(std::string name, Return_T* staticMember, AttrAccess access = AttrAccess::ReadWrite);
+  template <typename Attr_T>
+  Data_Type<T>& define_singleton_attr(std::string name, Attr_T&& attr, AttrAccess access = AttrAccess::ReadWrite);
 
 // Include these methods to call methods from Module but return
 // an instance of the current classes. This is an alternative to
@@ -6058,69 +6193,54 @@ inline Data_Type<T>& Data_Type<T>::
 }
 
 template <typename T>
-template <typename Return_T>
-inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Return_T T::* member, AttrAccess access)
+template <typename Attr_T>
+inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T&& attr, AttrAccess access)
 {
-  using Member_T = Return_T T::*;
-  static_assert(std::is_member_pointer_v<Member_T>);
+  auto* native = detail::Make_Native_Attribute(attr, access);
+  using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
-  if (access == AttrAccess::Read || access == AttrAccess::ReadWrite)
+  if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
   {
-    std::string getter = name;
-    this->define_method(getter, [member](const T& instance)
-        {
-          return instance.*member;
-        });
+    Rice::protect(detail::MethodData::define_method, klass_, Identifier(name).id(),
+      RUBY_METHOD_FUNC(&Native_T::get), 0, native);
   }
 
-  if (access == AttrAccess::Write || access == AttrAccess::ReadWrite)
+  if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
   {
-    std::string setter = name + "=";
-    if constexpr (!std::is_const_v<T> && !std::is_const_v<Return_T>)
+    if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
     {
-      this->define_method(setter, [member](T& instance, Return_T& value)
-        {
-          instance.*member = value;
-          return value;
-        });
+      throw std::runtime_error(name + " is readonly");
     }
-    else
-    {
-      throw std::runtime_error("Cannot create attribute writer: " + setter);
-    }
+
+    Rice::protect(detail::MethodData::define_method, klass_, Identifier(name + "=").id(),
+      RUBY_METHOD_FUNC(&Native_T::set), 1, native);
   }
 
   return *this;
 }
 
 template <typename T>
-template <typename Return_T>
-inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Return_T* staticMember, AttrAccess access)
+template <typename Attr_T>
+inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_T&& attr, AttrAccess access)
 {
-  if (access == AttrAccess::Read || access == AttrAccess::ReadWrite)
+  auto* native = detail::Make_Native_Attribute(attr, access);
+  using Native_T = typename std::remove_pointer_t<decltype(native)>;
+
+  if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
   {
-    std::string getter = name;
-    this->define_singleton_function(getter, [staticMember]()
-      {
-        return *staticMember;
-      });
+    Rice::protect(detail::MethodData::define_method, rb_singleton_class(*this), Identifier(name).id(),
+      RUBY_METHOD_FUNC(&Native_T::get), 0, native);
   }
 
-  if (access == AttrAccess::Write || access == AttrAccess::ReadWrite)
+  if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
   {
-    std::string setter = name + "=";
-    if constexpr (!std::is_const_v<Return_T>)
+    if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
     {
-      this->define_singleton_function(setter, [staticMember](Return_T& value)
-        {
-          *staticMember = value;
-          return value;
-        });
+      throw std::runtime_error(name  + " is readonly");
     }
-    else
-    {
-      throw std::runtime_error("Cannot create singleton attribute writer: " + setter);
-    }
+
+    Rice::protect(detail::MethodData::define_method, rb_singleton_class(*this), Identifier(name + "=").id(),
+      RUBY_METHOD_FUNC(&Native_T::set), 1, native);
   }
 
   return *this;
@@ -6350,12 +6470,13 @@ implicit_from_ruby(VALUE value)
 template<typename T, typename>
 struct Rice::detail::To_Ruby
 {
-  static VALUE convert(T&& data, bool takeOwnership)
+  template <typename U>
+  static VALUE convert(U&& data)
   {
     // Note that T could be a pointer or reference to a base class while data is in fact a
     // child class. Lookup the correct type so we return an instance of the correct Ruby class
     std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(data);
-    return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, std::forward<T>(data), takeOwnership);
+    return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, std::forward<U>(data));
   }
 };
 
@@ -6363,14 +6484,14 @@ template <typename T>
 struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<T> &&
   !Rice::detail::is_kind_of_object<T>>>
 {
-  static VALUE convert(T* data, bool takeOwnership)
+  static VALUE convert(T* data)
   {
     if (data)
     {
       // Note that T could be a pointer or reference to a base class while data is in fact a
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(*data);
-      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, takeOwnership);
+      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data);
     }
     else
     {
@@ -6822,11 +6943,11 @@ define_enum(
   return Enum<T>(name, module);
 }
 
-
 template<typename T>
 struct Rice::detail::To_Ruby<T, std::enable_if_t<std::is_enum_v<T>>>
 {
-  static VALUE convert(T&& data, bool takeOwnership = true)
+  template <typename U = T>
+  static VALUE convert(U&& data)
   {
     Object object = Rice::Enum<T>::from_enum(Rice::Enum<T>::klass(), data);
     return object.value();
