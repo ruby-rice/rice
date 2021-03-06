@@ -77,11 +77,6 @@ namespace
       return "multiple_args(" + std::to_string(i) + ", " + std::to_string(b) + ", " +
         std::to_string(f) + ", " + s + ", " + std::string(c) + ")";
     }
-
-  public:
-    const char readOnly[13] = "Read a char!";
-    int writeOnly = 0;
-    std::string readWrite;
   };
 } // namespace
 
@@ -243,79 +238,6 @@ TESTCASE(static_singleton_function_lambda)
 
   Object result = c.call("singleton_function_int", 42);
   ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
-}
-
-TESTCASE(attributes)
-{
-  Class c = define_class<MyClass>("MyClass")
-    .define_constructor(Constructor<MyClass>())
-    .define_attr("read_char", &MyClass::readOnly, Rice::AttrAccess::Read)
-    .define_attr("write_int", &MyClass::writeOnly, Rice::AttrAccess::Write)
-    .define_attr("read_write_string", &MyClass::readWrite);
-
-  Object o = c.call("new");
-  MyClass* myClass = detail::From_Ruby<MyClass*>::convert(o);
-
-  // Test readonly attribute
-  Object result = o.call("read_char");
-  ASSERT_EQUAL("Read a char!", detail::From_Ruby<char*>::convert(result));
-  ASSERT_EXCEPTION_CHECK(
-    Exception,
-    o.call("read_char=", "some text"),
-  );
-  
-  // Test writeonly attribute
-  result = o.call("write_int=", 5);
-  ASSERT_EQUAL(5, detail::From_Ruby<int>::convert(result.value()));
-  ASSERT_EQUAL(5, myClass->writeOnly);
-  ASSERT_EXCEPTION_CHECK(
-    Exception,
-    o.call("write_int", 3),
-    );
-
-  // Test readwrite attribute
-  result = o.call("read_write_string=", "Set a string");
-  ASSERT_EQUAL("Set a string", detail::From_Ruby<std::string>::convert(result.value()));
-  ASSERT_EQUAL("Set a string", myClass->readWrite);
-
-  result = o.call("read_write_string");
-  ASSERT_EQUAL("Set a string", detail::From_Ruby<std::string>::convert(result.value()));
-}
-
-TESTCASE(static_attributes)
-{
-  MyClass::reset();
-
-  Class c = define_class<MyClass>("MyClass")
-    .define_constructor(Constructor<MyClass>())
-    .define_singleton_attr("no_arg_called", &MyClass::no_arg_called, Rice::AttrAccess::Read)
-    .define_singleton_attr("int_arg_called", &MyClass::int_arg_called, Rice::AttrAccess::Write)
-    .define_singleton_attr("multiple_args_called", &MyClass::multiple_args_called);
-
-  // Test readonly attribute
-  Object result = c.call("no_arg_called");
-  ASSERT_EQUAL(Qfalse, result.value());
-  ASSERT_EXCEPTION_CHECK(
-    Exception,
-    c.call("no_arg_called=", true),
-  );
-
-  // Test writeonly attribute
-  result = c.call("int_arg_called=", true);
-  ASSERT_EQUAL(Qtrue, result.value());
-  ASSERT_EQUAL(true, MyClass::int_arg_called);
-  ASSERT_EXCEPTION_CHECK(
-    Exception,
-    c.call("int_arg_called"),
-  );
-
-  // Test readwrite attribute
-  result = c.call("multiple_args_called=", true);
-  ASSERT_EQUAL(Qtrue, result.value());
-  ASSERT_EQUAL(true, MyClass::multiple_args_called);
-
-  result = c.call("multiple_args_called");
-  ASSERT_EQUAL(Qtrue, result.value());
 }
 
 namespace {

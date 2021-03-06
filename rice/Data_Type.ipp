@@ -303,69 +303,54 @@ inline Data_Type<T>& Data_Type<T>::
 }
 
 template <typename T>
-template <typename Return_T>
-inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Return_T T::* member, AttrAccess access)
+template <typename Attr_T>
+inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T&& attr, AttrAccess access)
 {
-  using Member_T = Return_T T::*;
-  static_assert(std::is_member_pointer_v<Member_T>);
+  auto* native = detail::Make_Native_Attribute(attr, access);
+  using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
-  if (access == AttrAccess::Read || access == AttrAccess::ReadWrite)
+  if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
   {
-    std::string getter = name;
-    this->define_method(getter, [member](const T& instance)
-        {
-          return instance.*member;
-        }, Return().takeOwnership(false));
+    Rice::protect(detail::MethodData::define_method, klass_, Identifier(name).id(),
+      RUBY_METHOD_FUNC(&Native_T::get), 0, native);
   }
 
-  if (access == AttrAccess::Write || access == AttrAccess::ReadWrite)
+  if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
   {
-    std::string setter = name + "=";
-    if constexpr (!std::is_const_v<T> && !std::is_const_v<Return_T>)
+    if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
     {
-      this->define_method(setter, [member](T& instance, Return_T& value)
-        {
-          instance.*member = value;
-          return value;
-        }, Return().takeOwnership(false));
+      throw std::runtime_error(name + " is readonly");
     }
-    else
-    {
-      throw std::runtime_error("Cannot create attribute writer: " + setter);
-    }
+
+    Rice::protect(detail::MethodData::define_method, klass_, Identifier(name + "=").id(),
+      RUBY_METHOD_FUNC(&Native_T::set), 1, native);
   }
 
   return *this;
 }
 
 template <typename T>
-template <typename Return_T>
-inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Return_T* staticMember, AttrAccess access)
+template <typename Attr_T>
+inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_T&& attr, AttrAccess access)
 {
-  if (access == AttrAccess::Read || access == AttrAccess::ReadWrite)
+  auto* native = detail::Make_Native_Attribute(attr, access);
+  using Native_T = typename std::remove_pointer_t<decltype(native)>;
+
+  if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
   {
-    std::string getter = name;
-    this->define_singleton_function(getter, [staticMember]()
-      {
-        return *staticMember;
-      });
+    Rice::protect(detail::MethodData::define_method, rb_singleton_class(*this), Identifier(name).id(),
+      RUBY_METHOD_FUNC(&Native_T::get), 0, native);
   }
 
-  if (access == AttrAccess::Write || access == AttrAccess::ReadWrite)
+  if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
   {
-    std::string setter = name + "=";
-    if constexpr (!std::is_const_v<Return_T>)
+    if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
     {
-      this->define_singleton_function(setter, [staticMember](Return_T& value)
-        {
-          *staticMember = value;
-          return value;
-        });
+      throw std::runtime_error(name  + " is readonly");
     }
-    else
-    {
-      throw std::runtime_error("Cannot create singleton attribute writer: " + setter);
-    }
+
+    Rice::protect(detail::MethodData::define_method, rb_singleton_class(*this), Identifier(name + "=").id(),
+      RUBY_METHOD_FUNC(&Native_T::set), 1, native);
   }
 
   return *this;

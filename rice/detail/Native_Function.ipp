@@ -105,7 +105,7 @@ invokeNative(NativeTypes& nativeArgs)
   else if constexpr (std::is_pointer_v<Return_T>)
   {
     Return_T nativeResult = std::apply(this->func_, nativeArgs);
-    VALUE result = To_Ruby<Return_T>::convert(nativeResult);
+    VALUE result = To_Ruby<std::remove_cv_t<Return_T>>::convert(nativeResult);
 
     // This could be a pointer to a char* from a Ruby string, so check if we are dealing
     // with a wrapped object
@@ -120,17 +120,17 @@ invokeNative(NativeTypes& nativeArgs)
     Return_T nativeResult = std::apply(this->func_, nativeArgs);
     if (this->arguments_->isOwner())
     {
-      return To_Ruby<Return_T>::convert(std::move(nativeResult));
+      return To_Ruby<std::remove_cv_t<Return_T>>::convert(std::move(nativeResult));
     }
     else
     {
-      return To_Ruby<Return_T>::convert(nativeResult);
+      return To_Ruby<std::remove_cv_t<Return_T>>::convert(nativeResult);
     }
   }
   else
   {
     Return_T nativeResult = std::apply(this->func_, nativeArgs);
-    return To_Ruby<Return_T>::convert(std::move(nativeResult));
+    return To_Ruby<std::remove_cv_t<Return_T>>::convert(std::move(nativeResult));
   }
 }
 

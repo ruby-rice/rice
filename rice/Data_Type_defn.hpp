@@ -3,6 +3,7 @@
 
 #include "Class_defn.hpp"
 #include "detail/ruby.hpp"
+#include "detail/Native_Attribute.hpp"
 
 #include <memory>
 #include <map>
@@ -14,14 +15,7 @@
 
 namespace Rice
 {
-
-  enum class AttrAccess
-  {
-    ReadWrite,
-    Read,
-    Write
-  };
-
+ 
 //! Define a new data class in the namespace given by module.
 /*! The class will have a base class of Object.
  *  \param T the C++ type of the wrapped class.
@@ -196,11 +190,11 @@ public:
   template<typename U = T, typename Iterator_Return_T>
   Data_Type<T>& define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name = "each");
 
-  template <typename Return_T>
-  Data_Type<T>& define_attr(std::string name, Return_T T::* member, AttrAccess access = AttrAccess::ReadWrite);
+  template <typename Attr_T>
+  Data_Type<T>& define_attr(std::string name, Attr_T&& attr, AttrAccess access = AttrAccess::ReadWrite);
   
-  template <typename Return_T>
-  Data_Type<T>& define_singleton_attr(std::string name, Return_T* staticMember, AttrAccess access = AttrAccess::ReadWrite);
+  template <typename Attr_T>
+  Data_Type<T>& define_singleton_attr(std::string name, Attr_T&& attr, AttrAccess access = AttrAccess::ReadWrite);
 
 #include "shared_methods.hpp"
 
