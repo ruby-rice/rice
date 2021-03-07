@@ -1286,6 +1286,7 @@ namespace Rice
 // back to the C-API underneath again.
 #undef rb_define_method_id
 
+
 namespace Rice
 {
   namespace detail
@@ -1327,7 +1328,7 @@ namespace Rice
     MethodData::define_method(VALUE klass, ID id, VALUE(*cfunc)(ANYARGS), int arity, std::any data)
     {
       // Define the method
-      rb_define_method_id(klass, id, cfunc, arity);
+      protect(rb_define_method_id, klass, id, cfunc, arity);
 
       // Now store data about it
       methodWrappers_[key(klass, id)] = data;
@@ -1404,38 +1405,6 @@ namespace Rice
 
   } // detail
 } // Rice
-
-
-// =========   protect.hpp   =========
-
-
-/*! \file
- *  \brief Functions for making exception-safe calls into Ruby code.
- *  These are the building blocks for building other exception-safe
- *  helper functions.
- */
-
-namespace Rice
-{
-
-namespace detail
-{
-
-//! Call the given function, converting Ruby exceptions to C++
-//! exceptions.
-/*! Call the function f with the parameter arg  If f raises a Ruby
- * exception, then the exception is re-thrown as an Exception.  If f
- * exits with any other non-zero tag (e.g. a Symbol is thrown), then the
- * tag is re-thrown as a Jump_Tag.
- */
-VALUE protect(
-    RUBY_VALUE_FUNC f,
-    VALUE arg);
-
-} // namespace detail
-
-} // namespace Rice
-
 
 
 // =========   to_ruby.hpp   =========
@@ -1684,10 +1653,7 @@ namespace Rice
 // =========   Ruby_Function.hpp   =========
 
 
-namespace Rice
-{
-
-namespace detail
+namespace Rice::detail
 {
   /* This is functor class that wraps calls to a Ruby C API method. It is needed because
      rb_protect only supports calling methods that take one argument. Thus 
@@ -1699,63 +1665,113 @@ namespace detail
   class Ruby_Function
   {
   public:
-    static VALUE call(Ruby_Function* rubyFunction);
-
-  public:
     Ruby_Function(Function_T func, const Arg_Ts&... args);
-    Return_T operator()();
+    VALUE operator()();
 
   private:
+    static VALUE invoke(VALUE value);
+
     Function_T func_;
     std::tuple<Arg_Ts...> args_;
   };
 
-  template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  inline VALUE Ruby_Function<Function_T, Return_T, Arg_Ts...>::
-    call(Ruby_Function* rubyFunction)
-  {
-    if constexpr (std::is_void_v<Return_T>)
-    {
-      rubyFunction->operator()();
-      return Qnil;
-    }
-    else
-    {
-      return rubyFunction->operator()();
-    }
-  }
+  template<typename Function_T, typename... Arg_Ts>
+  decltype(auto) Make_Ruby_Function(Function_T&& func, Arg_Ts&&... args);
 
+  template<typename Function_T, typename ...Arg_Ts>
+  VALUE protect(Function_T&& func, Arg_Ts&&... args);
+}
+
+namespace Rice
+{
+  template<typename Function_T, typename ...Arg_Ts>
+  [[deprecated("Please use detail::protect")]]
+  VALUE protect(Function_T&& func, Arg_Ts&&... args);
+}
+
+
+// ---------   Ruby_Function.ipp   ---------
+
+namespace Rice::detail
+{
   template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  Ruby_Function<Function_T, Return_T, Arg_Ts...>::
-    Ruby_Function(Function_T func, const Arg_Ts&... args)
+  inline Ruby_Function<Function_T, Return_T, Arg_Ts...>::Ruby_Function(Function_T func, const Arg_Ts&... args)
     : func_(func), args_(std::forward_as_tuple(args...))
   {
   }
 
   template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  Return_T Ruby_Function<Function_T, Return_T, Arg_Ts...>::
-    operator()()
+  inline VALUE Ruby_Function<Function_T, Return_T, Arg_Ts...>::operator()()
   {
-    return std::apply(this->func_, this->args_);
-  }
-} // namespace detail
+    const int TAG_RAISE = 0x6; // From Ruby header files
+    int state = 0;
 
+    // Call our invoke function via rb_protect to capture any ruby exceptions
+    RUBY_VALUE_FUNC callback = (RUBY_VALUE_FUNC)&Ruby_Function<Function_T, Return_T, Arg_Ts...>::invoke;
+    VALUE retval = rb_protect(callback, (VALUE)this, &state);
 
-namespace detail
-{
-    template<typename Function_T, typename... Arg_Ts>
-    decltype(auto) ruby_function(Function_T func, Arg_Ts&&... args)
+    // Did anythoing go wrong?
+    if (state == 0)
     {
-      using Return_T = std::invoke_result_t<decltype(func), Arg_Ts...>;
-      return Ruby_Function<Function_T, Return_T, Arg_Ts...>(func, std::forward<Arg_Ts>(args)...);
+      return retval;
     }
+    else
+    {
+      VALUE err = rb_errinfo();
+      if (state == TAG_RAISE && RTEST(err))
+      {
+        rb_set_errinfo(Qnil);
+        throw Rice::Exception(err);
+      }
+      else
+      {
+        throw Jump_Tag(state);
+      }
+    }
+  }
 
-} // namespace detail
+  template<typename Function_T, typename Return_T, typename...Arg_Ts>
+  inline VALUE Ruby_Function<Function_T, Return_T, Arg_Ts...>::invoke(VALUE value)
+  {
+    Ruby_Function<Function_T, Return_T, Arg_Ts...>* instance = (Ruby_Function<Function_T, Return_T, Arg_Ts...>*)value;
+    
+    if constexpr (std::is_same_v<Return_T, void>)
+    {
+      std::apply(instance->func_, instance->args_);
+      return Qnil;
+    }
+    else
+    {
+      return std::apply(instance->func_, instance->args_);
+    }
+  }
 
-} // namespace rice
+  template<typename Function_T, typename... Arg_Ts>
+  inline decltype(auto) Make_Ruby_Function(Function_T&& func, Arg_Ts&&... args)
+  {
+    using Return_T = std::invoke_result_t<decltype(func), Arg_Ts...>;
+    return Ruby_Function<Function_T, Return_T, Arg_Ts...>(std::forward<Function_T>(func), std::forward<Arg_Ts>(args)...);
+  }
 
+  template<typename Function_T, typename ...Arg_Ts>
+  inline VALUE protect(Function_T&& func, Arg_Ts&&... args)
+  {
+    // Create a functor for calling a Ruby function and define some aliases for readability.
+    auto rubyFunction = detail::Make_Ruby_Function(std::forward<Function_T>(func), std::forward<Arg_Ts>(args)...);
+    return rubyFunction();
+  }
+}
 
-
+namespace Rice
+{
+  template<typename Function_T, typename ...Arg_Ts>
+  inline VALUE protect(Function_T&& func, Arg_Ts&&... args)
+  {
+    // Create a functor for calling a Ruby function and define some aliases for readability.
+    auto rubyFunction = detail::Make_Ruby_Function(std::forward<Function_T>(func), std::forward<Arg_Ts>(args)...);
+    return rubyFunction();
+  }
+}
 
 // =========   Exception.hpp   =========
 
@@ -2501,84 +2517,6 @@ namespace Rice
 
 
 
-// =========   protect.hpp   =========
-
-// This causes problems with certain C++ libraries
-#undef TYPE
-
-
-// ---------   protect.ipp   ---------
-// TODO - don't like pulling in Rice headers
-
-namespace Rice
-{
-  namespace detail
-  {
-    const int TAG_RAISE = 0x6;
-
-    inline VALUE
-    protect(
-        RUBY_VALUE_FUNC f,
-        VALUE arg)
-    {
-      int state = 0;
-      VALUE retval = rb_protect(f, arg, &state);
-      if (state != 0)
-      {
-        VALUE err = rb_errinfo();
-        if (state == TAG_RAISE && RTEST(err))
-        {
-          // TODO: convert NoMemoryError into bad_alloc?
-          rb_set_errinfo(Qnil);
-          throw Rice::Exception(err);
-        }
-        else
-        {
-          throw Jump_Tag(state);
-        }
-      }
-      return retval;
-    }
-  }
-}
-namespace Rice
-{
-
-/*! \file
- *  \brief A collection of functions (overloaded on number of
- *  arguments) for calling C functions that might raise Ruby exceptions.
- */
-
-//! Call the C function f with arguments (arg1, arg2, ...).
-/*! E.g.:
- *  \code
- *    VALUE x = protect(rb_ary_new);
- *    protect(rb_ary_push, x, INT2NUM(42));
- *  \endcode
- *
- *  Note that this function makes copies of all of its arguments; it
- *  does not take anything by reference.  All of the copies are const so
- *  that protect will not work if f takes a non-const
- *  reference to any of its arguments (though you can use non-const
- *  pointers).
- */
-template<typename Func_T, typename ...Arg_Ts>
-VALUE protect(Func_T&& func, const Arg_Ts&... args)
-{
-  // Create a functor for calling a Ruby fucntion and define some aliases for readability.
-  auto rubyFunction = detail::ruby_function(std::forward<Func_T>(func), args...);
-  using RubyFunctionType = decltype(rubyFunction);
-  VALUE rubyFunctionAsFakeValue = reinterpret_cast<VALUE>(&rubyFunction);
-
-  // Now call rb_protect sending it the functor we created above - it's call method
-  // will invoke the underyling Ruby fuction.
-  return detail::protect((RUBY_VALUE_FUNC)&RubyFunctionType::call, rubyFunctionAsFakeValue);
-}
-
-} // namespace Rice
-
-
-
 // =========   ruby_mark.hpp   =========
 #ifndef ruby_mark__hpp
 #define ruby_mark__hpp
@@ -2923,7 +2861,6 @@ extern Object const Undef;
 #ifndef Rice__Object__ipp_
 #define Rice__Object__ipp_
 
-
 namespace Rice
 {
   inline const Object Nil(Qnil);
@@ -2952,7 +2889,7 @@ inline Rice::Object Rice::Object::
 call(Identifier id, ArgT... args) const
 {
   auto asList = this->convert_args<ArgT...>(args...);
-  return protect(rb_funcall2, value(), id, (int)asList.size(), asList.data());
+  return detail::protect(rb_funcall2, value(), id, (int)asList.size(), asList.data());
 }
 
 template<typename ...ArgT>
@@ -2966,7 +2903,7 @@ iv_set(
     Identifier name,
     T const & value)
 {
-  protect(rb_ivar_set, *this, name.id(), detail::To_Ruby<T>::convert(value));
+  detail::protect(rb_ivar_set, *this, name.id(), detail::To_Ruby<T>::convert(value));
 }
 
 inline int Rice::Object::
@@ -2991,7 +2928,7 @@ is_eql(const Object& other) const
 inline void Rice::Object::
 freeze()
 {
-  protect(rb_obj_freeze, value());
+  detail::protect(rb_obj_freeze, value());
 }
 
 inline bool Rice::Object::
@@ -3009,7 +2946,7 @@ rb_type() const
 inline bool Rice::Object::
 is_a(Object klass) const
 {
-  Object result = protect(rb_obj_is_kind_of, *this, klass);
+  Object result = detail::protect(rb_obj_is_kind_of, *this, klass);
   return result.test();
 }
 
@@ -3022,7 +2959,7 @@ respond_to(Identifier id) const
 inline bool Rice::Object::
 is_instance_of(Object klass) const
 {
-  Object result = protect(rb_obj_is_instance_of, *this, klass);
+  Object result = detail::protect(rb_obj_is_instance_of, *this, klass);
   return result.test();
 }
 
@@ -3030,14 +2967,14 @@ inline Rice::Object Rice::Object::
 iv_get(
   Identifier name) const
 {
-  return protect(rb_ivar_get, *this, name.id());
+  return detail::protect(rb_ivar_get, *this, name.id());
 }
 
 inline Rice::Object Rice::Object::
 attr_get(
   Identifier name) const
 {
-  return protect(rb_attr_get, *this, name.id());
+  return detail::protect(rb_attr_get, *this, name.id());
 }
 
 inline void Rice::Object::
@@ -3157,7 +3094,6 @@ public:
 #ifndef Rice__Builtin_Object__ipp_
 #define Rice__Builtin_Object__ipp_
 
-
 #include <algorithm>
 
 namespace Rice
@@ -3177,7 +3113,7 @@ inline Builtin_Object<Builtin_Type>::
 Builtin_Object(Object value)
   : Object(value)
 {
-  protect(detail::check_type, value, Builtin_Type);
+  detail::protect(detail::check_type, value, Builtin_Type);
 }
 
 template<int Builtin_Type>
@@ -3287,10 +3223,9 @@ struct Rice::detail::From_Ruby<Rice::String>
 
 
 // ---------   String.ipp   ---------
-
 inline Rice::String::
 String()
-  : Builtin_Object<T_STRING>(protect(rb_str_new2, ""))
+  : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, ""))
 {
 }
 
@@ -3308,19 +3243,19 @@ String(Object v)
 
 inline Rice::String::
 String(char const * s)
-  : Builtin_Object<T_STRING>(protect(rb_str_new2, s))
+  : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, s))
 {
 }
 
 inline Rice::String::
 String(std::string const & s)
-  : Builtin_Object<T_STRING>(protect(rb_str_new, s.data(), (long)s.length()))
+  : Builtin_Object<T_STRING>(detail::protect(rb_str_new, s.data(), (long)s.length()))
 {
 }
 
 inline Rice::String::
 String(Identifier id)
-  : Builtin_Object<T_STRING>(protect(rb_str_new2, id.c_str()))
+  : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, id.c_str()))
 {
 }
 
@@ -3573,10 +3508,9 @@ struct Rice::detail::From_Ruby<Rice::Array>
 #ifndef Rice__Array__ipp_
 #define Rice__Array__ipp_
 
-
 inline Rice::Array::
 Array()
-  : Builtin_Object<T_ARRAY>(protect(rb_ary_new))
+  : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
 {
 }
 
@@ -3595,7 +3529,7 @@ Array(VALUE v)
 template<typename Iter_T>
 inline Rice::Array::
 Array(Iter_T it, Iter_T end)
-  : Builtin_Object<T_ARRAY>(protect(rb_ary_new))
+  : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
 {
   for(; it != end; ++it)
   {
@@ -3606,7 +3540,7 @@ Array(Iter_T it, Iter_T end)
 template<typename T, long n>
 inline Rice::Array::
 Array(T const (& a)[n])
-  : Builtin_Object<T_ARRAY>(protect(rb_ary_new))
+  : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
 {
   for(long j = 0; j < n; ++j)
   {
@@ -3623,7 +3557,7 @@ size() const
 inline Rice::Object Rice::Array::
 operator[](long index) const
 {
-  return protect(rb_ary_entry, value(), position_of(index));
+  return detail::protect(rb_ary_entry, value(), position_of(index));
 }
 
 inline Rice::Array::Proxy Rice::Array::
@@ -3636,26 +3570,26 @@ template<typename T>
 inline Rice::Object Rice::Array::
 push(T const & obj)
 {
-  return protect(rb_ary_push, value(), detail::To_Ruby<T>::convert(obj));
+  return detail::protect(rb_ary_push, value(), detail::To_Ruby<T>::convert(obj));
 }
 
 inline Rice::Object Rice::Array::
 pop()
 {
-  return protect(rb_ary_pop, value());
+  return detail::protect(rb_ary_pop, value());
 }
 
 template<typename T>
 inline Rice::Object Rice::Array::
 unshift(T const & obj)
 {
-  return protect(rb_ary_unshift, value(), detail::To_Ruby<T>::convert(obj));
+  return detail::protect(rb_ary_unshift, value(), detail::To_Ruby<T>::convert(obj));
 }
 
 inline Rice::Object Rice::Array::
 shift()
 {
-  return protect(rb_ary_shift, value());
+  return detail::protect(rb_ary_shift, value());
 }
 
 inline long Rice::Array::
@@ -3681,13 +3615,13 @@ Proxy(Array array, long index)
 inline Rice::Array::Proxy::
 operator Rice::Object() const
 {
-  return protect(rb_ary_entry, array_.value(), index_);
+  return detail::protect(rb_ary_entry, array_.value(), index_);
 }
 
 inline VALUE Rice::Array::Proxy::
 value() const
 {
-  return protect(rb_ary_entry, array_.value(), index_);
+  return detail::protect(rb_ary_entry, array_.value(), index_);
 }
 
 template<typename T>
@@ -4040,7 +3974,7 @@ struct Rice::detail::From_Ruby<Rice::Hash>
 
 inline Rice::Hash::
 Hash()
-  : Builtin_Object<T_HASH>(protect(rb_hash_new))
+  : Builtin_Object<T_HASH>(detail::protect(rb_hash_new))
 {
 }
 
@@ -4080,14 +4014,14 @@ operator Rice::Object() const
 inline VALUE Rice::Hash::Proxy::
 value() const
 {
-  return protect(rb_hash_aref, hash_->value(), key_);
+  return detail::protect(rb_hash_aref, hash_->value(), key_);
 }
 
 template<typename T>
 inline Rice::Object Rice::Hash::Proxy::
 operator=(T const & value)
 {
-  return protect(rb_hash_aset, hash_->value(), key_, detail::To_Ruby<T>::convert(value));
+  return detail::protect(rb_hash_aset, hash_->value(), key_, detail::To_Ruby<T>::convert(value));
 }
 
 template<typename Key_T>
@@ -4368,19 +4302,18 @@ struct Rice::detail::From_Ruby<Rice::Symbol>
 
 
 // ---------   Symbol.ipp   ---------
-
 inline Rice::Symbol::
 Symbol(VALUE v)
   : Object(v)
 {
-  protect(rb_check_type, v, T_SYMBOL);
+  detail::protect(rb_check_type, v, T_SYMBOL);
 }
 
 inline Rice::Symbol::
 Symbol(Object v)
   : Object(v)
 {
-  protect(rb_check_type, v, T_SYMBOL);
+  detail::protect(rb_check_type, v, T_SYMBOL);
 }
 
 inline Rice::Symbol::
@@ -4960,7 +4893,7 @@ inline
 Rice::Module Rice::
 anonymous_module()
 {
-  return Module(protect(rb_module_new));
+  return Module(detail::protect(rb_module_new));
 }
 
 template<typename Exception_T, typename Functor_T>
@@ -4991,7 +4924,7 @@ Rice::Module&
 Rice::Module::
 include_module(Rice::Module const& inc)
 {
-  Rice::protect(rb_include_module, *this, inc);
+  Rice::detail::protect(rb_include_module, *this, inc);
   return *this;
 }
 
@@ -5122,7 +5055,7 @@ const_set(
   Identifier name,
   Object value)
 {
-  protect(rb_const_set, *this, name, value);
+  detail::protect(rb_const_set, *this, name, value);
   return *this;
 }
 
@@ -5132,7 +5065,7 @@ Rice::Module::
 const_get(
   Identifier name) const
 {
-  return protect(rb_const_get, *this, name);
+  return detail::protect(rb_const_get, *this, name);
 }
 
 inline
@@ -5140,7 +5073,7 @@ bool
 Rice::Module::
 const_defined(Identifier name) const
 {
-  size_t result = protect(rb_const_defined, *this, name);
+  size_t result = detail::protect(rb_const_defined, *this, name);
   return bool(result);
 }
 
@@ -5149,7 +5082,7 @@ void
 Rice::Module::
 remove_const(Identifier name)
 {
-  protect(rb_mod_remove_const, *this, name.to_sym());
+  detail::protect(rb_mod_remove_const, *this, name.to_sym());
 }
 
 template<typename T>
@@ -5358,7 +5291,7 @@ public:
 
 auto& include_module(Module const& inc)
 {
-  protect(rb_include_module, *this, inc);
+  detail::protect(rb_include_module, *this, inc);
   return *this;
 }
 
@@ -5797,7 +5730,7 @@ public:
 
 auto& include_module(Module const& inc)
 {
-  protect(rb_include_module, *this, inc);
+  detail::protect(rb_include_module, *this, inc);
   return *this;
 }
 
@@ -6201,7 +6134,7 @@ inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T&& attr, 
 
   if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
   {
-    Rice::protect(detail::MethodData::define_method, klass_, Identifier(name).id(),
+    detail::MethodData::define_method( klass_, Identifier(name).id(),
       RUBY_METHOD_FUNC(&Native_T::get), 0, native);
   }
 
@@ -6212,7 +6145,7 @@ inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T&& attr, 
       throw std::runtime_error(name + " is readonly");
     }
 
-    Rice::protect(detail::MethodData::define_method, klass_, Identifier(name + "=").id(),
+    detail::MethodData::define_method( klass_, Identifier(name + "=").id(),
       RUBY_METHOD_FUNC(&Native_T::set), 1, native);
   }
 
@@ -6228,7 +6161,7 @@ inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_
 
   if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
   {
-    Rice::protect(detail::MethodData::define_method, rb_singleton_class(*this), Identifier(name).id(),
+    detail::MethodData::define_method( rb_singleton_class(*this), Identifier(name).id(),
       RUBY_METHOD_FUNC(&Native_T::get), 0, native);
   }
 
@@ -6239,7 +6172,7 @@ inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_
       throw std::runtime_error(name  + " is readonly");
     }
 
-    Rice::protect(detail::MethodData::define_method, rb_singleton_class(*this), Identifier(name + "=").id(),
+    detail::MethodData::define_method( rb_singleton_class(*this), Identifier(name + "=").id(),
       RUBY_METHOD_FUNC(&Native_T::set), 1, native);
   }
 
@@ -6608,7 +6541,7 @@ namespace Rice
 
     template<typename T, typename Iterator_T>
     inline VALUE Iterator<T, Iterator_T>::
-      call(VALUE self)
+    call(VALUE self)
     {
       using Iter_T = Iterator<T, Iterator_T>;
       Iter_T* iterator = detail::MethodData::data<Iter_T*>();
@@ -6617,7 +6550,7 @@ namespace Rice
 
     template<typename T, typename Iterator_T>
     inline VALUE Iterator<T, Iterator_T>::
-      operator()(VALUE self)
+    operator()(VALUE self)
     {
       using Value_T = typename std::iterator_traits<Iterator_T>::value_type;
 
@@ -6627,7 +6560,7 @@ namespace Rice
 
       for (; it != end; ++it)
       {
-        Rice::protect(rb_yield, detail::To_Ruby<Value_T>::convert(*it));
+        protect(rb_yield, detail::To_Ruby<Value_T>::convert(*it));
       }
 
       return self;
@@ -6799,7 +6732,7 @@ Enum(
   // Create a Ruby array that we will use later to store enum values
   // and attach it to the class
   Array enums;
-  protect(rb_iv_set, c, "enums", enums);
+  detail::protect(rb_iv_set, c, "enums", enums);
 }
 
 template<typename Enum_T>
@@ -7229,7 +7162,7 @@ inline Rice::Object Rice::Object::
 instance_eval(String const& s)
 {
   VALUE argv[] = { s.value() };
-  return protect(rb_obj_instance_eval, 1, &argv[0], *this);
+  return detail::protect(rb_obj_instance_eval, 1, &argv[0], *this);
 }
 
 inline Rice::Object Rice::Object::
@@ -7247,7 +7180,7 @@ vcall(
     a[i] = it->value();
   }
 
-  return protect(rb_funcall3, *this, id, (int)args.size(), a.data());
+  return detail::protect(rb_funcall3, *this, id, (int)args.size(), a.data());
 }
 
 inline std::ostream& Rice::
@@ -7285,7 +7218,7 @@ Rice::Array
 Rice::Module::
 ancestors() const
 {
-  return protect(rb_mod_ancestors, *this);
+  return detail::protect(rb_mod_ancestors, *this);
 }
 
 inline Rice::Class
@@ -7335,7 +7268,7 @@ inline void Rice::Module::wrap_native_method(VALUE klass, Identifier name, Funct
   auto* native = detail::Make_Native_Function_With_Self(std::forward<Function_T>(function), handler, arguments);
   using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
-  Rice::protect(detail::MethodData::define_method, klass, name.id(),
+  Rice::detail::protect(detail::MethodData::define_method, klass, name.id(),
     RUBY_METHOD_FUNC(&Native_T::call), -1, native);
 }
 
@@ -7347,7 +7280,7 @@ inline void Rice::Module::wrap_native_function(VALUE klass, Identifier name, Fun
   auto* native = detail::Make_Native_Function(std::forward<Function_T>(function), handler, arguments);
   using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
-  Rice::protect(detail::MethodData::define_method, klass, name.id(),
+  Rice::detail::protect(detail::MethodData::define_method, klass, name.id(),
     RUBY_METHOD_FUNC(&Native_T::call), -1, native);
 }
 
