@@ -2477,7 +2477,7 @@ template<typename Return_T, typename Self_T, typename ...Arg_T>
 auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
 {
   using Function_T = Return_T(Self_T::*)(Arg_T...) const;
-  return new Native_Function<Function_T, Return_T, Self_T, Arg_T...>(func, handler, arguments);
+  return new Native_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, arguments);
 }
 
 } // detail
