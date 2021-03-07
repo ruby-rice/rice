@@ -1250,93 +1250,6 @@ struct Jump_Tag
 
 
 
-// =========   method_data.hpp   =========
-
-#include <unordered_map>
-#include <any>
-
-
-namespace Rice
-{
-  namespace detail
-  {
-    class MethodData
-    {
-    public:
-      // Defines a new Ruby method and stores the Rice metadata about it
-      static void define_method(VALUE klass, ID id, VALUE(*cfunc)(ANYARGS), int arity, std::any data);
-
-      // Returns the Rice data for the currently active Ruby method
-      template <typename Return_T>
-      static Return_T data();
-
-    private:
-      static size_t key(VALUE klass, ID id);
-      inline static std::unordered_map<size_t, std::any> methodWrappers_ = {};
-    };
-  }
-} 
-
-// ---------   method_data.ipp   ---------
-
-// Ruby 2.7 now includes a similarly named macro that uses templates to
-// pick the right overload for the underlying function. That doesn't work
-// for our cases because we are using this method dynamically and get a
-// compilation error otherwise. This removes the macro and lets us fall
-// back to the C-API underneath again.
-#undef rb_define_method_id
-
-
-namespace Rice
-{
-  namespace detail
-  {
-    // Effective Java (2nd edition)
-    // https://stackoverflow.com/a/2634715
-    inline size_t MethodData::key(VALUE klass, ID id)
-    {
-      if (rb_type(klass) == T_ICLASS)
-      {
-        klass = rb_class_of(klass);
-      }
-
-      uint32_t prime = 53;
-      return (prime + klass) * prime + id;
-    }
-
-    template <typename Return_T>
-    inline Return_T MethodData::data()
-    {
-      ID id;
-      VALUE klass;
-      if (!rb_frame_method_id_and_class(&id, &klass))
-      {
-        rb_raise(rb_eRuntimeError, "Cannot get method id and class for function");
-      }
-
-      auto iter = methodWrappers_.find(key(klass, id));
-      if (iter == methodWrappers_.end())
-      {
-        rb_raise(rb_eRuntimeError, "Could not find data for klass and method id");
-      }
-
-      std::any data = iter->second;
-      return std::any_cast<Return_T>(data);
-    }
-
-    inline void
-    MethodData::define_method(VALUE klass, ID id, VALUE(*cfunc)(ANYARGS), int arity, std::any data)
-    {
-      // Define the method
-      protect(rb_define_method_id, klass, id, cfunc, arity);
-
-      // Now store data about it
-      methodWrappers_[key(klass, id)] = data;
-    }
-  }
-}
-
-
 // =========   NativeArg.hpp   =========
 
 
@@ -1650,129 +1563,6 @@ namespace Rice
 }
 
 
-// =========   Ruby_Function.hpp   =========
-
-
-namespace Rice::detail
-{
-  /* This is functor class that wraps calls to a Ruby C API method. It is needed because
-     rb_protect only supports calling methods that take one argument. Thus 
-     we invoke rb_protect telling it to invoke Ruby_Function::call with an 
-     instance of a Ruby_Function. That instance then in turn calls the original
-     Ruby method passing along its required arguments. */
-
-  template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  class Ruby_Function
-  {
-  public:
-    Ruby_Function(Function_T func, const Arg_Ts&... args);
-    VALUE operator()();
-
-  private:
-    static VALUE invoke(VALUE value);
-
-    Function_T func_;
-    std::tuple<Arg_Ts...> args_;
-  };
-
-  template<typename Function_T, typename... Arg_Ts>
-  decltype(auto) Make_Ruby_Function(Function_T&& func, Arg_Ts&&... args);
-
-  template<typename Function_T, typename ...Arg_Ts>
-  VALUE protect(Function_T&& func, Arg_Ts&&... args);
-}
-
-namespace Rice
-{
-  template<typename Function_T, typename ...Arg_Ts>
-  [[deprecated("Please use detail::protect")]]
-  VALUE protect(Function_T&& func, Arg_Ts&&... args);
-}
-
-
-// ---------   Ruby_Function.ipp   ---------
-
-namespace Rice::detail
-{
-  template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  inline Ruby_Function<Function_T, Return_T, Arg_Ts...>::Ruby_Function(Function_T func, const Arg_Ts&... args)
-    : func_(func), args_(std::forward_as_tuple(args...))
-  {
-  }
-
-  template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  inline VALUE Ruby_Function<Function_T, Return_T, Arg_Ts...>::operator()()
-  {
-    const int TAG_RAISE = 0x6; // From Ruby header files
-    int state = 0;
-
-    // Call our invoke function via rb_protect to capture any ruby exceptions
-    RUBY_VALUE_FUNC callback = (RUBY_VALUE_FUNC)&Ruby_Function<Function_T, Return_T, Arg_Ts...>::invoke;
-    VALUE retval = rb_protect(callback, (VALUE)this, &state);
-
-    // Did anythoing go wrong?
-    if (state == 0)
-    {
-      return retval;
-    }
-    else
-    {
-      VALUE err = rb_errinfo();
-      if (state == TAG_RAISE && RTEST(err))
-      {
-        rb_set_errinfo(Qnil);
-        throw Rice::Exception(err);
-      }
-      else
-      {
-        throw Jump_Tag(state);
-      }
-    }
-  }
-
-  template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  inline VALUE Ruby_Function<Function_T, Return_T, Arg_Ts...>::invoke(VALUE value)
-  {
-    Ruby_Function<Function_T, Return_T, Arg_Ts...>* instance = (Ruby_Function<Function_T, Return_T, Arg_Ts...>*)value;
-    
-    if constexpr (std::is_same_v<Return_T, void>)
-    {
-      std::apply(instance->func_, instance->args_);
-      return Qnil;
-    }
-    else
-    {
-      return std::apply(instance->func_, instance->args_);
-    }
-  }
-
-  template<typename Function_T, typename... Arg_Ts>
-  inline decltype(auto) Make_Ruby_Function(Function_T&& func, Arg_Ts&&... args)
-  {
-    using Return_T = std::invoke_result_t<decltype(func), Arg_Ts...>;
-    return Ruby_Function<Function_T, Return_T, Arg_Ts...>(std::forward<Function_T>(func), std::forward<Arg_Ts>(args)...);
-  }
-
-  template<typename Function_T, typename ...Arg_Ts>
-  inline VALUE protect(Function_T&& func, Arg_Ts&&... args)
-  {
-    // Create a functor for calling a Ruby function and define some aliases for readability.
-    auto rubyFunction = detail::Make_Ruby_Function(std::forward<Function_T>(func), std::forward<Arg_Ts>(args)...);
-    return rubyFunction();
-  }
-}
-
-namespace Rice
-{
-  template<typename Function_T, typename ...Arg_Ts>
-  inline VALUE protect(Function_T&& func, Arg_Ts&&... args)
-  {
-    // Create a functor for calling a Ruby function and define some aliases for readability.
-    auto rubyFunction = detail::Make_Ruby_Function(std::forward<Function_T>(func), std::forward<Arg_Ts>(args)...);
-    return rubyFunction();
-  }
-}
-
 // =========   Exception.hpp   =========
 
 
@@ -1913,6 +1703,216 @@ value() const
   return this->exception_;
 }
 #endif // Rice__Exception__ipp_
+
+// =========   Ruby_Function.hpp   =========
+
+
+namespace Rice::detail
+{
+  /* This is functor class that wraps calls to a Ruby C API method. It is needed because
+     rb_protect only supports calling methods that take one argument. Thus 
+     we invoke rb_protect telling it to invoke Ruby_Function::call with an 
+     instance of a Ruby_Function. That instance then in turn calls the original
+     Ruby method passing along its required arguments. */
+
+  template<typename Function_T, typename Return_T, typename...Arg_Ts>
+  class Ruby_Function
+  {
+  public:
+    Ruby_Function(Function_T func, const Arg_Ts&... args);
+    VALUE operator()();
+
+  private:
+    static VALUE invoke(VALUE value);
+
+    Function_T func_;
+    std::tuple<Arg_Ts...> args_;
+  };
+
+  template<typename Function_T, typename... Arg_Ts>
+  decltype(auto) Make_Ruby_Function(Function_T&& func, Arg_Ts&&... args);
+
+  template<typename Function_T, typename ...Arg_Ts>
+  VALUE protect(Function_T&& func, Arg_Ts&&... args);
+}
+
+namespace Rice
+{
+  template<typename Function_T, typename ...Arg_Ts>
+  [[deprecated("Please use detail::protect")]]
+  VALUE protect(Function_T&& func, Arg_Ts&&... args);
+}
+
+
+// ---------   Ruby_Function.ipp   ---------
+
+namespace Rice::detail
+{
+  template<typename Function_T, typename Return_T, typename...Arg_Ts>
+  inline Ruby_Function<Function_T, Return_T, Arg_Ts...>::Ruby_Function(Function_T func, const Arg_Ts&... args)
+    : func_(func), args_(std::forward_as_tuple(args...))
+  {
+  }
+
+  template<typename Function_T, typename Return_T, typename...Arg_Ts>
+  inline VALUE Ruby_Function<Function_T, Return_T, Arg_Ts...>::operator()()
+  {
+    const int TAG_RAISE = 0x6; // From Ruby header files
+    int state = 0;
+
+    // Call our invoke function via rb_protect to capture any ruby exceptions
+    RUBY_VALUE_FUNC callback = (RUBY_VALUE_FUNC)&Ruby_Function<Function_T, Return_T, Arg_Ts...>::invoke;
+    VALUE retval = rb_protect(callback, (VALUE)this, &state);
+
+    // Did anythoing go wrong?
+    if (state == 0)
+    {
+      return retval;
+    }
+    else
+    {
+      VALUE err = rb_errinfo();
+      if (state == TAG_RAISE && RTEST(err))
+      {
+        rb_set_errinfo(Qnil);
+        throw Rice::Exception(err);
+      }
+      else
+      {
+        throw Jump_Tag(state);
+      }
+    }
+  }
+
+  template<typename Function_T, typename Return_T, typename...Arg_Ts>
+  inline VALUE Ruby_Function<Function_T, Return_T, Arg_Ts...>::invoke(VALUE value)
+  {
+    Ruby_Function<Function_T, Return_T, Arg_Ts...>* instance = (Ruby_Function<Function_T, Return_T, Arg_Ts...>*)value;
+    
+    if constexpr (std::is_same_v<Return_T, void>)
+    {
+      std::apply(instance->func_, instance->args_);
+      return Qnil;
+    }
+    else
+    {
+      return std::apply(instance->func_, instance->args_);
+    }
+  }
+
+  template<typename Function_T, typename... Arg_Ts>
+  inline decltype(auto) Make_Ruby_Function(Function_T&& func, Arg_Ts&&... args)
+  {
+    using Return_T = std::invoke_result_t<decltype(func), Arg_Ts...>;
+    return Ruby_Function<Function_T, Return_T, Arg_Ts...>(std::forward<Function_T>(func), std::forward<Arg_Ts>(args)...);
+  }
+
+  template<typename Function_T, typename ...Arg_Ts>
+  inline VALUE protect(Function_T&& func, Arg_Ts&&... args)
+  {
+    // Create a functor for calling a Ruby function and define some aliases for readability.
+    auto rubyFunction = detail::Make_Ruby_Function(std::forward<Function_T>(func), std::forward<Arg_Ts>(args)...);
+    return rubyFunction();
+  }
+}
+
+namespace Rice
+{
+  template<typename Function_T, typename ...Arg_Ts>
+  inline VALUE protect(Function_T&& func, Arg_Ts&&... args)
+  {
+    // Create a functor for calling a Ruby function and define some aliases for readability.
+    auto rubyFunction = detail::Make_Ruby_Function(std::forward<Function_T>(func), std::forward<Arg_Ts>(args)...);
+    return rubyFunction();
+  }
+}
+
+// =========   method_data.hpp   =========
+
+#include <unordered_map>
+#include <any>
+
+
+namespace Rice
+{
+  namespace detail
+  {
+    class MethodData
+    {
+    public:
+      // Defines a new Ruby method and stores the Rice metadata about it
+      static void define_method(VALUE klass, ID id, VALUE(*cfunc)(ANYARGS), int arity, std::any data);
+
+      // Returns the Rice data for the currently active Ruby method
+      template <typename Return_T>
+      static Return_T data();
+
+    private:
+      static size_t key(VALUE klass, ID id);
+      inline static std::unordered_map<size_t, std::any> methodWrappers_ = {};
+    };
+  }
+} 
+
+// ---------   method_data.ipp   ---------
+
+// Ruby 2.7 now includes a similarly named macro that uses templates to
+// pick the right overload for the underlying function. That doesn't work
+// for our cases because we are using this method dynamically and get a
+// compilation error otherwise. This removes the macro and lets us fall
+// back to the C-API underneath again.
+#undef rb_define_method_id
+
+
+namespace Rice
+{
+  namespace detail
+  {
+    // Effective Java (2nd edition)
+    // https://stackoverflow.com/a/2634715
+    inline size_t MethodData::key(VALUE klass, ID id)
+    {
+      if (rb_type(klass) == T_ICLASS)
+      {
+        klass = rb_class_of(klass);
+      }
+
+      uint32_t prime = 53;
+      return (prime + klass) * prime + id;
+    }
+
+    template <typename Return_T>
+    inline Return_T MethodData::data()
+    {
+      ID id;
+      VALUE klass;
+      if (!rb_frame_method_id_and_class(&id, &klass))
+      {
+        rb_raise(rb_eRuntimeError, "Cannot get method id and class for function");
+      }
+
+      auto iter = methodWrappers_.find(key(klass, id));
+      if (iter == methodWrappers_.end())
+      {
+        rb_raise(rb_eRuntimeError, "Could not find data for klass and method id");
+      }
+
+      std::any data = iter->second;
+      return std::any_cast<Return_T>(data);
+    }
+
+    inline void
+    MethodData::define_method(VALUE klass, ID id, VALUE(*cfunc)(ANYARGS), int arity, std::any data)
+    {
+      // Define the method
+      protect(rb_define_method_id, klass, id, cfunc, arity);
+
+      // Now store data about it
+      methodWrappers_[key(klass, id)] = data;
+    }
+  }
+}
+
 
 // =========   ruby_try_catch.hpp   =========
 
