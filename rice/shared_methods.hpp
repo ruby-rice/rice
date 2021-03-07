@@ -4,7 +4,7 @@
 
 auto& include_module(Module const& inc)
 {
-  protect(rb_include_module, *this, inc);
+  detail::protect(rb_include_module, *this, inc);
   return *this;
 }
 

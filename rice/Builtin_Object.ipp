@@ -2,8 +2,6 @@
 #define Rice__Builtin_Object__ipp_
 
 #include "Object.hpp"
-#include "protect.hpp"
-
 #include <algorithm>
 
 namespace Rice
@@ -23,7 +21,7 @@ inline Builtin_Object<Builtin_Type>::
 Builtin_Object(Object value)
   : Object(value)
 {
-  protect(detail::check_type, value, Builtin_Type);
+  detail::protect(detail::check_type, value, Builtin_Type);
 }
 
 template<int Builtin_Type>

@@ -24,7 +24,7 @@ inline Rice::Object Rice::Object::
 instance_eval(String const& s)
 {
   VALUE argv[] = { s.value() };
-  return protect(rb_obj_instance_eval, 1, &argv[0], *this);
+  return detail::protect(rb_obj_instance_eval, 1, &argv[0], *this);
 }
 
 inline Rice::Object Rice::Object::
@@ -42,7 +42,7 @@ vcall(
     a[i] = it->value();
   }
 
-  return protect(rb_funcall3, *this, id, (int)args.size(), a.data());
+  return detail::protect(rb_funcall3, *this, id, (int)args.size(), a.data());
 }
 
 inline std::ostream& Rice::
@@ -80,7 +80,7 @@ Rice::Array
 Rice::Module::
 ancestors() const
 {
-  return protect(rb_mod_ancestors, *this);
+  return detail::protect(rb_mod_ancestors, *this);
 }
 
 inline Rice::Class
@@ -130,7 +130,7 @@ inline void Rice::Module::wrap_native_method(VALUE klass, Identifier name, Funct
   auto* native = detail::Make_Native_Function_With_Self(std::forward<Function_T>(function), handler, arguments);
   using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
-  Rice::protect(detail::MethodData::define_method, klass, name.id(),
+  Rice::detail::protect(detail::MethodData::define_method, klass, name.id(),
     RUBY_METHOD_FUNC(&Native_T::call), -1, native);
 }
 
@@ -142,7 +142,7 @@ inline void Rice::Module::wrap_native_function(VALUE klass, Identifier name, Fun
   auto* native = detail::Make_Native_Function(std::forward<Function_T>(function), handler, arguments);
   using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
-  Rice::protect(detail::MethodData::define_method, klass, name.id(),
+  Rice::detail::protect(detail::MethodData::define_method, klass, name.id(),
     RUBY_METHOD_FUNC(&Native_T::call), -1, native);
 }
 

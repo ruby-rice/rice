@@ -1,17 +1,15 @@
-#include "protect.hpp"
-
 inline Rice::Symbol::
 Symbol(VALUE v)
   : Object(v)
 {
-  protect(rb_check_type, v, T_SYMBOL);
+  detail::protect(rb_check_type, v, T_SYMBOL);
 }
 
 inline Rice::Symbol::
 Symbol(Object v)
   : Object(v)
 {
-  protect(rb_check_type, v, T_SYMBOL);
+  detail::protect(rb_check_type, v, T_SYMBOL);
 }
 
 inline Rice::Symbol::

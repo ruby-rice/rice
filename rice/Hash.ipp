@@ -1,14 +1,13 @@
 #ifndef Rice__Hash__ipp_
 #define Rice__Hash__ipp_
 
-#include "protect.hpp"
 #include "Exception.hpp"
 #include "String.hpp"
 #include <algorithm>
 
 inline Rice::Hash::
 Hash()
-  : Builtin_Object<T_HASH>(protect(rb_hash_new))
+  : Builtin_Object<T_HASH>(detail::protect(rb_hash_new))
 {
 }
 
@@ -48,14 +47,14 @@ operator Rice::Object() const
 inline VALUE Rice::Hash::Proxy::
 value() const
 {
-  return protect(rb_hash_aref, hash_->value(), key_);
+  return detail::protect(rb_hash_aref, hash_->value(), key_);
 }
 
 template<typename T>
 inline Rice::Object Rice::Hash::Proxy::
 operator=(T const & value)
 {
-  return protect(rb_hash_aset, hash_->value(), key_, detail::To_Ruby<T>::convert(value));
+  return detail::protect(rb_hash_aset, hash_->value(), key_, detail::To_Ruby<T>::convert(value));
 }
 
 template<typename Key_T>

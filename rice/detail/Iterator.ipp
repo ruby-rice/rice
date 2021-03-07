@@ -6,7 +6,6 @@
 
 #include "Data_Object_defn.hpp"
 #include "method_data.hpp"
-#include "protect.hpp"
 
 namespace Rice
 {
@@ -22,7 +21,7 @@ namespace Rice
 
     template<typename T, typename Iterator_T>
     inline VALUE Iterator<T, Iterator_T>::
-      call(VALUE self)
+    call(VALUE self)
     {
       using Iter_T = Iterator<T, Iterator_T>;
       Iter_T* iterator = detail::MethodData::data<Iter_T*>();
@@ -31,7 +30,7 @@ namespace Rice
 
     template<typename T, typename Iterator_T>
     inline VALUE Iterator<T, Iterator_T>::
-      operator()(VALUE self)
+    operator()(VALUE self)
     {
       using Value_T = typename std::iterator_traits<Iterator_T>::value_type;
 
@@ -41,7 +40,7 @@ namespace Rice
 
       for (; it != end; ++it)
       {
-        Rice::protect(rb_yield, detail::To_Ruby<Value_T>::convert(*it));
+        protect(rb_yield, detail::To_Ruby<Value_T>::convert(*it));
       }
 
       return self;

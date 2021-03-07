@@ -3,7 +3,6 @@
 
 #include "detail/Native_Function.hpp"
 #include "Exception.hpp"
-#include "protect.hpp"
 
 inline
 Rice::Module::
@@ -49,7 +48,7 @@ inline
 Rice::Module Rice::
 anonymous_module()
 {
-  return Module(protect(rb_module_new));
+  return Module(detail::protect(rb_module_new));
 }
 
 template<typename Exception_T, typename Functor_T>
@@ -80,7 +79,7 @@ Rice::Module&
 Rice::Module::
 include_module(Rice::Module const& inc)
 {
-  Rice::protect(rb_include_module, *this, inc);
+  Rice::detail::protect(rb_include_module, *this, inc);
   return *this;
 }
 
@@ -211,7 +210,7 @@ const_set(
   Identifier name,
   Object value)
 {
-  protect(rb_const_set, *this, name, value);
+  detail::protect(rb_const_set, *this, name, value);
   return *this;
 }
 
@@ -221,7 +220,7 @@ Rice::Module::
 const_get(
   Identifier name) const
 {
-  return protect(rb_const_get, *this, name);
+  return detail::protect(rb_const_get, *this, name);
 }
 
 inline
@@ -229,7 +228,7 @@ bool
 Rice::Module::
 const_defined(Identifier name) const
 {
-  size_t result = protect(rb_const_defined, *this, name);
+  size_t result = detail::protect(rb_const_defined, *this, name);
   return bool(result);
 }
 
@@ -238,7 +237,7 @@ void
 Rice::Module::
 remove_const(Identifier name)
 {
-  protect(rb_mod_remove_const, *this, name.to_sym());
+  detail::protect(rb_mod_remove_const, *this, name.to_sym());
 }
 
 template<typename T>

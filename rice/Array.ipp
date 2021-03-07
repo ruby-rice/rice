@@ -1,11 +1,9 @@
 #ifndef Rice__Array__ipp_
 #define Rice__Array__ipp_
 
-#include "protect.hpp"
-
 inline Rice::Array::
 Array()
-  : Builtin_Object<T_ARRAY>(protect(rb_ary_new))
+  : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
 {
 }
 
@@ -24,7 +22,7 @@ Array(VALUE v)
 template<typename Iter_T>
 inline Rice::Array::
 Array(Iter_T it, Iter_T end)
-  : Builtin_Object<T_ARRAY>(protect(rb_ary_new))
+  : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
 {
   for(; it != end; ++it)
   {
@@ -35,7 +33,7 @@ Array(Iter_T it, Iter_T end)
 template<typename T, long n>
 inline Rice::Array::
 Array(T const (& a)[n])
-  : Builtin_Object<T_ARRAY>(protect(rb_ary_new))
+  : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
 {
   for(long j = 0; j < n; ++j)
   {
@@ -52,7 +50,7 @@ size() const
 inline Rice::Object Rice::Array::
 operator[](long index) const
 {
-  return protect(rb_ary_entry, value(), position_of(index));
+  return detail::protect(rb_ary_entry, value(), position_of(index));
 }
 
 inline Rice::Array::Proxy Rice::Array::
@@ -65,26 +63,26 @@ template<typename T>
 inline Rice::Object Rice::Array::
 push(T const & obj)
 {
-  return protect(rb_ary_push, value(), detail::To_Ruby<T>::convert(obj));
+  return detail::protect(rb_ary_push, value(), detail::To_Ruby<T>::convert(obj));
 }
 
 inline Rice::Object Rice::Array::
 pop()
 {
-  return protect(rb_ary_pop, value());
+  return detail::protect(rb_ary_pop, value());
 }
 
 template<typename T>
 inline Rice::Object Rice::Array::
 unshift(T const & obj)
 {
-  return protect(rb_ary_unshift, value(), detail::To_Ruby<T>::convert(obj));
+  return detail::protect(rb_ary_unshift, value(), detail::To_Ruby<T>::convert(obj));
 }
 
 inline Rice::Object Rice::Array::
 shift()
 {
-  return protect(rb_ary_shift, value());
+  return detail::protect(rb_ary_shift, value());
 }
 
 inline long Rice::Array::
@@ -110,13 +108,13 @@ Proxy(Array array, long index)
 inline Rice::Array::Proxy::
 operator Rice::Object() const
 {
-  return protect(rb_ary_entry, array_.value(), index_);
+  return detail::protect(rb_ary_entry, array_.value(), index_);
 }
 
 inline VALUE Rice::Array::Proxy::
 value() const
 {
-  return protect(rb_ary_entry, array_.value(), index_);
+  return detail::protect(rb_ary_entry, array_.value(), index_);
 }
 
 template<typename T>

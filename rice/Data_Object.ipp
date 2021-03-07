@@ -1,7 +1,6 @@
 #ifndef Rice__Data_Object__ipp_
 #define Rice__Data_Object__ipp_
 
-#include "protect.hpp"
 #include "Data_Type_defn.hpp"
 #include "detail/Caster.hpp"
 

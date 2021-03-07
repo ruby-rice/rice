@@ -1,8 +1,6 @@
 #ifndef Rice__Object__ipp_
 #define Rice__Object__ipp_
 
-#include "protect.hpp"
-
 namespace Rice
 {
   inline const Object Nil(Qnil);
@@ -31,7 +29,7 @@ inline Rice::Object Rice::Object::
 call(Identifier id, ArgT... args) const
 {
   auto asList = this->convert_args<ArgT...>(args...);
-  return protect(rb_funcall2, value(), id, (int)asList.size(), asList.data());
+  return detail::protect(rb_funcall2, value(), id, (int)asList.size(), asList.data());
 }
 
 template<typename ...ArgT>
@@ -45,7 +43,7 @@ iv_set(
     Identifier name,
     T const & value)
 {
-  protect(rb_ivar_set, *this, name.id(), detail::To_Ruby<T>::convert(value));
+  detail::protect(rb_ivar_set, *this, name.id(), detail::To_Ruby<T>::convert(value));
 }
 
 inline int Rice::Object::
@@ -70,7 +68,7 @@ is_eql(const Object& other) const
 inline void Rice::Object::
 freeze()
 {
-  protect(rb_obj_freeze, value());
+  detail::protect(rb_obj_freeze, value());
 }
 
 inline bool Rice::Object::
@@ -88,7 +86,7 @@ rb_type() const
 inline bool Rice::Object::
 is_a(Object klass) const
 {
-  Object result = protect(rb_obj_is_kind_of, *this, klass);
+  Object result = detail::protect(rb_obj_is_kind_of, *this, klass);
   return result.test();
 }
 
@@ -101,7 +99,7 @@ respond_to(Identifier id) const
 inline bool Rice::Object::
 is_instance_of(Object klass) const
 {
-  Object result = protect(rb_obj_is_instance_of, *this, klass);
+  Object result = detail::protect(rb_obj_is_instance_of, *this, klass);
   return result.test();
 }
 
@@ -109,14 +107,14 @@ inline Rice::Object Rice::Object::
 iv_get(
   Identifier name) const
 {
-  return protect(rb_ivar_get, *this, name.id());
+  return detail::protect(rb_ivar_get, *this, name.id());
 }
 
 inline Rice::Object Rice::Object::
 attr_get(
   Identifier name) const
 {
-  return protect(rb_attr_get, *this, name.id());
+  return detail::protect(rb_attr_get, *this, name.id());
 }
 
 inline void Rice::Object::

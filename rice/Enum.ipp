@@ -55,7 +55,7 @@ Enum(
   // Create a Ruby array that we will use later to store enum values
   // and attach it to the class
   Array enums;
-  protect(rb_iv_set, c, "enums", enums);
+  detail::protect(rb_iv_set, c, "enums", enums);
 }
 
 template<typename Enum_T>

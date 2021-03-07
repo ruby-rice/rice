@@ -1,8 +1,6 @@
-#include "protect.hpp"
-
 inline Rice::String::
 String()
-  : Builtin_Object<T_STRING>(protect(rb_str_new2, ""))
+  : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, ""))
 {
 }
 
@@ -20,19 +18,19 @@ String(Object v)
 
 inline Rice::String::
 String(char const * s)
-  : Builtin_Object<T_STRING>(protect(rb_str_new2, s))
+  : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, s))
 {
 }
 
 inline Rice::String::
 String(std::string const & s)
-  : Builtin_Object<T_STRING>(protect(rb_str_new, s.data(), (long)s.length()))
+  : Builtin_Object<T_STRING>(detail::protect(rb_str_new, s.data(), (long)s.length()))
 {
 }
 
 inline Rice::String::
 String(Identifier id)
-  : Builtin_Object<T_STRING>(protect(rb_str_new2, id.c_str()))
+  : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, id.c_str()))
 {
 }
 

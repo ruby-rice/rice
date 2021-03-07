@@ -17,7 +17,6 @@
 #include "detail/Jump_Tag.hpp"
 #include "detail/method_data.hpp"
 #include "detail/NativeArg.hpp"
-#include "detail/protect.hpp"
 #include "detail/to_ruby.hpp"
 #include "detail/Ruby_Function.hpp"
 #include "Exception.hpp"
@@ -27,8 +26,6 @@
 
 // Deprecated - Arg_operators is deprecated and should be removed in the future
 #include "Arg_operators.hpp"
-
-#include "protect.hpp"
 
 #include "ruby_mark.hpp"
 
