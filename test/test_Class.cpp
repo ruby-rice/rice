@@ -180,7 +180,7 @@ TESTCASE(add_handler)
   Class c(rb_cObject);
   c.add_handler<Silly_Exception>(handle_silly_exception);
   c.define_function("foo", throw_silly_exception);
-  Object exc = protect(rb_eval_string, "begin; foo; rescue Exception; $!; end");
+  Object exc = detail::protect(rb_eval_string, "begin; foo; rescue Exception; $!; end");
   ASSERT_EQUAL(rb_eRuntimeError, CLASS_OF(exc));
   Exception ex(exc);
   ASSERT_EQUAL("SILLY", ex.what());
@@ -286,4 +286,35 @@ TESTCASE(define_method_default_arguments)
   ASSERT_EQUAL(22, defaults_method_one_arg1);
   ASSERT_EQUAL(33, defaults_method_one_arg2);
   ASSERT(!defaults_method_one_arg3);
+}
+
+namespace
+{
+  int func1 = 0;
+  int func2 = 0;
+
+  int function1(int aValue)
+  {
+    func1 = aValue;
+    return func1;
+  }
+
+  int function2(int aValue)
+  {
+    func2 = aValue;
+    return func2;
+  }
+}
+
+TESTCASE(same_function_signature)
+{
+  Class c = define_class("FunctionSignatures")
+    .define_singleton_function("function1", &function1)
+    .define_singleton_function("function2", &function2);
+
+  c.call("function1", 5);
+  ASSERT_EQUAL(5, func1);
+
+  c.call("function2", 6);
+  ASSERT_EQUAL(6, func2);
 }
