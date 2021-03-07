@@ -13,14 +13,14 @@ SETUP(Exception)
 
 TESTCASE(construct_from_exception_object)
 {
-  VALUE v = protect(rb_exc_new2, rb_eRuntimeError, "foo");
+  VALUE v = detail::protect(rb_exc_new2, rb_eRuntimeError, "foo");
   Exception ex(v);
   ASSERT_EQUAL(ex.value(), v);
 }
 
 TESTCASE(copy_construct)
 {
-  VALUE v = protect(rb_exc_new2, rb_eRuntimeError, "foo");
+  VALUE v = detail::protect(rb_exc_new2, rb_eRuntimeError, "foo");
   Exception ex1(v);
   Exception ex2(v);
   ASSERT_EQUAL(ex2.value(), v);

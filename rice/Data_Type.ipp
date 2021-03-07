@@ -311,7 +311,7 @@ inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T&& attr, 
 
   if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
   {
-    Rice::protect(detail::MethodData::define_method, klass_, Identifier(name).id(),
+    detail::MethodData::define_method( klass_, Identifier(name).id(),
       RUBY_METHOD_FUNC(&Native_T::get), 0, native);
   }
 
@@ -322,7 +322,7 @@ inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T&& attr, 
       throw std::runtime_error(name + " is readonly");
     }
 
-    Rice::protect(detail::MethodData::define_method, klass_, Identifier(name + "=").id(),
+    detail::MethodData::define_method( klass_, Identifier(name + "=").id(),
       RUBY_METHOD_FUNC(&Native_T::set), 1, native);
   }
 
@@ -338,7 +338,7 @@ inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_
 
   if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
   {
-    Rice::protect(detail::MethodData::define_method, rb_singleton_class(*this), Identifier(name).id(),
+    detail::MethodData::define_method( rb_singleton_class(*this), Identifier(name).id(),
       RUBY_METHOD_FUNC(&Native_T::get), 0, native);
   }
 
@@ -349,7 +349,7 @@ inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_
       throw std::runtime_error(name  + " is readonly");
     }
 
-    Rice::protect(detail::MethodData::define_method, rb_singleton_class(*this), Identifier(name + "=").id(),
+    detail::MethodData::define_method( rb_singleton_class(*this), Identifier(name + "=").id(),
       RUBY_METHOD_FUNC(&Native_T::set), 1, native);
   }
 

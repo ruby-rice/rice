@@ -6,6 +6,8 @@
 // back to the C-API underneath again.
 #undef rb_define_method_id
 
+#include "Ruby_Function.hpp"
+
 namespace Rice
 {
   namespace detail
@@ -47,7 +49,7 @@ namespace Rice
     MethodData::define_method(VALUE klass, ID id, VALUE(*cfunc)(ANYARGS), int arity, std::any data)
     {
       // Define the method
-      rb_define_method_id(klass, id, cfunc, arity);
+      protect(rb_define_method_id, klass, id, cfunc, arity);
 
       // Now store data about it
       methodWrappers_[key(klass, id)] = data;
