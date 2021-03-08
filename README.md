@@ -18,6 +18,12 @@ What Rice gives you:
 - Smart pointers for handling garbage collection
 - Wrappers for most builtin types to simplify calling code
 
+# Version Differences 3.x vs 4.x and later
+
+This documentation and the `master` branch are for Rice 4.x and later, which is the
+header-only version of this library. Use the `3.x` branch for the docs and code for that
+line of releases.
+
 # Project Details
 
 The source is hosted on GitHub: http://github.com/jasonroelofs/rice
