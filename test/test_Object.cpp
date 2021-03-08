@@ -1,9 +1,6 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include "rice/Object.hpp"
-#include "rice/Class.hpp"
-#include "rice/String.hpp"
-#include "rice/Array.hpp"
+#include <rice/rice.hpp>
 
 using namespace Rice;
 
@@ -28,9 +25,34 @@ TESTCASE(construct_with_value)
 
 TESTCASE(copy_construct)
 {
-  Object o(INT2NUM(42));
-  Object o2(o);
-  ASSERT_EQUAL(INT2NUM(42), o2.value());
+  Object o1(INT2NUM(42));
+  Object o2(o1);
+  ASSERT_EQUAL(o2.value(), o1.value());
+}
+
+TESTCASE(copy_assign)
+{
+  Object o1(INT2NUM(42));
+  Object o2(INT2NUM(43));
+  o2 = o1;
+  ASSERT_EQUAL(o2.value(), o1.value());
+}
+
+TESTCASE(move_construct)
+{
+  Object o1(INT2NUM(42));
+  Object o2(std::move(o1));
+  ASSERT_EQUAL(o2.value(), INT2NUM(42));
+  ASSERT_EQUAL(o1.value(), Qnil);
+}
+
+TESTCASE(move_assign)
+{
+  Object o1(INT2NUM(42));
+  Object o2(INT2NUM(43));
+  o2 = std::move(o1);
+  ASSERT_EQUAL(o2.value(), INT2NUM(42));
+  ASSERT_EQUAL(o1.value(), Qnil);
 }
 
 TESTCASE(test)
@@ -64,7 +86,7 @@ TESTCASE(is_nil)
 
 TESTCASE(implicit_conversion_to_value)
 {
-  // g++ 3.3.3 can't handle constructor-style inside the assert, which
+  // Compilers (g++, msvc) can't handle constructor-style inside the assert, which
   // is why we use cast-style here.
   ASSERT_EQUAL(Qtrue, (VALUE)Object(Qtrue));
   ASSERT_EQUAL(INT2NUM(42), (VALUE)Object(INT2NUM(42)));
@@ -122,20 +144,11 @@ TESTCASE(is_frozen)
   ASSERT(o.is_frozen());
 }
 
-TESTCASE(swap)
-{
-  Object o1(INT2NUM(42));
-  Object o2(rb_ary_new());
-  o1.swap(o2);
-  ASSERT_EQUAL(to_ruby(42), o2);
-  ASSERT_EQUAL(Class(rb_cArray), o1.class_of());
-}
-
 TESTCASE(instance_eval)
 {
   Object o(Class(rb_cObject).call("new"));
   o.iv_set("@foo", 42);
-  ASSERT_EQUAL(to_ruby(42), o.instance_eval("@foo"));
+  ASSERT_EQUAL(detail::to_ruby(42), o.instance_eval("@foo").value());
 }
 
 TESTCASE(rb_type)
@@ -149,12 +162,19 @@ TESTCASE(rb_type)
 
 TESTCASE(call_no_arguments)
 {
-  Object three = to_ruby(3).call("to_s");
+  Object three = Object(detail::to_ruby(3)).call("to_s");
   ASSERT_EQUAL(String("3"), three);
 }
 
 TESTCASE(call_return_rice_object)
 {
-  Object three = to_ruby(1).call("+", 2);
-  ASSERT_EQUAL(to_ruby(3), three);
+  Object three = Object(detail::to_ruby(1)).call("+", 2);
+  ASSERT_EQUAL(Object(detail::to_ruby(3)), three);
 }
+
+/*TESTCASE(test_mark)
+{
+  Object o(INT2NUM(42));
+  rb_gc_start();
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(o.value()));
+}*/

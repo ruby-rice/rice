@@ -2,8 +2,9 @@
 #define Rice__Data_Type_defn__hpp_
 
 #include "Class_defn.hpp"
-#include "Data_Type_fwd.hpp"
 #include "detail/ruby.hpp"
+#include "detail/Native_Attribute.hpp"
+
 #include <memory>
 #include <map>
 #include <set>
@@ -14,39 +15,7 @@
 
 namespace Rice
 {
-
-namespace detail
-{
-  class Abstract_Caster;
-}
-
-class Module;
-
-//! The base class for all instantiations of Data_Type.
-class Data_Type_Base
-  : public Module_impl<Class, Data_Type_Base>
-{
-public:
-  //! Default constructor.
-  Data_Type_Base();
-
-  //! Constructor.
-  Data_Type_Base(VALUE v);
-
-  //! Destructor.
-  virtual ~Data_Type_Base() = 0;
-
-  // Must be public to workaround gcc 3.3
-  typedef std::map<VALUE, detail::Abstract_Caster *> Casters;
-
-  virtual detail::Abstract_Caster * caster() const = 0;
-
-  static Casters & casters();
-
-private:
-  static Casters * casters_;
-};
-
+ 
 //! Define a new data class in the namespace given by module.
 /*! The class will have a base class of Object.
  *  \param T the C++ type of the wrapped class.
@@ -93,7 +62,7 @@ Rice::Data_Type<T> define_class(
     char const * name);
 
 //! Define an implicit conversion rule between two types.
-/*! Given two types, which can be custom types already 
+/*! Given two types, which can be custom types already
  *  wrapped into Rice or fundamental C++ types, this
  *  tells Rice that the two types can be used interchangably.
  *  \param From_T The type to convert from
@@ -108,12 +77,11 @@ void define_implicit_cast();
  */
 template<typename T>
 class Data_Type
-  : public Module_impl<Data_Type_Base, Data_Type<T> >
+  : public Class
 {
-public:
-  //! The C++ type being held.
-  typedef T Type;
+  static_assert(std::is_same_v<detail::intrinsic_type<T>, T>);
 
+public:
   //! Default constructor which does not bind.
   /*! No member functions must be called on this Data_Type except bind,
    *  until the type is bound.
@@ -130,10 +98,13 @@ public:
   //! Destructor.
   virtual ~Data_Type();
  
-  //! Explictly return the Ruby type.
+  //! Return the Ruby class.
   /*! \return the ruby class to which the type is bound.
    */
-  static Module klass();
+  static Class klass();
+
+  //! Return the Ruby type.
+  static rb_data_type_t* rb_type();
 
   //! Assignment operator which takes a Module
   /*! \param klass must be the class to which this data type is already
@@ -143,6 +114,12 @@ public:
   virtual Data_Type & operator=(Module const & klass);
 
   //! Define a constructor for the class.
+  template<typename Constructor_T>
+  [[deprecated("Please call define_constructor with Arg parameters")]]
+  Data_Type<T> & define_constructor(
+      Constructor_T constructor,
+      Arguments * arguments);
+
   /*! Creates a singleton method allocate and an instance method called
    *  initialize which together create a new instance of the class.  The
    *  allocate method allocates memory for the object reference and the
@@ -151,28 +128,25 @@ public:
    *  construct() that constructs a new instance of T and sets the object's data
    *  member to point to the new instance.  A helper class Constructor
    *  is provided that does precisely this.
+   *  \param args a list of Arg instance used to define default parameters (optional)
+   *
    *  For example:
    *  \code
    *    define_class<Foo>("Foo")
    *      .define_constructor(Constructor<Foo>());
    *  \endcode
    */
-  template<typename Constructor_T>
+  template<typename Constructor_T, typename...Arg_Ts>
   Data_Type<T> & define_constructor(
       Constructor_T constructor,
-      Arguments * arguments = 0);
-
-  template<typename Constructor_T>
-  Data_Type<T> & define_constructor(
-      Constructor_T constructor,
-      Arg const& arg);
+      Arg_Ts const& ...args);
 
   //! Register a Director class for this class.
   /*! For any class that uses Rice::Director to enable polymorphism
    *  across the languages, you need to register that director proxy
    *  class with this method. Not doing so will cause the resulting 
    *  library to die at run time when it tries to convert the base
-   *  type into the Director proxy type, and cannot find an appropriate Caster.
+   *  type into the Director proxy type.
    *
    *  This method takes no arguments, just needs the type of the
    *  Director proxy class.
@@ -191,20 +165,38 @@ public:
   template<typename Director_T>
   Data_Type<T>& define_director();
 
-  //! Convert ruby object x to type T.
-  /*! \param x the object to convert.
-   *  \return the C++ object wrapped inside object x.
-   */
-  static T * from_ruby(Object x);
-
   //! Determine if the type is bound.
   /*! \return true if the object is bound, false otherwise.
    */
   static bool is_bound();
+  static void check_is_bound();
 
-  virtual detail::Abstract_Caster * caster() const;
+  // This is only for testing - DO NOT USE!!!
+  static void unbind();
 
-  static std_unique_ptr<detail::Abstract_Caster> caster_;
+  static bool is_descendant(VALUE value);
+  
+  //! Define an iterator.
+  /*! Essentially this is a conversion from a C++-style begin/end
+   *  iterator to a Ruby-style \#each iterator.
+   *  \param begin a member function pointer to a function that returns
+   *  an iterator to the beginning of the sequence.
+   *  \param end a member function pointer to a function that returns an
+   *  iterator to the end of the sequence.
+   *  \param name the name of the iterator.
+   *  \return *this
+   */
+
+  template<typename U = T, typename Iterator_Return_T>
+  Data_Type<T>& define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name = "each");
+
+  template <typename Attr_T>
+  Data_Type<T>& define_attr(std::string name, Attr_T&& attr, AttrAccess access = AttrAccess::ReadWrite);
+  
+  template <typename Attr_T>
+  Data_Type<T>& define_singleton_attr(std::string name, Attr_T&& attr, AttrAccess access = AttrAccess::ReadWrite);
+
+#include "shared_methods.hpp"
 
 protected:
   //! Bind a Data_Type to a VALUE.
@@ -214,7 +206,7 @@ protected:
    *  \param klass the ruby type to which to bind.
    *  \return *this
    */
-  template<typename Base_T>
+  template <typename Base_T = std::nullptr_t>
   static Data_Type bind(Module const & klass);
 
   template<typename T_>
@@ -239,9 +231,10 @@ private:
   template<typename T_>
   friend class Data_Type;
 
-  static void check_is_bound();
+  static inline VALUE klass_ = Qnil;
 
-  static VALUE klass_;
+  // Typed Data support
+  static inline rb_data_type_t* rb_type_ = nullptr;
 
   typedef std::set<Data_Type<T> *> Instances;
 
@@ -252,10 +245,8 @@ private:
   }
 };
 
-
 } // namespace Rice
 
 #include "Data_Type.ipp"
 
 #endif // Rice__Data_Type_defn__hpp_
-

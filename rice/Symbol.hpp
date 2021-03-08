@@ -2,7 +2,7 @@
 #define Rice__Symbol__hpp_
 
 #include "Identifier.hpp"
-#include "Object.hpp"
+#include "Object_defn.hpp"
 #include "detail/ruby.hpp"
 #include <string>
 
@@ -47,18 +47,13 @@ public:
 } // namespace Rice
 
 template<>
-inline
-Rice::Symbol from_ruby<Rice::Symbol>(Rice::Object x)
+struct Rice::detail::From_Ruby<Rice::Symbol>
 {
-  return Rice::Symbol(x);
-}
-
-template<>
-inline
-Rice::Object to_ruby<Rice::Symbol>(Rice::Symbol const & x)
-{
-  return x;
-}
+  static Rice::Symbol convert(VALUE value)
+  {
+    return Rice::Symbol(value);
+  }
+};
 
 #include "Symbol.ipp"
 

@@ -1,4 +1,4 @@
-require 'map'
+require_relative 'map.so'
 m = Std::Map.new
 m[0] = 1
 m[1] = 2

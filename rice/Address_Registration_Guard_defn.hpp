@@ -3,7 +3,6 @@
 
 #include "Object_defn.hpp"
 #include "detail/ruby.hpp"
-#include "detail/Not_Copyable.hpp"
 
 namespace Rice
 {
@@ -27,7 +26,6 @@ namespace Rice
  *  \endcode
  */
 class Address_Registration_Guard
-  : private detail::Not_Copyable
 {
 public:
   //! Register an address with the GC.
@@ -50,11 +48,16 @@ public:
    */
   ~Address_Registration_Guard();
 
+  // Disable copying
+  Address_Registration_Guard(Address_Registration_Guard const& other) = delete;
+  Address_Registration_Guard& operator=(Address_Registration_Guard const& other) = delete;
+
+  // Enable moving
+  Address_Registration_Guard(Address_Registration_Guard&& other);
+  Address_Registration_Guard& operator=(Address_Registration_Guard&& other);
+
   //! Get the address that is registered with the GC.
   VALUE * address() const;
-
-  //! Swap with another Address_Registration_Guard.
-  void swap(Address_Registration_Guard & other);
 
   /** Called during Ruby's exit process since we should not call
    * rb_gc unregister_address there
@@ -62,12 +65,15 @@ public:
   static void disable();
 
 private:
-  static bool enabled;
-  static bool exit_handler_registered;
-
+  inline static bool enabled = true;
+  inline static bool exit_handler_registered = false;
   static void registerExitHandler();
 
-  VALUE * address_;
+private:
+  void registerAddress() const;
+  void unregisterAddress();
+
+  VALUE* address_ = nullptr;
 };
 
 } // namespace Rice

@@ -1,11 +1,9 @@
 #include "unittest.hpp"
-#include "rice/Constructor.hpp"
-#include "rice/Data_Type.hpp"
+#include "embed_ruby.hpp"
 
-#include "rice/detail/env.hpp"
+#include <rice/rice.hpp>
 
 #include <iostream>
-using namespace std;
 
 using namespace Rice;
 
@@ -22,12 +20,15 @@ namespace
   };
 }
 
+SETUP(Array)
+{
+  embed_ruby();
+}
+
 TESTCASE(default_constructor)
 {
-  Data_Type<Default_Constructible> rb_cDefault_Constructible(
-      anonymous_class());
-  rb_cDefault_Constructible
-    .define_constructor(Constructor<Default_Constructible>());
+  Data_Type<Default_Constructible> rb_cDefault_Constructible(anonymous_class());
+  rb_cDefault_Constructible.define_constructor(Constructor<Default_Constructible>());
   Object o = rb_cDefault_Constructible.call("new");
   ASSERT_EQUAL(rb_cDefault_Constructible, o.class_of());
 }
@@ -96,7 +97,7 @@ TESTCASE(constructor_supports_default_arguments)
 {
   Class klass = define_class<WithDefaultArgs>("WithDefaultArgs").
     define_constructor(Constructor<WithDefaultArgs, int, float, bool>(),
-          ( Arg("x"), Arg("y") = (float)2.0, Arg("yes") = (bool)false ));
+           Arg("x"), Arg("y") = (float)2.0, Arg("yes") = (bool)false);
 
   klass.call("new", 4);
   ASSERT_EQUAL(4, withArgsX);

@@ -1,11 +1,7 @@
 #ifndef Rice__Class_defn__hpp_
 #define Rice__Class_defn__hpp_
 
-#include "Object_defn.hpp"
-#include "Module_impl.hpp"
 #include "Module_defn.hpp"
-#include "to_from_ruby_defn.hpp"
-#include "Identifier.hpp"
 
 /*!
  *  \example inheritance/animals.cpp
@@ -20,12 +16,12 @@ namespace Rice
  *  for defining methods on that class.
  */
 class Class
-  : public Module_impl<Module, Class>
+  : public Module
 {
 public:
   //! Default construct a new class wrapper and initialize it to
   //! rb_cObject.
-  Class();
+  Class() = default;
 
   //! Construct a new class wrapper from a ruby object of type T_CLASS.
   Class(VALUE v);
@@ -35,6 +31,8 @@ public:
    *  version of ruby prior to 1.7) and the instance method initialize.
    */
   Class & undef_creation_funcs();
+
+  #include "shared_methods.hpp"
 };
 
 //! Define a new class in the namespace given by module.
@@ -58,27 +56,20 @@ Class define_class(
     Object superclass = rb_cObject);
 
 //! Create a new anonymous class.
-/*! \param superclass the base class to use.
- *  \return the new class.
+/*! \return the new class.
  */
-Class anonymous_class(
-    Object superclass = rb_cObject);
+Class anonymous_class();
 
 } // namespace Rice
 
 template<>
-inline
-Rice::Class from_ruby<Rice::Class>(Rice::Object x)
+struct Rice::detail::From_Ruby<Rice::Class>
 {
-  return Rice::Class(x);
-}
-
-template<>
-inline
-Rice::Object to_ruby<Rice::Class>(Rice::Class const & x)
-{
-  return x;
-}
+  static Rice::Class convert(VALUE value)
+  {
+    return Rice::Class(value);
+  }
+};
 
 #endif // Rice__Class_defn__hpp_
 

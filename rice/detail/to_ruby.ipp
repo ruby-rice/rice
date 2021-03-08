@@ -1,36 +1,164 @@
-#include "../Data_Object.hpp"
-
-template<typename T>
-Rice::Object
-Rice::detail::to_ruby_<T>::
-convert(T const & x)
+namespace Rice
 {
-  if(Data_Type<T>::is_bound())
+  namespace detail
   {
-    return Rice::Data_Object<T >(new T(x), Rice::Data_Type<T >::klass());
-  }
-  else
-  {
-    std::string s("Unable to convert ");
-    s += demangle(typeid(T *).name());
-    throw std::invalid_argument(s.c_str());
-  }
-}   
+    // This template is never called but needs to exist for MSVC to successfully compile
+    // this line from Wrapped_Function.ipp:
+    // 
+    //   return To_Ruby<Return_T>::convert(result);
+    // 
+    // Note there is a if constexpr check for Return_T being void. Sigh.
+    template<>
+    struct To_Ruby<void>
+    {
+      static VALUE convert(void*)
+      {
+        return Qnil;
+      }
+    };
 
-template<typename T>
-Rice::Object
-Rice::detail::to_ruby_<T *>::
-convert(T * x)
-{
-  if(Data_Type<T>::is_bound())
-  {
-    Data_Object<T> obj(x);
-    return obj;
-  }
-  else
-  {
-    std::string s("Unable to convert ");
-    s += demangle(typeid(T *).name());
-    throw std::invalid_argument(s.c_str());
+    template<>
+    struct To_Ruby<std::nullptr_t>
+    {
+      static VALUE convert(std::nullptr_t)
+      {
+        return Qnil;
+      }
+    };
+
+    template<>
+    struct To_Ruby<short>
+    {
+      static VALUE convert(short const& x)
+      {
+        return INT2NUM(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<int>
+    {
+      static VALUE convert(int const& x)
+      {
+        return INT2NUM(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<long>
+    {
+      static VALUE convert(long const& x)
+      {
+        return LONG2NUM(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<long long>
+    {
+      static VALUE convert(long long const& x)
+      {
+        return LL2NUM(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<unsigned short>
+    {
+      static VALUE convert(unsigned short const& x)
+      {
+        return UINT2NUM(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<unsigned int>
+    {
+      static VALUE convert(unsigned int const& x)
+      {
+        return UINT2NUM(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<unsigned long>
+    {
+      static VALUE convert(unsigned long const& x)
+      {
+        return ULONG2NUM(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<unsigned long long>
+    {
+      static VALUE convert(unsigned long long const& x)
+      {
+        return ULL2NUM(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<float>
+    {
+      static VALUE convert(float const& x)
+      {
+        return rb_float_new(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<double>
+    {
+      static VALUE convert(double const& x)
+      {
+        return rb_float_new(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<bool>
+    {
+      static VALUE convert(bool const& x)
+      {
+        return x ? Qtrue : Qfalse;
+      }
+    };
+
+    template<>
+    struct To_Ruby<char>
+    {
+      static VALUE convert(char const& x)
+      {
+        return To_Ruby<int>::convert(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<unsigned char>
+    {
+      static VALUE convert(unsigned char const& x)
+      {
+        return To_Ruby<unsigned int>::convert(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<const char*>
+    {
+      static VALUE convert(const char* x)
+      {
+        return rb_str_new2(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<std::string>
+    {
+      static VALUE convert(std::string const& x)
+      {
+        return rb_str_new(x.data(), (long)x.size());
+      }
+    };
   }
 }

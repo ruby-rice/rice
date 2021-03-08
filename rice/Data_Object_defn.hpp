@@ -1,11 +1,11 @@
 #ifndef Rice__Data_Object_defn__hpp_
 #define Rice__Data_Object_defn__hpp_
 
-#include "Object_defn.hpp"
-#include "Data_Type_fwd.hpp"
-#include "ruby_mark.hpp"
+#include <optional>
+
 #include "detail/to_ruby.hpp"
 #include "detail/ruby.hpp"
+#include "Object_defn.hpp"
 
 /*! \file
  *  \brief Provides a helper class for wrapping and unwrapping C++
@@ -14,20 +14,6 @@
 
 namespace Rice
 {
-
-template<typename T>
-struct Default_Mark_Function
-{
-  typedef void (*Ruby_Data_Func)(T * obj);
-  static const Ruby_Data_Func mark;
-};
-
-template<typename T>
-struct Default_Free_Function
-{
-  static void free(T * obj) { delete obj; }
-};
-
 
 //! A smartpointer-like wrapper for Ruby data objects.
 /*! A data object is a ruby object of type T_DATA, which is usually
@@ -57,10 +43,16 @@ template<typename T>
 class Data_Object
   : public Object
 {
-public:
-  //! A function that takes a T* and returns void.
-  typedef void (*Ruby_Data_Func)(T * obj);
+  static_assert(!std::is_pointer_v<T>);
+  static_assert(!std::is_reference_v<T>);
+  static_assert(!std::is_const_v<T>);
+  static_assert(!std::is_volatile_v<T>); 
 
+public:
+  static T* from_ruby(VALUE value);
+  static std::optional<T> implicit_from_ruby(VALUE value);
+
+public:
   //! Wrap a C++ object.
   /*! This constructor is analogous to calling Data_Wrap_Struct.  Be
    *  careful not to call this function more than once for the same
@@ -75,11 +67,7 @@ public:
    *  \param free_func a function that gets called by the garbage
    *  collector to free the object.
    */
-  Data_Object(
-      T * obj,
-      VALUE klass = Data_Type<T>::klass(),
-      Ruby_Data_Func mark_func = Default_Mark_Function<T>::mark,
-      Ruby_Data_Func free_func = Default_Free_Function<T>::free);
+  Data_Object(T* obj, Class klass = Data_Type<T>::klass());
 
   //! Unwrap a Ruby object.
   /*! This constructor is analogous to calling Data_Get_Struct.  Uses
@@ -97,40 +85,15 @@ public:
    *  \param klass the expected class of the object.
    */
   template<typename U>
-  Data_Object(
-      Object value,
-      Data_Type<U> const & klass = Data_Type<T>::klass());
+  Data_Object(Object value);
 
-  //! Make a copy of a Data_Object
-  /*! \param other the Data_Object to copy.
-   */
-  Data_Object(Data_Object const & other);
-
-  T & operator*() const { return *obj_; } //!< Return a reference to obj_
-  T * operator->() const { return obj_; } //!< Return a pointer to obj_
-  T * get() const { return obj_; }        //!< Return a pointer to obj_
-
-  //! Swap with another data object of the same type
-  /*! \param ref the object with which to swap.
-   */
-  template<typename U>
-  void swap(Data_Object<U> & ref);
+  T& operator*() const; //!< Return a reference to obj_
+  T* operator->() const; //!< Return a pointer to obj_
+  T* get() const;        //!< Return a pointer to obj_
 
 private:
-  static void check_cpp_type(Data_Type<T> const & klass);
-
-private:
-  T * obj_;
+  static void check_ruby_type(VALUE value);
 };
-
-namespace detail
-{
-  template<typename T>
-  struct to_ruby_<Data_Object<T> >
-  {
-    static Rice::Object convert(Data_Object<T> const & x);
-  };
-}
 
 } // namespace Rice
 

@@ -1,43 +1,31 @@
-#include "rice/Data_Type.hpp"
-#include "rice/Constructor.hpp"
+#include <rice/rice.hpp>
 
 using namespace Rice;
 
 class Organism
 {
 public:
-  virtual ~Organism() = 0;
+  virtual ~Organism() = default;
   virtual char const * name() = 0;
 };
-
-Organism::
-~Organism()
-{
-}
 
 class Animal
   : public Organism
 {
 public:
-  virtual ~Animal() = 0;
   virtual char const * speak() = 0;
 };
-
-Animal::
-~Animal()
-{
-}
 
 class Bear
   : public Animal
 {
 public:
-  virtual char const * name()
+  char const * name() override
   {
     return "Bear";
   }
 
-  virtual char const * speak()
+  char const * speak() override
   {
     return "I'm smarter than the average bear";
   }
@@ -47,12 +35,12 @@ class Dog
   : public Animal
 {
 public:
-  virtual char const * name()
+  char const * name() override
   {
     return "Dog";
   }
 
-  virtual char const * speak()
+  char const * speak() override
   {
     return "Woof woof";
   }
@@ -62,12 +50,12 @@ class Rabbit
   : public Animal
 {
 public:
-  virtual char const * name()
+  char const * name() override
   {
     return "Rabbit";
   }
 
-  virtual char const * speak()
+  char const * speak() override
   {
     return "What's up, doc?";
   }
@@ -76,8 +64,6 @@ public:
 extern "C"
 void Init_animals(void)
 {
-  RUBY_TRY
-  {
     define_class<Organism>("Organism")
       .define_method("name", &Organism::name);
 
@@ -92,7 +78,5 @@ void Init_animals(void)
 
     define_class<Rabbit, Animal>("Rabbit")
       .define_constructor(Constructor<Rabbit>());
-  }
-  RUBY_CATCH
 }
 

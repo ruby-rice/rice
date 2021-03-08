@@ -1,7 +1,6 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include "rice/Identifier.hpp"
-#include "rice/Symbol.hpp"
+#include <rice/rice.hpp>
 
 using namespace Rice;
 
@@ -32,10 +31,10 @@ TESTCASE(construct_from_c_string)
   ASSERT_EQUAL(rb_intern("Foo"), identifier.id());
 }
 
-TESTCASE(default_construct)
+TESTCASE(construct_from_string)
 {
-  Identifier identifier;
-  ASSERT_EQUAL(rb_intern(""), identifier.id());
+  Identifier identifier(std::string("Foo"));
+  ASSERT_EQUAL(rb_intern("Foo"), identifier.id());
 }
 
 TESTCASE(copy_construct)

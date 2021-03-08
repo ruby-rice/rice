@@ -1,7 +1,6 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include "rice/Exception.hpp"
-#include "rice/String.hpp"
+#include <rice/rice.hpp>
 
 using namespace Rice;
 
@@ -14,14 +13,14 @@ SETUP(Exception)
 
 TESTCASE(construct_from_exception_object)
 {
-  VALUE v = protect(rb_exc_new2, rb_eRuntimeError, "foo");
+  VALUE v = detail::protect(rb_exc_new2, rb_eRuntimeError, "foo");
   Exception ex(v);
   ASSERT_EQUAL(ex.value(), v);
 }
 
 TESTCASE(copy_construct)
 {
-  VALUE v = protect(rb_exc_new2, rb_eRuntimeError, "foo");
+  VALUE v = detail::protect(rb_exc_new2, rb_eRuntimeError, "foo");
   Exception ex1(v);
   Exception ex2(v);
   ASSERT_EQUAL(ex2.value(), v);
@@ -30,13 +29,13 @@ TESTCASE(copy_construct)
 TESTCASE(construct_from_format_string)
 {
   Exception ex(rb_eRuntimeError, "%s", "foo");
-  ASSERT_EQUAL(ex.class_of(), Object(rb_eRuntimeError));
+  ASSERT_EQUAL(rb_eRuntimeError, ex.class_of());
 }
 
 TESTCASE(message)
 {
   Exception ex(rb_eRuntimeError, "%s", "foo");
-  ASSERT_EQUAL(String("foo"), ex.message());
+  ASSERT_EQUAL("foo", ex.what());
 }
 
 TESTCASE(what)

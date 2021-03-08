@@ -1,7 +1,5 @@
 #include "Foo.hpp"
-
-#include "rice/Data_Type.hpp"
-#include "rice/Constructor.hpp"
+#include <rice/rice.hpp>
 
 using namespace Rice;
 

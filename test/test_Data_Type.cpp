@@ -1,13 +1,17 @@
+#include <assert.h> 
+
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include "rice/Data_Type.hpp"
-#include "rice/Exception.hpp"
-#include "rice/Constructor.hpp"
-#include "rice/global_function.hpp"
+#include <rice/rice.hpp>
 
 using namespace Rice;
 
 TESTSUITE(Data_Type);
+
+SETUP(Data_Type)
+{
+  embed_ruby();
+}
 
 /**
  * The tests here are for the feature of taking an instance
@@ -17,84 +21,337 @@ TESTSUITE(Data_Type);
  * to see what we're talking about.
  */
 
+namespace
+{
+  class MyClass
+  {
+  public:
+    static inline bool no_return_no_arg_called = false;
+    static inline bool no_arg_called = false;
+    static inline bool int_arg_called = false;
+    static inline bool multiple_args_called = false;
+
+    static void reset()
+    {
+      no_return_no_arg_called = false;
+      no_arg_called = false;
+      int_arg_called = false;
+      multiple_args_called = false;
+    }
+
+    static Object singleton_method_object_int(Object object, int anInt)
+    {
+      return object;
+    }
+
+    static int singleton_function_int(int anInt)
+    {
+      return anInt;
+    }
+
+  public:
+    MyClass() = default;
+    MyClass(const MyClass& other) = delete;
+    MyClass(MyClass&& other) = delete;
+
+    void no_return_no_arg()
+    {
+      no_return_no_arg_called = true;
+    }
+
+    bool no_arg()
+    {
+      no_arg_called = true;
+      return true;
+    }
+
+    int int_arg(int i)
+    {
+      int_arg_called = true;
+      return i;
+    }
+
+    std::string multiple_args(int i, bool b, float f, std::string s, char* c)
+    {
+      multiple_args_called = true;
+      return "multiple_args(" + std::to_string(i) + ", " + std::to_string(b) + ", " +
+        std::to_string(f) + ", " + s + ", " + std::string(c) + ")";
+    }
+  };
+} // namespace
+
+TESTCASE(methods_with_member_pointers)
+{
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_method("no_return_no_arg", &MyClass::no_return_no_arg)
+    .define_method("no_arg", &MyClass::no_arg)
+    .define_method("int_arg", &MyClass::int_arg)
+    .define_method("multiple_args", &MyClass::multiple_args);
+
+  MyClass::reset();
+  Object o = c.call("new");
+
+  Object result = o.call("no_return_no_arg");
+  ASSERT(MyClass::no_return_no_arg_called);
+  ASSERT_EQUAL(Qnil, result.value());
+
+  result = o.call("no_arg");
+  ASSERT(MyClass::no_arg_called);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  result = o.call("int_arg", 42);
+  ASSERT(MyClass::int_arg_called);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result.value()));
+
+  result = o.call("multiple_args", 81, true, 7.0, "a string", "a char");
+  ASSERT(MyClass::multiple_args_called);
+  ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string, a char)", detail::From_Ruby<std::string>::convert(result.value()));
+}
+
+TESTCASE(incorrect_number_of_args)
+{
+  Class c =
+    define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_method("int_arg", &MyClass::int_arg);
+
+  Object o = c.call("new");
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    o.call("int_arg", 1, 2),
+    ASSERT_EQUAL(rb_eArgError, ex.class_of())
+  );
+}
+
+TESTCASE(incorrect_no_args)
+{
+  Class c =
+    define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_method("int_arg", &MyClass::int_arg);
+
+  Object o = c.call("new");
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    o.call("int_arg"),
+    ASSERT_EQUAL(rb_eArgError, ex.class_of())
+  );
+}
+
+TESTCASE(methods_with_lambdas)
+{
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_method("no_return_no_arg", 
+        [](MyClass& instance)
+        {
+          instance.no_return_no_arg();
+        })
+    .define_method("no_arg",
+        [](MyClass& instance)
+        {
+          return instance.no_arg();
+        })
+    .define_method("int_arg", 
+        [](MyClass& instance, int anInt)
+        {
+          return instance.int_arg(anInt);
+        })
+    .define_method("multiple_args",
+        [](MyClass& instance, int anInt, bool aBool, float aFloat, std::string aString, char* aChar)
+        {
+          return instance.multiple_args(anInt, aBool, aFloat, aString, aChar);
+        });
+
+  MyClass::reset();
+  Object o = c.call("new");
+
+  Object result = o.call("no_return_no_arg");
+  ASSERT(MyClass::no_return_no_arg_called);
+  ASSERT_EQUAL(Qnil, result.value());
+
+  result = o.call("no_arg");
+  ASSERT(MyClass::no_arg_called);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  result = o.call("int_arg", 42);
+  ASSERT(MyClass::int_arg_called);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result.value()));
+
+  result = o.call("multiple_args", 81, true, 7.0, "a string", "a char");
+  ASSERT(MyClass::multiple_args_called);
+  ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string, a char)", detail::From_Ruby<std::string>::convert(result.value()));
+}
+
+TESTCASE(static_singleton_method)
+{
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_singleton_method("singleton_method_object_int", &MyClass::singleton_method_object_int);
+
+  MyClass::reset();
+
+  Object result = c.call("singleton_method_object_int", 42);
+  ASSERT_EQUAL(c, result);
+}
+
+TESTCASE(static_singleton_function)
+{
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_singleton_function("singleton_function_int", &MyClass::singleton_function_int);
+
+  MyClass::reset();
+
+  Object result = c.call("singleton_function_int", 42);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+}
+
+TESTCASE(static_singleton_method_lambda)
+{
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_singleton_method("singleton_method_object_int", [](Object object, int anInt)
+      {
+        return MyClass::singleton_method_object_int(object, anInt);
+      });
+
+  MyClass::reset();
+
+  Object result = c.call("singleton_method_object_int", 42);
+  ASSERT_EQUAL(c, result);
+}
+
+TESTCASE(static_singleton_function_lambda)
+{
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_singleton_function("singleton_function_int", [](int anInt)
+      {
+        return MyClass::singleton_function_int(anInt);
+      });
+
+  MyClass::reset();
+
+  Object result = c.call("singleton_function_int", 42);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+}
+
 namespace {
-
-  /**
-   * The class we will subclass in Ruby
-   */
-  class Listener {
-    public:
-      Listener() {  }
-
-      virtual ~Listener() {  }
-
-      virtual int getValue() { return 4; }
-  };
-
-  /**
-   * This class will recieve a new Listener instance
-   * from Ruby
-   */
-  class ListenerHandler {
-
-    public:
-
-      ListenerHandler() {  }
-
-      void addListener(Listener* newList) {
-        mListeners.push_back(newList);
-      }
-
-      int process() {
-        std::vector<Listener*>::iterator i = mListeners.begin();
-        int accum = 0;
-        for(; i != mListeners.end(); i++) {
-          accum += (*i)->getValue();
-        }
-
-        return accum;
-      }
-
-      size_t listenerCount() { return mListeners.size(); }
-
-    private:
-      std::vector<Listener*> mListeners;
+  class BaseClass
+  {
+  public:
+    BaseClass() {}
   };
 }
 
-SETUP(Data_Type)
+TESTCASE(subclassing)
 {
-  embed_ruby();
+  Module m = define_module("Testing");
+  define_class_under<BaseClass>(m, "BaseClass").
+    define_constructor(Constructor<BaseClass>());
 
-  define_class<Listener>("Listener")
-    .define_constructor(Constructor<Listener>())
-    .define_method("get_value", &Listener::getValue);
+  // Not sure how to make this a true failure case. If the subclassing
+  // doesn't work, Ruby will throw an error:
+  //
+  //    in `new': wrong instance allocation
+  //
+  m.instance_eval("class NewClass < Testing::BaseClass; end;");
+  m.instance_eval("n = NewClass.new");
+}
 
-  define_class<ListenerHandler>("ListenerHandler")
-    .define_constructor(Constructor<ListenerHandler>())
-    .define_method("add_listener", &ListenerHandler::addListener)
-    .define_method("process", &ListenerHandler::process)
-    .define_method("listener_count", &ListenerHandler::listenerCount);
+namespace {
+  float with_reference_defaults_x;
+  std::string with_reference_defaults_str;
+
+  class DefaultArgsRefs
+  {
+  public:
+    void with_reference_defaults(float x, std::string const& str = std::string("testing"))
+    {
+      with_reference_defaults_x = x;
+      with_reference_defaults_str = str;
+    }
+  };
 
 }
 
-TESTCASE(can_send_ruby_instance_back_into_rice)
+TESTCASE(define_method_works_with_reference_const_default_values)
 {
-  Module m = define_module("TestingModule");
-  Object handler = m.instance_eval("@handler = ListenerHandler.new");
+  Class c = define_class<DefaultArgsRefs>("DefaultArgsRefs")
+    .define_constructor(Constructor<DefaultArgsRefs>())
+    .define_method("bar",
+      &DefaultArgsRefs::with_reference_defaults,
+      Arg("x"), Arg("str") = std::string("testing"));
 
-  ASSERT_EQUAL(INT2NUM(0), handler.call("listener_count").value());
+  Object o = c.call("new");
+  o.call("bar", 3);
 
-  m.instance_eval("class MyListener < Listener; end;");
-  m.instance_eval("@handler.add_listener(MyListener.new)");
+  ASSERT_EQUAL(3, with_reference_defaults_x);
+  ASSERT_EQUAL("testing", with_reference_defaults_str);
+}
 
-  ASSERT_EQUAL(INT2NUM(1), handler.call("listener_count").value());
-  ASSERT_EQUAL(INT2NUM(4), handler.call("process").value());
+namespace
+{
+  class RefTest
+  {
+  public:
+    RefTest() {}
 
-  m.instance_eval("@handler.add_listener(Listener.new)");
+    static std::string& getReference()
+    {
+      static std::string foo = "foo";
+      return foo;
+    }
+  };
+}
 
-  ASSERT_EQUAL(INT2NUM(2), handler.call("listener_count").value());
-  ASSERT_EQUAL(INT2NUM(8), handler.call("process").value());
+TESTCASE(define_singleton_method_returning_reference)
+{
+  Class c = define_class<RefTest>("RefTest")
+    .define_constructor(Constructor<RefTest>())
+    .define_singleton_function("get_reference", &RefTest::getReference);
+
+  Module m(anonymous_module());
+
+  Object result = m.instance_eval("RefTest.get_reference");
+  ASSERT_EQUAL(result, String("foo"));
+}
+
+namespace
+{
+  struct MyStruct
+  {
+    MyStruct* set(MyStruct* ptr)
+    {
+      assert(ptr == nullptr);
+      return ptr;
+    }
+
+    MyStruct* get()
+    {
+      return nullptr;
+    }
+  };
+}
+
+TESTCASE(null_ptrs)
+{
+  Class c = define_class<MyStruct>("MyStruct")
+    .define_constructor(Constructor<MyStruct>())
+    .define_method("get", &MyStruct::get)
+    .define_method("set", &MyStruct::set);
+
+  Object o = c.call("new");
+
+  Object result = o.call("get");
+  ASSERT_EQUAL(Qnil, result.value());
+
+  result = o.call("set", nullptr);
+  ASSERT_EQUAL(Qnil, result.value());
 }
 
 /**
@@ -119,231 +376,5 @@ TESTCASE(no_super_in_constructor_still_works)
 
   ASSERT_EQUAL(INT2NUM(2), handler.call("listener_count").value());
   ASSERT_EQUAL(INT2NUM(8), handler.call("process").value());
-}
-*/
-
-/**
- * Implicit Casting across unrelated types
- *
- * Two ways of defining if types are implicitly castable
- *
- * 1) operator
- * 2) constructor
- */
-
-/**
- * Examples here taken from Ogre's Math library.
- * This uses the constructor method of casting types.
- */
-namespace
-{
-  const int degree2Radians = (3.14 / 180.0);
-  const int radian2Degrees = (180.0 / 3.14);
-
-  class Radian;
-
-  class Degree
-  {
-    public:
-      explicit Degree(float d) : val_(d) {}
-      Degree(const Radian& r);
-
-      float valueDegrees() const { return val_; }
-      float valueRadians() const { return val_ * degree2Radians; }
-
-    private:
-      float val_;
-  };
-
-  class Radian
-  {
-    public:
-      explicit Radian(float r) : val_(r) {}
-      Radian(const Degree& d) : val_(d.valueRadians()) {}
-
-      float valueRadians() const { return val_; }
-      float valueDegrees() const { return val_ * radian2Degrees; }
-
-    private:
-      float val_;
-  };
-
-  // Due to circular dependencies, need to define some
-  // methods down here
-  Degree::Degree(const Radian& r)
-  {
-    val_ = r.valueDegrees();
-  }
-
-  /**
-   * And now some methods that work w/ the above two classes
-   */
-  bool isAcute(Degree degree) {
-    return degree.valueDegrees() < 90;
-  }
-
-  bool isObtuse(Radian radian) {
-    return radian.valueDegrees() > 90 && radian.valueDegrees() <= 180;
-  }
-
-  bool isRight(Degree* degree) {
-    return degree->valueDegrees() == 90;
-  }
-}
-
-TESTCASE(can_define_implicit_type_conversions_across_wrapped_types)
-{
-  define_class<Degree>("Degree")
-    .define_constructor(Constructor<Degree, float>());
-
-  define_class<Radian>("Radian")
-    .define_constructor(Constructor<Radian, float>());
-
-  define_implicit_cast<Degree, Radian>();
-  define_implicit_cast<Radian, Degree>();
-
-  define_global_function("is_acute", &isAcute);
-  define_global_function("is_obtuse", &isObtuse);
-  define_global_function("is_right", &isRight);
-
-  Module m = define_module("TestingModule");
-  Object result;
-
-  // ACUTE
-  result = m.instance_eval("is_acute(Degree.new(75))");
-  ASSERT(from_ruby<bool>(result.value()));
-
-  result = m.instance_eval("is_acute(Radian.new(2.0))");
-  ASSERT(!from_ruby<bool>(result.value()));
-
-  // OBTUSE
-  result = m.instance_eval("is_obtuse(Degree.new(75))");
-  ASSERT(!from_ruby<bool>(result.value()));
-
-  result = m.instance_eval("is_obtuse(Radian.new(2.0))");
-  ASSERT(from_ruby<bool>(result.value()));
-
-  // RIGHT
-  result = m.instance_eval("is_right(Degree.new(90))");
-  ASSERT(from_ruby<bool>(result.value()));
-
-  result = m.instance_eval("is_right(Radian.new(2.0))");
-  ASSERT(!from_ruby<bool>(result.value()));
-}
-
-namespace {
-  class Explicit
-  {
-    public:
-      Explicit(float v) {
-        value = v;
-      }
-
-      Explicit(const Degree &d) {
-        value = d.valueDegrees();
-      }
-
-      float getValue() { return value; }
-
-    private:
-      float value;
-  };
-
-  float getExplicitValue(Explicit* v) {
-    return v->getValue();
-  }
-}
-
-TESTCASE(supports_multiple_implicit_conversions_for_a_type)
-{
-  define_class<Degree>("Degree")
-    .define_constructor(Constructor<Degree, float>());
-
-  define_class<Radian>("Radian")
-    .define_constructor(Constructor<Radian, float>());
-
-  define_class<Explicit>("Explicit")
-    .define_constructor(Constructor<Explicit, float>());
-
-  define_global_function("is_obtuse", &isObtuse);
-  define_global_function("explicit_value", &getExplicitValue);
-
-  define_implicit_cast<Radian, Degree>();
-  define_implicit_cast<Degree, Radian>();
-  define_implicit_cast<Degree, Explicit>();
-
-  Module m = define_module("TestingModule");
-  Object result;
-
-  result = m.instance_eval("is_obtuse(Degree.new(75))");
-  ASSERT(!from_ruby<bool>(result.value()));
-
-  result = m.instance_eval("explicit_value(Degree.new(75))");
-  ASSERT_EQUAL(75.0, from_ruby<float>(result.value()));
-}
-
-/**
- * Sample taken and modified from boost::python::implicit:
- * http://www.boost.org/doc/libs/1_41_0/libs/python/doc/v2/implicit.html
- *
- * This is the operator version of casting and shows that this works for
- * base types as well as defined types
- */
-/*
-namespace {
-  struct Real
-  {
-    Real(int x)
-      : v(x)
-    {}
-
-    operator int() const
-    {
-      return v;
-    }
-
-    int v;
-  };
-
-  int realValue(Real const& x)
-  {
-    return x.v;
-  }
-
-  Real makeReal(int n)
-  {
-    return Real(n);
-  }
-}
-
-TESTCASE(can_define_implicit_type_conversions_to_base_types)
-{
-  define_class<Real>("Real")
-    .define_constructor(Constructor<Real, int>());
-
-  // Define the conversion rules
-  define_implicit_cast<Real, int>();
-  define_implicit_cast<int, Real>();
-
-  define_global_function("real_value", &realValue);
-  define_global_function("make_real", &makeReal);
-
-  Module m = define_module("TestingModule");
-
-  // As Real object
-  Object result = m.instance_eval("real_value( Real.new(4) )");
-  ASSERT_EQUAL(4, from_ruby<int>(result.value()));
-
-  // As fixnum (int)
-  result = m.instance_eval("real_value(4)");
-  ASSERT_EQUAL(4, from_ruby<int>(result.value()));
-
-  // As Real object
-  result = m.instance_eval("r = make_real( Real.new(6) ); real_value(r)");
-  ASSERT_EQUAL(6, from_ruby<int>(result.value()));
-
-  // As fixnum (int)
-  result = m.instance_eval("r = make_real(6); real_value(r)");
-  ASSERT_EQUAL(6, from_ruby<int>(result.value()));
 }
 */

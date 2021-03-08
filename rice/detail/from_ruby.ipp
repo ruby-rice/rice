@@ -1,60 +1,225 @@
 #ifndef Rice__detail__from_ruby__ipp_
 #define Rice__detail__from_ruby__ipp_
 
-#include "../Data_Type.hpp"
-#include "../String.hpp"
-#include "demangle.hpp"
-#include <typeinfo>
+#include <stdexcept>
 
-template<typename T>
-T Rice::detail::from_ruby_<T>::
-convert(Rice::Object x)
+/* This file implements conversions from Ruby to native values fo fundamental types 
+   such as bool, int, float, etc. It also includes conversions for chars and strings */
+namespace Rice
 {
-  if(rb_type(x.value()) == T_DATA)
+  namespace detail
   {
-    return *Data_Type<T>::from_ruby(x);
-  }
-  else
-  {
-    std::string s("Unable to convert ");
-    s += x.class_of().name().c_str();
-    s += " to ";
-    s += demangle(typeid(T).name());
-    throw std::invalid_argument(s.c_str());
+    template<>
+    struct From_Ruby<short>
+    {
+      static short convert(VALUE x)
+      {
+        return NUM2SHORT(x);
+      }
+    };
+
+    template<>
+    struct From_Ruby<int>
+    {
+      static int convert(VALUE x)
+      {
+        return NUM2INT(x);
+      }
+    };
+
+    template<>
+    struct From_Ruby<long>
+    {
+      static long convert(VALUE x)
+      {
+        return (long)NUM2LONG(x);
+      }
+    };
+
+    template<>
+    struct From_Ruby<long long>
+    {
+      static long long convert(VALUE x)
+      {
+        return RB_NUM2LL(x);
+      }
+    };
+
+    template<>
+    struct From_Ruby<unsigned short>
+    {
+      static unsigned short convert(VALUE x)
+      {
+        return NUM2USHORT(x);
+      }
+    };
+
+    template<>
+    struct From_Ruby<unsigned int>
+    {
+      static unsigned int convert(VALUE x)
+      {
+        return NUM2UINT(x);
+      }
+    };
+
+    template<>
+    struct From_Ruby<unsigned long>
+    {
+      static unsigned long convert(VALUE x)
+      {
+        return (unsigned long)RB_NUM2ULONG(x);
+      }
+    };
+
+    template<>
+    struct From_Ruby<unsigned long long>
+    {
+      static unsigned long long convert(VALUE x)
+      {
+        return RB_NUM2ULL(x);
+      }
+    };
+
+    template<>
+    struct From_Ruby<bool>
+    {
+      static bool convert(VALUE x)
+      {
+        return RTEST(x);
+      }
+    };
+
+    template<>
+    struct From_Ruby<char>
+    {
+      static char convert(VALUE x)
+      {
+        switch (rb_type(x))
+        {
+          case T_STRING:
+          {
+            if (RSTRING_LEN(x) == 1)
+            {
+              return RSTRING_PTR(x)[0];
+            }
+            else
+            {
+              throw std::invalid_argument("from_ruby<char>: string must have length 1");
+            }
+            break;
+          }
+          case T_FIXNUM:
+          {
+            return From_Ruby<long>::convert(x) & 0xff;
+            break;
+          }
+          default:
+          {
+            throw std::invalid_argument("Cannot convert Ruby value to char");
+          }
+        }
+      }
+    };
+
+    template<>
+    struct From_Ruby<char*>
+    {
+      static char* convert(VALUE x)
+      {
+        if (x == Qnil)
+        {
+          return nullptr;
+        }
+        else
+        {
+          return RSTRING_PTR(x);
+        }
+      }
+    };
+
+    template<>
+    struct From_Ruby<char const*>
+    {
+      static char const* convert(VALUE x)
+      {
+        if (x == Qnil)
+        {
+          return nullptr;
+        }
+        else
+        {
+          return RSTRING_PTR(x);
+        }
+      }
+    };
+
+    template<>
+    struct From_Ruby<unsigned char>
+    {
+      static unsigned char convert(VALUE x)
+      {
+        switch (rb_type(x))
+        {
+        case T_FIXNUM:
+        {
+          return From_Ruby<long>::convert(x) & 0xff;
+          break;
+        }
+        default:
+        {
+          throw std::invalid_argument("Cannot convert Ruby value to unsigned char");
+        }
+        }
+      }
+    };
+
+    template<>
+    struct From_Ruby<signed char>
+    {
+      static signed char convert(VALUE x)
+      {
+        switch (rb_type(x))
+        {
+        case T_FIXNUM:
+        {
+          return From_Ruby<long>::convert(x) & 0xff;
+          break;
+        }
+        default:
+        {
+          throw std::invalid_argument("Cannot convert Ruby value to unsigned char");
+        }
+        }
+      }
+    };
+
+    template<>
+    struct From_Ruby<float>
+    {
+      static float convert(VALUE x)
+      {
+        return (float)rb_num2dbl(x);
+      }
+    };
+
+    template<>
+    struct From_Ruby<double>
+    {
+      static double convert(VALUE x)
+      {
+        return rb_num2dbl(x);
+      }
+    };
+
+    template<>
+    struct From_Ruby<std::string>
+    {
+      static std::string convert(VALUE x)
+      {
+        return std::string(RSTRING_PTR(x), RSTRING_LEN(x));
+      }
+    };
   }
 }
-
-template<typename T>
-T * Rice::detail::from_ruby_<T *>::
-convert(Rice::Object x)
-{
-  if(rb_type(x.value()) == T_DATA)
-  {
-    return Data_Type<T>::from_ruby(x);
-  }
-  else
-  {
-    std::string s("Unable to convert ");
-    s += x.class_of().name().c_str();
-    s += " to ";
-    s += demangle(typeid(T *).name());
-    throw std::invalid_argument(s.c_str());
-  }
-}
-
-template<typename T>
-T const * Rice::detail::from_ruby_<T const *>::
-convert(Rice::Object x)
-{
-  return from_ruby<T *>(x);
-}
-
-template<typename T>
-T & Rice::detail::from_ruby_<T &>::
-convert(Rice::Object x)
-{
-  return *from_ruby<T *>(x);
-}
-
 #endif // Rice__detail__from_ruby__ipp_
-

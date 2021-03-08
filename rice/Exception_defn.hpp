@@ -1,10 +1,6 @@
 #ifndef Rice__Exception_defn__hpp_
 #define Rice__Exception_defn__hpp_
 
-#include "Exception_Base_defn.hpp"
-#include "String.hpp"
-#include "Address_Registration_Guard_defn.hpp"
-
 #include <stdexcept>
 #include "detail/ruby.hpp"
 
@@ -22,14 +18,11 @@ namespace Rice
  *  \endcode
  */
 class Exception
-  : public Exception_Base
+  : public std::exception
 {
 public:
-  //! Construct a Exception with the exception e.
-  explicit Exception(VALUE e);
-
-  //! Copy constructor.
-  Exception(Exception const & other);
+  //! Construct a Exception with a Ruby exception instance
+  explicit Exception(VALUE exception);
 
   //! Construct a Exception with printf-style formatting.
   /*! \param exc either an exception object or a class that inherits
@@ -37,16 +30,20 @@ public:
    *  \param fmt a printf-style format string
    *  \param ... the arguments to the format string.
    */
-  Exception(Object exc, char const * fmt, ...);
+  template <typename... Arg_Ts>
+  Exception(const Exception& other, char const * fmt, Arg_Ts&&...args);
+
+  //! Construct a Exception with printf-style formatting.
+/*! \param exc either an exception object or a class that inherits
+ *  from Exception.
+ *  \param fmt a printf-style format string
+ *  \param ... the arguments to the format string.
+ */
+  template <typename... Arg_Ts>
+  Exception(const VALUE exceptionType, char const* fmt, Arg_Ts&&...args);
 
   //! Destructor
-  virtual ~Exception() throw() { }
-
-  //! Get the message the exception holds
-  /*! \return the result of calling message() on the underlying
-   *  exception object.
-   */
-  String message() const;
+  virtual ~Exception() noexcept = default;
 
   //! Get message as a char const *.
   /*! If message is a non-string object, then this function will attempt
@@ -54,16 +51,20 @@ public:
    *  specification).
    *  \return the underlying C pointer of the underlying message object.
    */
-  virtual char const * what() const throw();
+  virtual char const* what() const noexcept override;
+
+  //! Returns the Ruby exception class
+  VALUE class_of() const;
+
+  //! Returns an instance of a Ruby exception
+  VALUE value() const;
 
 private:
-  // Keep message around in case someone calls what() and then the GC
-  // gets invoked.
-  mutable VALUE message_;
-  Address_Registration_Guard message_guard_;
+  // TODO: Do we need to tell the Ruby gc about an exception instance?
+  mutable VALUE exception_ = Qnil;
+  mutable std::string message_;
 };
 
 } // namespace Rice
 
 #endif // Rice__Exception_defn__hpp_
-

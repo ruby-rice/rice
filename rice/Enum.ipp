@@ -1,76 +1,45 @@
-#ifndef Rice__Enum__ipp_
-#define Rice__Enum__ipp_
-
 #include "Data_Object.hpp"
-#include "Class.hpp"
 #include "String.hpp"
-#include "protect.hpp"
-#include <memory>
 
 template<typename Enum_T>
-long Rice::Default_Enum_Traits<Enum_T>::as_long(Enum_T value)
-{
-  return static_cast<long>(value);
-}
-
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits>::
-Enum()
-  : Module_impl<Data_Type<Enum_T>, Enum<Enum_T, Enum_Traits> >()
-  , enums_()
-  , enums_guard_(&enums_)
-  , names_()
-  , names_guard_(&names_)
+inline Rice::Enum_Storage<Enum_T>::
+Enum_Storage(std::string name, Enum_T value) : enumName(name), enumValue(value)
 {
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+inline bool Rice::Enum_Storage<Enum_T>::
+operator==(const Enum_Storage<Enum_T>& other)
+{
+  return this->enumValue == other.enumValue;
+}
+
+template<typename Enum_T>
+inline int32_t Rice::Enum_Storage<Enum_T>::
+compare(const Rice::Enum_Storage<Enum_T>& other)
+{
+  if (this->enumValue == other.enumValue)
+  {
+    return 0;
+  }
+  else if (this->enumValue < other.enumValue)
+  {
+    return -1;
+  }
+  else
+  {
+    return 1;
+  }
+}
+
+template<typename Enum_T>
+Rice::Enum<Enum_T>::
 Enum(
     char const * name,
     Module module)
-  : Module_impl<Data_Type<Enum_T>, Enum<Enum_T, Enum_Traits> >()
-  , enums_()
-  , enums_guard_(&enums_)
-  , names_()
-  , names_guard_(&names_)
+  : Data_Type<Storage_T>()
 {
-  this->template bind<void>(initialize(name, module));
-}
-
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits>::
-Enum(Enum<Enum_T, Enum_Traits> const & other)
-  : Module_impl<Data_Type<Enum_T>, Enum<Enum_T, Enum_Traits> >(other)
-  , enums_(other.enums_)
-  , enums_guard_(&enums_)
-  , names_(other.names_)
-  , names_guard_(&names_)
-{
-}
-
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits> & Rice::Enum<Enum_T, Enum_Traits>::
-operator=(Rice::Enum<Enum_T, Enum_Traits> const & other)
-{
-  Rice::Enum<Enum_T, Enum_Traits> tmp(other);
-  this->swap(tmp);
-  return *this;
-}
-
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits>::
-~Enum()
-{
-}
-
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits> & Rice::Enum<Enum_T, Enum_Traits>::
-initialize(
-    char const * name,
-    Module module)
-{
-  Class c = Rice::define_class_under<Enum_T>(module, name)
+  Class c = Rice::define_class_under<Storage_T>(module, name)
     .define_method("to_s", to_s)
     .define_method("to_i", to_i)
     .define_method("inspect", inspect)
@@ -83,87 +52,67 @@ initialize(
     .define_singleton_method("from_int", from_int)
     .include_module(rb_mComparable);
 
-  // TODO: This should be unnecessary (it should be taken care of when
-  // define_class_under binds the C++ and ruby types)
-  this->set_value(c);
-
-  protect(rb_iv_set, c, "enums", enums_);
-  protect(rb_iv_set, c, "names", names_);
-
-  return *this;
+  // Create a Ruby array that we will use later to store enum values
+  // and attach it to the class
+  Array enums;
+  detail::protect(rb_iv_set, c, "enums", enums);
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Enum<Enum_T, Enum_Traits> & Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Enum<Enum_T> & Rice::Enum<Enum_T>::
 define_value(
-    char const * name,
+    std::string name,
     Enum_T value)
 {
-  std_unique_ptr<Enum_T> copy(new Enum_T(value));
-  Rice::Data_Object<Enum_T> m(copy.get(), *this);
-  copy.release();
-  names_[m] = String(name);
-  this->const_set(name, m);
-  enums_.push(m);
+  // Create a new storage struct for this value
+  Storage_T* storage = new Storage_T(name, value);
+
+  // Now wrap it and store it to the class enums field
+  Value_T wrapper(storage);
+  Array enums = rb_iv_get(this->value(), "enums");
+  enums.push(wrapper);
+
+  // And store it as class constant
+  this->const_set(name, wrapper);
 
   return *this;
 }
 
-
-template<typename Enum_T, typename Enum_Traits>
-void Rice::Enum<Enum_T, Enum_Traits>::
-swap(Enum<Enum_T, Enum_Traits> & other)
-{
-  Data_Type<Enum_T>::swap(other);
-  enums_.swap(other.enums_);
-  names_.swap(other.names_);
-}
-
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 each(Object self)
 {
-  VALUE enums_v = rb_iv_get(self, "enums");
-  Check_Type(enums_v, T_ARRAY);
-  Array enums(enums_v);
-  for(size_t j = 0; j < enums.size(); ++j)
+  Array enums = rb_iv_get(self, "enums");
+  Check_Type(enums, T_ARRAY);
+  for(long i = 0; i < enums.size(); ++i)
   {
-    rb_yield(enums[j].value());
+    rb_yield(enums[i].value());
   }
   return Qnil;
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 to_s(Object self)
 {
-  Data_Type<Enum_T> klass;
-  Rice::Data_Object<Enum_T> m(self, klass);
-  Object enum_class = rb_class_of(m);
-  Hash names(rb_iv_get(enum_class, "names"));
-  Object name = names[m];
-  if(name.is_nil())
-  {
-    return String::format("INVALID(%d)", Enum_Traits::as_long(*m));
-  }
-  else
-  {
-    return String(name);
-  }
+  Value_T wrapper(self);
+  return detail::to_ruby(wrapper->enumName);
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 inspect(Object self)
 {
+  Value_T wrapper(self);
+
   return String::format(
       "#<%s::%s>",
       String(self.class_of().name()).c_str(),
-      String(to_s(self)).c_str());
+      wrapper->enumName.c_str());
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 compare(Object lhs, Object rhs)
 {
   if(lhs.class_of() != rhs.class_of())
@@ -177,61 +126,68 @@ compare(Object lhs, Object rhs)
         rhs_name.c_str());
   }
 
-  Data_Type<Enum_T> klass;
-  Rice::Data_Object<Enum_T> l(lhs, klass);
-  Rice::Data_Object<Enum_T> r(rhs, klass);
+  Value_T left(lhs);
+  Value_T right(rhs);
 
-  Enum_T left(*l);
-  Enum_T right(*r);  
-
-  if(left == right)
-  {
-    return INT2NUM(0);
-  }
-  else if(Enum_Traits::as_long(left) < Enum_Traits::as_long(right))
-  {
-    return INT2NUM(-1);
-  }
-  else
-  {
-    return INT2NUM(1);
-  }
+  int32_t result = left->compare(*right);
+  return detail::To_Ruby<int>::convert(result);
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 eql(Object lhs, Object rhs)
 {
-  using ::from_ruby; // Workaround for g++ 3.3.3
-  bool is_equal = from_ruby<int>(compare(lhs, rhs)) == 0; 
-  return to_ruby(is_equal);
+  Value_T left(lhs);
+  Value_T right(rhs);
+  bool is_equal = (*left == *right);
+  return detail::To_Ruby<bool>::convert(is_equal);
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 to_i(Object self)
 {
-  Data_Type<Enum_T> klass;
-  Rice::Data_Object<Enum_T> m(self, klass);
-  return LONG2NUM(Enum_Traits::as_long(*m));
+  using Integral_T = std::underlying_type_t<Enum_T>;
+  Value_T wrapper(self);
+  return detail::To_Ruby<Integral_T>::convert((Integral_T)wrapper->enumValue);
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 hash(Object self)
 {
   return to_i(self);
 }
 
-template<typename Enum_T, typename Enum_Traits>
-Rice::Object Rice::Enum<Enum_T, Enum_Traits>::
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
 from_int(Class klass, Object i)
 {
-  using ::from_ruby; // Workaround for g++ 3.3.3
-  Rice::Data_Object<Enum_T> m(
-      new Enum_T(static_cast<Enum_T>(from_ruby<long>(i))),
-      klass);
-  return m.value();
+  Enum_T enumValue = static_cast<Enum_T>(detail::From_Ruby<long>::convert(i));
+  return from_enum(klass, enumValue);
+}
+
+template<typename Enum_T>
+Rice::Object Rice::Enum<Enum_T>::
+  from_enum(Class klass, Enum_T enumValue)
+{
+  Array enums = rb_iv_get(klass, "enums");
+
+  auto iter = std::find_if(enums.begin(), enums.end(),
+    [enumValue](const Object& object)
+    {
+      Value_T dataObject(object);
+      return dataObject->enumValue == enumValue;
+    });
+
+  if (iter == enums.end())
+  {
+    rb_raise(
+      rb_eArgError,
+      "Invalid Enum value %i", (int)enumValue);
+  }
+
+  return *iter;
 }
 
 template<typename T>
@@ -242,5 +198,36 @@ define_enum(
 {
   return Enum<T>(name, module);
 }
-#endif // Rice__Enum__ipp_
 
+template<typename T>
+struct Rice::detail::To_Ruby<T, std::enable_if_t<std::is_enum_v<T>>>
+{
+  template <typename U = T>
+  static VALUE convert(U&& data)
+  {
+    Object object = Rice::Enum<T>::from_enum(Rice::Enum<T>::klass(), data);
+    return object.value();
+  }
+};
+
+template <typename T>
+struct Rice::detail::From_Ruby<T, std::enable_if_t<std::is_enum_v<T>>>
+{
+  static T convert(VALUE value)
+  {
+    using Storage_T = Enum_Storage<T>;
+    Storage_T* storage = detail::unwrap<Storage_T>(value, Data_Type<Storage_T>::rb_type());
+    return storage->enumValue;
+  }
+};
+
+template <typename T>
+struct Rice::detail::From_Ruby<T*, std::enable_if_t<std::is_enum_v<T>>>
+{
+  static T convert(VALUE value)
+  {
+    using Storage_T = Enum_Storage<T>;
+    Storage_T* storage = detail::unwrap<Storage_T>(value, Data_Type<Storage_T>::rb_type());
+    return *storage->enumValue;
+  }
+};

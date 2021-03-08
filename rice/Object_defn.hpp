@@ -5,7 +5,8 @@
  */
 
 #include "Identifier.hpp"
-#include "detail/ruby.hpp"
+#include "detail/from_ruby_defn.hpp"
+#include "detail/to_ruby_defn.hpp"
 
 #include <iosfwd>
 #include <vector>
@@ -27,11 +28,16 @@ public:
   //! Encapsulate an existing ruby object.
   Object(VALUE value = Qnil) : value_(value) { }
 
-  //! Copy constructor
-  Object(Object const & other) : value_(other.value()) { }
-
   //! Destructor
-  virtual ~Object() { }
+  virtual ~Object() = default;
+
+  // Enable copying
+  Object(const Object& other) = default;
+  Object& operator=(const Object& other) = default;
+
+  // Enable moving
+  Object(Object&& other);
+  Object& operator=(Object&& other);
 
   //! Returns false if the object is nil or false; returns true
   //! otherwise.
@@ -89,9 +95,6 @@ public:
    */
   bool is_frozen() const;
 
-  //! Swap with another Object.
-  void swap(Object & other);
-
   //! Evaluate the given string in the context of the object.
   /*! This is equivalant to calling obj.instance_eval(s) from inside the
    *  interpreter.
@@ -125,6 +128,18 @@ public:
    *  \return true if the object is an instance of the given class.
    */
   bool is_instance_of(Object klass) const;
+
+  //! Determine whether the Ruby VALUEs wrapped by this
+  //! object are the same object. Maps to Object::equal?
+  /*! \param other a Object.
+   */
+  bool is_equal(const Object& other) const;
+
+  //! Determine whether the Ruby VALUEs wrapped by this
+  //! object are equivalent. Maps to Object::eql?
+  /*! \param other a Object.
+   */
+  bool is_eql(const Object& other) const;
 
   //! Set an instance variable.
   /*! \param name the name of the instance variable to set (including
@@ -180,9 +195,6 @@ public:
    *  \return the return value of the method call
    */
   Object vcall(Identifier id, Array args);
-
-  //! Mark the object with the garbage collector.
-  void mark() const;
 
 protected:
   //! Set the encapsulated value.

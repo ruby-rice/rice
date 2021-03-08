@@ -1,10 +1,6 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include "rice/Enum.hpp"
-#include "rice/Array.hpp"
-#include "rice/String.hpp"
-#include "rice/Constructor.hpp"
-#include "rice/global_function.hpp"
+#include <rice/rice.hpp>
 #include <iostream>
 
 using namespace Rice;
@@ -22,6 +18,33 @@ namespace
       .define_value("BLACK", BLACK)
       .define_value("GREEN", GREEN);
     return colors;
+  }
+  
+  // This is needed to make unittest compile (it uses ostream to report errors)
+  inline std::ostream& operator<<(std::ostream& os, const Rice::Enum_Storage<Color>& storage)
+  {
+    os << storage.enumName;
+    return os;
+  }
+
+  enum class Season { Spring, Summer, Fall, Winter };
+
+  // This is needed to make unittest compile (it uses ostream to report errors)
+  inline std::ostream& operator<<(std::ostream& os, const Season& season)
+  {
+    os << static_cast<std::underlying_type_t<Season>>(season);
+    return os;
+  }
+
+  Enum<Season> define_season_enum()
+  {
+    static Enum<Season> seasons = define_enum<Season>("Season")
+      .define_value("Spring", Season::Spring)
+      .define_value("Summer", Season::Summer)
+      .define_value("Fall", Season::Fall)
+      .define_value("Winter", Season::Winter);
+
+    return seasons;
   }
 }
 
@@ -46,78 +69,89 @@ TESTCASE(assignment)
 TESTCASE(each)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  Array a = protect(rb_eval_string, "a = []; Color.each { |x| a << x }; a");
+  Array a = rb_eval_string("a = []; Color.each { |x| a << x }; a");
   ASSERT_EQUAL(3u, a.size());
-  ASSERT_EQUAL(RED, from_ruby<Color>(a[0]));
-  ASSERT_EQUAL(BLACK, from_ruby<Color>(a[1]));
-  ASSERT_EQUAL(GREEN, from_ruby<Color>(a[2]));
+
+  Enum<Color>::Value_T enum_0(a[0]);
+  ASSERT_EQUAL(RED, enum_0->enumValue);
+  
+  Enum<Color>::Value_T enum_1(a[1]);
+  ASSERT_EQUAL(BLACK, enum_1->enumValue);
+  
+  Enum<Color>::Value_T enum_2(a[2]);
+  ASSERT_EQUAL(GREEN, enum_2->enumValue);
+}
+
+TESTCASE(each_seasons)
+{
+  Enum<Season> rb_cSeason = define_season_enum();
+  Array a = rb_eval_string("a = []; Season.each { |x| a << x }; a");
+  ASSERT_EQUAL(4u, a.size());
+
+  Enum<Season>::Value_T enum_0(a[0]);
+  ASSERT_EQUAL(Season::Spring, enum_0->enumValue);
+
+  Enum<Season>::Value_T enum_1(a[1]);
+  ASSERT_EQUAL(Season::Summer, enum_1->enumValue);
+
+  Enum<Season>::Value_T enum_2(a[2]);
+  ASSERT_EQUAL(Season::Fall, enum_2->enumValue);
+
+  Enum<Season>::Value_T enum_3(a[3]);
+  ASSERT_EQUAL(Season::Winter, enum_3->enumValue);
 }
 
 TESTCASE(to_s)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  ASSERT_EQUAL(String("RED"), String(protect(rb_eval_string, "Color::RED.to_s")));
-  ASSERT_EQUAL(String("BLACK"), String(protect(rb_eval_string, "Color::BLACK.to_s")));
-  ASSERT_EQUAL(String("GREEN"), String(protect(rb_eval_string, "Color::GREEN.to_s")));
+  ASSERT_EQUAL(String("RED"), String(rb_eval_string("Color::RED.to_s")));
+  ASSERT_EQUAL(String("BLACK"), String(rb_eval_string("Color::BLACK.to_s")));
+  ASSERT_EQUAL(String("GREEN"), String(rb_eval_string("Color::GREEN.to_s")));
 }
 
 TESTCASE(to_i)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  ASSERT_EQUAL(to_ruby(int(RED)), Object(protect(rb_eval_string, "Color::RED.to_i")));
-  ASSERT_EQUAL(to_ruby(int(BLACK)), Object(protect(rb_eval_string, "Color::BLACK.to_i")));
-  ASSERT_EQUAL(to_ruby(int(GREEN)), Object(protect(rb_eval_string, "Color::GREEN.to_i")));
+  ASSERT_EQUAL(detail::to_ruby(int(RED)), rb_eval_string("Color::RED.to_i"));
+  ASSERT_EQUAL(detail::to_ruby(int(BLACK)), rb_eval_string("Color::BLACK.to_i"));
+  ASSERT_EQUAL(detail::to_ruby(int(GREEN)), rb_eval_string("Color::GREEN.to_i"));
 }
 
 TESTCASE(inspect)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  ASSERT_EQUAL(String("#<Color::RED>"), String(protect(rb_eval_string, "Color::RED.inspect")));
-  ASSERT_EQUAL(String("#<Color::BLACK>"), String(protect(rb_eval_string, "Color::BLACK.inspect")));
-  ASSERT_EQUAL(String("#<Color::GREEN>"), String(protect(rb_eval_string, "Color::GREEN.inspect")));
+  ASSERT_EQUAL(String("#<Color::RED>"), String(rb_eval_string("Color::RED.inspect")));
+  ASSERT_EQUAL(String("#<Color::BLACK>"), String(rb_eval_string("Color::BLACK.inspect")));
+  ASSERT_EQUAL(String("#<Color::GREEN>"), String(rb_eval_string("Color::GREEN.inspect")));
 }
 
 TESTCASE(compare)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  ASSERT_EQUAL(to_ruby(-1), Object(protect(rb_eval_string, "Color::RED <=> Color::BLACK")));
-  ASSERT_EQUAL(to_ruby(1), Object(protect(rb_eval_string, "Color::GREEN <=> Color::RED")));
-  ASSERT_EQUAL(to_ruby(0), Object(protect(rb_eval_string, "Color::BLACK <=> Color::BLACK")));
+  ASSERT_EQUAL(detail::to_ruby(-1), rb_eval_string("Color::RED <=> Color::BLACK"));
+  ASSERT_EQUAL(detail::to_ruby(1), rb_eval_string("Color::GREEN <=> Color::RED"));
+  ASSERT_EQUAL(detail::to_ruby(0), rb_eval_string("Color::BLACK <=> Color::BLACK"));
 }
 
 TESTCASE(eql)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  ASSERT_EQUAL(to_ruby(false), Object(protect(rb_eval_string, "Color::RED == Color::BLACK")));
-  ASSERT_EQUAL(to_ruby(true), Object(protect(rb_eval_string, "Color::GREEN == Color::GREEN")));
-}
-
-TESTCASE(invalid_to_s)
-{
-  Enum<Color> rb_cColor = define_color_enum();
-  Data_Object<Color> invalid(new Color(static_cast<Color>(42)));
-  ASSERT_EQUAL(String("INVALID(42)"), invalid.to_s());
+  ASSERT_EQUAL(detail::to_ruby(false), rb_eval_string("Color::RED == Color::BLACK"));
+  ASSERT_EQUAL(detail::to_ruby(true), rb_eval_string("Color::GREEN == Color::GREEN"));
 }
 
 TESTCASE(invalid_to_i)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  Data_Object<Color> invalid(new Color(static_cast<Color>(42)));
-  ASSERT_EQUAL(to_ruby(42), invalid.call("to_i"));
-}
-
-TESTCASE(invalid_inspect)
-{
-  Enum<Color> rb_cColor = define_color_enum();
-  Data_Object<Color> invalid(new Color(static_cast<Color>(42)));
-  ASSERT_EQUAL(String("#<Color::INVALID(42)>"), invalid.inspect());
+  Enum<Color>::Value_T invalid(new Enum<Color>::Storage_T("Invalid Color", static_cast<Color>(42)));
+  ASSERT_EQUAL(detail::to_ruby(42), invalid.call("to_i").value());
 }
 
 TESTCASE(invalid_compare)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  Data_Object<Color> invalid(new Color(static_cast<Color>(42)));
-  Data_Object<Color> red(new Color(RED));
+  Enum<Color>::Value_T invalid(new Enum<Color>::Storage_T("Invalid Color", static_cast<Color>(42)));
+  Enum<Color>::Value_T red(new Enum<Color>::Storage_T("RED", RED));
   ASSERT_EQUAL(1, invalid.compare(red));
   ASSERT_EQUAL(-1, red.compare(invalid));
   ASSERT_EQUAL(0, invalid.compare(invalid));
@@ -126,8 +160,8 @@ TESTCASE(invalid_compare)
 TESTCASE(invalid_eql)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  Data_Object<Color> invalid(new Color(static_cast<Color>(42)));
-  Data_Object<Color> red(new Color(RED));
+  Enum<Color>::Value_T invalid(new Enum<Color>::Storage_T("Invalid Color", static_cast<Color>(42)));
+  Enum<Color>::Value_T red(new Enum<Color>::Storage_T("RED", RED));
   ASSERT_EQUAL(false, invalid == red);
   ASSERT_EQUAL(false, red == invalid);
   ASSERT_EQUAL(true, invalid == invalid);
@@ -136,31 +170,43 @@ TESTCASE(invalid_eql)
 TESTCASE(different_objects_compare)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  Data_Object<Color> red1(new Color(RED));
-  Data_Object<Color> red2(new Color(RED));
+  Enum<Color>::Value_T red1(new Enum<Color>::Storage_T("RED", RED));
+  Enum<Color>::Value_T red2(new Enum<Color>::Storage_T("RED", RED));
   ASSERT_EQUAL(0, red1.compare(red2));
 }
 
 TESTCASE(different_objects_eql)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  Data_Object<Color> red1(new Color(RED));
-  Data_Object<Color> red2(new Color(RED));
+  Enum<Color>::Value_T red1(new Enum<Color>::Storage_T("RED", RED));
+  Enum<Color>::Value_T red2(new Enum<Color>::Storage_T("RED", RED));
   ASSERT_EQUAL(true, red1 == red2);
 }
 
 TESTCASE(hash)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  Data_Object<Color> red(new Color(RED));
-  ASSERT_EQUAL(to_ruby(int(RED)), red.call("hash"));
+  Enum<Color>::Value_T red(new Enum<Color>::Storage_T("RED", RED));
+  ASSERT_EQUAL(detail::to_ruby(int(RED)), red.call("hash").value());
 }
 
 TESTCASE(from_int)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  Data_Object<Color> color(rb_cColor.call("from_int", int(RED)));
-  ASSERT_EQUAL(RED, *color);
+  Enum<Color>::Value_T color(rb_cColor.call("from_int", int(RED)));
+  ASSERT_EQUAL(RED, color->enumValue);
+}
+
+TESTCASE(from_int_invalid)
+{
+  Enum<Color> rb_cColor = define_color_enum();
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    rb_cColor.call("from_int", -99999),
+    ASSERT_EQUAL(Object(rb_eArgError),
+                 Object(CLASS_OF(ex.value()))
+    )
+  );
 }
 
 namespace
@@ -188,29 +234,46 @@ TESTCASE(nested_enums)
     inner.define_constructor(Constructor<Inner>());
   }
 
-  ASSERT_EQUAL(to_ruby(int(0)), Object(protect(rb_eval_string, "Inner::Props::VALUE1.to_i")));
-  ASSERT_EQUAL(to_ruby(int(1)), Object(protect(rb_eval_string, "Inner::Props::VALUE2.to_i")));
-  ASSERT_EQUAL(to_ruby(int(2)), Object(protect(rb_eval_string, "Inner::Props::VALUE3.to_i")));
+  ASSERT_EQUAL(detail::to_ruby(int(0)), rb_eval_string("Inner::Props::VALUE1.to_i"));
+  ASSERT_EQUAL(detail::to_ruby(int(1)), rb_eval_string("Inner::Props::VALUE2.to_i"));
+  ASSERT_EQUAL(detail::to_ruby(int(2)), rb_eval_string("Inner::Props::VALUE3.to_i"));
 }
 
 namespace
 {
-  Color getEnum()
+  Color myFavoriteColor()
   {
-    return GREEN;
+    return RED;
+  }
+
+  bool isMyFavoriteColor(Color aColor)
+  {
+    return aColor == RED;
   }
 }
 
-TESTCASE(return_enum_value_to_ruby)
+TESTCASE(using_enums)
 {
-  Enum<Color> rb_cColor = define_color_enum();
-  define_global_function("get_enum", &getEnum);
+  Enum<Color> color = define_color_enum();
+  color.define_singleton_function("my_favorite_color", &myFavoriteColor)
+       .define_singleton_function("is_my_favorite_color", &isMyFavoriteColor)
+       .define_singleton_function("is_my_favorite_color", &isMyFavoriteColor)
+       .define_method("is_my_favorite_color", &isMyFavoriteColor);
 
-  ASSERT_EQUAL(
-    Data_Object<Color>(protect(rb_eval_string, "Color::GREEN")),
-    Data_Object<Color>(protect(rb_eval_string, "get_enum"))
-  );
+  Module m = define_module("Testing");
 
-  ASSERT_EQUAL(String("GREEN"), String(protect(rb_eval_string, "get_enum.to_s")));
-  ASSERT_EQUAL(String("#<Color::GREEN>"), String(protect(rb_eval_string, "get_enum.inspect")));
+  Object result = m.instance_eval("Color.my_favorite_color");
+  ASSERT_EQUAL(RED, detail::From_Ruby<Color>::convert(result.value()));
+
+  result = m.instance_eval("Color.is_my_favorite_color(Color::RED)");
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  result = m.instance_eval("Color.is_my_favorite_color(Color::BLACK)");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = m.instance_eval("Color::RED.is_my_favorite_color");
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  result = m.instance_eval("Color::BLACK.is_my_favorite_color");
+  ASSERT_EQUAL(Qfalse, result.value());
 }

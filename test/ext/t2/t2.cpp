@@ -1,5 +1,5 @@
 #include "../t1/Foo.hpp"
-#include "rice/Data_Type.hpp"
+#include <rice/rice.hpp>
 
 using namespace Rice;
 

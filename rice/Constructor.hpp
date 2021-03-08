@@ -1,10 +1,8 @@
 #ifndef Rice__Constructor__hpp_
 #define Rice__Constructor__hpp_
 
-// This causes problems with certain C++ libraries
-#undef TYPE
-
-#include "to_from_ruby_defn.hpp"
+#include "detail/Wrapper.hpp"
+#include "Object_defn.hpp"
 
 namespace Rice
 {
@@ -27,7 +25,8 @@ namespace Rice
   public:
     static void construct(Object self, Arg_T... args)
     {
-      DATA_PTR(self.value()) = new T(args...);
+      T* data = new T(args...);
+      detail::replace<T>(self.value(), Data_Type<T>::rb_type(), data);
     }
   };
 
@@ -38,10 +37,11 @@ namespace Rice
     public:
       static void construct(Object self, Arg_T... args)
       {
-        DATA_PTR(self.value()) = new T(self, args...);
+        T* data = new T(self, args...);
+        detail::replace<T>(self.value(), Data_Type<T>::rb_type(), data);
       }
   };
 }
 
-#endif
+#endif // Rice__Constructor__hpp_
 

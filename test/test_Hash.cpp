@@ -1,7 +1,7 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include "rice/Hash.hpp"
-#include "rice/global_function.hpp"
+#include <rice/rice.hpp>
+
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -19,7 +19,7 @@ TESTCASE(default_construct)
 {
   Hash h;
   ASSERT_EQUAL(T_HASH, rb_type(h));
-  ASSERT_EQUAL(0, RHASH_SIZE(h.value()));
+  ASSERT_EQUAL(0u, RHASH_SIZE(h.value()));
 }
 
 TESTCASE(construct_from_object)
@@ -27,7 +27,7 @@ TESTCASE(construct_from_object)
   Object o(rb_hash_new());
   Hash h(o);
   ASSERT_EQUAL(T_HASH, rb_type(h));
-  ASSERT_EQUAL(0, RHASH_SIZE(h.value()));
+  ASSERT_EQUAL(0u, RHASH_SIZE(h.value()));
 }
 
 TESTCASE(construct_from_value)
@@ -35,7 +35,7 @@ TESTCASE(construct_from_value)
   VALUE v(rb_hash_new());
   Hash h(v);
   ASSERT_EQUAL(T_HASH, rb_type(h));
-  ASSERT_EQUAL(0, RHASH_SIZE(h.value()));
+  ASSERT_EQUAL(0u, RHASH_SIZE(h.value()));
 }
 
 TESTCASE(copy_construct)
@@ -50,6 +50,7 @@ TESTCASE(assignment)
   Hash h;
   Hash h2;
   h = h2;
+  ASSERT_EQUAL(h.value(), h2.value());
 }
 
 TESTCASE(size)
@@ -73,9 +74,9 @@ TESTCASE(bracket)
   h[6] = 9;
   h[42] = 42;
   h[6] = 1;
-  ASSERT_EQUAL(to_ruby(5), Object(h[1]));
-  ASSERT_EQUAL(to_ruby(42), Object(h[42]));
-  ASSERT_EQUAL(to_ruby(1), Object(h[6]));
+  ASSERT_EQUAL(detail::to_ruby(5), h[1].value());
+  ASSERT_EQUAL(detail::to_ruby(42), h[42].value());
+  ASSERT_EQUAL(detail::to_ruby(1), h[6].value());
 }
 
 TESTCASE(get)
@@ -101,15 +102,15 @@ TESTCASE(construct_vector_from_hash_iterators)
   std::vector<Hash::Entry> v(h.begin(), h.end());
   std::sort(v.begin(), v.end());
   ASSERT_EQUAL(3u, v.size());
-  ASSERT_EQUAL(v[0].key, to_ruby(1));
-  ASSERT_EQUAL(v[1].key, to_ruby(6));
-  ASSERT_EQUAL(v[2].key, to_ruby(42));
+  ASSERT_EQUAL(v[0].key.value(), detail::to_ruby(1));
+  ASSERT_EQUAL(v[1].key.value(), detail::to_ruby(6));
+  ASSERT_EQUAL(v[2].key.value(), detail::to_ruby(42));
   ASSERT_EQUAL(&v[0].key, &v[0].first);
   ASSERT_EQUAL(&v[1].key, &v[1].first);
   ASSERT_EQUAL(&v[2].key, &v[2].first);
-  ASSERT_EQUAL(v[0].value, to_ruby(5));
-  ASSERT_EQUAL(v[1].value, to_ruby(1));
-  ASSERT_EQUAL(v[2].value, to_ruby(42));
+  ASSERT_EQUAL(v[0].value, detail::to_ruby(5));
+  ASSERT_EQUAL(v[1].value, detail::to_ruby(1));
+  ASSERT_EQUAL(v[2].value, detail::to_ruby(42));
   ASSERT_EQUAL(&v[0].value, &v[0].second);
   ASSERT_EQUAL(&v[1].value, &v[1].second);
   ASSERT_EQUAL(&v[2].value, &v[2].second);
@@ -134,15 +135,15 @@ TESTCASE(iterate)
 
   std::sort(v.begin(), v.end());
   ASSERT_EQUAL(3u, v.size());
-  ASSERT_EQUAL(v[0].key, to_ruby(1));
-  ASSERT_EQUAL(v[1].key, to_ruby(6));
-  ASSERT_EQUAL(v[2].key, to_ruby(42));
+  ASSERT_EQUAL(v[0].key.value(), detail::to_ruby(1));
+  ASSERT_EQUAL(v[1].key.value(), detail::to_ruby(6));
+  ASSERT_EQUAL(v[2].key.value(), detail::to_ruby(42));
   ASSERT_EQUAL(&v[0].key, &v[0].first);
   ASSERT_EQUAL(&v[1].key, &v[1].first);
   ASSERT_EQUAL(&v[2].key, &v[2].first);
-  ASSERT_EQUAL(v[0].value, to_ruby(5));
-  ASSERT_EQUAL(v[1].value, to_ruby(1));
-  ASSERT_EQUAL(v[2].value, to_ruby(42));
+  ASSERT_EQUAL(v[0].value, detail::to_ruby(5));
+  ASSERT_EQUAL(v[1].value, detail::to_ruby(1));
+  ASSERT_EQUAL(v[2].value, detail::to_ruby(42));
   ASSERT_EQUAL(&v[0].value, &v[0].second);
   ASSERT_EQUAL(&v[1].value, &v[1].second);
   ASSERT_EQUAL(&v[2].value, &v[2].second);
@@ -164,15 +165,15 @@ TESTCASE(const_iterate)
   }
   std::sort(v.begin(), v.end());
   ASSERT_EQUAL(3u, v.size());
-  ASSERT_EQUAL(v[0].key, to_ruby(1));
-  ASSERT_EQUAL(v[1].key, to_ruby(6));
-  ASSERT_EQUAL(v[2].key, to_ruby(42));
+  ASSERT_EQUAL(v[0].key.value(), detail::to_ruby(1));
+  ASSERT_EQUAL(v[1].key.value(), detail::to_ruby(6));
+  ASSERT_EQUAL(v[2].key.value(), detail::to_ruby(42));
   ASSERT_EQUAL(&v[0].key, &v[0].first);
   ASSERT_EQUAL(&v[1].key, &v[1].first);
   ASSERT_EQUAL(&v[2].key, &v[2].first);
-  ASSERT_EQUAL(v[0].value, to_ruby(5));
-  ASSERT_EQUAL(v[1].value, to_ruby(1));
-  ASSERT_EQUAL(v[2].value, to_ruby(42));
+  ASSERT_EQUAL(v[0].value.value(), detail::to_ruby(5));
+  ASSERT_EQUAL(v[1].value.value(), detail::to_ruby(1));
+  ASSERT_EQUAL(v[2].value.value(), detail::to_ruby(42));
   ASSERT_EQUAL(&v[0].value, &v[0].value);
   ASSERT_EQUAL(&v[1].value, &v[1].value);
   ASSERT_EQUAL(&v[2].value, &v[2].value);
@@ -191,12 +192,12 @@ TESTCASE(iterate_and_change)
   for(int j = 0; it != end; ++j, ++it)
   {
     it->second = j;
-    m[from_ruby<int>(it->first)] = j;
+    m[detail::From_Ruby<int>::convert(it->first)] = j;
   }
   ASSERT_EQUAL(3u, m.size());
-  ASSERT_EQUAL(to_ruby(m[1]), h[1]);
-  ASSERT_EQUAL(to_ruby(m[6]), h[6]);
-  ASSERT_EQUAL(to_ruby(m[42]), h[42]);
+  ASSERT_EQUAL(detail::to_ruby(m[1]), h[1]);
+  ASSERT_EQUAL(detail::to_ruby(m[6]), h[6]);
+  ASSERT_EQUAL(detail::to_ruby(m[42]), h[42]);
 }
 
 /**

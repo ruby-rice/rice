@@ -8,11 +8,23 @@ namespace Rice
   /*! Take a list of Arg objects and build up a single Argument
    *  object used later in method dispatch
    */
-  Arguments* operator,(Arg arg1, Arg arg2);
+  [[deprecated("You should no longer enclose multiple Args in parentheses.")]]
+  inline Arguments* operator,(Arg arg1, Arg arg2)
+  {
+    Arguments* a = new Arguments();
+    a->add(arg1);
+    a->add(arg2);
+    return a;
+  }
 
   /*! @see operator,(Arg, Arg)
    */
-  Arguments* operator,(Arguments* arguments, Arg arg);
+  [[deprecated("You should no longer enclose multiple Args in parentheses.")]]
+  inline Arguments* operator,(Arguments* arguments, Arg arg)
+  {
+    arguments->add(arg);
+    return arguments;
+  }
 
 }
 

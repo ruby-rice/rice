@@ -1,7 +1,6 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include "rice/Builtin_Object.hpp"
-#include "rice/Class.hpp"
+#include <rice/rice.hpp>
 
 using namespace Rice;
 
@@ -35,6 +34,39 @@ TESTCASE(copy_construct)
   ASSERT_EQUAL(rb_cObject, CLASS_OF(b2.value()));
 }
 
+TESTCASE(copy_assign)
+{
+  Class c(rb_cObject);
+  Builtin_Object<T_OBJECT> b1(c.call("new"));
+  Builtin_Object<T_OBJECT> b2(c.call("new"));
+  
+  b2 = b1;
+
+  ASSERT_EQUAL(b2.value(), b1.value());
+}
+
+TESTCASE(move_constructor)
+{
+  Class c(rb_cObject);
+  Builtin_Object<T_OBJECT> b1(c.call("new"));
+  Builtin_Object<T_OBJECT> b2(std::move(b1));
+
+  ASSERT_NOT_EQUAL(b2.value(), b1.value());
+  ASSERT_EQUAL(b1.value(), Qnil);
+}
+
+TESTCASE(move_assign)
+{
+  Class c(rb_cObject);
+  Builtin_Object<T_OBJECT> b1(c.call("new"));
+  Builtin_Object<T_OBJECT> b2(c.call("new"));
+
+  b2 = std::move(b1);
+
+  ASSERT_NOT_EQUAL(b2.value(), b1.value());
+  ASSERT_EQUAL(b1.value(), Qnil);
+}
+
 TESTCASE(dereference)
 {
   Class c(rb_cObject);
@@ -57,16 +89,4 @@ TESTCASE(get)
   Object o(c.call("new"));
   Builtin_Object<T_OBJECT> b(o);
   ASSERT_EQUAL(ROBJECT(o.value()), b.get());
-}
-
-TESTCASE(swap)
-{
-  Class c(rb_cObject);
-  Object o1(c.call("new"));
-  Builtin_Object<T_OBJECT> b1(o1);
-  Object o2(c.call("new"));
-  Builtin_Object<T_OBJECT> b2(o2);
-  b1.swap(b2);
-  ASSERT_EQUAL(b1.value(), o2.value());
-  ASSERT_EQUAL(b2.value(), o1.value());
 }

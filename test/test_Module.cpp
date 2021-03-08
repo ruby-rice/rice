@@ -1,11 +1,6 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include "rice/Module.hpp"
-#include "rice/Exception.hpp"
-#include "rice/Array.hpp"
-#include "rice/Arg.hpp"
-#include "rice/global_function.hpp"
-#include "rice/Constructor.hpp"
+#include <rice/rice.hpp>
 
 using namespace Rice;
 
@@ -50,55 +45,73 @@ TESTCASE(add_handler)
   Object exc = m.instance_eval("begin; foo; rescue Exception; $!; end");
   ASSERT_EQUAL(rb_eRuntimeError, CLASS_OF(exc));
   Exception ex(exc);
-  ASSERT_EQUAL(String("SILLY"), String(ex.message()));
+  ASSERT_EQUAL(String("SILLY"), String(ex.what()));
 }
 
 namespace
 {
 
-bool define_method_simple_ok;
-
-void define_method_simple_helper(Object o)
+bool some_function()
 {
-  define_method_simple_ok = true;
+  return true;
+}
+
+Object some_method(Object o)
+{
+  return o;
+}
+
+int function_int(int i)
+{
+  return i;
+}
+
+int method_int(Object object, int i)
+{
+  return i;
 }
 
 } // namespace
 
-TESTCASE(define_method_simple)
+TESTCASE(define_method)
 {
   Module m(anonymous_module());
-  m.define_method("foo", define_method_simple_helper);
-  define_method_simple_ok = false;
-  Object o = m.instance_eval("o = Object.new; o.extend(self); o.foo");
-  ASSERT(define_method_simple_ok);
+  m.define_method("some_method", some_method);
+  
+  Object o = m.instance_eval("$o = Object.new");
+  Object result = m.instance_eval(R"EOS($o.extend(self)
+                                        $o.some_method)EOS");
+  ASSERT_EQUAL(o, result);
 }
 
-TESTCASE(define_singleton_method_simple)
+TESTCASE(define_singleton_method)
 {
   Module m(anonymous_module());
-  m.define_singleton_method("foo", define_method_simple_helper);
-  define_method_simple_ok = false;
-  Object o = m.call("foo");
-  ASSERT(define_method_simple_ok);
+  m.define_singleton_method("some_method", some_method);
+  Object result = m.call("some_method");
+  ASSERT_EQUAL(m, result);
 }
 
-TESTCASE(define_module_function_simple)
+TESTCASE(define_module_function)
 {
   Module m(anonymous_module());
-  m.define_module_function("foo", define_method_simple_helper);
-  define_method_simple_ok = false;
-  m.instance_eval("o = Object.new; o.extend(self); o.instance_eval { foo }");
-  ASSERT(define_method_simple_ok);
-  define_method_simple_ok = false;
-  m.call("foo");
-  ASSERT(define_method_simple_ok);
+  m.define_module_function("some_function", some_function);
+
+  Object result = m.instance_eval(R"EOS(o = Object.new
+                                   o.extend(self)
+                                   o.instance_eval do
+                                     some_function
+                                   end)EOS");
+
+  ASSERT_EQUAL(Qtrue, result.value());
+  result = m.call("some_function");
+  ASSERT_EQUAL(Qtrue, result.value());
 }
 
 TESTCASE(define_module_does_not_leak_method_to_Object)
 {
   Module m = define_module("TestModule");
-  m.define_module_function("test_module_function", &define_method_simple_helper);
+  m.define_module_function("test_module_function", &some_method);
 
   Module runner(anonymous_module());
   ASSERT_EXCEPTION_CHECK(
@@ -111,52 +124,53 @@ TESTCASE(define_module_does_not_leak_method_to_Object)
   );
 }
 
-namespace
+TESTCASE(define_function_int)
 {
-
-int define_method_int_result;
-
-void define_method_int_helper(Object o, int i)
-{
-  define_method_int_result = i;
+  Module m(anonymous_module());
+  m.define_function("foo", function_int);
+  Object result = m.instance_eval("o = Object.new; o.extend(self); o.foo(42)");
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
 }
-
-} // namespace
 
 TESTCASE(define_method_int)
 {
   Module m(anonymous_module());
-  m.define_method("foo", define_method_int_helper);
-  define_method_int_result = 0;
-  Object o = m.instance_eval("o = Object.new; o.extend(self); o.foo(42)");
-  ASSERT_EQUAL(42, define_method_int_result);
+  m.define_method("foo", method_int);
+  Object result = m.instance_eval("o = Object.new; o.extend(self); o.foo(42)");
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
 }
 
 TESTCASE(define_singleton_method_int)
 {
   Module m(anonymous_module());
-  m.define_singleton_method("foo", define_method_int_helper);
-  define_method_int_result = 0;
-  Object o = m.call("foo", 42);
-  ASSERT_EQUAL(42, define_method_int_result);
+  m.define_singleton_method("foo", method_int);
+  Object result = m.call("foo", 42);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+}
+
+TESTCASE(define_singleton_function_int)
+{
+  Module m(anonymous_module());
+  m.define_singleton_function("foo", function_int);
+  Object result = m.call("foo", 42);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
 }
 
 TESTCASE(define_module_function_int)
 {
   Module m(anonymous_module());
-  m.define_module_function("foo", define_method_int_helper);
-  define_method_int_result = 0;
-  m.instance_eval("o = Object.new; o.extend(self); o.instance_eval { foo(42) }");
-  ASSERT_EQUAL(42, define_method_int_result);
-  define_method_int_result = 0;
-  m.call("foo", 42);
-  ASSERT_EQUAL(42, define_method_int_result);
+  m.define_module_function("foo", function_int);
+  Object result = m.instance_eval("o = Object.new; o.extend(self); o.instance_eval { foo(42) }");
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+
+  result = m.call("foo", 42);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
 }
 
-TESTCASE(define_method_int_passed_no_args)
+TESTCASE(method_int_passed_no_args)
 {
   Module m(anonymous_module());
-  m.define_method("foo", define_method_int_helper);
+  m.define_method("foo", method_int);
   ASSERT_EXCEPTION_CHECK(
       Exception,
       m.instance_eval("o = Object.new; o.extend(self); o.foo"),
@@ -167,47 +181,14 @@ TESTCASE(define_method_int_passed_no_args)
       );
 }
 
-namespace
-{
-
-struct Foo
-{
-  int x;
-};
-
-int define_method_int_foo_result_i;
-Foo * define_method_int_foo_result_x;
-
-void define_method_int_foo_helper(Object o, int i, Foo * x)
-{
-  define_method_int_foo_result_i = i;
-  define_method_int_foo_result_x = x;
-}
-
-} // namespace
-
-template<>
-Foo * from_ruby<Foo *>(Object x)
-{
-  Foo * retval;
-  Data_Get_Struct(x.value(), Foo, retval);
-  return retval;
-}
-
 TESTCASE(define_singleton_method_int_foo)
 {
   Module m(anonymous_module());
-  m.define_singleton_method("int_and_foo", define_method_int_foo_helper);
-  define_method_int_result = 0;
-  Foo * foo = new Foo;
-  foo->x = 1024;
-  VALUE f = Data_Wrap_Struct(rb_cObject, 0, Default_Free_Function<Foo>::free, foo);
-  m.call("int_and_foo", 42, Object(f));
-  ASSERT_EQUAL(42, define_method_int_foo_result_i);
-  ASSERT_EQUAL(foo, define_method_int_foo_result_x);
-}
+  m.define_singleton_method("method_int", method_int);
 
-// TODO: how to test define_iterator?
+  Object result = m.call("method_int", 42);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+}
 
 TESTCASE(include_module)
 {
@@ -224,7 +205,7 @@ TESTCASE(include_module)
 TESTCASE(const_set_get_by_id)
 {
   Module m(anonymous_module());
-  Object v = to_ruby(42);
+  Object v = detail::to_ruby(42);
   Module & m2(m.const_set(rb_intern("FOO"), v));
   ASSERT_EQUAL(&m, &m2);
   ASSERT_EQUAL(v, m.const_get(rb_intern("FOO")));
@@ -233,7 +214,7 @@ TESTCASE(const_set_get_by_id)
 TESTCASE(const_set_get_by_identifier)
 {
   Module m(anonymous_module());
-  Object v = to_ruby(42);
+  Object v = detail::to_ruby(42);
   Module & m2(m.const_set(Identifier("FOO"), v));
   ASSERT_EQUAL(&m, &m2);
   ASSERT_EQUAL(v, m.const_get(Identifier("FOO")));
@@ -242,7 +223,7 @@ TESTCASE(const_set_get_by_identifier)
 TESTCASE(const_set_get_by_string)
 {
   Module m(anonymous_module());
-  Object v = to_ruby(42);
+  Object v = detail::to_ruby(42);
   Module & m2(m.const_set("FOO", v));
   ASSERT_EQUAL(&m, &m2);
   ASSERT_EQUAL(v, m.const_get("FOO"));
@@ -251,7 +232,7 @@ TESTCASE(const_set_get_by_string)
 TESTCASE(remove_const)
 {
   Module m(anonymous_module());
-  Object v = to_ruby(42);
+  Object v = detail::to_ruby(42);
   m.const_set("FOO", v);
   ASSERT_EQUAL(v, m.const_get("FOO"));
   m.remove_const("FOO");
@@ -291,7 +272,7 @@ namespace
 TESTCASE(define_method_default_arguments)
 {
   Module m(anonymous_module());
-  m.define_method("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
+  m.define_function("foo", &defaults_method_one, Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true);
 
   Object o = m.instance_eval("o = Object.new; o.extend(self); o");
   o.call("foo", 2);
@@ -316,7 +297,7 @@ TESTCASE(define_method_default_arguments)
 TESTCASE(default_arguments_still_throws_argument_error)
 {
   Module m(anonymous_module());
-  m.define_method("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
+  m.define_function("foo", &defaults_method_one, Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true);
 
   ASSERT_EXCEPTION_CHECK(
       Exception,
@@ -348,7 +329,7 @@ TESTCASE(defining_methods_with_single_default_argument)
 {
   // define_method
   Module m(anonymous_module());
-  m.define_method("foo", &method_with_one_default_arg, (Arg("num") = 4));
+  m.define_function("foo", &method_with_one_default_arg, (Arg("num") = 4));
   m.instance_eval("o = Object.new; o.extend(self); o.foo()");
   ASSERT_EQUAL(4, the_one_default_arg);
 
@@ -356,7 +337,7 @@ TESTCASE(defining_methods_with_single_default_argument)
 
   // define_singleton_method
   Class c(anonymous_class());
-  c.define_singleton_method("foo", &method_with_one_default_arg, (Arg("num") = 4));
+  c.define_singleton_function("foo", &method_with_one_default_arg, (Arg("num") = 4));
   c.call("foo");
   ASSERT_EQUAL(4, the_one_default_arg);
 
@@ -372,7 +353,7 @@ TESTCASE(defining_methods_with_single_default_argument)
 TESTCASE(default_arguments_for_define_singleton_method)
 {
   Class c(anonymous_class());
-  c.define_singleton_method("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
+  c.define_singleton_function("foo", &defaults_method_one, Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true);
 
   c.call("foo", 2);
 
@@ -396,7 +377,7 @@ TESTCASE(default_arguments_for_define_singleton_method)
 TESTCASE(default_arguments_for_define_module_function)
 {
   Module m(anonymous_module());
-  m.define_module_function("foo", &defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true));
+  m.define_module_function("foo", &defaults_method_one, Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true);
 
   m.call("foo", 2);
 
@@ -432,7 +413,7 @@ TESTCASE(define_method_works_with_reference_arguments)
 {
   Module m(anonymous_module());
   m.define_module_function("foo", &with_defaults_and_references,
-      (Arg("x"), Arg("doIt") = false));
+      Arg("x"), Arg("doIt") = false);
 
   m.call("foo", "test");
 
@@ -472,7 +453,6 @@ TESTCASE(define_method_works_with_const_reference_return)
   ASSERT_EQUAL("ReturnTest", result.class_of().name().c_str());
 }
 
-/*
 namespace {
   float with_reference_defaults_x;
   std::string with_reference_defaults_str;
@@ -488,11 +468,32 @@ TESTCASE(define_method_works_with_reference_const_default_values)
 {
   Module m(anonymous_module());
   m.define_module_function("bar", &with_reference_defaults,
-      (Arg("x"), Arg("str") = std::string("testing")));
+      Arg("x"), Arg("str") = std::string("testing"));
 
   m.call("bar", 3);
 
   ASSERT_EQUAL(3, with_reference_defaults_x);
   ASSERT_EQUAL("testing", with_reference_defaults_str);
 }
-*/
+
+namespace {
+  int with_pointers_x;
+  std::string with_pointers_str;
+
+  void with_pointers(int* x, std::string const* str)
+  {
+    with_pointers_x = *x;
+    with_pointers_str = *str;
+  }
+}
+
+TESTCASE(define_method_works_with_pointers)
+{
+  Module m(anonymous_module());
+  m.define_module_function("bar", &with_pointers);
+
+  m.call("bar", 3, "testing");
+
+  ASSERT_EQUAL(3, with_pointers_x);
+  ASSERT_EQUAL("testing", with_pointers_str);
+}

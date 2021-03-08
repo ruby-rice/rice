@@ -10,6 +10,12 @@ Identifier(char const * s)
 {
 }
 
+inline Rice::Identifier::
+Identifier(std::string const s)
+  : id_(rb_intern(s.c_str()))
+{
+}
+
 inline char const *
 Rice::Identifier::
 c_str() const

@@ -1,6 +1,6 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include "rice/Address_Registration_Guard.hpp"
+#include <rice/rice.hpp>
 
 using namespace Rice;
 
@@ -30,15 +30,28 @@ TESTCASE(get_address)
   ASSERT_EQUAL(&v, g.address());
 }
 
-TESTCASE(swap)
+TESTCASE(move_construct)
 {
-  VALUE v = Qnil;
-  VALUE v2 = Qnil;
-  Address_Registration_Guard g(&v);
-  Address_Registration_Guard g2(&v2);
-  g.swap(g2);
-  ASSERT_EQUAL(&v, g2.address());
-  ASSERT_EQUAL(&v2, g.address());
-  // TODO: ensure addresses are still registered
+  VALUE value = detail::to_ruby("Value 1");
+  
+  Address_Registration_Guard guard1(&value);
+  Address_Registration_Guard guard2(std::move(guard1));
+
+  ASSERT((guard1.address() == nullptr));
+  ASSERT_EQUAL(&value, guard2.address());
+}
+
+TESTCASE(move_assign)
+{
+  VALUE value1 = detail::to_ruby("Value 1");
+  VALUE value2 = detail::to_ruby("Value 2");
+
+  Address_Registration_Guard guard1(&value1);
+  Address_Registration_Guard guard2(&value2);
+
+  guard2 = std::move(guard1);
+
+  ASSERT((guard1.address() == nullptr));
+  ASSERT_EQUAL(&value1, guard2.address());
 }
 
