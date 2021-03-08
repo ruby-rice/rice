@@ -1,29 +1,14 @@
-Makefile
-Makefile.in
-aclocal.m4
-autom4te.cache
-rice/config.hpp
-rice/README.doxygen
-rice/detail/ruby_version_code.hpp
-config.log
-config.status
-config.guess
-config.sub
-configure
-depcomp
-install-sh
-missing
 test-driver
 pkg
-*.o
-*.so
 *.log
-.deps
-*~
 .*.swp
-doc
-*.dSYM
+*.o
 *.bundle
+*.in
+test/**/Makefile
+sample/**/Makefile
+README.doxygen
+doc
 
 # Msys / mingw generated files
 mkinstalldirs
