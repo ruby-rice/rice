@@ -16,12 +16,16 @@ public:
 
   void ruby_mark();
   void addKeepAlive(VALUE value);
-  
-  bool isOwner_ = true;
+
+  // This is public so NativeFunction can set it. This is a hack that avoid having
+  // to pass an isOwner parameter to To_Ruby<T>::convert(T data). The alternative is
+  // To_Ruby<T>::convert(T data, bool isOwner) but that is *tedious* and not needed
+  // most of the time
+  bool isOwner = false;
 
 private:
   // We use a vector for speed and memory locality versus a set which does
-  // not scale when getting to tens of thousands of objects (not expecting
+  // not scale well when getting to tens of thousands of objects (not expecting
   // that to happen...but just in case)
   std::vector<VALUE> keepAlive_;
 };

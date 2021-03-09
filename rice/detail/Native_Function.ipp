@@ -111,7 +111,7 @@ invokeNative(NativeTypes& nativeArgs)
     // with a wrapped object
     if (rb_type(result) == T_DATA)
     {
-      getWrapper(result)->isOwner_ = this->arguments_->isOwner();
+      getWrapper(result)->isOwner = this->arguments_->isOwner();
     }
     return result;
   }
