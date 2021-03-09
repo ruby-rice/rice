@@ -50,3 +50,9 @@ auto& define_singleton_function(Identifier name, Func_T&& func, Arg_Ts const& ..
 {
   return dynamic_cast<decltype(*this)>(Module::define_singleton_function(name, std::forward<Func_T>(func), args...));
 }
+
+template<typename Exception_T, typename Functor_T>
+auto& add_handler(Functor_T functor)
+{
+  return dynamic_cast<decltype(*this)>(Module::add_handler<Exception_T>(functor));
+}
