@@ -3,9 +3,9 @@
 
 namespace Rice {
 
-inline Return& Return::takeOwnership(bool value)
+inline Return& Return::takeOwnership()
 {
-  this->isOwner_ = value;
+  this->isOwner_ = true;
   return *this;
 }
 

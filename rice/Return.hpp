@@ -29,11 +29,11 @@ namespace Rice {
   class Return
   {
   public:
-    Return& takeOwnership(bool value);
+    Return& takeOwnership();
     bool isOwner();
 
   private:
-    bool isOwner_ = true;
+    bool isOwner_ = false;
   };
 } // Rice
 
