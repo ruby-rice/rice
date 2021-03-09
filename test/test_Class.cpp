@@ -178,8 +178,9 @@ void throw_silly_exception()
 TESTCASE(add_handler)
 {
   Class c(rb_cObject);
-  c.add_handler<Silly_Exception>(handle_silly_exception);
-  c.define_function("foo", throw_silly_exception);
+  c.add_handler<Silly_Exception>(handle_silly_exception)
+    .define_function("foo", throw_silly_exception);
+
   Object exc = detail::protect(rb_eval_string, "begin; foo; rescue Exception; $!; end");
   ASSERT_EQUAL(rb_eRuntimeError, CLASS_OF(exc));
   Exception ex(exc);
