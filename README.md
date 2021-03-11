@@ -652,57 +652,65 @@ This also works with Constructors:
 ```
 
 ## Ownership
-By default, when Rice wraps a C++ object it transfers ownership of the C++ object to Ruby. Therefore, 
-the C++ object will stay alive until the Ruby object is garbage collected. When that happens, the Ruby object
-will free the C++ object it wraps.
+When Rice wraps a C++ object returned either by reference or pointer, it does *not* take ownership 
+of that object. Instead, Rice simply keeps a copy of the reference or pointer for later use. This 
+is consistent with modern C++ practices where the use of a reference or pointer does not imply a transfer
+of ownership. Instead, a transfer of ownership should be indicated via the use of and the appropriate type 
+of smart pointer as function parameter or return type.
 
-Of course, in some cases Ruby should not take ownership of a C++ object. For example:
+Of course, many APIs exist that do not follow these rules. Therefore, Rice let's you override the ownership
+rules for each method call. Let's look at an example:
 
 ```cpp
-class Singleton
+class MyClass
+{
+}
+
+class Factory
 {
 public:
-  static Singleton& instance()
+  static MyClass* create()
   {
-    static Singleton singleton_ = Singleton;
-    return singleton_;
+    return new MyClass();;
   }
-    
-private:
-
- Singleton() = default;
 }
 
 extern "C"
 void Init_test()
 {
-  Data_Type<Singleton> rb_cSingleton = define_class<Singleton>("Singleton")
-      .define_function("instance", &Singleton::instance); <--- WRONG
+  Data_Type<MyClass> rb_cMyClass = define_class<MyClass>("MyClass");
+  
+  Data_Type<Factory> rb_cFactory = define_class<Factory>("Factory")
+      .define_function("create", &Factory::create); <--- WRONG, results in memory leak
 }
 
 ```
 
-In Ruby, if you call the `instance` method you will quickly get a crash because Ruby will incorrectly free the
-singleton instance (of course in the "real world" the C++ side the destructor would be made private).
+Each time Factory#create is called from Ruby, a new C++ instance of MyClass will be created. Using Rice's default rules, 
+this will result in a memory leak because those instance will never be freed. 
 
 ```ruby
-
-instance = Singleton.instance
-instance = nil # Will lead to crash
-
+1_000.times do 
+  my_class = Factory.create
+end  
 ```
 
-To prevent this, you can tell Ruby not to take ownership by adding Return information like this:
+To fix this, you need to tell Rice that it should take ownership of the returned instance:
 
 ```cpp
-   define_function("instance", &Singleton::instance, Return.takeOwnership(false));
+   define_function("create", &Factory::create, Return().takeOwnership());
 ```
 
-Note you can mix `Arg` and `Return` objects. For example:
+Notice the addition of the `Return().takeOwnership()`, which creates an instance of Return class and tells it 
+to take ownership of the object returned from C++. You can mix `Arg` and `Return` objects in any order. For example:
 
 ```cpp
-   define_function("instance", &Singleton::instance, Return.takeOwnership(false), Arg("arg1"), Arg("arg2"), ...);
+   define_function("create", &Factory::create, Return().takeOwnership(), Arg("arg1"), Arg("arg2"), ...);
 ```
+
+Note that if the same C++ object is returned to Ruby multiple times, Rice will create a new wrapper Ruby object 
+each time (perhaps a future enhancement will change this). In such cases, you definitely do *not* want Ruby to 
+take ownership of the object.
 
 ## Keep Alive
 
@@ -769,14 +777,6 @@ Rice manages much of this work for you, but does requires some help in getting i
 As described in the [methods](#methods) section, use the Return class to specify whether ownership of objects
 returned from C++ functions should be transferred to Ruby.
 
-In the case where Ruby takes ownership of the object, the transfer happens like this:
-
-Method Return Type (T)   | C++ to Ruby       | Cleanup
-------------            | -----------        | --------
-Value (T)               | Copy constructor  |  Ruby frees the copy
-Reference (T&)          | Move constructor  |  Ruby frees the copy
-Pointer (T*)            | No copy           |  Ruby frees C++ object
-
 In the case where Ruby does *not* take ownership of the object, the transfer happens like this:
 
 Method Return Type (T)   | C++ to Ruby       | Cleanup
@@ -784,6 +784,14 @@ Method Return Type (T)   | C++ to Ruby       | Cleanup
 Value (T)               | Copy constructor  |  Ruby frees the copy, C++ the original
 Reference (T&)          | No copy           |  C++ frees the object
 Pointer (T*)            | No copy           |  C++ frees the object
+
+In the case where Ruby takes ownership of the object, the transfer happens like this:
+
+Method Return Type (T)   | C++ to Ruby       | Cleanup
+------------            | -----------        | --------
+Value (T)               | Copy constructor  |  Ruby frees the copy
+Reference (T&)          | Move constructor  |  Ruby frees the copy
+Pointer (T*)            | No copy           |  Ruby frees C++ object
 
 # Ruby to C++
 For more information see the [keep alive](#keep-alive) section.

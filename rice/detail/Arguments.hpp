@@ -46,6 +46,11 @@ public:
   bool isOwner();
 
   /**
+    * Tell Ruby to take ownership of the returned data
+    */
+  void takeOwnership();
+
+  /**
     * Given a position, a type, and a ruby VALUE, figure out
     * what argument value we need to return according to
     * defaults and if that VALUE is nil or not

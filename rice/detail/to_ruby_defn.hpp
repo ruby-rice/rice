@@ -28,20 +28,20 @@ namespace Rice
     struct To_Ruby;
    
     template<typename T>
-    struct To_Ruby<T*, std::enable_if_t<is_primitive_v<T>>>
+    struct To_Ruby<T&, std::enable_if_t<is_primitive_v<T>>>
     {
-      static VALUE convert(T const* x)
+      static VALUE convert(T const& x, bool takeOwnership = false)
       {
-        return To_Ruby<intrinsic_type<T>>::convert(*x);
+        return To_Ruby<intrinsic_type<T>>::convert(x, takeOwnership);
       }
     };
 
     template<typename T>
-    struct To_Ruby<T&, std::enable_if_t<is_primitive_v<T>>>
+    struct To_Ruby<T*, std::enable_if_t<is_primitive_v<T>>>
     {
-      static VALUE convert(T const& x)
+      static VALUE convert(T const* x, bool takeOwnership = false)
       {
-        return To_Ruby<intrinsic_type<T>>::convert(x);
+        return To_Ruby<intrinsic_type<T>>::convert(*x, takeOwnership);
       }
     };
 
@@ -49,14 +49,7 @@ namespace Rice
     template <typename T>
     VALUE to_ruby(T&& x)
     {
-      if constexpr (is_primitive_v<T>)
-      {
-        return To_Ruby<T>::convert(std::forward<T>(x));
-      }
-      else
-      {
-        return To_Ruby<T>::convert(std::forward<T>(x));
-      }
+      return To_Ruby<T>::convert(std::forward<T>(x));
     }
 
     // Helper template function that let's users avoid having to specify the template type - its deduced
@@ -65,7 +58,6 @@ namespace Rice
     {
       return To_Ruby<T*>::convert(x);
     }
-
   } // detail
 } // Rice
 

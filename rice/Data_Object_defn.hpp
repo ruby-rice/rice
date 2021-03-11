@@ -67,15 +67,14 @@ public:
    *  \param free_func a function that gets called by the garbage
    *  collector to free the object.
    */
-  Data_Object(T* obj, Class klass = Data_Type<T>::klass());
+  Data_Object(T* obj, Class klass = Data_Type<T>::klass(), bool isOwner = false);
 
   //! Unwrap a Ruby object.
   /*! This constructor is analogous to calling Data_Get_Struct.  Uses
    *  Data_Type<T>::klass as the class of the object.
    *  \param value the Ruby object to unwrap.
    */
-  Data_Object(
-      Object value);
+  Data_Object(Object value);
 
   //! Unwrap a Ruby object.
   /*! This constructor is analogous to calling Data_Get_Struct.  Will

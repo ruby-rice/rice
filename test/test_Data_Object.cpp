@@ -58,7 +58,7 @@ SETUP(Data_Object)
 
 TESTCASE(construct_from_pointer)
 {
-  MyDataType * myDataType = new MyDataType;
+  MyDataType* myDataType = new MyDataType;
   Data_Object<MyDataType> wrapped_foo(myDataType);
   ASSERT_EQUAL(myDataType, wrapped_foo.get());
   ASSERT_EQUAL(Data_Type<MyDataType>::klass(), wrapped_foo.class_of());
@@ -68,7 +68,7 @@ TESTCASE(construct_from_pointer)
 TESTCASE(construct_from_ruby_object)
 {
   MyDataType * myDataType = new MyDataType;
-  VALUE wrapped_foo = detail::wrap(Data_Type<MyDataType>::klass(), Data_Type<MyDataType>::rb_type(), myDataType);
+  VALUE wrapped_foo = detail::wrap(Data_Type<MyDataType>::klass(), Data_Type<MyDataType>::rb_type(), myDataType, true);
 
   Data_Object<MyDataType> data_object_foo(wrapped_foo);
   ASSERT_EQUAL(myDataType, data_object_foo.get());
@@ -80,7 +80,7 @@ TESTCASE(construct_from_ruby_object)
 TESTCASE(construct_from_ruby_object_and_wrong_class)
 {
   MyDataType * myDataType = new MyDataType;
-  VALUE wrapped_foo = detail::wrap(Data_Type<MyDataType>::klass(), Data_Type<MyDataType>::rb_type(), myDataType);
+  VALUE wrapped_foo = detail::wrap(Data_Type<MyDataType>::klass(), Data_Type<MyDataType>::rb_type(), myDataType, true);
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -96,7 +96,7 @@ TESTCASE(construct_from_ruby_object_and_wrong_class)
 TESTCASE(copy_construct)
 {
   MyDataType * myDataType = new MyDataType;
-  VALUE wrapped_foo = detail::wrap(Data_Type<MyDataType>::klass(), Data_Type<MyDataType>::rb_type(), myDataType);
+  VALUE wrapped_foo = detail::wrap(Data_Type<MyDataType>::klass(), Data_Type<MyDataType>::rb_type(), myDataType, true);
   Data_Object<MyDataType> orig_data_object_foo(wrapped_foo);
   Data_Object<MyDataType> data_object_foo(orig_data_object_foo);
 
