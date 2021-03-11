@@ -93,6 +93,11 @@ inline bool Arguments::isOwner()
   return this->return_.isOwner();
 }
 
+inline void Arguments::takeOwnership()
+{
+  this->return_.takeOwnership();
+}
+
 inline std::vector<Arg>::iterator Arguments::begin()
 {
   return this->args_.begin();

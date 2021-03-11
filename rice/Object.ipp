@@ -168,7 +168,7 @@ namespace Rice
     template<typename T>
     struct To_Ruby<T, std::enable_if_t<is_kind_of_object<T> && !std::is_pointer_v<T>>>
     {
-      static VALUE convert(Object const& x)
+      static VALUE convert(Object const& x, bool takeOwnership = false)
       {
         return x.value();
       }
@@ -177,7 +177,7 @@ namespace Rice
     template<typename T>
     struct To_Ruby<T*, std::enable_if_t<is_kind_of_object<T>>>
     {
-      static VALUE convert(Object const* x)
+      static VALUE convert(Object const* x, bool takeOwnership = false)
       {
         return x->value();
       }

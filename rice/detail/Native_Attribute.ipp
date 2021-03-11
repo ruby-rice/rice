@@ -1,6 +1,7 @@
 #include <array>
 #include <algorithm>
 
+#include "rice_traits.hpp"
 #include "method_data.hpp"
 #include "to_ruby_defn.hpp"
 #include "../ruby_try_catch.hpp"
@@ -45,11 +46,11 @@ namespace Rice
       if constexpr (std::is_member_object_pointer_v<Attr_T>)
       {
         Self_T* nativeSelf = From_Ruby<Self_T*>::convert(self);
-        return To_Ruby<std::remove_cv_t<Return_T>>::convert(nativeSelf->*attr_);
+        return To_Ruby<Return_T>::convert(nativeSelf->*attr_, false);
       }
       else
       {
-        return To_Ruby<std::remove_cv_t<Return_T>>::convert(*attr_);
+        return To_Ruby<Return_T>::convert(*attr_, false);
       }
     }
 

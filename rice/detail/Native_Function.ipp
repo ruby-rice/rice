@@ -29,6 +29,16 @@ Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, Arg
   {
     arguments_ = std::make_unique<Arguments>();
   }
+
+  // Ruby takes ownership of types returned by value. We do this here so that users
+  // don't have to be bothered to specify this in define_method. Note we *must* set 
+  // this correctly because To_Ruby<T>::convert routines work with const T& and thus
+  // if ownership is false they will store a reference to the value and that will
+  // result in a crash.
+  if (!std::is_reference_v<Return_T> && !std::is_pointer_v<Return_T>)
+  {
+    arguments_->takeOwnership();
+  }
 }
 
 template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
@@ -102,35 +112,11 @@ invokeNative(NativeTypes& nativeArgs)
     std::apply(this->func_, nativeArgs);
     return Qnil;
   }
-  else if constexpr (std::is_pointer_v<Return_T>)
-  {
-    Return_T nativeResult = std::apply(this->func_, nativeArgs);
-    VALUE result = To_Ruby<std::remove_cv_t<Return_T>>::convert(nativeResult);
-
-    // This could be a pointer to a char* from a Ruby string, so check if we are dealing
-    // with a wrapped object
-    if (rb_type(result) == T_DATA)
-    {
-      getWrapper(result)->isOwner = this->arguments_->isOwner();
-    }
-    return result;
-  }
-  else if constexpr (std::is_reference_v<Return_T>)
-  {
-    Return_T nativeResult = std::apply(this->func_, nativeArgs);
-    if (this->arguments_->isOwner())
-    {
-      return To_Ruby<std::remove_cv_t<Return_T>>::convert(std::move(nativeResult));
-    }
-    else
-    {
-      return To_Ruby<std::remove_cv_t<Return_T>>::convert(nativeResult);
-    }
-  }
   else
   {
+    // Call the native method and convert the result to ruby
     Return_T nativeResult = std::apply(this->func_, nativeArgs);
-    return To_Ruby<std::remove_cv_t<Return_T>>::convert(std::move(nativeResult));
+    return To_Ruby<Return_T>::convert(nativeResult, this->arguments_->isOwner());
   }
 }
 

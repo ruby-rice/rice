@@ -15,9 +15,9 @@ Rice::Exception create_type_exception(VALUE value)
 
 template<typename T>
 inline Rice::Data_Object<T>::
-Data_Object(T* data, Class klass)
+Data_Object(T* data, Class klass, bool isOwner)
 {
-  VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data);
+  VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data, isOwner);
   this->set_value(value);
 }
 
@@ -116,12 +116,13 @@ template<typename T, typename>
 struct Rice::detail::To_Ruby
 {
   template <typename U>
-  static VALUE convert(U&& data)
+  static VALUE convert(U&& data, bool isOwner)
   {
+    //static_assert(std::is_same_v<T, std::remove_reference_t<U>>);
     // Note that T could be a pointer or reference to a base class while data is in fact a
     // child class. Lookup the correct type so we return an instance of the correct Ruby class
-    std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(data);
-    return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, std::forward<U>(data));
+    std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<U>(data);
+    return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, std::forward<U>(data), isOwner);
   }
 };
 
@@ -129,14 +130,14 @@ template <typename T>
 struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<T> &&
   !Rice::detail::is_kind_of_object<T>>>
 {
-  static VALUE convert(T* data)
+  static VALUE convert(T* data, bool isOwner)
   {
     if (data)
     {
       // Note that T could be a pointer or reference to a base class while data is in fact a
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(*data);
-      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data);
+      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
     }
     else
     {

@@ -652,13 +652,14 @@ This also works with Constructors:
 ```
 
 ## Ownership
-When Rice wraps a C++ object returned by reference or pointer, it does *not* take ownership 
+When Rice wraps a C++ object returned either by reference or pointer, it does *not* take ownership 
 of that object. Instead, Rice simply keeps a copy of the reference or pointer for later use. This 
-is inline with modern C++ practices where the use of a reference or pointer does not imply a change
-of ownership. Instead, a change of ownership is indicated via the use of and appropriate type of smart pointer.
+is consistent with modern C++ practices where the use of a reference or pointer does not imply a transfer
+of ownership. Instead, a transfer of ownership should be indicated via the use of and the appropriate type 
+of smart pointer as function parameter or return type.
 
-Of course, many APIs exist that do not follow these rules. To avoid memory leaks, you must tell Rice
-about these cases. For example:
+Of course, many APIs exist that do not follow these rules. Therefore, Rice let's you override the ownership
+rules for each method call. Let's look at an example:
 
 ```cpp
 class MyClass
@@ -685,8 +686,8 @@ void Init_test()
 
 ```
 
-Each time Ruby calls Factory#create, it will create a new MyClass object that will never be freed. This results
-in a memory leak. 
+Each time Factory#create is called from Ruby, a new C++ instance of MyClass will be created. Using Rice's default rules, 
+this will result in a memory leak because those instance will never be freed. 
 
 ```ruby
 1_000.times do 
@@ -694,13 +695,14 @@ in a memory leak.
 end  
 ```
 
-To fix this, you have to tell Rice to take ownership of the returned object like this:
+To fix this, you need to tell Rice that it should take ownership of the returned instance:
 
 ```cpp
    define_function("create", &Factory::create, Return().takeOwnership());
 ```
-Notice the addition of the `Return` object and then calling `takeOwnership()` on it. You can mix
-`Arg` and `Return` objects in any order. For example:
+
+Notice the addition of the `Return().takeOwnership()`, which creates an instance of Return class and tells it 
+to take ownership of the object returned from C++. You can mix `Arg` and `Return` objects in any order. For example:
 
 ```cpp
    define_function("create", &Factory::create, Return().takeOwnership(), Arg("arg1"), Arg("arg2"), ...);

@@ -16,27 +16,20 @@ namespace Rice::detail
   }
 
   template <typename T>
-  class WrapperOwner : public Wrapper
+  class WrapperValue : public Wrapper
   {
   public:
-    WrapperOwner(T& data)
+    WrapperValue(T& data): data_(std::move(data))
     {
-      // We own this object so we can call the move constructor
-      this->data_ = new T(std::move(data));
-    }
-
-    ~WrapperOwner()
-    {
-      delete this->data_;
     }
 
     void* get() override
     {
-      return (void*)this->data_;
+      return (void*)&this->data_;
     }
 
   private:
-    T* data_;
+    T data_;
   };
 
   template <typename T>
@@ -60,25 +53,16 @@ namespace Rice::detail
   class WrapperPointer : public Wrapper
   {
   public:
-    WrapperPointer(T* data) : data_(data)
+    WrapperPointer(T* data, bool isOwner) : data_(data), isOwner_(isOwner)
     {
     }
 
     ~WrapperPointer()
     {
-      if (this->isOwner)
+      if (this->isOwner_)
       {
         delete this->data_;
       }
-    }
-
-    void replace(T* data)
-    {
-      if (this->isOwner)
-      {
-        delete this->data_;
-      }
-      this->data_ = data;
     }
 
     void* get() override
@@ -88,36 +72,30 @@ namespace Rice::detail
 
   private:
     T* data_ = nullptr;
+    bool isOwner_ = false;
   };
 
 
   // ---- Helper Functions -------
   template <typename T>
-  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T&& data)
+  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner)
   {
-    // This is confusing! If data is an rvalue, then T is not actually a reference type at all!
-    if constexpr (!std::is_reference_v<T>)
+    if (isOwner)
     {
-      // This is an rvalue so we are going to move construct it
-      WrapperOwner<T>* wrapper = new WrapperOwner<T>(data);
-      wrapper->isOwner = true;
+      WrapperValue<T>* wrapper = new WrapperValue<T>(data);
       return TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
     else
     {
-      // This is a lvalue and we are just going to store it
-      using Intrinsic_T = std::remove_reference_t<T>;
-      WrapperReference<Intrinsic_T>* wrapper = new WrapperReference<Intrinsic_T>(data);
-      wrapper->isOwner = false;
+      WrapperReference<T>* wrapper = new WrapperReference<T>(data);
       return TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
   };
 
   template <typename T>
-  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data)
+  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner)
   {
-    WrapperPointer<T>* wrapper = new WrapperPointer<T>(data);
-    wrapper->isOwner = false;
+    WrapperPointer<T>* wrapper = new WrapperPointer<T>(data, isOwner);
     return TypedData_Wrap_Struct(klass, rb_type, wrapper);
   };
 
@@ -138,14 +116,13 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void replace(VALUE value, rb_data_type_t* rb_type, T* data)
+  inline void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner)
   {
     WrapperPointer<T>* wrapper = nullptr;
     TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
     delete wrapper;
 
-    wrapper = new WrapperPointer<T>(data);
-    wrapper->isOwner = true;
+    wrapper = new WrapperPointer<T>(data, true);
     RTYPEDDATA_DATA(value) = wrapper;
   }
 
