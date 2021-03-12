@@ -118,7 +118,6 @@ struct Rice::detail::To_Ruby
   template <typename U>
   static VALUE convert(U&& data, bool isOwner)
   {
-    //static_assert(std::is_same_v<T, std::remove_reference_t<U>>);
     // Note that T could be a pointer or reference to a base class while data is in fact a
     // child class. Lookup the correct type so we return an instance of the correct Ruby class
     std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<U>(data);
@@ -209,6 +208,8 @@ struct Rice::detail::From_Ruby<T*>
     }
 
     Intrinsic_T* result = Data_Object<Intrinsic_T>::from_ruby(value);
+    detail::TypeRegistry::checkType(*result);
+
     if (result)
     {
       return result;

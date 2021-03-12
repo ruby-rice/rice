@@ -25,6 +25,9 @@ namespace Rice::detail
     static void add(VALUE klass, rb_data_type_t* rbType);
 
     template <typename T>
+    static void checkType(T& object);
+      
+    template <typename T>
     static std::pair<VALUE, rb_data_type_t*> figureType(T& object);
 
   private:

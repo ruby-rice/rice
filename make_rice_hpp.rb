@@ -53,10 +53,10 @@ def add_include(path, stream)
   end
 end
 
-def combine_header_files
+def combine_headers(filename)
   stream = StringIO.new
 
-  load_file('rice/rice.hpp').each_line do |line|
+  load_file("rice/#{filename}").each_line do |line|
     if matches = line.match(RICE_INCLUDE_REGEX)
       path = File.join("rice", matches[1])
       add_include(path, stream)
@@ -65,11 +65,15 @@ def combine_header_files
     end
   end
 
-  File.open('include/rice/rice.hpp', 'wb') do |file|
+  File.open("include/rice/#{filename}", 'wb') do |file|
     file << stream.string
   end
 end
 
 puts "Building rice.hpp"
-combine_header_files
+combine_headers('rice.hpp')
+
+puts "Building stl.hpp"
+combine_headers('stl.hpp')
+
 puts "Success"

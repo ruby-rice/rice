@@ -75,12 +75,16 @@ namespace Rice::detail
     bool isOwner_ = false;
   };
 
-
   // ---- Helper Functions -------
-  template <typename T>
+  template <typename T, typename Wrapper_T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner)
   {
-    if (isOwner)
+    if constexpr (!std::is_void_v<Wrapper_T>)
+    {
+      Wrapper_T* wrapper = new Wrapper_T(data);
+      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+    }
+    else if (isOwner)
     {
       WrapperValue<T>* wrapper = new WrapperValue<T>(data);
       return TypedData_Wrap_Struct(klass, rb_type, wrapper);
@@ -92,20 +96,27 @@ namespace Rice::detail
     }
   };
 
-  template <typename T>
+  template <typename T, typename Wrapper_T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner)
   {
-    WrapperPointer<T>* wrapper = new WrapperPointer<T>(data, isOwner);
-    return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+    if constexpr (!std::is_void_v<Wrapper_T>)
+    {
+      Wrapper_T* wrapper = new Wrapper_T(data);
+      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+    }
+    else
+    {
+      WrapperPointer<T>* wrapper = new WrapperPointer<T>(data, isOwner);
+      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+    }
   };
 
   template <typename T>
   inline T* unwrap(VALUE value, rb_data_type_t* rb_type)
   {
-    Wrapper* wrapper = nullptr;
+    Wrapper* wrapper = getWrapper(value, rb_type);
     TypedData_Get_Struct(value, Wrapper, rb_type, wrapper);
-    void* data = wrapper->get();
-    return static_cast<T*>(data);
+    return static_cast<T*>(wrapper->get());
   }
 
   inline void* unwrap(VALUE value)
@@ -113,6 +124,13 @@ namespace Rice::detail
     // Direct access to avoid any type checking
     Wrapper* wrapper = (Wrapper*)RTYPEDDATA_DATA(value);
     return wrapper->get();
+  }
+
+  inline Wrapper* getWrapper(VALUE value, rb_data_type_t* rb_type)
+  {
+    Wrapper* wrapper = nullptr;
+    TypedData_Get_Struct(value, Wrapper, rb_type, wrapper);
+    return wrapper;
   }
 
   template <typename T>
