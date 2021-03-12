@@ -63,15 +63,6 @@ namespace Rice::detail
   };
 
   template <typename T>
-  struct From_Ruby<std::unique_ptr<T>>
-  {
-    static std::unique_ptr<T> convert(VALUE value)
-    {
-      static_assert(false, "Cannot pass unique_ptrs from Ruby to C++");
-    }
-  };
-
-  template <typename T>
   struct From_Ruby<std::unique_ptr<T>&>
   {
     static std::unique_ptr<T>& convert(VALUE value)

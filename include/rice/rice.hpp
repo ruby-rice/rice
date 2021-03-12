@@ -91,9 +91,6 @@ namespace Rice::detail
     static void add(VALUE klass, rb_data_type_t* rbType);
 
     template <typename T>
-    static void checkType(T& object);
-      
-    template <typename T>
     static std::pair<VALUE, rb_data_type_t*> figureType(T& object);
 
   private:
@@ -182,19 +179,6 @@ namespace Rice::detail
     else
     {
       return iter->second;
-    }
-  }
-
-  template <typename T>
-  inline void TypeRegistry::checkType(T& object)
-  {
-    // First check and see if the actual type of the object is registered
-    std::optional<std::pair<VALUE, rb_data_type_t*>> result = lookup(typeid(object));
-
-    if (!result)
-    {
-      std::string message = "Type " + typeName(typeid(object)) + " is not registered";
-      throw std::runtime_error(message.c_str());
     }
   }
 
@@ -6515,7 +6499,6 @@ struct Rice::detail::From_Ruby<T*>
     }
 
     Intrinsic_T* result = Data_Object<Intrinsic_T>::from_ruby(value);
-    detail::TypeRegistry::checkType(*result);
 
     if (result)
     {
