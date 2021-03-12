@@ -28,6 +28,15 @@ namespace Rice
     struct To_Ruby;
    
     template<typename T>
+    struct To_Ruby<const T, std::enable_if_t<is_primitive_v<T>>>
+    {
+      static VALUE convert(T const& x, bool takeOwnership = false)
+      {
+        return To_Ruby<T>::convert(x, takeOwnership);
+      }
+    };
+
+    template<typename T>
     struct To_Ruby<T&, std::enable_if_t<is_primitive_v<T>>>
     {
       static VALUE convert(T const& x, bool takeOwnership = false)

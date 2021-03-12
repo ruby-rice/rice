@@ -115,13 +115,12 @@ implicit_from_ruby(VALUE value)
 template<typename T, typename>
 struct Rice::detail::To_Ruby
 {
-  template <typename U>
-  static VALUE convert(U&& data, bool isOwner)
+  static VALUE convert(T& data, bool isOwner)
   {
     // Note that T could be a pointer or reference to a base class while data is in fact a
     // child class. Lookup the correct type so we return an instance of the correct Ruby class
-    std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<U>(data);
-    return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, std::forward<U>(data), isOwner);
+    std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
+    return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
   }
 };
 
