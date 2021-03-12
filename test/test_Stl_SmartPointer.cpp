@@ -14,10 +14,10 @@ namespace
   class MyClass
   {
   public:
-    static inline uint32_t constructorCalls = 0;
-    static inline uint32_t copyConstructorCalls = 0;
-    static inline uint32_t moveConstructorCalls = 0;
-    static inline uint32_t destructorCalls = 0;
+    static inline int32_t constructorCalls = 0;
+    static inline int32_t copyConstructorCalls = 0;
+    static inline int32_t moveConstructorCalls = 0;
+    static inline int32_t destructorCalls = 0;
 
     static void reset()
     {

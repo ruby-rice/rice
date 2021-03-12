@@ -79,19 +79,6 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void TypeRegistry::checkType(T& object)
-  {
-    // First check and see if the actual type of the object is registered
-    std::optional<std::pair<VALUE, rb_data_type_t*>> result = lookup(typeid(object));
-
-    if (!result)
-    {
-      std::string message = "Type " + typeName(typeid(object)) + " is not registered";
-      throw std::runtime_error(message.c_str());
-    }
-  }
-
-  template <typename T>
   inline std::pair<VALUE, rb_data_type_t*> TypeRegistry::figureType(T& object)
   {
     // First check and see if the actual type of the object is registered

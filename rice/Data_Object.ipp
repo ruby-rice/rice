@@ -207,7 +207,6 @@ struct Rice::detail::From_Ruby<T*>
     }
 
     Intrinsic_T* result = Data_Object<Intrinsic_T>::from_ruby(value);
-    detail::TypeRegistry::checkType(*result);
 
     if (result)
     {

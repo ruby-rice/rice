@@ -203,23 +203,26 @@ namespace {
       virtual int doItImpl(int in) = 0;
   };
 
-  class CallsSelfDirector : public CallsSelf, public Director {
-
+  class CallsSelfDirector : public CallsSelf, public Director
+  {
     public:
       CallsSelfDirector(Object self) : Director(self) { }
       virtual ~CallsSelfDirector() { }
 
-      virtual int doItImpl(int in) {
+      virtual int doItImpl(int in)
+      {
         return detail::From_Ruby<int>::convert( getSelf().call("do_it_impl", in) );
       }
 
-      int default_doItImpl(int in) {
+      int default_doItImpl(int in)
+      {
         raisePureVirtual();
         return 0;
       }
   };
 
-  struct MyCallsSelf : CallsSelf {
+  struct MyCallsSelf : CallsSelf
+  {
     MyCallsSelf() { }
     virtual ~MyCallsSelf() { }
 
@@ -227,19 +230,21 @@ namespace {
   };
 
   // Abstract type return types handled properly
-  CallsSelf* getCallsSelf() {
+  CallsSelf* getCallsSelf()
+  {
     return new MyCallsSelf();
   }
 
   // Abstract type Argument types handled properly
-  int doItOnPointer(CallsSelf* obj, int in) {
+  int doItOnPointer(CallsSelf* obj, int in)
+  {
     return obj->doIt(in);
   }
 
-  int doItOnReference(CallsSelf& obj, int in) {
+  int doItOnReference(CallsSelf& obj, int in)
+  {
     return obj.doIt(in);
   }
-
 }
 
 TESTCASE(mix_of_polymorphic_calls_and_inheritance_dont_cause_infinite_loops)
@@ -271,7 +276,8 @@ TESTCASE(director_class_super_classes_get_type_bound)
     .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
     .define_method("do_it", &CallsSelf::doIt);
 
-  Object result = m.instance_eval("cs = Testing::get_calls_self; cs.do_it(3);");
+  Object result = m.instance_eval(R"(cs = Testing::get_calls_self
+                                     cs.do_it(3))");
   ASSERT_EQUAL(36, detail::From_Ruby<int>::convert(result.value()));
 }
 
@@ -294,7 +300,7 @@ TESTCASE(director_allows_abstract_types_used_as_parameters_pointers)
 
   ASSERT_EQUAL(50, detail::From_Ruby<int>::convert(result.value()));
 }
-/*
+
 TESTCASE(director_allows_abstract_types_used_as_parameters_reference)
 {
   Module m = define_module("Testing");
@@ -314,4 +320,3 @@ TESTCASE(director_allows_abstract_types_used_as_parameters_reference)
 
   ASSERT_EQUAL(30, detail::From_Ruby<int>::convert(result.value()));
 }
-*/
