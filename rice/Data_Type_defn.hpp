@@ -3,15 +3,7 @@
 
 #include "Class_defn.hpp"
 #include "detail/ruby.hpp"
-#include "detail/Native_Attribute.hpp"
-
-#include <memory>
-#include <map>
 #include <set>
-
-/*!
- *  \example map/map.cpp
- */
 
 namespace Rice
 {
@@ -23,9 +15,7 @@ namespace Rice
  *  \return the new class.
  */
 template<typename T>
-Rice::Data_Type<T> define_class_under(
-    Object module,
-    char const * name);
+Rice::Data_Type<T> define_class_under(Object module, char const * name);
 
 //! Define a new data class in the namespace given by module.
 /*! The class with have a base class determined by Base_T (specifically,
@@ -36,9 +26,7 @@ Rice::Data_Type<T> define_class_under(
  *  \return the new class.
  */
 template<typename T, typename Base_T>
-Rice::Data_Type<T> define_class_under(
-    Object module,
-    char const * name);
+Rice::Data_Type<T> define_class_under(Object module, char const * name);
 
 //! Define a new data class in the default namespace.
 /*! The class will have a base class of Object.
@@ -46,8 +34,7 @@ Rice::Data_Type<T> define_class_under(
  *  \return the new class.
  */
 template<typename T>
-Rice::Data_Type<T> define_class(
-    char const * name);
+Rice::Data_Type<T> define_class(char const * name);
 
 //! Define a new data class in the default namespace.
 /*! The class with have a base class determined by Base_T (specifically,
@@ -58,8 +45,7 @@ Rice::Data_Type<T> define_class(
  *  \return the new class.
  */
 template<typename T, typename Base_T>
-Rice::Data_Type<T> define_class(
-    char const * name);
+Rice::Data_Type<T> define_class(char const * name);
 
 //! Define an implicit conversion rule between two types.
 /*! Given two types, which can be custom types already
@@ -76,8 +62,7 @@ void define_implicit_cast();
  *  (C++ types).  The binding can occur only once.
  */
 template<typename T>
-class Data_Type
-  : public Class
+class Data_Type : public Class
 {
   static_assert(std::is_same_v<detail::intrinsic_type<T>, T>);
 
@@ -116,9 +101,7 @@ public:
   //! Define a constructor for the class.
   template<typename Constructor_T>
   [[deprecated("Please call define_constructor with Arg parameters")]]
-  Data_Type<T> & define_constructor(
-      Constructor_T constructor,
-      Arguments * arguments);
+  Data_Type<T> & define_constructor(Constructor_T constructor, Arguments * arguments);
 
   /*! Creates a singleton method allocate and an instance method called
    *  initialize which together create a new instance of the class.  The
@@ -137,9 +120,7 @@ public:
    *  \endcode
    */
   template<typename Constructor_T, typename...Arg_Ts>
-  Data_Type<T> & define_constructor(
-      Constructor_T constructor,
-      Arg_Ts const& ...args);
+  Data_Type<T> & define_constructor(Constructor_T constructor, Arg_Ts const& ...args);
 
   //! Register a Director class for this class.
   /*! For any class that uses Rice::Director to enable polymorphism
@@ -210,22 +191,16 @@ protected:
   static Data_Type bind(Module const & klass);
 
   template<typename T_>
-  friend Rice::Data_Type<T_> define_class_under(
-      Object module,
-      char const * name);
+  friend Rice::Data_Type<T_> define_class_under(Object module, char const * name);
 
   template<typename T_, typename Base_T_>
-  friend Rice::Data_Type<T_> define_class_under(
-      Object module,
-      char const * name);
+  friend Rice::Data_Type<T_> define_class_under(Object module, char const * name);
 
   template<typename T_>
-  friend Rice::Data_Type<T_> Rice::define_class(
-      char const * name);
+  friend Rice::Data_Type<T_> Rice::define_class(char const * name);
 
   template<typename T_, typename Base_T_>
-  friend Rice::Data_Type<T_> define_class(
-      char const * name);
+  friend Rice::Data_Type<T_> define_class(char const * name);
 
 private:
   template<typename T_>
