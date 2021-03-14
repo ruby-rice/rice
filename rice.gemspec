@@ -7,8 +7,8 @@ $spec = Gem::Specification.new do |s|
   s.license = "MIT"
   s.summary = 'Ruby Interface for C++ Extensions'
   s.homepage = 'https://github.com/jasonroelofs/rice'
-  s.authors = ['Paul Brannan', 'Jason Roelofs']
-  s.email = ['curlypaul924@gmail.com', 'jasonroelofs@gmail.com']
+  s.authors = ['Paul Brannan', 'Jason Roelofs', 'Charlie Savage']
+  s.email = ['curlypaul924@gmail.com', 'jasonroelofs@gmail.com', 'cfis@savagexi.com']
 
   s.description = <<-END
 Rice is a C++ interface to Ruby's C API.  It provides a type-safe and
