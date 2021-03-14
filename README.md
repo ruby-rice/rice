@@ -19,6 +19,8 @@ What Rice gives you:
 This documentation and branch are for the 3.x line of Rice. For the header-only
 version of Rice use the `master` branch and any version from 4.x onward.
 
+The documentation for the 4.x line is found at https://jasonroelofs.com/rice/4.x.
+
 # Project Details {#project}
 
 The source is hosted on GitHub: http://github.com/jasonroelofs/rice
