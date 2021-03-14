@@ -1,3 +1,5 @@
+[TOC]
+
 # Rice - Ruby Interface for C++ Extensions
 
 # Introduction
@@ -1254,37 +1256,6 @@ dealing with callbacks.
 
 - Data serialization. Rice provides no mechanism for data
 serialization, but it is likely this may be added in a future release.
-
-
-# What Rice is Not
-
-There are a number projects which server similar functions to Rice. Two
-such popular projects are SWIG and Boost.Python. Rice has some
-distinct features which set it apart from both of these projects.
-
-Rice is not trying to replace SWIG. Rice is not a generic wrapper
-interface generator. Rice is a C++ library for creating Ruby bindings
-for C++ libraries and interfacing with the Ruby C API. This provides
-a very natural way for C++ programmers to wrap their C++ code, without
-having to learn a new domain-specific language. However, there is no 
-reason why SWIG and Rice could not work together; a SWIG module could
-be written to generate Rice code. Such a module would combine the 
-portability of SWIG with the maintainability of Rice (I have written 
-extensions using both, and I have found Rice
-extensions to be more maintainable when the interface is constantly
-changing. Your mileage may vary).
-
-Rice is also not trying to simply be a Ruby version of Boost.Python.
-Rice does use some of the same template tricks that Boost.Python uses,
-however there are some important distinctions. First of all,
-Boost.Python attempts to create a declarative DSL in C++ using
-templates. Rice is a wrapper around the Ruby C API and attempts to make
-its interface look like an OO version of the API; this means that class
-declarations look procedural rather than declarative. Secondly, the
-Ruby object model is different from the python object model. This is
-reflected in the interface to Rice; it mimics the Ruby object model at
-the C++ level.
-
 
 # History
 
