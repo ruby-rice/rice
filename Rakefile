@@ -82,7 +82,7 @@ end
 # ---------  Documentation  --------------
 desc "Build the documentation"
 task :doc do
-  sh "make doc"
+  sh "doxygen"
 end
 
 task :default => :test
