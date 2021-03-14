@@ -236,7 +236,7 @@ TESTCASE(module_define_class)
     math.remove_const("Foo");
   }
 
-  Class c = math.define_class("Foo");
+  Class c = define_class_under(math, "Foo");
 
   ASSERT(c.is_a(rb_cClass));
   ASSERT_EQUAL(c, math.const_get("Foo"));

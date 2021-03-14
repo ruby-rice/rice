@@ -7,38 +7,6 @@
 
 namespace Rice
 {
-  //! Define a new data class in the namespace given by module.
-  /*! By default the class will inherit from Ruby's rb_cObject. This
-   *  can be overriden via the Base_T template parameter. Note that
-   *  Base_T must already have been registered.
-   *  \param T the C++ type of the wrapped class.
-   *  \param module the the Module in which to define the class.
-   *  \return the new class.
-   */
-  template<typename T, typename Base_T = void>
-  Data_Type<T> define_class_under(Object module, char const* name);
-
-  //! Define a new data class in the default namespace.
-  /*! By default the class will inherit from Ruby's rb_cObject. This
-   *  can be overriden via the Base_T template parameter. Note that
-   *  Base_T must already have been registered.
-   *  \param T the C++ type of the wrapped class.
-   *  \param module the the Module in which to define the class.
-   *  \return the new class.
-   */
-  template<typename T, typename Base_T = void>
-  Data_Type<T> define_class(char const* name);
-
-  //! Define an implicit conversion rule between two types.
-  /*! Given two types, which can be custom types already
-   *  wrapped into Rice or fundamental C++ types, this
-   *  tells Rice that the two types can be used interchangably.
-   *  \param From_T The type to convert from
-   *  \param To_T The type to convert to
-   */
-  template<typename From_T, typename To_T>
-  void define_implicit_cast();
-
   //! A mechanism for binding ruby types to C++ types.
   /*! This class binds run-time types (Ruby VALUEs) to compile-time types
    *  (C++ types).  The binding can occur only once.
@@ -195,6 +163,38 @@ namespace Rice
       return unbound_instances;
     }
   };
+
+  //! Define a new data class in the namespace given by module.
+  /*! By default the class will inherit from Ruby's rb_cObject. This
+   *  can be overriden via the Base_T template parameter. Note that
+   *  Base_T must already have been registered.
+   *  \param T the C++ type of the wrapped class.
+   *  \param module the the Module in which to define the class.
+   *  \return the new class.
+   */
+  template<typename T, typename Base_T = void>
+  Data_Type<T> define_class_under(Object module, char const* name);
+
+  //! Define a new data class in the default namespace.
+  /*! By default the class will inherit from Ruby's rb_cObject. This
+   *  can be overriden via the Base_T template parameter. Note that
+   *  Base_T must already have been registered.
+   *  \param T the C++ type of the wrapped class.
+   *  \param module the the Module in which to define the class.
+   *  \return the new class.
+   */
+  template<typename T, typename Base_T = void>
+  Data_Type<T> define_class(char const* name);
+
+  //! Define an implicit conversion rule between two types.
+  /*! Given two types, which can be custom types already
+   *  wrapped into Rice or fundamental C++ types, this
+   *  tells Rice that the two types can be used interchangably.
+   *  \param From_T The type to convert from
+   *  \param To_T The type to convert to
+   */
+  template<typename From_T, typename To_T>
+  void define_implicit_cast();
 } // namespace Rice
 
 #include "Data_Type.ipp"

@@ -137,12 +137,6 @@ namespace Rice
     detail::protect(rb_mod_remove_const, *this, name.to_sym());
   }
 
-  template<typename T>
-  Data_Type<T> Module::define_class(char const* name)
-  {
-    return this->define_class_with_object_as_base<T>(name);
-  }
-
   inline Module define_module_under(Object module, char const* name)
   {
     VALUE v = rb_define_module_under(module, name);

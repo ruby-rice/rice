@@ -8,8 +8,8 @@
 
 namespace Rice
 {
-  template<typename T>
-  class Data_Type;
+  template <typename T>
+  void validateType();
 
   //! A helper for defining a Module and its methods.
   /*! This class provides a C++-style interface to ruby's Module class and
@@ -41,13 +41,6 @@ namespace Rice
     /*! You will need to include Class.hpp to use this function.
      */
     Class singleton_class() const;
-
-     //! Define a class under this module.
-    /*! \param name the name of the class.
-     *  \param superclass the base class to use.
-     *  \return the new class.
-     */
-    Class define_class(char const* name, Object superclass = rb_cObject);
 
     //! Define an exception handler.
     /*! Whenever an exception of type Exception_T is thrown from a
@@ -210,31 +203,10 @@ namespace Rice
      */
     void remove_const(Identifier name);
 
-    //! Define a new data class under this module.
-    /*! The class will have a base class of Object.
-     *  \param T the C++ type of the wrapped class.
-     *  \return the new class.
-     */
-    template<typename T>
-    Data_Type<T> define_class(char const* name);
-
-    //! Define a new data class under this module.
-    /*! The class with have a base class determined by Intrinsic_T (specifically,
-     *  Data_Type<Intrinsic_T>::klass).  Therefore, the type Intrinsic_T must already
-     *  have been registered using define_class<> or define_class_under<>.
-     *  \param T the C++ type of the wrapped class.
-     *  \return the new class.
-     */
-    template<typename T, typename T_Base_T>
-    Data_Type<T> define_class(char const* name);
-
   protected:
     std::shared_ptr<detail::Exception_Handler> handler() const;
 
   private:
-    template<typename T>
-    Data_Type<T> define_class_with_object_as_base(char const* name);
-
     template<typename Function_T>
     void wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
       std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments = 0);

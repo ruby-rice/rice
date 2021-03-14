@@ -90,38 +90,6 @@ singleton_class() const
   return CLASS_OF(value());
 }
 
-inline
-Rice::Class
-Rice::Module::
-define_class(
-  char const* name,
-  Object superclass)
-{
-  return Rice::define_class_under(*this, name, superclass);
-}
-
-template<typename T>
-inline
-Rice::Data_Type<T>
-Rice::Module::
-define_class_with_object_as_base(
-  char const* name)
-{
-  return Rice::define_class_under<T>(*this, name);
-}
-
-template<typename T, typename T_Base_T>
-inline
-Rice::Data_Type<T>
-Rice::Module::
-define_class(
-  char const* name)
-{
-  return Rice::define_class_under<T, T_Base_T>(
-    *this,
-    name);
-}
-
 template<typename Function_T>
 inline void Rice::Module::wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
   std::shared_ptr<detail::Exception_Handler> handler,
