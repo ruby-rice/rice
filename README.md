@@ -24,6 +24,8 @@ This documentation and the `master` branch are for Rice 4.x and later, which is 
 header-only version of this library. Use the `3.x` branch for the docs and code for that
 line of releases.
 
+The docs for the 3.x line of Rice is at https://jasonroelofs.com/rice/3.x.
+
 # Project Details
 
 The source is hosted on GitHub: http://github.com/jasonroelofs/rice
@@ -658,6 +660,7 @@ This also works with Constructors:
 ```
 
 ## Ownership
+
 When Rice wraps a C++ object returned either by reference or pointer, it does *not* take ownership 
 of that object. Instead, Rice simply keeps a copy of the reference or pointer for later use. This 
 is consistent with modern C++ practices where the use of a reference or pointer does not imply a transfer
