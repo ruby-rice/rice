@@ -74,7 +74,7 @@ namespace Rice
     rb_type_->data = nullptr;
     rb_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
 
-    if constexpr (!std::is_same_v<Base_T, std::nullptr_t>)
+    if constexpr (!std::is_void_v<Base_T>)
     {
       rb_type_->parent = Data_Type<Base_T>::rb_type();
     }
@@ -212,37 +212,39 @@ namespace Rice
     }
   }
 
-  template<typename T>
-  inline Data_Type<T> 
-  define_class_under(Object module, char const* name)
-  {
-    Class c(define_class_under(module, name, rb_cObject));
-    c.undef_creation_funcs();
-    return Data_Type<T>::bind(c);
-  }
-
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class_under(Object module, char const* name)
   {
-    Data_Type<Base_T> base_dt;
-    Class c(define_class_under(module, name, base_dt));
+    Class superKlass;
+
+    if constexpr (std::is_void_v<Base_T>)
+    {
+      superKlass = rb_cObject;
+    }
+    else
+    {
+      superKlass = Data_Type<Base_T>::klass();
+    }
+    
+    Class c = define_class_under(module, name, superKlass);
     c.undef_creation_funcs();
     return Data_Type<T>::template bind<Base_T>(c);
   }
 
-  template<typename T>
-  inline Data_Type<T> define_class(char const* name)
-  {
-    Class c(define_class(name, rb_cObject));
-    c.undef_creation_funcs();
-    return Data_Type<T>::bind(c);
-  }
-
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class(char const* name)
   {
-    Data_Type<Base_T> base;
-    Class c(define_class(name, base));
+    Class superKlass;
+    if constexpr (std::is_void_v<Base_T>)
+    {
+      superKlass = rb_cObject;
+    }
+    else
+    {
+      superKlass = Data_Type<Base_T>::klass();
+    }
+
+    Class c = define_class(name, superKlass);
     c.undef_creation_funcs();
     return Data_Type<T>::template bind<Base_T>(c);
   }
