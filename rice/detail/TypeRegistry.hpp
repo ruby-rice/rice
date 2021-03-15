@@ -1,5 +1,5 @@
-#ifndef Rice__RiceInfo__hpp_
-#define Rice__RiceInfo__hpp_
+#ifndef Rice__TypeRegistry__hpp_
+#define Rice__TypeRegistry__hpp_
 
 #include <optional>
 #include <string>
@@ -31,11 +31,8 @@ namespace Rice::detail
     static std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
     static inline std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};
   };
-
-  // Return the name of a type
-  std::string typeName(const std::type_info& typeInfo);
 }
 
 #include "TypeRegistry.ipp"
 
-#endif // Rice__RiceInfo__hpp_
+#endif // Rice__TypeRegistry__hpp_

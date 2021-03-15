@@ -30,14 +30,16 @@ namespace detail
 template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
 class Native_Function
 {
-// NativeTypes are the types that we pass to the native function. They may or may not include
-// the receiver as the first argument. This alias makes it possible to have just one
-// implemenation of invokeNative
-using NativeTypes = typename std::conditional_t<std::is_same_v<Self_T, std::nullptr_t>,
-                                                std::tuple<Arg_Ts...>, 
-                                                std::tuple<Self_T, Arg_Ts...>>;
-
 public:
+  using Native_Return_T = Return_T;
+
+  // NativeTypes are the types that we pass to the native function. They may or may not include
+  // the receiver as the first argument. This alias makes it possible to have just one
+  // implemenation of invokeNative
+  using Native_Arg_Ts = typename std::conditional_t<std::is_same_v<Self_T, std::nullptr_t>,
+    std::tuple<Arg_Ts...>,
+    std::tuple<Self_T, Arg_Ts...>>;
+
   // Static member function that Ruby calls
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -62,7 +64,7 @@ private:
   void checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues);
 
   // Call the underlying C++ function
-  VALUE invokeNative(NativeTypes& nativeArgs);
+  VALUE invokeNative(Native_Arg_Ts& nativeArgs);
 
 private:
   Function_T func_;

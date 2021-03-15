@@ -182,6 +182,15 @@ namespace Rice
         return x->value();
       }
     };
+
+    template<typename T>
+    struct Type<T, std::enable_if_t<is_kind_of_object<T>>>
+    {
+      constexpr static void verify()
+      {
+        // All good
+      }
+    };
   }
 }
 #endif // Rice__Object__ipp_

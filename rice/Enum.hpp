@@ -70,6 +70,8 @@ public:
    *  \return Object - The Ruby wrapper */
   static Object from_enum(Class klass, Enum_T enumValue);
 
+  static inline bool isDefined = false;
+
 private:
   static Object each(Object self);
   static Object to_s(Object self);

@@ -354,6 +354,38 @@ TESTCASE(null_ptrs)
   ASSERT_EQUAL(Qnil, result.value());
 }
 
+namespace
+{
+  class SomeClass
+  {
+  };
+
+  void undefinedArg(SomeClass& someClass)
+  {
+  }
+
+  SomeClass undefinedReturn()
+  {
+    return SomeClass();
+  }
+}
+
+TESTCASE(not_defined)
+{
+  ASSERT_EXCEPTION_CHECK(
+    std::invalid_argument,
+    define_global_function("undefined_arg", &undefinedArg),
+    ASSERT_EQUAL("Type not defined with Rice: class `anonymous namespace'::SomeClass", ex.what())
+  );
+
+  ASSERT_EXCEPTION_CHECK(
+    std::invalid_argument,
+    define_global_function("undefined_return", &undefinedReturn),
+    ASSERT_EQUAL("Type not defined with Rice: class `anonymous namespace'::SomeClass", ex.what())
+  );
+}
+
+
 /**
  * The following test SEGFAULTs right now
  */

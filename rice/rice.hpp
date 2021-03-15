@@ -3,6 +3,7 @@
 
 #include "detail/ruby.hpp"
 #include "detail/rice_traits.hpp"
+#include "detail/Type.hpp"
 #include "detail/TypeRegistry.hpp"
 
 #include "Return.hpp"

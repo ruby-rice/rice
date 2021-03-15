@@ -15,14 +15,25 @@ SETUP(Attribute)
 
 namespace
 {
+  class SomeClass
+  {
+  };
+
   struct DataStruct
   {
     static inline float staticFloat = 1.0;
     static inline const std::string staticString = "Static string";
+    static inline SomeClass someClassStatic;
 
     std::string readWriteString = "Read Write";
     int writeInt = 0;
     const char* readChars = "Read some chars!";
+    SomeClass someClass;
+
+    std::string inspect()
+    {
+      return "";
+    }
   };
 
   bool globalBool = true;
@@ -34,6 +45,7 @@ TESTCASE(attributes)
 {
   Class c = define_class<DataStruct>("DataStruct")
     .define_constructor(Constructor<DataStruct>())
+    .define_method("inspect", &DataStruct::inspect)
     .define_attr("read_chars", &DataStruct::readChars, Rice::AttrAccess::Read)
     .define_attr("write_int", &DataStruct::writeInt, Rice::AttrAccess::Write)
     .define_attr("read_write_string", &DataStruct::readWriteString);
@@ -47,6 +59,7 @@ TESTCASE(attributes)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     o.call("read_char=", "some text"),
+    ASSERT_EQUAL("undefined method `read_char=' for :DataStruct", ex.what())
   );
   
   // Test writeonly attribute
@@ -56,7 +69,8 @@ TESTCASE(attributes)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     o.call("write_int", 3),
-    );
+    ASSERT_EQUAL("undefined method `write_int' for :DataStruct", ex.what())
+  );
 
   // Test readwrite attribute
   result = o.call("read_write_string=", "Set a string");
@@ -86,6 +100,7 @@ TESTCASE(static_attributes)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     c.call("static_string=", true),
+    ASSERT_EQUAL("undefined method `static_string=' for DataStruct:Class", ex.what())
   );
 }
 
@@ -105,4 +120,21 @@ TESTCASE(global_attributes)
   result = c.call("global_struct");
   DataStruct* aStruct = detail::From_Ruby<DataStruct*>::convert(result.value());
   ASSERT_EQUAL(aStruct, globalStruct);
+}
+
+TESTCASE(not_defined)
+{
+  Data_Type<DataStruct> c = define_class<DataStruct>("DataStruct");
+
+  ASSERT_EXCEPTION_CHECK(
+    std::invalid_argument,
+    c.define_singleton_attr("some_class_static", &DataStruct::someClassStatic),
+    ASSERT_EQUAL("Type not defined with Rice: class `anonymous namespace'::SomeClass", ex.what())
+  );
+
+  ASSERT_EXCEPTION_CHECK(
+    std::invalid_argument,
+    c.define_attr("some_class", &DataStruct::someClass),
+    ASSERT_EQUAL("Type not defined with Rice: class `anonymous namespace'::SomeClass", ex.what())
+  );
 }

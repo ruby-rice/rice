@@ -41,6 +41,8 @@ namespace Rice
     //! Return the Ruby type.
     static rb_data_type_t* rb_type();
 
+    static inline bool isDefined = false;
+
     //! Assignment operator which takes a Module
     /*! \param klass must be the class to which this data type is already
      *  bound.

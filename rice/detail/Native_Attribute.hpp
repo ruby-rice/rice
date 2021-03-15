@@ -23,6 +23,8 @@ template<typename Return_T, typename Attr_T, typename Self_T = void>
 class Native_Attribute
 {
 public:
+  using Native_Return_T = Return_T;
+
   // Static member functions that Ruby calls
   static VALUE get(VALUE self);
   static VALUE set(VALUE self, VALUE value);

@@ -12,7 +12,6 @@
 #include "String.hpp"
 
 #include <stdexcept>
-#include <typeinfo>
 
 namespace Rice
 {
@@ -215,6 +214,8 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class_under(Object module, char const* name)
   {
+    Data_Type<T>::isDefined = true;
+
     Class superKlass;
 
     if constexpr (std::is_void_v<Base_T>)
@@ -234,6 +235,8 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class(char const* name)
   {
+    Data_Type<T>::isDefined = true;
+
     Class superKlass;
     if constexpr (std::is_void_v<Base_T>)
     {
@@ -276,6 +279,8 @@ namespace Rice
     auto* native = detail::Make_Native_Attribute(attr, access);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
+    detail::verifyType<Native_T::Native_Return_T>();
+
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
     {
       detail::MethodData::define_method( klass_, Identifier(name).id(),
@@ -303,6 +308,8 @@ namespace Rice
     auto* native = detail::Make_Native_Attribute(attr, access);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
+    detail::verifyType<Native_T::Native_Return_T>();
+
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
     {
       detail::MethodData::define_method( rb_singleton_class(*this), Identifier(name).id(),
@@ -321,6 +328,22 @@ namespace Rice
     }
 
     return *this;
+  }
+
+  namespace detail
+  {
+    template<typename T>
+    struct Type<T, std::enable_if_t<!is_kind_of_object<T> && !is_primitive_v<T> && !std::is_enum_v<T>>>
+    {
+      constexpr static void verify()
+      {
+        if (!Data_Type<intrinsic_type<T>>::isDefined)
+        {
+          std::string message = "Type not defined with Rice: " + demangle(typeid(T).name());
+          throw std::invalid_argument(message);
+        }
+      }
+    };
   }
 }
 #endif

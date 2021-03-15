@@ -277,3 +277,32 @@ TESTCASE(using_enums)
   result = m.instance_eval("Color::BLACK.is_my_favorite_color");
   ASSERT_EQUAL(Qfalse, result.value());
 }
+
+namespace
+{
+  enum class Undefined { A, B, C };
+
+  void undefinedArg(Undefined undefined)
+  {
+  }
+
+  Undefined undefinedReturn()
+  {
+    return Undefined::B;
+  }
+}
+
+TESTCASE(not_defined)
+{
+  ASSERT_EXCEPTION_CHECK(
+    std::invalid_argument,
+    define_global_function("undefined_arg", &undefinedArg),
+    ASSERT_EQUAL("Enum type is not defined with Rice: enum `anonymous namespace'::Undefined", ex.what())
+  );
+
+  ASSERT_EXCEPTION_CHECK(
+    std::invalid_argument,
+    define_global_function("undefined_return", &undefinedReturn),
+    ASSERT_EQUAL("Enum type is not defined with Rice: enum `anonymous namespace'::Undefined", ex.what())
+  );
+}

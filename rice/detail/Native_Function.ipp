@@ -105,7 +105,7 @@ getSelf(VALUE self)
 
 template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
 VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-invokeNative(NativeTypes& nativeArgs)
+invokeNative(Native_Arg_Ts& nativeArgs)
 {
   if constexpr (std::is_void_v<Return_T>)
   {

@@ -1,6 +1,8 @@
 #ifndef Rice__Module__ipp_
 #define Rice__Module__ipp_
 
+#include "detail/rice_traits.hpp"
+#include "detail/Type.hpp"
 #include "detail/Native_Function.hpp"
 #include "Exception.hpp"
 
