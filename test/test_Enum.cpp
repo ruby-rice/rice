@@ -294,23 +294,21 @@ namespace
 
 TESTCASE(not_defined)
 {
+#ifdef _MSC_VER
+  const char* message = "Enum type is not defined with Rice: enum `anonymous namespace'::Undefined";
+#else
+  const char* message = "Enum type is not defined with Rice: (anonymous namespace)::Undefined";
+#endif
+
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
     define_global_function("undefined_arg", &undefinedArg),
-#ifdef _MSC_VER
-    ASSERT_EQUAL("Enum type is not defined with Rice: enum `anonymous namespace'::Undefined", ex.what())
-#else
-    ASSERT_EQUAL("Enum type is not defined with Rice: (anonymous namespace)::Undefined", ex.what())
-#endif
+    ASSERT_EQUAL(message, ex.what())
   );
 
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
     define_global_function("undefined_return", &undefinedReturn),
-#ifdef _MSC_VER
-    ASSERT_EQUAL("Enum type is not defined with Rice: enum `anonymous namespace'::Undefined", ex.what())
-#else
-    ASSERT_EQUAL("Enum type is not defined with Rice: (anonymous namespace)::Undefined", ex.what())
-#endif
+    ASSERT_EQUAL(message, ex.what())
   );
 }

@@ -372,24 +372,22 @@ namespace
 
 TESTCASE(not_defined)
 {
-  ASSERT_EXCEPTION_CHECK(
+#ifdef _MSC_VER
+  const char* message = "Type not defined with Rice: class `anonymous namespace'::SomeClass";
+#else
+  const char* message = "Type not defined with Rice: (anonymous namespace)::SomeClass";
+#endif
+    
+    ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
     define_global_function("undefined_arg", &undefinedArg),
-#ifdef _MSC_VER
-    ASSERT_EQUAL("Type not defined with Rice: class `anonymous namespace'::SomeClass", ex.what())
-#else
-    ASSERT_EQUAL("Type not defined with Rice: (anonymous namespace)::SomeClass", ex.what())
-#endif
+    ASSERT_EQUAL(message, ex.what())
   );
 
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
     define_global_function("undefined_return", &undefinedReturn),
-#ifdef _MSC_VER
-    ASSERT_EQUAL("Type not defined with Rice: class `anonymous namespace'::SomeClass", ex.what())
-#else
-    ASSERT_EQUAL("Type not defined with Rice: (anonymous namespace)::SomeClass", ex.what())
-#endif
+    ASSERT_EQUAL(message, ex.what())
   );
 }
 
