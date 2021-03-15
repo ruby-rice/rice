@@ -10,12 +10,12 @@
 
 namespace Rice::detail
 {
-  template<typename T>
-  struct Type<T, std::enable_if_t<is_primitive_v<T>>>
+  template<>
+  struct Type<void>
   {
     static constexpr void verify()
     {
-      // All good - Rice comes with built-in support for primitive types
+      // Nothing to verify
     }
   };
 

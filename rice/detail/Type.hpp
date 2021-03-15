@@ -9,8 +9,10 @@ namespace Rice::detail
   template<typename T, typename = void>
   struct Type
   {
-    static constexpr void verify();
-    static std::string name2();
+    static constexpr void verify()
+    {
+      // By default don't require registration of types
+    }
   };
 
   // Return the name of a type

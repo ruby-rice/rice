@@ -57,6 +57,15 @@ namespace Rice::detail
     }
   };
 
+  template<typename T>
+  struct Type<std::unique_ptr<T>>
+  {
+    constexpr static void verify()
+    {
+      // Don't need to register unique_ptr
+    }
+  };
+
   // ----- shared_ptr -------------
   template <typename T>
   struct To_Ruby<std::shared_ptr<T>>
@@ -105,6 +114,15 @@ namespace Rice::detail
           throw std::runtime_error(message.c_str());
       }
       return smartWrapper->data();
+    }
+  };
+
+  template<typename T>
+  struct Type<std::shared_ptr<T>>
+  {
+    constexpr static void verify()
+    {
+      // Don't need to register unique_ptr
     }
   };
 }

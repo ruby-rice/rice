@@ -66,46 +66,34 @@ namespace Rice
 } // Rice
 
 
-// =========   TypeRegistry.hpp   =========
+// =========   Type.hpp   =========
 
-#include <optional>
 #include <string>
-#include <typeindex>
 #include <typeinfo>
-#include <unordered_map>
-
-
-/* The type registery keeps track of all C++ types wrapped by Rice. When a native function returns 
-   an instance of a class/struct we look up its type to verity that it has been registered. 
-   
-   We have to do this to support C++ inheritance. If a C++ function returns a pointer/reference
-   to an Abstract class, the actual returned object will be a Child class. However, all we know
-   from the C++ method signature is that it is an Absract class - thus the need for a registry.*/
 
 namespace Rice::detail
 {
-  class TypeRegistry
+  template<typename T, typename = void>
+  struct Type
   {
-  public:
-    template <typename T>
-    static void add(VALUE klass, rb_data_type_t* rbType);
-
-    template <typename T>
-    static std::pair<VALUE, rb_data_type_t*> figureType(T& object);
-
-  private:
-    static std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
-    static inline std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};
+    static constexpr void verify();
+    static std::string name2();
   };
 
   // Return the name of a type
   std::string typeName(const std::type_info& typeInfo);
+
+  template<typename T>
+  constexpr void verifyType();
+
+  template<typename Tuple_T>
+  constexpr void verifyTypes();
 }
 
 
-// ---------   TypeRegistry.ipp   ---------
-#include <stdexcept>
+// ---------   Type.ipp   ---------
 
+#include <tuple>
 
 #ifdef __GNUC__
 #include <cxxabi.h>
@@ -115,6 +103,35 @@ namespace Rice::detail
 
 namespace Rice::detail
 {
+  template<typename T>
+  struct Type<T, std::enable_if_t<is_primitive_v<T>>>
+  {
+    static constexpr void verify()
+    {
+      // All good - Rice comes with built-in support for primitive types
+    }
+  };
+
+  template<typename T>
+  constexpr void verifyType()
+  {
+    Type<T>::verify();
+  }
+
+  template<typename Tuple_T, size_t...Is>
+  constexpr void verifyTypesImpl()
+  {
+    (Type<std::tuple_element_t<Is, Tuple_T>>::verify(), ...);
+  }
+
+  template<typename Tuple_T>
+  constexpr void verifyTypes()
+  {
+    if constexpr (std::tuple_size<Tuple_T>::value > 0)
+    {
+      verifyTypesImpl<Tuple_T, std::tuple_size<Tuple_T>::value - 1>();
+    }
+  }
 
   inline std::string demangle(char const* mangled_name)
   {
@@ -159,7 +176,49 @@ namespace Rice::detail
   {
     return demangle(typeInfo.name());
   }
+}
 
+
+// =========   TypeRegistry.hpp   =========
+
+#include <optional>
+#include <string>
+#include <typeindex>
+#include <typeinfo>
+#include <unordered_map>
+
+
+/* The type registery keeps track of all C++ types wrapped by Rice. When a native function returns 
+   an instance of a class/struct we look up its type to verity that it has been registered. 
+   
+   We have to do this to support C++ inheritance. If a C++ function returns a pointer/reference
+   to an Abstract class, the actual returned object will be a Child class. However, all we know
+   from the C++ method signature is that it is an Absract class - thus the need for a registry.*/
+
+namespace Rice::detail
+{
+  class TypeRegistry
+  {
+  public:
+    template <typename T>
+    static void add(VALUE klass, rb_data_type_t* rbType);
+
+    template <typename T>
+    static std::pair<VALUE, rb_data_type_t*> figureType(T& object);
+
+  private:
+    static std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
+    static inline std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};
+  };
+}
+
+
+// ---------   TypeRegistry.ipp   ---------
+#include <stdexcept>
+
+
+namespace Rice::detail
+{
   template <typename T>
   inline void TypeRegistry::add(VALUE klass, rb_data_type_t* rbType)
   {
@@ -2022,6 +2081,8 @@ template<typename Return_T, typename Attr_T, typename Self_T = void>
 class Native_Attribute
 {
 public:
+  using Native_Return_T = Return_T;
+
   // Static member functions that Ruby calls
   static VALUE get(VALUE self);
   static VALUE set(VALUE self, VALUE value);
@@ -2162,14 +2223,16 @@ namespace detail
 template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
 class Native_Function
 {
-// NativeTypes are the types that we pass to the native function. They may or may not include
-// the receiver as the first argument. This alias makes it possible to have just one
-// implemenation of invokeNative
-using NativeTypes = typename std::conditional_t<std::is_same_v<Self_T, std::nullptr_t>,
-                                                std::tuple<Arg_Ts...>, 
-                                                std::tuple<Self_T, Arg_Ts...>>;
-
 public:
+  using Native_Return_T = Return_T;
+
+  // NativeTypes are the types that we pass to the native function. They may or may not include
+  // the receiver as the first argument. This alias makes it possible to have just one
+  // implemenation of invokeNative
+  using Native_Arg_Ts = typename std::conditional_t<std::is_same_v<Self_T, std::nullptr_t>,
+    std::tuple<Arg_Ts...>,
+    std::tuple<Self_T, Arg_Ts...>>;
+
   // Static member function that Ruby calls
   static VALUE call(int argc, VALUE* argv, VALUE self);
 
@@ -2194,7 +2257,7 @@ private:
   void checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues);
 
   // Call the underlying C++ function
-  VALUE invokeNative(NativeTypes& nativeArgs);
+  VALUE invokeNative(Native_Arg_Ts& nativeArgs);
 
 private:
   Function_T func_;
@@ -2336,7 +2399,7 @@ getSelf(VALUE self)
 
 template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
 VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-invokeNative(NativeTypes& nativeArgs)
+invokeNative(Native_Arg_Ts& nativeArgs)
 {
   if constexpr (std::is_void_v<Return_T>)
   {
@@ -3031,6 +3094,15 @@ namespace Rice
       static VALUE convert(Object const* x, bool takeOwnership = false)
       {
         return x->value();
+      }
+    };
+
+    template<typename T>
+    struct Type<T, std::enable_if_t<is_kind_of_object<T>>>
+    {
+      constexpr static void verify()
+      {
+        // All good
       }
     };
   }
@@ -4529,562 +4601,397 @@ inline void Address_Registration_Guard::disable()
 
 namespace Rice
 {
-template<typename T>
-class Data_Type;
+  template <typename T>
+  void validateType();
 
-//! A helper for defining a Module and its methods.
-/*! This class provides a C++-style interface to ruby's Module class and
- *  for defining methods on that module.
- *
- *  Many of the methods are defined in Module_impl.hpp so that they can
- *  return a reference to the most derived type.
- */
-class Module
-  // TODO: we can't inherit from Builtin_Object, because Class needs
-  // type T_CLASS and Module needs type T_MODULE
-  : public Object
-{
-public:
-  //! Default construct a Module and initialize it to rb_cObject.
-  Module();
-
-  //! Construct a Module from an existing Module object.
-  Module(VALUE v);
-
-  //! Return the name of the module.
-  String name() const;
-
-  //! Return an array containing the Module's ancestors.
-  /*! You will need to include Array.hpp to use this function.
-   */
-  Array ancestors() const;
-
-  //! Return the module's singleton class.
-  /*! You will need to include Class.hpp to use this function.
-   */
-  Class singleton_class() const;
-
-   //! Define a class under this module.
-  /*! \param name the name of the class.
-   *  \param superclass the base class to use.
-   *  \return the new class.
-   */
-  Class define_class(char const* name, Object superclass = rb_cObject);
-
-  //! Define an exception handler.
-  /*! Whenever an exception of type Exception_T is thrown from a
-   *  function defined on this class, functor will be called to
-   *  translate the exception into a ruby exception.
-   *  \param Exception_T a template parameter indicating the type of
-   *  exception to be translated.
-   *  \param functor a functor to be called to translate the exception
-   *  into a ruby exception.  This functor should re-throw the exception
-   *  as an Exception.
-   *  Example:
-   *  \code
-   *    class MyException : public std::exception { };
-   *    Data_Type<MyException> rb_cMyException;
-   *    Class rb_cFoo;
+  //! A helper for defining a Module and its methods.
+  /*! This class provides a C++-style interface to ruby's Module class and
+   *  for defining methods on that module.
    *
-   *    void translate_my_exception(MyException const & ex)
-   *    {
-   *      Data_Object<MyException> ex_(
-   *          new MyException(ex),
-   *          rb_cMyException);
-   *      throw Exception(ex_);
-   *    }
-   *
-   *    extern "C"
-   *    void Init_MyExtension()
-   *    {
-   *      rb_cMyException = define_class("MyException");
-   *      rb_cFoo = define_class("Foo")
-   *        .add_handler<MyException>(translate_my_exception);
-   *    }
-   *  \endcode
+   *  Many of the methods are defined in Module_impl.hpp so that they can
+   *  return a reference to the most derived type.
    */
-  template<typename Exception_T, typename Functor_T>
-  Module& add_handler(
-    Functor_T functor);
-
-  //! Include a module.
-  /*! \param inc the module to be included.
-  *  \return *this
-  */
-  Module& include_module(Module const& inc);
-
-  template<typename Func_T>
-  [[deprecated("Please call define_method with Arg parameters")]]
-  Module& define_method(
-    Identifier name,
-    Func_T&& func,
-    Arguments* arguments);
-
-  //! Define an instance method.
-  /*! The method's implementation can be a member function, plain function
-   *  or lambda. The easiest case is a member function where the Ruby
-   *  arguments map one-to-one to the C++ arguments. In the case of a
-   *  plain function or lambda, the first argument must be SELF - ie, 
-   *  the current object. If it is specified as a VALUE, then
-   *  the current Ruby object is passed. If it is specified as a C++ class, 
-   *  then the C++ oject is passed. If you don't want to include the 
-   *  SELF argument see define_fuction.
-   *  Rice will automatically convert method arguments from Ruby to C++ and
-   *  then convert the return value from C++ to Ruby.
-   *  \param name the name of the method
-   *  \param func the implementation of the function, either a function
-   *  pointer or a member function pointer.
-   *  \param args a list of Arg instance used to define default parameters.
-   *  \return *this
-   */
-  template<typename Func_T, typename...Arg_Ts>
-  Module& define_method(
-    Identifier name,
-    Func_T&& func,
-    Arg_Ts const& ...args);
-
-  //! Define an instance function.
-  /*! The function implementation is a plain function or a static
-   *  member function. 
-   *  Rice will automatically convert method arguments from Ruby to C++ and
-   *  then convert the return value from C++ to Ruby.
-   *  \param name the name of the method
-   *  \param func the implementation of the function, either a function
-   *  pointer or a member function pointer.
-   *  \param args a list of Arg instance used to define default parameters (optional)
-   *  \return *this
-   */
-  template<typename Func_T, typename...Arg_Ts>
-  Module& define_function(
-    Identifier name,
-    Func_T&& func,
-    Arg_Ts const& ...args);
-
-  template<typename Func_T>
-  [[deprecated("Please call define_singleton_method with Arg parameters")]]
-  Module& define_singleton_method(
-    Identifier name,
-    Func_T&& func,
-    Arguments* arguments);
-
-  //! Define a singleton method.
-  /*! The method's implementation can be a static member function,
-  *   plain function or lambda. In all cases the first argument 
-  *   must be SELF - ie, he current object. If it is specified as a VALUE, then
-   *  the current Ruby object is passed. If it is specified as a C++ class, 
-   *  then the C++ oject is passed. If you don't want to include the 
-   *  SELF argument see define_singleton_function.
-   *  Rice will automatically convert method arguments from Ruby to C++ and
-   *  then convert the return value from C++ to Ruby.
-   *  \param name the name of the method
-   *  \param func the implementation of the function, either a function
-   *  pointer or a member function pointer.
-   *  \param args a list of Arg instance used to define default parameters (optional)
-   *  \return *this
-   */
-  template<typename Func_T, typename...Arg_Ts>
-  Module& define_singleton_method(
-    Identifier name,
-    Func_T&& func,
-    Arg_Ts const& ...args);
-
-  //! Define a singleton method.
-  /*! The method's implementation can be a static member function, plain
-   *  function or lambda.
-   . A wrapper will be 
-   * generated which will convert the arguments
-   *  from ruby types to C++ types before calling the function.  The return
-   *  value will be converted back to ruby.
-   *  \param name the name of the method
-   *  \param func the implementation of the function, either a function
-   *  pointer or a member function pointer.
-   *  \param args a list of Arg instance used to define default parameters (optional)
-   *  \return *this
-   */
-  template<typename Func_T, typename...Arg_Ts>
-  Module& define_singleton_function(
-    Identifier name,
-    Func_T&& func,
-    Arg_Ts const& ...args);
-
-  template<typename Func_T>
-  [[deprecated("Please call define_module_function with Arg parameters")]]
-  Module& define_module_function(
-    Identifier name,
-    Func_T&& func,
-    Arguments* arguments);
-
-  //! Define a module function.
-  /*! A module function is a function that can be accessed either as a
-   *  singleton method or as an instance method. It wrap a plain
-   *  function, static member function or lambda.
-   *  Rice will automatically convert method arguments from Ruby to C++ and
-   *  then convert the return value from C++ to Ruby.
-   *  \param name the name of the method
-   *  \param func the implementation of the function, either a function
-   *  pointer or a member function pointer.
-   *  \param args a list of Arg instance used to define default parameters (optional)
-   *  \return *this
-   */
-  template<typename Func_T, typename...Arg_Ts>
-  Module& define_module_function(
-    Identifier name,
-    Func_T&& func,
-    Arg_Ts const& ...args);
-
-  //! Set a constant.
-  /*! \param name the name of the constant to set.
-   *  \param value the value of the constant.
-   *  \return *this
-   */
-  Module& const_set(
-    Identifier name,
-    Object value);
-
-  //! Get a constant.
-  /*! \param name the name of the constant to get.
-   *  \return the value of the constant.
-   */
-  Object const_get(
-    Identifier name) const;
-
-  //! Determine whether a constant is defined.
-  /*! \param name the name of the constant to check.
-   *  \return true if the constant is defined in this module or false
-   *  otherwise.
-   */
-  bool const_defined(
-    Identifier name) const;
-
-  //! Remove a constant.
-  /*! \param name the name of the constant to remove.
-   */
-  void remove_const(
-    Identifier name);
-
-  //! Define a new data class under this module.
-  /*! The class will have a base class of Object.
-   *  \param T the C++ type of the wrapped class.
-   *  \return the new class.
-   */
-  template<typename T>
-  Data_Type<T>
-    define_class(
-      char const* name);
-
-  //! Define a new data class under this module.
-  /*! The class with have a base class determined by Intrinsic_T (specifically,
-   *  Data_Type<Intrinsic_T>::klass).  Therefore, the type Intrinsic_T must already
-   *  have been registered using define_class<> or define_class_under<>.
-   *  \param T the C++ type of the wrapped class.
-   *  \return the new class.
-   */
-  template<typename T, typename T_Base_T>
-  Data_Type<T>
-    define_class(
-      char const* name);
-
-protected:
-  std::shared_ptr<detail::Exception_Handler> handler() const;
-
-private:
-  template<typename T>
-  Data_Type<T> define_class_with_object_as_base(char const* name);
-
-  template<typename Function_T>
-  void wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
-    std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments = 0);
-
-  template<typename Function_T>
-  void wrap_native_function(VALUE klass, Identifier name, Function_T&& function,
-    std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments = 0);
-
-  mutable std::shared_ptr<detail::Exception_Handler> handler_ = std::make_shared<Rice::detail::Default_Exception_Handler>();
-};
-
-//! Define a new module in the namespace given by module.
-/*! \param module the module in which to define the new module.
- *  \param name the name of the new module.
- */
-Module define_module_under(
-    Object module,
-    char const * name);
-
-//! Define a new module in the default namespace.
-/*! \param name the name of the new module.
- */
-Module define_module(
-    char const * name);
-
-//! Create a new anonymous module.
-/*! \return the new module.
- */
-Module anonymous_module();
-
-} // namespace Rice
-
-template<>
-struct Rice::detail::From_Ruby<Rice::Module>
-{
-  static Rice::Module convert(VALUE value)
+   // TODO: we can't inherit from Builtin_Object, because Class needs
+   // type T_CLASS and Module needs type T_MODULE
+  class Module : public Object
   {
-    return Rice::Module(value);
-  }
-};
+  public:
+    //! Default construct a Module and initialize it to rb_cObject.
+    Module();
 
+    //! Construct a Module from an existing Module object.
+    Module(VALUE v);
+
+    //! Return the name of the module.
+    String name() const;
+
+    //! Return an array containing the Module's ancestors.
+    /*! You will need to include Array.hpp to use this function.
+     */
+    Array ancestors() const;
+
+    //! Return the module's singleton class.
+    /*! You will need to include Class.hpp to use this function.
+     */
+    Class singleton_class() const;
+
+    //! Define an exception handler.
+    /*! Whenever an exception of type Exception_T is thrown from a
+     *  function defined on this class, functor will be called to
+     *  translate the exception into a ruby exception.
+     *  \param Exception_T a template parameter indicating the type of
+     *  exception to be translated.
+     *  \param functor a functor to be called to translate the exception
+     *  into a ruby exception.  This functor should re-throw the exception
+     *  as an Exception.
+     *  Example:
+     *  \code
+     *    class MyException : public std::exception { };
+     *    Data_Type<MyException> rb_cMyException;
+     *    Class rb_cFoo;
+     *
+     *    void translate_my_exception(MyException const & ex)
+     *    {
+     *      Data_Object<MyException> ex_(
+     *          new MyException(ex),
+     *          rb_cMyException);
+     *      throw Exception(ex_);
+     *    }
+     *
+     *    extern "C"
+     *    void Init_MyExtension()
+     *    {
+     *      rb_cMyException = define_class("MyException");
+     *      rb_cFoo = define_class("Foo")
+     *        .add_handler<MyException>(translate_my_exception);
+     *    }
+     *  \endcode
+     */
+    template<typename Exception_T, typename Functor_T>
+    Module& add_handler(Functor_T functor);
+
+    //! Include a module.
+    /*! \param inc the module to be included.
+    *  \return *this
+    */
+    Module& include_module(Module const& inc);
+
+    template<typename Func_T>
+    [[deprecated("Please call define_method with Arg parameters")]]
+    Module& define_method(Identifier name, Func_T&& func, Arguments* arguments);
+
+    //! Define an instance method.
+    /*! The method's implementation can be a member function, plain function
+     *  or lambda. The easiest case is a member function where the Ruby
+     *  arguments map one-to-one to the C++ arguments. In the case of a
+     *  plain function or lambda, the first argument must be SELF - ie, 
+     *  the current object. If it is specified as a VALUE, then
+     *  the current Ruby object is passed. If it is specified as a C++ class, 
+     *  then the C++ oject is passed. If you don't want to include the 
+     *  SELF argument see define_fuction.
+     *  Rice will automatically convert method arguments from Ruby to C++ and
+     *  then convert the return value from C++ to Ruby.
+     *  \param name the name of the method
+     *  \param func the implementation of the function, either a function
+     *  pointer or a member function pointer.
+     *  \param args a list of Arg instance used to define default parameters.
+     *  \return *this
+     */
+    template<typename Func_T, typename...Arg_Ts>
+    Module& define_method(Identifier name, Func_T&& func, Arg_Ts const& ...args);
+
+    //! Define an instance function.
+    /*! The function implementation is a plain function or a static
+     *  member function. 
+     *  Rice will automatically convert method arguments from Ruby to C++ and
+     *  then convert the return value from C++ to Ruby.
+     *  \param name the name of the method
+     *  \param func the implementation of the function, either a function
+     *  pointer or a member function pointer.
+     *  \param args a list of Arg instance used to define default parameters (optional)
+     *  \return *this
+     */
+    template<typename Func_T, typename...Arg_Ts>
+    Module& define_function(Identifier name, Func_T&& func, Arg_Ts const& ...args);
+
+    template<typename Func_T>
+    [[deprecated("Please call define_singleton_method with Arg parameters")]]
+    Module& define_singleton_method(Identifier name, Func_T&& func, Arguments* arguments);
+
+    //! Define a singleton method.
+    /*! The method's implementation can be a static member function,
+    *   plain function or lambda. In all cases the first argument 
+    *   must be SELF - ie, he current object. If it is specified as a VALUE, then
+     *  the current Ruby object is passed. If it is specified as a C++ class, 
+     *  then the C++ oject is passed. If you don't want to include the 
+     *  SELF argument see define_singleton_function.
+     *  Rice will automatically convert method arguments from Ruby to C++ and
+     *  then convert the return value from C++ to Ruby.
+     *  \param name the name of the method
+     *  \param func the implementation of the function, either a function
+     *  pointer or a member function pointer.
+     *  \param args a list of Arg instance used to define default parameters (optional)
+     *  \return *this
+     */
+    template<typename Func_T, typename...Arg_Ts>
+    Module& define_singleton_method(Identifier name, Func_T&& func, Arg_Ts const& ...args);
+
+    //! Define a singleton method.
+    /*! The method's implementation can be a static member function, plain
+     *  function or lambda.
+     . A wrapper will be 
+     * generated which will convert the arguments
+     *  from ruby types to C++ types before calling the function.  The return
+     *  value will be converted back to ruby.
+     *  \param name the name of the method
+     *  \param func the implementation of the function, either a function
+     *  pointer or a member function pointer.
+     *  \param args a list of Arg instance used to define default parameters (optional)
+     *  \return *this
+     */
+    template<typename Func_T, typename...Arg_Ts>
+    Module& define_singleton_function(Identifier name, Func_T&& func, Arg_Ts const& ...args);
+
+    template<typename Func_T>
+    [[deprecated("Please call define_module_function with Arg parameters")]]
+    Module& define_module_function(Identifier name, Func_T&& func, Arguments* arguments);
+
+    //! Define a module function.
+    /*! A module function is a function that can be accessed either as a
+     *  singleton method or as an instance method. It wrap a plain
+     *  function, static member function or lambda.
+     *  Rice will automatically convert method arguments from Ruby to C++ and
+     *  then convert the return value from C++ to Ruby.
+     *  \param name the name of the method
+     *  \param func the implementation of the function, either a function
+     *  pointer or a member function pointer.
+     *  \param args a list of Arg instance used to define default parameters (optional)
+     *  \return *this
+     */
+    template<typename Func_T, typename...Arg_Ts>
+    Module& define_module_function(Identifier name, Func_T&& func, Arg_Ts const& ...args);
+
+    //! Set a constant.
+    /*! \param name the name of the constant to set.
+     *  \param value the value of the constant.
+     *  \return *this
+     */
+    Module& const_set(Identifier name, Object value);
+
+    //! Get a constant.
+    /*! \param name the name of the constant to get.
+     *  \return the value of the constant.
+     */
+    Object const_get(Identifier name) const;
+
+    //! Determine whether a constant is defined.
+    /*! \param name the name of the constant to check.
+     *  \return true if the constant is defined in this module or false
+     *  otherwise.
+     */
+    bool const_defined(Identifier name) const;
+
+    //! Remove a constant.
+    /*! \param name the name of the constant to remove.
+     */
+    void remove_const(Identifier name);
+
+  protected:
+    std::shared_ptr<detail::Exception_Handler> handler() const;
+
+  private:
+    template<typename Function_T>
+    void wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
+      std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments = 0);
+
+    template<typename Function_T>
+    void wrap_native_function(VALUE klass, Identifier name, Function_T&& function,
+      std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments = 0);
+
+    mutable std::shared_ptr<detail::Exception_Handler> handler_ = std::make_shared<Rice::detail::Default_Exception_Handler>();
+  };
+
+  //! Define a new module in the namespace given by module.
+  /*! \param module the module in which to define the new module.
+   *  \param name the name of the new module.
+   */
+  Module define_module_under(Object module, char const * name);
+
+  //! Define a new module in the default namespace.
+  /*! \param name the name of the new module.
+   */
+  Module define_module(char const * name);
+
+  //! Create a new anonymous module.
+  /*! \return the new module.
+   */
+  Module anonymous_module();
+}
 #endif // Rice__Module_defn__hpp_
-
-
 // ---------   Module.ipp   ---------
 #ifndef Rice__Module__ipp_
 #define Rice__Module__ipp_
 
 
-inline
-Rice::Module::
-Module()
-  : Object(rb_cObject)
+namespace Rice
 {
-}
-
-inline
-Rice::Module::
-Module(VALUE v)
-  : Object(v)
-{
-  if (::rb_type(v) != T_CLASS && ::rb_type(v) != T_MODULE)
+  inline Module::Module() : Object(rb_cObject)
   {
-    throw Exception(
-      rb_eTypeError,
-      "Expected a Module but got a %s",
-      rb_class2name(CLASS_OF(v))); // TODO: might raise an exception
-  }
-}
-
-inline
-Rice::Module Rice::
-define_module_under(
-  Rice::Object module,
-  char const* name)
-{
-  VALUE v = rb_define_module_under(module, name);
-  return Module(v);
-}
-
-inline
-Rice::Module Rice::
-define_module(
-  char const* name)
-{
-  VALUE v = rb_define_module(name);
-  return Module(v);
-}
-
-inline
-Rice::Module Rice::
-anonymous_module()
-{
-  return Module(detail::protect(rb_module_new));
-}
-
-template<typename Exception_T, typename Functor_T>
-inline
-Rice::Module&
-Rice::Module::
-add_handler(
-  Functor_T functor)
-{
-  // Create a new exception handler and pass ownership of the current handler to it (they
-  // get chained together). Then take ownership of the new handler.
-  this->handler_ = std::make_shared<detail::Functor_Exception_Handler<Exception_T, Functor_T>>(
-    functor, std::move(this->handler_));
-
-  return *this;
-}
-
-inline
-std::shared_ptr<Rice::detail::Exception_Handler>
-Rice::Module::
-handler() const
-{
-  return this->handler_;
-}
-
-inline
-Rice::Module&
-Rice::Module::
-include_module(Rice::Module const& inc)
-{
-  Rice::detail::protect(rb_include_module, *this, inc);
-  return *this;
-}
-
-template<typename Func_T>
-inline
-Rice::Module&
-Rice::Module::
-define_method(
-  Identifier name,
-  Func_T&& func,
-  Arguments* arguments)
-{
-  this->wrap_native_method(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
-  return *this;
-}
-
-template<typename Func_T, typename...Arg_Ts>
-inline
-Rice::Module&
-Rice::Module::
-define_method(
-  Identifier name,
-  Func_T&& func,
-  Arg_Ts const& ...args)
-{
-  Arguments* arguments = new Arguments(args...);
-  this->wrap_native_method(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
-  return *this;
-}
-
-template<typename Func_T, typename...Arg_Ts>
-inline
-Rice::Module&
-Rice::Module::
-define_function(
-  Identifier name,
-  Func_T&& func,
-  Arg_Ts const& ...args)
-{
-  Arguments* arguments = new Arguments(args...);
-  this->wrap_native_function(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
-  return *this;
-}
-
-template<typename Func_T>
-inline
-Rice::Module&
-Rice::Module::
-define_singleton_method(
-  Identifier name,
-  Func_T&& func,
-  Arguments* arguments)
-{
-  this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
-  return *this;
-}
-
-template<typename Func_T, typename...Arg_Ts>
-inline
-Rice::Module&
-Rice::Module::
-define_singleton_method(
-  Identifier name,
-  Func_T&& func,
-  Arg_Ts const& ...args)
-{
-  Arguments* arguments = new Arguments(args...);
-  this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
-  return *this;
-}
-
-template<typename Func_T, typename...Arg_Ts>
-inline
-Rice::Module&
-Rice::Module::
-define_singleton_function(
-  Identifier name,
-  Func_T&& func,
-  Arg_Ts const& ...args)
-{
-  Arguments* arguments = new Arguments(args...);
-  this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
-  return *this;
-}
-
-template<typename Func_T>
-inline
-Rice::Module&
-Rice::Module::
-define_module_function(
-  Identifier name,
-  Func_T&& func,
-  Arguments* arguments)
-{
-  if (this->rb_type() != T_MODULE)
-  {
-    throw std::runtime_error("can only define module functions for modules");
   }
 
-  define_function(name, func, arguments);
-  define_singleton_function(name, std::forward<Func_T>(func), arguments);
-  return *this;
-}
-
-template<typename Func_T, typename...Arg_Ts>
-inline
-Rice::Module&
-Rice::Module::
-define_module_function(
-  Identifier name,
-  Func_T&& func,
-  Arg_Ts const& ...args)
-{
-  if (this->rb_type() != T_MODULE)
+  inline Module::Module(VALUE v) : Object(v)
   {
-    throw std::runtime_error("can only define module functions for modules");
+    if (::rb_type(v) != T_CLASS && ::rb_type(v) != T_MODULE)
+    {
+      throw Exception(
+        rb_eTypeError,
+        "Expected a Module but got a %s",
+        rb_class2name(CLASS_OF(v))); // TODO: might raise an exception
+    }
   }
 
-  define_function(name, std::forward<Func_T>(func), args...);
-  define_singleton_function(name, std::forward<Func_T>(func), args...);
-  return *this;
-}
+  template<typename Exception_T, typename Functor_T>
+  inline Module& Module::add_handler(Functor_T functor)
+  {
+    // Create a new exception handler and pass ownership of the current handler to it (they
+    // get chained together). Then take ownership of the new handler.
+    this->handler_ = std::make_shared<detail::Functor_Exception_Handler<Exception_T, Functor_T>>(
+      functor, std::move(this->handler_));
 
-inline
-Rice::Module&
-Rice::Module::
-const_set(
-  Identifier name,
-  Object value)
-{
-  detail::protect(rb_const_set, *this, name, value);
-  return *this;
-}
+    return *this;
+  }
 
-inline
-Rice::Object
-Rice::Module::
-const_get(
-  Identifier name) const
-{
-  return detail::protect(rb_const_get, *this, name);
-}
+  inline std::shared_ptr<detail::Exception_Handler> Module::handler() const
+  {
+    return this->handler_;
+  }
 
-inline
-bool
-Rice::Module::
-const_defined(Identifier name) const
-{
-  size_t result = detail::protect(rb_const_defined, *this, name);
-  return bool(result);
-}
+  inline Module& Module::include_module(Module const& inc)
+  {
+    detail::protect(rb_include_module, *this, inc);
+    return *this;
+  }
 
-inline
-void
-Rice::Module::
-remove_const(Identifier name)
-{
-  detail::protect(rb_mod_remove_const, *this, name.to_sym());
-}
+  template<typename Func_T>
+  inline Module& Module::define_method(Identifier name, Func_T&& func, Arguments* arguments)
+  {
+    this->wrap_native_method(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
+    return *this;
+  }
 
-template<typename T>
-Rice::Data_Type<T>
-Rice::Module::
-define_class(
-  char const* name)
-{
-  return this->define_class_with_object_as_base<T>(name);
-}
+  template<typename Func_T, typename...Arg_Ts>
+  inline Module& Module::define_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+  {
+    Arguments* arguments = new Arguments(args...);
+    this->wrap_native_method(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
+    return *this;
+  }
 
+  template<typename Func_T, typename...Arg_Ts>
+  inline Module& Module::define_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+  {
+    Arguments* arguments = new Arguments(args...);
+    this->wrap_native_function(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
+    return *this;
+  }
+
+  template<typename Func_T>
+  inline Module& Module::define_singleton_method(Identifier name, Func_T&& func, Arguments* arguments)
+  {
+    this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
+    return *this;
+  }
+
+  template<typename Func_T, typename...Arg_Ts>
+  inline Module& Module::define_singleton_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+  {
+    Arguments* arguments = new Arguments(args...);
+    this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
+    return *this;
+  }
+
+  template<typename Func_T, typename...Arg_Ts>
+  inline Module& Module::define_singleton_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+  {
+    Arguments* arguments = new Arguments(args...);
+    this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
+    return *this;
+  }
+
+  template<typename Func_T>
+  inline Module& Module::define_module_function(Identifier name, Func_T&& func, Arguments* arguments)
+  {
+    if (this->rb_type() != T_MODULE)
+    {
+      throw std::runtime_error("can only define module functions for modules");
+    }
+
+    define_function(name, func, arguments);
+    define_singleton_function(name, std::forward<Func_T>(func), arguments);
+    return *this;
+  }
+
+  template<typename Func_T, typename...Arg_Ts>
+  inline Module& Module::define_module_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+  {
+    if (this->rb_type() != T_MODULE)
+    {
+      throw std::runtime_error("can only define module functions for modules");
+    }
+
+    define_function(name, std::forward<Func_T>(func), args...);
+    define_singleton_function(name, std::forward<Func_T>(func), args...);
+    return *this;
+  }
+
+  inline Module& Module::const_set(Identifier name,Object value)
+  {
+    detail::protect(rb_const_set, *this, name, value);
+    return *this;
+  }
+
+  inline Object Module::const_get(Identifier name) const
+  {
+    return detail::protect(rb_const_get, *this, name);
+  }
+
+  inline bool Module::const_defined(Identifier name) const
+  {
+    size_t result = detail::protect(rb_const_defined, *this, name);
+    return bool(result);
+  }
+
+  inline void Module::remove_const(Identifier name)
+  {
+    detail::protect(rb_mod_remove_const, *this, name.to_sym());
+  }
+
+  inline Module define_module_under(Object module, char const* name)
+  {
+    VALUE v = rb_define_module_under(module, name);
+    return Module(v);
+  }
+
+  inline Module define_module(char const* name)
+  {
+    VALUE v = rb_define_module(name);
+    return Module(v);
+  }
+
+  inline Module anonymous_module()
+  {
+    return Module(detail::protect(rb_module_new));
+  }
+
+  template<>
+  struct detail::From_Ruby<Module>
+  {
+    static Module convert(VALUE value)
+    {
+      return Module(value);
+    }
+  };
+}
 #endif // Rice__Module__ipp_
 
 
@@ -5254,27 +5161,339 @@ namespace detail
 
 namespace Rice
 {
-
-//! A helper for defining a Class and its methods.
-/*! This class provides a C++-style interface to ruby's Class class and
- *  for defining methods on that class.
- */
-class Class
-  : public Module
-{
-public:
-  //! Default construct a new class wrapper and initialize it to
-  //! rb_cObject.
-  Class() = default;
-
-  //! Construct a new class wrapper from a ruby object of type T_CLASS.
-  Class(VALUE v);
-
-  //! Disallow creation of an instance from Ruby code.
-  /*! Undefines the singleton method allocate (or new, if using a
-   *  version of ruby prior to 1.7) and the instance method initialize.
+  //! A helper for defining a Class and its methods.
+  /*! This class provides a C++-style interface to ruby's Class class and
+   *  for defining methods on that class.
    */
-  Class & undef_creation_funcs();
+  class Class: public Module
+  {
+  public:
+    //! Default construct a new class wrapper and initialize it to
+    //! rb_cObject.
+    Class() = default;
+
+    //! Construct a new class wrapper from a ruby object of type T_CLASS.
+    Class(VALUE v);
+
+    //! Disallow creation of an instance from Ruby code.
+    /*! Undefines the singleton method allocate (or new, if using a
+     *  version of ruby prior to 1.7) and the instance method initialize.
+     */
+    Class & undef_creation_funcs();
+
+    // Include these methods to call methods from Module but return
+// an instance of the current classes. This is an alternative to
+// using CRTP.
+
+auto& include_module(Module const& inc)
+{
+  detail::protect(rb_include_module, *this, inc);
+  return *this;
+}
+
+auto& const_set(Identifier name, Object value)
+{
+  return dynamic_cast<decltype(*this)>(Module::const_set(name, value));
+}
+
+template<typename Func_T>
+[[deprecated("Please call define_method with Arg parameters")]]
+auto& define_method(Identifier name, Func_T&& func, Arguments* arguments)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_method(name, std::forward<Func_T>(func), arguments));
+}
+
+template<typename Func_T, typename...Arg_Ts>
+auto& define_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_method(name, std::forward<Func_T>(func), args...));
+}
+
+template<typename Func_T, typename...Arg_Ts>
+auto& define_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_function(name, std::forward<Func_T>(func), args...));
+}
+
+template<typename Func_T>
+[[deprecated("Please call define_singleton_method with Arg parameters")]]
+auto& define_singleton_method(Identifier name, Func_T&& func, Arguments* arguments)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, std::forward<Func_T>(func), arguments));
+}
+
+template<typename Func_T, typename...Arg_Ts>
+auto& define_singleton_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, std::forward<Func_T>(func), args...));
+}
+
+template<typename Func_T, typename...Arg_Ts>
+auto& define_singleton_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+{
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_function(name, std::forward<Func_T>(func), args...));
+}
+
+template<typename Exception_T, typename Functor_T>
+auto& add_handler(Functor_T functor)
+{
+  return dynamic_cast<decltype(*this)>(Module::add_handler<Exception_T>(functor));
+}
+
+  };
+
+  //! Define a new class in the namespace given by module.
+  /*! \param module the Module in which to define the class.
+   *  \param name the name of the class.
+   *  \param superclass the base class to use.
+   *  \return the new class.
+   */
+  Class define_class_under(Object module, char const * name, Object superclass = rb_cObject);
+
+  //! Define a new class in the default namespace.
+  /*! \param name the name of the class.
+   *  \param superclass the base class to use.
+   *  \return the new class.
+   */
+  Class define_class(char const * name, Object superclass = rb_cObject);
+
+  //! Create a new anonymous class.
+  /*! \return the new class.
+   */
+  Class anonymous_class();
+} // namespace Rice
+
+#endif // Rice__Class_defn__hpp_
+
+
+// ---------   Class.ipp   ---------
+#ifndef Rice__Class__ipp_
+#define Rice__Class__ipp_
+
+
+namespace Rice
+{
+  inline Class::Class(VALUE v) : Module(v)
+  {
+    if (::rb_type(v) != T_CLASS)
+    {
+      // TODO: might raise an exception
+      throw Exception(rb_eTypeError, "Expected a Class but got a %s", rb_class2name(CLASS_OF(v)));
+    }
+  }
+
+  inline Class& Class::undef_creation_funcs()
+  {
+    rb_undef_alloc_func(value());
+    rb_undef_method(value(), "initialize");
+    return *this;
+  }
+
+  inline Class define_class_under(Object module, char const* name,Object superclass)
+  {
+    VALUE v = rb_define_class_under(module, name, superclass);
+    return Class(v);
+  }
+
+  inline Class define_class(char const* name, Object superclass)
+  {
+    VALUE v = rb_define_class(name, superclass);
+    return Class(v);
+  }
+
+  inline Class anonymous_class()
+  {
+    return Class(rb_class_new(rb_cObject));
+  }
+
+  template<>
+  struct detail::From_Ruby<Class>
+  {
+    static Class convert(VALUE value)
+    {
+      return Class(value);
+    }
+  };
+}
+#endif // Rice__Class__ipp_
+
+
+
+
+// =========   Director.hpp   =========
+
+
+namespace Rice {
+
+  /**
+   * A Director works exactly as a SWIG %director works (thus the name).
+   * You use this class to help build proxy classes so that polymorphism
+   * works from C++ into Ruby. See the main README for how this class works.
+   */
+  class Director
+  {
+    public:
+      //! Construct new Director. Needs the Ruby object so that the
+      //  proxy class can call methods on that object.
+      Director(Object self) : self_(self)
+      {
+      }
+
+      virtual ~Director() = default;
+
+      //! Raise a ruby exception when a call comes through for a pure virtual method
+      /*! If a Ruby script calls 'super' on a method that's otherwise a pure virtual
+       *  method, use this method to throw an exception in this case.
+       */
+      void raisePureVirtual() const
+      {
+        rb_raise(rb_eNotImpError, "Cannot call super() into a pure-virtual C++ method");
+      }
+
+      //! Get the Ruby object linked to this C++ instance
+      Object getSelf() const { return self_; }
+
+    private:
+
+      // Save the Ruby object related to the instance of this class
+      Object self_;
+
+  };
+}
+
+
+// =========   Data_Type.hpp   =========
+
+
+// ---------   Data_Type_defn.hpp   ---------
+#ifndef Rice__Data_Type_defn__hpp_
+#define Rice__Data_Type_defn__hpp_
+
+#include <set>
+
+namespace Rice
+{
+  //! A mechanism for binding ruby types to C++ types.
+  /*! This class binds run-time types (Ruby VALUEs) to compile-time types
+   *  (C++ types).  The binding can occur only once.
+   */
+  template<typename T>
+  class Data_Type : public Class
+  {
+    static_assert(std::is_same_v<detail::intrinsic_type<T>, T>);
+
+  public:
+    //! Default constructor which does not bind.
+    /*! No member functions must be called on this Data_Type except bind,
+     *  until the type is bound.
+     */
+    Data_Type();
+
+    //! Constructor which takes a Module.
+    /*! Binds the type to the given VALUE according to the rules given
+     *  above.
+     *  \param klass the module to which to bind.
+     */
+    Data_Type(Module const & v);
+
+    //! Destructor.
+    virtual ~Data_Type();
+ 
+    //! Return the Ruby class.
+    /*! \return the ruby class to which the type is bound.
+     */
+    static Class klass();
+
+    //! Return the Ruby type.
+    static rb_data_type_t* rb_type();
+
+    static inline bool isDefined = false;
+
+    //! Assignment operator which takes a Module
+    /*! \param klass must be the class to which this data type is already
+     *  bound.
+     *  \return *this
+     */
+    virtual Data_Type & operator=(Module const & klass);
+
+    //! Define a constructor for the class.
+    template<typename Constructor_T>
+    [[deprecated("Please call define_constructor with Arg parameters")]]
+    Data_Type<T> & define_constructor(Constructor_T constructor, Arguments * arguments);
+
+    /*! Creates a singleton method allocate and an instance method called
+     *  initialize which together create a new instance of the class.  The
+     *  allocate method allocates memory for the object reference and the
+     *  initialize method constructs the object.
+     *  \param constructor an object that has a static member function
+     *  construct() that constructs a new instance of T and sets the object's data
+     *  member to point to the new instance.  A helper class Constructor
+     *  is provided that does precisely this.
+     *  \param args a list of Arg instance used to define default parameters (optional)
+     *
+     *  For example:
+     *  \code
+     *    define_class<Foo>("Foo")
+     *      .define_constructor(Constructor<Foo>());
+     *  \endcode
+     */
+    template<typename Constructor_T, typename...Arg_Ts>
+    Data_Type<T> & define_constructor(Constructor_T constructor, Arg_Ts const& ...args);
+
+    //! Register a Director class for this class.
+    /*! For any class that uses Rice::Director to enable polymorphism
+     *  across the languages, you need to register that director proxy
+     *  class with this method. Not doing so will cause the resulting 
+     *  library to die at run time when it tries to convert the base
+     *  type into the Director proxy type.
+     *
+     *  This method takes no arguments, just needs the type of the
+     *  Director proxy class.
+     *
+     *  For example:
+     *  \code
+     *    class FooDirector : public Foo, public Rice::Director {
+     *      ...
+     *    };
+     *
+     *    define_class<Foo>("Foo")
+     *      .define_director<FooDirector>()
+     *      .define_constructor(Constructor<FooDirector, Rice::Object>());
+     *  \endcode
+     */
+    template<typename Director_T>
+    Data_Type<T>& define_director();
+
+    //! Determine if the type is bound.
+    /*! \return true if the object is bound, false otherwise.
+     */
+    static bool is_bound();
+    static void check_is_bound();
+
+    // This is only for testing - DO NOT USE!!!
+    static void unbind();
+
+    static bool is_descendant(VALUE value);
+  
+    //! Define an iterator.
+    /*! Essentially this is a conversion from a C++-style begin/end
+     *  iterator to a Ruby-style \#each iterator.
+     *  \param begin a member function pointer to a function that returns
+     *  an iterator to the beginning of the sequence.
+     *  \param end a member function pointer to a function that returns an
+     *  iterator to the end of the sequence.
+     *  \param name the name of the iterator.
+     *  \return *this
+     */
+
+    template<typename U = T, typename Iterator_Return_T>
+    Data_Type<T>& define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name = "each");
+
+    template <typename Attr_T>
+    Data_Type<T>& define_attr(std::string name, Attr_T&& attr, AttrAccess access = AttrAccess::ReadWrite);
+  
+    template <typename Attr_T>
+    Data_Type<T>& define_singleton_attr(std::string name, Attr_T&& attr, AttrAccess access = AttrAccess::ReadWrite);
 
   // Include these methods to call methods from Module but return
 // an instance of the current classes. This is an alternative to
@@ -5335,105 +5554,418 @@ auto& add_handler(Functor_T functor)
   return dynamic_cast<decltype(*this)>(Module::add_handler<Exception_T>(functor));
 }
 
-};
 
-//! Define a new class in the namespace given by module.
-/*! \param module the Module in which to define the class.
- *  \param name the name of the class.
- *  \param superclass the base class to use.
- *  \return the new class.
- */
-Class define_class_under(
-    Object module,
-    char const * name,
-    Object superclass = rb_cObject);
+  protected:
+    //! Bind a Data_Type to a VALUE.
+    /*! Throws an exception if the Data_Type is already bound to a
+     *  different class.  Any existing instances of the Data_Type will be
+     *  bound after this function returns.
+     *  \param klass the ruby type to which to bind.
+     *  \return *this
+     */
+    template <typename Base_T = void>
+    static Data_Type bind(Module const & klass);
 
-//! Define a new class in the default namespace.
-/*! \param name the name of the class.
- *  \param superclass the base class to use.
- *  \return the new class.
- */
-Class define_class(
-    char const * name,
-    Object superclass = rb_cObject);
+    template<typename T_, typename Base_T_>
+    friend Rice::Data_Type<T_> define_class_under(Object module, char const * name);
 
-//! Create a new anonymous class.
-/*! \return the new class.
- */
-Class anonymous_class();
+    template<typename T_, typename Base_T_>
+    friend Rice::Data_Type<T_> define_class(char const * name);
 
+  private:
+    template<typename T_>
+    friend class Data_Type;
+
+    static inline VALUE klass_ = Qnil;
+
+    // Typed Data support
+    static inline rb_data_type_t* rb_type_ = nullptr;
+
+    typedef std::set<Data_Type<T> *> Instances;
+
+    static Instances & unbound_instances()
+    {
+      static Instances unbound_instances;
+      return unbound_instances;
+    }
+  };
+
+  //! Define a new data class in the namespace given by module.
+  /*! By default the class will inherit from Ruby's rb_cObject. This
+   *  can be overriden via the Base_T template parameter. Note that
+   *  Base_T must already have been registered.
+   *  \param T the C++ type of the wrapped class.
+   *  \param module the the Module in which to define the class.
+   *  \return the new class.
+   */
+  template<typename T, typename Base_T = void>
+  Data_Type<T> define_class_under(Object module, char const* name);
+
+  //! Define a new data class in the default namespace.
+  /*! By default the class will inherit from Ruby's rb_cObject. This
+   *  can be overriden via the Base_T template parameter. Note that
+   *  Base_T must already have been registered.
+   *  \param T the C++ type of the wrapped class.
+   *  \param module the the Module in which to define the class.
+   *  \return the new class.
+   */
+  template<typename T, typename Base_T = void>
+  Data_Type<T> define_class(char const* name);
+
+  //! Define an implicit conversion rule between two types.
+  /*! Given two types, which can be custom types already
+   *  wrapped into Rice or fundamental C++ types, this
+   *  tells Rice that the two types can be used interchangably.
+   *  \param From_T The type to convert from
+   *  \param To_T The type to convert to
+   */
+  template<typename From_T, typename To_T>
+  void define_implicit_cast();
 } // namespace Rice
 
-template<>
-struct Rice::detail::From_Ruby<Rice::Class>
+
+#endif // Rice__Data_Type_defn__hpp_
+// ---------   Data_Type.ipp   ---------
+#ifndef Rice__Data_Type__ipp_
+#define Rice__Data_Type__ipp_
+
+
+#include <stdexcept>
+
+namespace Rice
 {
-  static Rice::Class convert(VALUE value)
+  template<typename T>
+  void ruby_mark_internal(detail::Wrapper* wrapper)
   {
-    return Rice::Class(value);
+    // Tell the wrapper to mark the objects its keeping alive
+    wrapper->ruby_mark();
+
+    // Get the underlying data and call custom mark function (if any)
+    T* data = static_cast<T*>(wrapper->get());
+    ruby_mark<T>(data);
   }
-};
 
-#endif // Rice__Class_defn__hpp_
-
-
-// ---------   Class.ipp   ---------
-#ifndef Rice__Class__ipp_
-#define Rice__Class__ipp_
-
-
-inline
-Rice::Class::
-Class(VALUE v)
-  : Module(v)
-{
-  if (::rb_type(v) != T_CLASS)
+  template<typename T>
+  void ruby_free_internal(detail::Wrapper* wrapper)
   {
-    throw Exception(
-      rb_eTypeError,
-      "Expected a Class but got a %s",
-      rb_class2name(CLASS_OF(v))); // TODO: might raise an exception
+    delete wrapper;
+  }
+
+  template<typename T>
+  size_t ruby_size_internal(const T* data)
+  {
+    return sizeof(T);
+  }
+
+  template<typename T>
+  template <typename Base_T>
+  inline Data_Type<T> Data_Type<T>::bind(Module const& klass)
+  {
+    if (klass.value() == klass_)
+    {
+      return Data_Type<T>();
+    }
+
+    if (is_bound())
+    {
+      std::string message = "Type " + detail::typeName(typeid(T)) + " is already bound to a different type";
+      throw std::runtime_error(message.c_str());
+    }
+
+    // TODO: Make sure base type is bound; throw an exception otherwise.
+    // We can't do this just yet, because we don't have a specialization
+    // for binding to void.
+    klass_ = klass;
+
+    // TODO: do we need to unregister when the program exits?  we have to
+    // be careful if we do, because the ruby interpreter might have
+    // already shut down.  The correct behavior is probably to register an
+    // exit proc with the interpreter, so the proc gets called before the
+    // GC shuts down.
+    rb_gc_register_address(&klass_);
+
+    rb_type_ = new rb_data_type_t();
+    rb_type_->wrap_struct_name = strdup(rb_class2name(klass));
+    rb_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
+    rb_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
+    rb_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
+    rb_type_->data = nullptr;
+    rb_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
+
+    if constexpr (!std::is_void_v<Base_T>)
+    {
+      rb_type_->parent = Data_Type<Base_T>::rb_type();
+    }
+
+    // Now register with the type registry
+    detail::TypeRegistry::add<T>(klass_, rb_type_);
+
+    for (typename Instances::iterator it = unbound_instances().begin(),
+      end = unbound_instances().end();
+      it != end;
+      unbound_instances().erase(it++))
+    {
+      (*it)->set_value(klass);
+    }
+
+    return Data_Type<T>();
+  }
+
+  template<typename T>
+  inline void Data_Type<T>::unbind()
+  {
+    if (klass_ != Qnil)
+    {
+      rb_gc_unregister_address(&klass_);
+      klass_ = Qnil;
+    }
+
+    // There could be objects floating around using the existing rb_type so 
+    // do not delete it. This is of course a memory leak.
+    rb_type_ = nullptr;
+  }
+
+  template<typename T>
+  inline Data_Type<T>::Data_Type() : Class(klass_ == Qnil ? rb_cObject : klass_)
+  {
+    if (!is_bound())
+    {
+      unbound_instances().insert(this);
+    }
+  }
+
+  template<typename T>
+  inline Data_Type<T>::Data_Type(Module const& klass) : Class(klass)
+  {
+    this->bind(klass);
+  }
+
+  template<typename T>
+  inline Data_Type<T>::~Data_Type()
+  {
+    unbound_instances().erase(this);
+  }
+
+  template<typename T>
+  inline rb_data_type_t* Data_Type<T>::rb_type()
+  {
+    check_is_bound();
+    return rb_type_;
+  }
+
+  template<typename T>
+  inline Class Data_Type<T>::klass()
+  {
+    check_is_bound();
+    return klass_;
+  }
+
+  template<typename T>
+  inline Data_Type<T>& Data_Type<T>::operator=(Module const& klass)
+  {
+    this->bind(klass);
+    return *this;
+  }
+
+  template<typename T>
+  template<typename Constructor_T>
+  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T, Arguments* arguments)
+  {
+    check_is_bound();
+
+    // Normal constructor pattern with new/initialize
+    rb_define_alloc_func(static_cast<VALUE>(*this), detail::default_allocation_func<T>);
+    this->define_method("initialize", &Constructor_T::construct, arguments);
+
+    return *this;
+  }
+
+  template<typename T>
+  template<typename Constructor_T, typename...Arg_Ts>
+  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T constructor, Arg_Ts const& ...args)
+  {
+    check_is_bound();
+
+    // Define a Ruby allocator which creates the Ruby object
+    rb_define_alloc_func(static_cast<VALUE>(*this), detail::default_allocation_func<T>);
+
+    // Define an initialize function that will create the C++ object
+    this->define_method("initialize", &Constructor_T::construct, args...);
+
+    return *this;
+  }
+
+  template<typename T>
+  template<typename Director_T>
+  inline Data_Type<T>& Data_Type<T>::define_director()
+  {
+    Data_Type<Director_T>::bind(*this);
+
+    // TODO - hack to fake Ruby into thinking that a Director is
+    // the same as the base data type
+    Data_Type<Director_T>::rb_type_ = Data_Type<T>::rb_type_;
+    return *this;
+  }
+
+  template<typename T>
+  inline bool Data_Type<T>::is_bound()
+  {
+    return klass_ != Qnil;
+  }
+
+  template<typename T>
+  inline bool Data_Type<T>::is_descendant(VALUE value)
+  {
+    check_is_bound();
+    return rb_obj_is_kind_of(value, klass_) == Qtrue;
+  }
+
+  template<typename T>
+  inline void Data_Type<T>::check_is_bound()
+  {
+    if (!is_bound())
+    {
+      std::string message = "Type " + detail::typeName(typeid(T)) + " is not bound";
+      throw std::runtime_error(message.c_str());
+    }
+  }
+
+  template<typename T, typename Base_T>
+  inline Data_Type<T> define_class_under(Object module, char const* name)
+  {
+    Data_Type<T>::isDefined = true;
+
+    Class superKlass;
+
+    if constexpr (std::is_void_v<Base_T>)
+    {
+      superKlass = rb_cObject;
+    }
+    else
+    {
+      superKlass = Data_Type<Base_T>::klass();
+    }
+    
+    Class c = define_class_under(module, name, superKlass);
+    c.undef_creation_funcs();
+    return Data_Type<T>::template bind<Base_T>(c);
+  }
+
+  template<typename T, typename Base_T>
+  inline Data_Type<T> define_class(char const* name)
+  {
+    Data_Type<T>::isDefined = true;
+
+    Class superKlass;
+    if constexpr (std::is_void_v<Base_T>)
+    {
+      superKlass = rb_cObject;
+    }
+    else
+    {
+      superKlass = Data_Type<Base_T>::klass();
+    }
+
+    Class c = define_class(name, superKlass);
+    c.undef_creation_funcs();
+    return Data_Type<T>::template bind<Base_T>(c);
+  }
+
+  template<typename From_T, typename To_T>
+  void define_implicit_cast()
+  {
+    Class from_class = Data_Type<From_T>::klass().value();
+    Class to_class = Data_Type<To_T>::klass().value();
+    detail::CasterRegistry::add<From_T, To_T>(from_class, to_class);
+  }
+
+  template<typename T>
+  template<typename U, typename Iterator_T>
+  inline Data_Type<T>& Data_Type<T>::define_iterator(Iterator_T(U::* begin)(), Iterator_T(U::* end)(), Identifier name)
+  {
+    using Iter_T = detail::Iterator<U, Iterator_T>;
+    Iter_T* iterator = new Iter_T(begin, end);
+    detail::MethodData::define_method(Data_Type<T>::klass(), name,
+      (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
+
+    return *this;
+  }
+
+  template <typename T>
+  template <typename Attr_T>
+  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T&& attr, AttrAccess access)
+  {
+    auto* native = detail::Make_Native_Attribute(attr, access);
+    using Native_T = typename std::remove_pointer_t<decltype(native)>;
+
+    detail::verifyType<typename Native_T::Native_Return_T>();
+
+    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
+    {
+      detail::MethodData::define_method( klass_, Identifier(name).id(),
+        RUBY_METHOD_FUNC(&Native_T::get), 0, native);
+    }
+
+    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
+    {
+      if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
+      {
+        throw std::runtime_error(name + " is readonly");
+      }
+
+      detail::MethodData::define_method( klass_, Identifier(name + "=").id(),
+        RUBY_METHOD_FUNC(&Native_T::set), 1, native);
+    }
+
+    return *this;
+  }
+
+  template <typename T>
+  template <typename Attr_T>
+  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_T&& attr, AttrAccess access)
+  {
+    auto* native = detail::Make_Native_Attribute(attr, access);
+    using Native_T = typename std::remove_pointer_t<decltype(native)>;
+
+    detail::verifyType<typename Native_T::Native_Return_T>();
+
+    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
+    {
+      detail::MethodData::define_method( rb_singleton_class(*this), Identifier(name).id(),
+        RUBY_METHOD_FUNC(&Native_T::get), 0, native);
+    }
+
+    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
+    {
+      if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
+      {
+        throw std::runtime_error(name  + " is readonly");
+      }
+
+      detail::MethodData::define_method( rb_singleton_class(*this), Identifier(name + "=").id(),
+        RUBY_METHOD_FUNC(&Native_T::set), 1, native);
+    }
+
+    return *this;
+  }
+
+  namespace detail
+  {
+    template<typename T>
+    struct Type<T, std::enable_if_t<!is_kind_of_object<T> && !is_primitive_v<T> && !std::is_enum_v<T>>>
+    {
+      constexpr static void verify()
+      {
+        if (!Data_Type<intrinsic_type<T>>::isDefined)
+        {
+          std::string message = "Type not defined with Rice: " + demangle(typeid(T).name());
+          throw std::invalid_argument(message);
+        }
+      }
+    };
   }
 }
-
-inline
-Rice::Class& Rice::Class::
-undef_creation_funcs()
-{
-  rb_undef_alloc_func(value());
-  rb_undef_method(value(), "initialize");
-  return *this;
-}
-
-inline
-Rice::Class Rice::
-define_class_under(
-  Rice::Object module,
-  char const* name,
-  Rice::Object superclass)
-{
-  VALUE v = rb_define_class_under(module, name, superclass);
-  return Class(v);
-}
-
-inline
-Rice::Class Rice::
-define_class(
-  char const* name,
-  Rice::Object superclass)
-{
-  VALUE v = rb_define_class(name, superclass);
-  return Class(v);
-}
-
-inline
-Rice::Class Rice::
-anonymous_class()
-{
-  return Class(rb_class_new(rb_cObject));
-}
-
-#endif // Rice__Class__ipp_
-
+#endif
 
 
 
@@ -5479,714 +6011,6 @@ namespace Rice
   };
 }
 
-
-
-// =========   Director.hpp   =========
-
-
-namespace Rice {
-
-  /**
-   * A Director works exactly as a SWIG %director works (thus the name).
-   * You use this class to help build proxy classes so that polymorphism
-   * works from C++ into Ruby. See the main README for how this class works.
-   */
-  class Director
-  {
-    public:
-      //! Construct new Director. Needs the Ruby object so that the
-      //  proxy class can call methods on that object.
-      Director(Object self) : self_(self)
-      {
-      }
-
-      virtual ~Director() = default;
-
-      //! Raise a ruby exception when a call comes through for a pure virtual method
-      /*! If a Ruby script calls 'super' on a method that's otherwise a pure virtual
-       *  method, use this method to throw an exception in this case.
-       */
-      void raisePureVirtual() const
-      {
-        rb_raise(rb_eNotImpError, "Cannot call super() into a pure-virtual C++ method");
-      }
-
-      //! Get the Ruby object linked to this C++ instance
-      Object getSelf() const { return self_; }
-
-    private:
-
-      // Save the Ruby object related to the instance of this class
-      Object self_;
-
-  };
-}
-
-
-// =========   Data_Type.hpp   =========
-
-
-// ---------   Data_Type_defn.hpp   ---------
-#ifndef Rice__Data_Type_defn__hpp_
-#define Rice__Data_Type_defn__hpp_
-
-
-#include <memory>
-#include <map>
-#include <set>
-
-/*!
- *  \example map/map.cpp
- */
-
-namespace Rice
-{
- 
-//! Define a new data class in the namespace given by module.
-/*! The class will have a base class of Object.
- *  \param T the C++ type of the wrapped class.
- *  \param module the the Module in which to define the class.
- *  \return the new class.
- */
-template<typename T>
-Rice::Data_Type<T> define_class_under(
-    Object module,
-    char const * name);
-
-//! Define a new data class in the namespace given by module.
-/*! The class with have a base class determined by Base_T (specifically,
- *  Data_Type<Base_T>::klass).  Therefore, the type Base_T must already
- *  have been registered using define_class<> or define_class_under<>.
- *  \param T the C++ type of the wrapped class.
- *  \param module the the Module in which to define the class.
- *  \return the new class.
- */
-template<typename T, typename Base_T>
-Rice::Data_Type<T> define_class_under(
-    Object module,
-    char const * name);
-
-//! Define a new data class in the default namespace.
-/*! The class will have a base class of Object.
- *  \param T the C++ type of the wrapped class.
- *  \return the new class.
- */
-template<typename T>
-Rice::Data_Type<T> define_class(
-    char const * name);
-
-//! Define a new data class in the default namespace.
-/*! The class with have a base class determined by Base_T (specifically,
- *  Data_Type<Base_T>::klass).  Therefore, the type Base_T must already
- *  have been registered using define_class<> or define_class_under<>.
- *  \param T the C++ type of the wrapped class.
- *  \param module the the Module in which to define the class.
- *  \return the new class.
- */
-template<typename T, typename Base_T>
-Rice::Data_Type<T> define_class(
-    char const * name);
-
-//! Define an implicit conversion rule between two types.
-/*! Given two types, which can be custom types already
- *  wrapped into Rice or fundamental C++ types, this
- *  tells Rice that the two types can be used interchangably.
- *  \param From_T The type to convert from
- *  \param To_T The type to convert to
- */
-template<typename From_T, typename To_T>
-void define_implicit_cast();
-
-//! A mechanism for binding ruby types to C++ types.
-/*! This class binds run-time types (Ruby VALUEs) to compile-time types
- *  (C++ types).  The binding can occur only once.
- */
-template<typename T>
-class Data_Type
-  : public Class
-{
-  static_assert(std::is_same_v<detail::intrinsic_type<T>, T>);
-
-public:
-  //! Default constructor which does not bind.
-  /*! No member functions must be called on this Data_Type except bind,
-   *  until the type is bound.
-   */
-  Data_Type();
-
-  //! Constructor which takes a Module.
-  /*! Binds the type to the given VALUE according to the rules given
-   *  above.
-   *  \param klass the module to which to bind.
-   */
-  Data_Type(Module const & v);
-
-  //! Destructor.
-  virtual ~Data_Type();
- 
-  //! Return the Ruby class.
-  /*! \return the ruby class to which the type is bound.
-   */
-  static Class klass();
-
-  //! Return the Ruby type.
-  static rb_data_type_t* rb_type();
-
-  //! Assignment operator which takes a Module
-  /*! \param klass must be the class to which this data type is already
-   *  bound.
-   *  \return *this
-   */
-  virtual Data_Type & operator=(Module const & klass);
-
-  //! Define a constructor for the class.
-  template<typename Constructor_T>
-  [[deprecated("Please call define_constructor with Arg parameters")]]
-  Data_Type<T> & define_constructor(
-      Constructor_T constructor,
-      Arguments * arguments);
-
-  /*! Creates a singleton method allocate and an instance method called
-   *  initialize which together create a new instance of the class.  The
-   *  allocate method allocates memory for the object reference and the
-   *  initialize method constructs the object.
-   *  \param constructor an object that has a static member function
-   *  construct() that constructs a new instance of T and sets the object's data
-   *  member to point to the new instance.  A helper class Constructor
-   *  is provided that does precisely this.
-   *  \param args a list of Arg instance used to define default parameters (optional)
-   *
-   *  For example:
-   *  \code
-   *    define_class<Foo>("Foo")
-   *      .define_constructor(Constructor<Foo>());
-   *  \endcode
-   */
-  template<typename Constructor_T, typename...Arg_Ts>
-  Data_Type<T> & define_constructor(
-      Constructor_T constructor,
-      Arg_Ts const& ...args);
-
-  //! Register a Director class for this class.
-  /*! For any class that uses Rice::Director to enable polymorphism
-   *  across the languages, you need to register that director proxy
-   *  class with this method. Not doing so will cause the resulting 
-   *  library to die at run time when it tries to convert the base
-   *  type into the Director proxy type.
-   *
-   *  This method takes no arguments, just needs the type of the
-   *  Director proxy class.
-   *
-   *  For example:
-   *  \code
-   *    class FooDirector : public Foo, public Rice::Director {
-   *      ...
-   *    };
-   *
-   *    define_class<Foo>("Foo")
-   *      .define_director<FooDirector>()
-   *      .define_constructor(Constructor<FooDirector, Rice::Object>());
-   *  \endcode
-   */
-  template<typename Director_T>
-  Data_Type<T>& define_director();
-
-  //! Determine if the type is bound.
-  /*! \return true if the object is bound, false otherwise.
-   */
-  static bool is_bound();
-  static void check_is_bound();
-
-  // This is only for testing - DO NOT USE!!!
-  static void unbind();
-
-  static bool is_descendant(VALUE value);
-  
-  //! Define an iterator.
-  /*! Essentially this is a conversion from a C++-style begin/end
-   *  iterator to a Ruby-style \#each iterator.
-   *  \param begin a member function pointer to a function that returns
-   *  an iterator to the beginning of the sequence.
-   *  \param end a member function pointer to a function that returns an
-   *  iterator to the end of the sequence.
-   *  \param name the name of the iterator.
-   *  \return *this
-   */
-
-  template<typename U = T, typename Iterator_Return_T>
-  Data_Type<T>& define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name = "each");
-
-  template <typename Attr_T>
-  Data_Type<T>& define_attr(std::string name, Attr_T&& attr, AttrAccess access = AttrAccess::ReadWrite);
-  
-  template <typename Attr_T>
-  Data_Type<T>& define_singleton_attr(std::string name, Attr_T&& attr, AttrAccess access = AttrAccess::ReadWrite);
-
-// Include these methods to call methods from Module but return
-// an instance of the current classes. This is an alternative to
-// using CRTP.
-
-auto& include_module(Module const& inc)
-{
-  detail::protect(rb_include_module, *this, inc);
-  return *this;
-}
-
-auto& const_set(Identifier name, Object value)
-{
-  return dynamic_cast<decltype(*this)>(Module::const_set(name, value));
-}
-
-template<typename Func_T>
-[[deprecated("Please call define_method with Arg parameters")]]
-auto& define_method(Identifier name, Func_T&& func, Arguments* arguments)
-{
-  return dynamic_cast<decltype(*this)>(Module::define_method(name, std::forward<Func_T>(func), arguments));
-}
-
-template<typename Func_T, typename...Arg_Ts>
-auto& define_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
-{
-  return dynamic_cast<decltype(*this)>(Module::define_method(name, std::forward<Func_T>(func), args...));
-}
-
-template<typename Func_T, typename...Arg_Ts>
-auto& define_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
-{
-  return dynamic_cast<decltype(*this)>(Module::define_function(name, std::forward<Func_T>(func), args...));
-}
-
-template<typename Func_T>
-[[deprecated("Please call define_singleton_method with Arg parameters")]]
-auto& define_singleton_method(Identifier name, Func_T&& func, Arguments* arguments)
-{
-  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, std::forward<Func_T>(func), arguments));
-}
-
-template<typename Func_T, typename...Arg_Ts>
-auto& define_singleton_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
-{
-  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, std::forward<Func_T>(func), args...));
-}
-
-template<typename Func_T, typename...Arg_Ts>
-auto& define_singleton_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
-{
-  return dynamic_cast<decltype(*this)>(Module::define_singleton_function(name, std::forward<Func_T>(func), args...));
-}
-
-template<typename Exception_T, typename Functor_T>
-auto& add_handler(Functor_T functor)
-{
-  return dynamic_cast<decltype(*this)>(Module::add_handler<Exception_T>(functor));
-}
-
-
-protected:
-  //! Bind a Data_Type to a VALUE.
-  /*! Throws an exception if the Data_Type is already bound to a
-   *  different class.  Any existing instances of the Data_Type will be
-   *  bound after this function returns.
-   *  \param klass the ruby type to which to bind.
-   *  \return *this
-   */
-  template <typename Base_T = std::nullptr_t>
-  static Data_Type bind(Module const & klass);
-
-  template<typename T_>
-  friend Rice::Data_Type<T_> define_class_under(
-      Object module,
-      char const * name);
-
-  template<typename T_, typename Base_T_>
-  friend Rice::Data_Type<T_> define_class_under(
-      Object module,
-      char const * name);
-
-  template<typename T_>
-  friend Rice::Data_Type<T_> Rice::define_class(
-      char const * name);
-
-  template<typename T_, typename Base_T_>
-  friend Rice::Data_Type<T_> define_class(
-      char const * name);
-
-private:
-  template<typename T_>
-  friend class Data_Type;
-
-  static inline VALUE klass_ = Qnil;
-
-  // Typed Data support
-  static inline rb_data_type_t* rb_type_ = nullptr;
-
-  typedef std::set<Data_Type<T> *> Instances;
-
-  static Instances & unbound_instances()
-  {
-    static Instances unbound_instances;
-    return unbound_instances;
-  }
-};
-
-} // namespace Rice
-
-
-#endif // Rice__Data_Type_defn__hpp_
-// ---------   Data_Type.ipp   ---------
-#ifndef Rice__Data_Type__ipp_
-#define Rice__Data_Type__ipp_
-
-
-#include <stdexcept>
-#include <typeinfo>
-
-namespace Rice
-{
-
-template<typename T>
-void ruby_mark_internal(detail::Wrapper* wrapper)
-{
-  // Tell the wrapper to mark the objects its keeping alive
-  wrapper->ruby_mark();
-
-  // Get the underlying data and call custom mark function (if any)
-  T* data = static_cast<T*>(wrapper->get());
-  ruby_mark<T>(data);
-}
-
-template<typename T>
-void ruby_free_internal(detail::Wrapper* wrapper)
-{
-  delete wrapper;
-}
-
-template<typename T>
-size_t ruby_size_internal(const T* data)
-{
-  return sizeof(T);
-}
-
-template<typename T>
-template <typename Base_T>
-inline Data_Type<T> Data_Type<T>::
-bind(Module const& klass)
-{
-  if (klass.value() == klass_)
-  {
-    return Data_Type<T>();
-  }
-
-  if (is_bound())
-  {
-    std::string message = "Type " + detail::typeName(typeid(T)) + " is already bound to a different type";
-    throw std::runtime_error(message.c_str());
-  }
-
-  // TODO: Make sure base type is bound; throw an exception otherwise.
-  // We can't do this just yet, because we don't have a specialization
-  // for binding to void.
-  klass_ = klass;
-
-  // TODO: do we need to unregister when the program exits?  we have to
-  // be careful if we do, because the ruby interpreter might have
-  // already shut down.  The correct behavior is probably to register an
-  // exit proc with the interpreter, so the proc gets called before the
-  // GC shuts down.
-  rb_gc_register_address(&klass_);
-
-  rb_type_ = new rb_data_type_t();
-  rb_type_->wrap_struct_name = strdup(rb_class2name(klass));
-  rb_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
-  rb_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
-  rb_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
-  rb_type_->data = nullptr;
-  rb_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
-
-  if constexpr (!std::is_same_v<Base_T, std::nullptr_t>)
-  {
-    rb_type_->parent = Data_Type<Base_T>::rb_type();
-  }
-
-  // Now register with the type registry
-  detail::TypeRegistry::add<T>(klass_, rb_type_);
-
-  for (typename Instances::iterator it = unbound_instances().begin(),
-    end = unbound_instances().end();
-    it != end;
-    unbound_instances().erase(it++))
-  {
-    (*it)->set_value(klass);
-  }
-
-  return Data_Type<T>();
-}
-
-template<typename T>
-inline void Data_Type<T>::
-unbind()
-{
-  if (klass_ != Qnil)
-  {
-    rb_gc_unregister_address(&klass_);
-    klass_ = Qnil;
-  }
-
-  // There could be objects floating around using the existing rb_type so 
-  // do not delete it. This is of course a memory leak.
-  rb_type_ = nullptr;
-}
-
-template<typename T>
-inline Data_Type<T>::
-Data_Type()
-  : Class(
-    klass_ == Qnil ? rb_cObject : klass_)
-{
-  if (!is_bound())
-  {
-    unbound_instances().insert(this);
-  }
-}
-
-template<typename T>
-inline Data_Type<T>::
-  Data_Type(Module const& klass)
-  : Class(klass)
-{
-  this->bind(klass);
-}
-
-template<typename T>
-inline Data_Type<T>::
-~Data_Type()
-{
-  unbound_instances().erase(this);
-}
-
-template<typename T>
-rb_data_type_t* Data_Type<T>::rb_type()
-{
-  check_is_bound();
-  return rb_type_;
-}
-
-template<typename T>
-Class Data_Type<T>::klass()
-{
-  check_is_bound();
-  return klass_;
-}
-
-template<typename T>
-Data_Type<T>& Data_Type<T>::
-  operator=(Module const& klass)
-{
-  this->bind(klass);
-  return *this;
-}
-
-template<typename T>
-template<typename Constructor_T>
-inline Data_Type<T>& Data_Type<T>::
-define_constructor(
-    Constructor_T /* constructor */,
-    Arguments* arguments)
-{
-  check_is_bound();
-
-  // Normal constructor pattern with new/initialize
-  rb_define_alloc_func(
-    static_cast<VALUE>(*this),
-    detail::default_allocation_func<T>);
-  this->define_method(
-    "initialize",
-    &Constructor_T::construct,
-    arguments
-  );
-
-  return *this;
-}
-
-template<typename T>
-template<typename Constructor_T, typename...Arg_Ts>
-inline Data_Type<T>& Data_Type<T>::
-define_constructor(
-    Constructor_T constructor,
-    Arg_Ts const& ...args)
-{
-  check_is_bound();
-
-  // Define a Ruby allocator which creates the Ruby object
-  rb_define_alloc_func(static_cast<VALUE>(*this), detail::default_allocation_func<T>);
-
-  // Define an initialize function that will create the C++ object
-  this->define_method("initialize", &Constructor_T::construct, args...);
-
-  return *this;
-}
-
-template<typename T>
-template<typename Director_T>
-inline Data_Type<T>& Data_Type<T>::
-define_director()
-{
-  Data_Type<Director_T>::bind(*this);
-
-  // TODO - hack to fake Ruby into thinking that a Director is
-  // the same as the base data type
-  Data_Type<Director_T>::rb_type_ = Data_Type<T>::rb_type_;
-  return *this;
-}
-
-template<typename T>
-inline bool Data_Type<T>::
-is_bound()
-{
-  return klass_ != Qnil;
-}
-
-template<typename T>
-bool Data_Type<T>::
-is_descendant(VALUE value)
-{
-  check_is_bound();
-  return rb_obj_is_kind_of(value, klass_) == Qtrue;
-}
-
-template<typename T>
-void Data_Type<T>::
-check_is_bound()
-{
-  if (!is_bound())
-  {
-    std::string message = "Type " + detail::typeName(typeid(T)) + " is not bound";
-    throw std::runtime_error(message.c_str());
-  }
-}
-
-template<typename T>
-inline Data_Type<T> 
-define_class_under(
-    Object module,
-    char const* name)
-{
-  Class c(define_class_under(module, name, rb_cObject));
-  c.undef_creation_funcs();
-  return Data_Type<T>::bind(c);
-}
-
-template<typename T, typename Base_T>
-inline Data_Type<T> 
-  define_class_under(
-    Object module,
-    char const* name)
-{
-  Data_Type<Base_T> base_dt;
-  Class c(define_class_under(module, name, base_dt));
-  c.undef_creation_funcs();
-  return Data_Type<T>::template bind<Base_T>(c);
-}
-
-template<typename T>
-inline Data_Type<T> 
-define_class(
-    char const* name)
-{
-  Class c(define_class(name, rb_cObject));
-  c.undef_creation_funcs();
-  return Data_Type<T>::bind(c);
-}
-
-template<typename T, typename Base_T>
-inline Data_Type<T> 
-define_class(
-    char const* name)
-{
-  Data_Type<Base_T> base;
-  Class c(define_class(name, base));
-  c.undef_creation_funcs();
-  return Data_Type<T>::template bind<Base_T>(c);
-}
-
-template<typename From_T, typename To_T>
-void define_implicit_cast()
-{
-  Class from_class = Data_Type<From_T>::klass().value();
-  Class to_class = Data_Type<To_T>::klass().value();
-  detail::CasterRegistry::add<From_T, To_T>(from_class, to_class);
-}
-
-template<typename T>
-template<typename U, typename Iterator_T>
-inline Data_Type<T>& Data_Type<T>::
-  define_iterator(Iterator_T(U::* begin)(), Iterator_T(U::* end)(), Identifier name)
-{
-  using Iter_T = detail::Iterator<U, Iterator_T>;
-  Iter_T* iterator = new Iter_T(begin, end);
-  detail::MethodData::define_method(Data_Type<T>::klass(), name,
-    (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
-
-  return *this;
-}
-
-template <typename T>
-template <typename Attr_T>
-inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T&& attr, AttrAccess access)
-{
-  auto* native = detail::Make_Native_Attribute(attr, access);
-  using Native_T = typename std::remove_pointer_t<decltype(native)>;
-
-  if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
-  {
-    detail::MethodData::define_method( klass_, Identifier(name).id(),
-      RUBY_METHOD_FUNC(&Native_T::get), 0, native);
-  }
-
-  if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
-  {
-    if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
-    {
-      throw std::runtime_error(name + " is readonly");
-    }
-
-    detail::MethodData::define_method( klass_, Identifier(name + "=").id(),
-      RUBY_METHOD_FUNC(&Native_T::set), 1, native);
-  }
-
-  return *this;
-}
-
-template <typename T>
-template <typename Attr_T>
-inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_T&& attr, AttrAccess access)
-{
-  auto* native = detail::Make_Native_Attribute(attr, access);
-  using Native_T = typename std::remove_pointer_t<decltype(native)>;
-
-  if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
-  {
-    detail::MethodData::define_method( rb_singleton_class(*this), Identifier(name).id(),
-      RUBY_METHOD_FUNC(&Native_T::get), 0, native);
-  }
-
-  if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
-  {
-    if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
-    {
-      throw std::runtime_error(name  + " is readonly");
-    }
-
-    detail::MethodData::define_method( rb_singleton_class(*this), Identifier(name + "=").id(),
-      RUBY_METHOD_FUNC(&Native_T::set), 1, native);
-  }
-
-  return *this;
-}
-
-} //namespace
-
-#endif
 
 
 // =========   Data_Object.hpp   =========
@@ -6661,6 +6485,8 @@ public:
    *  \return Object - The Ruby wrapper */
   static Object from_enum(Class klass, Enum_T enumValue);
 
+  static inline bool isDefined = false;
+
 private:
   static Object each(Object self);
   static Object to_s(Object self);
@@ -6877,6 +6703,7 @@ define_enum(
     char const * name,
     Module module)
 {
+  Rice::Enum<T>::isDefined = true;
   return Enum<T>(name, module);
 }
 
@@ -6909,6 +6736,19 @@ struct Rice::detail::From_Ruby<T*, std::enable_if_t<std::is_enum_v<T>>>
     using Storage_T = Enum_Storage<T>;
     Storage_T* storage = detail::unwrap<Storage_T>(value, Data_Type<Storage_T>::rb_type());
     return *storage->enumValue;
+  }
+};
+
+template<typename T>
+struct Rice::detail::Type<T, std::enable_if_t<std::is_enum_v<T>>>
+{
+  constexpr static void verify()
+  {
+    if (!Enum<T>::isDefined)
+    {
+      std::string message = "Enum type is not defined with Rice: " + demangle(typeid(T).name());
+      throw std::invalid_argument(message);
+    }
   }
 };
 
@@ -7142,150 +6982,99 @@ operator[]<char const *>(char const * name)
 
 // =========   forward_declares.ipp   =========
 
-// These methods cannot be defined where they are declared due to circular dependencies
-inline Rice::Class Rice::Object::
-class_of() const
+namespace Rice
 {
-  return rb_class_of(value_);
-}
-
-inline Rice::String Rice::Object::
-to_s() const
-{
-  return call("to_s");
-}
-
-inline Rice::String Rice::Object::
-inspect() const
-{
-  return call("inspect");
-}
-
-inline Rice::Object Rice::Object::
-instance_eval(String const& s)
-{
-  VALUE argv[] = { s.value() };
-  return detail::protect(rb_obj_instance_eval, 1, &argv[0], *this);
-}
-
-inline Rice::Object Rice::Object::
-vcall(
-  Identifier id,
-  Array args)
-{
-  std::vector<VALUE> a(args.size());
-
-  Array::const_iterator it = args.begin();
-  Array::const_iterator end = args.end();
-
-  for (int i = 0; it != end; i++, ++it)
+  // These methods cannot be defined where they are declared due to circular dependencies
+  inline Class Object::class_of() const
   {
-    a[i] = it->value();
+    return rb_class_of(value_);
   }
 
-  return detail::protect(rb_funcall3, *this, id, (int)args.size(), a.data());
-}
-
-inline std::ostream& Rice::
-operator<<(std::ostream& out, Rice::Object const& obj)
-{
-  String s(obj.to_s());
-  out << s.c_str();
-  return out;
-}
-
-inline Rice::Identifier::
-Identifier(Symbol const& symbol)
-  : id_(SYM2ID(symbol.value()))
-{
-}
-
-inline
-Rice::String Rice::Module::
-name() const
-{
-  Object name = rb_mod_name(*this);
-  if (name.is_nil())
+  inline String Object::to_s() const
   {
-    // 1.9
-    return String("");
+    return call("to_s");
   }
-  else
+
+  inline String Object::inspect() const
   {
-    return name;
+    return call("inspect");
+  }
+
+  inline Object Object::instance_eval(String const& s)
+  {
+    VALUE argv[] = { s.value() };
+    return detail::protect(rb_obj_instance_eval, 1, &argv[0], *this);
+  }
+
+  inline Object Object::vcall(Identifier id, Array args)
+  {
+    std::vector<VALUE> a(args.size());
+
+    Array::const_iterator it = args.begin();
+    Array::const_iterator end = args.end();
+
+    for (int i = 0; it != end; i++, ++it)
+    {
+      a[i] = it->value();
+    }
+
+    return detail::protect(rb_funcall3, *this, id, (int)args.size(), a.data());
+  }
+
+  inline std::ostream& operator<<(std::ostream& out, Object const& obj)
+  {
+    String s(obj.to_s());
+    out << s.c_str();
+    return out;
+  }
+
+  inline Identifier::Identifier(Symbol const& symbol)
+    : id_(SYM2ID(symbol.value()))
+  {
+  }
+
+  inline String Module::name() const
+  {
+    return rb_mod_name(*this);
+  }
+
+  inline Array Module::ancestors() const
+  {
+    return detail::protect(rb_mod_ancestors, *this);
+  }
+
+  inline Class Module::singleton_class() const
+  {
+    return CLASS_OF(value());
+  }
+
+  template<typename Function_T>
+  inline void Module::wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
+    std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments)
+  {
+    auto* native = detail::Make_Native_Function_With_Self(std::forward<Function_T>(function), handler, arguments);
+    using Native_T = typename std::remove_pointer_t<decltype(native)>;
+
+    detail::verifyType<typename Native_T::Native_Return_T>();
+    detail::verifyTypes<typename Native_T::Native_Arg_Ts>();
+
+    detail::protect(detail::MethodData::define_method, klass, name.id(),
+      RUBY_METHOD_FUNC(&Native_T::call), -1, native);
+  }
+
+  template<typename Function_T>
+  inline void Module::wrap_native_function(VALUE klass, Identifier name, Function_T&& function,
+    std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments)
+  {
+    auto* native = detail::Make_Native_Function(std::forward<Function_T>(function), handler, arguments);
+    using Native_T = typename std::remove_pointer_t<decltype(native)>;
+
+    detail::verifyType<typename Native_T::Native_Return_T>();
+    detail::verifyTypes<typename Native_T::Native_Arg_Ts>();
+
+    detail::protect(detail::MethodData::define_method, klass, name.id(),
+      RUBY_METHOD_FUNC(&Native_T::call), -1, native);
   }
 }
-
-inline
-Rice::Array
-Rice::Module::
-ancestors() const
-{
-  return detail::protect(rb_mod_ancestors, *this);
-}
-
-inline Rice::Class
-Rice::Module::
-singleton_class() const
-{
-  return CLASS_OF(value());
-}
-
-inline
-Rice::Class
-Rice::Module::
-define_class(
-  char const* name,
-  Object superclass)
-{
-  return Rice::define_class_under(*this, name, superclass);
-}
-
-template<typename T>
-inline
-Rice::Data_Type<T>
-Rice::Module::
-define_class_with_object_as_base(
-  char const* name)
-{
-  return Rice::define_class_under<T>(*this, name);
-}
-
-template<typename T, typename T_Base_T>
-inline
-Rice::Data_Type<T>
-Rice::Module::
-define_class(
-  char const* name)
-{
-  return Rice::define_class_under<T, T_Base_T>(
-    *this,
-    name);
-}
-
-template<typename Function_T>
-inline void Rice::Module::wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
-  std::shared_ptr<detail::Exception_Handler> handler,
-  Arguments* arguments)
-{
-  auto* native = detail::Make_Native_Function_With_Self(std::forward<Function_T>(function), handler, arguments);
-  using Native_T = typename std::remove_pointer_t<decltype(native)>;
-
-  Rice::detail::protect(detail::MethodData::define_method, klass, name.id(),
-    RUBY_METHOD_FUNC(&Native_T::call), -1, native);
-}
-
-template<typename Function_T>
-inline void Rice::Module::wrap_native_function(VALUE klass, Identifier name, Function_T&& function,
-  std::shared_ptr<detail::Exception_Handler> handler,
-  Arguments* arguments)
-{
-  auto* native = detail::Make_Native_Function(std::forward<Function_T>(function), handler, arguments);
-  using Native_T = typename std::remove_pointer_t<decltype(native)>;
-
-  Rice::detail::protect(detail::MethodData::define_method, klass, name.id(),
-    RUBY_METHOD_FUNC(&Native_T::call), -1, native);
-}
-
 
 #endif // Rice__hpp_
