@@ -74,8 +74,8 @@ namespace Rice
     auto* native = detail::Make_Native_Function_With_Self(std::forward<Function_T>(function), handler, arguments);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
-    detail::verifyType<Native_T::Native_Return_T>();
-    detail::verifyTypes<Native_T::Native_Arg_Ts>();
+    detail::verifyType<typename Native_T::Native_Return_T>();
+    detail::verifyTypes<typename Native_T::Native_Arg_Ts>();
 
     detail::protect(detail::MethodData::define_method, klass, name.id(),
       RUBY_METHOD_FUNC(&Native_T::call), -1, native);
@@ -88,8 +88,8 @@ namespace Rice
     auto* native = detail::Make_Native_Function(std::forward<Function_T>(function), handler, arguments);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
-    detail::verifyType<Native_T::Native_Return_T>();
-    detail::verifyTypes<Native_T::Native_Arg_Ts>();
+    detail::verifyType<typename Native_T::Native_Return_T>();
+    detail::verifyTypes<typename Native_T::Native_Arg_Ts>();
 
     detail::protect(detail::MethodData::define_method, klass, name.id(),
       RUBY_METHOD_FUNC(&Native_T::call), -1, native);

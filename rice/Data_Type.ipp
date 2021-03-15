@@ -279,7 +279,7 @@ namespace Rice
     auto* native = detail::Make_Native_Attribute(attr, access);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
-    detail::verifyType<Native_T::Native_Return_T>();
+    detail::verifyType<typename Native_T::Native_Return_T>();
 
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
     {
@@ -308,7 +308,7 @@ namespace Rice
     auto* native = detail::Make_Native_Attribute(attr, access);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
-    detail::verifyType<Native_T::Native_Return_T>();
+    detail::verifyType<typename Native_T::Native_Return_T>();
 
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
     {

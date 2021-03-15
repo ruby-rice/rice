@@ -297,12 +297,20 @@ TESTCASE(not_defined)
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
     define_global_function("undefined_arg", &undefinedArg),
+#ifdef _MSC_VER
     ASSERT_EQUAL("Enum type is not defined with Rice: enum `anonymous namespace'::Undefined", ex.what())
+#else
+    ASSERT_EQUAL("Enum type is not defined with Rice: (anonymous namespace)::Undefined", ex.what())
+#endif
   );
 
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
     define_global_function("undefined_return", &undefinedReturn),
+#ifdef _MSC_VER
     ASSERT_EQUAL("Enum type is not defined with Rice: enum `anonymous namespace'::Undefined", ex.what())
+#else
+    ASSERT_EQUAL("Enum type is not defined with Rice: (anonymous namespace)::Undefined", ex.what())
+#endif
   );
 }

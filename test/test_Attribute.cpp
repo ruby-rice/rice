@@ -129,12 +129,20 @@ TESTCASE(not_defined)
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
     c.define_singleton_attr("some_class_static", &DataStruct::someClassStatic),
+#ifdef _MSC_VER    
     ASSERT_EQUAL("Type not defined with Rice: class `anonymous namespace'::SomeClass", ex.what())
+#else
+    ASSERT_EQUAL("Type not defined with Rice: (anonymous namespace)::SomeClass", ex.what())
+#endif
   );
 
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
     c.define_attr("some_class", &DataStruct::someClass),
+ #ifdef _MSC_VER    
     ASSERT_EQUAL("Type not defined with Rice: class `anonymous namespace'::SomeClass", ex.what())
+#else
+    ASSERT_EQUAL("Type not defined with Rice: (anonymous namespace)::SomeClass", ex.what())
+#endif
   );
 }

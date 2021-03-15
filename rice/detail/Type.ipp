@@ -1,5 +1,7 @@
 #include "rice_traits.hpp"
 
+#include <tuple>
+
 #ifdef __GNUC__
 #include <cxxabi.h>
 #include <cstdlib>

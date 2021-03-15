@@ -47,9 +47,9 @@
 
 #include "Class.hpp"
 
-#include "Constructor.hpp"
 #include "Director.hpp"
 #include "Data_Type.hpp"
+#include "Constructor.hpp"
 #include "Data_Object.hpp"
 #include "detail/Iterator.ipp"
 
