@@ -3,16 +3,14 @@
 
 #include <string>
 #include <typeinfo>
+#include "rice_traits.hpp"
 
 namespace Rice::detail
 {
-  template<typename T, typename = void>
+  template<typename T>
   struct Type
   {
-    static constexpr void verify()
-    {
-      // By default don't require registration of types
-    }
+    static constexpr void verify();
   };
 
   // Return the name of a type
@@ -24,7 +22,5 @@ namespace Rice::detail
   template<typename Tuple_T>
   constexpr void verifyTypes();
 }
-
-#include "Type.ipp"
 
 #endif // Rice__Type__hpp_

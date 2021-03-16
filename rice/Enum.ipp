@@ -59,6 +59,17 @@ Enum(
 }
 
 template<typename Enum_T>
+void Rice::Enum<Enum_T>::
+verify()
+{
+  if (!isDefined)
+  {
+    std::string message = "Enum type is not defined with Rice: " + detail::typeName(typeid(Enum_T));
+    throw std::invalid_argument(message);
+  }
+}
+
+template<typename Enum_T>
 Rice::Enum<Enum_T> & Rice::Enum<Enum_T>::
 define_value(
     std::string name,
@@ -229,18 +240,5 @@ struct Rice::detail::From_Ruby<T*, std::enable_if_t<std::is_enum_v<T>>>
     using Storage_T = Enum_Storage<T>;
     Storage_T* storage = detail::unwrap<Storage_T>(value, Data_Type<Storage_T>::rb_type());
     return *storage->enumValue;
-  }
-};
-
-template<typename T>
-struct Rice::detail::Type<T, std::enable_if_t<std::is_enum_v<T>>>
-{
-  constexpr static void verify()
-  {
-    if (!Enum<T>::isDefined)
-    {
-      std::string message = "Enum type is not defined with Rice: " + demangle(typeid(T).name());
-      throw std::invalid_argument(message);
-    }
   }
 };

@@ -42,6 +42,7 @@ namespace Rice
     static rb_data_type_t* rb_type();
 
     static inline bool isDefined = false;
+    static void verify();
 
     //! Assignment operator which takes a Module
     /*! \param klass must be the class to which this data type is already

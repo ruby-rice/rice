@@ -71,6 +71,7 @@ public:
   static Object from_enum(Class klass, Enum_T enumValue);
 
   static inline bool isDefined = false;
+  static void verify();
 
 private:
   static Object each(Object self);

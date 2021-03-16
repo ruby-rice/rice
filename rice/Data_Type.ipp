@@ -107,6 +107,16 @@ namespace Rice
   }
 
   template<typename T>
+  void Data_Type<T>::verify()
+  {
+    if (!isDefined)
+    {
+      std::string message = "Type is not defined with Rice: " + detail::typeName(typeid(T));
+      throw std::invalid_argument(message);
+    }
+  }
+
+  template<typename T>
   inline Data_Type<T>::Data_Type() : Class(klass_ == Qnil ? rb_cObject : klass_)
   {
     if (!is_bound())
@@ -332,18 +342,15 @@ namespace Rice
 
   namespace detail
   {
-    template<typename T>
-    struct Type<T, std::enable_if_t<!is_kind_of_object<T> && !is_primitive_v<T> && !std::is_enum_v<T>>>
+    template<typename T, typename std::enable_if_t<!is_primitive_v<T> && !std::is_enum_v<T>>>
+    constexpr void verifyType()
     {
-      constexpr static void verify()
+      if (!Data_Type<intrinsic_type<T>>::isDefined)
       {
-        if (!Data_Type<intrinsic_type<T>>::isDefined)
-        {
-          std::string message = "Type not defined with Rice: " + demangle(typeid(T).name());
-          throw std::invalid_argument(message);
-        }
+        std::string message = "Type not defined with Rice: " + demangle(typeid(T).name());
+        throw std::invalid_argument(message);
       }
-    };
+    }
   }
 }
 #endif

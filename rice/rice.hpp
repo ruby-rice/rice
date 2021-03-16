@@ -46,6 +46,7 @@
 #include "detail/Caster.hpp"
 
 #include "Class.hpp"
+#include "Struct.hpp"
 
 #include "Director.hpp"
 #include "Data_Type.hpp"
@@ -57,7 +58,9 @@
 #include "detail/default_allocation_func.ipp"
 
 #include "Enum.hpp"
-#include "Struct.hpp"
+
+#include "detail/Type.ipp"
+
 
 // Dependent on Module, Class, Array and String
 #include "forward_declares.ipp"

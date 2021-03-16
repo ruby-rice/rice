@@ -1,3 +1,6 @@
+#ifndef Rice__Type__ipp_
+#define Rice__Type__ipp_
+
 #include "rice_traits.hpp"
 
 #include <tuple>
@@ -10,6 +13,33 @@
 
 namespace Rice::detail
 {
+  // In theory this could be done a separate template specializations using SFINAE. However
+  // when I tried that, and then added specialations for std::unique_ptr<T>, MSVC and GCC
+  // both complained that two specializations matched. Not sure why...sigh.
+  // 
+  // Note T *must* be an intrinsic_type so that we don't have to define specializations
+  // for pointers, references, const, etc.
+  template<typename T>
+  constexpr void Type<T>::verify()
+  {
+    if constexpr (is_primitive_v<T>)
+    {
+      // Do nothing
+    }
+    else if constexpr (is_kind_of_object<T>)
+    {
+      // Do nothing
+    }
+    else if constexpr (std::is_enum_v<T>)
+    {
+      Enum<T>::verify();
+    }
+    else
+    {
+      Data_Type<T>::verify();
+    }
+  }
+
   template<>
   struct Type<void>
   {
@@ -22,13 +52,13 @@ namespace Rice::detail
   template<typename T>
   constexpr void verifyType()
   {
-    Type<T>::verify();
+    Type<intrinsic_type<T>>::verify();
   }
 
   template<typename Tuple_T, size_t...Is>
   constexpr void verifyTypesImpl()
   {
-    (Type<std::tuple_element_t<Is, Tuple_T>>::verify(), ...);
+    (Type<intrinsic_type<std::tuple_element_t<Is, Tuple_T>>>::verify(), ...);
   }
 
   template<typename Tuple_T>
@@ -84,3 +114,5 @@ namespace Rice::detail
     return demangle(typeInfo.name());
   }
 }
+
+#endif //Rice__Type__ipp_
