@@ -22,7 +22,7 @@ namespace Rice
     return *this;
   }
 
-  inline Class define_class_under(Object module, char const* name,Object superclass)
+  inline Class define_class_under(Object module, char const* name, Object superclass)
   {
     VALUE v = rb_define_class_under(module, name, superclass);
     return Class(v);
