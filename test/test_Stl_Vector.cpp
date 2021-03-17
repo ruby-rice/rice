@@ -39,12 +39,49 @@ Class makeClass()
 
 TESTCASE(StringVector)
 {
+  Module m = define_module("Testing");
+
   Class c = define_vector<std::vector<std::string>>("StringVector");
-  Object vec = c.call("new");
-  
+
+  Object vec = m.instance_eval("$vector = StringVector.new");
   Object result = vec.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>::convert(result));
 
+  m.instance_eval("$vector << 'one' << 'two' << 'two' << 'three'");
+  result = vec.call("size");
+  ASSERT_EQUAL(4, detail::From_Ruby<int32_t>::convert(result));
+
+  m.instance_eval("$vector.append('four')");
+  result = vec.call("size");
+  ASSERT_EQUAL(5, detail::From_Ruby<int32_t>::convert(result));
+
   result = vec.call("first");
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT_EQUAL("one", detail::From_Ruby<std::string>::convert(result));
+
+  result = vec.call("last");
+  ASSERT_EQUAL("four", detail::From_Ruby<std::string>::convert(result));
+}
+
+TESTCASE(StringVectorWrongType)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_vector<std::vector<std::string>>("StringVector");
+
+  Object vec = m.instance_eval("$vector = StringVector.new");
+  ASSERT_EXCEPTION_CHECK(Exception,
+    m.instance_eval("$vector << 1"),
+    ASSERT_EQUAL("wrong argument type Integer (expected String)", ex.what()));
+}
+
+TESTCASE(EmptyVector)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_vector<std::vector<std::int32_t>>("IntVector");
+
+  Object vec = m.instance_eval("$vector = IntVector.new");
+  ASSERT_EXCEPTION_CHECK(Exception,
+    m.instance_eval("$vector.first"),
+    ASSERT_EQUAL("wrong argument type Integer (expected String)", ex.what()));
 }
