@@ -347,7 +347,7 @@ namespace Rice
     {
       if (!Data_Type<intrinsic_type<T>>::isDefined)
       {
-        std::string message = "Type not defined with Rice: " + demangle(typeid(T).name());
+        std::string message = "Type not defined with Rice: " + detail::typeName(typeid(T));
         throw std::invalid_argument(message);
       }
     }
