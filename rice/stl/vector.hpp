@@ -12,7 +12,7 @@ namespace Rice
   Data_Type<T> define_vector_under(Object module, std::string name);
 }
 
-#include "Vector.ipp"
+#include "vector.ipp"
 
 #endif // Rice__stl__Vector__hpp_
 
