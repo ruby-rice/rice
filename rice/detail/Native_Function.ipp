@@ -105,7 +105,7 @@ getSelf(VALUE self)
 
 template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
 VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-invokeNative(Native_Arg_Ts& nativeArgs)
+invokeNativeFunction(std::tuple<Arg_Ts...>& nativeArgs)
 {
   if constexpr (std::is_void_v<Return_T>)
   {
@@ -114,8 +114,55 @@ invokeNative(Native_Arg_Ts& nativeArgs)
   }
   else
   {
-    // Call the native method and convert the result to ruby
+    // Call the native method and get the result
     Return_T nativeResult = std::apply(this->func_, nativeArgs);
+    return To_Ruby<Return_T>::convert(nativeResult, this->arguments_->isOwner());
+  }
+}
+
+template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
+VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
+invokeNativeMethod(VALUE self, std::tuple<Arg_Ts...>& nativeArgs)
+{
+  Self_T receiver = this->getSelf(self);
+  std::tuple<Self_T, Arg_Ts...> selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeArgs);
+
+  if constexpr (std::is_void_v<Return_T>)
+  {
+    std::apply(this->func_, selfAndNativeArgs);
+    return Qnil;
+  }
+  else
+  {
+    // Call the native method
+    Return_T nativeResult = std::apply(this->func_, selfAndNativeArgs);
+
+    // Special handling if the method returns self. If so we do not want
+    // to create a new Ruby wrapper object and instead return self.
+    if constexpr (std::is_same_v<intrinsic_type<Return_T>, intrinsic_type<Self_T>>)
+    {
+      if constexpr (std::is_pointer_v<Return_T> && std::is_pointer_v<Self_T>)
+      {
+        if (nativeResult == receiver)
+          return self;
+      }
+      else if constexpr (std::is_pointer_v<Return_T> && std::is_reference_v<Self_T>)
+      {
+        if (nativeResult == &receiver)
+          return self;
+      }
+      else if constexpr (std::is_reference_v<Return_T> && std::is_pointer_v<Self_T>)
+      {
+        if (&nativeResult == receiver)
+          return self;
+      }
+      else if constexpr (std::is_reference_v<Return_T> && std::is_reference_v<Self_T>)
+      {
+        if (&nativeResult == &receiver)
+          return self;
+      }
+    }
+
     return To_Ruby<Return_T>::convert(nativeResult, this->arguments_->isOwner());
   }
 }
@@ -159,15 +206,12 @@ operator()(int argc, VALUE* argv, VALUE self)
     // Now call the native method
     if constexpr (std::is_same_v<Self_T, std::nullptr_t>)
     {
-      return this->invokeNative(nativeValues);
+      return this->invokeNativeFunction(nativeValues);
     }
     else
     {
-      Self_T receiver = this->getSelf(self);
-      std::tuple<Self_T, Arg_Ts...> nativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeValues);
-      return this->invokeNative(nativeArgs);
+      return this->invokeNativeMethod(self, nativeValues);
     }
-    return Qnil;
   }
   catch (...)
   {

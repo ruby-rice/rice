@@ -64,7 +64,8 @@ private:
   void checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues);
 
   // Call the underlying C++ function
-  VALUE invokeNative(Native_Arg_Ts& nativeArgs);
+  VALUE invokeNativeFunction(std::tuple<Arg_Ts...>& nativeArgs);
+  VALUE invokeNativeMethod(VALUE self, std::tuple<Arg_Ts...>& nativeArgs);
 
 private:
   Function_T func_;

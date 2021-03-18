@@ -661,6 +661,40 @@ This also works with Constructors:
       Arg("arg1") = 1, Arg("otherArg") = 12;
 ```
 
+## Return Values
+
+Every C++ object returned from a function, except for self, is wrapped in a new Ruby object.
+Therefore if you make multiple calls to a C++ method that returns the same C++ object each time via a reference
+or pointer, multiple wrapping Ruby objects will be created. It would be possible for Rice to track this
+and return the same Ruby object each time, but at potentially significant runtime cost especially in multi-threaded
+programs. As a result, Rice does not do this. By default having multiple Ruby objects wrap a C++ object is 
+fine since the Ruby objects do not own the C++ object. For more information please carefully read
+the [Ownership](#ownership) section.
+
+In the case of methods that return self - meaning they return back the same C++ object that was the receiver of
+the function call - Rice does ensure that the same Ruby object is returned. Returning self is a common pattern in Ruby.
+For example:
+
+```ruby
+a = Array.new
+a << 1 << 2 << 3 << 4
+```
+The above code works because the `<<` method returns the Array `a`. You can mimic this behavior by the use of lambdas
+when wrapping C++ classes. For example, Rice wraps std::vectors like this:
+
+```cpp
+define_vector<std::vector<int32_t>>().
+  define_method("<<", [](std::vector<int32_t>& self, int32_t value) -> std::vector<int32_t>&  <----- DONT MISS THIS
+  {
+    self.push_back(value);
+    return self;  <------  Allows chaining on calls 
+  });
+```
+Pay careful attention to the lambda return type of `std::vector<int32_t>&`. If the return type is *not* specified,
+then by default the lambda will return by value. That will invoke std::vector's copy consructor, resulting in 
+*two* std::vector<int32_t> instance and two Ruby objects. Not at all what you want.
+
+
 ## Ownership
 
 When Rice wraps a C++ object returned either by reference or pointer, it does *not* take ownership 
@@ -718,10 +752,6 @@ to take ownership of the object returned from C++. You can mix `Arg` and `Return
 ```cpp
    define_function("create", &Factory::create, Return().takeOwnership(), Arg("arg1"), Arg("arg2"), ...);
 ```
-
-Note that if the same C++ object is returned to Ruby multiple times, Rice will create a new wrapper Ruby object 
-each time (perhaps a future enhancement will change this). In such cases, you definitely do *not* want Ruby to 
-take ownership of the object.
 
 ## Keep Alive
 
