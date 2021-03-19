@@ -9,7 +9,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  inline VALUE Ruby_Function<Function_T, Return_T, Arg_Ts...>::operator()()
+  inline Return_T Ruby_Function<Function_T, Return_T, Arg_Ts...>::operator()()
   {
     const int TAG_RAISE = 0x6; // From Ruby header files
     int state = 0;
@@ -18,10 +18,10 @@ namespace Rice::detail
     RUBY_VALUE_FUNC callback = (RUBY_VALUE_FUNC)&Ruby_Function<Function_T, Return_T, Arg_Ts...>::invoke;
     VALUE retval = rb_protect(callback, (VALUE)this, &state);
 
-    // Did anythoing go wrong?
+    // Did anything go wrong?
     if (state == 0)
     {
-      return retval;
+      return static_cast<Return_T>(retval);
     }
     else
     {
@@ -54,29 +54,23 @@ namespace Rice::detail
     }
   }
 
-  template<typename Function_T, typename... Arg_Ts>
-  inline decltype(auto) Make_Ruby_Function(Function_T&& func, Arg_Ts&&... args)
+  // Create a functor for calling a Ruby function and define some aliases for readability.
+  template<typename Return_T, typename ...Arg_Ts>
+  inline Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args)
   {
-    using Return_T = std::invoke_result_t<decltype(func), Arg_Ts...>;
-    return Ruby_Function<Function_T, Return_T, Arg_Ts...>(std::forward<Function_T>(func), std::forward<Arg_Ts>(args)...);
-  }
-
-  template<typename Function_T, typename ...Arg_Ts>
-  inline VALUE protect(Function_T&& func, Arg_Ts&&... args)
-  {
-    // Create a functor for calling a Ruby function and define some aliases for readability.
-    auto rubyFunction = detail::Make_Ruby_Function(std::forward<Function_T>(func), std::forward<Arg_Ts>(args)...);
+    using Function_T = Return_T(*)(Arg_Ts...);
+    auto rubyFunction = Ruby_Function<Function_T, Return_T, Arg_Ts...>(func, args...);
     return rubyFunction();
   }
 }
 
 namespace Rice
 {
-  template<typename Function_T, typename ...Arg_Ts>
-  inline VALUE protect(Function_T&& func, Arg_Ts&&... args)
+  template<typename Return_T, typename ...Arg_Ts>
+  inline Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args)
   {
-    // Create a functor for calling a Ruby function and define some aliases for readability.
-    auto rubyFunction = detail::Make_Ruby_Function(std::forward<Function_T>(func), std::forward<Arg_Ts>(args)...);
+    using Function_T = Return_T(*)(Arg_Ts...);
+    auto rubyFunction = detail::Ruby_Function<Function_T, Return_T, Arg_Ts...>(func, args...);
     return rubyFunction();
   }
 }

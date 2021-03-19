@@ -16,7 +16,7 @@ namespace Rice::detail
   {
   public:
     Ruby_Function(Function_T func, const Arg_Ts&... args);
-    VALUE operator()();
+    Return_T operator()();
 
   private:
     static VALUE invoke(VALUE value);
@@ -25,18 +25,15 @@ namespace Rice::detail
     std::tuple<Arg_Ts...> args_;
   };
 
-  template<typename Function_T, typename... Arg_Ts>
-  decltype(auto) Make_Ruby_Function(Function_T&& func, Arg_Ts&&... args);
-
-  template<typename Function_T, typename ...Arg_Ts>
-  VALUE protect(Function_T&& func, Arg_Ts&&... args);
+  template<typename Return_T, typename ...Arg_Ts>
+  Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args);
 }
 
 namespace Rice
 {
-  template<typename Function_T, typename ...Arg_Ts>
+  template<typename Return_T, typename ...Arg_Ts>
   [[deprecated("Please use detail::protect")]]
-  VALUE protect(Function_T&& func, Arg_Ts&&... args);
+  Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args);
 }
 
 #include "Ruby_Function.ipp"

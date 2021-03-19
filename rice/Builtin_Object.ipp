@@ -1,7 +1,7 @@
 #ifndef Rice__Builtin_Object__ipp_
 #define Rice__Builtin_Object__ipp_
 
-#include "Object.hpp"
+#include "detail/Ruby_Function.hpp"
 #include <algorithm>
 
 namespace Rice
@@ -11,7 +11,7 @@ namespace detail
 {
   inline VALUE check_type(Object value, int type)
   {
-    rb_check_type(value, type);
+    detail::protect(rb_check_type, value.value(), type);
     return Qnil;
   }
 }
@@ -21,7 +21,7 @@ inline Builtin_Object<Builtin_Type>::
 Builtin_Object(Object value)
   : Object(value)
 {
-  detail::protect(detail::check_type, value, Builtin_Type);
+  detail::check_type(value, Builtin_Type);
 }
 
 template<int Builtin_Type>

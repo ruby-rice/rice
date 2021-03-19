@@ -21,8 +21,8 @@ namespace Rice
 
   inline Object Object::instance_eval(String const& s)
   {
-    VALUE argv[] = { s.value() };
-    return detail::protect(rb_obj_instance_eval, 1, &argv[0], *this);
+    const VALUE argv[] = { s.value() };
+    return detail::protect(rb_obj_instance_eval, 1, &argv[0], this->value());
   }
 
   inline Object Object::vcall(Identifier id, Array args)
@@ -37,7 +37,7 @@ namespace Rice
       a[i] = it->value();
     }
 
-    return detail::protect(rb_funcall3, *this, id, (int)args.size(), a.data());
+    return detail::protect(rb_funcall3, this->value(), id.id(), (int)args.size(), (const VALUE*)a.data());
   }
 
   inline std::ostream& operator<<(std::ostream& out, Object const& obj)
@@ -54,12 +54,12 @@ namespace Rice
 
   inline String Module::name() const
   {
-    return rb_mod_name(*this);
+    return rb_mod_name(this->value());
   }
 
   inline Array Module::ancestors() const
   {
-    return detail::protect(rb_mod_ancestors, *this);
+    return detail::protect(rb_mod_ancestors, this->value());
   }
 
   inline Class Module::singleton_class() const
@@ -77,8 +77,7 @@ namespace Rice
     detail::verifyType<typename Native_T::Native_Return_T>();
     detail::verifyTypes<typename Native_T::Native_Arg_Ts>();
 
-    detail::protect(detail::MethodData::define_method, klass, name.id(),
-      RUBY_METHOD_FUNC(&Native_T::call), -1, native);
+    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
   }
 
   template<typename Function_T>
@@ -91,8 +90,7 @@ namespace Rice
     detail::verifyType<typename Native_T::Native_Return_T>();
     detail::verifyTypes<typename Native_T::Native_Arg_Ts>();
 
-    detail::protect(detail::MethodData::define_method, klass, name.id(),
-      RUBY_METHOD_FUNC(&Native_T::call), -1, native);
+    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
   }
 }
 #endif // Rice__Forward_Declares__ipp_

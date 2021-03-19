@@ -29,7 +29,7 @@ inline Rice::Object Rice::Object::
 call(Identifier id, ArgT... args) const
 {
   auto asList = this->convert_args<ArgT...>(args...);
-  return detail::protect(rb_funcall2, value(), id, (int)asList.size(), asList.data());
+  return detail::protect(rb_funcall2, value(), id.id(), (int)asList.size(), (const VALUE*)asList.data());
 }
 
 template<typename ...ArgT>
@@ -43,7 +43,7 @@ iv_set(
     Identifier name,
     T const & value)
 {
-  detail::protect(rb_ivar_set, *this, name.id(), detail::To_Ruby<T>::convert(value));
+  detail::protect(rb_ivar_set, this->value(), name.id(), detail::To_Ruby<T>::convert(value));
 }
 
 inline int Rice::Object::
@@ -86,35 +86,34 @@ rb_type() const
 inline bool Rice::Object::
 is_a(Object klass) const
 {
-  Object result = detail::protect(rb_obj_is_kind_of, *this, klass);
+  Object result = detail::protect(rb_obj_is_kind_of, this->value(), klass.value());
   return result.test();
 }
 
 inline bool Rice::Object::
 respond_to(Identifier id) const
 {
-  return bool(rb_respond_to(*this, id));
+  return bool(rb_respond_to(this->value(), id.id()));
 }
 
 inline bool Rice::Object::
 is_instance_of(Object klass) const
 {
-  Object result = detail::protect(rb_obj_is_instance_of, *this, klass);
+  Object result = detail::protect(rb_obj_is_instance_of, this->value(), klass.value());
   return result.test();
 }
 
 inline Rice::Object Rice::Object::
-iv_get(
-  Identifier name) const
+iv_get(Identifier name) const
 {
-  return detail::protect(rb_ivar_get, *this, name.id());
+  return detail::protect(rb_ivar_get, this->value(), name.id());
 }
 
 inline Rice::Object Rice::Object::
 attr_get(
   Identifier name) const
 {
-  return detail::protect(rb_attr_get, *this, name.id());
+  return detail::protect(rb_attr_get, this->value(), name.id());
 }
 
 inline void Rice::Object::

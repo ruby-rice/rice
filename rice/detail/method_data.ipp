@@ -45,11 +45,11 @@ namespace Rice
       return std::any_cast<Return_T>(data);
     }
 
-    inline void
-    MethodData::define_method(VALUE klass, ID id, VALUE(*cfunc)(ANYARGS), int arity, std::any data)
+    template<typename Func_T>
+    inline void MethodData::define_method(VALUE klass, ID id, Func_T func, int arity, std::any data)
     {
       // Define the method
-      protect(rb_define_method_id, klass, id, cfunc, arity);
+      protect(rb_define_method_id, klass, id, (RUBY_METHOD_FUNC)func, arity);
 
       // Now store data about it
       methodWrappers_[key(klass, id)] = data;

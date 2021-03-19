@@ -4,13 +4,13 @@
 
 auto& include_module(Module const& inc)
 {
-  detail::protect(rb_include_module, *this, inc);
+  detail::protect(rb_include_module, this->value(), inc.value());
   return *this;
 }
 
 auto& const_set(Identifier name, Object value)
 {
-  return dynamic_cast<decltype(*this)>(Module::const_set(name, value));
+  return dynamic_cast<decltype(*this)>(Module::const_set(name.id(), value.value()));
 }
 
 template<typename Func_T>

@@ -39,7 +39,7 @@ Enum(
     Module module)
   : Data_Type<Storage_T>()
 {
-  Class c = Rice::define_class_under<Storage_T>(module, name)
+  Class klass = Rice::define_class_under<Storage_T>(module, name)
     .define_method("to_s", to_s)
     .define_method("to_i", to_i)
     .define_method("inspect", inspect)
@@ -55,7 +55,7 @@ Enum(
   // Create a Ruby array that we will use later to store enum values
   // and attach it to the class
   Array enums;
-  detail::protect(rb_iv_set, c, "enums", enums);
+  detail::protect(rb_iv_set, klass.value(), "enums", enums.value());
 }
 
 template<typename Enum_T>

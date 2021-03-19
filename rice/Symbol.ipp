@@ -1,15 +1,13 @@
 inline Rice::Symbol::
-Symbol(VALUE v)
-  : Object(v)
+Symbol(VALUE value) : Object(value)
 {
-  detail::protect(rb_check_type, v, T_SYMBOL);
+  detail::protect(rb_check_type, value, (int)T_SYMBOL);
 }
 
 inline Rice::Symbol::
-Symbol(Object v)
-  : Object(v)
+Symbol(Object value): Object(value)
 {
-  detail::protect(rb_check_type, v, T_SYMBOL);
+  detail::protect(rb_check_type, value.value(), (int)T_SYMBOL);
 }
 
 inline Rice::Symbol::

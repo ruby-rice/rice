@@ -41,14 +41,14 @@ namespace Rice
 
   inline Module& Module::include_module(Module const& inc)
   {
-    detail::protect(rb_include_module, *this, inc);
+    detail::protect(rb_include_module, this->value(), inc.value());
     return *this;
   }
 
   template<typename Func_T>
   inline Module& Module::define_method(Identifier name, Func_T&& func, Arguments* arguments)
   {
-    this->wrap_native_method(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
+    this->wrap_native_method(this->value(), name, std::forward<Func_T>(func), this->handler(), arguments);
     return *this;
   }
 
@@ -56,7 +56,7 @@ namespace Rice
   inline Module& Module::define_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
   {
     Arguments* arguments = new Arguments(args...);
-    this->wrap_native_method(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
+    this->wrap_native_method(this->value(), name, std::forward<Func_T>(func), this->handler(), arguments);
     return *this;
   }
 
@@ -64,7 +64,7 @@ namespace Rice
   inline Module& Module::define_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
   {
     Arguments* arguments = new Arguments(args...);
-    this->wrap_native_function(*this, name, std::forward<Func_T>(func), this->handler(), arguments);
+    this->wrap_native_function(this->value(), name, std::forward<Func_T>(func), this->handler(), arguments);
     return *this;
   }
 
@@ -117,31 +117,31 @@ namespace Rice
     return *this;
   }
 
-  inline Module& Module::const_set(Identifier name,Object value)
+  inline Module& Module::const_set(Identifier name, Object value)
   {
-    detail::protect(rb_const_set, *this, name, value);
+    detail::protect(rb_const_set, this->value(), name.id(), value.value());
     return *this;
   }
 
   inline Object Module::const_get(Identifier name) const
   {
-    return detail::protect(rb_const_get, *this, name);
+    return detail::protect(rb_const_get, this->value(), name.id());
   }
 
   inline bool Module::const_defined(Identifier name) const
   {
-    size_t result = detail::protect(rb_const_defined, *this, name);
+    size_t result = detail::protect(rb_const_defined, this->value(), name.id());
     return bool(result);
   }
 
   inline void Module::remove_const(Identifier name)
   {
-    detail::protect(rb_mod_remove_const, *this, name.to_sym());
+    detail::protect(rb_mod_remove_const, this->value(), name.to_sym());
   }
 
   inline Module define_module_under(Object module, char const* name)
   {
-    VALUE v = rb_define_module_under(module, name);
+    VALUE v = rb_define_module_under(module.value(), name);
     return Module(v);
   }
 
