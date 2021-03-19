@@ -203,21 +203,7 @@ namespace Rice
     {
       static double convert(VALUE value)
       {
-        // Negative numbers don't roundtrip through conversion to VALUE as required by rb_protect. So
-        // copy out the supported types from rb_num2dbl
-        switch (rb_type(value))
-        {
-        case T_FLOAT:
-          return rb_num2dbl(value);
-        case T_BIGNUM:
-          return rb_num2dbl(value);
-        case T_RATIONAL:
-          return rb_num2dbl(value);
-        case T_STRING:
-          throw std::invalid_argument("no implicit conversion to float from string");
-        default:
-          throw std::invalid_argument("no implicit conversion to float");
-        }
+        return protect(rb_num2dbl, value);
       }
     };
 
@@ -226,7 +212,7 @@ namespace Rice
     {
       static float convert(VALUE value)
       {
-        return (float)From_Ruby<double>::convert(value);
+        return (float)protect(rb_num2dbl, value);
       }
     };
 

@@ -19,8 +19,6 @@ namespace Rice::detail
     Return_T operator()();
 
   private:
-    static VALUE invoke(VALUE value);
-
     Function_T func_;
     std::tuple<Arg_Ts...> args_;
   };
