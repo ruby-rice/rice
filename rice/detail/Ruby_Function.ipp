@@ -50,7 +50,8 @@ namespace Rice::detail
     }
     else
     {
-      return std::apply(instance->func_, instance->args_);
+      Return_T result = std::apply(instance->func_, instance->args_);
+      return static_cast<VALUE>(result);
     }
   }
 

@@ -16,8 +16,7 @@ namespace Rice
     {
       static short convert(VALUE value)
       {
-        detail::protect(rb_check_type, value, T_FIXNUM);
-        return NUM2SHORT(value);
+        return protect(rb_num2short_inline, value);
       }
     };
 
@@ -26,8 +25,7 @@ namespace Rice
     {
       static int convert(VALUE value)
       {
-        detail::protect(rb_check_type, value, T_FIXNUM);
-        return NUM2INT(value);
+        return protect(rb_num2long_inline, value);
       }
     };
 
@@ -36,8 +34,7 @@ namespace Rice
     {
       static long convert(VALUE value)
       {
-        detail::protect(rb_check_type, value, T_FIXNUM);
-        return (long)NUM2LONG(value);
+        return protect(rb_num2long_inline, value);
       }
     };
 
@@ -46,8 +43,7 @@ namespace Rice
     {
       static long long convert(VALUE value)
       {
-        detail::protect(rb_check_type, value, T_FIXNUM);
-        return RB_NUM2LL(value);
+        return protect(rb_num2ll_inline, value);
       }
     };
 
@@ -56,8 +52,7 @@ namespace Rice
     {
       static unsigned short convert(VALUE value)
       {
-        detail::protect(rb_check_type, value, T_FIXNUM);
-        return NUM2USHORT(value);
+        return protect(rb_num2ushort, value);
       }
     };
 
@@ -66,8 +61,7 @@ namespace Rice
     {
       static unsigned int convert(VALUE value)
       {
-        detail::protect(rb_check_type, value, T_FIXNUM);
-        return NUM2UINT(value);
+        return protect(rb_num2ulong_inline, value);
       }
     };
 
@@ -76,8 +70,7 @@ namespace Rice
     {
       static unsigned long convert(VALUE value)
       {
-        detail::protect(rb_check_type, value, T_FIXNUM);
-        return (unsigned long)RB_NUM2ULONG(value);
+        return protect(rb_num2ulong_inline, value);
       }
     };
 
@@ -86,8 +79,7 @@ namespace Rice
     {
       static unsigned long long convert(VALUE value)
       {
-        detail::protect(rb_check_type, value, T_FIXNUM);
-        return RB_NUM2ULL(value);
+        return protect(rb_num2ull, value);
       }
     };
 
@@ -160,6 +152,7 @@ namespace Rice
         }
         else
         {
+          protect(rb_check_type, value, (int)T_STRING);
           return RSTRING_PTR(value);
         }
       }
@@ -206,28 +199,34 @@ namespace Rice
     };
 
     template<>
-    struct From_Ruby<float>
-    {
-      static float convert(VALUE value)
-      {
-        if (rb_type(value) != T_FLOAT && rb_type(value) != T_FIXNUM)
-        {
-          detail::protect(rb_check_type, value, T_FLOAT);
-        }
-        return (float)rb_num2dbl(value);
-      }
-    };
-
-    template<>
     struct From_Ruby<double>
     {
       static double convert(VALUE value)
       {
-        if (rb_type(value) != T_FLOAT && rb_type(value) != T_FIXNUM)
+        // Negative numbers don't roundtrip through conversion to VALUE as required by rb_protect. So
+        // copy out the supported types from rb_num2dbl
+        switch (rb_type(value))
         {
-          detail::protect(rb_check_type, value, T_FLOAT);
+        case T_FLOAT:
+          return rb_num2dbl(value);
+        case T_BIGNUM:
+          return rb_num2dbl(value);
+        case T_RATIONAL:
+          return rb_num2dbl(value);
+        case T_STRING:
+          throw std::invalid_argument("no implicit conversion to float from string");
+        default:
+          throw std::invalid_argument("no implicit conversion to float");
         }
-        return rb_num2dbl(value);
+      }
+    };
+
+    template<>
+    struct From_Ruby<float>
+    {
+      static float convert(VALUE value)
+      {
+        return (float)From_Ruby<double>::convert(value);
       }
     };
 
@@ -236,7 +235,7 @@ namespace Rice
     {
       static std::string convert(VALUE value)
       {
-        detail::protect(rb_check_type, value, T_STRING);
+        protect(rb_check_type, value, (int)T_STRING);
         return std::string(RSTRING_PTR(value), RSTRING_LEN(value));
       }
     };
