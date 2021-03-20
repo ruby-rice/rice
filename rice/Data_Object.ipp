@@ -127,6 +127,19 @@ struct Rice::detail::To_Ruby
 };
 
 template <typename T>
+struct Rice::detail::To_Ruby<const T&, std::enable_if_t<!Rice::detail::is_primitive_v<T> &&
+  !Rice::detail::is_kind_of_object<T>>>
+{
+  static VALUE convert(const T& data, bool isOwner)
+  {
+    // Note that T could be a pointer or reference to a base class while data is in fact a
+    // child class. Lookup the correct type so we return an instance of the correct Ruby class
+    std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
+    return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
+  }
+};
+
+template <typename T>
 struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<T> &&
   !Rice::detail::is_kind_of_object<T>>>
 {

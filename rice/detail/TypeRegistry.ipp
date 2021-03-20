@@ -28,7 +28,7 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline std::pair<VALUE, rb_data_type_t*> TypeRegistry::figureType(T& object)
+  inline std::pair<VALUE, rb_data_type_t*> TypeRegistry::figureType(const T& object)
   {
     // First check and see if the actual type of the object is registered
     std::optional<std::pair<VALUE, rb_data_type_t*>> result = lookup(typeid(object));
