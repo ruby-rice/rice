@@ -18,7 +18,7 @@ namespace Rice
     {
       if (rb_type(klass) == T_ICLASS)
       {
-        klass = rb_class_of(klass);
+        klass = detail::protect(rb_class_of, klass);
       }
 
       uint32_t prime = 53;

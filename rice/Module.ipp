@@ -12,14 +12,14 @@ namespace Rice
   {
   }
 
-  inline Module::Module(VALUE v) : Object(v)
+  inline Module::Module(VALUE value) : Object(value)
   {
-    if (::rb_type(v) != T_CLASS && ::rb_type(v) != T_MODULE)
+    if (::rb_type(value) != T_CLASS && ::rb_type(value) != T_MODULE)
     {
       throw Exception(
         rb_eTypeError,
         "Expected a Module but got a %s",
-        rb_class2name(CLASS_OF(v))); // TODO: might raise an exception
+        detail::protect(rb_obj_classname, value)); // TODO: might raise an exception
     }
   }
 
@@ -141,19 +141,17 @@ namespace Rice
 
   inline Module define_module_under(Object module, char const* name)
   {
-    VALUE v = rb_define_module_under(module.value(), name);
-    return Module(v);
+    return detail::protect(rb_define_module_under, module.value(), name);
   }
 
   inline Module define_module(char const* name)
   {
-    VALUE v = rb_define_module(name);
-    return Module(v);
+    return detail::protect(rb_define_module, name);
   }
 
   inline Module anonymous_module()
   {
-    return Module(detail::protect(rb_module_new));
+    return detail::protect(rb_module_new);
   }
 
   template<>

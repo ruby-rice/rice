@@ -119,7 +119,7 @@ namespace Rice
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
-                            rb_obj_classname(value), "char");
+              detail::protect(rb_obj_classname, value), "char");
           }
         }
       }

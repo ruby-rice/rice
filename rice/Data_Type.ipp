@@ -63,10 +63,10 @@ namespace Rice
     // already shut down.  The correct behavior is probably to register an
     // exit proc with the interpreter, so the proc gets called before the
     // GC shuts down.
-    rb_gc_register_address(&klass_);
+    detail::protect(rb_gc_register_address, &klass_);
 
     rb_type_ = new rb_data_type_t();
-    rb_type_->wrap_struct_name = strdup(rb_class2name(klass));
+    rb_type_->wrap_struct_name = strdup(Rice::detail::protect(rb_class2name, klass_));
     rb_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
     rb_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
     rb_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
@@ -97,7 +97,7 @@ namespace Rice
   {
     if (klass_ != Qnil)
     {
-      rb_gc_unregister_address(&klass_);
+      detail::protect(rb_gc_unregister_address, &klass_);
       klass_ = Qnil;
     }
 
@@ -165,7 +165,7 @@ namespace Rice
     check_is_bound();
 
     // Normal constructor pattern with new/initialize
-    rb_define_alloc_func(static_cast<VALUE>(*this), detail::default_allocation_func<T>);
+    detail::protect(rb_define_alloc_func, static_cast<VALUE>(*this), detail::default_allocation_func<T>);
     this->define_method("initialize", &Constructor_T::construct, arguments);
 
     return *this;
@@ -178,7 +178,7 @@ namespace Rice
     check_is_bound();
 
     // Define a Ruby allocator which creates the Ruby object
-    rb_define_alloc_func(static_cast<VALUE>(*this), detail::default_allocation_func<T>);
+    detail::protect(rb_define_alloc_func, static_cast<VALUE>(*this), detail::default_allocation_func<T>);
 
     // Define an initialize function that will create the C++ object
     this->define_method("initialize", &Constructor_T::construct, args...);
@@ -208,7 +208,7 @@ namespace Rice
   inline bool Data_Type<T>::is_descendant(VALUE value)
   {
     check_is_bound();
-    return rb_obj_is_kind_of(value, klass_) == Qtrue;
+    return detail::protect(rb_obj_is_kind_of, value, klass_) == Qtrue;
   }
 
   template<typename T>
@@ -322,7 +322,8 @@ namespace Rice
 
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
     {
-      detail::MethodData::define_method( rb_singleton_class(*this), Identifier(name).id(),
+      VALUE singleton = detail::protect(rb_singleton_class, this->value());
+      detail::MethodData::define_method(singleton, Identifier(name).id(),
         RUBY_METHOD_FUNC(&Native_T::get), 0, native);
     }
 
@@ -333,7 +334,8 @@ namespace Rice
         throw std::runtime_error(name  + " is readonly");
       }
 
-      detail::MethodData::define_method( rb_singleton_class(*this), Identifier(name + "=").id(),
+      VALUE singleton = detail::protect(rb_singleton_class, this->value());
+      detail::MethodData::define_method(singleton, Identifier(name + "=").id(),
         RUBY_METHOD_FUNC(&Native_T::set), 1, native);
     }
 

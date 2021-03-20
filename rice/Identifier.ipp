@@ -20,7 +20,7 @@ inline char const *
 Rice::Identifier::
 c_str() const
 {
-  return rb_id2name(id_);
+  return detail::protect(rb_id2name, id_);
 }
 
 inline std::string

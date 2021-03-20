@@ -122,7 +122,7 @@ Rice::Object Rice::Array::Proxy::
 operator=(T const & value)
 {
   Object o = detail::To_Ruby<T>::convert(value);
-  rb_ary_store(array_.value(), index_, o.value());
+  detail::protect(rb_ary_store, array_.value(), index_, o.value());
   return o;
 }
 

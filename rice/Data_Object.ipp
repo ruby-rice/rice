@@ -3,6 +3,7 @@
 
 #include "Data_Type_defn.hpp"
 #include "detail/Caster.hpp"
+#include "detail/Ruby_Function.hpp"
 
 #include <algorithm>
 
@@ -10,7 +11,8 @@ template <typename T>
 Rice::Exception create_type_exception(VALUE value)
 {
   return Rice::Exception(rb_eTypeError, "Wrong argument type. Expected: %s. Received: %s.",
-    rb_class2name(Rice::Data_Type<T>::klass()), rb_obj_classname(value));
+    Rice::detail::protect(rb_class2name, Rice::Data_Type<T>::klass().value()), 
+    Rice::detail::protect(rb_obj_classname, value));
 }
 
 template<typename T>
@@ -95,7 +97,7 @@ template<typename T>
 inline std::optional<T> Rice::Data_Object<T>::
 implicit_from_ruby(VALUE value)
 {
-  VALUE from_klass = rb_class_of(value);
+  VALUE from_klass = detail::protect(rb_class_of, value);
   VALUE to_klass = Data_Type<T>::klass();
 
   detail::CasterAbstract<T>* caster = detail::CasterRegistry::find<T>(from_klass, to_klass);

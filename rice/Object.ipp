@@ -56,13 +56,13 @@ compare(Object const& other) const
 inline bool Rice::Object::
 is_equal(const Object& other) const
 {
-  return rb_equal(this->value_, other.value_);
+  return detail::protect(rb_equal, this->value_, other.value_);
 }
 
 inline bool Rice::Object::
 is_eql(const Object& other) const
 {
-  return rb_eql(this->value_, other.value_);
+  return detail::protect(rb_eql, this->value_, other.value_);
 }
 
 inline void Rice::Object::
@@ -125,7 +125,7 @@ set_value(VALUE v)
 inline bool Rice::
 operator==(Rice::Object const& lhs, Rice::Object const& rhs)
 {
-  return rb_equal(lhs, rhs) == Qtrue;
+  return detail::protect(rb_equal, lhs.value(), rhs.value()) == Qtrue;
 }
 
 inline bool Rice::

@@ -80,7 +80,7 @@ define_value(
 
   // Now wrap it and store it to the class enums field
   Value_T wrapper(storage);
-  Array enums = rb_iv_get(this->value(), "enums");
+  Array enums = detail::protect(rb_iv_get, this->value(), "enums");
   enums.push(wrapper);
 
   // And store it as class constant
@@ -93,7 +93,7 @@ template<typename Enum_T>
 Rice::Object Rice::Enum<Enum_T>::
 each(Object self)
 {
-  Array enums = rb_iv_get(self, "enums");
+  Array enums = detail::protect(rb_iv_get, self.value(), "enums");
   Check_Type(enums, T_ARRAY);
   for(long i = 0; i < enums.size(); ++i)
   {
@@ -182,7 +182,7 @@ template<typename Enum_T>
 Rice::Object Rice::Enum<Enum_T>::
   from_enum(Class klass, Enum_T enumValue)
 {
-  Array enums = rb_iv_get(klass, "enums");
+  Array enums = detail::protect(rb_iv_get, klass.value(), "enums");
 
   auto iter = std::find_if(enums.begin(), enums.end(),
     [enumValue](const Object& object)

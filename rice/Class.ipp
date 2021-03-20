@@ -6,37 +6,31 @@
 
 namespace Rice
 {
-  inline Class::Class(VALUE v) : Module(v)
+  inline Class::Class(VALUE value) : Module(value)
   {
-    if (::rb_type(v) != T_CLASS)
-    {
-      // TODO: might raise an exception
-      throw Exception(rb_eTypeError, "Expected a Class but got a %s", rb_class2name(CLASS_OF(v)));
-    }
+    detail::protect(rb_check_type, value, (int)T_CLASS);
   }
 
   inline Class& Class::undef_creation_funcs()
   {
-    rb_undef_alloc_func(value());
-    rb_undef_method(value(), "initialize");
+    detail::protect(rb_undef_alloc_func, value());
+    detail::protect(rb_undef_method, value(), "initialize");
     return *this;
   }
 
   inline Class define_class_under(Object module, char const* name, Object superclass)
   {
-    VALUE v = rb_define_class_under(module, name, superclass);
-    return Class(v);
+    return detail::protect(rb_define_class_under, module.value(), name, superclass.value());
   }
 
   inline Class define_class(char const* name, Object superclass)
   {
-    VALUE v = rb_define_class(name, superclass);
-    return Class(v);
+    return detail::protect(rb_define_class, name, superclass.value());
   }
 
   inline Class anonymous_class()
   {
-    return Class(rb_class_new(rb_cObject));
+    return detail::protect(rb_class_new, rb_cObject);
   }
 
   template<>

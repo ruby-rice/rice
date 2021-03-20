@@ -48,14 +48,18 @@ inline void Address_Registration_Guard::
 registerAddress() const
 {
   if (enabled)
-    rb_gc_register_address(address_);
+  {
+    detail::protect(rb_gc_register_address, address_);
+  }
 }
 
 inline void Address_Registration_Guard::
 unregisterAddress()
 {
   if (enabled && address_)
-    rb_gc_unregister_address(address_);
+  {
+    detail::protect(rb_gc_unregister_address, address_);
+  }
 
   address_ = nullptr;
 }
@@ -74,9 +78,11 @@ static void disable_all_guards(VALUE)
 inline void Address_Registration_Guard::registerExitHandler()
 {
   if (exit_handler_registered)
+  {
     return;
+  }
 
-  rb_set_end_proc(&disable_all_guards, Qnil);
+  detail::protect(rb_set_end_proc, &disable_all_guards, Qnil);
   exit_handler_registered = true;
 }
 

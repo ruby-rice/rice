@@ -37,7 +37,7 @@ Exception(const VALUE exceptionClass, char const* fmt, Arg_Ts&&...args)
 #endif
 
   // Now create the Ruby exception
-  this->exception_ = rb_exc_new2(exceptionClass, this->message_.c_str());
+  this->exception_ = detail::protect(rb_exc_new2, exceptionClass, this->message_.c_str());
 }
 
 inline char const* Rice::Exception::
@@ -56,7 +56,7 @@ what() const noexcept
 inline VALUE Rice::Exception::
 class_of() const
 {
-  return rb_class_of(this->exception_);
+  return detail::protect(rb_class_of, this->exception_);
 }
 
 inline VALUE Rice::Exception::

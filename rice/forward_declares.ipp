@@ -6,7 +6,7 @@ namespace Rice
   // These methods cannot be defined where they are declared due to circular dependencies
   inline Class Object::class_of() const
   {
-    return rb_class_of(value_);
+    return detail::protect(rb_class_of, value_);
   }
 
   inline String Object::to_s() const
