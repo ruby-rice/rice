@@ -1,8 +1,10 @@
+#include "../detail/rice_traits.hpp"
 #include "../detail/from_ruby.hpp"
 #include "../detail/to_ruby.hpp"
 #include "../Data_Type.hpp"
 
 #include <sstream>
+#include <stdexcept>
 #include <vector>
 
 namespace Rice
@@ -10,14 +12,30 @@ namespace Rice
   namespace stl
   {
     template<typename T>
-    void define_vector_methods(Data_Type<T>& klass)
+    class VectorHelper
     {
       using Value_T = typename T::value_type;
       using Size_T = typename T::size_type;
       using Difference_T = typename T::difference_type;
 
-      // Helper lambda to figure out indices
-      auto normalizeIndex = [](Size_T size, Difference_T index, bool enforceBounds = false)
+    public:
+      VectorHelper(Data_Type<T> klass) : klass_(klass)
+      {
+        this->define_constructor();
+        this->define_copyable_methods();
+        this->define_constructable_methods();
+        this->define_capacity_methods();
+        this->define_access_methods();
+        this->define_comparable_methods();
+        this->define_modify_methods();
+        this->define_to_s();
+        this->define_enumerable();
+      }
+
+    private:
+
+      // Helper method to translate Ruby indices to vector indices
+      Difference_T normalizeIndex(Size_T size, Difference_T index, bool enforceBounds = false)
       {
         // Negative indices mean count from the right. Note that negative indices
         // wrap around!
@@ -35,22 +53,61 @@ namespace Rice
         return index;
       };
 
-      // Define the constructor
-      klass.define_constructor(Constructor<T>());
-  
-      // Capacity
-      klass.define_method("empty?", &T::empty)
-        .define_method("capacity", &T::capacity)
-        .define_method("max_size", &T::max_size)
-        .define_method("reserve", &T::reserve)
-        .define_method("size", &T::size);
+      void define_constructor()
+      {
+        klass_.define_constructor(Constructor<T>());
+      }
 
-      // Access elements
-      klass.define_method("include?", [](const T& self, const Value_T& value)
-          {
-            return std::find(self.begin(), self.end(), value) != self.end();
-          })
-        .define_method("first", [](T& self) -> std::optional<Value_T>
+      void define_copyable_methods()
+      {
+        if constexpr (std::is_copy_constructible_v<Value_T>)
+        {
+          klass_.define_method("copy", [](T& self) -> T
+            {
+              return self;
+            });
+        }
+        else
+        {
+          klass_.define_method("copy", [](T& self) -> T
+            {
+              throw std::runtime_error("Cannot copy vectors with non-copy constructible types");
+              return self;
+            });
+        }
+      }
+
+      void define_constructable_methods()
+      {
+        if constexpr (std::is_default_constructible_v<Value_T>)
+        {
+          klass_.define_method("resize", static_cast<void (T::*)(const size_t)>(&T::resize));
+        }
+        else
+        {
+          klass_.define_method("resize", [](const T& self, Size_T newSize)
+              {
+                // Do nothing
+              });
+        }
+      }
+
+      void define_capacity_methods()
+      {
+        klass_.define_method("empty?", &T::empty)
+          .define_method("capacity", &T::capacity)
+          .define_method("max_size", &T::max_size)
+          .define_method("reserve", &T::reserve)
+          .define_method("size", &T::size);
+
+        rb_define_alias(klass_, "count", "size");
+        rb_define_alias(klass_, "length", "size");
+      }
+
+      void define_access_methods()
+      {
+        // Access methods
+        klass_.define_method("first", [](const T& self) -> std::optional<Value_T>
           {
             if (self.size() > 0)
             {
@@ -61,140 +118,203 @@ namespace Rice
               return std::nullopt;
             }
           })
-        .define_method("last", [](T& self) -> std::optional<Value_T>
-          {
-            if (self.size() > 0)
+          .define_method("last", [](const T& self) -> std::optional<Value_T>
             {
-              return self.back();
-            }
-            else
-            {
-              return std::nullopt;
-            }
-          })
-        .define_method("[]", [&normalizeIndex](const T& self, Difference_T index) -> std::optional<Value_T>
-          {
-            index = normalizeIndex(self.size(), index);
-            if (index < 0 || index >= (Difference_T)self.size())
-            {
-              return std::nullopt;
-            }
-            else
-            {
-              return self[index];
-            }
-          });
+              if (self.size() > 0)
+              {
+                return self.back();
+              }
+              else
+              {
+                return std::nullopt;
+              }
+            })
+            .define_method("[]", [this](const T& self, Difference_T index) -> std::optional<Value_T>
+              {
+                index = normalizeIndex(self.size(), index);
+                if (index < 0 || index >= (Difference_T)self.size())
+                {
+                  return std::nullopt;
+                }
+                else
+                {
+                  return self[index];
+                }
+              });
 
-      // Modify
-      klass.define_method("clear", &T::clear)
-        .define_method("delete", [](T& self, Value_T& value)
-          {
-            // Move elements we want to delete to the end
-            auto iter = std::remove(self.begin(), self.end(), value);
-            Value_T result = self.back();
-            self.erase(iter, self.end());
-            return result;
-          })
-        .define_method("delete_at", [](T& self, size_t& pos)
-          {
-            auto iter = self.begin() + pos;
-            Value_T result = *iter;
-            self.erase(iter);
-            return result;
-          })
-        //.define_method("insert", static_cast<void (T::*)(const Value_T&)>(&T::insert))
-        .define_method("insert", [&normalizeIndex](T& self, Difference_T index, Value_T& value) -> T&
-          {
-            index = normalizeIndex(self.size(), index, true);
-            auto iter = self.begin() + index;
-            self.insert(iter, value);
-            return self;
-          })
-      .define_method("pop", [](T& self) -> std::optional<Value_T>
-          {
-            if (self.size() > 0)
+            rb_define_alias(klass_, "at", "[]");
+      }
+
+      // Methods that require Value_T to support operator==
+      void define_comparable_methods()
+      {
+        if constexpr (detail::is_comparable_v<Value_T>)
+        {
+          klass_.define_method("delete", [](T& self, const Value_T& element) -> std::optional<Value_T>
             {
-              Value_T result = self.back();
-              self.pop_back();
+              auto iter = std::find(self.begin(), self.end(), element);
+              if (iter == self.end())
+              {
+                return std::nullopt;
+              }
+              else
+              {
+                Value_T result = *iter;
+                self.erase(iter);
+                return result;
+              }
+            })
+          .define_method("include?", [](T& self, const Value_T& element)
+            {
+              return std::find(self.begin(), self.end(), element) != self.end();
+            })
+          .define_method("index", [](T& self, const Value_T& element) -> std::optional<Difference_T>
+            {
+              auto iter = std::find(self.begin(), self.end(), element);
+              if (iter == self.end())
+              {
+                return std::nullopt;
+              }
+              else
+              {
+                return iter - self.begin();
+              }
+            });
+        }
+        else
+        {
+          klass_.define_method("delete", [](T& self, const Value_T& element) -> std::optional<Value_T>
+            {
+              return std::nullopt;
+            })
+          .define_method("include?", [](const T& self, const Value_T& element)
+            {
+              return false;
+            })
+          .define_method("index", [](const T& self, const Value_T& element) -> std::optional<Difference_T>
+            {
+              return std::nullopt;
+            });
+        }
+      }
+
+      void define_modify_methods()
+      {
+        klass_.define_method("clear", &T::clear)
+          .define_method("delete_at", [](T& self, const size_t& pos)
+            {
+              auto iter = self.begin() + pos;
+              Value_T result = *iter;
+              self.erase(iter);
               return result;
-            }
-            else
+            })
+          .define_method("insert", [this](T& self, Difference_T index, const Value_T& element) -> T&
             {
-              return std::nullopt;
-            }
-          })
-        .define_method("push", [](T& self, Value_T& value) -> T&
-          {
-            self.push_back(value);
-            return self;
-          })
-        .define_method("resize", static_cast<void (T::*)(const size_t)>(&T::resize))
-        .define_method("shrink_to_fit", &T::shrink_to_fit)
-        .define_method("swap", &T::swap)
-        .define_method("[]=", [&normalizeIndex](T& self, Difference_T index, Value_T& value) -> Value_T&
-          {
-            index = normalizeIndex(self.size(), index);
-            self[index] = value;
-            return value;
-          });
+              index = normalizeIndex(self.size(), index, true);
+              auto iter = self.begin() + index;
+              self.insert(iter, element);
+              return self;
+            })
+          .define_method("pop", [](T& self) -> std::optional<Value_T>
+            {
+              if (self.size() > 0)
+              {
+                Value_T result = self.back();
+                self.pop_back();
+                return result;
+              }
+              else
+              {
+                return std::nullopt;
+              }
+            })
+          .define_method("push", [](T& self, const Value_T& element) -> T&
+            {
+              self.push_back(element);
+              return self;
+            })
+          .define_method("shrink_to_fit", &T::shrink_to_fit)
+          .define_method("[]=", [this](T& self, Difference_T index, Value_T& element) -> Value_T&
+            {
+              index = normalizeIndex(self.size(), index, true);
+              self[index] = element;
+              return element;
+            });
 
-      // Add enumerable support
-      klass.include_module(rb_mEnumerable)
-      .define_method("each", [](const T& self)
+            rb_define_alias(klass_, "<<", "push");
+            rb_define_alias(klass_, "append", "push");
+      }
+
+      void define_enumerable()
+      {
+        // Add enumerable support
+        klass_.include_module(rb_mEnumerable)
+          .define_method("each", [](const T& self) -> const T&
+            {
+              for (const Value_T& item : self)
+              {
+                VALUE element = detail::To_Ruby<const Value_T>::convert(item, false);
+                rb_yield(element);
+              }
+              return self;
+            });
+      }
+
+      void define_to_s()
+      {
+        if constexpr (detail::is_ostreamable_v<Value_T>)
         {
-          for (const Value_T& item : self)
-          {
-            rb_yield(detail::To_Ruby<Value_T>::convert(item));
-          }
-          return self;
-        });
+          klass_.define_method("to_s", [](const T& self)
+            {
+              auto iter = self.begin();
+              auto finish = self.size() > 1000 ? self.begin() + 1000 : self.end();
 
-      // to_s support
-      klass.define_method("to_s", [](const T& self)
+              std::stringstream stream;
+              stream << "[";
+
+              for (; iter != finish; iter++)
+              {
+                if (iter == self.begin())
+                {
+                  stream << *iter;
+                }
+                else
+                {
+                  stream << ", " << *iter;
+                }
+              }
+
+              stream << "]";
+              return stream.str();
+            });
+        }
+        else
         {
-          auto iter = self.begin();
-          auto finish = self.size() > 1000 ? self.begin() + 1000 : self.end();
-
-          std::stringstream stream;
-          stream << "[";
-
-          for (; iter != finish; iter++)
-          {
-            if (iter == self.begin())
+          klass_.define_method("to_s", [](const T& self)
             {
-              stream << *iter;
-            }
-            else
-            {
-              stream << ", " << *iter;
-            }
-          }
-          stream << "]";
-          return stream.str();
-        });
+              return "[Not printable]";
+            });
+        }
+      }
 
-      // Last add in aliases
-      rb_define_alias(klass, "at", "[]");
-      rb_define_alias(klass, "<<", "push");
-      rb_define_alias(klass, "append", "push");
-      rb_define_alias(klass, "count", "size");
-      rb_define_alias(klass, "length", "size");
-    }
-  }
+      private:
+        Data_Type<T> klass_;
+    };
+  } // namespace
 
   template<typename T>
   Data_Type<T> define_vector_under(Object module, std::string name)
   {
-    Data_Type<T> result = define_class_under<T>(module, name.c_str());
-    stl::define_vector_methods(result);
+    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(module, name.c_str());
+    stl::VectorHelper helper(result);
     return result;
   }
 
   template<typename T>
   Data_Type<T> define_vector(std::string name)
   {
-    Data_Type<T> result = define_class<T>(name.c_str());
-    stl::define_vector_methods(result);
+    Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
+    stl::VectorHelper<T> helper(result);
     return result;
   }
 
@@ -220,35 +340,5 @@ namespace Rice
         }
       }
     };
-
-    /*template <typename T>
-    struct To_Ruby<std::vector<T>>
-    {
-      static VALUE convert(const std::vector<T>& data, bool takeOwnership = false)
-      {
-        using Vector_T = Rice::stl::Vector<std::vector<T>>;
-        return detail::wrap(Vector_T::klass(), Vector_T::rb_type(), data, takeOwnership);
-      }
-    };
-
-    template <typename T>
-    struct From_Ruby<std::vector<T>>
-    {
-      static std::vector<T> convert(VALUE value)
-      {
-        using Vector_T = Rice::stl::Vector<std::vector<T>>;
-        return detail::unwrap<std::vector<T>>(value, Vector_T::rb_type());
-      }
-    };
-
-    template <typename T>
-    struct From_Ruby<std::vector<T>&>
-    {
-      static std::vector<T>& convert(VALUE value)
-      {
-        using Vector_T = Rice::stl::Vector<std::vector<T>>;
-        return *detail::unwrap<std::vector<T>>(value, Vector_T::rb_type());
-      }
-    };*/
   }
 }
