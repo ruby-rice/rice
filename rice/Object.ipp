@@ -34,7 +34,7 @@ call(Identifier id, ArgT... args) const
 
 template<typename ...ArgT>
 std::vector<VALUE> Rice::Object::convert_args(ArgT&... args) const {
-  return std::vector<VALUE>{ detail::To_Ruby<ArgT>::convert(args)... };
+  return std::vector<VALUE>{ detail::To_Ruby<ArgT>::convert(args, false)... };
 }
 
 template<typename T>

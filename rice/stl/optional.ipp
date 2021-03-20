@@ -27,7 +27,7 @@ namespace Rice::detail
     {
       if (data.has_value())
       {
-        return To_Ruby<T>::convert(data.value());
+        return To_Ruby<T>::convert(data.value(), takeOwnership);
       }
       else
       {
