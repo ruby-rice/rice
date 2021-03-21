@@ -35,7 +35,7 @@ namespace
   };
 }
 
-Class makeClass()
+Class makeOptionalClass()
 {
   return define_class<MyClass>("MyClass").
     define_constructor(Constructor<MyClass>()).
@@ -47,7 +47,7 @@ Class makeClass()
 SETUP(Optional)
 {
   embed_ruby();
-  makeClass();
+  makeOptionalClass();
 }
 
 TESTCASE(OptionalReturn)
