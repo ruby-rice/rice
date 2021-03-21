@@ -6,13 +6,7 @@
 namespace Rice::detail
 {
   template<typename T>
-  struct Type<std::complex<T>>
-  {
-    constexpr static void verify()
-    {
-      // All good - nothing to register
-    }
-  };
+  struct is_builtin<std::complex<T>> : public std::true_type {};
 
   template<typename T>
   struct From_Ruby<std::complex<T>>

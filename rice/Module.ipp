@@ -153,13 +153,25 @@ namespace Rice
   {
     return detail::protect(rb_module_new);
   }
+}
 
+namespace Rice::detail
+{
   template<>
-  struct detail::From_Ruby<Module>
+  struct From_Ruby<Module>
   {
     static Module convert(VALUE value)
     {
       return Module(value);
+    }
+  };
+
+  template<>
+  struct To_Ruby<Module>
+  {
+    static VALUE convert(Object const& x, bool takeOwnership = false)
+    {
+      return x.value();
     }
   };
 }

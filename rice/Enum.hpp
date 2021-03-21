@@ -51,8 +51,7 @@ public:
   Enum() = default;
 
   //! Construct and initialize.
-  Enum(
-      char const * name,
+  Enum(char const * name,
       Module module = rb_cObject);
 
   //! Define a new enum value.

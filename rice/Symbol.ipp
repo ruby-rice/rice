@@ -45,3 +45,27 @@ to_id() const
 {
   return rb_to_id(value());
 }
+
+namespace Rice
+{
+  namespace detail
+  {
+    template<>
+    struct From_Ruby<Symbol>
+    {
+      static Object convert(VALUE value)
+      {
+        return Object(value);
+      }
+    };
+
+    template<>
+    struct To_Ruby<Symbol>
+    {
+      static VALUE convert(Object const& x, bool takeOwnership = false)
+      {
+        return x.value();
+      }
+    };
+  }
+}

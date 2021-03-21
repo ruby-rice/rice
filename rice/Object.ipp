@@ -148,40 +148,30 @@ operator>(Rice::Object const& lhs, Rice::Object const& rhs)
   return result.test();
 }
 
-namespace Rice
+namespace Rice::detail
 {
-  namespace detail
+  template <typename T>
+  struct is_builtin<T, std::enable_if_t<std::is_base_of_v<Rice::Object, intrinsic_type<T>>>> :
+    public std::true_type
   {
-    template <typename T>
-    constexpr bool is_kind_of_object = std::is_base_of_v<Rice::Object, intrinsic_type<T>>;
+  };
 
-    template<>
-    struct From_Ruby<Object>
+  template<>
+  struct From_Ruby<Object>
+  {
+    static Object convert(VALUE value)
     {
-      static Object convert(VALUE value)
-      {
-        return Object(value);
-      }
-    };
+      return Object(value);
+    }
+  };
 
-    template<typename T>
-    struct To_Ruby<T, std::enable_if_t<is_kind_of_object<T> && !std::is_pointer_v<T>>>
+  template<>
+  struct To_Ruby<Object>
+  {
+    static VALUE convert(Object const& x, bool takeOwnership = false)
     {
-      static VALUE convert(Object const& x, bool takeOwnership = false)
-      {
-        return x.value();
-      }
-    };
-
-    template<typename T>
-    struct To_Ruby<T*, std::enable_if_t<is_kind_of_object<T>>>
-    {
-      static VALUE convert(Object const* x, bool takeOwnership = false)
-      {
-        return x->value();
-      }
-    };
-  }
+      return x.value();
+    }
+  };
 }
 #endif // Rice__Object__ipp_
-

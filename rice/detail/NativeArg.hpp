@@ -3,6 +3,7 @@
 
 #include "ruby.hpp"
 #include "rice_traits.hpp"
+#include "Type.hpp"
 #include "from_ruby_defn.hpp"
 
 namespace Rice
@@ -17,7 +18,7 @@ namespace Rice
     // converted value so that a reference or a pointer to the value can be passed to 
     // the native function.
     template <typename T>
-    class NativeArg<T, typename std::enable_if_t<is_primitive_v<T> &&
+    class NativeArg<T, typename std::enable_if_t<is_builtin_v<intrinsic_type<T>> &&
                             !(std::is_same_v<char, intrinsic_type<T>> && std::is_pointer_v<T>)>>
     {
     public:
@@ -60,7 +61,7 @@ namespace Rice
     // It is also used for converting to various Rice C++ wrappers such as Rice::Hash,
     // Rice::String, etc.
     template <typename T>
-    class NativeArg<T, typename std::enable_if_t<!is_primitive_v<T>>>
+    class NativeArg<T, typename std::enable_if_t<!is_builtin_v<intrinsic_type<T>>>>
     {
     public:
       T nativeValue(VALUE value)

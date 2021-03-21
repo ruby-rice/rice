@@ -63,7 +63,7 @@ template<typename T>
 inline Rice::Object Rice::Array::
 push(T const & obj)
 {
-  return detail::protect(rb_ary_push, value(), detail::To_Ruby<T>::convert(obj));
+  return detail::protect(rb_ary_push, value(), detail::To_Ruby<T>::convert(obj, true));
 }
 
 inline Rice::Object Rice::Array::
@@ -76,7 +76,7 @@ template<typename T>
 inline Rice::Object Rice::Array::
 unshift(T const & obj)
 {
-  return detail::protect(rb_ary_unshift, value(), detail::To_Ruby<T>::convert(obj));
+  return detail::protect(rb_ary_unshift, value(), detail::To_Ruby<T>::convert(obj, true));
 }
 
 inline Rice::Object Rice::Array::
@@ -121,7 +121,7 @@ template<typename T>
 Rice::Object Rice::Array::Proxy::
 operator=(T const & value)
 {
-  Object o = detail::To_Ruby<T>::convert(value);
+  Object o = detail::To_Ruby<T>::convert(value, true);
   detail::protect(rb_ary_store, array_.value(), index_, o.value());
   return o;
 }
@@ -250,5 +250,26 @@ end() const
   return const_iterator(this, size());
 }
 
-#endif // Rice__Array__ipp_
+namespace Rice::detail
+{
+  template<>
+  struct From_Ruby<Array>
+  {
+    static Array convert(VALUE value)
+    {
+      return Array(value);
+    }
+  };
 
+  template<>
+  struct To_Ruby<Array>
+  {
+    static VALUE convert(Array const& x, bool takeOwnership = false)
+    {
+      return x.value();
+    }
+  };
+}
+
+
+#endif // Rice__Array__ipp_

@@ -61,7 +61,6 @@
 
 #include "detail/Type.ipp"
 
-
 // Dependent on Module, Class, Array and String
 #include "forward_declares.ipp"
 

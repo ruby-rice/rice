@@ -32,13 +32,25 @@ namespace Rice
   {
     return detail::protect(rb_class_new, rb_cObject);
   }
+}
 
+namespace Rice::detail
+{
   template<>
-  struct detail::From_Ruby<Class>
+  struct From_Ruby<Class>
   {
     static Class convert(VALUE value)
     {
       return Class(value);
+    }
+  };
+
+  template<>
+  struct To_Ruby<Class>
+  {
+    static VALUE convert(Object const& x, bool takeOwnership = false)
+    {
+      return x.value();
     }
   };
 }

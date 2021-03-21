@@ -1,20 +1,15 @@
 #include <string>
 #include "../detail/ruby.hpp"
+#include "../detail/Type.hpp"
 #include "../detail/Ruby_Function.hpp"
 #include "../detail/from_ruby.hpp"
 #include "../detail/to_ruby.hpp"
 
 namespace Rice::detail
 {
-  template<>
-  struct Type<std::string>
-  {
-    constexpr static void verify()
-    {
-      // All good - nothing to register
-    }
-  };
-  
+  template <>
+  struct is_builtin<std::string> : public std::true_type {};
+
   template<>
   struct From_Ruby<std::string>
   {

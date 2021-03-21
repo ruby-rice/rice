@@ -42,11 +42,6 @@ namespace Rice
   template <typename Base_T>
   inline Data_Type<T> Data_Type<T>::bind(Module const& klass)
   {
-    if (klass.value() == klass_)
-    {
-      return Data_Type<T>();
-    }
-
     if (is_bound())
     {
       std::string message = "Type " + detail::typeName(typeid(T)) + " is already bound to a different type";
@@ -99,6 +94,7 @@ namespace Rice
     {
       detail::protect(rb_gc_unregister_address, &klass_);
       klass_ = Qnil;
+      isDefined = false;
     }
 
     // There could be objects floating around using the existing rb_type so 
@@ -252,7 +248,7 @@ namespace Rice
   {
     if (Data_Type<T>::isDefined)
     {
-      return Data_Type<T>(Data_Type<T>::klass());
+      return Data_Type<T>();
     }
 
     Data_Type<T>::isDefined = true;
@@ -354,7 +350,7 @@ namespace Rice
 
   namespace detail
   {
-    template<typename T, typename std::enable_if_t<!is_primitive_v<T> && !std::is_enum_v<T>>>
+    template<typename T, typename std::enable_if_t<!is_builtin_v<T> && !std::is_enum_v<T>>>
     constexpr void verifyType()
     {
       if (!Data_Type<intrinsic_type<T>>::isDefined)

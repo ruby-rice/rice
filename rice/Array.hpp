@@ -186,17 +186,7 @@ private:
 
   Object tmp_;
 };
-
 } // namespace Rice
-
-template<>
-struct Rice::detail::From_Ruby<Rice::Array>
-{
-  static Rice::Array convert(VALUE value)
-  {
-    return Rice::Array(value);
-  }
-};
 
 #include "Array.ipp"
 

@@ -46,15 +46,6 @@ public:
 
 } // namespace Rice
 
-template<>
-struct Rice::detail::From_Ruby<Rice::Symbol>
-{
-  static Rice::Symbol convert(VALUE value)
-  {
-    return Rice::Symbol(value);
-  }
-};
-
 #include "Symbol.ipp"
 
 #endif // Rice__Symbol__hpp_

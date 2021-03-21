@@ -276,4 +276,3 @@ operator<(
 }
 
 #endif // Rice__Hash__ipp_
-
