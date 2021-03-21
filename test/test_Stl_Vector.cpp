@@ -15,7 +15,7 @@ SETUP(Vector)
   embed_ruby();
 }
 
-/*namespace
+namespace
 {
 
   class MyClass
@@ -388,7 +388,7 @@ TESTCASE(Printable)
 
   Object result = vec.call("to_s");
   ASSERT_EQUAL("[Comparable(1), Comparable(2), Comparable(3)]", detail::From_Ruby<std::string>::convert(result));
-}*/
+}
 
 namespace
 {
@@ -410,7 +410,7 @@ namespace
     return complexes;
   }
 }
-/*
+
 TESTCASE(AutoRegisterReturn)
 {
   define_global_function("return_complex_vector", &returnComplexVector);
@@ -426,7 +426,7 @@ TESTCASE(AutoRegisterReturn)
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
 }
-*/
+
 TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_complex_vector", &passComplexVector);
