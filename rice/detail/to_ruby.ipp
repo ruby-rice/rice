@@ -1,3 +1,5 @@
+#include "Ruby_Function.hpp"
+
 namespace Rice
 {
   namespace detail
@@ -149,15 +151,6 @@ namespace Rice
       static VALUE convert(const char* x, bool takeOwnership = false)
       {
         return rb_str_new2(x);
-      }
-    };
-
-    template<>
-    struct To_Ruby<std::string>
-    {
-      static VALUE convert(std::string const& x, bool takeOwnership = false)
-      {
-        return rb_str_new(x.data(), (long)x.size());
       }
     };
   }

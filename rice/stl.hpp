@@ -1,6 +1,8 @@
 #ifndef Rice__stl__hpp_
 #define Rice__stl__hpp_
 
+#include "stl/string.hpp"
+#include "stl/complex.hpp"
 #include "stl/optional.hpp"
 #include "stl/smart_ptr.hpp"
 #include "stl/vector.hpp"

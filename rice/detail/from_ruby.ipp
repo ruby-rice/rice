@@ -215,16 +215,6 @@ namespace Rice
         return (float)protect(rb_num2dbl, value);
       }
     };
-
-    template<>
-    struct From_Ruby<std::string>
-    {
-      static std::string convert(VALUE value)
-      {
-        protect(rb_check_type, value, (int)T_STRING);
-        return std::string(RSTRING_PTR(value), RSTRING_LEN(value));
-      }
-    };
   }
 }
 #endif // Rice__detail__from_ruby__ipp_
