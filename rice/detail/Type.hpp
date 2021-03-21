@@ -7,6 +7,12 @@
 
 namespace Rice::detail
 {
+  template <typename T, typename = void>
+  struct is_builtin : public std::false_type {};
+
+  template <typename T>
+  constexpr bool is_builtin_v = is_builtin<T>::value;
+
   template<typename T>
   struct Type
   {

@@ -127,8 +127,7 @@ struct Rice::detail::To_Ruby
 };
 
 template <typename T>
-struct Rice::detail::To_Ruby<const T&, std::enable_if_t<!Rice::detail::is_primitive_v<T> &&
-  !Rice::detail::is_kind_of_object<T>>>
+struct Rice::detail::To_Ruby<const T&, std::enable_if_t<!Rice::detail::is_builtin_v<T>>>
 {
   static VALUE convert(const T& data, bool isOwner)
   {
@@ -140,8 +139,7 @@ struct Rice::detail::To_Ruby<const T&, std::enable_if_t<!Rice::detail::is_primit
 };
 
 template <typename T>
-struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_primitive_v<T> &&
-  !Rice::detail::is_kind_of_object<T>>>
+struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_builtin_v<T>>>
 {
   static VALUE convert(T* data, bool isOwner)
   {
@@ -241,5 +239,25 @@ struct Rice::detail::From_Ruby<T*>
     throw create_type_exception<Intrinsic_T>(value);
   }
 };
-#endif // Rice__Data_Object__ipp_
 
+namespace Rice::detail
+{
+  template<typename T>
+  struct From_Ruby<Data_Object<T>>
+  {
+    static Data_Object<T> convert(VALUE value)
+    {
+      return Data_Object<T>(value);
+    }
+  };
+
+  template<typename T>
+  struct To_Ruby<Data_Object<T>>
+  {
+    static VALUE convert(Object const& x, bool takeOwnership = false)
+    {
+      return x.value();
+    }
+  };
+}
+#endif // Rice__Data_Object__ipp_

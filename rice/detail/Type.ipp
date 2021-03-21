@@ -15,6 +15,10 @@
 
 namespace Rice::detail
 {
+  template <typename T>
+  struct is_builtin<T, std::enable_if_t<std::is_fundamental_v<intrinsic_type<T>>>> : 
+    public std::true_type {};
+
   // In theory this could be done a separate template specializations using SFINAE. However
   // when I tried that, and then added specialations for std::unique_ptr<T>, MSVC and GCC
   // both complained that two specializations matched. Not sure why...sigh.
@@ -24,11 +28,7 @@ namespace Rice::detail
   template<typename T>
   constexpr void Type<T>::verify()
   {
-    if constexpr (is_primitive_v<T>)
-    {
-      // Do nothing
-    }
-    else if constexpr (is_kind_of_object<T>)
+    if constexpr (is_builtin_v<T>)
     {
       // Do nothing
     }
