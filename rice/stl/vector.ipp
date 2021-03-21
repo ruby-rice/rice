@@ -331,7 +331,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector_auto()
   {
-    std::string klassName = detail::makeClassName(typeid(T::value_type));
+    std::string klassName = detail::makeClassName(typeid(typename T::value_type));
     Module rb_mRice = define_module("Rice");
     Module rb_mVector = define_module_under(rb_mRice, "Vector");
     return define_vector_under<T>(rb_mVector, klassName);
