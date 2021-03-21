@@ -186,7 +186,11 @@ namespace Rice
   template<typename Director_T>
   inline Data_Type<T>& Data_Type<T>::define_director()
   {
-    Data_Type<Director_T>::bind(*this);
+    if (!Data_Type<Director_T>::isDefined)
+    {
+      Data_Type<Director_T>::isDefined = true;
+      Data_Type<Director_T>::bind(*this);
+    }
 
     // TODO - hack to fake Ruby into thinking that a Director is
     // the same as the base data type
