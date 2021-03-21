@@ -15,6 +15,7 @@ namespace Rice::detail
 
   // Return the name of a type
   std::string typeName(const std::type_info& typeInfo);
+  std::string makeClassName(const std::type_info& typeInfo);
 
   template<typename T>
   constexpr void verifyType();

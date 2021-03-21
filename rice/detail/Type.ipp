@@ -3,6 +3,8 @@
 
 #include "rice_traits.hpp"
 
+#include <numeric>
+#include <regex>
 #include <tuple>
 
 #ifdef __GNUC__
@@ -112,6 +114,38 @@ namespace Rice::detail
   inline std::string typeName(const std::type_info& typeInfo)
   {
     return demangle(typeInfo.name());
+  }
+
+  inline std::string makeClassName(const std::type_info& typeInfo)
+  {
+    std::string base = demangle(typeInfo.name());
+
+    // Remove class keyword
+    auto classRegex = std::regex("class +");
+    base = std::regex_replace(base, classRegex, "");
+
+    // Remove std::
+    auto stdRegex = std::regex("std::");
+    base = std::regex_replace(base, stdRegex, "");
+
+    // Replace < and >
+    auto angleBracketRegex = std::regex("<|>");
+    base = std::regex_replace(base, angleBracketRegex, " ");
+
+    // Now create a vector of strings split on whitespace
+    std::istringstream stream(base);
+    std::vector<std::string> words{ std::istream_iterator<std::string>{stream},
+                                    std::istream_iterator<std::string>{} };
+
+    std::string result = std::accumulate(words.begin(), words.end(), std::string(),
+      [](const std::string& memo, const std::string& word) -> std::string
+      {
+        std::string capitalized = word;
+        capitalized[0] = toupper(capitalized[0]);
+        return memo + capitalized;
+      });
+
+    return result;
   }
 }
 
