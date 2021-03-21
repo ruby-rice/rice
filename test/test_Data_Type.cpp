@@ -374,9 +374,9 @@ namespace
 TESTCASE(not_defined)
 {
 #ifdef _MSC_VER
-  const char* message = "Type not defined with Rice: class `anonymous namespace'::SomeClass";
+  const char* message = "Type is not defined with Rice: class `anonymous namespace'::SomeClass";
 #else
-  const char* message = "Type not defined with Rice: (anonymous namespace)::SomeClass";
+  const char* message = "Type is not defined with Rice: (anonymous namespace)::SomeClass";
 #endif
     
     ASSERT_EXCEPTION_CHECK(

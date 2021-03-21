@@ -128,9 +128,9 @@ TESTCASE(not_defined)
   Data_Type<DataStruct> c = define_class<DataStruct>("DataStruct");
 
 #ifdef _MSC_VER    
-  const char* message = "Type not defined with Rice: class `anonymous namespace'::SomeClass";
+  const char* message = "Type is not defined with Rice: class `anonymous namespace'::SomeClass";
 #else
-  const char* message = "Type not defined with Rice: (anonymous namespace)::SomeClass";
+  const char* message = "Type is not defined with Rice: (anonymous namespace)::SomeClass";
 #endif
 
   ASSERT_EXCEPTION_CHECK(

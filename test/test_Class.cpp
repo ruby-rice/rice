@@ -152,7 +152,7 @@ TESTCASE(module_function)
   ASSERT_EXCEPTION_CHECK(
     std::runtime_error,
     c.define_module_function("some_function", &some_function),
-    ASSERT_EQUAL("foo", ex.what())
+    ASSERT_EQUAL("can only define module functions for modules", ex.what())
   );
 }
 

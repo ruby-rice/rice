@@ -160,7 +160,7 @@ TESTCASE(to_ruby)
   Data_Type<MyDataType> rb_cFoo;
   MyDataType * myDataType = new MyDataType;
   Data_Object<MyDataType> wrapped_foo(myDataType);
-  ASSERT_EQUAL(String("abc"), wrapped_foo.class_name());
+  ASSERT_EQUAL(String("MyDataType"), wrapped_foo.class_name());
 }
 
 TESTCASE(from_ruby)
