@@ -80,6 +80,9 @@ public:
    */
   String to_s() const;
 
+  //! Return the name of an object's class.
+  String class_name() const;
+
   //! Inspect the object.
   /*! \return the result of calling inspect on the object.  A String is
    *  not returned, because it is not possible to return an instance of

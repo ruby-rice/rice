@@ -14,6 +14,11 @@ namespace Rice
     return call("to_s");
   }
 
+  inline String Object::class_name() const
+  {
+    return detail::protect(rb_obj_classname, this->value());
+  }
+
   inline String Object::inspect() const
   {
     return call("inspect");
