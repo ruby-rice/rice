@@ -207,6 +207,11 @@ define_enum(
     char const * name,
     Module module)
 {
+  if (Rice::Enum<T>::isDefined)
+  {
+    return Rice::Enum<T>(Rice::Enum<T>::klass());
+  }
+
   Rice::Enum<T>::isDefined = true;
   return Enum<T>(name, module);
 }

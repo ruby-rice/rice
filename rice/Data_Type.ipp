@@ -224,6 +224,11 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class_under(Object module, char const* name)
   {
+    if (Data_Type<T>::isDefined)
+    {
+      return Data_Type<T>(Data_Type<T>::klass());
+    }
+    
     Data_Type<T>::isDefined = true;
 
     Class superKlass;
@@ -245,6 +250,11 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class(char const* name)
   {
+    if (Data_Type<T>::isDefined)
+    {
+      return Data_Type<T>(Data_Type<T>::klass());
+    }
+
     Data_Type<T>::isDefined = true;
 
     Class superKlass;
