@@ -326,7 +326,30 @@ TESTCASE(NotPrintable)
   ASSERT_EQUAL("[Not printable]", detail::From_Ruby<std::string>::convert(result));
 }
 
-c
+namespace
+{
+  class Comparable
+  {
+  public:
+    Comparable(uint32_t value) : value_(value)
+    {
+    };
+
+    bool operator==(const Comparable& other)
+    {
+      return this->value_ == other.value_;
+    }
+
+    uint32_t value_;
+  };
+
+  inline std::ostream& operator<<(std::ostream& stream, Comparable const& comparable)
+  {
+    stream << "Comparable(" << std::to_string(comparable.value_) << ")";
+    return stream;
+  }
+}
+
 TESTCASE(Comparable)
 {
   define_class<Comparable>("IsComparable").
