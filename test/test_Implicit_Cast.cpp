@@ -216,10 +216,6 @@ TESTCASE(operator_casts)
   define_class<Celsius>("Celsius")
     .define_constructor(Constructor<Celsius, double>());
 
-  Fahrenheit* f1 = new Fahrenheit(212);
- // Celsius c1(*f1);
-  Celsius c2 = *f1;
-    
   define_implicit_cast<Fahrenheit, Celsius>();
   define_implicit_cast<Celsius, Fahrenheit>();
 
@@ -248,7 +244,8 @@ TESTCASE(operator_casts)
  * This is the operator version of casting and shows that this works for
  * base types as well as defined types
  */
-namespace {
+/*namespace
+{
   struct Real
   {
     Real(int x)
@@ -274,7 +271,7 @@ namespace {
   }
 }
 
-/*TESTCASE(primitive_casts)
+TESTCASE(primitive_casts)
 {
   define_class<Real>("Real")
     .define_constructor(Constructor<Real, int>());

@@ -27,12 +27,6 @@ namespace
 namespace Rice
 {
   template<>
-  MyDataType* detail::From_Ruby<MyDataType*>::convert(VALUE x)
-  {
-    return detail::unwrap<MyDataType>(x, Data_Type<MyDataType>::rb_type());
-  }
-
-  template<>
   void ruby_mark(MyDataType* myDataType)
   {
     test_ruby_mark_called = true;
