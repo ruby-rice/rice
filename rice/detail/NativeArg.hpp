@@ -21,7 +21,7 @@ namespace Rice
                             !(std::is_same_v<char, intrinsic_type<T>> && std::is_pointer_v<T>)>>
     {
     public:
-      using Intrinsic_T = std::decay_t<std::remove_pointer_t<T>>;
+      using Intrinsic_T = intrinsic_type<T>;
 
       T nativeValue(VALUE value)
       {
@@ -53,6 +53,7 @@ namespace Rice
         return From_Ruby<T>::convert(value);
       }
     };
+
 
     // NativeArg implementation that works on all other types. The primary use is for 
     // pointers wrapped by Data_Object where there is no reason to store a local copy.
