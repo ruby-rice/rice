@@ -1,7 +1,10 @@
+#include <iostream>
+
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
+
 #include <rice/rice.hpp>
-#include <iostream>
+#include <rice/stl.hpp>
 
 using namespace Rice;
 
@@ -104,9 +107,9 @@ TESTCASE(each_seasons)
 TESTCASE(to_s)
 {
   Enum<Color> rb_cColor = define_color_enum();
-  ASSERT_EQUAL(String("RED"), String(rb_eval_string("Color::RED.to_s")));
-  ASSERT_EQUAL(String("BLACK"), String(rb_eval_string("Color::BLACK.to_s")));
-  ASSERT_EQUAL(String("GREEN"), String(rb_eval_string("Color::GREEN.to_s")));
+  ASSERT_EQUAL(String("RED"), String(detail::protect(rb_eval_string, "Color::RED.to_s")));
+  ASSERT_EQUAL(String("BLACK"), String(detail::protect(rb_eval_string, "Color::BLACK.to_s")));
+  ASSERT_EQUAL(String("GREEN"), String(detail::protect(rb_eval_string, "Color::GREEN.to_s")));
 }
 
 TESTCASE(to_i)

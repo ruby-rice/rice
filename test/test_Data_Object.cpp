@@ -160,15 +160,15 @@ TESTCASE(to_ruby)
   Data_Type<MyDataType> rb_cFoo;
   MyDataType * myDataType = new MyDataType;
   Data_Object<MyDataType> wrapped_foo(myDataType);
-  ASSERT_EQUAL(wrapped_foo.value(), detail::to_ruby(wrapped_foo));
+  ASSERT_EQUAL(String("abc"), wrapped_foo.class_name());
 }
 
 TESTCASE(from_ruby)
 {
   Data_Type<MyDataType> rb_cFoo;
-  MyDataType * myDataType = new MyDataType;
+  MyDataType* myDataType = new MyDataType();
   Data_Object<MyDataType> wrapped_foo(myDataType);
-  ASSERT_EQUAL(myDataType, detail::From_Ruby<MyDataType *>::convert(wrapped_foo));
+  ASSERT_EQUAL(myDataType, wrapped_foo.get());
 }
 
 TESTCASE(from_ruby_const_ref)

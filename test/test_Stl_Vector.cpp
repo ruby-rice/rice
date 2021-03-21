@@ -3,6 +3,7 @@
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
+#include <complex>
 #include <memory>
 
 using namespace Rice;
@@ -14,7 +15,7 @@ SETUP(Vector)
   embed_ruby();
 }
 
-namespace
+/*namespace
 {
 
   class MyClass
@@ -325,30 +326,7 @@ TESTCASE(NotPrintable)
   ASSERT_EQUAL("[Not printable]", detail::From_Ruby<std::string>::convert(result));
 }
 
-namespace
-{
-  class Comparable
-  {
-  public:
-    Comparable(uint32_t value) : value_(value)
-    {
-    };
-
-    bool operator==(const Comparable& other)
-    {
-      return this->value_ == other.value_;
-    }
-
-    uint32_t value_;
-  };
-
-  inline std::ostream& operator<<(std::ostream& stream, Comparable const& comparable)
-  {
-    stream << "Comparable(" << std::to_string(comparable.value_) << ")";
-    return stream;
-  }
-}
-
+c
 TESTCASE(Comparable)
 {
   define_class<Comparable>("IsComparable").
@@ -410,4 +388,62 @@ TESTCASE(Printable)
 
   Object result = vec.call("to_s");
   ASSERT_EQUAL("[Comparable(1), Comparable(2), Comparable(3)]", detail::From_Ruby<std::string>::convert(result));
+}*/
+
+namespace
+{
+  std::vector<std::complex<uint32_t>> returnComplexVector()
+  {
+    std::complex<uint32_t> complex1(1, 1);
+    std::complex<uint32_t> complex2(2, 2);
+    std::complex<uint32_t> complex3(3, 3);
+
+    std::vector<std::complex<uint32_t>> result;
+    result.push_back(complex1);
+    result.push_back(complex2);
+    result.push_back(complex3);
+    return result;
+  }
+
+  std::vector<std::complex<double>> passComplexVector(std::vector<std::complex<double>>& complexes)
+  {
+    return complexes;
+  }
+}
+/*
+TESTCASE(AutoRegisterReturn)
+{
+  define_global_function("return_complex_vector", &returnComplexVector);
+
+  Module m = define_module("Testing");
+  Object vec = m.instance_eval("return_complex_vector");
+  ASSERT_EQUAL("Rice::Vector::ComplexUnsignedInt", vec.class_name().str());
+
+  std::string code = R"(vector = return_complex_vector
+                        complex = vector.last
+                        complex == Complex(3, 3))";
+
+  Object result = m.instance_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
+}
+*/
+TESTCASE(AutoRegisterParameter)
+{
+  define_global_function("pass_complex_vector", &passComplexVector);
+
+  std::string code = R"(vector = Rice::Vector::ComplexDouble.new
+                        vector << Complex(4.0, 4.0)
+                        vector << Complex(5.0, 5.0)
+                        pass_complex_vector(vector))";
+
+  Module m = define_module("Testing");
+  Object vec = m.instance_eval(code);
+
+  Object result = vec.call("size");
+  ASSERT_EQUAL("Rice::Vector::ComplexDouble", vec.class_name().str());
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>::convert(result));
+
+  std::vector<std::complex<double>> complexes = detail::From_Ruby<std::vector<std::complex<double>>>::convert(vec);
+  ASSERT_EQUAL(complexes[0], std::complex<double>(4, 4));
+  ASSERT_EQUAL(complexes[1], std::complex<double>(5, 5));
 }
