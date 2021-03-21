@@ -277,3 +277,29 @@ namespace {
 TESTCASE(use_array_in_wrapped_function) {
   define_global_function("test_array_arg", &testArrayArg);
 }
+
+TESTCASE(array_to_ruby)
+{
+  Array a(rb_ary_new());
+  ASSERT(rb_equal(a.value(), detail::to_ruby(a)));
+}
+
+TESTCASE(array_ref_to_ruby)
+{
+  Array a(rb_ary_new());
+  Array& ref = a;
+  ASSERT(rb_equal(a.value(), detail::to_ruby(ref)));
+}
+
+TESTCASE(array_ptr_to_ruby)
+{
+  Array a(rb_ary_new());
+  Array* ptr = &a;
+  ASSERT(rb_equal(a.value(), detail::to_ruby(ptr)));
+}
+
+TESTCASE(array_from_ruby)
+{
+  Array a(rb_ary_new());
+  ASSERT_EQUAL(a, detail::From_Ruby<Array>::convert(a));
+}
