@@ -150,7 +150,7 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<Value_T>)
         {
-          klass_.define_method("delete", [](T& self, const Value_T& element) -> std::optional<Value_T>
+          klass_.define_method("delete", [](T& self, Value_T& element) -> std::optional<Value_T>
             {
               auto iter = std::find(self.begin(), self.end(), element);
               if (iter == self.end())
@@ -164,11 +164,11 @@ namespace Rice
                 return result;
               }
             })
-          .define_method("include?", [](T& self, const Value_T& element)
+          .define_method("include?", [](T& self, Value_T& element)
             {
               return std::find(self.begin(), self.end(), element) != self.end();
             })
-          .define_method("index", [](T& self, const Value_T& element) -> std::optional<Difference_T>
+          .define_method("index", [](T& self, Value_T& element) -> std::optional<Difference_T>
             {
               auto iter = std::find(self.begin(), self.end(), element);
               if (iter == self.end())
@@ -183,15 +183,15 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("delete", [](T& self, const Value_T& element) -> std::optional<Value_T>
+          klass_.define_method("delete", [](T& self, Value_T& element) -> std::optional<Value_T>
             {
               return std::nullopt;
             })
-          .define_method("include?", [](const T& self, const Value_T& element)
+          .define_method("include?", [](const T& self, Value_T& element)
             {
               return false;
             })
-          .define_method("index", [](const T& self, const Value_T& element) -> std::optional<Difference_T>
+          .define_method("index", [](const T& self, Value_T& element) -> std::optional<Difference_T>
             {
               return std::nullopt;
             });
@@ -208,7 +208,7 @@ namespace Rice
               self.erase(iter);
               return result;
             })
-          .define_method("insert", [this](T& self, Difference_T index, const Value_T& element) -> T&
+          .define_method("insert", [this](T& self, Difference_T index, Value_T& element) -> T&
             {
               index = normalizeIndex(self.size(), index, true);
               auto iter = self.begin() + index;
@@ -228,7 +228,7 @@ namespace Rice
                 return std::nullopt;
               }
             })
-          .define_method("push", [](T& self, const Value_T& element) -> T&
+          .define_method("push", [](T& self, Value_T& element) -> T&
             {
               self.push_back(element);
               return self;
@@ -249,11 +249,11 @@ namespace Rice
       {
         // Add enumerable support
         klass_.include_module(rb_mEnumerable)
-          .define_method("each", [](const T& self) -> const T&
+          .define_method("each", [](T& self) -> const T&
             {
-              for (const Value_T& item : self)
+              for (Value_T& item : self)
               {
-                VALUE element = detail::To_Ruby<const Value_T>::convert(item, false);
+                VALUE element = detail::To_Ruby<Value_T>::convert(item, false);
                 rb_yield(element);
               }
               return self;
@@ -305,6 +305,11 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector_under(Object module, std::string name)
   {
+    if (Data_Type<T>::isDefined)
+    {
+      return Data_Type<T>(Data_Type<T>::klass());
+    }
+
     Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(module, name.c_str());
     stl::VectorHelper helper(result);
     return result;
@@ -313,6 +318,11 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector(std::string name)
   {
+    if (Data_Type<T>::isDefined)
+    {
+      return Data_Type<T>(Data_Type<T>::klass());
+    }
+
     Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
     stl::VectorHelper<T> helper(result);
     return result;
@@ -321,10 +331,10 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector_auto()
   {
-    std::string name = detail::typeName(typeid(T::value_type));
+    std::string klassName = detail::makeClassName(typeid(T::value_type));
     Module rb_mRice = define_module("Rice");
     Module rb_mVector = define_module_under(rb_mRice, "Vector");
-    return define_vector_under<T>(rb_mVector, name);
+    return define_vector_under<T>(rb_mVector, klassName);
   }
    
   namespace detail
