@@ -23,13 +23,6 @@ namespace
     return colors;
   }
   
-  // This is needed to make unittest compile (it uses ostream to report errors)
-  inline std::ostream& operator<<(std::ostream& os, const Rice::Enum_Storage<Color>& storage)
-  {
-    os << storage.enumName;
-    return os;
-  }
-
   enum class Season { Spring, Summer, Fall, Winter };
 
   // This is needed to make unittest compile (it uses ostream to report errors)
