@@ -51,7 +51,7 @@ struct detail::To_Ruby<Map::value_type>
 {
     static VALUE convert(Map::value_type const & pair)
     {
-        return detail::protect(rb_assoc_new, pair.first, pair.second);
+        return detail::protect(rb_assoc_new, pair.first.value(), pair.second.value());
     }
 };
 
