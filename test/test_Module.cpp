@@ -251,7 +251,7 @@ TESTCASE(remove_const)
 TESTCASE(mod_name_anonymous)
 {
   Module m(anonymous_module());
-  ASSERT_EQUAL(Qnil, m.name().value());
+  ASSERT_EQUAL(String(""), m.name());
 }
 
 /**

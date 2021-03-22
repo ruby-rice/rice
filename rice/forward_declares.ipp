@@ -59,7 +59,15 @@ namespace Rice
 
   inline String Module::name() const
   {
-    return detail::protect(rb_mod_name, this->value());
+    VALUE name = detail::protect(rb_mod_name, this->value());
+    if (name == Qnil)
+    {
+      return String("");
+    }
+    else
+    {
+      return name;
+    }
   }
 
   inline Array Module::ancestors() const
