@@ -4,7 +4,7 @@
 #include <iterator>
 #include <functional>
 
-#include "Data_Object_defn.hpp"
+#include "../Data_Object_defn.hpp"
 #include "method_data.hpp"
 
 namespace Rice
