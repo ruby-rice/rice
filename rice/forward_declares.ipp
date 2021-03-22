@@ -59,7 +59,7 @@ namespace Rice
 
   inline String Module::name() const
   {
-    return rb_mod_name(this->value());
+    return detail::protect(rb_mod_name, this->value());
   }
 
   inline Array Module::ancestors() const
