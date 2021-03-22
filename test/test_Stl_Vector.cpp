@@ -29,7 +29,7 @@ namespace
   };
 }
 
-Class makeClass()
+Class makeVectorClass()
 {
   Class c= define_class<MyClass>("MyClass").
     define_constructor(Constructor<MyClass>()).
