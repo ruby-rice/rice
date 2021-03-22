@@ -124,6 +124,10 @@ namespace Rice::detail
     auto classRegex = std::regex("class +");
     base = std::regex_replace(base, classRegex, "");
 
+    // Remove std::__1::
+    auto stdClangRegex = std::regex("std::_+\\d+::");
+    base = std::regex_replace(base, stdClangRegex, "");
+      
     // Remove std::
     auto stdRegex = std::regex("std::");
     base = std::regex_replace(base, stdRegex, "");
