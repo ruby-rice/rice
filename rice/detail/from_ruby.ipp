@@ -25,7 +25,7 @@ namespace Rice
     {
       static int convert(VALUE value)
       {
-        return protect(rb_num2long_inline, value);
+        return (int)protect(rb_num2long_inline, value);
       }
     };
 
@@ -61,7 +61,7 @@ namespace Rice
     {
       static unsigned int convert(VALUE value)
       {
-        return protect(rb_num2ulong_inline, value);
+        return (unsigned int)protect(rb_num2ulong_inline, value);
       }
     };
 
