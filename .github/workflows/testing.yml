@@ -22,7 +22,7 @@ jobs:
         ruby-version: ${{ matrix.ruby }}
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
     - name: Configure
-      run: rake rice_hpp
+      run: rake rice_headers
     - name: Build
       run: rake build
     - name: Test

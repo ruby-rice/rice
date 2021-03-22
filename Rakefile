@@ -36,7 +36,7 @@ binaries.each do |asset|
 end
 
 desc "Build test binaries"
-task :build => [:rice_hpp, *binaries]
+task :build => [:headers, *binaries]
 
 desc "Clean test binaries"
 task :clean do
@@ -65,18 +65,15 @@ end
 task :test => [:test_cpp]
 
 # ---------  Header  --------------
-rice_hpp = File.join(__dir__, 'include', 'rice.hpp')
+include_dir = File.join(__dir__, 'include', 'rice')
+FileUtils.mkdir_p(include_dir) #unless File.exists?('include')
 
-file rice_hpp do
-  Dir.mkdir('include') unless File.exists?('include')
-  path = File.join(__dir__, 'make_rice_hpp.rb')
+desc "Update rice header files"
+task :headers do
+  FileUtils.rm_rf(File.join(include_dir, "rice", "*"))
+  path = File.join(__dir__, 'make_rice_headers.rb')
+  # Execute make_rice_headers.rb
   run_command(Gem.ruby, path)
-end
-
-desc "Update rice.hpp"
-task :rice_hpp do
-  File.delete(rice_hpp) if File.exists?(rice_hpp)
-  Rake::Task[rice_hpp].invoke
 end
 
 # ---------  Documentation  --------------
@@ -92,4 +89,4 @@ spec = Gem::Specification.load("rice.gemspec")
 Gem::PackageTask.new(spec) do |pkg|
 end
 
-task :package => rice_hpp
+task :package => :headers
