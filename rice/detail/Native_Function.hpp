@@ -93,6 +93,10 @@ auto* Make_Native_Function_With_Self(Func_T&& func, std::shared_ptr<Exception_Ha
 template<typename Return_T, typename Self_T, typename ...Arg_T>
 auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...), std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
 
+// Call a noexcept member function on a C++ object
+template<typename Return_T, typename Self_T, typename ...Arg_T>
+auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) noexcept, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
+
 // Call a const member function on a C++ object
 template<typename Return_T, typename Self_T, typename ...Arg_T>
 auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
