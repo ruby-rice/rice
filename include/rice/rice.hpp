@@ -100,7 +100,7 @@ namespace Rice::detail
   std::string makeClassName(const std::type_info& typeInfo);
 
   template<typename T>
-  constexpr void verifyType();
+  void verifyType();
 
   template<typename Tuple_T>
   constexpr void verifyTypes();
@@ -1069,7 +1069,7 @@ namespace Rice
     {
       static int convert(VALUE value)
       {
-        return protect(rb_num2long_inline, value);
+        return (int)protect(rb_num2long_inline, value);
       }
     };
 
@@ -1105,7 +1105,7 @@ namespace Rice
     {
       static unsigned int convert(VALUE value)
       {
-        return protect(rb_num2ulong_inline, value);
+        return (unsigned int)protect(rb_num2ulong_inline, value);
       }
     };
 
@@ -1262,6 +1262,7 @@ namespace Rice
   }
 }
 #endif // Rice__detail__from_ruby__ipp_
+
 
 
 // =========   Exception_Handler.hpp   =========
@@ -6219,7 +6220,7 @@ namespace Rice
   namespace detail
   {
     template<typename T, typename std::enable_if_t<!is_builtin_v<T> && !std::is_enum_v<T>>>
-    constexpr void verifyType()
+    void verifyType()
     {
       if (!Data_Type<intrinsic_type<T>>::isDefined)
       {
@@ -7105,7 +7106,7 @@ namespace Rice::detail
   };
 
   template<typename T>
-  constexpr void verifyType()
+  void verifyType()
   {
     Type<intrinsic_type<T>>::verify();
   }
@@ -7177,6 +7178,10 @@ namespace Rice::detail
     auto classRegex = std::regex("class +");
     base = std::regex_replace(base, classRegex, "");
 
+    // Remove std::__1::
+    auto stdClangRegex = std::regex("std::_+\\d+::");
+    base = std::regex_replace(base, stdClangRegex, "");
+      
     // Remove std::
     auto stdRegex = std::regex("std::");
     base = std::regex_replace(base, stdRegex, "");
