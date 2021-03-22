@@ -66,17 +66,7 @@ public:
    */
   Identifier intern() const;
 };
-
 } // namespace Rice
-
-template<>
-struct Rice::detail::From_Ruby<Rice::String>
-{
-  static Rice::String convert(VALUE value)
-  {
-    return Rice::String(value);
-  }
-};
 
 #include "String.ipp"
 
