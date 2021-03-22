@@ -97,6 +97,10 @@ auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...), std::sh
 template<typename Return_T, typename Self_T, typename ...Arg_T>
 auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
 
+// Call a const noexcept member function on a C++ object
+template<typename Return_T, typename Self_T, typename ...Arg_T>
+auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const noexcept, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
+
 } // detail
 
 } // Rice

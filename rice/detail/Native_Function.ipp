@@ -284,5 +284,13 @@ auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const, s
   return new Native_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, arguments);
 }
 
+// Call a const member function on a C++ object
+template<typename Return_T, typename Self_T, typename ...Arg_T>
+auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const noexcept, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
+{
+  using Function_T = Return_T(Self_T::*)(Arg_T...) const noexcept;
+  return new Native_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, arguments);
+}
+
 } // detail
 } // Rice
