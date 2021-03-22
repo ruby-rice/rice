@@ -24,7 +24,7 @@ namespace Rice::detail
   std::string makeClassName(const std::type_info& typeInfo);
 
   template<typename T>
-  constexpr void verifyType();
+  void verifyType();
 
   template<typename Tuple_T>
   constexpr void verifyTypes();

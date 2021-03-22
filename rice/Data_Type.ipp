@@ -355,7 +355,7 @@ namespace Rice
   namespace detail
   {
     template<typename T, typename std::enable_if_t<!is_builtin_v<T> && !std::is_enum_v<T>>>
-    constexpr void verifyType()
+    void verifyType()
     {
       if (!Data_Type<intrinsic_type<T>>::isDefined)
       {

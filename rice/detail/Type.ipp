@@ -52,7 +52,7 @@ namespace Rice::detail
   };
 
   template<typename T>
-  constexpr void verifyType()
+  void verifyType()
   {
     Type<intrinsic_type<T>>::verify();
   }
