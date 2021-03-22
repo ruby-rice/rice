@@ -3233,17 +3233,7 @@ public:
    */
   Identifier intern() const;
 };
-
 } // namespace Rice
-
-template<>
-struct Rice::detail::From_Ruby<Rice::String>
-{
-  static Rice::String convert(VALUE value)
-  {
-    return Rice::String(value);
-  }
-};
 
 
 // ---------   String.ipp   ---------
@@ -3328,6 +3318,29 @@ intern() const
 {
   return rb_intern(c_str());
 }
+
+namespace Rice::detail
+{
+  template<>
+  struct From_Ruby<String>
+  {
+    static String convert(VALUE value)
+    {
+      return String(value);
+    }
+  };
+
+  template<>
+  struct To_Ruby<String>
+  {
+    static VALUE convert(String const& x, bool takeOwnership = false)
+    {
+      return x.value();
+    }
+  };
+}
+
+
 
 
 // =========   Array.hpp   =========
