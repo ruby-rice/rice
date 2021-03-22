@@ -105,7 +105,12 @@ TESTCASE(SelfPointer)
   ASSERT_EQUAL(1, SelfClass::constructorCalls);
   ASSERT_EQUAL(0, SelfClass::copyConstructorCalls);
   ASSERT_EQUAL(0, SelfClass::moveConstructorCalls);
+
+#ifdef _MSC_VER
   ASSERT_EQUAL(0, SelfClass::destructorCalls);
+#else
+  ASSERT_EQUAL(1, SelfClass::destructorCalls);
+#endif
 }
 
 TESTCASE(SelfReference)
@@ -162,7 +167,12 @@ TESTCASE(SelfPointerLambda)
   ASSERT_EQUAL(1, SelfClass::constructorCalls);
   ASSERT_EQUAL(0, SelfClass::copyConstructorCalls);
   ASSERT_EQUAL(0, SelfClass::moveConstructorCalls);
+
+#ifdef _MSC_VER
   ASSERT_EQUAL(0, SelfClass::destructorCalls);
+#else
+  ASSERT_EQUAL(1, SelfClass::destructorCalls);
+#endif
 }
 
 TESTCASE(SelfReferenceLambda)
@@ -200,5 +210,10 @@ TESTCASE(SelfValueLambda)
   ASSERT_EQUAL(1, SelfClass::constructorCalls);
   ASSERT_EQUAL(1, SelfClass::copyConstructorCalls);
   ASSERT_EQUAL(1, SelfClass::moveConstructorCalls);
+
+#ifdef _MSC_VER
+  ASSERT_EQUAL(0, SelfClass::destructorCalls);
+#else
   ASSERT_EQUAL(1, SelfClass::destructorCalls);
+#endif
 }
