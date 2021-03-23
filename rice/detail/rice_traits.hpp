@@ -4,6 +4,7 @@
 #include <ostream>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 namespace Rice
 {
@@ -24,7 +25,7 @@ namespace Rice
     constexpr bool is_ostreamable_v = is_ostreamable<T>::value;
 
     // Is the type comparable?
-    template<typename T, class = void>
+    template<typename T, typename SFINAE = void>
     struct is_comparable : std::false_type {};
 
     template<typename T>
@@ -32,6 +33,18 @@ namespace Rice
 
     template<typename T>
     constexpr bool is_comparable_v = is_comparable<T>::value;
+
+    template <typename U, typename V>
+    struct is_comparable<std::pair<U, V>>
+    {
+      static const bool value = is_comparable_v<U> && is_comparable_v<V>;
+    };
+
+    template <typename T>
+    struct is_comparable<std::vector<T>>
+    {
+      static const bool value = is_comparable_v<T>;
+    };
 
   } // detail
 } // Rice
