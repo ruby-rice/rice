@@ -4,6 +4,7 @@
 #include "stl/string.hpp"
 #include "stl/complex.hpp"
 #include "stl/optional.hpp"
+#include "stl/pair.hpp"
 #include "stl/smart_ptr.hpp"
 #include "stl/vector.hpp"
 
