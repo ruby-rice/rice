@@ -39,7 +39,7 @@ namespace Rice
     template<typename T>
     struct To_Ruby<T&, std::enable_if_t<is_builtin_v<T>>>
     {
-      static VALUE convert(T const& x, bool takeOwnership = false)
+      static VALUE convert(T& x, bool takeOwnership = false)
       {
         return To_Ruby<intrinsic_type<T>>::convert(x, takeOwnership);
       }
@@ -48,7 +48,7 @@ namespace Rice
     template<typename T>
     struct To_Ruby<T*, std::enable_if_t<is_builtin_v<T>>>
     {
-      static VALUE convert(T const* x, bool takeOwnership = false)
+      static VALUE convert(T* x, bool takeOwnership = false)
       {
         return To_Ruby<intrinsic_type<T>>::convert(*x, takeOwnership);
       }
