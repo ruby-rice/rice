@@ -124,6 +124,10 @@ namespace Rice::detail
     auto classRegex = std::regex("class +");
     base = std::regex_replace(base, classRegex, "");
 
+    // Remove struct keyword
+    auto structRegex = std::regex("struct +");
+    base = std::regex_replace(base, structRegex, "");
+
     // Remove std::__1::
     auto stdClangRegex = std::regex("std::_+\\d+::");
     base = std::regex_replace(base, stdClangRegex, "");
@@ -134,7 +138,11 @@ namespace Rice::detail
 
     // Replace < and >
     auto angleBracketRegex = std::regex("<|>");
-    base = std::regex_replace(base, angleBracketRegex, " ");
+    base = std::regex_replace(base, angleBracketRegex, "__");
+
+    // Replace ,
+    auto commaRegex = std::regex(",");
+    base = std::regex_replace(base, commaRegex, "_");
 
     // Now create a vector of strings split on whitespace
     std::istringstream stream(base);
