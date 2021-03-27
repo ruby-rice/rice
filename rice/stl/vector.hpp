@@ -1,5 +1,5 @@
-#ifndef Rice__stl__Vector__hpp_
-#define Rice__stl__Vector__hpp_
+#ifndef Rice__stl__vector__hpp_
+#define Rice__stl__vector__hpp_
 
 #include "../detail/ruby.hpp"
 
@@ -14,5 +14,4 @@ namespace Rice
 
 #include "vector.ipp"
 
-#endif // Rice__stl__Vector__hpp_
-
+#endif // Rice__stl__vector__hpp_

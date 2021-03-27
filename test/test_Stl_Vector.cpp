@@ -440,7 +440,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object vec = m.instance_eval("return_complex_vector");
-  ASSERT_EQUAL("Rice::Vector::ComplexUnsignedInt", vec.class_name().str());
+  ASSERT_EQUAL("Rice::Std::Vector__complex__unsignedInt___allocator__complex__unsignedInt______", vec.class_name().str());
 
   std::string code = R"(vector = return_complex_vector
                         complex = vector.last
@@ -454,7 +454,7 @@ TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_complex_vector", &passComplexVector);
 
-  std::string code = R"(vector = Rice::Vector::ComplexDouble.new
+  std::string code = R"(vector = Rice::Std::Vector__complex__double___allocator__complex__double______.new
                         vector << Complex(4.0, 4.0)
                         vector << Complex(5.0, 5.0)
                         pass_complex_vector(vector))";
@@ -463,7 +463,7 @@ TESTCASE(AutoRegisterParameter)
   Object vec = m.instance_eval(code);
 
   Object result = vec.call("size");
-  ASSERT_EQUAL("Rice::Vector::ComplexDouble", vec.class_name().str());
+  ASSERT_EQUAL("Rice::Std::Vector__complex__double___allocator__complex__double______", vec.class_name().str());
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>::convert(result));
 
   std::vector<std::complex<double>> complexes = detail::From_Ruby<std::vector<std::complex<double>>>::convert(vec);
