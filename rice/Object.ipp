@@ -24,17 +24,19 @@ operator=(Object&& other)
   return *this;
 }
 
-template<typename ...ArgT>
+template<typename ...Arg_Ts>
 inline Rice::Object Rice::Object::
-call(Identifier id, ArgT... args) const
+call(Identifier id, Arg_Ts... args) const
 {
-  auto asList = this->convert_args<ArgT...>(args...);
-  return detail::protect(rb_funcall2, value(), id.id(), (int)asList.size(), (const VALUE*)asList.data());
-}
-
-template<typename ...ArgT>
-std::vector<VALUE> Rice::Object::convert_args(ArgT&... args) const {
-  return std::vector<VALUE>{ detail::To_Ruby<ArgT>::convert(args, false)... };
+  /* IMPORTANT - We store VALUEs in an array that is a local variable.
+     That allows the Ruby garbage collector to find them when scanning
+     the stack and thus mark them. If instead we use a vector, then Ruby's GC
+     can't find the VALUEs and may garbage collect them before they are sent
+     to the destination method resulting in a segmentation fault. This is
+     easy to duplicate by setting GC.stress to true and calling a constructor
+     that takes multiple values like a std::pair wrapper. */
+  std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<Arg_Ts>::convert(args, false)... };
+  return detail::protect(rb_funcall2, value(), id.id(), (int)values.size(), (const VALUE*)values.data());
 }
 
 template<typename T>

@@ -187,8 +187,8 @@ public:
   *    float ret = x.call<float>("foo", z, 42);
   *  \endcode
   */
-  template<typename ...ArgT>
-  Object call(Identifier id, ArgT... args) const;
+  template<typename ...Arg_Ts>
+  Object call(Identifier id, Arg_Ts... args) const;
 
   //! Vectorized call.
   /*! Calls the method identified by id with the list of arguments
@@ -202,10 +202,6 @@ public:
 protected:
   //! Set the encapsulated value.
   void set_value(VALUE v);
-
-  //! Unpack the provided arguments and convert them all to Ruby types.
-  template<typename ...ArgT>
-  std::vector<VALUE> convert_args(ArgT&... args) const;
 
 private:
   volatile VALUE value_;
