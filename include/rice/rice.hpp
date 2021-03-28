@@ -1556,7 +1556,7 @@ namespace Rice
     template<typename T>
     struct To_Ruby<T&, std::enable_if_t<is_builtin_v<T>>>
     {
-      static VALUE convert(T const& x, bool takeOwnership = false)
+      static VALUE convert(T& x, bool takeOwnership = false)
       {
         return To_Ruby<intrinsic_type<T>>::convert(x, takeOwnership);
       }
@@ -1565,7 +1565,7 @@ namespace Rice
     template<typename T>
     struct To_Ruby<T*, std::enable_if_t<is_builtin_v<T>>>
     {
-      static VALUE convert(T const* x, bool takeOwnership = false)
+      static VALUE convert(T* x, bool takeOwnership = false)
       {
         return To_Ruby<intrinsic_type<T>>::convert(*x, takeOwnership);
       }
@@ -2866,8 +2866,8 @@ public:
   *    float ret = x.call<float>("foo", z, 42);
   *  \endcode
   */
-  template<typename ...ArgT>
-  Object call(Identifier id, ArgT... args) const;
+  template<typename ...Arg_Ts>
+  Object call(Identifier id, Arg_Ts... args) const;
 
   //! Vectorized call.
   /*! Calls the method identified by id with the list of arguments
@@ -2881,10 +2881,6 @@ public:
 protected:
   //! Set the encapsulated value.
   void set_value(VALUE v);
-
-  //! Unpack the provided arguments and convert them all to Ruby types.
-  template<typename ...ArgT>
-  std::vector<VALUE> convert_args(ArgT&... args) const;
 
 private:
   volatile VALUE value_;
@@ -2934,17 +2930,19 @@ operator=(Object&& other)
   return *this;
 }
 
-template<typename ...ArgT>
+template<typename ...Arg_Ts>
 inline Rice::Object Rice::Object::
-call(Identifier id, ArgT... args) const
+call(Identifier id, Arg_Ts... args) const
 {
-  auto asList = this->convert_args<ArgT...>(args...);
-  return detail::protect(rb_funcall2, value(), id.id(), (int)asList.size(), (const VALUE*)asList.data());
-}
-
-template<typename ...ArgT>
-std::vector<VALUE> Rice::Object::convert_args(ArgT&... args) const {
-  return std::vector<VALUE>{ detail::To_Ruby<ArgT>::convert(args, false)... };
+  /* IMPORTANT - We store VALUEs in an array that is a local variable.
+     That allows the Ruby garbage collector to find them when scanning
+     the stack and thus mark them. If instead we use a vector, then Ruby's GC
+     can't find the VALUEs and may garbage collect them before they are sent
+     to the destination method resulting in a segmentation fault. This is
+     easy to duplicate by setting GC.stress to true and calling a constructor
+     that takes multiple values like a std::pair wrapper. */
+  std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<Arg_Ts>::convert(args, false)... };
+  return detail::protect(rb_funcall2, value(), id.id(), (int)values.size(), (const VALUE*)values.data());
 }
 
 template<typename T>
@@ -6719,10 +6717,7 @@ default_allocation_func(VALUE klass)
   // Create a new Ruby object but since we do not yet have a C++ object
   // just pass a nullptr. It will be set via the Constructor call
   return TypedData_Wrap_Struct(klass, Data_Type<T>::rb_type(), nullptr);
-} 
-
-
-
+}
 
 // =========   Enum.hpp   =========
 
@@ -7191,6 +7186,10 @@ namespace Rice::detail
     auto classRegex = std::regex("class +");
     base = std::regex_replace(base, classRegex, "");
 
+    // Remove struct keyword
+    auto structRegex = std::regex("struct +");
+    base = std::regex_replace(base, structRegex, "");
+
     // Remove std::__1::
     auto stdClangRegex = std::regex("std::_+\\d+::");
     base = std::regex_replace(base, stdClangRegex, "");
@@ -7201,7 +7200,11 @@ namespace Rice::detail
 
     // Replace < and >
     auto angleBracketRegex = std::regex("<|>");
-    base = std::regex_replace(base, angleBracketRegex, " ");
+    base = std::regex_replace(base, angleBracketRegex, "__");
+
+    // Replace ,
+    auto commaRegex = std::regex(",");
+    base = std::regex_replace(base, commaRegex, "_");
 
     // Now create a vector of strings split on whitespace
     std::istringstream stream(base);
