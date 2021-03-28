@@ -32,7 +32,7 @@ namespace Rice
 
       void define_copyable_methods()
       {
-        if constexpr (std::is_copy_constructible_v<T::first_type> && std::is_copy_constructible_v<T::second_type>)
+        if constexpr (std::is_copy_constructible_v<typename T::first_type> && std::is_copy_constructible_v<typename T::second_type>)
         {
           klass_.define_method("copy", [](T& self) -> T
             {
@@ -52,11 +52,11 @@ namespace Rice
       void define_access_methods()
       {
         // Access methods
-        klass_.define_method("first", [](T& self) -> T::first_type&
+        klass_.define_method("first", [](T& self) -> typename T::first_type&
           {
             return self.first;
           })
-        .define_method("second", [](T& self) -> T::second_type&
+        .define_method("second", [](T& self) -> typename T::second_type&
           {
             return self.second;
           });
@@ -65,12 +65,12 @@ namespace Rice
       void define_modify_methods()
       {
         // Access methods
-        klass_.define_method("first=", [](T& self, typename T::first_type& value) -> T::first_type&
+        klass_.define_method("first=", [](T& self, typename T::first_type& value) -> typename T::first_type&
           {
             self.first = value;
             return self.first;
           })
-        .define_method("second=", [](T& self, typename T::second_type& value) -> T::second_type&
+        .define_method("second=", [](T& self, typename T::second_type& value) -> typename T::second_type&
           {
             self.second = value;
             return self.second;
@@ -79,7 +79,7 @@ namespace Rice
 
       void define_to_s()
       {
-        if constexpr (detail::is_ostreamable_v<T::first_type> && detail::is_ostreamable_v<T::second_type>)
+        if constexpr (detail::is_ostreamable_v<typename T::first_type> && detail::is_ostreamable_v<typename T::second_type>)
         {
           klass_.define_method("to_s", [](const T& self)
             {
