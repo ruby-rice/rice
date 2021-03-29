@@ -344,6 +344,8 @@ namespace Rice
     {
       constexpr static void verify()
       {
+        Type<T>::verify();
+
         if (!Data_Type<std::vector<T>>::isDefined)
         {
           define_vector_auto<std::vector<T>>();

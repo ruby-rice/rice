@@ -62,7 +62,7 @@ namespace Rice::detail
   {
     constexpr static void verify()
     {
-      // Don't need to register unique_ptr
+      Type<T>::verify();
     }
   };
 
@@ -122,7 +122,7 @@ namespace Rice::detail
   {
     constexpr static void verify()
     {
-      // Don't need to register unique_ptr
+      Type<T>::verify();
     }
   };
 }

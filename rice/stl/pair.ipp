@@ -144,6 +144,9 @@ namespace Rice
     {
       constexpr static void verify()
       {
+        Type<T1>::verify();
+        Type<T2>::verify();
+
         if (!Data_Type<std::pair<T1, T2>>::isDefined)
         {
           define_pair_auto<std::pair<T1, T2>>();
