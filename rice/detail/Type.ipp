@@ -22,23 +22,24 @@ namespace Rice::detail
   // In theory this could be done a separate template specializations using SFINAE. However
   // when I tried that, and then added specialations for std::unique_ptr<T>, MSVC and GCC
   // both complained that two specializations matched. Not sure why...sigh.
-  // 
-  // Note T *must* be an intrinsic_type so that we don't have to define specializations
-  // for pointers, references, const, etc.
   template<typename T>
   constexpr void Type<T>::verify()
   {
-    if constexpr (is_builtin_v<T>)
+    // Use intrinsic_type so that we don't have to define specializations
+    // for pointers, references, const, etc.
+    using Intrinsic_T = intrinsic_type<T>;
+
+    if constexpr (is_builtin_v<Intrinsic_T>)
     {
       // Do nothing
     }
-    else if constexpr (std::is_enum_v<T>)
+    else if constexpr (std::is_enum_v<Intrinsic_T>)
     {
-      Enum<T>::verify();
+      Enum<Intrinsic_T>::verify();
     }
     else
     {
-      Data_Type<T>::verify();
+      Data_Type<Intrinsic_T>::verify();
     }
   }
 
