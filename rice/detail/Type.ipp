@@ -128,8 +128,8 @@ namespace Rice::detail
     auto structRegex = std::regex("struct +");
     base = std::regex_replace(base, structRegex, "");
 
-    // Remove std::__1::
-    auto stdClangRegex = std::regex("std::_+\\d+::");
+    // Remove std::__[^:]*::
+    auto stdClangRegex = std::regex("std::__[^:]+::");
     base = std::regex_replace(base, stdClangRegex, "");
       
     // Remove std::
