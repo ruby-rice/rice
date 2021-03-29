@@ -8,49 +8,45 @@
 
 namespace Rice
 {
+  enum class AttrAccess
+  {
+    ReadWrite,
+    Read,
+    Write
+  };
 
-enum class AttrAccess
-{
-  ReadWrite,
-  Read,
-  Write
-};
+  namespace detail
+  {
+    template<typename Return_T, typename Attr_T, typename Self_T = void>
+    class Native_Attribute
+    {
+    public:
+      using Native_Return_T = Return_T;
 
-namespace detail
-{
+      // Static member functions that Ruby calls
+      static VALUE get(VALUE self);
+      static VALUE set(VALUE self, VALUE value);
 
-template<typename Return_T, typename Attr_T, typename Self_T = void>
-class Native_Attribute
-{
-public:
-  using Native_Return_T = Return_T;
+    public:
+      Native_Attribute(Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
 
-  // Static member functions that Ruby calls
-  static VALUE get(VALUE self);
-  static VALUE set(VALUE self, VALUE value);
+      // Invokes the wrapped function
+      VALUE read(VALUE self);
+      VALUE write(VALUE self, VALUE value);
 
-public:
-  Native_Attribute(Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
+    private:
+      Attr_T attr_;
+      AttrAccess access_;
+    };
 
-  // Invokes the wrapped function
-  VALUE read(VALUE self);
-  VALUE write(VALUE self, VALUE value);
+    // A plain function or static member call
+    template<typename T>
+    auto* Make_Native_Attribute(T* attr, AttrAccess access);
 
-private:
-  Attr_T attr_;
-  AttrAccess access_;
-};
-
-// A plain function or static member call
-template<typename T>
-auto* Make_Native_Attribute(T* attr, AttrAccess access);
-
-// Lambda function that does not take Self as first parameter
-template<typename Class_T, typename T>
-auto* Make_Native_Attribute(T Class_T::* attr, AttrAccess access);
-
-} // detail
-
+    // Lambda function that does not take Self as first parameter
+    template<typename Class_T, typename T>
+    auto* Make_Native_Attribute(T Class_T::* attr, AttrAccess access);
+  } // detail
 } // Rice
 
 #include "Native_Attribute.ipp"

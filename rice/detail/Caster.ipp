@@ -1,7 +1,4 @@
-namespace Rice
-{
-
-namespace detail
+namespace Rice::detail
 {
   template<typename From_T, typename To_T>
   inline To_T Caster<From_T, To_T>::cast(void* from)
@@ -40,7 +37,4 @@ namespace detail
       return nullptr;
     }
   }
-} // detail
-
-
-} // Rice
+}
