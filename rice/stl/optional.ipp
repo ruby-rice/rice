@@ -5,6 +5,15 @@ namespace Rice::detail
   template <typename T>
   struct is_builtin<std::optional<T>> : public std::true_type {};
 
+  template<typename T>
+  struct Type<std::optional<T>>
+  {
+    constexpr static void verify()
+    {
+      Type<T>::verify();
+    }
+  };
+
   template<>
   struct To_Ruby<std::nullopt_t>
   {
