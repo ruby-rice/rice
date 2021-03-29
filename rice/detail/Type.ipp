@@ -136,12 +136,16 @@ namespace Rice::detail
     auto stdRegex = std::regex("std::");
     base = std::regex_replace(base, stdRegex, "");
 
+    // Replace > > 
+    auto trailingAngleBracketSpaceRegex = std::regex(" >");
+    base = std::regex_replace(base, trailingAngleBracketSpaceRegex, ">");
+
     // Replace < and >
     auto angleBracketRegex = std::regex("<|>");
     base = std::regex_replace(base, angleBracketRegex, "__");
 
     // Replace ,
-    auto commaRegex = std::regex(",");
+    auto commaRegex = std::regex(", *");
     base = std::regex_replace(base, commaRegex, "_");
 
     // Now create a vector of strings split on whitespace
