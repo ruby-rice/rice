@@ -5,46 +5,44 @@
 
 namespace Rice
 {
+  class Symbol;
 
-class Symbol;
+  //! A wrapper for the ID type
+  /*! An ID is ruby's internal representation of a Symbol object.
+   */
+  class Identifier
+  {
+  public:
+    //! Construct a new Identifier from an ID.
+    Identifier(ID id);
 
-//! A wrapper for the ID type
-/*! An ID is ruby's internal representation of a Symbol object.
- */
-class Identifier
-{
-public:
-  //! Construct a new Identifier from an ID.
-  Identifier(ID id);
+    //! Construct a new Identifier from a Symbol.
+    Identifier(Symbol const& symbol);
 
-  //! Construct a new Identifier from a Symbol.
-  Identifier(Symbol const & symbol);
+    //! Construct a new Identifier from a c string.
+    Identifier(char const* s);
 
-  //! Construct a new Identifier from a c string.
-  Identifier(char const * s);
+    //! Construct a new Identifier from a string.
+    Identifier(std::string const string);
 
-  //! Construct a new Identifier from a string.
-  Identifier(std::string const string);
+    //! Return a string representation of the Identifier.
+    char const* c_str() const;
 
-  //! Return a string representation of the Identifier.
-  char const * c_str() const;
+    //! Return a string representation of the Identifier.
+    std::string str() const;
 
-  //! Return a string representation of the Identifier.
-  std::string str() const;
+    //! Return the underlying ID
+    ID id() const { return id_; }
 
-  //! Return the underlying ID
-  ID id() const { return id_; }
+    //! Return the underlying ID
+    operator ID() const { return id_; }
 
-  //! Return the underlying ID
-  operator ID() const { return id_; }
+    //! Return the ID as a Symbol
+    VALUE to_sym() const;
 
-  //! Return the ID as a Symbol
-  VALUE to_sym() const;
-
-private:
-  ID id_;
-};
-
+  private:
+    ID id_;
+  };
 } // namespace Rice
 
 #include "Identifier.ipp"

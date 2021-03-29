@@ -7,110 +7,102 @@
 
 #include <algorithm>
 
-template <typename T>
-Rice::Exception create_type_exception(VALUE value)
+namespace Rice
 {
-  return Rice::Exception(rb_eTypeError, "Wrong argument type. Expected: %s. Received: %s.",
-    Rice::detail::protect(rb_class2name, Rice::Data_Type<T>::klass().value()), 
-    Rice::detail::protect(rb_obj_classname, value));
-}
-
-template<typename T>
-inline Rice::Data_Object<T>::
-Data_Object(T* data, Class klass, bool isOwner)
-{
-  VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data, isOwner);
-  this->set_value(value);
-}
-
-template<typename T>
-inline Rice::Data_Object<T>::
-Data_Object(Object value)
-  : Object(value)
-{  
-  Data_Type<T> klass;
-  check_ruby_type(value);
-}
-
-template<typename T>
-template<typename U>
-inline Rice::Data_Object<T>::
-Data_Object(Object value)
-  : Object(value)
-{  
-  check_ruby_type(value);
-}
-
-template<typename T>
-inline void Rice::Data_Object<T>::
-check_ruby_type(VALUE value)
-{
-  if (rb_obj_is_kind_of(value, Data_Type<T>::klass()) == Qfalse)
+  template <typename T>
+  Exception create_type_exception(VALUE value)
   {
-    throw create_type_exception<T>(value);
+    return Exception(rb_eTypeError, "Wrong argument type. Expected: %s. Received: %s.",
+      detail::protect(rb_class2name, Data_Type<T>::klass().value()),
+      detail::protect(rb_obj_classname, value));
   }
-}
 
-template<typename T>
-inline T& Rice::Data_Object<T>::
-operator*() const
-{
-  return *this->get();
-}
-
-template<typename T>
-inline T* Rice::Data_Object<T>::
-operator->() const
-{
-  return this->get();
-}
-
-template<typename T>
-inline T* Rice::Data_Object<T>::
-get() const
-{
-  if (this->value() == Qnil)
+  template<typename T>
+  inline Data_Object<T>::Data_Object(T* data, Class klass, bool isOwner)
   {
-    return nullptr;
+    VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data, isOwner);
+    this->set_value(value);
   }
-  else
-  {
-    return detail::unwrap<T>(this->value(), Data_Type<T>::rb_type());
-  }
-}
 
-template<typename T>
-inline T* Rice::Data_Object<T>::
-from_ruby(VALUE value)
-{
-  if (Data_Type<T>::is_descendant(value))
+  template<typename T>
+  inline Data_Object<T>::Data_Object(Object value) : Object(value)
   {
-    return detail::unwrap<T>(value, Data_Type<T>::rb_type());
+    Data_Type<T> klass;
+    check_ruby_type(value);
   }
-  else
-  {
-    return nullptr;
-  }
-}
 
-template<typename T>
-inline std::optional<T> Rice::Data_Object<T>::
-implicit_from_ruby(VALUE value)
-{
-  VALUE from_klass = detail::protect(rb_class_of, value);
-  VALUE to_klass = Data_Type<T>::klass();
-
-  detail::CasterAbstract<T>* caster = detail::CasterRegistry::find<T>(from_klass, to_klass);
-  if (!caster)
+  template<typename T>
+  template<typename U>
+  inline Data_Object<T>::Data_Object(Object value) : Object(value)
   {
-    return std::nullopt;
+    check_ruby_type(value);
   }
-  else
+
+  template<typename T>
+  inline void Data_Object<T>::check_ruby_type(VALUE value)
   {
-    // Directly get value skipping any type checking since we know that value.instance_of?(T) is false
-    void* data = detail::unwrap(value);
-    // TODO - this will cause crashes
-    return caster->cast(data);
+    if (rb_obj_is_kind_of(value, Data_Type<T>::klass()) == Qfalse)
+    {
+      throw create_type_exception<T>(value);
+    }
+  }
+
+  template<typename T>
+  inline T& Data_Object<T>::operator*() const
+  {
+    return *this->get();
+  }
+
+  template<typename T>
+  inline T* Data_Object<T>::operator->() const
+  {
+    return this->get();
+  }
+
+  template<typename T>
+  inline T* Data_Object<T>::get() const
+  {
+    if (this->value() == Qnil)
+    {
+      return nullptr;
+    }
+    else
+    {
+      return detail::unwrap<T>(this->value(), Data_Type<T>::rb_type());
+    }
+  }
+
+  template<typename T>
+  inline T* Data_Object<T>::from_ruby(VALUE value)
+  {
+    if (Data_Type<T>::is_descendant(value))
+    {
+      return detail::unwrap<T>(value, Data_Type<T>::rb_type());
+    }
+    else
+    {
+      return nullptr;
+    }
+  }
+
+  template<typename T>
+  inline std::optional<T> Data_Object<T>::implicit_from_ruby(VALUE value)
+  {
+    VALUE from_klass = detail::protect(rb_class_of, value);
+    VALUE to_klass = Data_Type<T>::klass();
+
+    detail::CasterAbstract<T>* caster = detail::CasterRegistry::find<T>(from_klass, to_klass);
+    if (!caster)
+    {
+      return std::nullopt;
+    }
+    else
+    {
+      // Directly get value skipping any type checking since we know that value.instance_of?(T) is false
+      void* data = detail::unwrap(value);
+      // TODO - this will cause crashes
+      return caster->cast(data);
+    }
   }
 }
 
@@ -207,41 +199,41 @@ struct Rice::detail::From_Ruby<T&>
   }
 };
 
-template<typename T>
-struct Rice::detail::From_Ruby<T*>
-{
-  static T* convert(VALUE value)
-  {
-    using Intrinsic_T = intrinsic_type<T>;
-
-    if (value == Qnil)
-    {
-      return nullptr;
-    }
-
-    Intrinsic_T* result = Data_Object<Intrinsic_T>::from_ruby(value);
-
-    if (result)
-    {
-      return result;
-    }
-
-    if constexpr (std::is_copy_constructible_v<Intrinsic_T>)
-    {
-      std::optional<Intrinsic_T> implicit_result = Data_Object<Intrinsic_T>::implicit_from_ruby(value);
-      if (implicit_result)
-      {
-        // TODO - Memory Leak
-        return new Intrinsic_T(implicit_result.value());
-      }
-    }
-
-    throw create_type_exception<Intrinsic_T>(value);
-  }
-};
-
 namespace Rice::detail
 {
+  template<typename T>
+  struct From_Ruby<T*>
+  {
+    static T* convert(VALUE value)
+    {
+      using Intrinsic_T = intrinsic_type<T>;
+
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+
+      Intrinsic_T* result = Data_Object<Intrinsic_T>::from_ruby(value);
+
+      if (result)
+      {
+        return result;
+      }
+
+      if constexpr (std::is_copy_constructible_v<Intrinsic_T>)
+      {
+        std::optional<Intrinsic_T> implicit_result = Data_Object<Intrinsic_T>::implicit_from_ruby(value);
+        if (implicit_result)
+        {
+          // TODO - Memory Leak
+          return new Intrinsic_T(implicit_result.value());
+        }
+      }
+
+      throw create_type_exception<Intrinsic_T>(value);
+    }
+  };
+
   template<typename T>
   struct From_Ruby<Data_Object<T>>
   {

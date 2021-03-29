@@ -3,8 +3,8 @@
 
 #include <any>
 
-namespace Rice {
-
+namespace Rice
+{
   //! Helper for defining default arguments of a method
   /*! This class exposes the ability to define the default values of a
    *  wrapped method. Inspired by how Boost.Python handles keyword and

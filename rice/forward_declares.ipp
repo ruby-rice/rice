@@ -52,8 +52,7 @@ namespace Rice
     return out;
   }
 
-  inline Identifier::Identifier(Symbol const& symbol)
-    : id_(SYM2ID(symbol.value()))
+  inline Identifier::Identifier(Symbol const& symbol) : id_(SYM2ID(symbol.value()))
   {
   }
 

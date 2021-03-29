@@ -1,17 +1,16 @@
 #include <any>
 #include <string>
 
-namespace Rice {
-
-inline Return& Return::takeOwnership()
+namespace Rice
 {
-  this->isOwner_ = true;
-  return *this;
-}
+  inline Return& Return::takeOwnership()
+  {
+    this->isOwner_ = true;
+    return *this;
+  }
 
-inline bool Return::isOwner()
-{
-  return this->isOwner_;
-}
-
+  inline bool Return::isOwner()
+  {
+    return this->isOwner_;
+  }
 }  // Rice

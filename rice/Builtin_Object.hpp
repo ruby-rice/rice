@@ -5,4 +5,3 @@
 #include "Builtin_Object.ipp"
 
 #endif // Rice__Builtin_Object__hpp_
-

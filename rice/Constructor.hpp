@@ -42,6 +42,4 @@ namespace Rice
       }
   };
 }
-
 #endif // Rice__Constructor__hpp_
-

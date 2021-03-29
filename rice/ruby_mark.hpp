@@ -7,11 +7,9 @@
  */
 namespace Rice
 {
-
-template<typename T>
-void ruby_mark(T* data)
-{
-}
-
+  template<typename T>
+  void ruby_mark(T* data)
+  {
+  }
 }
 #endif // ruby_mark__hpp

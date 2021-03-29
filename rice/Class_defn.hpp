@@ -55,4 +55,3 @@ namespace Rice
 } // namespace Rice
 
 #endif // Rice__Class_defn__hpp_
-

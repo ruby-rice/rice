@@ -5,4 +5,3 @@
 #include "Class.ipp"
 
 #endif // Rice__Class__hpp_
-
