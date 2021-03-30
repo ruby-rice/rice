@@ -18,8 +18,7 @@ namespace Rice
     // converted value so that a reference or a pointer to the value can be passed to 
     // the native function.
     template <typename T>
-    class NativeArg<T, typename std::enable_if_t<is_builtin_v<intrinsic_type<T>> &&
-                            !(std::is_same_v<char, intrinsic_type<T>> && std::is_pointer_v<T>)>>
+    class NativeArg<T, typename std::enable_if_t<is_builtin_v<intrinsic_type<T>>>>
     {
     public:
       using Intrinsic_T = intrinsic_type<T>;
@@ -44,22 +43,18 @@ namespace Rice
 
     // Special case char which is a native type but if we have a pointer we 
     // want to pass through the underlying Ruby pointer
-    template <typename T>
-    class NativeArg<T, typename std::enable_if_t<std::is_same_v<char, intrinsic_type<T>> && 
-                                                 std::is_pointer_v<T>>>
+    template <>
+    class NativeArg<char*>
     {
     public:
-      T nativeValue(VALUE value)
+      char* nativeValue(VALUE value)
       {
-        return From_Ruby<T>::convert(value);
+        return From_Ruby<char*>::convert(value);
       }
     };
 
-
     // NativeArg implementation that works on all other types. The primary use is for 
     // pointers wrapped by Data_Object where there is no reason to store a local copy.
-    // It is also used for converting to various Rice C++ wrappers such as Rice::Hash,
-    // Rice::String, etc.
     template <typename T>
     class NativeArg<T, typename std::enable_if_t<!is_builtin_v<intrinsic_type<T>>>>
     {
