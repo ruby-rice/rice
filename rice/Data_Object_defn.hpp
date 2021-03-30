@@ -67,6 +67,7 @@ namespace Rice
      *  collector to free the object.
      */
     Data_Object(T* obj, Class klass = Data_Type<T>::klass(), bool isOwner = false);
+    Data_Object(T& obj, Class klass = Data_Type<T>::klass(), bool isOwner = false);
 
     //! Unwrap a Ruby object.
     /*! This constructor is analogous to calling Data_Get_Struct.  Uses

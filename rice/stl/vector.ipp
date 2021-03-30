@@ -99,9 +99,11 @@ namespace Rice
           .define_method("max_size", &T::max_size)
           .define_method("reserve", &T::reserve)
           .define_method("size", &T::size);
-
+        
         rb_define_alias(klass_, "count", "size");
         rb_define_alias(klass_, "length", "size");
+        //detail::protect(rb_define_alias, klass_, "count", "size");
+        //detail::protect(rb_define_alias, klass_, "length", "size");
       }
 
       void define_access_methods()

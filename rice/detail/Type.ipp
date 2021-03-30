@@ -33,10 +33,6 @@ namespace Rice::detail
     {
       // Do nothing
     }
-    else if constexpr (std::is_enum_v<Intrinsic_T>)
-    {
-      Enum<Intrinsic_T>::verify();
-    }
     else
     {
       Data_Type<Intrinsic_T>::verify();

@@ -18,6 +18,13 @@ namespace Rice
   }
 
   template<typename T>
+  inline Data_Object<T>::Data_Object(T& data, Class klass, bool isOwner)
+  {
+    VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data, isOwner);
+    this->set_value(value);
+  }
+
+  template<typename T>
   inline Data_Object<T>::Data_Object(T* data, Class klass, bool isOwner)
   {
     VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data, isOwner);
