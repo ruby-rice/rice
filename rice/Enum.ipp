@@ -34,7 +34,9 @@ namespace Rice
     // Instance methods
     klass.define_method("to_s", [](Enum_T& self)
         {
-          return valuesToNames_[self];
+          // We have to return string because we don't know if std::string support has
+          // been included by the user
+          return String(valuesToNames_[self]);
         })
       .define_method("to_i", [](Enum_T& self) ->  Underlying_T
         {
@@ -46,7 +48,10 @@ namespace Rice
           VALUE rubyKlass = Enum<Enum_T>::klass().value();
           result << "#<" << detail::protect(rb_class2name, rubyKlass)
             << "::" << Enum<Enum_T>::valuesToNames_[self] << ">";
-          return result.str();
+
+          // We have to return string because we don't know if std::string support has
+          // been included by the user
+          return String(result.str());
         })
       .define_method("<=>", [](Enum_T& self, Enum_T& other)
         {
