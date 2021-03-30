@@ -286,7 +286,7 @@ TESTCASE(not_defined)
 #ifdef _MSC_VER
   const char* message = "Type is not defined with Rice: enum `anonymous namespace'::Undefined";
 #else
-  const char* message = "Type is not defined with Rice: enum (anonymous namespace)::Undefined";
+  const char* message = "Type is not defined with Rice: (anonymous namespace)::Undefined";
 #endif
 
   ASSERT_EXCEPTION_CHECK(
