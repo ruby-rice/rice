@@ -351,18 +351,5 @@ namespace Rice
 
     return *this;
   }
-
-  namespace detail
-  {
-    template<typename T, typename std::enable_if_t<!is_builtin_v<T>>>
-    void verifyType()
-    {
-      if (!Data_Type<intrinsic_type<T>>::isDefined)
-      {
-        std::string message = "Type not defined with Rice: " + detail::typeName(typeid(T));
-        throw std::invalid_argument(message);
-      }
-    }
-  }
 }
 #endif
