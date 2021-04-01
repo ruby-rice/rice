@@ -50,13 +50,6 @@ namespace Rice
 
     klass_ = klass;
 
-    // TODO: do we need to unregister when the program exits?  we have to
-    // be careful if we do, because the ruby interpreter might have
-    // already shut down.  The correct behavior is probably to register an
-    // exit proc with the interpreter, so the proc gets called before the
-    // GC shuts down.
-    detail::protect(rb_gc_register_address, &klass_);
-
     rb_type_ = new rb_data_type_t();
     rb_type_->wrap_struct_name = strdup(Rice::detail::protect(rb_class2name, klass_));
     rb_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
