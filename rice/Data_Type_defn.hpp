@@ -42,7 +42,6 @@ namespace Rice
     static rb_data_type_t* rb_type();
 
     static inline bool isDefined = false;
-    static void verify();
 
     //! Assignment operator which takes a Module
     /*! \param klass must be the class to which this data type is already
@@ -97,7 +96,7 @@ namespace Rice
      *  \endcode
      */
     template<typename Director_T>
-    Data_Type<T>& define_director();
+    constexpr Data_Type<T>& define_director();
 
     //! Determine if the type is bound.
     /*! \return true if the object is bound, false otherwise.
@@ -144,10 +143,10 @@ namespace Rice
     static Data_Type bind(Module const & klass);
 
     template<typename T_, typename Base_T_>
-    friend Rice::Data_Type<T_> define_class_under(Object module, char const * name);
+    friend Rice::Data_Type<T_> constexpr define_class_under(Object module, char const * name);
 
     template<typename T_, typename Base_T_>
-    friend Rice::Data_Type<T_> define_class(char const * name);
+    friend Rice::Data_Type<T_> constexpr define_class(char const * name);
 
   private:
     template<typename T_>
@@ -176,7 +175,7 @@ namespace Rice
    *  \return the new class.
    */
   template<typename T, typename Base_T = void>
-  Data_Type<T> define_class_under(Object module, char const* name);
+  constexpr Data_Type<T> define_class_under(Object module, char const* name);
 
   //! Define a new data class in the default namespace.
   /*! By default the class will inherit from Ruby's rb_cObject. This
@@ -187,7 +186,7 @@ namespace Rice
    *  \return the new class.
    */
   template<typename T, typename Base_T = void>
-  Data_Type<T> define_class(char const* name);
+  constexpr Data_Type<T> define_class(char const* name);
 
   //! Define an implicit conversion rule between two types.
   /*! Given two types, which can be custom types already

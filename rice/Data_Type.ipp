@@ -103,16 +103,6 @@ namespace Rice
   }
 
   template<typename T>
-  void Data_Type<T>::verify()
-  {
-    if (!isDefined)
-    {
-      std::string message = "Type is not defined with Rice: " + detail::typeName(typeid(T));
-      throw std::invalid_argument(message);
-    }
-  }
-
-  template<typename T>
   inline Data_Type<T>::Data_Type() : Class(klass_ == Qnil ? rb_cObject : klass_)
   {
     if (!is_bound())
@@ -184,10 +174,11 @@ namespace Rice
 
   template<typename T>
   template<typename Director_T>
-  inline Data_Type<T>& Data_Type<T>::define_director()
+  inline constexpr Data_Type<T>& Data_Type<T>::define_director()
   {
     if (!Data_Type<Director_T>::isDefined)
     {
+      detail::type_register<T, true>;
       Data_Type<Director_T>::isDefined = true;
       Data_Type<Director_T>::bind(*this);
     }
@@ -222,13 +213,20 @@ namespace Rice
   }
 
   template<typename T, typename Base_T>
-  inline Data_Type<T> define_class_under(Object module, char const* name)
+  inline constexpr Data_Type<T> define_class_under(Object module, char const* name)
   {
     if (Data_Type<T>::isDefined)
     {
       return Data_Type<T>(Data_Type<T>::klass());
     }
     
+    constexpr bool foo = true;// detail::type_register<T, false>;
+
+    if  (foo)
+    {
+      std::unique_ptr<std::string> a = 1;
+    }
+
     Data_Type<T>::isDefined = true;
 
     Class superKlass;
@@ -248,13 +246,14 @@ namespace Rice
   }
 
   template<typename T, typename Base_T>
-  inline Data_Type<T> define_class(char const* name)
+  inline constexpr Data_Type<T> define_class(char const* name)
   {
     if (Data_Type<T>::isDefined)
     {
       return Data_Type<T>();
     }
 
+    detail::type_register<T, true>;
     Data_Type<T>::isDefined = true;
 
     Class superKlass;
@@ -350,6 +349,34 @@ namespace Rice
     }
 
     return *this;
+  }
+
+  namespace detail
+  {
+    // In theory this could be done a separate template specializations using SFINAE. However
+    // when I tried that, and then added specialations for std::unique_ptr<T>, MSVC and GCC
+    // both complained that two specializations matched. Not sure why...sigh.
+    template<typename T>
+    constexpr bool Type<T>::verify()
+    {
+      // Use intrinsic_type so that we don't have to define specializations
+      // for pointers, references, const, etc.
+      using Intrinsic_T = intrinsic_type<T>;
+
+      if constexpr (is_builtin_v<Intrinsic_T>)
+      {
+        return true;
+      }
+      else if (!Data_Type<Intrinsic_T>::isDefined)
+      {
+        std::string message = "Type is not defined with Rice: " + detail::typeName(typeid(T));
+        throw std::invalid_argument(message);
+      }
+      else
+      {
+        return true;
+      }
+    }
   }
 }
 #endif

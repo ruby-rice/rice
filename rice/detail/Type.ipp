@@ -1,10 +1,9 @@
-#ifndef Rice__Type__ipp_
-#define Rice__Type__ipp_
-
 #include "rice_traits.hpp"
 
+#include <iosfwd>
 #include <numeric>
 #include <regex>
+#include <sstream>
 #include <tuple>
 
 #ifdef __GNUC__
@@ -19,32 +18,12 @@ namespace Rice::detail
   struct is_builtin<T, std::enable_if_t<std::is_fundamental_v<intrinsic_type<T>>>> : 
     public std::true_type {};
 
-  // In theory this could be done a separate template specializations using SFINAE. However
-  // when I tried that, and then added specialations for std::unique_ptr<T>, MSVC and GCC
-  // both complained that two specializations matched. Not sure why...sigh.
-  template<typename T>
-  constexpr void Type<T>::verify()
-  {
-    // Use intrinsic_type so that we don't have to define specializations
-    // for pointers, references, const, etc.
-    using Intrinsic_T = intrinsic_type<T>;
-
-    if constexpr (is_builtin_v<Intrinsic_T>)
-    {
-      // Do nothing
-    }
-    else
-    {
-      Data_Type<Intrinsic_T>::verify();
-    }
-  }
-
   template<>
   struct Type<void>
   {
-    static constexpr void verify()
+    static constexpr bool verify()
     {
-      // Nothing to verify
+      return true;
     }
   };
 
@@ -161,5 +140,3 @@ namespace Rice::detail
     return result;
   }
 }
-
-#endif //Rice__Type__ipp_

@@ -16,8 +16,13 @@ namespace Rice::detail
   template<typename T>
   struct Type
   {
-    static constexpr void verify();
+    static constexpr bool verify();
   };
+
+  template <typename T, bool value = false>
+  constexpr bool type_register = value;
+
+  //using type_register_v = type_register<T>;
 
   // Return the name of a type
   std::string typeName(const std::type_info& typeInfo);
@@ -29,5 +34,7 @@ namespace Rice::detail
   template<typename Tuple_T>
   constexpr void verifyTypes();
 }
+
+#include "Type.ipp"
 
 #endif // Rice__Type__hpp_

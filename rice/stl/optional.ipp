@@ -8,9 +8,9 @@ namespace Rice::detail
   template<typename T>
   struct Type<std::optional<T>>
   {
-    constexpr static void verify()
+    constexpr static bool verify()
     {
-      Type<T>::verify();
+      return Type<T>::verify();
     }
   };
 
