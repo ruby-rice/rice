@@ -2,14 +2,37 @@
 
 #include "ruby.hpp"
 #include "rice_traits.hpp"
+#include "Type.hpp"
 
 namespace Rice::detail
 {
+  template <typename T>
+  inline void TypeRegistry::add()
+  {
+    std::type_index key(typeid(T));
+    registry_[key] = std::pair(Qnil, nullptr);
+  }
+
   template <typename T>
   inline void TypeRegistry::add(VALUE klass, rb_data_type_t* rbType)
   {
     std::type_index key(typeid(T));
     registry_[key] = std::pair(klass, rbType);
+  }
+
+  template <typename T>
+  inline void TypeRegistry::remove()
+  {
+    std::type_index key(typeid(T));
+    registry_.erase(key);
+  }
+
+  template <typename T>
+  inline bool TypeRegistry::isDefined()
+  {
+    std::type_index key(typeid(T));
+    auto iter = registry_.find(key);
+    return iter != registry_.end();
   }
 
   inline std::optional<std::pair<VALUE, rb_data_type_t*>> TypeRegistry::lookup(const std::type_info& typeInfo)
@@ -51,4 +74,29 @@ namespace Rice::detail
     std::string message = "Type " + typeName(typeid(object)) + " is not registered";
     throw std::runtime_error(message.c_str());
   }
+
+  // TODO - hacky to put this here but there is a circular dependency between Type and TypeRegistry
+  template<typename T>
+  constexpr bool Type<T>::verify()
+  {
+    // Use intrinsic_type so that we don't have to define specializations
+    // for pointers, references, const, etc.
+    using Intrinsic_T = intrinsic_type<T>;
+
+    if constexpr (is_builtin_v<Intrinsic_T>)
+    {
+      return true;
+    }
+    else if (!TypeRegistry::isDefined<Intrinsic_T>())
+    {
+      std::string message = "Type is not defined with Rice: " + detail::typeName(typeid(T));
+      throw std::invalid_argument(message);
+    }
+    else
+    {
+      return true;
+    }
+  }
+
+
 }

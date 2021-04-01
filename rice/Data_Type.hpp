@@ -5,4 +5,3 @@
 #include "Data_Type.ipp"
 
 #endif // Rice__Data_Type__hpp_
-

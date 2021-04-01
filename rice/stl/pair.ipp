@@ -105,7 +105,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair_under(Object module, std::string name)
   {
-    if (Data_Type<T>::isDefined)
+    if (detail::TypeRegistry::isDefined<T>())
     {
       return Data_Type<T>(Data_Type<T>());
     }
@@ -118,7 +118,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair(std::string name)
   {
-    if (Data_Type<T>::isDefined)
+    if (detail::TypeRegistry::isDefined<T>())
     {
       return Data_Type<T>(Data_Type<T>());
     }
@@ -147,7 +147,7 @@ namespace Rice
         Type<T1>::verify();
         Type<T2>::verify();
 
-        if (!Data_Type<std::pair<T1, T2>>::isDefined)
+        if (!detail::TypeRegistry::isDefined<std::pair<T1, T2>>())
         {
           define_pair_auto<std::pair<T1, T2>>();
         }

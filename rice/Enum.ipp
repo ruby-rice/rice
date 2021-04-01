@@ -1,3 +1,4 @@
+#include "detail/TypeRegistry.hpp"
 #include "Data_Object.hpp"
 #include "String.hpp"
 
@@ -109,7 +110,7 @@ namespace Rice
   template<typename Enum_T>
   Enum<Enum_T> define_enum(char const* name, Module module)
   {
-    if (Data_Type<Enum_T>::isDefined)
+    if (detail::TypeRegistry::isDefined<Enum_T>())
     {
       return Enum<Enum_T>();
     }

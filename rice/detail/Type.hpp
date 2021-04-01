@@ -19,11 +19,6 @@ namespace Rice::detail
     static constexpr bool verify();
   };
 
-  template <typename T, bool value = false>
-  constexpr bool type_register = value;
-
-  //using type_register_v = type_register<T>;
-
   // Return the name of a type
   std::string typeName(const std::type_info& typeInfo);
   std::string makeClassName(const std::type_info& typeInfo);

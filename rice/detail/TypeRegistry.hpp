@@ -22,7 +22,16 @@ namespace Rice::detail
   {
   public:
     template <typename T>
+    static void add();
+
+    template <typename T>
     static void add(VALUE klass, rb_data_type_t* rbType);
+
+    template <typename T>
+    static void remove();
+
+    template <typename T>
+    static bool isDefined();
 
     template <typename T>
     static std::pair<VALUE, rb_data_type_t*> figureType(const T& object);

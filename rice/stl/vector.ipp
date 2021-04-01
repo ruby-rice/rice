@@ -307,7 +307,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector_under(Object module, std::string name)
   {
-    if (Data_Type<T>::isDefined)
+    if (detail::TypeRegistry::isDefined<T>())
     {
       return Data_Type<T>(Data_Type<T>());
     }
@@ -320,7 +320,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector(std::string name)
   {
-    if (Data_Type<T>::isDefined)
+    if (detail::TypeRegistry::isDefined<T>())
     {
       return Data_Type<T>(Data_Type<T>());
     }
@@ -348,7 +348,7 @@ namespace Rice
       {
         Type<T>::verify();
 
-        if (!Data_Type<std::vector<T>>::isDefined)
+        if (!detail::TypeRegistry::isDefined<std::vector<T>>())
         {
           define_vector_auto<std::vector<T>>();
         }
