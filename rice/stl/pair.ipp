@@ -142,7 +142,7 @@ namespace Rice
     template<typename T1, typename T2>
     struct Type<std::pair<T1, T2>>
     {
-      constexpr static bool verify()
+      static bool verify()
       {
         Type<T1>::verify();
         Type<T2>::verify();

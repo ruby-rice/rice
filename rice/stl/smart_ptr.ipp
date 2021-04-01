@@ -60,7 +60,7 @@ namespace Rice::detail
   template<typename T>
   struct Type<std::unique_ptr<T>>
   {
-    constexpr static bool verify()
+    static bool verify()
     {
       return Type<T>::verify();
     }
@@ -120,7 +120,7 @@ namespace Rice::detail
   template<typename T>
   struct Type<std::shared_ptr<T>>
   {
-    constexpr static bool verify()
+    static bool verify()
     {
       return Type<T>::verify();
     }

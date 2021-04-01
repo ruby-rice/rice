@@ -77,7 +77,7 @@ namespace Rice::detail
 
   // TODO - hacky to put this here but there is a circular dependency between Type and TypeRegistry
   template<typename T>
-  constexpr bool Type<T>::verify()
+  bool Type<T>::verify()
   {
     // Use intrinsic_type so that we don't have to define specializations
     // for pointers, references, const, etc.

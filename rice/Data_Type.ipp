@@ -164,7 +164,7 @@ namespace Rice
 
   template<typename T>
   template<typename Director_T>
-  inline constexpr Data_Type<T>& Data_Type<T>::define_director()
+  inline Data_Type<T>& Data_Type<T>::define_director()
   {
     if (!detail::TypeRegistry::isDefined<Director_T>())
     {
@@ -201,7 +201,7 @@ namespace Rice
   }
 
   template<typename T, typename Base_T>
-  inline constexpr Data_Type<T> define_class_under(Object module, char const* name)
+  inline Data_Type<T> define_class_under(Object module, char const* name)
   {
     if (detail::TypeRegistry::isDefined<T>())
     {
@@ -225,7 +225,7 @@ namespace Rice
   }
 
   template<typename T, typename Base_T>
-  inline constexpr Data_Type<T> define_class(char const* name)
+  inline Data_Type<T> define_class(char const* name)
   {
     if (detail::TypeRegistry::isDefined<T>())
     {

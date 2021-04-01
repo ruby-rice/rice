@@ -21,7 +21,7 @@ namespace Rice::detail
   template<>
   struct Type<void>
   {
-    static constexpr bool verify()
+    static bool verify()
     {
       return true;
     }
@@ -34,13 +34,13 @@ namespace Rice::detail
   }
 
   template<typename Tuple_T, size_t...Is>
-  constexpr void verifyTypesImpl()
+  void verifyTypesImpl()
   {
     (Type<intrinsic_type<std::tuple_element_t<Is, Tuple_T>>>::verify(), ...);
   }
 
   template<typename Tuple_T>
-  constexpr void verifyTypes()
+  void verifyTypes()
   {
     if constexpr (std::tuple_size<Tuple_T>::value > 0)
     {

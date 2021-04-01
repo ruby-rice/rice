@@ -344,7 +344,7 @@ namespace Rice
     template<typename T>
     struct Type<std::vector<T>>
     {
-      constexpr static bool verify()
+      static bool verify()
       {
         Type<T>::verify();
 

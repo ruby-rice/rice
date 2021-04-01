@@ -16,7 +16,7 @@ namespace Rice::detail
   template<typename T>
   struct Type
   {
-    static constexpr bool verify();
+    static bool verify();
   };
 
   // Return the name of a type
@@ -27,7 +27,7 @@ namespace Rice::detail
   void verifyType();
 
   template<typename Tuple_T>
-  constexpr void verifyTypes();
+  void verifyTypes();
 }
 
 #include "Type.ipp"
