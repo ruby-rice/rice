@@ -48,9 +48,6 @@ namespace Rice
       throw std::runtime_error(message.c_str());
     }
 
-    // TODO: Make sure base type is bound; throw an exception otherwise.
-    // We can't do this just yet, because we don't have a specialization
-    // for binding to void.
     klass_ = klass;
 
     // TODO: do we need to unregister when the program exits?  we have to
