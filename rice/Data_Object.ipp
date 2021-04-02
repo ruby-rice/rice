@@ -2,7 +2,6 @@
 #define Rice__Data_Object__ipp_
 
 #include "Data_Type_defn.hpp"
-#include "detail/Caster.hpp"
 #include "detail/Ruby_Function.hpp"
 
 #include <algorithm>
@@ -88,27 +87,7 @@ namespace Rice
     }
     else
     {
-      return nullptr;
-    }
-  }
-
-  template<typename T>
-  inline std::optional<T> Data_Object<T>::implicit_from_ruby(VALUE value)
-  {
-    VALUE from_klass = detail::protect(rb_class_of, value);
-    VALUE to_klass = Data_Type<T>::klass();
-
-    detail::CasterAbstract<T>* caster = detail::CasterRegistry::find<T>(from_klass, to_klass);
-    if (!caster)
-    {
-      return std::nullopt;
-    }
-    else
-    {
-      // Directly get value skipping any type checking since we know that value.instance_of?(T) is false
-      void* data = detail::unwrap(value);
-      // TODO - this will cause crashes
-      return caster->cast(data);
+      throw create_type_exception<T>(value);
     }
   }
 }
@@ -162,22 +141,7 @@ struct Rice::detail::From_Ruby
   static T convert(VALUE value)
   {
     using Intrinsic_T = intrinsic_type<T>;
-    Intrinsic_T* result = Data_Object<Intrinsic_T>::from_ruby(value);
-    if (result)
-    {
-      return *result;
-    }
-
-    if constexpr (std::is_copy_constructible_v<Intrinsic_T>)
-    {
-      std::optional<Intrinsic_T> implicit_result = Data_Object<Intrinsic_T>::implicit_from_ruby(value);
-      if (implicit_result)
-      {
-        return implicit_result.value();
-      }
-    }
-
-    throw create_type_exception<Intrinsic_T>(value);
+    return *Data_Object<Intrinsic_T>::from_ruby(value);
   }
 };
  
@@ -187,22 +151,7 @@ struct Rice::detail::From_Ruby<T&>
   static T& convert(VALUE value)
   {
     using Intrinsic_T = intrinsic_type<T>;
-    Intrinsic_T* result = Data_Object<Intrinsic_T>::from_ruby(value);
-    if (result)
-    {
-      return *result;
-    }
-
-    if constexpr (std::is_copy_constructible_v<Intrinsic_T>)
-    {
-      std::optional<Intrinsic_T> implicit_result = Data_Object<Intrinsic_T>::implicit_from_ruby(value);
-      if (implicit_result)
-      {
-        return implicit_result.value();
-      }
-    }
-
-    throw create_type_exception<Intrinsic_T>(value);
+    return *Data_Object<Intrinsic_T>::from_ruby(value);
   }
 };
 
@@ -219,25 +168,10 @@ namespace Rice::detail
       {
         return nullptr;
       }
-
-      Intrinsic_T* result = Data_Object<Intrinsic_T>::from_ruby(value);
-
-      if (result)
+      else
       {
-        return result;
+        return Data_Object<Intrinsic_T>::from_ruby(value);
       }
-
-      if constexpr (std::is_copy_constructible_v<Intrinsic_T>)
-      {
-        std::optional<Intrinsic_T> implicit_result = Data_Object<Intrinsic_T>::implicit_from_ruby(value);
-        if (implicit_result)
-        {
-          // TODO - Memory Leak
-          return new Intrinsic_T(implicit_result.value());
-        }
-      }
-
-      throw create_type_exception<Intrinsic_T>(value);
     }
   };
 

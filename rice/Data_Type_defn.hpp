@@ -186,15 +186,6 @@ namespace Rice
   template<typename T, typename Base_T = void>
   Data_Type<T> define_class(char const* name);
 
-  //! Define an implicit conversion rule between two types.
-  /*! Given two types, which can be custom types already
-   *  wrapped into Rice or fundamental C++ types, this
-   *  tells Rice that the two types can be used interchangably.
-   *  \param From_T The type to convert from
-   *  \param To_T The type to convert to
-   */
-  template<typename From_T, typename To_T>
-  void define_implicit_cast();
 } // namespace Rice
 
 #include "Data_Type.ipp"

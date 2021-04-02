@@ -2,6 +2,7 @@
 #define Rice__Enum__hpp_
 
 #include "Data_Type.hpp"
+#include <map>
 
 namespace Rice
 {

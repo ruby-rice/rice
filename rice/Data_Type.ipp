@@ -4,7 +4,6 @@
 #include "detail/method_data.hpp"
 #include "detail/Native_Attribute.hpp"
 #include "detail/default_allocation_func.hpp"
-#include "detail/Caster.hpp"
 #include "detail/TypeRegistry.hpp"
 #include "detail/Wrapper.hpp"
 #include "detail/Iterator.hpp"
@@ -245,14 +244,6 @@ namespace Rice
     Class c = define_class(name, superKlass);
     c.undef_creation_funcs();
     return Data_Type<T>::template bind<Base_T>(c);
-  }
-
-  template<typename From_T, typename To_T>
-  void define_implicit_cast()
-  {
-    Class from_class = Data_Type<From_T>::klass().value();
-    Class to_class = Data_Type<To_T>::klass().value();
-    detail::CasterRegistry::add<From_T, To_T>(from_class, to_class);
   }
 
   template<typename T>

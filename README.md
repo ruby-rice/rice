@@ -1079,43 +1079,6 @@ The wrapping is the same as is described earlier in this document. Expose the cl
 You must use the `Rice::Director` proxy class in the Constructor line, this allows proper
 object construction / destruction of the types in question.
 
-## Implicit Casting
-
-There are times when a library exposes classes that, while unrelated, are
-built to be interchangeable across the library. One example of this is found in
-the Open Source 3d rendering engine <a
-href="http://www.ogre3d.org/">OGRE</a>: Ogre::Degree and Ogre::Radian.
-When a given method takes a Radian, you're free to pass in a Degree, and vice versa.
-
-Rice cannot automatically figure out if this kind of functionality is
-possible in a given library but it does provide an API for defining
-these relationships: `Rice::define_implicit_cast<From, To>()`.
-
-```cpp
-class Degree { ... };
-class Radian { ... };
-
-extern "C"
-void Init_implicit() {
-  define_class<Degree>()
-    ...;
-  define_class<Radian>()
-    ...;
-
-  define_implicit_cast<Degree, Radian>();
-  define_implicit_cast<Radian, Degree>();
-}
-```
-
-Using `Rice::define_implicit_cast` has the following requirements:
-
-- The two types must be bound in Rice before defining the cast.
-- The classes must have constructors that take the other type.
-- This feature cannot be used with fundamental types.
-
-To see a full example of this feature, please check out
-test/test_Data_Type.cpp.
-
 # Ruby C++ API
 Rice provides builtin wrappers for many builtin Ruby types, including:
 
