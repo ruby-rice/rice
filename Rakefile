@@ -55,6 +55,16 @@ task :test_cpp => :build do
   end
 end
 
+task :confirm_headers => :build do
+  begin
+    run_command("git", "diff", "--quiet")
+  rescue
+    puts "", "Git working tree is not clean. Did the updated header files get checked in?", ""
+    run_command("git", "status", "--short")
+    exit 1
+  end
+end
+
 Rake::TestTask.new do |t|
   t.libs += %w(test)
   t.test_files = Dir['test/ruby/*.rb']
@@ -62,7 +72,7 @@ Rake::TestTask.new do |t|
   t.warning = true
 end
 
-task :test => [:test_cpp]
+task :test => [:test_cpp, :confirm_headers]
 
 # ---------  Header  --------------
 include_dir = File.join(__dir__, 'include', 'rice')
