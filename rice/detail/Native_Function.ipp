@@ -188,8 +188,9 @@ namespace Rice::detail
       std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv);
 
       // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
-      // fundamental types NativeArgs will also keep a copy of the native value so that it 
-      // can be passed by reference or pointer to the native function.
+      // builtin types NativeArgs will keep a copy of the native value so that it 
+      // can be passed by reference or pointer to the native function. For non-builtin types
+      // it will just pass the value through.
       std::tuple<NativeArg<Arg_Ts>...> nativeArgs;
 
       // Convert the Ruby values to native values
