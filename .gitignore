@@ -10,6 +10,17 @@ pkg
 # Build artifacts
 test/**/Makefile
 sample/**/Makefile
+*.o
+*.so
+*.bundle
+*.in
+test/**/Makefile
+sample/**/Makefile
+README.doxygen
+doc/_build
+
+# Msys / mingw generated files
+mkinstalldirs
 *.def
 *.exe
 *.exp
