@@ -35,6 +35,16 @@ namespace Rice::detail
     return iter != registry_.end();
   }
 
+  template <typename T>
+  inline void TypeRegistry::verifyDefined()
+  {
+    if (!isDefined<T>())
+    {
+      std::string message = "Type is not defined with Rice: " + detail::typeName(typeid(T));
+      throw std::invalid_argument(message);
+    }
+  }
+
   inline std::optional<std::pair<VALUE, rb_data_type_t*>> TypeRegistry::lookup(const std::type_info& typeInfo)
   {
     std::type_index key(typeInfo);
@@ -87,16 +97,10 @@ namespace Rice::detail
     {
       return true;
     }
-    else if (!TypeRegistry::isDefined<Intrinsic_T>())
-    {
-      std::string message = "Type is not defined with Rice: " + detail::typeName(typeid(T));
-      throw std::invalid_argument(message);
-    }
     else
     {
+      TypeRegistry::verifyDefined<Intrinsic_T>();
       return true;
     }
   }
-
-
 }

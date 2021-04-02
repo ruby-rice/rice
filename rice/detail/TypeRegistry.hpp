@@ -34,6 +34,9 @@ namespace Rice::detail
     static bool isDefined();
 
     template <typename T>
+    static void verifyDefined();
+      
+    template <typename T>
     static std::pair<VALUE, rb_data_type_t*> figureType(const T& object);
 
   private:
