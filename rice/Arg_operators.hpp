@@ -8,9 +8,9 @@ namespace Rice
    *  object used later in method dispatch
    */
   [[deprecated("You should no longer enclose multiple Args in parentheses.")]]
-  inline Arguments* operator,(Arg arg1, Arg arg2)
+  inline MethodInfo* operator,(Arg arg1, Arg arg2)
   {
-    Arguments* a = new Arguments();
+    MethodInfo* a = new MethodInfo();
     a->add(arg1);
     a->add(arg2);
     return a;
@@ -19,10 +19,10 @@ namespace Rice
   /*! @see operator,(Arg, Arg)
    */
   [[deprecated("You should no longer enclose multiple Args in parentheses.")]]
-  inline Arguments* operator,(Arguments* arguments, Arg arg)
+  inline MethodInfo* operator,(MethodInfo* methodInfo, Arg arg)
   {
-    arguments->add(arg);
-    return arguments;
+    methodInfo->add(arg);
+    return methodInfo;
   }
 }
 #endif // Rice__Arg_Operators_hpp_

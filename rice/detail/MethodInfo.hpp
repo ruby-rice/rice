@@ -1,5 +1,5 @@
-#ifndef Rice__Arguments__hpp_
-#define Rice__Arguments__hpp_
+#ifndef Rice__MethodInfo__hpp_
+#define Rice__MethodInfo__hpp_
 
 #include <vector>
 #include "../Arg.hpp"
@@ -7,11 +7,11 @@
 
 namespace Rice
 {
-  class Arguments
+  class MethodInfo
   {
   public:
     template <typename...Arg_Ts>
-    Arguments(const Arg_Ts...args);
+    MethodInfo(const Arg_Ts...args);
 
     /**
       * Get the full argument count of this
@@ -75,6 +75,6 @@ namespace Rice
     int optional_ = 0;
   };
 }
-#include "Arguments.ipp"
+#include "MethodInfo.ipp"
 
-#endif // Rice__Arguments__hpp_
+#endif // Rice__MethodInfo__hpp_

@@ -135,13 +135,13 @@ namespace Rice
 
   template<typename T>
   template<typename Constructor_T>
-  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T, Arguments* arguments)
+  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T, MethodInfo* methodInfo)
   {
     check_is_bound();
 
     // Normal constructor pattern with new/initialize
     detail::protect(rb_define_alloc_func, static_cast<VALUE>(*this), detail::default_allocation_func<T>);
-    this->define_method("initialize", &Constructor_T::construct, arguments);
+    this->define_method("initialize", &Constructor_T::construct, methodInfo);
 
     return *this;
   }

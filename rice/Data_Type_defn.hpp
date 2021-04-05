@@ -51,7 +51,7 @@ namespace Rice
     //! Define a constructor for the class.
     template<typename Constructor_T>
     [[deprecated("Please call define_constructor with Arg parameters")]]
-    Data_Type<T> & define_constructor(Constructor_T constructor, Arguments * arguments);
+    Data_Type<T> & define_constructor(Constructor_T constructor, MethodInfo * methodInfo);
 
     /*! Creates a singleton method allocate and an instance method called
      *  initialize which together create a new instance of the class.  The
@@ -79,7 +79,7 @@ namespace Rice
      *  library to die at run time when it tries to convert the base
      *  type into the Director proxy type.
      *
-     *  This method takes no arguments, just needs the type of the
+     *  This method takes no methodInfo, just needs the type of the
      *  Director proxy class.
      *
      *  For example:

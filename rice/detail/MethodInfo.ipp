@@ -4,7 +4,7 @@
 namespace Rice
 {
   template <typename...Arg_Ts>
-  inline Arguments::Arguments(const Arg_Ts...args)
+  inline MethodInfo::MethodInfo(const Arg_Ts...args)
   {
     (this->processArg(args), ...);
     // TODO - so hacky but update the Arg positions
@@ -14,7 +14,7 @@ namespace Rice
     }
   }
 
-  inline int Arguments::count()
+  inline int MethodInfo::count()
   {
     if (required_ == 0 && optional_ == 0)
     {
@@ -26,7 +26,7 @@ namespace Rice
     }
   }
 
-  inline std::string Arguments::formatString(size_t fullArgCount)
+  inline std::string MethodInfo::formatString(size_t fullArgCount)
   {
     std::stringstream s;
     if (required_ == 0 && optional_ == 0)
@@ -42,7 +42,7 @@ namespace Rice
   }
 
   template <typename Arg_T>
-  inline void Arguments::processArg(const Arg_T& arg)
+  inline void MethodInfo::processArg(const Arg_T& arg)
   {
     if constexpr (std::is_same_v<Arg_T, Arg>)
     {
@@ -54,7 +54,7 @@ namespace Rice
     }
   }
 
-  inline void Arguments::add(const Arg& arg)
+  inline void MethodInfo::add(const Arg& arg)
   {
     this->args_.push_back(arg);
 
@@ -68,7 +68,7 @@ namespace Rice
     }
   }
 
-  inline bool Arguments::isOptional(unsigned int pos)
+  inline bool MethodInfo::isOptional(unsigned int pos)
   {
     if (required_ == 0 && optional_ == 0)
     {
@@ -82,27 +82,27 @@ namespace Rice
   }
 
   template<typename Arg_T>
-  inline Arg_T& Arguments::defaultValue(int pos)
+  inline Arg_T& MethodInfo::defaultValue(int pos)
   {
     return args_[pos].defaultValue<Arg_T>();
   }
 
-  inline bool Arguments::isOwner()
+  inline bool MethodInfo::isOwner()
   {
     return this->returnInfo.isOwner();
   }
 
-  inline void Arguments::takeOwnership()
+  inline void MethodInfo::takeOwnership()
   {
     this->returnInfo.takeOwnership();
   }
 
-  inline std::vector<Arg>::iterator Arguments::begin()
+  inline std::vector<Arg>::iterator MethodInfo::begin()
   {
     return this->args_.begin();
   }
 
-  inline std::vector<Arg>::iterator Arguments::end()
+  inline std::vector<Arg>::iterator MethodInfo::end()
   {
     return this->args_.end();
   }

@@ -4,7 +4,7 @@
 #include "ruby.hpp"
 #include "NativeArg.hpp"
 #include "Exception_Handler_defn.hpp"
-#include "Arguments.hpp"
+#include "MethodInfo.hpp"
 
 namespace Rice
 {

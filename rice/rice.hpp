@@ -8,7 +8,7 @@
 
 #include "Return.hpp"
 #include "Arg.hpp"
-#include "detail/Arguments.hpp"
+#include "detail/MethodInfo.hpp"
 
 #include "detail/Wrapper.hpp"
 #include "detail/default_allocation_func.hpp"

@@ -4,7 +4,7 @@
 #include "ruby.hpp"
 #include "NativeArg.hpp"
 #include "Exception_Handler_defn.hpp"
-#include "Arguments.hpp"
+#include "MethodInfo.hpp"
 
 namespace Rice::detail
 {
@@ -41,7 +41,7 @@ namespace Rice::detail
     static VALUE call(int argc, VALUE* argv, VALUE self);
 
   public:
-    Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
+    Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
 
     // Invokes the wrapped function
     VALUE operator()(int argc, VALUE* argv, VALUE self);
@@ -71,40 +71,40 @@ namespace Rice::detail
   private:
     Function_T func_;
     std::shared_ptr<Exception_Handler> handler_;
-    std::unique_ptr<Arguments> arguments_;
+    std::unique_ptr<MethodInfo> methodInfo_;
   };
 
   // A plain function or static member call
   template<typename Return_T, typename ...Arg_T>
-  auto* Make_Native_Function(Return_T(*func)(Arg_T...), std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
+  auto* Make_Native_Function(Return_T(*func)(Arg_T...), std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
 
   // Lambda function that does not take Self as first parameter
   template<typename Func_T>
-  auto* Make_Native_Function(Func_T&& func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
+  auto* Make_Native_Function(Func_T&& func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
 
   // A plain function or static member call
   template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(*func)(Self_T, Arg_T...), std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
+  auto* Make_Native_Function_With_Self(Return_T(*func)(Self_T, Arg_T...), std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
 
   // Lambda function with Self_T as first argument
   template<typename Func_T>
-  auto* Make_Native_Function_With_Self(Func_T&& func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
+  auto* Make_Native_Function_With_Self(Func_T&& func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
 
   // Call a member function on a C++ object
   template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...), std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
+  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...), std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
 
   // Call a noexcept member function on a C++ object
   template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) noexcept, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
+  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) noexcept, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
 
   // Call a const member function on a C++ object
   template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
+  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
 
   // Call a const noexcept member function on a C++ object
   template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const noexcept, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
+  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const noexcept, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
 }
 #include "Native_Function.ipp"
 
