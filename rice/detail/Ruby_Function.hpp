@@ -25,6 +25,9 @@ namespace Rice::detail
 
   template<typename Return_T, typename ...Arg_Ts>
   Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args);
+
+ // template<typename ...Arg_Ts>
+ // inline void protect(void(*func)(Arg_Ts...), Arg_Ts...args);
 }
 
 namespace Rice

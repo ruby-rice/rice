@@ -61,14 +61,15 @@ namespace Rice
     std::vector<Arg>::iterator begin();
     std::vector<Arg>::iterator end();
 
+    ReturnInfo returnInfo;
+
   private:
 
     template <typename Arg_T>
     void processArg(const Arg_T& arg);
 
     std::vector<Arg> args_;
-    Return return_;
-
+    
     /** Keep counts of required and optional parameters */
     int required_ = 0;
     int optional_ = 0;

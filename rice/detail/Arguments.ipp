@@ -50,7 +50,7 @@ namespace Rice
     }
     else
     {
-      this->return_ = arg;
+      this->returnInfo = arg;
     }
   }
 
@@ -89,12 +89,12 @@ namespace Rice
 
   inline bool Arguments::isOwner()
   {
-    return this->return_.isOwner();
+    return this->returnInfo.isOwner();
   }
 
   inline void Arguments::takeOwnership()
   {
-    this->return_.takeOwnership();
+    this->returnInfo.takeOwnership();
   }
 
   inline std::vector<Arg>::iterator Arguments::begin()

@@ -19,6 +19,7 @@
 #include "detail/Exception_Handler.hpp"
 #include "detail/Iterator.hpp"
 #include "detail/NativeArg.hpp"
+#include "detail/NativeReturn.hpp"
 #include "detail/to_ruby.hpp"
 #include "Exception.ipp"
 #include "detail/method_data.hpp"

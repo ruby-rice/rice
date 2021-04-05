@@ -26,14 +26,24 @@ namespace Rice
    *  value to prevent compilation errors.
    */
 
-  class Return
+  class ReturnInfo
   {
   public:
-    Return& takeOwnership();
+    //! Specifies Ruby should take ownership of the returned value
+    ReturnInfo& takeOwnership();
+
+    //! Does Ruby own the returned value?
     bool isOwner();
+
+    //! Specifies the returned value is a Ruby value
+    ReturnInfo& isValue();
+
+    //! Is the returned value a Ruby value?
+    bool getIsValue();
 
   private:
     bool isOwner_ = false;
+    bool isValue_ = false;
   };
 } // Rice
 

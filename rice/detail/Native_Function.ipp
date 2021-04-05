@@ -3,6 +3,7 @@
 
 #include "method_data.hpp"
 #include "to_ruby_defn.hpp"
+#include "NativeReturn.hpp"
 #include "../ruby_try_catch.hpp"
 
 namespace Rice::detail
@@ -125,7 +126,12 @@ namespace Rice::detail
     {
       // Call the native method and get the result
       Return_T nativeResult = std::apply(this->func_, nativeArgs);
-      return To_Ruby<Return_T>::convert(nativeResult, this->arguments_->isOwner());
+      
+      // Create a wrapper object to convert to Ruby
+      NativeReturn<Return_T> nativeReturn(this->arguments_->returnInfo);
+
+      // Return the result
+      return nativeReturn.getValue(nativeResult);
     }
   }
 

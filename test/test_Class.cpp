@@ -330,9 +330,9 @@ namespace
     someValue = value;
   }
 
-  VALUE value_return(VALUE value)
+  VALUE value_return()
   {
-    return value;
+    return rb_ary_new_from_args(3, Qnil, Qtrue, Qfalse);
   }
 }
 
@@ -349,4 +349,16 @@ TESTCASE(value_parameter)
   m.instance_eval(code);
 
   ASSERT_EQUAL(someValue, object.value());
+}
+
+TESTCASE(value_return)
+{
+  define_global_function("value_return", &value_return, ReturnInfo().isValue());
+
+  Module m = define_module("TestingModule");
+
+  VALUE value = m.instance_eval("value_return");
+  detail::protect(rb_check_type, value, (int)T_ARRAY);
+
+  ASSERT_EQUAL(3, Array(value).size());
 }
