@@ -47,6 +47,10 @@ namespace Rice::detail
     VALUE operator()(int argc, VALUE* argv, VALUE self);
 
   private:
+    // Create NativeArgs which are used to convert values from Ruby to C++
+    template<std::size_t... I>
+    std::tuple<NativeArg<Arg_Ts>...> createNativeArgs(std::index_sequence<I...>& indices);
+
     // Convert Ruby argv pointer to Ruby values
     std::vector<VALUE> getRubyValues(int argc, VALUE* argv);
 

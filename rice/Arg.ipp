@@ -34,4 +34,15 @@ namespace Rice
     this->isKeepAlive = true;
     return *this;
   }
+
+  inline Arg& Arg::isValue()
+  {
+    isValue_ = true;
+    return *this;
+  }
+
+  inline bool Arg::getIsValue()
+  {
+    return isValue_;
+  }
 } // Rice

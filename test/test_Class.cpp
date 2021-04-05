@@ -320,3 +320,33 @@ TESTCASE(same_function_signature)
   c.call("function2", 6);
   ASSERT_EQUAL(6, func2);
 }
+
+namespace
+{
+  VALUE someValue;
+
+  void value_parameter(VALUE value)
+  {
+    someValue = value;
+  }
+
+  VALUE value_return(VALUE value)
+  {
+    return value;
+  }
+}
+
+TESTCASE(value_parameter)
+{
+  define_global_function("value_parameter", &value_parameter, Arg("value").isValue());
+
+  Module m = define_module("TestingModule");
+  
+  std::string code = R"($object = Object.new)";
+  Object object = m.instance_eval(code);
+
+  code = R"(value_parameter($object))";
+  m.instance_eval(code);
+
+  ASSERT_EQUAL(someValue, object.value());
+}

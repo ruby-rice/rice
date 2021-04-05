@@ -38,6 +38,21 @@ namespace Rice::detail
   }
 
   template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
+  template<std::size_t... I>
+  std::tuple<NativeArg<Arg_Ts>...> Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
+    createNativeArgs(std::index_sequence<I...>& indices)
+  {
+    std::vector<Arg> args(this->arguments_->begin(), this->arguments_->end());
+    for (size_t i = args.size(); i < sizeof...(Arg_Ts); i++)
+    {
+      Arg arg("arg_" + std::to_string(i));
+      args.push_back(arg);
+    }
+
+    return std::make_tuple(NativeArg<Arg_Ts>(args[I])...);
+  }
+
+  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
   std::vector<VALUE> Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
     getRubyValues(int argc, VALUE* argv)
   {
@@ -73,9 +88,7 @@ namespace Rice::detail
     // the Ruby value to a native value. Note that for fundamental types NativeArg<Arg_Ts> 
     // will keep a copy of the native value so it can be passed by reference or pointer to a
     // native function.
-    return std::forward_as_tuple((values[I] == Qnil && this->arguments_->isOptional(I) ?
-      this->arguments_->template defaultValue<Arg_Ts>(I) :
-      std::get<I>(nativeArgs).nativeValue(values[I]))...);
+    return std::forward_as_tuple(std::get<I>(nativeArgs).nativeValue(values[I])...);
   }
 
   template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
@@ -187,14 +200,15 @@ namespace Rice::detail
       // Get the ruby values
       std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv);
 
+      auto indices = std::make_index_sequence<sizeof...(Arg_Ts)>{};
+
       // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
       // builtin types NativeArgs will keep a copy of the native value so that it 
       // can be passed by reference or pointer to the native function. For non-builtin types
       // it will just pass the value through.
-      std::tuple<NativeArg<Arg_Ts>...> nativeArgs;
+      std::tuple<NativeArg<Arg_Ts>...> nativeArgs = this->createNativeArgs(indices);
 
       // Convert the Ruby values to native values
-      auto indices = std::make_index_sequence<sizeof...(Arg_Ts)>{};
       std::tuple<Arg_Ts...> nativeValues = this->getNativeValues(rubyValues, nativeArgs, indices);
 
       // Check if any rubyValues need to have their lifetimes tied to the receiver

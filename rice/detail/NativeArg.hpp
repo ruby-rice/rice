@@ -3,8 +3,7 @@
 
 #include "ruby.hpp"
 #include "rice_traits.hpp"
-#include "Type.hpp"
-#include "from_ruby_defn.hpp"
+#include "../Arg.hpp"
 
 namespace Rice::detail
 {
@@ -20,10 +19,12 @@ namespace Rice::detail
   {
   public:
     using Intrinsic_T = intrinsic_type<T>;
+    NativeArg(Arg& arg);
     T nativeValue(VALUE value);
       
   private:
     Intrinsic_T native_;
+    Arg arg_;
   };
 
   // Special case char which is a native type but if we have a pointer we 
@@ -32,7 +33,23 @@ namespace Rice::detail
   class NativeArg<char*>
   {
   public:
+    NativeArg(Arg& arg);
     char* nativeValue(VALUE value);
+
+  private:
+    Arg arg_;
+  };
+
+  // Special case VALUE which could be a 64 bit integer or Ruby value.
+  template <>
+  class NativeArg<VALUE>
+  {
+  public:
+    NativeArg(Arg& arg);
+    VALUE nativeValue(VALUE value);
+
+  private:
+    Arg arg_;
   };
 
   // NativeArg implementation that works on all other types. The primary use is for 
@@ -41,7 +58,12 @@ namespace Rice::detail
   class NativeArg<T, typename std::enable_if_t<!is_builtin_v<intrinsic_type<T>>>>
   {
   public:
+    NativeArg() = default;
+    NativeArg(Arg& arg);
     T nativeValue(VALUE value);
+
+  private:
+    Arg arg_;
   };
 }
 
