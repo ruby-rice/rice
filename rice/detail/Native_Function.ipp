@@ -9,8 +9,7 @@
 namespace Rice::detail
 {
   template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    call(int argc, VALUE* argv, VALUE self)
+  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::call(int argc, VALUE* argv, VALUE self)
   {
     using Wrapper_T = Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>;
     Wrapper_T* wrapper = detail::MethodData::data<Wrapper_T*>();
@@ -18,8 +17,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
+  Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
     : func_(func), handler_(handler), methodInfo_(methodInfo)
   {
     if (!methodInfo_)
@@ -40,8 +38,7 @@ namespace Rice::detail
 
   template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
   template<std::size_t... I>
-  std::tuple<NativeArg<Arg_Ts>...> Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    createNativeArgs(std::index_sequence<I...>& indices)
+  std::tuple<NativeArg<Arg_Ts>...> Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::createNativeArgs(std::index_sequence<I...>& indices)
   {
     std::vector<Arg> args(this->methodInfo_->begin(), this->methodInfo_->end());
     for (size_t i = args.size(); i < sizeof...(Arg_Ts); i++)
@@ -54,8 +51,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  std::vector<VALUE> Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    getRubyValues(int argc, VALUE* argv)
+  std::vector<VALUE> Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::getRubyValues(int argc, VALUE* argv)
   {
     // Setup a tuple to contain required methodInfo to rb_scan_args
     std::string scanFormat = this->methodInfo_->formatString(sizeof...(Arg_Ts));
@@ -81,8 +77,8 @@ namespace Rice::detail
 
   template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
   template<std::size_t... I>
-  std::tuple<Arg_Ts...> Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    getNativeValues(std::vector<VALUE>& values, std::tuple<NativeArg<Arg_Ts>...>& nativeArgs, std::index_sequence<I...>& indices)
+  std::tuple<Arg_Ts...> Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::getNativeValues(std::vector<VALUE>& values, 
+                     std::tuple<NativeArg<Arg_Ts>...>& nativeArgs, std::index_sequence<I...>& indices)
   {
     // Convert each Ruby value to its native value. Check each Ruby nil value to see if it has
     // a default argument, and if yes, use that. Otherwise use NativeArg<Arg_Ts> to convert
@@ -93,8 +89,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  Self_T Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    getSelf(VALUE self)
+  Self_T Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::getSelf(VALUE self)
   {
     // This is used for functions and static members
     if constexpr (std::is_same_v<Self_T, void>)
@@ -114,8 +109,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    invokeNativeFunction(std::tuple<Arg_Ts...>& nativeArgs)
+  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::invokeNativeFunction(std::tuple<Arg_Ts...>& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
@@ -136,8 +130,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    invokeNativeMethod(VALUE self, std::tuple<Arg_Ts...>& nativeArgs)
+  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::invokeNativeMethod(VALUE self, std::tuple<Arg_Ts...>& nativeArgs)
   {
     Self_T receiver = this->getSelf(self);
     std::tuple<Self_T, Arg_Ts...> selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeArgs);
@@ -183,8 +176,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  void Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues)
+  void Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues)
   {
     Wrapper* wrapper = getWrapper(self);
 
@@ -198,8 +190,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    operator()(int argc, VALUE* argv, VALUE self)
+  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::operator()(int argc, VALUE* argv, VALUE self)
   {
     try
     {
