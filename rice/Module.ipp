@@ -117,6 +117,32 @@ namespace Rice
     return *this;
   }
 
+  template<typename Function_T>
+  inline void Module::wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
+    std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments)
+  {
+    auto* native = detail::Make_Native_Function_With_Self(std::forward<Function_T>(function), handler, arguments);
+    using Native_T = typename std::remove_pointer_t<decltype(native)>;
+
+    detail::verifyType<typename Native_T::Native_Return_T>();
+    detail::verifyTypes<typename Native_T::Native_Arg_Ts>();
+
+    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
+  }
+
+  template<typename Function_T>
+  inline void Module::wrap_native_function(VALUE klass, Identifier name, Function_T&& function,
+    std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments)
+  {
+    auto* native = detail::Make_Native_Function(std::forward<Function_T>(function), handler, arguments);
+    using Native_T = typename std::remove_pointer_t<decltype(native)>;
+
+    detail::verifyType<typename Native_T::Native_Return_T>();
+    detail::verifyTypes<typename Native_T::Native_Arg_Ts>();
+
+    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
+  }
+
   inline Module& Module::const_set(Identifier name, Object value)
   {
     detail::protect(rb_const_set, this->value(), name.id(), value.value());
