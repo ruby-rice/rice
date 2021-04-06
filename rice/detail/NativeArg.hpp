@@ -3,6 +3,7 @@
 
 #include "ruby.hpp"
 #include "rice_traits.hpp"
+#include "Type.hpp"
 #include "../Arg.hpp"
 
 namespace Rice::detail

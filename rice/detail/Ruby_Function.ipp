@@ -1,3 +1,4 @@
+#include "Jump_Tag.hpp"
 #include "../Exception_defn.hpp"
 
 namespace Rice::detail
