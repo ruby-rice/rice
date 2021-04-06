@@ -3,6 +3,7 @@
 
 namespace Rice::detail
 {
+  // --------------   Function Traits --------------
   // Base class
   template<typename Function_T>
   struct function_traits;
@@ -83,6 +84,36 @@ namespace Rice::detail
   struct function_traits<Function_T&&> : public function_traits<Function_T>
   {
   };
+
+  // --------------   Method Traits --------------
+  // Declare struct
+  template<typename Function_T, bool IsMethod, typename = void>
+  struct method_traits;
+
+  // Functions that do not have a self parameter
+  template<typename Function_T, bool IsMethod>
+  struct method_traits<Function_T, IsMethod, std::enable_if_t<!IsMethod>>
+  {
+    using Self_T = std::nullptr_t;
+    using Arg_Ts = typename function_traits<Function_T>::arg_types;
+  };
+
+  // Functions that do have a self parameter (thus we call them methods)
+  template<typename Function_T, bool IsMethod>
+  struct method_traits<Function_T, IsMethod, std::enable_if_t<IsMethod&& std::is_same_v<typename function_traits<Function_T>::class_type, std::nullptr_t>>>
+  {
+    using Self_T = typename function_traits<Function_T>::nth_arg<0>;
+    using Arg_Ts = typename tuple_shift<typename function_traits<Function_T>::arg_types>::type;
+  };
+
+  // Member functions that have an implied self parameter of an object instance
+  template<typename Function_T, bool IsMethod>
+  struct method_traits<Function_T, IsMethod, std::enable_if_t<IsMethod && !std::is_same_v<typename function_traits<Function_T>::class_type, std::nullptr_t>>>
+  {
+    using Self_T = typename function_traits<Function_T>::class_type*;
+    using Arg_Ts = typename function_traits<Function_T>::arg_types;
+  };
+
 }
 
 #endif // Rice__detail__function_traits__hpp_
