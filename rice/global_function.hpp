@@ -5,9 +5,9 @@
 
 namespace Rice
 {
-  template<typename Func_T>
+  template<typename Function_T>
   [[deprecated("Please call define_global_function with Arg parameters")]]
-  void define_global_function(char const * name, Func_T&& func, MethodInfo* arguments);
+  void define_global_function(char const * name, Function_T&& func, MethodInfo* arguments);
 
    //! Define an global function
    /*! The method's implementation can be any function or static member
@@ -20,8 +20,8 @@ namespace Rice
     *  \param args a list of Arg instance used to define default parameters (optional)
     *  \return *this
     */
-  template<typename Func_T, typename...Arg_Ts>
-  void define_global_function(char const * name, Func_T&& func, Arg_Ts const& ...args);
+  template<typename Function_T, typename...Arg_Ts>
+  void define_global_function(char const * name, Function_T&& func, Arg_Ts const& ...args);
 } // Rice
 
 #include "global_function.ipp"

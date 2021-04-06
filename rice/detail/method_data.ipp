@@ -43,8 +43,8 @@ namespace Rice::detail
     return std::any_cast<Return_T>(data);
   }
 
-  template<typename Func_T>
-  inline void MethodData::define_method(VALUE klass, ID id, Func_T func, int arity, std::any data)
+  template<typename Function_T>
+  inline void MethodData::define_method(VALUE klass, ID id, Function_T func, int arity, std::any data)
   {
     // Define the method
     protect(rb_define_method_id, klass, id, (RUBY_METHOD_FUNC)func, arity);

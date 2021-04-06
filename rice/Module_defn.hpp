@@ -83,9 +83,9 @@ namespace Rice
     */
     Module& include_module(Module const& inc);
 
-    template<typename Func_T>
+    template<typename Function_T>
     [[deprecated("Please call define_method with Arg parameters")]]
-    Module& define_method(Identifier name, Func_T&& func, MethodInfo* methodInfo);
+    Module& define_method(Identifier name, Function_T&& func, MethodInfo* methodInfo);
 
     //! Define an instance method.
     /*! The method's implementation can be a member function, plain function
@@ -104,8 +104,8 @@ namespace Rice
      *  \param args a list of Arg instance used to define default parameters.
      *  \return *this
      */
-    template<typename Func_T, typename...Arg_Ts>
-    Module& define_method(Identifier name, Func_T&& func, Arg_Ts const& ...args);
+    template<typename Function_T, typename...Arg_Ts>
+    Module& define_method(Identifier name, Function_T&& func, Arg_Ts const& ...args);
 
     //! Define an instance function.
     /*! The function implementation is a plain function or a static
@@ -118,12 +118,12 @@ namespace Rice
      *  \param args a list of Arg instance used to define default parameters (optional)
      *  \return *this
      */
-    template<typename Func_T, typename...Arg_Ts>
-    Module& define_function(Identifier name, Func_T&& func, Arg_Ts const& ...args);
+    template<typename Function_T, typename...Arg_Ts>
+    Module& define_function(Identifier name, Function_T&& func, Arg_Ts const& ...args);
 
-    template<typename Func_T>
+    template<typename Function_T>
     [[deprecated("Please call define_singleton_method with Arg parameters")]]
-    Module& define_singleton_method(Identifier name, Func_T&& func, MethodInfo* methodInfo);
+    Module& define_singleton_method(Identifier name, Function_T&& func, MethodInfo* methodInfo);
 
     //! Define a singleton method.
     /*! The method's implementation can be a static member function,
@@ -140,8 +140,8 @@ namespace Rice
      *  \param args a list of Arg instance used to define default parameters (optional)
      *  \return *this
      */
-    template<typename Func_T, typename...Arg_Ts>
-    Module& define_singleton_method(Identifier name, Func_T&& func, Arg_Ts const& ...args);
+    template<typename Function_T, typename...Arg_Ts>
+    Module& define_singleton_method(Identifier name, Function_T&& func, Arg_Ts const& ...args);
 
     //! Define a singleton method.
     /*! The method's implementation can be a static member function, plain
@@ -156,12 +156,12 @@ namespace Rice
      *  \param args a list of Arg instance used to define default parameters (optional)
      *  \return *this
      */
-    template<typename Func_T, typename...Arg_Ts>
-    Module& define_singleton_function(Identifier name, Func_T&& func, Arg_Ts const& ...args);
+    template<typename Function_T, typename...Arg_Ts>
+    Module& define_singleton_function(Identifier name, Function_T&& func, Arg_Ts const& ...args);
 
-    template<typename Func_T>
+    template<typename Function_T>
     [[deprecated("Please call define_module_function with Arg parameters")]]
-    Module& define_module_function(Identifier name, Func_T&& func, MethodInfo* methodInfo);
+    Module& define_module_function(Identifier name, Function_T&& func, MethodInfo* methodInfo);
 
     //! Define a module function.
     /*! A module function is a function that can be accessed either as a
@@ -175,8 +175,8 @@ namespace Rice
      *  \param args a list of Arg instance used to define default parameters (optional)
      *  \return *this
      */
-    template<typename Func_T, typename...Arg_Ts>
-    Module& define_module_function(Identifier name, Func_T&& func, Arg_Ts const& ...args);
+    template<typename Function_T, typename...Arg_Ts>
+    Module& define_module_function(Identifier name, Function_T&& func, Arg_Ts const& ...args);
 
     //! Set a constant.
     /*! \param name the name of the constant to set.

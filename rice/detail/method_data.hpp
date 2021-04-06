@@ -12,8 +12,8 @@ namespace Rice::detail
   {
   public:
     // Defines a new Ruby method and stores the Rice metadata about it
-    template<typename Func_T>
-    static void define_method(VALUE klass, ID id, Func_T func, int arity, std::any data);
+    template<typename Function_T>
+    static void define_method(VALUE klass, ID id, Function_T func, int arity, std::any data);
 
     // Returns the Rice data for the currently active Ruby method
     template <typename Return_T>
