@@ -1,6 +1,8 @@
 #ifndef Rice__detail__function_traits__hpp_
 #define Rice__detail__function_traits__hpp_
 
+#include <tuple>
+
 namespace Rice::detail
 {
   // --------------   Function Traits --------------
@@ -24,7 +26,7 @@ namespace Rice::detail
     using nth_arg = typename std::tuple_element<N, typename functor_t::arg_types>::type;
 
     using return_type = typename functor_t::return_type;
-    using class_type = typename std::nullptr_t;
+    using class_type = std::nullptr_t;
   };
 
   // Specialization for functions, member functions and static member functions
