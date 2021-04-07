@@ -1,6 +1,6 @@
 #include "ruby.hpp"
 #include "rice_traits.hpp"
-#include "from_ruby_defn.hpp"
+#include "from_ruby.hpp"
 
 namespace Rice::detail
 {

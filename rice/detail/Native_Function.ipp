@@ -8,23 +8,18 @@
 
 namespace Rice::detail
 {
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::call(int argc, VALUE* argv, VALUE self)
+  template<typename Function_T, bool IsMethod>
+  VALUE Native_Function<Function_T, IsMethod>::call(int argc, VALUE* argv, VALUE self)
   {
-    using Wrapper_T = Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>;
+    using Wrapper_T = Native_Function<Function_T, IsMethod>;
     Wrapper_T* wrapper = detail::MethodData::data<Wrapper_T*>();
     return wrapper->operator()(argc, argv, self);
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
+  template<typename Function_T, bool IsMethod>
+  Native_Function<Function_T, IsMethod>::Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
     : func_(func), handler_(handler), methodInfo_(methodInfo)
   {
-    if (!methodInfo_)
-    {
-      methodInfo_ = std::make_unique<MethodInfo>();
-    }
-
     // Ruby takes ownership of types returned by value. We do this here so that users
     // don't have to be bothered to specify this in define_method. Note we *must* set 
     // this correctly because To_Ruby<T>::convert routines work with const T& and thus
@@ -36,32 +31,25 @@ namespace Rice::detail
     }
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
+  template<typename Function_T, bool IsMethod>
   template<std::size_t... I>
-  std::tuple<NativeArg<Arg_Ts>...> Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::createNativeArgs(std::index_sequence<I...>& indices)
+  typename Native_Function<Function_T, IsMethod>::Native_Arg_Ts Native_Function<Function_T, IsMethod>::createNativeArgs(std::index_sequence<I...>& indices)
   {
-    std::vector<Arg> args(this->methodInfo_->begin(), this->methodInfo_->end());
-    for (size_t i = args.size(); i < sizeof...(Arg_Ts); i++)
-    {
-      Arg arg("arg_" + std::to_string(i));
-      args.push_back(arg);
-    }
-
-    return std::make_tuple(NativeArg<Arg_Ts>(args[I])...);
+    return std::make_tuple(NativeArg<std::tuple_element_t<I, Arg_Ts>>(this->methodInfo_->arg(I))...);
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  std::vector<VALUE> Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::getRubyValues(int argc, VALUE* argv)
+  template<typename Function_T, bool IsMethod>
+  std::vector<VALUE> Native_Function<Function_T, IsMethod>::getRubyValues(int argc, VALUE* argv)
   {
     // Setup a tuple to contain required methodInfo to rb_scan_args
-    std::string scanFormat = this->methodInfo_->formatString(sizeof...(Arg_Ts));
+    std::string scanFormat = this->methodInfo_->formatString();
     std::tuple<int, VALUE*, const char*> rbScanMandatory = std::forward_as_tuple(argc, argv, scanFormat.c_str());
 
     // Create a vector to store the variable number of Ruby Values
-    std::vector<VALUE> rbScanArgsOptional(sizeof...(Arg_Ts), Qnil);
+    std::vector<VALUE> rbScanArgsOptional(std::tuple_size_v<Arg_Ts>, Qnil);
 
     // Convert the vector to an array so it can then be concatenated to a tuple
-    std::array<VALUE*, sizeof...(Arg_Ts)> rbScanArgsOptionalPointers;
+    std::array<VALUE*, std::tuple_size_v<Arg_Ts>> rbScanArgsOptionalPointers;
     std::transform(rbScanArgsOptional.begin(), rbScanArgsOptional.end(), rbScanArgsOptionalPointers.begin(),
       [](VALUE& value)
       {
@@ -75,10 +63,10 @@ namespace Rice::detail
     return rbScanArgsOptional;
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
+  template<typename Function_T, bool IsMethod>
   template<std::size_t... I>
-  std::tuple<Arg_Ts...> Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::getNativeValues(std::vector<VALUE>& values, 
-                     std::tuple<NativeArg<Arg_Ts>...>& nativeArgs, std::index_sequence<I...>& indices)
+  typename Native_Function<Function_T, IsMethod>::Arg_Ts Native_Function<Function_T, IsMethod>::getNativeValues(std::vector<VALUE>& values,
+    typename Native_Function<Function_T, IsMethod>::Native_Arg_Ts& nativeArgs, std::index_sequence<I...>& indices)
   {
     // Convert each Ruby value to its native value. Check each Ruby nil value to see if it has
     // a default argument, and if yes, use that. Otherwise use NativeArg<Arg_Ts> to convert
@@ -88,28 +76,28 @@ namespace Rice::detail
     return std::forward_as_tuple(std::get<I>(nativeArgs).nativeValue(values[I])...);
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  Self_T Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::getSelf(VALUE self)
+  template<typename Function_T, bool IsMethod>
+  typename Native_Function<Function_T, IsMethod>::Self_T Native_Function<Function_T, IsMethod>::getSelf(VALUE self)
   {
-    // This is used for functions and static members
-    if constexpr (std::is_same_v<Self_T, void>)
+    // There is no self parameter
+    if constexpr (std::is_same_v<Self_T, std::nullptr_t>)
     {
       return nullptr;
     }
-    // This is used for passing VALUE klass or VALUE self
+    // Self parameter is a Ruby VALUE so no conversion is needed
     else if constexpr (std::is_same_v<Self_T, VALUE>)
     {
       return self;
     }
+    // Self parameter is an object and thus needs to be unwrapped from Ruby
     else
     {
-      // This is used for member functions - we are returning a pointer to an object
       return From_Ruby<Self_T>::convert(self);
     }
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::invokeNativeFunction(std::tuple<Arg_Ts...>& nativeArgs)
+  template<typename Function_T, bool IsMethod>
+  VALUE Native_Function<Function_T, IsMethod>::invokeNativeFunction(Arg_Ts& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
@@ -129,11 +117,11 @@ namespace Rice::detail
     }
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::invokeNativeMethod(VALUE self, std::tuple<Arg_Ts...>& nativeArgs)
+  template<typename Function_T, bool IsMethod>
+  VALUE Native_Function<Function_T, IsMethod>::invokeNativeMethod(VALUE self, Arg_Ts& nativeArgs)
   {
     Self_T receiver = this->getSelf(self);
-    std::tuple<Self_T, Arg_Ts...> selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeArgs);
+    auto selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeArgs);
 
     if constexpr (std::is_void_v<Return_T>)
     {
@@ -175,8 +163,8 @@ namespace Rice::detail
     }
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  void Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues)
+  template<typename Function_T, bool IsMethod>
+  void Native_Function<Function_T, IsMethod>::checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues)
   {
     Wrapper* wrapper = getWrapper(self);
 
@@ -189,24 +177,24 @@ namespace Rice::detail
     }
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::operator()(int argc, VALUE* argv, VALUE self)
+  template<typename Function_T, bool IsMethod>
+  VALUE Native_Function<Function_T, IsMethod>::operator()(int argc, VALUE* argv, VALUE self)
   {
     try
     {
       // Get the ruby values
       std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv);
 
-      auto indices = std::make_index_sequence<sizeof...(Arg_Ts)>{};
+      auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
 
       // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
       // builtin types NativeArgs will keep a copy of the native value so that it 
       // can be passed by reference or pointer to the native function. For non-builtin types
       // it will just pass the value through.
-      std::tuple<NativeArg<Arg_Ts>...> nativeArgs = this->createNativeArgs(indices);
+      Native_Arg_Ts nativeArgs = this->createNativeArgs(indices);
 
       // Convert the Ruby values to native values
-      std::tuple<Arg_Ts...> nativeValues = this->getNativeValues(rubyValues, nativeArgs, indices);
+      Arg_Ts nativeValues = this->getNativeValues(rubyValues, nativeArgs, indices);
 
       // Check if any rubyValues need to have their lifetimes tied to the receiver
       this->checkKeepAlive(self, rubyValues);
@@ -229,82 +217,5 @@ namespace Rice::detail
       }
         RUBY_CATCH
     }
-  }
-
-  // Lambda helpers
-  template<typename Function_T, typename Return_T, typename Class_T, typename ...Arg_T>
-  auto* lambda_helper(Function_T&& func, Return_T(Class_T::*)(Arg_T...) const, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
-  {
-    return new Native_Function<Function_T, Return_T, std::nullptr_t, Arg_T...>(std::forward<Function_T>(func), handler, methodInfo);
-  }
-
-  template<typename Function_T, typename Return_T, typename Class_T, typename Self_T, typename ...Arg_T>
-  auto* lambda_helper_with_self(Function_T&& func, Return_T(Class_T::*)(Self_T, Arg_T...) const, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
-  {
-    return new Native_Function<Function_T, Return_T, Self_T, Arg_T...>(std::forward<Function_T>(func), handler, methodInfo);
-  }
-
-  // A plain function or static member call
-  template<typename Return_T, typename ...Arg_T>
-  auto* Make_Native_Function(Return_T(*func)(Arg_T...), std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
-  {
-    using Function_T = Return_T(*)(Arg_T...);
-    return new Native_Function<Function_T, Return_T, std::nullptr_t, Arg_T...>(func, handler, methodInfo);
-  }
-
-  // Lambda function that does not take Self as first parameter
-  template<typename Func_T>
-  auto* Make_Native_Function(Func_T&& func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
-  {
-    using Function_T = decltype(&Func_T::operator());
-    return lambda_helper(std::forward<Func_T>(func), (Function_T)nullptr, handler, methodInfo);
-  }
-
-  // A plain function or static member call
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(*func)(Self_T, Arg_T...), std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
-  {
-    using Function_T = Return_T(*)(Self_T, Arg_T...);
-    return new Native_Function<Function_T, Return_T, Self_T, Arg_T...>(func, handler, methodInfo);
-  }
-
-  // Lambda function with Self_T as first argument
-  template<typename Func_T>
-  auto* Make_Native_Function_With_Self(Func_T&& func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
-  {
-    using Function_T = decltype(&Func_T::operator());
-    return lambda_helper_with_self(std::forward<Func_T>(func), (Function_T)nullptr, handler, methodInfo);
-  }
-
-  // Call a member function on a C++ object
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...), std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
-  {
-    using Function_T = Return_T(Self_T::*)(Arg_T...);
-    return new Native_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, methodInfo);
-  }
-
-  // Call a noexcept member function on a C++ object
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) noexcept, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
-  {
-    using Function_T = Return_T(Self_T::*)(Arg_T...) noexcept;
-    return new Native_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, methodInfo);
-  }
-
-  // Call a const member function on a C++ object
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
-  {
-    using Function_T = Return_T(Self_T::*)(Arg_T...) const;
-    return new Native_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, methodInfo);
-  }
-
-  // Call a const member function on a C++ object
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const noexcept, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
-  {
-    using Function_T = Return_T(Self_T::*)(Arg_T...) const noexcept;
-    return new Native_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, methodInfo);
   }
 }

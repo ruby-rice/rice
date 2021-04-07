@@ -11,33 +11,18 @@ namespace Rice
   {
   public:
     template <typename...Arg_Ts>
-    MethodInfo(const Arg_Ts...args);
-
-    /**
-      * Get the full argument count of this
-      * list of arguments.
-      * Returns -1 no defined arguments
-      */
-    int count();
+    MethodInfo(size_t argCount, const Arg_Ts&...args);
 
     /**
       * Get the rb_scan_args format string for this
       * list of arguments.
-      * In the case of no Args (default case), this
-      * method uses the passed in full argument count
       */
-    std::string formatString(size_t fullArgCount);
+    std::string formatString();
 
     /**
       * Add a defined Arg to this list of Arguments
       */
-    void add(const Arg& arg);
-
-    /**
-      * Is the argument at the request location an optional
-      * argument?
-      */
-    bool isOptional(unsigned int pos);
+    void addArg(const Arg& arg);
 
     /**
       * Specifices if Ruby owns the returned data
@@ -55,7 +40,9 @@ namespace Rice
       * defaults and if that VALUE is nil or not
       */
     template<typename Arg_T>
-    Arg_T& defaultValue(int pos);
+    Arg_T& defaultValue(size_t pos);
+
+    Arg& arg(size_t pos);
 
     // Iterator support
     std::vector<Arg>::iterator begin();
@@ -64,15 +51,10 @@ namespace Rice
     ReturnInfo returnInfo;
 
   private:
-
     template <typename Arg_T>
     void processArg(const Arg_T& arg);
 
     std::vector<Arg> args_;
-    
-    /** Keep counts of required and optional parameters */
-    int required_ = 0;
-    int optional_ = 0;
   };
 }
 #include "MethodInfo.ipp"

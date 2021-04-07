@@ -63,8 +63,14 @@ TESTCASE(assignment)
 
 TESTCASE(each)
 {
+  Module m = define_module("Testing");
+
   Enum<Color> colorEnum = define_color_enum();
-  Array a = rb_eval_string("a = []; Color.each { |x| a << x }; a");
+
+  std::string code = R"(a = []
+                        Color.each { |x| a << x }
+                        a)";
+  Array a = m.instance_eval(code);
   ASSERT_EQUAL(3u, a.size());
 
   Data_Object<Color> enum_0(a[0]);
@@ -79,8 +85,14 @@ TESTCASE(each)
 
 TESTCASE(each_seasons)
 {
+  Module m = define_module("Testing");
+
   Enum<Season> rb_cSeason = define_season_enum();
-  Array a = rb_eval_string("a = []; Season.each { |x| a << x }; a");
+  std::string code = R"(a = []
+                        Season.each { |x| a << x }
+                        a)";
+
+  Array a = m.instance_eval(code);
   ASSERT_EQUAL(4u, a.size());
 
   Data_Object<Season> enum_0(a[0]);

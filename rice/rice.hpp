@@ -3,6 +3,7 @@
 
 #include "detail/ruby.hpp"
 #include "detail/rice_traits.hpp"
+#include "detail/function_traits.hpp"
 #include "detail/Type.hpp"
 #include "detail/TypeRegistry.hpp"
 
@@ -26,9 +27,6 @@
 #include "ruby_try_catch.hpp"
 #include "detail/Native_Attribute.hpp"
 #include "detail/Native_Function.hpp"
-
-// Deprecated - Arg_operators is deprecated and should be removed in the future
-#include "Arg_operators.hpp"
 
 #include "ruby_mark.hpp"
 

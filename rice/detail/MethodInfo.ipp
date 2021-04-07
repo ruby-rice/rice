@@ -4,9 +4,18 @@
 namespace Rice
 {
   template <typename...Arg_Ts>
-  inline MethodInfo::MethodInfo(const Arg_Ts...args)
+  inline MethodInfo::MethodInfo(size_t argCount, const Arg_Ts&...args)
   {
+    // Process the passed in arguments
     (this->processArg(args), ...);
+
+    // Fill in any missing arguments
+    for (int i = sizeof...(Arg_Ts); i < argCount; i++)
+    {
+      Arg arg("arg_" + std::to_string(i));
+      this->args_.emplace_back(arg);
+    }
+
     // TODO - so hacky but update the Arg positions
     for (uint32_t i = 0; i < this->args_.size(); i++)
     {
@@ -14,39 +23,12 @@ namespace Rice
     }
   }
 
-  inline int MethodInfo::count()
-  {
-    if (required_ == 0 && optional_ == 0)
-    {
-      return -1;
-    }
-    else
-    {
-      return required_ + optional_;
-    }
-  }
-
-  inline std::string MethodInfo::formatString(size_t fullArgCount)
-  {
-    std::stringstream s;
-    if (required_ == 0 && optional_ == 0)
-    {
-      s << fullArgCount << 0;
-    }
-    else
-    {
-      s << required_ << optional_;
-    }
-
-    return s.str();
-  }
-
   template <typename Arg_T>
   inline void MethodInfo::processArg(const Arg_T& arg)
   {
     if constexpr (std::is_same_v<Arg_T, Arg>)
     {
-      this->add(arg);
+      this->addArg(arg);
     }
     else
     {
@@ -54,37 +36,40 @@ namespace Rice
     }
   }
 
-  inline void MethodInfo::add(const Arg& arg)
+  inline void MethodInfo::addArg(const Arg& arg)
   {
     this->args_.push_back(arg);
-
-    if (arg.hasDefaultValue())
-    {
-      optional_++;
-    }
-    else
-    {
-      required_++;
-    }
   }
 
-  inline bool MethodInfo::isOptional(unsigned int pos)
+  inline std::string MethodInfo::formatString()
   {
-    if (required_ == 0 && optional_ == 0)
+    size_t required = 0;
+    size_t optional = 0;
+
+    for (const Arg& arg : this->args_)
     {
-      return false;
+      if (arg.hasDefaultValue())
+      {
+        optional++;
+      }
+      else
+      {
+        required++;
+      }
     }
-    if (pos >= args_.size())
-    {
-      return false;
-    }
-    return args_[pos].hasDefaultValue();
+
+    return std::to_string(required) + std::to_string(optional);
   }
 
   template<typename Arg_T>
-  inline Arg_T& MethodInfo::defaultValue(int pos)
+  inline Arg_T& MethodInfo::defaultValue(size_t pos)
   {
     return args_[pos].defaultValue<Arg_T>();
+  }
+
+  inline Arg& MethodInfo::arg(size_t pos)
+  {
+    return args_[pos];
   }
 
   inline bool MethodInfo::isOwner()

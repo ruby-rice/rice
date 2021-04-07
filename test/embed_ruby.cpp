@@ -8,8 +8,7 @@ void embed_ruby()
   if (!initialized__)
   {
     int argc = 0;
-    char* argv = (char*)malloc(1);
-    argv[0] = 0;
+    char* argv = nullptr;
     char** pArgv = &argv;
 
     ruby_sysinit(&argc, &pArgv);
