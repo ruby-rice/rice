@@ -35,7 +35,7 @@ namespace Rice::detail
   template<std::size_t... I>
   typename Native_Function<Function_T, IsMethod>::Native_Arg_Ts Native_Function<Function_T, IsMethod>::createNativeArgs(std::index_sequence<I...>& indices)
   {
-    return std::make_tuple(NativeArg<std::tuple_element_t<I, Arg_Ts>>(this->methodInfo_->arg(I))...);
+    return std::make_tuple(NativeArg<std::tuple_element<I, Arg_Ts>::type>(this->methodInfo_->arg(I))...);
   }
 
   template<typename Function_T, bool IsMethod>
