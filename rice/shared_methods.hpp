@@ -13,13 +13,6 @@ auto& const_set(Identifier name, Object value)
   return dynamic_cast<decltype(*this)>(Module::const_set(name.id(), value.value()));
 }
 
-template<typename Function_T>
-[[deprecated("Please call define_method with Arg parameters")]]
-auto& define_method(Identifier name, Function_T&& func, MethodInfo* methodInfo)
-{
-  return dynamic_cast<decltype(*this)>(Module::define_method(name, std::forward<Function_T>(func), methodInfo));
-}
-
 template<typename Function_T, typename...Arg_Ts>
 auto& define_method(Identifier name, Function_T&& func, Arg_Ts const& ...args)
 {
@@ -30,13 +23,6 @@ template<typename Function_T, typename...Arg_Ts>
 auto& define_function(Identifier name, Function_T&& func, Arg_Ts const& ...args)
 {
   return dynamic_cast<decltype(*this)>(Module::define_function(name, std::forward<Function_T>(func), args...));
-}
-
-template<typename Function_T>
-[[deprecated("Please call define_singleton_method with Arg parameters")]]
-auto& define_singleton_method(Identifier name, Function_T&& func, MethodInfo* methodInfo)
-{
-  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, std::forward<Function_T>(func), methodInfo));
 }
 
 template<typename Function_T, typename...Arg_Ts>
