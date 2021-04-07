@@ -36,7 +36,7 @@ namespace Rice::detail
   template<typename Tuple_T, size_t...Is>
   void verifyTypesImpl()
   {
-    (Type<intrinsic_type<std::tuple_element_t<Is, Tuple_T>>>::verify(), ...);
+    (Type<intrinsic_type<typename std::tuple_element<Is, Tuple_T>::type>>::verify(), ...);
   }
 
   template<typename Tuple_T>
