@@ -85,9 +85,9 @@ namespace Rice::detail
   template<typename T>
   struct Type<std::optional<T>>
   {
-    constexpr static void verify()
+    constexpr static bool verify()
     {
-      Type<T>::verify();
+      return Type<T>::verify();
     }
   };
 
@@ -250,7 +250,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair_under(Object module, std::string name)
   {
-    if (Data_Type<T>::isDefined)
+    if (detail::TypeRegistry::isDefined<T>())
     {
       return Data_Type<T>(Data_Type<T>());
     }
@@ -263,7 +263,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair(std::string name)
   {
-    if (Data_Type<T>::isDefined)
+    if (detail::TypeRegistry::isDefined<T>())
     {
       return Data_Type<T>(Data_Type<T>());
     }
@@ -287,12 +287,17 @@ namespace Rice
     template<typename T1, typename T2>
     struct Type<std::pair<T1, T2>>
     {
-      constexpr static void verify()
+      static bool verify()
       {
-        if (!Data_Type<std::pair<T1, T2>>::isDefined)
+        Type<T1>::verify();
+        Type<T2>::verify();
+
+        if (!detail::TypeRegistry::isDefined<std::pair<T1, T2>>())
         {
           define_pair_auto<std::pair<T1, T2>>();
         }
+
+        return true;
       }
     };
   }
@@ -381,9 +386,9 @@ namespace Rice::detail
   template<typename T>
   struct Type<std::unique_ptr<T>>
   {
-    constexpr static void verify()
+    static bool verify()
     {
-      // Don't need to register unique_ptr
+      return Type<T>::verify();
     }
   };
 
@@ -441,9 +446,9 @@ namespace Rice::detail
   template<typename T>
   struct Type<std::shared_ptr<T>>
   {
-    constexpr static void verify()
+    static bool verify()
     {
-      // Don't need to register unique_ptr
+      return Type<T>::verify();
     }
   };
 }
@@ -559,9 +564,11 @@ namespace Rice
           .define_method("max_size", &T::max_size)
           .define_method("reserve", &T::reserve)
           .define_method("size", &T::size);
-
+        
         rb_define_alias(klass_, "count", "size");
         rb_define_alias(klass_, "length", "size");
+        //detail::protect(rb_define_alias, klass_, "count", "size");
+        //detail::protect(rb_define_alias, klass_, "length", "size");
       }
 
       void define_access_methods()
@@ -765,7 +772,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector_under(Object module, std::string name)
   {
-    if (Data_Type<T>::isDefined)
+    if (detail::TypeRegistry::isDefined<T>())
     {
       return Data_Type<T>(Data_Type<T>());
     }
@@ -778,7 +785,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector(std::string name)
   {
-    if (Data_Type<T>::isDefined)
+    if (detail::TypeRegistry::isDefined<T>())
     {
       return Data_Type<T>(Data_Type<T>());
     }
@@ -802,12 +809,16 @@ namespace Rice
     template<typename T>
     struct Type<std::vector<T>>
     {
-      constexpr static void verify()
+      static bool verify()
       {
-        if (!Data_Type<std::vector<T>>::isDefined)
+        Type<T>::verify();
+
+        if (!detail::TypeRegistry::isDefined<std::vector<T>>())
         {
           define_vector_auto<std::vector<T>>();
         }
+
+        return true;
       }
     };
   }
