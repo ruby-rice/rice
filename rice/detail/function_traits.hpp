@@ -103,9 +103,9 @@ namespace Rice::detail
 
   // Functions that do have a self parameter (thus we call them methods)
   template<typename Function_T, bool IsMethod>
-  struct method_traits<Function_T, IsMethod, std::enable_if_t<IsMethod&& std::is_same_v<typename function_traits<Function_T>::class_type, std::nullptr_t>>>
+  struct method_traits<Function_T, IsMethod, std::enable_if_t<IsMethod && std::is_same_v<typename function_traits<Function_T>::class_type, std::nullptr_t>>>
   {
-    using Self_T = typename function_traits<Function_T>::nth_arg<0>;
+    using Self_T = typename function_traits<Function_T>::template nth_arg<0>;
     using Arg_Ts = typename tuple_shift<typename function_traits<Function_T>::arg_types>::type;
     static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
   };
