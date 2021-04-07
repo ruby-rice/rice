@@ -1,6 +1,7 @@
 require 'mkmf'
 
 IS_MSWIN = !RbConfig::CONFIG['host_os'].match(/mswin/).nil?
+IS_DARWIN = !RbConfig::CONFIG['host_os'].match(/darwin/).nil?
 
 # If we are on versions of Ruby before 2.7 then we need to copy in the experimental C++ support
 # added in Ruby 2.7
@@ -117,6 +118,8 @@ path = File.expand_path(File.join(__dir__, '../../include'))
 
 find_header('rice/rice.hpp', path)
 
-if !IS_MSWIN
+if IS_DARWIN
+  have_library('c++')
+elsif !IS_MSWIN
   have_library('stdc++')
 end
