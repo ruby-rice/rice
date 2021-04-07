@@ -57,17 +57,17 @@ namespace Rice::detail
 
   // Member Functions
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
-  struct function_traits<Return_T(Class_T::*)(Arg_Ts...)> : public function_traits<Return_T(Class_T, Arg_Ts...)>
+  struct function_traits<Return_T(Class_T::*)(Arg_Ts...)> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
   {
   };
 
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
-  struct function_traits<Return_T(Class_T::*)(Arg_Ts...) const> : public function_traits<Return_T(Class_T, Arg_Ts...)>
+  struct function_traits<Return_T(Class_T::*)(Arg_Ts...) const> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
   {
   };
 
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
-  struct function_traits<Return_T(Class_T::*)(Arg_Ts...) noexcept> : public function_traits<Return_T(Class_T, Arg_Ts...)>
+  struct function_traits<Return_T(Class_T::*)(Arg_Ts...) noexcept> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
   {
   };
 
@@ -114,7 +114,7 @@ namespace Rice::detail
   template<typename Function_T, bool IsMethod>
   struct method_traits<Function_T, IsMethod, std::enable_if_t<IsMethod && !std::is_same_v<typename function_traits<Function_T>::class_type, std::nullptr_t>>>
   {
-    using Self_T = typename function_traits<Function_T>::class_type*;
+    using Self_T = typename function_traits<Function_T>::class_type;
     using Arg_Ts = typename function_traits<Function_T>::arg_types;
     static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
   };
