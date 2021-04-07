@@ -55,15 +55,18 @@ task :test_cpp => :build do
   end
 end
 
-task :confirm_headers => :build do
-  begin
-    run_command("git", "diff", "--quiet")
-  rescue
-    puts "", "Git working tree is not clean. Did the updated header files get checked in?", ""
-    run_command("git", "status", "--short")
-    exit 1
-  end
-end
+# NOTE - The problem with this is that it breaks with Github actions since it sees
+# build artifacts such as *.so files and dies. Needs to be updated to just check
+# for the include headers.
+#task :confirm_headers => :build do
+#  begin
+#    run_command("git", "diff", "--quiet")
+#  rescue
+#    puts "", "Git working tree is not clean. Did the updated header files get checked in?", ""
+#    run_command("git", "status", "--short")
+#    exit 1
+#  end
+#end
 
 Rake::TestTask.new do |t|
   t.libs += %w(test)
@@ -72,7 +75,7 @@ Rake::TestTask.new do |t|
   t.warning = true
 end
 
-task :test => [:test_cpp, :confirm_headers]
+task :test => [:test_cpp]#, :confirm_headers]
 
 # ---------  Header  --------------
 include_dir = File.join(__dir__, 'include', 'rice')
