@@ -56,14 +56,11 @@ namespace Rice
       using type = std::tuple<Arg_Ts...>;
     };
      
-    template<template<typename> typename T, typename...Arg_Ts>
-    struct tuple_map
-    {
-      using type = std::tuple<T<Arg_Ts...>>;
-    };
+    template<template<typename, typename = void> typename T, typename...Arg_Ts>
+    struct tuple_map;
 
-    template<template<typename> typename T, template<typename...> typename Tuple_T, typename...Arg_Ts>
-    struct tuple_map<T, Tuple_T<Arg_Ts...>>
+    template<template<typename, typename = void> typename T, typename...Arg_Ts>
+    struct tuple_map<T, std::tuple<Arg_Ts...>>
     {
       using type = std::tuple<T<Arg_Ts>...>;
     };
