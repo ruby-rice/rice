@@ -46,67 +46,40 @@ namespace Rice
     return *this;
   }
 
-  template<typename Function_T>
-  inline Module& Module::define_method(Identifier name, Function_T&& func, MethodInfo* methodInfo)
+  template<typename Function_T, typename...Arg_Ts>
+  inline Module& Module::define_method(Identifier name, Function_T&& func, const Arg_Ts&...args)
   {
+    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
     this->wrap_native_method(this->value(), name, std::forward<Function_T>(func), this->handler(), methodInfo);
     return *this;
   }
 
   template<typename Function_T, typename...Arg_Ts>
-  inline Module& Module::define_method(Identifier name, Function_T&& func, Arg_Ts const& ...args)
+  inline Module& Module::define_function(Identifier name, Function_T&& func, const Arg_Ts&...args)
   {
-    MethodInfo* methodInfo = new MethodInfo(args...);
-    this->wrap_native_method(this->value(), name, std::forward<Function_T>(func), this->handler(), methodInfo);
-    return *this;
-  }
-
-  template<typename Function_T, typename...Arg_Ts>
-  inline Module& Module::define_function(Identifier name, Function_T&& func, Arg_Ts const& ...args)
-  {
-    MethodInfo* methodInfo = new MethodInfo(args...);
+    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
     this->wrap_native_function(this->value(), name, std::forward<Function_T>(func), this->handler(), methodInfo);
     return *this;
   }
 
-  template<typename Function_T>
-  inline Module& Module::define_singleton_method(Identifier name, Function_T&& func, MethodInfo* methodInfo)
+  template<typename Function_T, typename...Arg_Ts>
+  inline Module& Module::define_singleton_method(Identifier name, Function_T&& func, const Arg_Ts&...args)
   {
+    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
     this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Function_T>(func), this->handler(), methodInfo);
     return *this;
   }
 
   template<typename Function_T, typename...Arg_Ts>
-  inline Module& Module::define_singleton_method(Identifier name, Function_T&& func, Arg_Ts const& ...args)
+  inline Module& Module::define_singleton_function(Identifier name, Function_T&& func, const Arg_Ts& ...args)
   {
-    MethodInfo* methodInfo = new MethodInfo(args...);
-    this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Function_T>(func), this->handler(), methodInfo);
-    return *this;
-  }
-
-  template<typename Function_T, typename...Arg_Ts>
-  inline Module& Module::define_singleton_function(Identifier name, Function_T&& func, Arg_Ts const& ...args)
-  {
-    MethodInfo* methodInfo = new MethodInfo(args...);
+    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
     this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Function_T>(func), this->handler(), methodInfo);
     return *this;
   }
 
-  template<typename Function_T>
-  inline Module& Module::define_module_function(Identifier name, Function_T&& func, MethodInfo* methodInfo)
-  {
-    if (this->rb_type() != T_MODULE)
-    {
-      throw std::runtime_error("can only define module functions for modules");
-    }
-
-    define_function(name, func, methodInfo);
-    define_singleton_function(name, std::forward<Function_T>(func), methodInfo);
-    return *this;
-  }
-
   template<typename Function_T, typename...Arg_Ts>
-  inline Module& Module::define_module_function(Identifier name, Function_T&& func, Arg_Ts const& ...args)
+  inline Module& Module::define_module_function(Identifier name, Function_T&& func, const Arg_Ts& ...args)
   {
     if (this->rb_type() != T_MODULE)
     {

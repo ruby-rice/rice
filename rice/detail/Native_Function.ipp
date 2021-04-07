@@ -20,11 +20,6 @@ namespace Rice::detail
   Native_Function<Function_T, IsMethod>::Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
     : func_(func), handler_(handler), methodInfo_(methodInfo)
   {
-    if (!methodInfo_)
-    {
-      methodInfo_ = std::make_unique<MethodInfo>();
-    }
-
     // Ruby takes ownership of types returned by value. We do this here so that users
     // don't have to be bothered to specify this in define_method. Note we *must* set 
     // this correctly because To_Ruby<T>::convert routines work with const T& and thus
@@ -40,21 +35,14 @@ namespace Rice::detail
   template<std::size_t... I>
   typename Native_Function<Function_T, IsMethod>::Native_Arg_Ts Native_Function<Function_T, IsMethod>::createNativeArgs(std::index_sequence<I...>& indices)
   {
-    std::vector<Arg> args(this->methodInfo_->begin(), this->methodInfo_->end());
-    for (size_t i = args.size(); i < std::tuple_size_v<Arg_Ts>; i++)
-    {
-      Arg arg("arg_" + std::to_string(i));
-      args.push_back(arg);
-    }
-
-    return std::make_tuple(NativeArg<std::tuple_element_t<I, Arg_Ts>>(args[I])...);
+    return std::make_tuple(NativeArg<std::tuple_element_t<I, Arg_Ts>>(this->methodInfo_->arg(I))...);
   }
 
   template<typename Function_T, bool IsMethod>
   std::vector<VALUE> Native_Function<Function_T, IsMethod>::getRubyValues(int argc, VALUE* argv)
   {
     // Setup a tuple to contain required methodInfo to rb_scan_args
-    std::string scanFormat = this->methodInfo_->formatString(std::tuple_size_v<Arg_Ts>);
+    std::string scanFormat = this->methodInfo_->formatString();
     std::tuple<int, VALUE*, const char*> rbScanMandatory = std::forward_as_tuple(argc, argv, scanFormat.c_str());
 
     // Create a vector to store the variable number of Ruby Values

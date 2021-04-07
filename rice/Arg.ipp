@@ -1,6 +1,3 @@
-#include <any>
-#include <string>
-
 namespace Rice
 {
   inline Arg::Arg(std::string name) : name(name)

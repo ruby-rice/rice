@@ -96,6 +96,7 @@ namespace Rice::detail
   {
     using Self_T = std::nullptr_t;
     using Arg_Ts = typename function_traits<Function_T>::arg_types;
+    static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
   };
 
   // Functions that do have a self parameter (thus we call them methods)
@@ -104,6 +105,7 @@ namespace Rice::detail
   {
     using Self_T = typename function_traits<Function_T>::nth_arg<0>;
     using Arg_Ts = typename tuple_shift<typename function_traits<Function_T>::arg_types>::type;
+    static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
   };
 
   // Member functions that have an implied self parameter of an object instance
@@ -112,6 +114,7 @@ namespace Rice::detail
   {
     using Self_T = typename function_traits<Function_T>::class_type*;
     using Arg_Ts = typename function_traits<Function_T>::arg_types;
+    static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
   };
 
 }

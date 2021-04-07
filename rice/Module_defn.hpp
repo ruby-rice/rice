@@ -4,6 +4,7 @@
 #include "detail/Exception_Handler_defn.hpp"
 #include "detail/ruby.hpp"
 #include "Arg.hpp"
+#include "Return.hpp"
 #include "Object_defn.hpp"
 
 namespace Rice
@@ -83,20 +84,16 @@ namespace Rice
     */
     Module& include_module(Module const& inc);
 
-    template<typename Function_T>
-    [[deprecated("Please call define_method with Arg parameters")]]
-    Module& define_method(Identifier name, Function_T&& func, MethodInfo* methodInfo);
-
     //! Define an instance method.
     /*! The method's implementation can be a member function, plain function
      *  or lambda. The easiest case is a member function where the Ruby
-     *  methodInfo map one-to-one to the C++ methodInfo. In the case of a
+     *  method maps one-to-one to the C++ method. In the case of a
      *  plain function or lambda, the first argument must be SELF - ie, 
      *  the current object. If it is specified as a VALUE, then
      *  the current Ruby object is passed. If it is specified as a C++ class, 
      *  then the C++ oject is passed. If you don't want to include the 
      *  SELF argument see define_fuction.
-     *  Rice will automatically convert method methodInfo from Ruby to C++ and
+     *  Rice will automatically convert method method from Ruby to C++ and
      *  then convert the return value from C++ to Ruby.
      *  \param name the name of the method
      *  \param func the implementation of the function, either a function
@@ -105,12 +102,12 @@ namespace Rice
      *  \return *this
      */
     template<typename Function_T, typename...Arg_Ts>
-    Module& define_method(Identifier name, Function_T&& func, Arg_Ts const& ...args);
+    Module& define_method(Identifier name, Function_T&& func, const Arg_Ts& ...args);
 
     //! Define an instance function.
     /*! The function implementation is a plain function or a static
      *  member function. 
-     *  Rice will automatically convert method methodInfo from Ruby to C++ and
+     *  Rice will automatically convert method method from Ruby to C++ and
      *  then convert the return value from C++ to Ruby.
      *  \param name the name of the method
      *  \param func the implementation of the function, either a function
@@ -119,11 +116,7 @@ namespace Rice
      *  \return *this
      */
     template<typename Function_T, typename...Arg_Ts>
-    Module& define_function(Identifier name, Function_T&& func, Arg_Ts const& ...args);
-
-    template<typename Function_T>
-    [[deprecated("Please call define_singleton_method with Arg parameters")]]
-    Module& define_singleton_method(Identifier name, Function_T&& func, MethodInfo* methodInfo);
+    Module& define_function(Identifier name, Function_T&& func, const Arg_Ts& ...args);
 
     //! Define a singleton method.
     /*! The method's implementation can be a static member function,
@@ -132,7 +125,7 @@ namespace Rice
      *  the current Ruby object is passed. If it is specified as a C++ class, 
      *  then the C++ oject is passed. If you don't want to include the 
      *  SELF argument see define_singleton_function.
-     *  Rice will automatically convert method methodInfo from Ruby to C++ and
+     *  Rice will automatically convert method method from Ruby to C++ and
      *  then convert the return value from C++ to Ruby.
      *  \param name the name of the method
      *  \param func the implementation of the function, either a function
@@ -141,13 +134,13 @@ namespace Rice
      *  \return *this
      */
     template<typename Function_T, typename...Arg_Ts>
-    Module& define_singleton_method(Identifier name, Function_T&& func, Arg_Ts const& ...args);
+    Module& define_singleton_method(Identifier name, Function_T&& func, const Arg_Ts& ...args);
 
     //! Define a singleton method.
     /*! The method's implementation can be a static member function, plain
      *  function or lambda.
      . A wrapper will be 
-     * generated which will convert the methodInfo
+     * generated which will convert the method
      *  from ruby types to C++ types before calling the function.  The return
      *  value will be converted back to ruby.
      *  \param name the name of the method
@@ -157,17 +150,13 @@ namespace Rice
      *  \return *this
      */
     template<typename Function_T, typename...Arg_Ts>
-    Module& define_singleton_function(Identifier name, Function_T&& func, Arg_Ts const& ...args);
-
-    template<typename Function_T>
-    [[deprecated("Please call define_module_function with Arg parameters")]]
-    Module& define_module_function(Identifier name, Function_T&& func, MethodInfo* methodInfo);
+    Module& define_singleton_function(Identifier name, Function_T&& func, const Arg_Ts& ...args);
 
     //! Define a module function.
     /*! A module function is a function that can be accessed either as a
      *  singleton method or as an instance method. It wrap a plain
      *  function, static member function or lambda.
-     *  Rice will automatically convert method methodInfo from Ruby to C++ and
+     *  Rice will automatically convert method method from Ruby to C++ and
      *  then convert the return value from C++ to Ruby.
      *  \param name the name of the method
      *  \param func the implementation of the function, either a function
@@ -176,7 +165,7 @@ namespace Rice
      *  \return *this
      */
     template<typename Function_T, typename...Arg_Ts>
-    Module& define_module_function(Identifier name, Function_T&& func, Arg_Ts const& ...args);
+    Module& define_module_function(Identifier name, Function_T&& func, const Arg_Ts& ...args);
 
     //! Set a constant.
     /*! \param name the name of the constant to set.
@@ -209,11 +198,11 @@ namespace Rice
   private:
     template<typename Function_T>
     void wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
-      std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo = 0);
+      std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo);
 
     template<typename Function_T>
     void wrap_native_function(VALUE klass, Identifier name, Function_T&& function,
-      std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo = 0);
+      std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo);
 
     mutable std::shared_ptr<detail::Exception_Handler> handler_ = std::make_shared<Rice::detail::Default_Exception_Handler>();
   };
