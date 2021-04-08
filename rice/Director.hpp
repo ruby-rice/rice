@@ -3,8 +3,8 @@
 
 #include "Object.hpp"
 
-namespace Rice {
-
+namespace Rice
+{
   /**
    * A Director works exactly as a SWIG %director works (thus the name).
    * You use this class to help build proxy classes so that polymorphism
