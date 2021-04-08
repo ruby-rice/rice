@@ -18,7 +18,7 @@ namespace Rice
   namespace detail
   {
     template<typename Return_T, typename Attr_T, typename Self_T = void>
-    class Native_Attribute
+    class NativeAttribute
     {
     public:
       using Native_Return_T = Return_T;
@@ -28,7 +28,7 @@ namespace Rice
       static VALUE set(VALUE self, VALUE value);
 
     public:
-      Native_Attribute(Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
+      NativeAttribute(Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
 
       // Invokes the wrapped function
       VALUE read(VALUE self);
@@ -49,6 +49,6 @@ namespace Rice
   } // detail
 } // Rice
 
-#include "Native_Attribute.ipp"
+#include "NativeAttribute.ipp"
 
 #endif // Rice__detail__Native_Attribute__hpp_

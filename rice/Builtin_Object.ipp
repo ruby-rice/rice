@@ -1,7 +1,6 @@
 #ifndef Rice__Builtin_Object__ipp_
 #define Rice__Builtin_Object__ipp_
 
-#include "detail/Ruby_Function.hpp"
 #include <algorithm>
 
 namespace Rice

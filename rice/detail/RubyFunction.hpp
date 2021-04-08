@@ -12,10 +12,10 @@ namespace Rice::detail
      Ruby method passing along its required arguments. */
 
   template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  class Ruby_Function
+  class RubyFunction
   {
   public:
-    Ruby_Function(Function_T func, const Arg_Ts&... args);
+    RubyFunction(Function_T func, const Arg_Ts&... args);
     Return_T operator()();
 
   private:
@@ -37,6 +37,6 @@ namespace Rice
   Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args);
 }
 
-#include "Ruby_Function.ipp"
+#include "RubyFunction.ipp"
 
 #endif // Rice__detail__ruby_function__hpp_

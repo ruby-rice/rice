@@ -3,7 +3,7 @@
 
 #include <stdexcept>
 #include "../Exception_defn.hpp"
-#include "Ruby_Function.hpp"
+#include "RubyFunction.hpp"
 
 /* This file implements conversions from Ruby to native values fo fundamental types 
    such as bool, int, float, etc. It also includes conversions for chars and strings */

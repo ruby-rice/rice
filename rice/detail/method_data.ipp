@@ -6,8 +6,6 @@
 // back to the C-API underneath again.
 #undef rb_define_method_id
 
-#include "Ruby_Function.hpp"
-
 namespace Rice::detail
 {
   // Effective Java (2nd edition)

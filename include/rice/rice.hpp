@@ -85,8 +85,149 @@ namespace Rice
       static const bool value = is_comparable_v<T>;
     };
 
+    // -- Tuple Helpers ---
+    template<typename T>
+    struct tuple_shift;
+
+    template<typename T, typename...Arg_Ts>
+    struct tuple_shift<std::tuple<T, Arg_Ts...>>
+    {
+      using type = std::tuple<Arg_Ts...>;
+    };
+     
+    template<template<typename, typename = void> typename T, typename...Arg_Ts>
+    struct tuple_map;
+
+    template<template<typename, typename = void> typename T, typename...Arg_Ts>
+    struct tuple_map<T, std::tuple<Arg_Ts...>>
+    {
+      using type = std::tuple<T<Arg_Ts>...>;
+    };
   } // detail
 } // Rice
+
+
+// =========   function_traits.hpp   =========
+
+#include <tuple>
+
+namespace Rice::detail
+{
+  // --------------   Function Traits --------------
+  // Base class
+  template<typename Function_T>
+  struct function_traits;
+
+  // Base definition that support functors and lambdas
+  template<class Function_T>
+  struct function_traits
+  {
+  private:
+    using functor_t = function_traits<decltype(&Function_T::operator())>;
+
+  public:
+    using arg_types = typename functor_t::arg_types;
+
+    static constexpr std::size_t arity = functor_t::arity - 1;
+
+    template<std::size_t N>
+    using nth_arg = typename std::tuple_element<N, typename functor_t::arg_types>::type;
+
+    using return_type = typename functor_t::return_type;
+    using class_type = std::nullptr_t;
+  };
+
+  // Specialization for functions, member functions and static member functions
+  template<typename Return_T, typename Class_T, typename...Arg_Ts>
+  struct function_traits<Return_T(Class_T, Arg_Ts...)>
+  {
+    using arg_types = std::tuple<Arg_Ts...>;
+
+    static constexpr std::size_t arity = sizeof...(Arg_Ts);
+
+    template<std::size_t N>
+    using nth_arg = typename std::tuple_element<N, arg_types>::type;
+
+    using return_type = Return_T;
+    using class_type = Class_T;
+  };
+
+  // Free functions and static member functions passed by pointer or reference
+  template<typename Return_T, typename ...Arg_Ts>
+  struct function_traits<Return_T(*)(Arg_Ts...)> : public function_traits<Return_T(std::nullptr_t, Arg_Ts...)>
+  {
+  };
+  
+  template<typename Return_T, typename ...Arg_Ts>
+  struct function_traits<Return_T(&)(Arg_Ts...)> : public function_traits<Return_T(std::nullptr_t, Arg_Ts...)>
+  {
+  };
+
+  // Member Functions
+  template<typename Return_T, typename Class_T, typename...Arg_Ts>
+  struct function_traits<Return_T(Class_T::*)(Arg_Ts...)> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
+  {
+  };
+
+  template<typename Return_T, typename Class_T, typename...Arg_Ts>
+  struct function_traits<Return_T(Class_T::*)(Arg_Ts...) const> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
+  {
+  };
+
+  template<typename Return_T, typename Class_T, typename...Arg_Ts>
+  struct function_traits<Return_T(Class_T::*)(Arg_Ts...) noexcept> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
+  {
+  };
+
+  template<typename Return_T, typename Class_T, typename...Arg_Ts>
+  struct function_traits<Return_T(Class_T::*)(Arg_Ts...) const noexcept> : public function_traits<Return_T(Class_T, Arg_Ts...)>
+  {
+  };
+
+  // Functors and lambdas
+  template<class Function_T>
+  struct function_traits<Function_T&> : public function_traits<Function_T>
+  {
+  };
+
+  template<class Function_T>
+  struct function_traits<Function_T&&> : public function_traits<Function_T>
+  {
+  };
+
+  // --------------   Method Traits --------------
+  // Declare struct
+  template<typename Function_T, bool IsMethod, typename = void>
+  struct method_traits;
+
+  // Functions that do not have a self parameter
+  template<typename Function_T, bool IsMethod>
+  struct method_traits<Function_T, IsMethod, std::enable_if_t<!IsMethod>>
+  {
+    using Self_T = std::nullptr_t;
+    using Arg_Ts = typename function_traits<Function_T>::arg_types;
+    static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
+  };
+
+  // Functions that do have a self parameter (thus we call them methods)
+  template<typename Function_T, bool IsMethod>
+  struct method_traits<Function_T, IsMethod, std::enable_if_t<IsMethod && std::is_same_v<typename function_traits<Function_T>::class_type, std::nullptr_t>>>
+  {
+    using Self_T = typename function_traits<Function_T>::template nth_arg<0>;
+    using Arg_Ts = typename tuple_shift<typename function_traits<Function_T>::arg_types>::type;
+    static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
+  };
+
+  // Member functions that have an implied self parameter of an object instance
+  template<typename Function_T, bool IsMethod>
+  struct method_traits<Function_T, IsMethod, std::enable_if_t<IsMethod && !std::is_same_v<typename function_traits<Function_T>::class_type, std::nullptr_t>>>
+  {
+    using Self_T = typename function_traits<Function_T>::class_type;
+    using Arg_Ts = typename function_traits<Function_T>::arg_types;
+    static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
+  };
+
+}
 
 
 // =========   Type.hpp   =========
@@ -158,7 +299,7 @@ namespace Rice::detail
   template<typename Tuple_T, size_t...Is>
   void verifyTypesImpl()
   {
-    (Type<intrinsic_type<std::tuple_element_t<Is, Tuple_T>>>::verify(), ...);
+    (Type<intrinsic_type<typename std::tuple_element<Is, Tuple_T>::type>>::verify(), ...);
   }
 
   template<typename Tuple_T>
@@ -262,6 +403,7 @@ namespace Rice::detail
     return result;
   }
 }
+
 
 // =========   TypeRegistry.hpp   =========
 
@@ -413,360 +555,6 @@ namespace Rice::detail
     }
   }
 }
-
-
-// =========   Return.hpp   =========
-
-#include <any>
-
-namespace Rice
-{
-  //! Helper for defining Return argument of a method
-  /*! This class exposes the ability to define the default values of a
-   *  wrapped method. Inspired by how Boost.Python handles keyword and
-   *  default arguments, the syntax is simple:
-   *
-   *  \code
-   *    define_method(
-   *      "method",
-   *      &method,
-   *      (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true)
-   *    );
-   *  \endcode
-   *
-   *  which means "for method &method, it takes 3 arguments
-   *  [arg1, arg2, arg3]. Of these arguments, arg2's default is 3
-   *  and arg3's default is true.
-   *
-   *  It may be required to explicitly cast the type of the default
-   *  value to prevent compilation errors.
-   */
-
-  class Return
-  {
-  public:
-    Return& takeOwnership();
-    bool isOwner();
-
-  private:
-    bool isOwner_ = false;
-  };
-} // Rice
-
-
-// ---------   Return.ipp   ---------
-#include <any>
-#include <string>
-
-namespace Rice
-{
-  inline Return& Return::takeOwnership()
-  {
-    this->isOwner_ = true;
-    return *this;
-  }
-
-  inline bool Return::isOwner()
-  {
-    return this->isOwner_;
-  }
-}  // Rice
-
-
-// =========   Arg.hpp   =========
-
-#include <any>
-
-namespace Rice
-{
-  //! Helper for defining default arguments of a method
-  /*! This class exposes the ability to define the default values of a
-   *  wrapped method. Inspired by how Boost.Python handles keyword and
-   *  default arguments, the syntax is simple:
-   *
-   *  \code
-   *    define_method(
-   *      "method",
-   *      &method,
-   *      Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true
-   *    );
-   *  \endcode
-   *
-   *  which means "for method &method, it takes 3 arguments
-   *  [arg1, arg2, arg3]. Of these arguments, arg2's default is 3
-   *  and arg3's default is true.
-   *
-   *  It may be required to explicitly cast the type of the default
-   *  value to prevent compilation errors.
-   */
-  class Arg
-  {
-  public:
-    //! Initialize a new Arg with the name of the argument
-    /*! We require the name of the argument because 1) it makes code
-     *  easier to read and 2) hopefully Ruby gets keyword arguments
-     *  in the future and this means Rice will be ready for it.
-     */
-    Arg(std::string name);
-
-    //! Set the default value for this Arg
-    /*! Set the default value for this argument.
-     *  If this isn't called on this Arg, then this
-     *  Arg is required in the method call.
-     *
-     *  \param val the value to store as default
-     */
-    template<typename Arg_Type>
-    Arg& operator=(Arg_Type val);
-
-    //! Check if this Arg has a default value associated with it
-    bool hasDefaultValue() const;
-
-    //! Return a reference to the default value associated with this Arg
-    /*! \return the type saved to this Arg
-     */
-    template<typename Arg_Type>
-    Arg_Type& defaultValue();
-
-    //! Tell the receiving object to keep this argument alive
-    //! until the receiving object is freed.
-    Arg& keepAlive();
-
-  public:
-    bool isKeepAlive = false;
-    const std::string name;
-    int32_t position = -1;
-
-  private:
-    //! Our saved default value
-    std::any defaultValue_;
-  };
-} // Rice
-
-
-// ---------   Arg.ipp   ---------
-#include <any>
-#include <string>
-
-namespace Rice
-{
-  inline Arg::Arg(std::string name) : name(name)
-  {
-  }
-
-  template<typename Arg_Type>
-  inline Arg& Arg::operator=(Arg_Type val)
-  {
-    this->defaultValue_ = val;
-    return *this;
-  }
-
-  //! Check if this Arg has a default value associated with it
-  inline bool Arg::hasDefaultValue() const
-  {
-    return this->defaultValue_.has_value();
-  }
-
-  //! Return a reference to the default value associated with this Arg
-  /*! \return the type saved to this Arg
-    */
-  template<typename Arg_Type>
-  inline Arg_Type& Arg::defaultValue()
-  {
-    return std::any_cast<Arg_Type&>(this->defaultValue_);
-  }
-
-  inline Arg& Arg::keepAlive()
-  {
-    this->isKeepAlive = true;
-    return *this;
-  }
-} // Rice
-
-// =========   Arguments.hpp   =========
-
-#include <vector>
-
-namespace Rice
-{
-  class Arguments
-  {
-  public:
-    template <typename...Arg_Ts>
-    Arguments(const Arg_Ts...args);
-
-    /**
-      * Get the full argument count of this
-      * list of arguments.
-      * Returns -1 no defined arguments
-      */
-    int count();
-
-    /**
-      * Get the rb_scan_args format string for this
-      * list of arguments.
-      * In the case of no Args (default case), this
-      * method uses the passed in full argument count
-      */
-    std::string formatString(size_t fullArgCount);
-
-    /**
-      * Add a defined Arg to this list of Arguments
-      */
-    void add(const Arg& arg);
-
-    /**
-      * Is the argument at the request location an optional
-      * argument?
-      */
-    bool isOptional(unsigned int pos);
-
-    /**
-      * Specifices if Ruby owns the returned data
-      */
-    bool isOwner();
-
-    /**
-      * Tell Ruby to take ownership of the returned data
-      */
-    void takeOwnership();
-
-    /**
-      * Given a position, a type, and a ruby VALUE, figure out
-      * what argument value we need to return according to
-      * defaults and if that VALUE is nil or not
-      */
-    template<typename Arg_T>
-    Arg_T& defaultValue(int pos);
-
-    // Iterator support
-    std::vector<Arg>::iterator begin();
-    std::vector<Arg>::iterator end();
-
-  private:
-
-    template <typename Arg_T>
-    void processArg(const Arg_T& arg);
-
-    std::vector<Arg> args_;
-    Return return_;
-
-    /** Keep counts of required and optional parameters */
-    int required_ = 0;
-    int optional_ = 0;
-  };
-}
-
-// ---------   Arguments.ipp   ---------
-#include <sstream>
-
-namespace Rice
-{
-  template <typename...Arg_Ts>
-  inline Arguments::Arguments(const Arg_Ts...args)
-  {
-    (this->processArg(args), ...);
-    // TODO - so hacky but update the Arg positions
-    for (uint32_t i = 0; i < this->args_.size(); i++)
-    {
-      this->args_[i].position = i;
-    }
-  }
-
-  inline int Arguments::count()
-  {
-    if (required_ == 0 && optional_ == 0)
-    {
-      return -1;
-    }
-    else
-    {
-      return required_ + optional_;
-    }
-  }
-
-  inline std::string Arguments::formatString(size_t fullArgCount)
-  {
-    std::stringstream s;
-    if (required_ == 0 && optional_ == 0)
-    {
-      s << fullArgCount << 0;
-    }
-    else
-    {
-      s << required_ << optional_;
-    }
-
-    return s.str();
-  }
-
-  template <typename Arg_T>
-  inline void Arguments::processArg(const Arg_T& arg)
-  {
-    if constexpr (std::is_same_v<Arg_T, Arg>)
-    {
-      this->add(arg);
-    }
-    else
-    {
-      this->return_ = arg;
-    }
-  }
-
-  inline void Arguments::add(const Arg& arg)
-  {
-    this->args_.push_back(arg);
-
-    if (arg.hasDefaultValue())
-    {
-      optional_++;
-    }
-    else
-    {
-      required_++;
-    }
-  }
-
-  inline bool Arguments::isOptional(unsigned int pos)
-  {
-    if (required_ == 0 && optional_ == 0)
-    {
-      return false;
-    }
-    if (pos >= args_.size())
-    {
-      return false;
-    }
-    return args_[pos].hasDefaultValue();
-  }
-
-  template<typename Arg_T>
-  inline Arg_T& Arguments::defaultValue(int pos)
-  {
-    return args_[pos].defaultValue<Arg_T>();
-  }
-
-  inline bool Arguments::isOwner()
-  {
-    return this->return_.isOwner();
-  }
-
-  inline void Arguments::takeOwnership()
-  {
-    this->return_.takeOwnership();
-  }
-
-  inline std::vector<Arg>::iterator Arguments::begin()
-  {
-    return this->args_.begin();
-  }
-
-  inline std::vector<Arg>::iterator Arguments::end()
-  {
-    return this->args_.end();
-  }
-}
-
 
 // =========   Wrapper.hpp   =========
 
@@ -1091,6 +879,9 @@ namespace Rice::detail
 
   template<typename Return_T, typename ...Arg_Ts>
   Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args);
+
+ // template<typename ...Arg_Ts>
+ // inline void protect(void(*func)(Arg_Ts...), Arg_Ts...args);
 }
 
 namespace Rice
@@ -1102,6 +893,8 @@ namespace Rice
 
 
 // ---------   Ruby_Function.ipp   ---------
+
+#include <any>
 
 namespace Rice::detail
 {
@@ -1178,6 +971,15 @@ namespace Rice::detail
     auto rubyFunction = Ruby_Function<Function_T, Return_T, Arg_Ts...>(func, args...);
     return rubyFunction();
   }
+
+  /*// Create a functor for calling a Ruby function that returns void
+  template<typename ...Arg_Ts>
+  inline void protect(void(*func)(Arg_Ts...), Arg_Ts...args)
+  {
+    using Function_T = void(*)(Arg_Ts...);
+    auto rubyFunction = Ruby_Function<Function_T, void, Arg_Ts...>(func, args...);
+    rubyFunction();
+  }*/
 }
 
 namespace Rice
@@ -1452,211 +1254,6 @@ namespace Rice::detail
 
 
 
-// =========   Exception_Handler.hpp   =========
-
-
-// ---------   Exception_Handler_defn.hpp   ---------
-#ifndef Rice__detail__Exception_Handler_defn__hpp_
-#define Rice__detail__Exception_Handler_defn__hpp_
-
-#include <memory>
-
-namespace Rice::detail
-{
-  /* An abstract class for converting C++ exceptions to ruby exceptions.  It's used
-     like this:
-
-     try
-     {
-     }
-     catch(...)
-     {
-       handler->handle_exception();
-     }
-
-   If an exception is thrown the handler will pass the exception up the
-   chain, then the last handler in the chain will throw the exception
-   down the chain until a lower handler can handle it, e.g.:
-
-   try
-   {
-     return call_next_exception_handler();
-   }
-   catch(MyException const & ex)
-   {
-     throw Rice::Exception(rb_cMyException, "%s", ex.what());
-    }
-
-    Memory management. Handlers are created by the ModuleBase constructor. When the
-    module defines a new Ruby method, metadata  is stored on the Ruby klass including
-    the exception handler. Since the metadata outlives the module, handlers are stored
-    using std::shared_ptr. Thus the Module (or its inherited children) can be destroyed
-    without corrupting the metadata references to the shared exception handler. */
-
-  class Exception_Handler
-  {
-  public:
-    Exception_Handler() = default;
-    virtual ~Exception_Handler() = default;
-
-    // Don't allow copying or assignment
-    Exception_Handler(const Exception_Handler& other) = delete;
-    Exception_Handler& operator=(const Exception_Handler& other) = delete;
-
-    virtual VALUE handle_exception() const = 0;
-  };
-
-  // The default exception handler just rethrows the exception.  If there
-  // are other handlers in the chain, they will try to handle the rethrown
-  // exception.
-  class Default_Exception_Handler
-    : public Exception_Handler
-  {
-  public:
-    virtual VALUE handle_exception() const override;
-  };
-
-  // An exception handler that takes a functor as an argument.  The
-  // functor should throw a Rice::Exception to handle the exception.  If
-  // the functor does not handle the exception, the exception will be
-  // re-thrown.
-  template <typename Exception_T, typename Functor_T>
-  class Functor_Exception_Handler
-    : public Exception_Handler
-  {
-  public:
-    Functor_Exception_Handler(Functor_T handler,
-      std::shared_ptr<Exception_Handler> next_exception_handler);
-
-    virtual VALUE handle_exception() const override;
-
-  private:
-    Functor_T handler_;
-    std::shared_ptr<Exception_Handler> next_exception_handler_;
-  };
-}
-#endif // Rice__detail__Exception_Handler_defn__hpp_
-// ---------   Exception_Handler.ipp   ---------
-namespace Rice::detail
-{
-  inline VALUE Rice::detail::Default_Exception_Handler::handle_exception() const
-  {
-    throw;
-  }
-
-  template <typename Exception_T, typename Functor_T>
-  inline Rice::detail::Functor_Exception_Handler<Exception_T, Functor_T>::
-    Functor_Exception_Handler(Functor_T handler, std::shared_ptr<Exception_Handler> next_exception_handler)
-    : handler_(handler), next_exception_handler_(next_exception_handler)
-  {
-  }
-
-  template <typename Exception_T, typename Functor_T>
-  inline VALUE Rice::detail::Functor_Exception_Handler<Exception_T, Functor_T>::handle_exception() const
-  {
-    try
-    {
-      return this->next_exception_handler_->handle_exception();
-    }
-    catch (Exception_T const& ex)
-    {
-      handler_(ex);
-      throw;
-    }
-  }
-}
-
-
-// =========   Iterator.hpp   =========
-#ifndef Rice_Iterator__hpp_
-#define Rice_Iterator__hpp_
-
-namespace Rice::detail
-{
-  template<typename T, typename Iterator_T>
-  class Iterator
-  {
-  public:
-    static VALUE call(VALUE self);
-
-  public:
-    Iterator(Iterator_T(T::* begin)(), Iterator_T(T::* end)());
-    virtual ~Iterator() = default;
-    VALUE operator()(VALUE self);
-
-  private:
-    Iterator_T(T::* begin_)();
-    Iterator_T(T::* end_)();
-  };
-}
-
-#endif // Rice_Iterator__hpp_
-// =========   NativeArg.hpp   =========
-
-
-namespace Rice
-{
-  namespace detail
-  {
-    // Primary Template for NativeArg
-    template <typename T, typename Enable = void>
-    class NativeArg;
-
-    // NativeArg implementation that works on fundamental types. It keeps a copy of the
-    // converted value so that a reference or a pointer to the value can be passed to 
-    // the native function.
-    template <typename T>
-    class NativeArg<T, typename std::enable_if_t<is_builtin_v<intrinsic_type<T>>>>
-    {
-    public:
-      using Intrinsic_T = intrinsic_type<T>;
-
-      T nativeValue(VALUE value)
-      {
-        this->native_ = From_Ruby<Intrinsic_T>::convert(value);
-
-        if constexpr (std::is_pointer_v<T>)
-        {
-          return &this->native_;
-        }
-        else
-        {
-          return this->native_;
-        }
-      }
-
-    private:
-      Intrinsic_T native_;
-    };
-
-    // Special case char which is a native type but if we have a pointer we 
-    // want to pass through the underlying Ruby pointer
-    template <>
-    class NativeArg<char*>
-    {
-    public:
-      char* nativeValue(VALUE value)
-      {
-        return From_Ruby<char*>::convert(value);
-      }
-    };
-
-    // NativeArg implementation that works on all other types. The primary use is for 
-    // pointers wrapped by Data_Object where there is no reason to store a local copy.
-    template <typename T>
-    class NativeArg<T, typename std::enable_if_t<!is_builtin_v<intrinsic_type<T>>>>
-    {
-    public:
-      T nativeValue(VALUE value)
-      {
-        return From_Ruby<T>::convert(value);
-      }
-    };
-
-  } // detail
-} // Rice
-
-
 // =========   to_ruby.hpp   =========
 
 
@@ -1893,6 +1490,744 @@ namespace Rice
 }
 
 
+// =========   Return.hpp   =========
+
+#include <any>
+
+namespace Rice
+{
+  //! Helper for defining Return argument of a method
+  /*! This class exposes the ability to define the default values of a
+   *  wrapped method. Inspired by how Boost.Python handles keyword and
+   *  default arguments, the syntax is simple:
+   *
+   *  \code
+   *    define_method(
+   *      "method",
+   *      &method,
+   *      (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true)
+   *    );
+   *  \endcode
+   *
+   *  which means "for method &method, it takes 3 arguments
+   *  [arg1, arg2, arg3]. Of these arguments, arg2's default is 3
+   *  and arg3's default is true.
+   *
+   *  It may be required to explicitly cast the type of the default
+   *  value to prevent compilation errors.
+   */
+
+  class ReturnInfo
+  {
+  public:
+    //! Specifies Ruby should take ownership of the returned value
+    ReturnInfo& takeOwnership();
+
+    //! Does Ruby own the returned value?
+    bool isOwner();
+
+    //! Specifies the returned value is a Ruby value
+    ReturnInfo& isValue();
+
+    //! Is the returned value a Ruby value?
+    bool getIsValue();
+
+  private:
+    bool isOwner_ = false;
+    bool isValue_ = false;
+  };
+} // Rice
+
+
+// ---------   Return.ipp   ---------
+#include <any>
+#include <string>
+
+namespace Rice
+{
+  inline ReturnInfo& ReturnInfo::takeOwnership()
+  {
+    this->isOwner_ = true;
+    return *this;
+  }
+
+  inline bool ReturnInfo::isOwner()
+  {
+    return this->isOwner_;
+  }
+
+  inline ReturnInfo& ReturnInfo::isValue()
+  {
+    this->isValue_ = true;
+    return *this;
+  }
+
+  inline bool ReturnInfo::getIsValue()
+  {
+    return this->isValue_;
+  }
+}  // Rice
+
+
+// =========   Arg.hpp   =========
+
+#include <any>
+
+namespace Rice
+{
+  //! Helper for defining default arguments of a method
+  /*! This class exposes the ability to define the default values of a
+   *  wrapped method. Inspired by how Boost.Python handles keyword and
+   *  default arguments, the syntax is simple:
+   *
+   *  \code
+   *    define_method(
+   *      "method",
+   *      &method,
+   *      Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true
+   *    );
+   *  \endcode
+   *
+   *  which means "for method &method, it takes 3 arguments
+   *  [arg1, arg2, arg3]. Of these arguments, arg2's default is 3
+   *  and arg3's default is true.
+   *
+   *  It may be required to explicitly cast the type of the default
+   *  value to prevent compilation errors.
+   */
+  class Arg
+  {
+  public:
+    //! Initialize a new Arg with the name of the argument
+    /*! We require the name of the argument because 1) it makes code
+     *  easier to read and 2) hopefully Ruby gets keyword arguments
+     *  in the future and this means Rice will be ready for it.
+     */
+    Arg(std::string name);
+
+    //! Set the default value for this Arg
+    /*! Set the default value for this argument.
+     *  If this isn't called on this Arg, then this
+     *  Arg is required in the method call.
+     *
+     *  \param val the value to store as default
+     */
+    template<typename Arg_Type>
+    Arg& operator=(Arg_Type val);
+
+    //! Check if this Arg has a default value associated with it
+    bool hasDefaultValue() const;
+
+    //! Return a reference to the default value associated with this Arg
+    /*! \return the type saved to this Arg
+     */
+    template<typename Arg_Type>
+    Arg_Type& defaultValue();
+
+    //! Tell the receiving object to keep this argument alive
+    //! until the receiving object is freed.
+    Arg& keepAlive();
+
+    //! Specifies if the argument should be treated as a value
+    Arg& isValue();
+
+    //! Returns if the argument should be treated as a value
+    bool getIsValue();
+
+  public:
+    bool isKeepAlive = false;
+    const std::string name;
+    int32_t position = -1;
+
+  private:
+    //! Our saved default value
+    std::any defaultValue_;
+    bool isValue_ = false;
+  };
+} // Rice
+
+
+// ---------   Arg.ipp   ---------
+namespace Rice
+{
+  inline Arg::Arg(std::string name) : name(name)
+  {
+  }
+
+  template<typename Arg_Type>
+  inline Arg& Arg::operator=(Arg_Type val)
+  {
+    this->defaultValue_ = val;
+    return *this;
+  }
+
+  //! Check if this Arg has a default value associated with it
+  inline bool Arg::hasDefaultValue() const
+  {
+    return this->defaultValue_.has_value();
+  }
+
+  //! Return a reference to the default value associated with this Arg
+  /*! \return the type saved to this Arg
+    */
+  template<typename Arg_Type>
+  inline Arg_Type& Arg::defaultValue()
+  {
+    return std::any_cast<Arg_Type&>(this->defaultValue_);
+  }
+
+  inline Arg& Arg::keepAlive()
+  {
+    this->isKeepAlive = true;
+    return *this;
+  }
+
+  inline Arg& Arg::isValue()
+  {
+    isValue_ = true;
+    return *this;
+  }
+
+  inline bool Arg::getIsValue()
+  {
+    return isValue_;
+  }
+} // Rice
+
+// =========   MethodInfo.hpp   =========
+
+#include <vector>
+
+namespace Rice
+{
+  class MethodInfo
+  {
+  public:
+    template <typename...Arg_Ts>
+    MethodInfo(size_t argCount, const Arg_Ts&...args);
+
+    /**
+      * Get the rb_scan_args format string for this
+      * list of arguments.
+      */
+    std::string formatString();
+
+    /**
+      * Add a defined Arg to this list of Arguments
+      */
+    void addArg(const Arg& arg);
+
+    /**
+      * Specifices if Ruby owns the returned data
+      */
+    bool isOwner();
+
+    /**
+      * Tell Ruby to take ownership of the returned data
+      */
+    void takeOwnership();
+
+    /**
+      * Given a position, a type, and a ruby VALUE, figure out
+      * what argument value we need to return according to
+      * defaults and if that VALUE is nil or not
+      */
+    template<typename Arg_T>
+    Arg_T& defaultValue(size_t pos);
+
+    Arg& arg(size_t pos);
+
+    // Iterator support
+    std::vector<Arg>::iterator begin();
+    std::vector<Arg>::iterator end();
+
+    ReturnInfo returnInfo;
+
+  private:
+    template <typename Arg_T>
+    void processArg(const Arg_T& arg);
+
+    std::vector<Arg> args_;
+  };
+}
+
+// ---------   MethodInfo.ipp   ---------
+#include <sstream>
+
+namespace Rice
+{
+  template <typename...Arg_Ts>
+  inline MethodInfo::MethodInfo(size_t argCount, const Arg_Ts&...args)
+  {
+    // Process the passed in arguments
+    (this->processArg(args), ...);
+
+    // Fill in any missing arguments
+    for (size_t i = sizeof...(Arg_Ts); i < argCount; i++)
+    {
+      Arg arg("arg_" + std::to_string(i));
+      this->args_.emplace_back(arg);
+    }
+
+    // TODO - so hacky but update the Arg positions
+    for (uint32_t i = 0; i < this->args_.size(); i++)
+    {
+      this->args_[i].position = i;
+    }
+  }
+
+  template <typename Arg_T>
+  inline void MethodInfo::processArg(const Arg_T& arg)
+  {
+    if constexpr (std::is_same_v<Arg_T, Arg>)
+    {
+      this->addArg(arg);
+    }
+    else
+    {
+      this->returnInfo = arg;
+    }
+  }
+
+  inline void MethodInfo::addArg(const Arg& arg)
+  {
+    this->args_.push_back(arg);
+  }
+
+  inline std::string MethodInfo::formatString()
+  {
+    size_t required = 0;
+    size_t optional = 0;
+
+    for (const Arg& arg : this->args_)
+    {
+      if (arg.hasDefaultValue())
+      {
+        optional++;
+      }
+      else
+      {
+        required++;
+      }
+    }
+
+    return std::to_string(required) + std::to_string(optional);
+  }
+
+  template<typename Arg_T>
+  inline Arg_T& MethodInfo::defaultValue(size_t pos)
+  {
+    return args_[pos].defaultValue<Arg_T>();
+  }
+
+  inline Arg& MethodInfo::arg(size_t pos)
+  {
+    return args_[pos];
+  }
+
+  inline bool MethodInfo::isOwner()
+  {
+    return this->returnInfo.isOwner();
+  }
+
+  inline void MethodInfo::takeOwnership()
+  {
+    this->returnInfo.takeOwnership();
+  }
+
+  inline std::vector<Arg>::iterator MethodInfo::begin()
+  {
+    return this->args_.begin();
+  }
+
+  inline std::vector<Arg>::iterator MethodInfo::end()
+  {
+    return this->args_.end();
+  }
+}
+
+
+// =========   Exception_Handler.hpp   =========
+
+
+// ---------   Exception_Handler_defn.hpp   ---------
+#ifndef Rice__detail__Exception_Handler_defn__hpp_
+#define Rice__detail__Exception_Handler_defn__hpp_
+
+#include <memory>
+
+namespace Rice::detail
+{
+  /* An abstract class for converting C++ exceptions to ruby exceptions.  It's used
+     like this:
+
+     try
+     {
+     }
+     catch(...)
+     {
+       handler->handle_exception();
+     }
+
+   If an exception is thrown the handler will pass the exception up the
+   chain, then the last handler in the chain will throw the exception
+   down the chain until a lower handler can handle it, e.g.:
+
+   try
+   {
+     return call_next_exception_handler();
+   }
+   catch(MyException const & ex)
+   {
+     throw Rice::Exception(rb_cMyException, "%s", ex.what());
+    }
+
+    Memory management. Handlers are created by the ModuleBase constructor. When the
+    module defines a new Ruby method, metadata  is stored on the Ruby klass including
+    the exception handler. Since the metadata outlives the module, handlers are stored
+    using std::shared_ptr. Thus the Module (or its inherited children) can be destroyed
+    without corrupting the metadata references to the shared exception handler. */
+
+  class Exception_Handler
+  {
+  public:
+    Exception_Handler() = default;
+    virtual ~Exception_Handler() = default;
+
+    // Don't allow copying or assignment
+    Exception_Handler(const Exception_Handler& other) = delete;
+    Exception_Handler& operator=(const Exception_Handler& other) = delete;
+
+    virtual VALUE handle_exception() const = 0;
+  };
+
+  // The default exception handler just rethrows the exception.  If there
+  // are other handlers in the chain, they will try to handle the rethrown
+  // exception.
+  class Default_Exception_Handler
+    : public Exception_Handler
+  {
+  public:
+    virtual VALUE handle_exception() const override;
+  };
+
+  // An exception handler that takes a functor as an argument.  The
+  // functor should throw a Rice::Exception to handle the exception.  If
+  // the functor does not handle the exception, the exception will be
+  // re-thrown.
+  template <typename Exception_T, typename Functor_T>
+  class Functor_Exception_Handler
+    : public Exception_Handler
+  {
+  public:
+    Functor_Exception_Handler(Functor_T handler,
+      std::shared_ptr<Exception_Handler> next_exception_handler);
+
+    virtual VALUE handle_exception() const override;
+
+  private:
+    Functor_T handler_;
+    std::shared_ptr<Exception_Handler> next_exception_handler_;
+  };
+}
+#endif // Rice__detail__Exception_Handler_defn__hpp_
+// ---------   Exception_Handler.ipp   ---------
+namespace Rice::detail
+{
+  inline VALUE Rice::detail::Default_Exception_Handler::handle_exception() const
+  {
+    throw;
+  }
+
+  template <typename Exception_T, typename Functor_T>
+  inline Rice::detail::Functor_Exception_Handler<Exception_T, Functor_T>::
+    Functor_Exception_Handler(Functor_T handler, std::shared_ptr<Exception_Handler> next_exception_handler)
+    : handler_(handler), next_exception_handler_(next_exception_handler)
+  {
+  }
+
+  template <typename Exception_T, typename Functor_T>
+  inline VALUE Rice::detail::Functor_Exception_Handler<Exception_T, Functor_T>::handle_exception() const
+  {
+    try
+    {
+      return this->next_exception_handler_->handle_exception();
+    }
+    catch (Exception_T const& ex)
+    {
+      handler_(ex);
+      throw;
+    }
+  }
+}
+
+
+// =========   Iterator.hpp   =========
+#ifndef Rice_Iterator__hpp_
+#define Rice_Iterator__hpp_
+
+namespace Rice::detail
+{
+  template<typename T, typename Iterator_T>
+  class Iterator
+  {
+  public:
+    static VALUE call(VALUE self);
+
+  public:
+    Iterator(Iterator_T(T::* begin)(), Iterator_T(T::* end)());
+    virtual ~Iterator() = default;
+    VALUE operator()(VALUE self);
+
+  private:
+    Iterator_T(T::* begin_)();
+    Iterator_T(T::* end_)();
+  };
+}
+
+#endif // Rice_Iterator__hpp_
+// =========   NativeArg.hpp   =========
+
+
+namespace Rice::detail
+{
+  // Primary Template for NativeArg
+  template <typename T, typename Enable = void>
+  class NativeArg;
+
+  // NativeArg implementation that works on fundamental types. It keeps a copy of the
+  // converted value so that a reference or a pointer to the value can be passed to 
+  // the native function.
+  template <typename T>
+  class NativeArg<T, typename std::enable_if_t<is_builtin_v<intrinsic_type<T>>>>
+  {
+  public:
+    using Intrinsic_T = intrinsic_type<T>;
+    NativeArg(Arg& arg);
+    T nativeValue(VALUE value);
+      
+  private:
+    Intrinsic_T native_;
+    Arg arg_;
+  };
+
+  // Special case char which is a native type but if we have a pointer we 
+  // want to pass through the underlying Ruby pointer
+  template <>
+  class NativeArg<char*>
+  {
+  public:
+    NativeArg(Arg& arg);
+    char* nativeValue(VALUE value);
+
+  private:
+    Arg arg_;
+  };
+
+  // Special case VALUE which could be a 64 bit integer or Ruby value.
+  template <>
+  class NativeArg<VALUE>
+  {
+  public:
+    NativeArg(Arg& arg);
+    VALUE nativeValue(VALUE value);
+
+  private:
+    Arg arg_;
+  };
+
+  // NativeArg implementation that works on all other types. The primary use is for 
+  // pointers wrapped by Data_Object where there is no reason to store a local copy.
+  template <typename T>
+  class NativeArg<T, typename std::enable_if_t<!is_builtin_v<intrinsic_type<T>>>>
+  {
+  public:
+    NativeArg() = default;
+    NativeArg(Arg& arg);
+    T nativeValue(VALUE value);
+
+  private:
+    Arg arg_;
+  };
+}
+
+
+// ---------   NativeArg.ipp   ---------
+
+namespace Rice::detail
+{
+  template<typename T>
+  inline NativeArg<T, typename std::enable_if_t<is_builtin_v<intrinsic_type<T>>>>::NativeArg(Arg& arg) :
+    arg_(arg)
+  {
+  }
+
+  template<typename T>
+  inline T NativeArg<T, typename std::enable_if_t<is_builtin_v<intrinsic_type<T>>>>::nativeValue(VALUE value)
+  {
+    if (value == Qnil && arg_.hasDefaultValue())
+    {
+      this->native_ = arg_.defaultValue<Intrinsic_T>();
+    }
+    else
+    {
+      this->native_ = From_Ruby<Intrinsic_T>::convert(value);
+    }
+
+    if constexpr (std::is_pointer_v<T>)
+    {
+      return &this->native_;
+    }
+    else
+    {
+      return this->native_;
+    }
+  }
+
+  inline NativeArg<char*>::NativeArg(Arg& arg) : arg_(arg)
+  {
+  }
+
+  inline char* NativeArg<char*>::nativeValue(VALUE value)
+  {
+    if (value == Qnil && arg_.hasDefaultValue())
+    {
+      return arg_.defaultValue<char*>();
+    }
+    else
+    {
+      return From_Ruby<char*>::convert(value);
+    }
+  }
+
+  inline NativeArg<VALUE>::NativeArg(Arg& arg) : arg_(arg)
+  {
+  }
+
+  inline VALUE NativeArg<VALUE>::nativeValue(VALUE value)
+  {
+    if (arg_.getIsValue())
+    {
+      return value;
+    }
+    else
+    {
+      return From_Ruby<VALUE>::convert(value);
+    }
+  }
+
+  template<typename T>
+  inline NativeArg<T, typename std::enable_if_t<!is_builtin_v<intrinsic_type<T>>>>::NativeArg(Arg& arg) :
+    arg_(arg)
+  {
+  }
+
+  template<typename T>
+  inline T NativeArg<T, typename std::enable_if_t<!is_builtin_v<intrinsic_type<T>>>>::nativeValue(VALUE value)
+  {
+    if (value == Qnil && arg_.hasDefaultValue())
+    {
+      return arg_.defaultValue<T>();
+    }
+    else
+    {
+      return From_Ruby<T>::convert(value);
+    }
+  }
+}
+
+// =========   NativeReturn.hpp   =========
+
+
+namespace Rice::detail
+{
+  // Primary Template for NativeReturn
+  template <typename T>
+  class NativeReturn
+  {
+  public:
+    NativeReturn(ReturnInfo returnInfo);
+    VALUE getValue(T& native);
+
+  private:
+    ReturnInfo returnInfo_;
+  };
+
+  // Special case VALUE which could be a 64 bit integer or Ruby value.
+  template <>
+  class NativeReturn<VALUE>
+  {
+  public:
+    NativeReturn(ReturnInfo returnInfo);
+    VALUE getValue(VALUE& native);
+
+  private:
+    ReturnInfo returnInfo_;
+  };
+
+  // Special case void which should never happen due to if constexpr check but nevertheless MSVC
+  // seems to compile
+  template <>
+  class NativeReturn<void>
+  {
+  public:
+    NativeReturn(ReturnInfo returnInfo);
+    VALUE getValue(VALUE& native);
+
+  private:
+    ReturnInfo returnInfo_;
+  };
+}
+
+
+// ---------   NativeReturn.ipp   ---------
+
+namespace Rice::detail
+{
+  template<typename T>
+  inline NativeReturn<T>::NativeReturn(ReturnInfo returnInfo) :
+    returnInfo_(returnInfo)
+  {
+  }
+
+  template<typename T>
+  inline VALUE NativeReturn<T>::getValue(T& native)
+  {
+    return To_Ruby<T>::convert(native, this->returnInfo_.isOwner());
+  }
+
+  //template<>
+  inline NativeReturn<VALUE>::NativeReturn(ReturnInfo returnInfo) :
+    returnInfo_(returnInfo)
+  {
+  }
+
+  //template<>
+  inline VALUE NativeReturn<VALUE>::getValue(VALUE& native)
+  {
+    if (this->returnInfo_.getIsValue())
+    {
+      return native;
+    }
+    else
+    {
+      return To_Ruby<VALUE>::convert(native, this->returnInfo_.isOwner());
+    }
+  }
+
+  //template<>
+  inline NativeReturn<void>::NativeReturn(ReturnInfo returnInfo) :
+    returnInfo_(returnInfo)
+  {
+  }
+
+  //template<>
+  inline VALUE NativeReturn<void>::getValue(VALUE& native)
+  {
+    return Qnil;
+  }
+}
+
 // =========   Exception.ipp   =========
 
 
@@ -1968,8 +2303,8 @@ namespace Rice::detail
   {
   public:
     // Defines a new Ruby method and stores the Rice metadata about it
-    template<typename Func_T>
-    static void define_method(VALUE klass, ID id, Func_T func, int arity, std::any data);
+    template<typename Function_T>
+    static void define_method(VALUE klass, ID id, Function_T func, int arity, std::any data);
 
     // Returns the Rice data for the currently active Ruby method
     template <typename Return_T>
@@ -2026,8 +2361,8 @@ namespace Rice::detail
     return std::any_cast<Return_T>(data);
   }
 
-  template<typename Func_T>
-  inline void MethodData::define_method(VALUE klass, ID id, Func_T func, int arity, std::any data)
+  template<typename Function_T>
+  inline void MethodData::define_method(VALUE klass, ID id, Function_T func, int arity, std::any data)
   {
     // Define the method
     protect(rb_define_method_id, klass, id, (RUBY_METHOD_FUNC)func, arity);
@@ -2254,51 +2589,35 @@ namespace Rice::detail
 
 namespace Rice::detail
 {
-  /* This class wraps a native function call. The most important template parameters
-     are Self_T and Return_T.
-
-     Self_T can have one of the following values:
-
-     * std::null_ptr - There is no reciever, thus this is a function or static member function
-     * Object - This is used for calling constructors.
-     * Class - This is used for translating enums values
-     * C++ Object - This is the most common value and is used to invoke a member function
-       on a wrapped instance of a C++ object
-
-     Return_T which specifies the return value. It can either be:
-
-     * void - Meaning there is no return value. This is mapped to Qnil in Ruby
-     * any other possible value */
-
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
+  template<typename Function_T, bool IsMethod>
   class Native_Function
   {
   public:
-    using Native_Return_T = Return_T;
-
-    // NativeTypes are the types that we pass to the native function. They may or may not include
-    // the receiver as the first argument. This alias makes it possible to have just one
-    // implemenation of invokeNative
-    using Native_Arg_Ts = typename std::conditional_t<std::is_same_v<Self_T, std::nullptr_t>,
-      std::tuple<Arg_Ts...>,
-      std::tuple<Self_T, Arg_Ts...>>;
+    using Return_T = typename function_traits<Function_T>::return_type;
+    using Self_T = typename method_traits<Function_T, IsMethod>::Self_T;
+    using Arg_Ts = typename method_traits<Function_T, IsMethod>::Arg_Ts;
+    using Native_Arg_Ts = typename tuple_map<NativeArg, Arg_Ts>::type;
 
     // Static member function that Ruby calls
     static VALUE call(int argc, VALUE* argv, VALUE self);
 
   public:
-    Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
+    Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
 
     // Invokes the wrapped function
     VALUE operator()(int argc, VALUE* argv, VALUE self);
 
   private:
+    // Create NativeArgs which are used to convert values from Ruby to C++
+    template<std::size_t... I>
+    Native_Arg_Ts createNativeArgs(std::index_sequence<I...>& indices);
+
     // Convert Ruby argv pointer to Ruby values
     std::vector<VALUE> getRubyValues(int argc, VALUE* argv);
 
     // Convert Ruby values to C++ values
     template<typename std::size_t... I>
-    std::tuple<Arg_Ts...> getNativeValues(std::vector<VALUE>& values, std::tuple<NativeArg<Arg_Ts>...>& nativeArgs, std::index_sequence<I...>& indices);
+    Arg_Ts getNativeValues(std::vector<VALUE>& values, Native_Arg_Ts& nativeArgs, std::index_sequence<I...>& indices);
 
     // Figure out what self is
     Self_T getSelf(VALUE self);
@@ -2307,46 +2626,14 @@ namespace Rice::detail
     void checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues);
 
     // Call the underlying C++ function
-    VALUE invokeNativeFunction(std::tuple<Arg_Ts...>& nativeArgs);
-    VALUE invokeNativeMethod(VALUE self, std::tuple<Arg_Ts...>& nativeArgs);
+    VALUE invokeNativeFunction(Arg_Ts& nativeArgs);
+    VALUE invokeNativeMethod(VALUE self, Arg_Ts& nativeArgs);
 
   private:
     Function_T func_;
     std::shared_ptr<Exception_Handler> handler_;
-    std::unique_ptr<Arguments> arguments_;
+    std::unique_ptr<MethodInfo> methodInfo_;
   };
-
-  // A plain function or static member call
-  template<typename Return_T, typename ...Arg_T>
-  auto* Make_Native_Function(Return_T(*func)(Arg_T...), std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
-
-  // Lambda function that does not take Self as first parameter
-  template<typename Func_T>
-  auto* Make_Native_Function(Func_T&& func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
-
-  // A plain function or static member call
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(*func)(Self_T, Arg_T...), std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
-
-  // Lambda function with Self_T as first argument
-  template<typename Func_T>
-  auto* Make_Native_Function_With_Self(Func_T&& func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
-
-  // Call a member function on a C++ object
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...), std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
-
-  // Call a noexcept member function on a C++ object
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) noexcept, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
-
-  // Call a const member function on a C++ object
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
-
-  // Call a const noexcept member function on a C++ object
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const noexcept, std::shared_ptr<Exception_Handler> handler, Arguments* arguments);
 }
 
 // ---------   Native_Function.ipp   ---------
@@ -2356,25 +2643,18 @@ namespace Rice::detail
 
 namespace Rice::detail
 {
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    call(int argc, VALUE* argv, VALUE self)
+  template<typename Function_T, bool IsMethod>
+  VALUE Native_Function<Function_T, IsMethod>::call(int argc, VALUE* argv, VALUE self)
   {
-    using Wrapper_T = Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>;
+    using Wrapper_T = Native_Function<Function_T, IsMethod>;
     Wrapper_T* wrapper = detail::MethodData::data<Wrapper_T*>();
     return wrapper->operator()(argc, argv, self);
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
-    : func_(func), handler_(handler), arguments_(arguments)
+  template<typename Function_T, bool IsMethod>
+  Native_Function<Function_T, IsMethod>::Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
+    : func_(func), handler_(handler), methodInfo_(methodInfo)
   {
-    if (!arguments_)
-    {
-      arguments_ = std::make_unique<Arguments>();
-    }
-
     // Ruby takes ownership of types returned by value. We do this here so that users
     // don't have to be bothered to specify this in define_method. Note we *must* set 
     // this correctly because To_Ruby<T>::convert routines work with const T& and thus
@@ -2382,23 +2662,29 @@ namespace Rice::detail
     // result in a crash.
     if (!std::is_reference_v<Return_T> && !std::is_pointer_v<Return_T>)
     {
-      arguments_->takeOwnership();
+      methodInfo_->takeOwnership();
     }
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  std::vector<VALUE> Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    getRubyValues(int argc, VALUE* argv)
+  template<typename Function_T, bool IsMethod>
+  template<std::size_t... I>
+  typename Native_Function<Function_T, IsMethod>::Native_Arg_Ts Native_Function<Function_T, IsMethod>::createNativeArgs(std::index_sequence<I...>& indices)
   {
-    // Setup a tuple to contain required arguments to rb_scan_args
-    std::string scanFormat = this->arguments_->formatString(sizeof...(Arg_Ts));
+    return std::make_tuple(NativeArg<typename std::tuple_element<I, Arg_Ts>::type>(this->methodInfo_->arg(I))...);
+  }
+
+  template<typename Function_T, bool IsMethod>
+  std::vector<VALUE> Native_Function<Function_T, IsMethod>::getRubyValues(int argc, VALUE* argv)
+  {
+    // Setup a tuple to contain required methodInfo to rb_scan_args
+    std::string scanFormat = this->methodInfo_->formatString();
     std::tuple<int, VALUE*, const char*> rbScanMandatory = std::forward_as_tuple(argc, argv, scanFormat.c_str());
 
     // Create a vector to store the variable number of Ruby Values
-    std::vector<VALUE> rbScanArgsOptional(sizeof...(Arg_Ts), Qnil);
+    std::vector<VALUE> rbScanArgsOptional(std::tuple_size_v<Arg_Ts>, Qnil);
 
     // Convert the vector to an array so it can then be concatenated to a tuple
-    std::array<VALUE*, sizeof...(Arg_Ts)> rbScanArgsOptionalPointers;
+    std::array<VALUE*, std::tuple_size_v<Arg_Ts>> rbScanArgsOptionalPointers;
     std::transform(rbScanArgsOptional.begin(), rbScanArgsOptional.end(), rbScanArgsOptionalPointers.begin(),
       [](VALUE& value)
       {
@@ -2412,45 +2698,41 @@ namespace Rice::detail
     return rbScanArgsOptional;
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
+  template<typename Function_T, bool IsMethod>
   template<std::size_t... I>
-  std::tuple<Arg_Ts...> Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    getNativeValues(std::vector<VALUE>& values, std::tuple<NativeArg<Arg_Ts>...>& nativeArgs, std::index_sequence<I...>& indices)
+  typename Native_Function<Function_T, IsMethod>::Arg_Ts Native_Function<Function_T, IsMethod>::getNativeValues(std::vector<VALUE>& values,
+    typename Native_Function<Function_T, IsMethod>::Native_Arg_Ts& nativeArgs, std::index_sequence<I...>& indices)
   {
     // Convert each Ruby value to its native value. Check each Ruby nil value to see if it has
     // a default argument, and if yes, use that. Otherwise use NativeArg<Arg_Ts> to convert
     // the Ruby value to a native value. Note that for fundamental types NativeArg<Arg_Ts> 
     // will keep a copy of the native value so it can be passed by reference or pointer to a
     // native function.
-    return std::forward_as_tuple((values[I] == Qnil && this->arguments_->isOptional(I) ?
-      this->arguments_->template defaultValue<Arg_Ts>(I) :
-      std::get<I>(nativeArgs).nativeValue(values[I]))...);
+    return std::forward_as_tuple(std::get<I>(nativeArgs).nativeValue(values[I])...);
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  Self_T Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    getSelf(VALUE self)
+  template<typename Function_T, bool IsMethod>
+  typename Native_Function<Function_T, IsMethod>::Self_T Native_Function<Function_T, IsMethod>::getSelf(VALUE self)
   {
-    // This is used for functions and static members
-    if constexpr (std::is_same_v<Self_T, void>)
+    // There is no self parameter
+    if constexpr (std::is_same_v<Self_T, std::nullptr_t>)
     {
       return nullptr;
     }
-    // This is used for passing VALUE klass or VALUE self
+    // Self parameter is a Ruby VALUE so no conversion is needed
     else if constexpr (std::is_same_v<Self_T, VALUE>)
     {
       return self;
     }
+    // Self parameter is an object and thus needs to be unwrapped from Ruby
     else
     {
-      // This is used for member functions - we are returning a pointer to an object
       return From_Ruby<Self_T>::convert(self);
     }
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    invokeNativeFunction(std::tuple<Arg_Ts...>& nativeArgs)
+  template<typename Function_T, bool IsMethod>
+  VALUE Native_Function<Function_T, IsMethod>::invokeNativeFunction(Arg_Ts& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
@@ -2461,16 +2743,20 @@ namespace Rice::detail
     {
       // Call the native method and get the result
       Return_T nativeResult = std::apply(this->func_, nativeArgs);
-      return To_Ruby<Return_T>::convert(nativeResult, this->arguments_->isOwner());
+      
+      // Create a wrapper object to convert to Ruby
+      NativeReturn<Return_T> nativeReturn(this->methodInfo_->returnInfo);
+
+      // Return the result
+      return nativeReturn.getValue(nativeResult);
     }
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    invokeNativeMethod(VALUE self, std::tuple<Arg_Ts...>& nativeArgs)
+  template<typename Function_T, bool IsMethod>
+  VALUE Native_Function<Function_T, IsMethod>::invokeNativeMethod(VALUE self, Arg_Ts& nativeArgs)
   {
     Self_T receiver = this->getSelf(self);
-    std::tuple<Self_T, Arg_Ts...> selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeArgs);
+    auto selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeArgs);
 
     if constexpr (std::is_void_v<Return_T>)
     {
@@ -2508,17 +2794,16 @@ namespace Rice::detail
         }
       }
 
-      return To_Ruby<Return_T>::convert(nativeResult, this->arguments_->isOwner());
+      return To_Ruby<Return_T>::convert(nativeResult, this->methodInfo_->isOwner());
     }
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  void Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues)
+  template<typename Function_T, bool IsMethod>
+  void Native_Function<Function_T, IsMethod>::checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues)
   {
     Wrapper* wrapper = getWrapper(self);
 
-    for (const Arg& arg : (*this->arguments_))
+    for (const Arg& arg : (*this->methodInfo_))
     {
       if (arg.isKeepAlive)
       {
@@ -2527,24 +2812,24 @@ namespace Rice::detail
     }
   }
 
-  template<typename Function_T, typename Return_T, typename Self_T, typename... Arg_Ts>
-  VALUE Native_Function<Function_T, Return_T, Self_T, Arg_Ts...>::
-    operator()(int argc, VALUE* argv, VALUE self)
+  template<typename Function_T, bool IsMethod>
+  VALUE Native_Function<Function_T, IsMethod>::operator()(int argc, VALUE* argv, VALUE self)
   {
     try
     {
       // Get the ruby values
       std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv);
 
+      auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+
       // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
       // builtin types NativeArgs will keep a copy of the native value so that it 
       // can be passed by reference or pointer to the native function. For non-builtin types
       // it will just pass the value through.
-      std::tuple<NativeArg<Arg_Ts>...> nativeArgs;
+      Native_Arg_Ts nativeArgs = this->createNativeArgs(indices);
 
       // Convert the Ruby values to native values
-      auto indices = std::make_index_sequence<sizeof...(Arg_Ts)>{};
-      std::tuple<Arg_Ts...> nativeValues = this->getNativeValues(rubyValues, nativeArgs, indices);
+      Arg_Ts nativeValues = this->getNativeValues(rubyValues, nativeArgs, indices);
 
       // Check if any rubyValues need to have their lifetimes tied to the receiver
       this->checkKeepAlive(self, rubyValues);
@@ -2568,114 +2853,8 @@ namespace Rice::detail
         RUBY_CATCH
     }
   }
-
-  // Lambda helpers
-  template<typename Function_T, typename Return_T, typename Class_T, typename ...Arg_T>
-  auto* lambda_helper(Function_T&& func, Return_T(Class_T::*)(Arg_T...) const, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
-  {
-    return new Native_Function<Function_T, Return_T, std::nullptr_t, Arg_T...>(std::forward<Function_T>(func), handler, arguments);
-  }
-
-  template<typename Function_T, typename Return_T, typename Class_T, typename Self_T, typename ...Arg_T>
-  auto* lambda_helper_with_self(Function_T&& func, Return_T(Class_T::*)(Self_T, Arg_T...) const, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
-  {
-    return new Native_Function<Function_T, Return_T, Self_T, Arg_T...>(std::forward<Function_T>(func), handler, arguments);
-  }
-
-  // A plain function or static member call
-  template<typename Return_T, typename ...Arg_T>
-  auto* Make_Native_Function(Return_T(*func)(Arg_T...), std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
-  {
-    using Function_T = Return_T(*)(Arg_T...);
-    return new Native_Function<Function_T, Return_T, std::nullptr_t, Arg_T...>(func, handler, arguments);
-  }
-
-  // Lambda function that does not take Self as first parameter
-  template<typename Func_T>
-  auto* Make_Native_Function(Func_T&& func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
-  {
-    using Function_T = decltype(&Func_T::operator());
-    return lambda_helper(std::forward<Func_T>(func), (Function_T)nullptr, handler, arguments);
-  }
-
-  // A plain function or static member call
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(*func)(Self_T, Arg_T...), std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
-  {
-    using Function_T = Return_T(*)(Self_T, Arg_T...);
-    return new Native_Function<Function_T, Return_T, Self_T, Arg_T...>(func, handler, arguments);
-  }
-
-  // Lambda function with Self_T as first argument
-  template<typename Func_T>
-  auto* Make_Native_Function_With_Self(Func_T&& func, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
-  {
-    using Function_T = decltype(&Func_T::operator());
-    return lambda_helper_with_self(std::forward<Func_T>(func), (Function_T)nullptr, handler, arguments);
-  }
-
-  // Call a member function on a C++ object
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...), std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
-  {
-    using Function_T = Return_T(Self_T::*)(Arg_T...);
-    return new Native_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, arguments);
-  }
-
-  // Call a noexcept member function on a C++ object
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) noexcept, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
-  {
-    using Function_T = Return_T(Self_T::*)(Arg_T...) noexcept;
-    return new Native_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, arguments);
-  }
-
-  // Call a const member function on a C++ object
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
-  {
-    using Function_T = Return_T(Self_T::*)(Arg_T...) const;
-    return new Native_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, arguments);
-  }
-
-  // Call a const member function on a C++ object
-  template<typename Return_T, typename Self_T, typename ...Arg_T>
-  auto* Make_Native_Function_With_Self(Return_T(Self_T::* func)(Arg_T...) const noexcept, std::shared_ptr<Exception_Handler> handler, Arguments* arguments)
-  {
-    using Function_T = Return_T(Self_T::*)(Arg_T...) const noexcept;
-    return new Native_Function<Function_T, Return_T, Self_T*, Arg_T...>(func, handler, arguments);
-  }
 }
 
-\
-// Deprecated - Arg_operators is deprecated and should be removed in the future
-
-// =========   Arg_operators.hpp   =========
-
-namespace Rice
-{
-  //! Build the list of Arg objects into an Arguments object
-  /*! Take a list of Arg objects and build up a single Argument
-   *  object used later in method dispatch
-   */
-  [[deprecated("You should no longer enclose multiple Args in parentheses.")]]
-  inline Arguments* operator,(Arg arg1, Arg arg2)
-  {
-    Arguments* a = new Arguments();
-    a->add(arg1);
-    a->add(arg2);
-    return a;
-  }
-
-  /*! @see operator,(Arg, Arg)
-   */
-  [[deprecated("You should no longer enclose multiple Args in parentheses.")]]
-  inline Arguments* operator,(Arguments* arguments, Arg arg)
-  {
-    arguments->add(arg);
-    return arguments;
-  }
-}
 
 
 // =========   ruby_mark.hpp   =========
@@ -4594,20 +4773,16 @@ namespace Rice
     */
     Module& include_module(Module const& inc);
 
-    template<typename Func_T>
-    [[deprecated("Please call define_method with Arg parameters")]]
-    Module& define_method(Identifier name, Func_T&& func, Arguments* arguments);
-
     //! Define an instance method.
     /*! The method's implementation can be a member function, plain function
      *  or lambda. The easiest case is a member function where the Ruby
-     *  arguments map one-to-one to the C++ arguments. In the case of a
+     *  method maps one-to-one to the C++ method. In the case of a
      *  plain function or lambda, the first argument must be SELF - ie, 
      *  the current object. If it is specified as a VALUE, then
      *  the current Ruby object is passed. If it is specified as a C++ class, 
      *  then the C++ oject is passed. If you don't want to include the 
      *  SELF argument see define_fuction.
-     *  Rice will automatically convert method arguments from Ruby to C++ and
+     *  Rice will automatically convert method method from Ruby to C++ and
      *  then convert the return value from C++ to Ruby.
      *  \param name the name of the method
      *  \param func the implementation of the function, either a function
@@ -4615,13 +4790,13 @@ namespace Rice
      *  \param args a list of Arg instance used to define default parameters.
      *  \return *this
      */
-    template<typename Func_T, typename...Arg_Ts>
-    Module& define_method(Identifier name, Func_T&& func, Arg_Ts const& ...args);
+    template<typename Function_T, typename...Arg_Ts>
+    Module& define_method(Identifier name, Function_T&& func, const Arg_Ts& ...args);
 
     //! Define an instance function.
     /*! The function implementation is a plain function or a static
      *  member function. 
-     *  Rice will automatically convert method arguments from Ruby to C++ and
+     *  Rice will automatically convert method method from Ruby to C++ and
      *  then convert the return value from C++ to Ruby.
      *  \param name the name of the method
      *  \param func the implementation of the function, either a function
@@ -4629,12 +4804,8 @@ namespace Rice
      *  \param args a list of Arg instance used to define default parameters (optional)
      *  \return *this
      */
-    template<typename Func_T, typename...Arg_Ts>
-    Module& define_function(Identifier name, Func_T&& func, Arg_Ts const& ...args);
-
-    template<typename Func_T>
-    [[deprecated("Please call define_singleton_method with Arg parameters")]]
-    Module& define_singleton_method(Identifier name, Func_T&& func, Arguments* arguments);
+    template<typename Function_T, typename...Arg_Ts>
+    Module& define_function(Identifier name, Function_T&& func, const Arg_Ts& ...args);
 
     //! Define a singleton method.
     /*! The method's implementation can be a static member function,
@@ -4643,7 +4814,7 @@ namespace Rice
      *  the current Ruby object is passed. If it is specified as a C++ class, 
      *  then the C++ oject is passed. If you don't want to include the 
      *  SELF argument see define_singleton_function.
-     *  Rice will automatically convert method arguments from Ruby to C++ and
+     *  Rice will automatically convert method method from Ruby to C++ and
      *  then convert the return value from C++ to Ruby.
      *  \param name the name of the method
      *  \param func the implementation of the function, either a function
@@ -4651,14 +4822,14 @@ namespace Rice
      *  \param args a list of Arg instance used to define default parameters (optional)
      *  \return *this
      */
-    template<typename Func_T, typename...Arg_Ts>
-    Module& define_singleton_method(Identifier name, Func_T&& func, Arg_Ts const& ...args);
+    template<typename Function_T, typename...Arg_Ts>
+    Module& define_singleton_method(Identifier name, Function_T&& func, const Arg_Ts& ...args);
 
     //! Define a singleton method.
     /*! The method's implementation can be a static member function, plain
      *  function or lambda.
      . A wrapper will be 
-     * generated which will convert the arguments
+     * generated which will convert the method
      *  from ruby types to C++ types before calling the function.  The return
      *  value will be converted back to ruby.
      *  \param name the name of the method
@@ -4667,18 +4838,14 @@ namespace Rice
      *  \param args a list of Arg instance used to define default parameters (optional)
      *  \return *this
      */
-    template<typename Func_T, typename...Arg_Ts>
-    Module& define_singleton_function(Identifier name, Func_T&& func, Arg_Ts const& ...args);
-
-    template<typename Func_T>
-    [[deprecated("Please call define_module_function with Arg parameters")]]
-    Module& define_module_function(Identifier name, Func_T&& func, Arguments* arguments);
+    template<typename Function_T, typename...Arg_Ts>
+    Module& define_singleton_function(Identifier name, Function_T&& func, const Arg_Ts& ...args);
 
     //! Define a module function.
     /*! A module function is a function that can be accessed either as a
      *  singleton method or as an instance method. It wrap a plain
      *  function, static member function or lambda.
-     *  Rice will automatically convert method arguments from Ruby to C++ and
+     *  Rice will automatically convert method method from Ruby to C++ and
      *  then convert the return value from C++ to Ruby.
      *  \param name the name of the method
      *  \param func the implementation of the function, either a function
@@ -4686,8 +4853,8 @@ namespace Rice
      *  \param args a list of Arg instance used to define default parameters (optional)
      *  \return *this
      */
-    template<typename Func_T, typename...Arg_Ts>
-    Module& define_module_function(Identifier name, Func_T&& func, Arg_Ts const& ...args);
+    template<typename Function_T, typename...Arg_Ts>
+    Module& define_module_function(Identifier name, Function_T&& func, const Arg_Ts& ...args);
 
     //! Set a constant.
     /*! \param name the name of the constant to set.
@@ -4720,11 +4887,11 @@ namespace Rice
   private:
     template<typename Function_T>
     void wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
-      std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments = 0);
+      std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo);
 
     template<typename Function_T>
     void wrap_native_function(VALUE klass, Identifier name, Function_T&& function,
-      std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments = 0);
+      std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo);
 
     mutable std::shared_ptr<detail::Exception_Handler> handler_ = std::make_shared<Rice::detail::Default_Exception_Handler>();
   };
@@ -4790,76 +4957,75 @@ namespace Rice
     return *this;
   }
 
-  template<typename Func_T>
-  inline Module& Module::define_method(Identifier name, Func_T&& func, Arguments* arguments)
+  template<typename Function_T, typename...Arg_Ts>
+  inline Module& Module::define_method(Identifier name, Function_T&& func, const Arg_Ts&...args)
   {
-    this->wrap_native_method(this->value(), name, std::forward<Func_T>(func), this->handler(), arguments);
+    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
+    this->wrap_native_method(this->value(), name, std::forward<Function_T>(func), this->handler(), methodInfo);
     return *this;
   }
 
-  template<typename Func_T, typename...Arg_Ts>
-  inline Module& Module::define_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+  template<typename Function_T, typename...Arg_Ts>
+  inline Module& Module::define_function(Identifier name, Function_T&& func, const Arg_Ts&...args)
   {
-    Arguments* arguments = new Arguments(args...);
-    this->wrap_native_method(this->value(), name, std::forward<Func_T>(func), this->handler(), arguments);
+    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
+    this->wrap_native_function(this->value(), name, std::forward<Function_T>(func), this->handler(), methodInfo);
     return *this;
   }
 
-  template<typename Func_T, typename...Arg_Ts>
-  inline Module& Module::define_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+  template<typename Function_T, typename...Arg_Ts>
+  inline Module& Module::define_singleton_method(Identifier name, Function_T&& func, const Arg_Ts&...args)
   {
-    Arguments* arguments = new Arguments(args...);
-    this->wrap_native_function(this->value(), name, std::forward<Func_T>(func), this->handler(), arguments);
+    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
+    this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Function_T>(func), this->handler(), methodInfo);
     return *this;
   }
 
-  template<typename Func_T>
-  inline Module& Module::define_singleton_method(Identifier name, Func_T&& func, Arguments* arguments)
+  template<typename Function_T, typename...Arg_Ts>
+  inline Module& Module::define_singleton_function(Identifier name, Function_T&& func, const Arg_Ts& ...args)
   {
-    this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
+    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
+    this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Function_T>(func), this->handler(), methodInfo);
     return *this;
   }
 
-  template<typename Func_T, typename...Arg_Ts>
-  inline Module& Module::define_singleton_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
-  {
-    Arguments* arguments = new Arguments(args...);
-    this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
-    return *this;
-  }
-
-  template<typename Func_T, typename...Arg_Ts>
-  inline Module& Module::define_singleton_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
-  {
-    Arguments* arguments = new Arguments(args...);
-    this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Func_T>(func), this->handler(), arguments);
-    return *this;
-  }
-
-  template<typename Func_T>
-  inline Module& Module::define_module_function(Identifier name, Func_T&& func, Arguments* arguments)
+  template<typename Function_T, typename...Arg_Ts>
+  inline Module& Module::define_module_function(Identifier name, Function_T&& func, const Arg_Ts& ...args)
   {
     if (this->rb_type() != T_MODULE)
     {
       throw std::runtime_error("can only define module functions for modules");
     }
 
-    define_function(name, func, arguments);
-    define_singleton_function(name, std::forward<Func_T>(func), arguments);
+    define_function(name, std::forward<Function_T>(func), args...);
+    define_singleton_function(name, std::forward<Function_T>(func), args...);
     return *this;
   }
 
-  template<typename Func_T, typename...Arg_Ts>
-  inline Module& Module::define_module_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+  template<typename Function_T>
+  inline void Module::wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
+    std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo)
   {
-    if (this->rb_type() != T_MODULE)
-    {
-      throw std::runtime_error("can only define module functions for modules");
-    }
+    auto* native = new detail::Native_Function<Function_T, true>(function, handler, methodInfo);
+    using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
-    define_function(name, std::forward<Func_T>(func), args...);
-    define_singleton_function(name, std::forward<Func_T>(func), args...);
-    return *this;
+    detail::verifyType<typename Native_T::Return_T>();
+    detail::verifyTypes<typename Native_T::Arg_Ts>();
+
+    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
+  }
+
+  template<typename Function_T>
+  inline void Module::wrap_native_function(VALUE klass, Identifier name, Function_T&& function,
+    std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo)
+  {
+    auto* native = new detail::Native_Function<Function_T, false>(std::forward<Function_T>(function), handler, methodInfo);
+    using Native_T = typename std::remove_pointer_t<decltype(native)>;
+
+    detail::verifyType<typename Native_T::Return_T>();
+    detail::verifyTypes<typename Native_T::Arg_Ts>();
+
+    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
   }
 
   inline Module& Module::const_set(Identifier name, Object value)
@@ -4928,9 +5094,9 @@ namespace Rice::detail
 
 namespace Rice
 {
-  template<typename Func_T>
+  template<typename Function_T>
   [[deprecated("Please call define_global_function with Arg parameters")]]
-  void define_global_function(char const * name, Func_T&& func, Arguments* arguments);
+  void define_global_function(char const * name, Function_T&& func, MethodInfo* arguments);
 
    //! Define an global function
    /*! The method's implementation can be any function or static member
@@ -4943,23 +5109,23 @@ namespace Rice
     *  \param args a list of Arg instance used to define default parameters (optional)
     *  \return *this
     */
-  template<typename Func_T, typename...Arg_Ts>
-  void define_global_function(char const * name, Func_T&& func, Arg_Ts const& ...args);
+  template<typename Function_T, typename...Arg_Ts>
+  void define_global_function(char const * name, Function_T&& func, Arg_Ts const& ...args);
 } // Rice
 
 
 // ---------   global_function.ipp   ---------
 
-template<typename Func_T>
-void Rice::define_global_function(char const * name, Func_T&& func, Arguments* arguments)
+template<typename Function_T>
+void Rice::define_global_function(char const * name, Function_T&& func, MethodInfo* methodInfo)
 {
-  Module(rb_mKernel).define_module_function(name, std::forward<Func_T>(func), arguments);
+  Module(rb_mKernel).define_module_function(name, std::forward<Function_T>(func), methodInfo);
 }
 
-template<typename Func_T, typename...Arg_Ts>
-void Rice::define_global_function(char const * name, Func_T&& func, Arg_Ts const& ...args)
+template<typename Function_T, typename...Arg_Ts>
+void Rice::define_global_function(char const * name, Function_T&& func, Arg_Ts const& ...args)
 {
-  Module(rb_mKernel).define_module_function(name, std::forward<Func_T>(func), args...);
+  Module(rb_mKernel).define_module_function(name, std::forward<Function_T>(func), args...);
 }
 
 
@@ -5013,42 +5179,28 @@ auto& const_set(Identifier name, Object value)
   return dynamic_cast<decltype(*this)>(Module::const_set(name.id(), value.value()));
 }
 
-template<typename Func_T>
-[[deprecated("Please call define_method with Arg parameters")]]
-auto& define_method(Identifier name, Func_T&& func, Arguments* arguments)
+template<typename Function_T, typename...Arg_Ts>
+auto& define_method(Identifier name, Function_T&& func, Arg_Ts const& ...args)
 {
-  return dynamic_cast<decltype(*this)>(Module::define_method(name, std::forward<Func_T>(func), arguments));
+  return dynamic_cast<decltype(*this)>(Module::define_method(name, std::forward<Function_T>(func), args...));
 }
 
-template<typename Func_T, typename...Arg_Ts>
-auto& define_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+template<typename Function_T, typename...Arg_Ts>
+auto& define_function(Identifier name, Function_T&& func, Arg_Ts const& ...args)
 {
-  return dynamic_cast<decltype(*this)>(Module::define_method(name, std::forward<Func_T>(func), args...));
+  return dynamic_cast<decltype(*this)>(Module::define_function(name, std::forward<Function_T>(func), args...));
 }
 
-template<typename Func_T, typename...Arg_Ts>
-auto& define_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+template<typename Function_T, typename...Arg_Ts>
+auto& define_singleton_method(Identifier name, Function_T&& func, Arg_Ts const& ...args)
 {
-  return dynamic_cast<decltype(*this)>(Module::define_function(name, std::forward<Func_T>(func), args...));
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, std::forward<Function_T>(func), args...));
 }
 
-template<typename Func_T>
-[[deprecated("Please call define_singleton_method with Arg parameters")]]
-auto& define_singleton_method(Identifier name, Func_T&& func, Arguments* arguments)
+template<typename Function_T, typename...Arg_Ts>
+auto& define_singleton_function(Identifier name, Function_T&& func, Arg_Ts const& ...args)
 {
-  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, std::forward<Func_T>(func), arguments));
-}
-
-template<typename Func_T, typename...Arg_Ts>
-auto& define_singleton_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
-{
-  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, std::forward<Func_T>(func), args...));
-}
-
-template<typename Func_T, typename...Arg_Ts>
-auto& define_singleton_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
-{
-  return dynamic_cast<decltype(*this)>(Module::define_singleton_function(name, std::forward<Func_T>(func), args...));
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_function(name, std::forward<Function_T>(func), args...));
 }
 
 template<typename Exception_T, typename Functor_T>
@@ -5431,7 +5583,7 @@ namespace Rice
     //! Define a constructor for the class.
     template<typename Constructor_T>
     [[deprecated("Please call define_constructor with Arg parameters")]]
-    Data_Type<T> & define_constructor(Constructor_T constructor, Arguments * arguments);
+    Data_Type<T> & define_constructor(Constructor_T constructor, MethodInfo * methodInfo);
 
     /*! Creates a singleton method allocate and an instance method called
      *  initialize which together create a new instance of the class.  The
@@ -5459,7 +5611,7 @@ namespace Rice
      *  library to die at run time when it tries to convert the base
      *  type into the Director proxy type.
      *
-     *  This method takes no arguments, just needs the type of the
+     *  This method takes no methodInfo, just needs the type of the
      *  Director proxy class.
      *
      *  For example:
@@ -5522,42 +5674,28 @@ auto& const_set(Identifier name, Object value)
   return dynamic_cast<decltype(*this)>(Module::const_set(name.id(), value.value()));
 }
 
-template<typename Func_T>
-[[deprecated("Please call define_method with Arg parameters")]]
-auto& define_method(Identifier name, Func_T&& func, Arguments* arguments)
+template<typename Function_T, typename...Arg_Ts>
+auto& define_method(Identifier name, Function_T&& func, Arg_Ts const& ...args)
 {
-  return dynamic_cast<decltype(*this)>(Module::define_method(name, std::forward<Func_T>(func), arguments));
+  return dynamic_cast<decltype(*this)>(Module::define_method(name, std::forward<Function_T>(func), args...));
 }
 
-template<typename Func_T, typename...Arg_Ts>
-auto& define_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+template<typename Function_T, typename...Arg_Ts>
+auto& define_function(Identifier name, Function_T&& func, Arg_Ts const& ...args)
 {
-  return dynamic_cast<decltype(*this)>(Module::define_method(name, std::forward<Func_T>(func), args...));
+  return dynamic_cast<decltype(*this)>(Module::define_function(name, std::forward<Function_T>(func), args...));
 }
 
-template<typename Func_T, typename...Arg_Ts>
-auto& define_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
+template<typename Function_T, typename...Arg_Ts>
+auto& define_singleton_method(Identifier name, Function_T&& func, Arg_Ts const& ...args)
 {
-  return dynamic_cast<decltype(*this)>(Module::define_function(name, std::forward<Func_T>(func), args...));
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, std::forward<Function_T>(func), args...));
 }
 
-template<typename Func_T>
-[[deprecated("Please call define_singleton_method with Arg parameters")]]
-auto& define_singleton_method(Identifier name, Func_T&& func, Arguments* arguments)
+template<typename Function_T, typename...Arg_Ts>
+auto& define_singleton_function(Identifier name, Function_T&& func, Arg_Ts const& ...args)
 {
-  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, std::forward<Func_T>(func), arguments));
-}
-
-template<typename Func_T, typename...Arg_Ts>
-auto& define_singleton_method(Identifier name, Func_T&& func, Arg_Ts const& ...args)
-{
-  return dynamic_cast<decltype(*this)>(Module::define_singleton_method(name, std::forward<Func_T>(func), args...));
-}
-
-template<typename Func_T, typename...Arg_Ts>
-auto& define_singleton_function(Identifier name, Func_T&& func, Arg_Ts const& ...args)
-{
-  return dynamic_cast<decltype(*this)>(Module::define_singleton_function(name, std::forward<Func_T>(func), args...));
+  return dynamic_cast<decltype(*this)>(Module::define_singleton_function(name, std::forward<Function_T>(func), args...));
 }
 
 template<typename Exception_T, typename Functor_T>
@@ -5758,13 +5896,13 @@ namespace Rice
 
   template<typename T>
   template<typename Constructor_T>
-  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T, Arguments* arguments)
+  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T, MethodInfo* methodInfo)
   {
     check_is_bound();
 
     // Normal constructor pattern with new/initialize
     detail::protect(rb_define_alloc_func, static_cast<VALUE>(*this), detail::default_allocation_func<T>);
-    this->define_method("initialize", &Constructor_T::construct, arguments);
+    this->define_method("initialize", &Constructor_T::construct, methodInfo);
 
     return *this;
   }
@@ -6606,32 +6744,6 @@ namespace Rice
   inline Class Module::singleton_class() const
   {
     return CLASS_OF(value());
-  }
-
-  template<typename Function_T>
-  inline void Module::wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
-    std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments)
-  {
-    auto* native = detail::Make_Native_Function_With_Self(std::forward<Function_T>(function), handler, arguments);
-    using Native_T = typename std::remove_pointer_t<decltype(native)>;
-
-    detail::verifyType<typename Native_T::Native_Return_T>();
-    detail::verifyTypes<typename Native_T::Native_Arg_Ts>();
-
-    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
-  }
-
-  template<typename Function_T>
-  inline void Module::wrap_native_function(VALUE klass, Identifier name, Function_T&& function,
-    std::shared_ptr<detail::Exception_Handler> handler, Arguments* arguments)
-  {
-    auto* native = detail::Make_Native_Function(std::forward<Function_T>(function), handler, arguments);
-    using Native_T = typename std::remove_pointer_t<decltype(native)>;
-
-    detail::verifyType<typename Native_T::Native_Return_T>();
-    detail::verifyTypes<typename Native_T::Native_Arg_Ts>();
-
-    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
   }
 }
 

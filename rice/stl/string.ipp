@@ -1,7 +1,6 @@
 #include <string>
 #include "../detail/ruby.hpp"
 #include "../detail/Type.hpp"
-#include "../detail/Ruby_Function.hpp"
 #include "../detail/from_ruby.hpp"
 #include "../detail/to_ruby.hpp"
 

@@ -10,7 +10,7 @@
 #include "detail/default_allocation_func.hpp"
 #include "detail/Jump_Tag.hpp"
 #include "Exception_defn.hpp"
-#include "detail/Ruby_Function.hpp"
+#include "detail/RubyFunction.hpp"
 #include "detail/from_ruby.hpp"
 #include "detail/to_ruby.hpp"
 #include "Return.hpp"
@@ -23,8 +23,8 @@
 #include "Exception.ipp"
 #include "detail/method_data.hpp"
 #include "ruby_try_catch.hpp"
-#include "detail/Native_Attribute.hpp"
-#include "detail/Native_Function.hpp"
+#include "detail/NativeAttribute.hpp"
+#include "detail/NativeFunction.hpp"
 
 #include "ruby_mark.hpp"
 

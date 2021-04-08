@@ -9,7 +9,7 @@ def run_command(*args)
     stdout_child.each_line do |line|
       $stdout << line
     end
-    raise "Failed"  unless status_thread.value.success?
+    raise "Failed" unless status_thread.value.success?
   end
 end
 

@@ -1,7 +1,6 @@
 #include <complex>
 
 #include "../detail/ruby.hpp"
-#include "../detail/Ruby_Function.hpp"
 
 namespace Rice::detail
 {

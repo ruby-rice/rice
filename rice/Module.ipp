@@ -4,7 +4,7 @@
 #include "detail/rice_traits.hpp"
 #include "detail/function_traits.hpp"
 #include "detail/Type.hpp"
-#include "detail/Native_Function.hpp"
+#include "detail/NativeFunction.hpp"
 #include "Exception.hpp"
 
 namespace Rice
@@ -95,7 +95,7 @@ namespace Rice
   inline void Module::wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
     std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo)
   {
-    auto* native = new detail::Native_Function<Function_T, true>(function, handler, methodInfo);
+    auto* native = new detail::NativeFunction<Function_T, true>(function, handler, methodInfo);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
     detail::verifyType<typename Native_T::Return_T>();
@@ -108,7 +108,7 @@ namespace Rice
   inline void Module::wrap_native_function(VALUE klass, Identifier name, Function_T&& function,
     std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo)
   {
-    auto* native = new detail::Native_Function<Function_T, false>(std::forward<Function_T>(function), handler, methodInfo);
+    auto* native = new detail::NativeFunction<Function_T, false>(std::forward<Function_T>(function), handler, methodInfo);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
     detail::verifyType<typename Native_T::Return_T>();

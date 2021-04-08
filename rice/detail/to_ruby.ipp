@@ -1,4 +1,3 @@
-#include "Ruby_Function.hpp"
 
 namespace Rice
 {

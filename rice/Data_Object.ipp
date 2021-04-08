@@ -2,7 +2,6 @@
 #define Rice__Data_Object__ipp_
 
 #include "Data_Type_defn.hpp"
-#include "detail/Ruby_Function.hpp"
 
 #include <algorithm>
 

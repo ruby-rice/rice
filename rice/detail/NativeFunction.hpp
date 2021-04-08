@@ -10,7 +10,7 @@
 namespace Rice::detail
 {
   template<typename Function_T, bool IsMethod>
-  class Native_Function
+  class NativeFunction
   {
   public:
     using Return_T = typename function_traits<Function_T>::return_type;
@@ -22,7 +22,7 @@ namespace Rice::detail
     static VALUE call(int argc, VALUE* argv, VALUE self);
 
   public:
-    Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
+    NativeFunction(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
 
     // Invokes the wrapped function
     VALUE operator()(int argc, VALUE* argv, VALUE self);
@@ -55,6 +55,6 @@ namespace Rice::detail
     std::unique_ptr<MethodInfo> methodInfo_;
   };
 }
-#include "Native_Function.ipp"
+#include "NativeFunction.ipp"
 
 #endif // Rice__detail__Native_Function__hpp_

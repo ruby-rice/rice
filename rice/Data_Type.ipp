@@ -2,7 +2,7 @@
 #define Rice__Data_Type__ipp_
 
 #include "detail/method_data.hpp"
-#include "detail/Native_Attribute.hpp"
+#include "detail/NativeAttribute.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "detail/TypeRegistry.hpp"
 #include "detail/Wrapper.hpp"
