@@ -3,7 +3,7 @@
 
 #include "ruby.hpp"
 #include "rice_traits.hpp"
-#include "../Return.hpp"
+#include "../ReturnInfo.hpp"
 
 namespace Rice::detail
 {

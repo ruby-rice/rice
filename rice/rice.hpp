@@ -13,7 +13,7 @@
 #include "detail/RubyFunction.hpp"
 #include "detail/from_ruby.hpp"
 #include "detail/to_ruby.hpp"
-#include "Return.hpp"
+#include "ReturnInfo.hpp"
 #include "Arg.hpp"
 #include "detail/MethodInfo.hpp"
 #include "detail/Exception_Handler.hpp"

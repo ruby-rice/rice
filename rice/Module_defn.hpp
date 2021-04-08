@@ -3,8 +3,6 @@
 
 #include "detail/Exception_Handler_defn.hpp"
 #include "detail/ruby.hpp"
-#include "Arg.hpp"
-#include "Return.hpp"
 #include "Object_defn.hpp"
 
 namespace Rice

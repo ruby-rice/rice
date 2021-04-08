@@ -1,5 +1,5 @@
-#ifndef Rice__Return__hpp_
-#define Rice__Return__hpp_
+#ifndef Rice__ReturnInfo__hpp_
+#define Rice__ReturnInfo__hpp_
 
 #include <any>
 
@@ -47,6 +47,6 @@ namespace Rice
   };
 } // Rice
 
-#include "Return.ipp"
+#include "ReturnInfo.ipp"
 
-#endif // Rice__Return__hpp_
+#endif // Rice__ReturnInfo__hpp_

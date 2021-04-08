@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "../Arg.hpp"
-#include "../Return.hpp"
+#include "../ReturnInfo.hpp"
 
 namespace Rice
 {
