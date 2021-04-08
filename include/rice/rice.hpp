@@ -854,7 +854,7 @@ namespace Rice
 } // namespace Rice
 
 
-// =========   Ruby_Function.hpp   =========
+// =========   RubyFunction.hpp   =========
 
 
 namespace Rice::detail
@@ -866,10 +866,10 @@ namespace Rice::detail
      Ruby method passing along its required arguments. */
 
   template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  class Ruby_Function
+  class RubyFunction
   {
   public:
-    Ruby_Function(Function_T func, const Arg_Ts&... args);
+    RubyFunction(Function_T func, const Arg_Ts&... args);
     Return_T operator()();
 
   private:
@@ -892,20 +892,20 @@ namespace Rice
 }
 
 
-// ---------   Ruby_Function.ipp   ---------
+// ---------   RubyFunction.ipp   ---------
 
 #include <any>
 
 namespace Rice::detail
 {
   template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  inline Ruby_Function<Function_T, Return_T, Arg_Ts...>::Ruby_Function(Function_T func, const Arg_Ts&... args)
+  inline RubyFunction<Function_T, Return_T, Arg_Ts...>::RubyFunction(Function_T func, const Arg_Ts&... args)
     : func_(func), args_(std::forward_as_tuple(args...))
   {
   }
 
   template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  inline Return_T Ruby_Function<Function_T, Return_T, Arg_Ts...>::operator()()
+  inline Return_T RubyFunction<Function_T, Return_T, Arg_Ts...>::operator()()
   {
     const int TAG_RAISE = 0x6; // From Ruby header files
     int state = 0;
@@ -920,7 +920,7 @@ namespace Rice::detail
     thread_local std::any result;
 
     // Callback that will invoke the Ruby function
-    using Functor_T = Ruby_Function<Function_T, Return_T, Arg_Ts...>;
+    using Functor_T = RubyFunction<Function_T, Return_T, Arg_Ts...>;
     auto callback = [](VALUE value)
     {
       Functor_T* functor = (Functor_T*)value;
@@ -968,7 +968,7 @@ namespace Rice::detail
   inline Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args)
   {
     using Function_T = Return_T(*)(Arg_Ts...);
-    auto rubyFunction = Ruby_Function<Function_T, Return_T, Arg_Ts...>(func, args...);
+    auto rubyFunction = RubyFunction<Function_T, Return_T, Arg_Ts...>(func, args...);
     return rubyFunction();
   }
 
@@ -988,7 +988,7 @@ namespace Rice
   inline Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args)
   {
     using Function_T = Return_T(*)(Arg_Ts...);
-    auto rubyFunction = detail::Ruby_Function<Function_T, Return_T, Arg_Ts...>(func, args...);
+    auto rubyFunction = detail::RubyFunction<Function_T, Return_T, Arg_Ts...>(func, args...);
     return rubyFunction();
   }
 }
@@ -2325,7 +2325,6 @@ namespace Rice::detail
 // back to the C-API underneath again.
 #undef rb_define_method_id
 
-
 namespace Rice::detail
 {
   // Effective Java (2nd edition)
@@ -2456,7 +2455,7 @@ namespace Rice::detail
 
 
 
-// =========   Native_Attribute.hpp   =========
+// =========   NativeAttribute.hpp   =========
 
 
 namespace Rice
@@ -2471,7 +2470,7 @@ namespace Rice
   namespace detail
   {
     template<typename Return_T, typename Attr_T, typename Self_T = void>
-    class Native_Attribute
+    class NativeAttribute
     {
     public:
       using Native_Return_T = Return_T;
@@ -2481,7 +2480,7 @@ namespace Rice
       static VALUE set(VALUE self, VALUE value);
 
     public:
-      Native_Attribute(Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
+      NativeAttribute(Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
 
       // Invokes the wrapped function
       VALUE read(VALUE self);
@@ -2503,7 +2502,7 @@ namespace Rice
 } // Rice
 
 
-// ---------   Native_Attribute.ipp   ---------
+// ---------   NativeAttribute.ipp   ---------
 #include <array>
 #include <algorithm>
 
@@ -2511,11 +2510,11 @@ namespace Rice
 namespace Rice::detail
 {
   template<typename Return_T, typename Attr_T, typename Self_T>
-  inline VALUE Native_Attribute<Return_T, Attr_T, Self_T>::get(VALUE self)
+  inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::get(VALUE self)
   {
     RUBY_TRY
     {
-      using Native_Attr_T = Native_Attribute<Return_T, Attr_T, Self_T>;
+      using Native_Attr_T = NativeAttribute<Return_T, Attr_T, Self_T>;
       Native_Attr_T* attr = detail::MethodData::data<Native_Attr_T*>();
       return attr->read(self);
     }
@@ -2523,11 +2522,11 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename Attr_T, typename Self_T>
-  inline VALUE Native_Attribute<Return_T, Attr_T, Self_T>::set(VALUE self, VALUE value)
+  inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::set(VALUE self, VALUE value)
   {
     RUBY_TRY
     {
-      using Native_Attr_T = Native_Attribute<Return_T, Attr_T, Self_T>;
+      using Native_Attr_T = NativeAttribute<Return_T, Attr_T, Self_T>;
       Native_Attr_T* attr = detail::MethodData::data<Native_Attr_T*>();
       return attr->write(self, value);
     }
@@ -2535,13 +2534,13 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename Attr_T, typename Self_T>
-  Native_Attribute<Return_T, Attr_T, Self_T>::Native_Attribute(Attr_T attr, AttrAccess access)
+  NativeAttribute<Return_T, Attr_T, Self_T>::NativeAttribute(Attr_T attr, AttrAccess access)
     : attr_(attr), access_(access)
   {
   }
 
   template<typename Return_T, typename Attr_T, typename Self_T>
-  inline VALUE Native_Attribute<Return_T, Attr_T, Self_T>::read(VALUE self)
+  inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::read(VALUE self)
   {
     if constexpr (std::is_member_object_pointer_v<Attr_T>)
     {
@@ -2555,7 +2554,7 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename Attr_T, typename Self_T>
-  inline VALUE Native_Attribute<Return_T, Attr_T, Self_T>::write(VALUE self, VALUE value)
+  inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::write(VALUE self, VALUE value)
   {
     if constexpr (!std::is_const_v<std::remove_pointer_t<Attr_T>> && std::is_member_object_pointer_v<Attr_T>)
     {
@@ -2572,25 +2571,25 @@ namespace Rice::detail
   template<typename T>
   auto* Make_Native_Attribute(T* attr, AttrAccess access)
   {
-    return new Native_Attribute<T, T*>(attr, access);
+    return new NativeAttribute<T, T*>(attr, access);
   }
 
   template<typename Class_T, typename T>
   auto* Make_Native_Attribute(T Class_T::* attr, AttrAccess access)
   {
     using Attr_T = T Class_T::*;
-    return new Native_Attribute<T, Attr_T, Class_T>(attr, access);
+    return new NativeAttribute<T, Attr_T, Class_T>(attr, access);
   }
 } // Rice
 
 
-// =========   Native_Function.hpp   =========
+// =========   NativeFunction.hpp   =========
 
 
 namespace Rice::detail
 {
   template<typename Function_T, bool IsMethod>
-  class Native_Function
+  class NativeFunction
   {
   public:
     using Return_T = typename function_traits<Function_T>::return_type;
@@ -2602,7 +2601,7 @@ namespace Rice::detail
     static VALUE call(int argc, VALUE* argv, VALUE self);
 
   public:
-    Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
+    NativeFunction(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
 
     // Invokes the wrapped function
     VALUE operator()(int argc, VALUE* argv, VALUE self);
@@ -2636,7 +2635,7 @@ namespace Rice::detail
   };
 }
 
-// ---------   Native_Function.ipp   ---------
+// ---------   NativeFunction.ipp   ---------
 #include <array>
 #include <algorithm>
 
@@ -2644,15 +2643,15 @@ namespace Rice::detail
 namespace Rice::detail
 {
   template<typename Function_T, bool IsMethod>
-  VALUE Native_Function<Function_T, IsMethod>::call(int argc, VALUE* argv, VALUE self)
+  VALUE NativeFunction<Function_T, IsMethod>::call(int argc, VALUE* argv, VALUE self)
   {
-    using Wrapper_T = Native_Function<Function_T, IsMethod>;
+    using Wrapper_T = NativeFunction<Function_T, IsMethod>;
     Wrapper_T* wrapper = detail::MethodData::data<Wrapper_T*>();
     return wrapper->operator()(argc, argv, self);
   }
 
   template<typename Function_T, bool IsMethod>
-  Native_Function<Function_T, IsMethod>::Native_Function(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
+  NativeFunction<Function_T, IsMethod>::NativeFunction(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
     : func_(func), handler_(handler), methodInfo_(methodInfo)
   {
     // Ruby takes ownership of types returned by value. We do this here so that users
@@ -2668,13 +2667,13 @@ namespace Rice::detail
 
   template<typename Function_T, bool IsMethod>
   template<std::size_t... I>
-  typename Native_Function<Function_T, IsMethod>::Native_Arg_Ts Native_Function<Function_T, IsMethod>::createNativeArgs(std::index_sequence<I...>& indices)
+  typename NativeFunction<Function_T, IsMethod>::Native_Arg_Ts NativeFunction<Function_T, IsMethod>::createNativeArgs(std::index_sequence<I...>& indices)
   {
     return std::make_tuple(NativeArg<typename std::tuple_element<I, Arg_Ts>::type>(this->methodInfo_->arg(I))...);
   }
 
   template<typename Function_T, bool IsMethod>
-  std::vector<VALUE> Native_Function<Function_T, IsMethod>::getRubyValues(int argc, VALUE* argv)
+  std::vector<VALUE> NativeFunction<Function_T, IsMethod>::getRubyValues(int argc, VALUE* argv)
   {
     // Setup a tuple to contain required methodInfo to rb_scan_args
     std::string scanFormat = this->methodInfo_->formatString();
@@ -2700,8 +2699,8 @@ namespace Rice::detail
 
   template<typename Function_T, bool IsMethod>
   template<std::size_t... I>
-  typename Native_Function<Function_T, IsMethod>::Arg_Ts Native_Function<Function_T, IsMethod>::getNativeValues(std::vector<VALUE>& values,
-    typename Native_Function<Function_T, IsMethod>::Native_Arg_Ts& nativeArgs, std::index_sequence<I...>& indices)
+  typename NativeFunction<Function_T, IsMethod>::Arg_Ts NativeFunction<Function_T, IsMethod>::getNativeValues(std::vector<VALUE>& values,
+    typename NativeFunction<Function_T, IsMethod>::Native_Arg_Ts& nativeArgs, std::index_sequence<I...>& indices)
   {
     // Convert each Ruby value to its native value. Check each Ruby nil value to see if it has
     // a default argument, and if yes, use that. Otherwise use NativeArg<Arg_Ts> to convert
@@ -2712,7 +2711,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool IsMethod>
-  typename Native_Function<Function_T, IsMethod>::Self_T Native_Function<Function_T, IsMethod>::getSelf(VALUE self)
+  typename NativeFunction<Function_T, IsMethod>::Self_T NativeFunction<Function_T, IsMethod>::getSelf(VALUE self)
   {
     // There is no self parameter
     if constexpr (std::is_same_v<Self_T, std::nullptr_t>)
@@ -2732,7 +2731,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool IsMethod>
-  VALUE Native_Function<Function_T, IsMethod>::invokeNativeFunction(Arg_Ts& nativeArgs)
+  VALUE NativeFunction<Function_T, IsMethod>::invokeNativeFunction(Arg_Ts& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
@@ -2753,7 +2752,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool IsMethod>
-  VALUE Native_Function<Function_T, IsMethod>::invokeNativeMethod(VALUE self, Arg_Ts& nativeArgs)
+  VALUE NativeFunction<Function_T, IsMethod>::invokeNativeMethod(VALUE self, Arg_Ts& nativeArgs)
   {
     Self_T receiver = this->getSelf(self);
     auto selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeArgs);
@@ -2799,7 +2798,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool IsMethod>
-  void Native_Function<Function_T, IsMethod>::checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues)
+  void NativeFunction<Function_T, IsMethod>::checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues)
   {
     Wrapper* wrapper = getWrapper(self);
 
@@ -2813,7 +2812,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool IsMethod>
-  VALUE Native_Function<Function_T, IsMethod>::operator()(int argc, VALUE* argv, VALUE self)
+  VALUE NativeFunction<Function_T, IsMethod>::operator()(int argc, VALUE* argv, VALUE self)
   {
     try
     {
@@ -5006,7 +5005,7 @@ namespace Rice
   inline void Module::wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
     std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo)
   {
-    auto* native = new detail::Native_Function<Function_T, true>(function, handler, methodInfo);
+    auto* native = new detail::NativeFunction<Function_T, true>(function, handler, methodInfo);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
     detail::verifyType<typename Native_T::Return_T>();
@@ -5019,7 +5018,7 @@ namespace Rice
   inline void Module::wrap_native_function(VALUE klass, Identifier name, Function_T&& function,
     std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo)
   {
-    auto* native = new detail::Native_Function<Function_T, false>(std::forward<Function_T>(function), handler, methodInfo);
+    auto* native = new detail::NativeFunction<Function_T, false>(std::forward<Function_T>(function), handler, methodInfo);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
     detail::verifyType<typename Native_T::Return_T>();
