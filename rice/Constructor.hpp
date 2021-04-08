@@ -19,23 +19,23 @@ namespace Rice
   *
   *  For more information, see Rice::Data_Type::define_constructor.
   */
-  template<typename T, typename ...Arg_T>
+  template<typename T, typename...Arg_Ts>
   class Constructor
   {
   public:
-    static void construct(Object self, Arg_T... args)
+    static void construct(VALUE self, Arg_Ts...args)
     {
       T* data = new T(args...);
-      detail::replace<T>(self.value(), Data_Type<T>::rb_type(), data, true);
+      detail::replace<T>(self, Data_Type<T>::rb_type(), data, true);
     }
   };
 
   //! Special-case Constructor used when defining Directors.
-  template<typename T, typename ...Arg_T>
-  class Constructor<T, Object, Arg_T...>
+  template<typename T, typename...Arg_Ts>
+  class Constructor<T, Object, Arg_Ts...>
   {
     public:
-      static void construct(Object self, Arg_T... args)
+      static void construct(Object self, Arg_Ts...args)
       {
         T* data = new T(self, args...);
         detail::replace<T>(self.value(), Data_Type<T>::rb_type(), data, true);
