@@ -1,24 +1,26 @@
-test-driver
-pkg
-*.log
-.*.swp
-*.o
+Gemfile.lock
 *.bundle
-*.in
-test/**/Makefile
-sample/**/Makefile
 README.doxygen
 doc
 
-# Msys / mingw generated files
-mkinstalldirs
+pkg
+*.log
+.*.swp
+
+# Build artifacts
+test/**/Makefile
+sample/**/Makefile
 *.def
 *.exe
+*.exp
+*.ilk
+*.lib
+*.o
+*.obj
+*.pdb
+*.so
 
-ruby/lib/include
-ruby/lib/lib
-
-Gemfile.lock
-.dirstamp
+# Various IDE folders
 .idea
 msvc
+.vscode
