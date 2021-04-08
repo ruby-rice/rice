@@ -1,5 +1,5 @@
 $:.unshift File.expand_path(File.dirname(__FILE__))
-require 'ruby/lib/version'
+require 'lib/version'
 
 $spec = Gem::Specification.new do |s|
   s.name = 'rice'
@@ -20,7 +20,7 @@ of the Ruby C API.
 
   s.test_files = Dir['test/ruby/*.rb']
   s.extra_rdoc_files = ['README.md']
-  s.require_paths = ['ruby/lib']
+  s.require_paths = ['lib']
 
   s.files = Dir[
     # Documentation
@@ -47,8 +47,8 @@ of the Ruby C API.
     'rice/detail/*.?pp',
 
     # Ruby files
-    'ruby/lib/mkmf-rice.rb',
-    'ruby/lib/version.rb',
+    'lib/mkmf-rice.rb',
+    'lib/version.rb',
 
     # Samples
     'sample/enum/extconf.rb',
