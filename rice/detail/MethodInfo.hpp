@@ -24,24 +24,6 @@ namespace Rice
       */
     void addArg(const Arg& arg);
 
-    /**
-      * Specifices if Ruby owns the returned data
-      */
-    bool isOwner();
-
-    /**
-      * Tell Ruby to take ownership of the returned data
-      */
-    void takeOwnership();
-
-    /**
-      * Given a position, a type, and a ruby VALUE, figure out
-      * what argument value we need to return according to
-      * defaults and if that VALUE is nil or not
-      */
-    template<typename Arg_T>
-    Arg_T& defaultValue(size_t pos);
-
     Arg& arg(size_t pos);
 
     // Iterator support

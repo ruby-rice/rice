@@ -61,25 +61,9 @@ namespace Rice
     return std::to_string(required) + std::to_string(optional);
   }
 
-  template<typename Arg_T>
-  inline Arg_T& MethodInfo::defaultValue(size_t pos)
-  {
-    return args_[pos].defaultValue<Arg_T>();
-  }
-
   inline Arg& MethodInfo::arg(size_t pos)
   {
     return args_[pos];
-  }
-
-  inline bool MethodInfo::isOwner()
-  {
-    return this->returnInfo.isOwner();
-  }
-
-  inline void MethodInfo::takeOwnership()
-  {
-    this->returnInfo.takeOwnership();
   }
 
   inline std::vector<Arg>::iterator MethodInfo::begin()

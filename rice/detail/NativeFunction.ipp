@@ -27,7 +27,7 @@ namespace Rice::detail
     // result in a crash.
     if (!std::is_reference_v<Return_T> && !std::is_pointer_v<Return_T>)
     {
-      methodInfo_->takeOwnership();
+      methodInfo_->returnInfo.takeOwnership();
     }
   }
 
@@ -159,7 +159,7 @@ namespace Rice::detail
         }
       }
 
-      return To_Ruby<Return_T>::convert(nativeResult, this->methodInfo_->isOwner());
+      return To_Ruby<Return_T>::convert(nativeResult, this->methodInfo_->returnInfo.isOwner());
     }
   }
 
