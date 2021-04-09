@@ -661,6 +661,25 @@ This also works with Constructors:
       Arg("arg1") = 1, Arg("otherArg") = 12;
 ```
 
+## VALUE arguments
+
+The Ruby API uses a type called VALUE to represent Ruby objects. Most of the time you will not have to deal with VALUEs since Rice does it for you.
+
+However, if a native method takes or returns a VALUE then you have to tell Rice about it. That is because VALUE is a typedef for long long and thus Rice cannot distinguish them because they are the same type. As a result, if a method takes a VALUE parameter then Rice will convert it to a C++ long long value instead of  passing it through. Similarly, if a method returns a VALUE then Rice will also convert it to a numeric Ruby object as opposed to simply returning it.
+
+To avoid this incorrect conversion, use the `isValue()` method on the `Arg` and `Return` classes. For example:
+
+```cpp
+VALUE some_function(VALUE ary)
+{
+  VALUE new_ary = rb_ary_dup(ary);
+  rb_ary_push(new_ary, Qtrue);
+  return new_ary;
+}
+
+define_global_function("some_function", &some_function, Arg("ary").isValue(), Return.isValue())
+```
+
 ## Return Values
 
 Every C++ object returned from a function, except for self, is wrapped in a new Ruby object.
@@ -791,9 +810,9 @@ Assuming these classes are wrapped with Rice, next run this Ruby code:
   @handler.process !!!! crash !!!!!
 ```
 
-After the call to ```add_listener```, there is no longer a reference to the Ruby Listener object. When the GC runs, it will
+After the call to `add_listener`, there is no longer a reference to the Ruby Listener object. When the GC runs, it will
 notice this and free the Ruby object. That it turn frees the underlying C++ Listener object resulting in a crash when
-```process``` is called.
+`process` is called.
 
 To prevent this, we want to tie the lifetime of the Ruby listener instance to the container. This is done by calling
 keepAlive() in the argument list:
