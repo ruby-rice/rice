@@ -591,7 +591,7 @@ We can wrap this class by using `typedef`s:
   }
 ```
 
-# Methods
+# Functions and Methods
 In the tutorial we touched upon how to wrap C++ functions, static member functions and
 member functions. Now let's go into more depth.
 
@@ -829,11 +829,15 @@ call rb_gc_mark to keep it alive. The `Listener` object will not be freed until 
 
 The trickiest part of wrapping a C++ API is correctly managing memory shared between C++ and Ruby. It is critical to
 get this right - otherwise your program *will* crash. The key to getting this right is being crystal clear
-on who owns each piece of memory.
+on who owns each piece of memory. Rice manages much of this work for you, but does requires some help in getting it right.
 
-Rice manages much of this work for you, but does requires some help in getting it right. 
+Rice divides native types into two categories, builtin types and external types. Builtin types are types that directly map from C++ to Ruby. Examples include nullptr, bool, numeric types (integer, float, double, complex), char types and strings. All other types are external types.
 
-# C++ to Ruby
+Builtin types are always copied between C++ and Ruby and vice versa. Since builtin types are always copied, they are disconnected. Therefore, if a Ruby string is converted to a std::string then the two strings are independent and changes in one will *not* be reflected in the other. Also understand that if you allocate a new char* in C++ and pass it to Ruby, then you will get a memory leak because Ruby will copy the contents on the char* but will *not* free the original buffer. Generally you don't have to worry about builtin types because Rice supports them out of the box.
+
+External types, in contrast, are types that are not copied between C++ and Ruby. Instead external types are wrapped in Ruby objects using define_class and friends as described above. The rest of this section discusses how to manage memory of external types.
+
+## C++ to Ruby
 As described in the [methods](#methods) section, use the Return class to specify whether ownership of objects
 returned from C++ functions should be transferred to Ruby.
 
@@ -849,14 +853,14 @@ In the case where Ruby takes ownership of the object, the transfer happens like 
 
 Method Return Type (T)   | C++ to Ruby       | Cleanup
 ------------            | -----------        | --------
-Value (T)               | Copy constructor  |  Ruby frees the copy
-Reference (T&)          | Move constructor  |  Ruby frees the copy
-Pointer (T*)            | No copy           |  Ruby frees C++ object
+Value (T)               | Copy constructor  |  Ruby frees the copy, C++ the original
+Reference (T&)          | Move constructor  |  Ruby frees the copy, C++ the original now empty object
+Pointer (T*)            | No copy           |  Ruby frees the original C++ object
 
-# Ruby to C++
+## Ruby to C++
 For more information see the [keep alive](#keep-alive) section.
 
-# C++ Referencing Ruby Objects
+## C++ Referencing Ruby Objects
 When reference Ruby objects from C++, you need to let Ruby know about them so they are not prematurely
 garbage collected.
 
@@ -886,57 +890,104 @@ namespace Rice
              .define_constructor(Constructor<MyClass>());
 ```
 
-# User-defined type conversions
+# Adding Type Conversions
 
-Rice provides default conversions for many built-in types. Sometimes,
-however, the default conversion is not what is expected. For
-example, consider a function:
+Rice provides default conversions for native C++ types as well as types you define via `define_class`. As a result, you generally should not have to add your own custom type conversions.
 
-```cpp
-  void foo(char * x);
-```
+However, for the sake of an example, let's say you want to expose a `std::deque<int>` to Ruby and are not using Rice's built-in standard library support.
 
-Is `x` a pointer to a single character or a pointer to the first character
-of a null-terminated string or a pointer to the first character of an
-array of char?
+One approach, as described throughout this document, is to use `define_class` and then `define_method` to setup its API. However, `std::deque` has a large API and you may only want to copy the data to Ruby and do not need to modify it from Ruby. Thus making a copy, instead of a wrapper, is perfectly fine.
 
-Because the second case is the most common use case (a pointer to the
-first character of a C string), Rice provides a default conversion that
-treats a `char *` as a C string. But suppose the above function actually
-expects to receive a pointer to a single char instead?
+To do this requires requires the following steps:
 
-If we write this:
+1. Mark the object as a builtin type
 
-```cpp
-  extern "C"
-  void Init_test()
-  {
-    define_global_function("foo", &foo);
-  }
-```
+2. Add a To_Ruby method
 
-It will likely have the wrong behavior.
+3. Optionally add a From_Ruby method
 
-To avoid this problem, it is necessary to write a wrapper function where
-the extension can be more explicit about how to handle the parameters:
+## Step 1 - Mark as Builtin Type
+Since we want Rice to copy the `std::deque<int>` from C++ to Ruby, we need to tell Rice that it should be treated as a builtin type. For more information about builtin types, please refer to the [memory management](#memory_management) section.
+
+Marking a type as builtin is simple:
 
 ```cpp
-  Object wrap_foo(Object o)
-  {
-    char c = from_ruby<char>(o);
-    foo(&c);
-    return to_ruby(c);
-  }
-
-  extern "C"
-  void Init_test()
-  {
-    define_global_function("foo", &wrap_foo);
-  }
+namespace Rice::detail
+{
+  template <>
+  struct is_builtin<std::deque<int>> : public std::true_type {};
+}
 ```
 
-Note that the out parameter is returned from `wrap_foo`, as Ruby does not
-have pass-by-variable-reference (it uses pass-by-object-reference).
+Note the definition *must* be in the `Rice::detail` namespace.
+
+## Step 2 - To_Ruby
+Next, we need to write C++ code that converts the `std::deque<int>` to a Ruby object. The most obvious Ruby object to map it to is an array.
+
+```cpp
+namespace Rice::detail
+{
+  template<>
+  struct To_Ruby<std::deque<int>>
+  {
+    static VALUE convert(const std::deque<int>& deque, bool takeOwnership = true)
+    {
+      // Notice we wrap Ruby API calls with protect in case Ruby throws an exception. If you do not
+      // use protect and Ruby throws an exception then your program *will* crash.
+      VALUE result = protect(rb_ary_new2, deque.size());
+      
+      for (int element : deque)
+      {
+        // Convert the C++ int to a Ruby integer
+        VALUE value = To_Ruby<int>::convert(element, takeOwnership);
+        // Now add it to the Ruby array
+        detail::protect(rb_ary_push, result, value));
+      }
+      return result;
+    }
+  };
+}
+```
+
+Once again, the definition *must* be in the `Rice::detail` namespace.
+
+Note that instead of using the raw Ruby C API as above, you may prefer to use `Rice::Array` which provides an nice C++ wrapper for Ruby arrays.
+
+## Step 3 - To_Ruby
+Last, if we want to convert a Ruby array to a `std::deque<int>`, then we need to write C++ code for that too.
+
+```cpp
+namespace Rice::detail
+{
+  template<>
+  struct From_Ruby<std::deque<int>>
+  {
+    static std::deque<int> convert(VALUE ary)
+    {
+      // Make sure array is really an array - if not this call will throw a Ruby exception so we need to protect it
+      detail::protect(rb_check_type, array, (int)T_ARRAY);
+      
+      long size = protect(rb_array_len, ary);
+      std::deque<int> result(size);
+      
+      for (long i=0; i<size; i++)
+      {
+        // Get the array element
+        VALUE value = protect(rb_ary_entry, ary, i);
+        
+        // Convert the Ruby int to a C++ int
+        int element = From_Ruby<int>::convert(value);
+        
+        // Add it to our deque
+        result[i] = element;
+      }
+      
+      return result;
+    }
+  };
+```
+
+And as usual, the definition *must* be in the `Rice::detail` namespace.
 
 # Inheritance
 
