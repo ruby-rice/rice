@@ -4,9 +4,13 @@ Memory Management
 
 The trickiest part of wrapping a C++ API is correctly managing memory shared between C++ and Ruby. It is critical to
 get this right - otherwise your program *will* crash. The key to getting this right is being crystal clear
-on who owns each piece of memory.
+on who owns each piece of memory. Rice manages much of this work for you, but does requires some help in getting it right.
 
-Rice manages much of this work for you, but does requires some help in getting it right.
+Rice divides native types into two categories, builtin types and external types. Builtin types are types that directly map from C++ to Ruby. Examples include nullptr, bool, numeric types (integer, float, double, complex), char types and strings. All other types are external types.
+
+Builtin types are always copied between C++ and Ruby and vice versa. Since builtin types are always copied, they are disconnected. Therefore, if a Ruby string is converted to a std::string then the two strings are independent and changes in one will *not* be reflected in the other. Also understand that if you allocate a new char* in C++ and pass it to Ruby, then you will get a memory leak because Ruby will copy the contents on the char* but will *not* free the original buffer. Generally you don't have to worry about builtin types because Rice supports them out of the box.
+
+External types, in contrast, are types that are not copied between C++ and Ruby. Instead external types are wrapped in Ruby objects using define_class and friends as described above. The rest of this section discusses how to manage memory of external types.
 
 C++ to Ruby
 -----------
