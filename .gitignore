@@ -1,7 +1,7 @@
 Gemfile.lock
 *.bundle
 README.doxygen
-doc
+doc/_build
 
 pkg
 *.log

@@ -2,14 +2,6 @@
 Tutorial
 ========
 
-.. toctree::
-  :maxdepth: 2
-
-  tutorial/memory_management
-  tutorial/type_conversions
-  tutorial/inheritance
-  tutorial/cpp_api
-
 Getting started
 ---------------
 
@@ -77,7 +69,7 @@ wanted to inherit from a different class, we do so with the second parameter:
     Class rb_cMySocket = define_class("MySocket", rb_cIO);
   }
 
-Note the prefix rb_c on the name of the class. This is a convention
+Note the prefix ``rb_c`` on the name of the class. This is a convention
 that the Ruby interpreter and many extensions tend to use. It signifies
 that this is a class and not some other type of object. Some other
 naming conventions that are commonly used:

@@ -22,8 +22,8 @@ What Rice gives you:
 Version Differences 3.x vs 4.x and later
 ----------------------------------------
 
-This documentation and the `master` branch are for Rice 4.x and later, which is the
-header-only version of this library. Use the `3.x` branch for the docs and code for that
+This documentation and the ``master`` branch are for Rice 4.x and later, which is the
+header-only version of this library. Use the ``3.x`` branch for the docs and code for that
 line of releases.
 
 The docs for the 3.x line of Rice is viewable at https://jasonroelofs.com/rice/3.x.
