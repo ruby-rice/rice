@@ -87,6 +87,8 @@ for ruby.h that handles some compatibility issues across platforms and
 Ruby versions. Always include Rice headers before including anything
 that might include "ruby.h".
 
+.. _Defining Methods:
+
 Defining methods
 ----------------
 
@@ -327,17 +329,6 @@ conversion works, and when we write:
   puts test.hello
 
 We get the expected result.
-
-Rice has two template conversion functions to convert between C++ and
-Ruby types:
-
-.. code-block:: cpp
-
-  template<typename T>
-  T from_ruby(Object x);
-
-  template<typename T>
-  Object to_ruby(T const & x);
 
 Rice includes default specializations for many of the builtin
 types. To define your own conversion, you need to create two

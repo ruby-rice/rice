@@ -33,9 +33,9 @@ would iterate over an STL container:
 .. code-block:: cpp
 
   Array a;
-  a.push(to_ruby(42));
-  a.push(to_ruby(43));
-  a.push(to_ruby(44));
+  a.push(detail::to_ruby(42));
+  a.push(detail::to_ruby(43));
+  a.push(detail::to_ruby(44));
   Array::iterator it = a.begin();
   Array::iterator end = a.end();
   for(; it != end; ++it)
