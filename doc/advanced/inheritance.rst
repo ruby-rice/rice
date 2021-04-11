@@ -46,7 +46,7 @@ Advanced
 Polymorphism creates yet another wrinkle in building exceptions around C++ code,
 because now we have to deal with cross-language polymorphism, where C++ can call
 into a Ruby subclass, and a Ruby subclass can ``super`` back into C++ land. ``super``
-calls already work through define_class, but making code travel from C++ into Ruby
+calls already work through ``define_class``, but making code travel from C++ into Ruby
 via polymorphism is tricker. Rice provides the ``Rice::Director`` class and the
 ``define_director`` method to enable this code path.
 

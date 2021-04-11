@@ -26,6 +26,8 @@ This documentation and the ``master`` branch are for Rice 4.x and later, which i
 header-only version of this library. Use the ``3.x`` branch for the docs and code for that
 line of releases.
 
+To upgrade a library from Rice 3 to 4, see :ref:`Migrating`.
+
 The docs for the 3.x line of Rice is viewable at https://jasonroelofs.com/rice/3.x.
 
 Project Details

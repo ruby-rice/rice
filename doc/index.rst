@@ -6,7 +6,7 @@ Rice - Ruby Interface for C++ Extensions
   :maxdepth: 2
 
   introduction
-  migration
   tutorial
   advanced
+  migration
   history

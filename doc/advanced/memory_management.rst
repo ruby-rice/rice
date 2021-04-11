@@ -17,7 +17,7 @@ External types, in contrast, are types that are not copied between C++ and Ruby.
 C++ to Ruby
 -----------
 
-As described in the [methods](#methods) section, use the Return class to specify whether ownership of objects
+As described in the :ref:`Ownership` section of the tutorial, use the ``Return`` class to specify whether ownership of objects
 returned from C++ functions should be transferred to Ruby.
 
 In the case where Ruby does *not* take ownership of the object, the transfer happens like this:
@@ -43,7 +43,7 @@ Pointer (T*)           No copy          Ruby frees C++ object
 Ruby to C++
 -----------
 
-For more information see the [keep alive](#keep-alive) section.
+For more information see the :ref:`Keep Alive` section of the tutorial.
 
 C++ Referencing Ruby Objects
 ----------------------------
@@ -53,10 +53,10 @@ garbage collected.
 
 In simple cases, with Objects on the stack, the Ruby GC will automatically find them and you don't have to
 do anything. If instead, you allocate an Object on the heap or if it is a member of an object that might be
-allocated on the heap, use an Rice::Address_Registration_Guard to register the object with the garbage
+allocated on the heap, use ``Rice::Address_Registration_Guard`` to register the object with the garbage
 collector.
 
-If you create classes or structures that reference Ruby objects, you need to implement a custom mark function:
+If you create classes or structures that reference Ruby objects, you need to implement a custom ``ruby_mark`` function:
 
 .. code-block:: cpp
 

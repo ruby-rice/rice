@@ -17,7 +17,7 @@ To do this requires requires the following steps:
 Step 1 - Mark as Builtin Type
 -----------------------------
 
-Since we want Rice to copy the  ``std::deque<int>`` from C++ to Ruby, we need to tell Rice that it should be treated as a builtin type. For more information about builtin types, please refer to the [memory management](#memory_management) section.
+Since we want Rice to copy the  ``std::deque<int>`` from C++ to Ruby, we need to tell Rice that it should be treated as a builtin type. For more information about builtin types, please refer to the :ref:`Memory Management` section.
 
 Marking a type as builtin is simple:
 
