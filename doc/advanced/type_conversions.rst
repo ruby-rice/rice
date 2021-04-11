@@ -2,11 +2,11 @@
 Adding Type Conversions
 =======================
 
-Rice provides default conversions for native C++ types as well as types you define via `define_class`. As a result, you generally should not have to add your own custom type conversions.
+Rice provides default conversions for native C++ types as well as types you define via  ``define_class``. As a result, you generally should not have to add your own custom type conversions.
 
-However, for the sake of an example, let's say you want to expose a `std::deque<int>` to Ruby and are not using Rice's built-in standard library support.
+However, for the sake of an example, let's say you want to expose a  ``std::deque<int>`` to Ruby and are not using Rice's built-in standard library support.
 
-One approach, as described throughout this document, is to use `define_class` and then `define_method` to setup its API. However, `std::deque` has a large API and you may only want to copy the data to Ruby and do not need to modify it from Ruby. Thus making a copy, instead of a wrapper, is perfectly fine.
+One approach, as described throughout this document, is to use  ``define_class`` and then  ``define_method`` to setup its API. However,  ``std::deque`` has a large API and you may only want to copy the data to Ruby and do not need to modify it from Ruby. Thus making a copy, instead of a wrapper, is perfectly fine.
 
 To do this requires requires the following steps:
 
@@ -17,7 +17,7 @@ To do this requires requires the following steps:
 Step 1 - Mark as Builtin Type
 -----------------------------
 
-Since we want Rice to copy the `std::deque<int>` from C++ to Ruby, we need to tell Rice that it should be treated as a builtin type. For more information about builtin types, please refer to the [memory management](#memory_management) section.
+Since we want Rice to copy the  ``std::deque<int>`` from C++ to Ruby, we need to tell Rice that it should be treated as a builtin type. For more information about builtin types, please refer to the [memory management](#memory_management) section.
 
 Marking a type as builtin is simple:
 
@@ -29,12 +29,12 @@ Marking a type as builtin is simple:
     struct is_builtin<std::deque<int>> : public std::true_type {};
   }
 
-Note the definition *must* be in the `Rice::detail` namespace.
+Note the definition *must* be in the  ``Rice::detail`` namespace.
 
 Step 2 - To_Ruby
 ----------------
 
-Next, we need to write C++ code that converts the `std::deque<int>` to a Ruby object. The most obvious Ruby object to map it to is an array.
+Next, we need to write C++ code that converts the  ``std::deque<int>`` to a Ruby object. The most obvious Ruby object to map it to is an array.
 
 .. code-block:: cpp
 
@@ -61,14 +61,14 @@ Next, we need to write C++ code that converts the `std::deque<int>` to a Ruby ob
     };
   }
 
-Once again, the definition *must* be in the `Rice::detail` namespace.
+Once again, the definition *must* be in the  ``Rice::detail`` namespace.
 
-Note that instead of using the raw Ruby C API as above, you may prefer to use `Rice::Array` which provides an nice C++ wrapper for Ruby arrays.
+Note that instead of using the raw Ruby C API as above, you may prefer to use  ``Rice::Array`` which provides an nice C++ wrapper for Ruby arrays.
 
 Step 3 - From_Ruby
 ------------------
 
-Last, if we want to convert a Ruby array to a `std::deque<int>`, then we need to write C++ code for that too.
+Last, if we want to convert a Ruby array to a  ``std::deque<int>``, then we need to write C++ code for that too.
 
 .. code-block:: cpp
 
@@ -102,4 +102,4 @@ Last, if we want to convert a Ruby array to a `std::deque<int>`, then we need to
     };
   }
 
-And as usual, the definition *must* be in the `Rice::detail` namespace.
+And as usual, the definition *must* be in the  ``Rice::detail`` namespace.

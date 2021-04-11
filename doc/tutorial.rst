@@ -15,7 +15,7 @@ The first step is to create an extconf.rb file:
   require 'mkmf-rice'
   create_makefile('test')
 
-Note that we use `mkmf-rice` instead of `mkmf`. This will ensure that the
+Note that we use ``mkmf-rice`` instead of ``mkmf``. This will ensure that the
 extension will be linked with standard C++ library and allows access to the
 Rice header files.
 
@@ -29,7 +29,7 @@ Next we create our extension and save it to test.cpp:
   }
 
 Note the extern "C" line above. This tells the compiler that the
-function `Init_test` should have C linkage and calling convention. This
+function ``Init_test`` should have C linkage and calling convention. This
 turns off name mangling so that the Ruby interpreter will be able to
 find the function (remember that Ruby is written in C, not C++).
 
@@ -54,7 +54,7 @@ Defining a class in Rice is a single call:
     Class rb_cTest = define_class("Test");
   }
 
-This will create a class called `Test` that inherits from `Object`. If we
+This will create a class called ``Test`` that inherits from ``Object``. If we
 wanted to inherit from a different class, we do so with the second parameter:
 
 .. code-block:: cpp
@@ -112,11 +112,11 @@ Now let's add a method to our class:
       .define_method("hello", &test_hello);
   }
 
-Here we add a method `Test#hello` that returns the string
+Here we add a method ``Test#hello`` that returns the string
 "Hello, World". The method takes self as an implicit parameter, but
 isn't used, so we comment it out to prevent a compiler warning.
 
-We could also add an `#initialize` method to our class:
+We could also add an ``#initialize`` method to our class:
 
 .. code-block:: cpp
 
@@ -144,12 +144,12 @@ We could also add an `#initialize` method to our class:
       .define_method("hello", &test_hello);
   }
 
-The `initialize` method sets an instance variable `@foo` to the value 42.
-The number is automatically converted to a `Fixnum` before doing the
+The ``initialize`` method sets an instance variable ``@foo`` to the value 42.
+The number is automatically converted to a ``Fixnum`` before doing the
 assignment.
 
-Note that we're chaining calls on the `Class` object. Most member
-functions in `Module` and `Class` return a reference to `self`, so we can
+Note that we're chaining calls on the ``Class`` object. Most member
+functions in ``Module`` and ``Class`` return a reference to ``self``, so we can
 chain as many calls as we want to define as many methods as we want.
 
 Defining methods with lambda
@@ -169,7 +169,7 @@ to define_method, the lambda takes self as an implicit parameter:
 Defining functions
 ------------------
 
-If is also possible to add methods to a ruby class using `define_fuction`. The difference is
+If is also possible to add methods to a ruby class using ``define_fuction``. The difference is
 that no implicit self parameter is passed. Once again, you can use function pointers
 or lambdas:
 
@@ -230,14 +230,14 @@ section. To wrap it:
       .define_method("hello", &Test::hello);
   }
 
-In this example we use `Data_Type<>` instead of `Class` and the template version
-of define_class() instead of the non-template version. This creates a binding in the Rice library
-between the Ruby class `Test` and the C++ class Test.
+In this example we use ``Data_Type<>`` instead of ``Class`` and the template version
+of ``define_class()`` instead of the non-template version. This creates a binding in the Rice library
+between the Ruby class ``Test`` and the C++ class Test.
 
-Next, we define a function `static_hello` that is implemented by a C++ static member function.
-Since we use `define_function`, there is no implicit self parameter.
+Next, we define a function ``static_hello`` that is implemented by a C++ static member function.
+Since we use ``define_function``, there is no implicit self parameter.
 
-Last, we define a method `hello` that is implemented by a C++ member function. When Ruby calls
+Last, we define a method ``hello`` that is implemented by a C++ member function. When Ruby calls
 this function, instead of passing an implicit self parameter, Rice is smart enough to direct the
 call to the correct C++ Test instance.
 
@@ -245,7 +245,7 @@ Defining attributes
 -------------------
 
 C++ structures, and sometimes classes, often have public member variables that store data. Rice makes it
-easy to wrap these member variables via the use of `define_attr`:
+easy to wrap these member variables via the use of ``define_attr``:
 
 .. code-block:: cpp
 
@@ -274,7 +274,7 @@ These attributes can then be accessed in the expected way in Ruby:
   my_struct.read_write = 10
   b = my_struct.read_write
 
-Similarly, you can wrap static members via the use of `define_singleton_attr`:
+Similarly, you can wrap static members via the use of ``define_singleton_attr``:
 
 .. code-block:: cpp
 
@@ -318,7 +318,7 @@ Rice is smart enough to convert between most Ruby and C++ objects. Let's look ag
   };
 
 When we wrote our class, we never wrote a single line of code to convert
-the `std::string` returned by `hello()` into a Ruby type. Nevertheless, the
+the ``std::string`` returned by ``hello()`` into a Ruby type. Nevertheless, the
 conversion works, and when we write:
 
 .. code-block:: ruby
@@ -367,12 +367,12 @@ class template specializations:
   }
 
 The implementation of these functions would, of course, depend on the
-implementation of `Foo`.
+implementation of ``Foo``.
 
 Conversions for wrapped C++ types
 ---------------------------------
 
-Take another look at the wrapper we wrote for the `Test` class:
+Take another look at the wrapper we wrote for the ``Test`` class:
 
 .. code-block:: cpp
 
@@ -385,7 +385,7 @@ Take another look at the wrapper we wrote for the `Test` class:
       .define_method("hello", &Test::hello);
   }
 
-When we called `define_class<Test>`, it created a Class for us and
+When we called ``define_class<Test>``, it created a Class for us and
 automatically registered the new Class with the type system, so that the
 calls:
 
@@ -397,18 +397,18 @@ calls:
 
 works as expected.
 
-The `Data_Object` class is a wrapper for the `TypedData_Wrap_Struct` and the
-`TypedData_Get_Struct` macros in C extensions. It can be used to wrap or
-unwrap any class that has been assigned to a `Data_Type`. It inherits
-from `Object`, so any member functions we can call on an `Object` we can
-also call on a `Data_Object`:
+The ``Data_Object`` class is a wrapper for the ``TypedData_Wrap_Struct`` and the
+``TypedData_Get_Struct`` macros in C extensions. It can be used to wrap or
+unwrap any class that has been assigned to a ``Data_Type``. It inherits
+from ``Object``, so any member functions we can call on an ``Object`` we can
+also call on a ``Data_Object``:
 
 .. code-block:: cpp
 
   Object object_id = obj.call("object_id");
   std::cout << object_id << std::endl;
 
-The `Data_Object` class can be used to wrap a newly-created object:
+The ``Data_Object`` class can be used to wrap a newly-created object:
 
 .. code-block:: cpp
 
@@ -421,7 +421,7 @@ or to unwrap an already-created object:
   VALUE obj = ...;
   Data_Object<Foo> foo(obj);
 
-A `Data_Object` functions like a smart pointer:
+A ``Data_Object`` functions like a smart pointer:
 
 .. code-block:: cpp
 
@@ -429,8 +429,8 @@ A `Data_Object` functions like a smart pointer:
   foo->foo();
   std::cout << *foo << std::endl;
 
-Like a `VALUE` or an `Object`, data stored in a `Data_Object` will be marked
-by the garbage collector as long as the `Data_Object` is on the stack.
+Like a ``VALUE`` or an ``Object``, data stored in a ``Data_Object`` will be marked
+by the garbage collector as long as the ``Data_Object`` is on the stack.
 
 Exceptions
 ----------
@@ -493,8 +493,8 @@ an exception handler like so:
       .define_method("error", &Test::error);
   }
 
-The `handle_my_exception` function need only rethrow the exception as a
-`Rice::Exception`:
+The ``handle_my_exception`` function need only rethrow the exception as a
+``Rice::Exception``:
 
 .. code-block:: cpp
 
@@ -514,11 +514,11 @@ also converted:
   protect(rb_raise, rb_eRuntimeError, "some exception msg");
 
 Internally whenever Rice catches a C++ or a Ruby exception, it converts
-it to an `Exception` object. This object will later be re-raised as a
+it to an ``Exception`` object. This object will later be re-raised as a
 Ruby exception when control is returned to the Ruby VM.
 
-Rice uses a similar class called `Jump_Tag` to handle symbols thrown by
-Ruby's `throw`/`catch` or other non-local jumps from inside the Ruby VM.
+Rice uses a similar class called ``Jump_Tag`` to handle symbols thrown by
+Ruby's ``throw``/``catch`` or other non-local jumps from inside the Ruby VM.
 
 Overloaded functions
 --------------------
@@ -537,7 +537,7 @@ Consider a class that uses this idiom for accessors:
     void capacity(size_t cap); // Set the capacity
   };
 
-We can wrap this class by using `typedef`:
+We can wrap this class by using ``typedef``:
 
 .. code-block:: cpp
 
@@ -562,7 +562,7 @@ member functions. Now let's go into more depth.
 Default Arguments
 -----------------
 
-Going back to our initial C++ class example, lets say that `hello()` now
+Going back to our initial C++ class example, lets say that ``hello()`` now
 takes more arguments, one of which has a default value:
 
 .. code-block:: cpp
@@ -575,7 +575,7 @@ takes more arguments, one of which has a default value:
   };
 
 As default parameter information is not available through templates,
-it is necessary to define this in Rice explicitly using `Rice::Arg`:
+it is necessary to define this in Rice explicitly using ``Rice::Arg``:
 
 .. code-block:: cpp
 
@@ -595,8 +595,8 @@ it is necessary to define this in Rice explicitly using `Rice::Arg`:
       );
   }
 
-The syntax here is `Arg(nameOfParameter)[ = defaultValue]`. The name of the
-parameter is not important here (it is for readability), but the value set via `operator=`
+The syntax here is ``Arg(nameOfParameter)[ = defaultValue]``. The name of the
+parameter is not important here (it is for readability), but the value set via ``operator=``
 must match the type of the parameter. As such it may be necessary to
 explicitly cast the default value.
 
@@ -607,7 +607,7 @@ explicitly cast the default value.
      Arg("hello"), Arg("second") = (std::string)"world"
   );
 
-These `Rice::Arg` objects must be in the correct positional order. Thus if the second argument
+These ``Rice::Arg`` objects must be in the correct positional order. Thus if the second argument
 has a default value, then there must be two Arg objects.
 
 Now, Ruby will now know about the default arguments, and this wrapper
@@ -633,7 +633,7 @@ The Ruby API uses a type called VALUE to represent Ruby objects. Most of the tim
 
 However, if a native method takes or returns a VALUE then you have to tell Rice about it. That is because VALUE is a typedef for long long and thus Rice cannot distinguish them because they are the same type. As a result, if a method takes a VALUE parameter then Rice will convert it to a C++ long long value instead of  passing it through. Similarly, if a method returns a VALUE then Rice will also convert it to a numeric Ruby object as opposed to simply returning it.
 
-To avoid this incorrect conversion, use the `isValue()` method on the `Arg` and `Return` classes. For example:
+To avoid this incorrect conversion, use the ``isValue()`` method on the ``Arg`` and ``Return`` classes. For example:
 
 .. code-block:: cpp
 
@@ -665,8 +665,9 @@ For example:
 
   a = Array.new
   a << 1 << 2 << 3 << 4
-  The above code works because the `<<` method returns the Array `a`. You can mimic this behavior by the use of lambdas
-  when wrapping C++ classes. For example, Rice wraps std::vectors like this:
+
+The above code works because the ``<<`` method returns the Array ``a``. You can mimic this behavior by the use of lambdas
+when wrapping C++ classes. For example, Rice wraps std::vectors like this:
 
 .. code-block:: cpp
 
@@ -677,14 +678,14 @@ For example:
     return self;  // <------  Allows chaining on calls
   });
 
-Pay careful attention to the lambda return type of `std::vector<int32_t>&`. If the return type is *not* specified,
+Pay careful attention to the lambda return type of ``std::vector<int32_t>&``. If the return type is *not* specified,
 then by default the lambda will return by value. That will invoke std::vector's copy consructor, resulting in
-*two* std::vector<int32_t> instance and two Ruby objects. Not at all what you want.
+*two* ``std::vector<int32_t>`` instance and two Ruby objects. Not at all what you want.
 
 Ownership
 ---------
 
-When Rice wraps a C++ object returned either by reference or pointer, it does *not* take ownership
+When Rice wraps a C++ object returned either by reference or pointer, it does **not** take ownership
 of that object. Instead, Rice simply keeps a copy of the reference or pointer for later use. This
 is consistent with modern C++ practices where the use of a reference or pointer does not imply a transfer
 of ownership. Instead, a transfer of ownership should be indicated via the use of and the appropriate type
@@ -733,8 +734,8 @@ To fix this, you need to tell Rice that it should take ownership of the returned
 
   define_function("create", &Factory::create, Return().takeOwnership());
 
-Notice the addition of the `Return().takeOwnership()`, which creates an instance of Return class and tells it
-to take ownership of the object returned from C++. You can mix `Arg` and `Return` objects in any order. For example:
+Notice the addition of the ``Return().takeOwnership()``, which creates an instance of Return class and tells it
+to take ownership of the object returned from C++. You can mix ``Arg`` and ``Return`` objects in any order. For example:
 
 .. code-block:: cpp
 
@@ -744,7 +745,7 @@ Keep Alive
 ----------
 
 Sometimes it is necessary to tie the lifetime of one Ruby object to another. This often times happens with containers.
-For example, imagine we have a `Listener` and a `ListenerContainer` class.
+For example, imagine we have a ``Listener`` and a ``ListenerContainer`` class.
 
 
 .. code-block:: cpp
@@ -781,10 +782,10 @@ Assuming these classes are wrapped with Rice, next run this Ruby code:
   @handler.process !!!! crash !!!!!
 
 notice this and free the Ruby object. That it turn frees the underlying C++ Listener object resulting in a crash when
-`process` is called.
+``process`` is called.
 
 To prevent this, we want to tie the lifetime of the Ruby listener instance to the container. This is done by calling
-keepAlive() in the argument list:
+``keepAlive()`` in the argument list:
 
 .. code-block:: ruby
 
@@ -792,4 +793,4 @@ keepAlive() in the argument list:
     .define_method("add_listener", &ListenerContainer::addListener, Arg("listener").keepAlive())
 
 With this change, when a listener is added to the container the container keeps a reference to it and will
-call rb_gc_mark to keep it alive. The `Listener` object will not be freed until the container itself goes out of scope.
+call ``rb_gc_mark`` to keep it alive. The ``Listener`` object will not be freed until the container itself goes out of scope.
