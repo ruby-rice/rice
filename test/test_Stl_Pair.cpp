@@ -72,8 +72,8 @@ TESTCASE(AutoRegister)
 
   Object someClass = c.call("new");
 
-  /*
   Object pair = someClass.call("pair");
+  /*
   String name = pair.class_name();
   ASSERT_EQUAL("Rice::Std::Pair__basic_string__char_char_traits__char___allocator__char_____double__", detail::From_Ruby<std::string>::convert(name));
 
