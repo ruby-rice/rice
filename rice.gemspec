@@ -30,11 +30,6 @@ of the Ruby C API.
     'README',
     'README.mingw',
 
-    # Doxygen
-    'Doxyfile',
-    'doxygen.ac',
-    'doxygen.am',
-
     # Other files
     'Gemfile',
     'Rakefile',
