@@ -70,13 +70,13 @@ TESTCASE(AutoRegister)
     define_method("pair", &SomeClass::pair).
     define_method("pair=", &SomeClass::setPair);
 
+  /*
   Object someClass = c.call("new");
 
   Object pair = someClass.call("pair");
   String name = pair.class_name();
   ASSERT_EQUAL("Rice::Std::Pair__basic_string__char_char_traits__char___allocator__char_____double__", detail::From_Ruby<std::string>::convert(name));
 
-  /*
   Class pairKlass1 = pair.class_of();
   Class pairKlass2 = Data_Type<std::pair<std::string, double>>::klass();
   ASSERT_EQUAL(pairKlass1, pairKlass2);
