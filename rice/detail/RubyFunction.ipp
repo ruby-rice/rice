@@ -1,6 +1,7 @@
 #include "Jump_Tag.hpp"
 #include "../Exception_defn.hpp"
 
+#include <iostream>
 #include <any>
 
 namespace Rice::detail
@@ -52,6 +53,7 @@ namespace Rice::detail
     {
       if constexpr (!std::is_same_v<Return_T, void>)
       {
+        std::cout << "RubyFunction::operator() any_cast" << std::endl;
         return std::any_cast<Return_T>(result);
       }
     }

@@ -1,3 +1,5 @@
+#include <iostream>
+
 namespace Rice
 {
   inline Arg::Arg(std::string name) : name(name)
@@ -23,6 +25,7 @@ namespace Rice
   template<typename Arg_Type>
   inline Arg_Type& Arg::defaultValue()
   {
+    std::cout << "Arg::defaultValue any_cast" << std::endl;
     return std::any_cast<Arg_Type&>(this->defaultValue_);
   }
 

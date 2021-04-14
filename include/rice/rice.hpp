@@ -894,6 +894,7 @@ namespace Rice
 
 // ---------   RubyFunction.ipp   ---------
 
+#include <iostream>
 #include <any>
 
 namespace Rice::detail
@@ -945,6 +946,7 @@ namespace Rice::detail
     {
       if constexpr (!std::is_same_v<Return_T, void>)
       {
+        std::cout << "RubyFunction::operator() any_cast" << std::endl;
         return std::any_cast<Return_T>(result);
       }
     }
@@ -992,6 +994,7 @@ namespace Rice
     return rubyFunction();
   }
 }
+
 
 // =========   from_ruby.hpp   =========
 
@@ -1648,6 +1651,8 @@ namespace Rice
 
 
 // ---------   Arg.ipp   ---------
+#include <iostream>
+
 namespace Rice
 {
   inline Arg::Arg(std::string name) : name(name)
@@ -1673,6 +1678,7 @@ namespace Rice
   template<typename Arg_Type>
   inline Arg_Type& Arg::defaultValue()
   {
+    std::cout << "Arg::defaultValue any_cast" << std::endl;
     return std::any_cast<Arg_Type&>(this->defaultValue_);
   }
 
@@ -1693,6 +1699,7 @@ namespace Rice
     return isValue_;
   }
 } // Rice
+
 
 // =========   MethodInfo.hpp   =========
 
@@ -2290,6 +2297,7 @@ namespace Rice::detail
 // compilation error otherwise. This removes the macro and lets us fall
 // back to the C-API underneath again.
 #undef rb_define_method_id
+#include <iostream>
 
 namespace Rice::detail
 {
@@ -2323,6 +2331,7 @@ namespace Rice::detail
     }
 
     std::any data = iter->second;
+    std::cout << "MethodData::data() any_cast" << std::endl;
     return std::any_cast<Return_T>(data);
   }
 
