@@ -1,14 +1,36 @@
 =======================
-Adding Type Conversions
+Type Conversion
 =======================
 
-Rice provides default conversions for native C++ types as well as types you define via  ``define_class``. As a result, you generally should not have to add your own custom type conversions.
+The purpose of Rice is to enable native C++ code and Ruby code work together. This requires making it easy to translate types between the two languages.
 
-However, for the sake of an example, let's say you want to expose a  ``std::deque<int>`` to Ruby and are not using Rice's built-in standard library support.
+There are three main use cases:
 
-One approach, as described throughout this document, is to use  ``define_class`` and then  ``define_method`` to setup its API. However,  ``std::deque`` has a large API and you may only want to copy the data to Ruby and do not need to modify it from Ruby. Thus making a copy, instead of a wrapper, is perfectly fine.
+1. Converting, i.e copying, types between the two languages
+2. Enable Ruby to access C++ code via a Ruby wrapper
+3. Enable C++ to access Ruby code via a C++ wrapper
 
-To do this requires requires the following steps:
+Type conversion works well for primitive types such as boolean and numeric types. For example, a C++ unsigned 32 bit integer is copied into a Ruby Fixnum instance (and vice versa). Conversion of primitive types is also easy to understand because its familiar to programmers. When you pass a boolean or integer into a method, you don't expect the method is going to change it - instead it just gets a copy.
+
+However, type conversion rarely makes sense for more complex types. You likely do not want to copy simple instances of C++ structure to Ruby, and you almost never want to copy instances of C++ classes. There are a lot of reasons for this, including:
+
+* C++ objects may contain uncopyable internal state, such as a database connection or open file handle
+* C++ has complex object lifetime rules that control how objects are created, copied and destructed that do not translate to Ruby
+* A C++ object may use a lot of memory, such as a million element vector, that make it untenable to copy the data to Ruby.
+* Copying data, by definition, creates two separate versions making it impossible to share data between the two languages.
+
+As a result, a more practical approach is to provide thin wrappers that allow Ruby to access C++ objects and C++ to access Ruby objects.
+
+
+Builtin Types
+---------------
+Rice calls native types that should be converted (copied) Builtin Types. Builtin types are types that directly map from C++ to Ruby. Examples include nullptr, bool, numeric types (integer, float, double, complex), char types and strings.
+
+Since they are copied, instances of builtin types are disconnected. Therefore, if a Ruby string is converted to a std::string then the two strings are independent and changes in one will *not* be reflected in the other. Also understand that if you allocate a new char* in C++ and pass it to Ruby, then you will get a memory leak because Ruby will copy the contents on the char* but will *not* free the original buffer. Generally you don't have to worry about builtin types because Rice supports them out of the box.
+
+Adding a Builtin Type
+---------------------
+For the sake of an example, let's say you want to expose ``std::deque<int>`` to Ruby and are not using Rice's built-in standard library support. You also want to copy the data between the two languages, as opposed to providing wrappers. To do this requires requires the following steps:
 
 1. Mark the object as a builtin type
 2. Add a To_Ruby method
