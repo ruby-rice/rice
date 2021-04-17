@@ -24,7 +24,7 @@ namespace Rice::detail
   {
     static VALUE convert(std::string const& x, bool takeOwnership = false)
     {
-      return detail::protect(rb_str_new, x.data(), (long)x.size());
+      return detail::protect(rb_external_str_new, x.data(), (long)x.size());
     }
   };
 }
