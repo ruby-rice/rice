@@ -38,7 +38,7 @@ Rice supports ``std::unique_ptr`` out of the box - there is no additional work y
     return myClass->flag;
   }
 
-  void setup()
+  void setupRice()
   {
     define_class<MyClass>("MyClass").
       define_method("set_flag", &MyClass::setFlag);
@@ -111,7 +111,7 @@ Rice supports ``std::shared_ptr`` out of the box - there is no additional work y
     return myClass->flag;
   }
 
-  void setup()
+  void setupRice()
   {
     embed_ruby();
 

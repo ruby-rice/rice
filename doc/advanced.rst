@@ -8,5 +8,6 @@ Advanced
   advanced/functions
   advanced/memory_management
   advanced/type_conversions
+  advanced/type_verification
   advanced/inheritance
   advanced/cpp_api
