@@ -1,4 +1,5 @@
-=======================
+.. _type_conversions:
+
 Type Conversion
 =======================
 
