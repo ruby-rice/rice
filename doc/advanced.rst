@@ -9,4 +9,3 @@ Advanced
   advanced/type_conversions
   advanced/inheritance
   advanced/cpp_api
-  advanced/stl

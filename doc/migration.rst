@@ -4,21 +4,21 @@
 Migrating from 3 to 4
 =====================
 
-Up through Rice 3, the library has required compiling some initial code on ``gem install``. This has made
-Rice and libraries using Rice difficult to use in some platforms, such as Heroku or Github Actions, where
-shared libraries and/or build systems are not allowed or available.
+Prior versions of Rice required compiling some initial code on ``gem install``. This has made
+Rice and libraries that use Rice to be difficult to use on some platforms, such as Heroku or Github Actions, where
+where the appropriate shared libraries and/or build systems are not allowed or available.
 
-With Rice 4, this library is now header-only, making it much easier for libraries using Rice to provide
-binary builds. However, this work was substantial and to make it all work a few backwards-incompatible
-changes were required. This page documents the major changes that any one using Rice 3 will need to apply
-to their libraries to work with Rice 4 and onward.
+Rice 4 transitions to being a header only library, making it much easier for libraries using Rice to provide
+binary builds. However, this work was substantial and required making a few backwards-incompatible
+changes. This page documents the major changes that any one using Rice 3 will need to apply
+to their libraries to work with Rice 4 or newer.
 
 #include <rice/rice.hpp>
 ------------------------
 
 The first change is that Rice is now published as a single, combined header file, so all includes
 can be changed to just this one. There is one other header file that contains STL wrapper definitions,
-you can get that with ``#include <rice/stl.hpp>`` and can read more on the :ref:`STL page <STL>`.
+you can get that with ``#include <rice/stl.hpp>``. For more information see the :doc:`stl` section.
 
 to_ruby / from_ruby
 -------------------

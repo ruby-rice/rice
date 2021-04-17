@@ -25,8 +25,8 @@ Once you have defined this Ruby class, you can create a new instance like this:
   pair = StringIntPair.new("key 2", 33)
 
 
-API
-----
+Ruby API
+^^^^^^^^
 The Ruby API exposed for ``std::pair`` should be fairly self-explanatory and consists of the following methods (assume we have created a Ruby class called Pair):
 
 * Pair#new(value1, value2)
