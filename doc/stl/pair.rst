@@ -29,17 +29,17 @@ API
 ----
 The Ruby API exposed for ``std::pair`` should be fairly self-explanatory and consists of the following methods (assume we have created a Ruby class called Pair):
 
-    * Pair#new(value1, value2)
-    * Pair#first
-    * Pair#first=(value)
-    * Pair#second
-    * Pair#second=(value)
+* Pair#new(value1, value2)
+* Pair#first
+* Pair#first=(value)
+* Pair#second
+* Pair#second=(value)
 
 If the underlying ``std::pair`` has copyable types (remember copying is done in C++), then the following method will work, otherwise it will raise an exception:
 
-    * PairClass#copy(other)
+* PairClass#copy(other)
 
 If the underlying ``std::pair`` has types that are supported by C++ streams, then the following method will work, otherwise it will return "Not Printable"
 
-    * PairClass#to_s
+* PairClass#to_s
 
