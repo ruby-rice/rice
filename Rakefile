@@ -49,7 +49,7 @@ task :clean do
 end
 
 # ---------  Testing --------------
-task :test_cpp => :build do
+task :test_cpp => [:clean, :build] do
   cd "test" do
     run_command(unittest)
   end
