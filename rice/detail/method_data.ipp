@@ -5,7 +5,6 @@
 // compilation error otherwise. This removes the macro and lets us fall
 // back to the C-API underneath again.
 #undef rb_define_method_id
-#include <iostream>
 
 namespace Rice::detail
 {
@@ -39,7 +38,6 @@ namespace Rice::detail
     }
 
     std::any data = iter->second;
-    std::cout << "MethodData::data() any_cast" << std::endl;
     return std::any_cast<Return_T>(data);
   }
 
