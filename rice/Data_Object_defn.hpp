@@ -66,8 +66,8 @@ namespace Rice
      *  \param free_func a function that gets called by the garbage
      *  collector to free the object.
      */
-    Data_Object(T* obj, Class klass = Data_Type<T>::klass(), bool isOwner = false);
-    Data_Object(T& obj, Class klass = Data_Type<T>::klass(), bool isOwner = false);
+    Data_Object(T* obj, bool isOwner = false, Class klass = Data_Type<T>::klass());
+    Data_Object(T& obj, bool isOwner = false, Class klass = Data_Type<T>::klass());
 
     //! Unwrap a Ruby object.
     /*! This constructor is analogous to calling Data_Get_Struct.  Uses

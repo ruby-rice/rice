@@ -20,8 +20,8 @@ namespace Rice
     valuesToNames_[value] = name;
 
     // Store value as class constant available to Ruby
-    Data_Object<Enum_T> wrapper(value, Enum<Enum_T>::klass(), true);
-    this->const_set(name, wrapper);
+    Data_Object<Enum_T> object(value, true, Enum<Enum_T>::klass());
+    this->const_set(name, object);
 
     return *this;
   }
