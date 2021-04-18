@@ -43,7 +43,7 @@ namespace Rice::detail
     Self_T getSelf(VALUE self);
 
     // Do we need to keep alive any arguments?
-    void checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues);
+    void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues);
 
     // Call the underlying C++ function
     VALUE invokeNativeFunction(Arg_Ts& nativeArgs);

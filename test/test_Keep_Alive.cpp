@@ -1,15 +1,14 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
+#include <rice/stl.hpp>
 
 using namespace Rice;
 
 TESTSUITE(Keep_Alive);
 
-namespace {
-  /**
-   * The class we will subclass in Ruby
-   */
+namespace
+{
   class Listener {
     public:
       virtual ~Listener() = default;
@@ -59,7 +58,10 @@ namespace {
 SETUP(Keep_Alive)
 {
   embed_ruby();
+}
 
+TESTCASE(test_arg)
+{
   define_class<Listener>("Listener")
     .define_constructor(Constructor<Listener>())
     .define_method("get_value", &Listener::getValue);
@@ -69,10 +71,7 @@ SETUP(Keep_Alive)
     .define_method("add_listener", &ListenerContainer::addListener, Arg("listener").keepAlive())
     .define_method("process", &ListenerContainer::process)
     .define_method("listener_count", &ListenerContainer::listenerCount);
-}
 
-TESTCASE(add_ruby_object_to_container)
-{
   Module m = define_module("TestingModule");
   Object handler = m.instance_eval("@handler = ListenerContainer.new");
 
@@ -97,27 +96,66 @@ TESTCASE(add_ruby_object_to_container)
   ASSERT_EQUAL(INT2NUM(8), handler.call("process").value());
 }
 
-/**
- * The following test SEGFAULTs right now
- */
-/*
-TESTCASE(no_super_in_constructor_still_works)
+namespace
 {
-  Module m = define_module("TestingModule");
-  Object handler = m.instance_eval("@handler = ListenerContainer.new");
+  class Connection; 
 
-  ASSERT_EQUAL(INT2NUM(0), handler.call("listener_count").value());
+  class Column
+  {
+  public:
+    Column(Connection& connection, uint32_t index) : connection_(connection), index_(index)
+    {
+    }
 
-  // Because of this, there's a constructor but no super call
-  m.instance_eval("class MyListener < Listener; def initialize; @val = 10; end; end;");
-  m.instance_eval("@handler.add_listener(MyListener.new)");
+    std::string name();
 
-  ASSERT_EQUAL(INT2NUM(1), handler.call("listener_count").value());
-  ASSERT_EQUAL(INT2NUM(4), handler.call("process").value());
+  private:
+    Connection& connection_;
+    uint32_t index_;
+  };
 
-  m.instance_eval("@handler.add_listener(MyListener.new)");
+  class Connection
+  {
+  public:
+    Column getColumn(uint32_t index)
+    {
+      return Column(*this, index);
+    }
 
-  ASSERT_EQUAL(INT2NUM(2), handler.call("listener_count").value());
-  ASSERT_EQUAL(INT2NUM(8), handler.call("process").value());
+    std::string getName(uint32_t index)
+    {
+      return this->prefix_ + std::to_string(index);
+    }
+
+  private:
+    std::string prefix_ = "column_";
+  };
+
+  std::string Column::name()
+  {
+    return this->connection_.getName(this->index_);
+  }
 }
-*/
+
+Object getColumn(Module& m, uint32_t index)
+{
+  Object connection = m.instance_eval("Connection.new");
+  return connection.call("getColumn", 3);
+}
+
+TESTCASE(test_return)
+{
+  define_class<Column>("Column")
+    .define_method("name", &Column::name);
+
+  define_class<Connection>("Connection")
+    .define_constructor(Constructor<Connection>())
+    .define_method("getColumn", &Connection::getColumn, Return().keepAlive());
+
+  Module m = define_module("TestingModule");
+
+  Object column = getColumn(m, 3);
+  rb_gc_start();
+  String name = column.call("name");
+  ASSERT_EQUAL("column_3", name.c_str());
+}

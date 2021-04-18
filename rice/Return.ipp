@@ -24,4 +24,10 @@ namespace Rice
   {
     return this->isValue_;
   }
+
+  inline Return& Return::keepAlive()
+  {
+    this->isKeepAlive = true;
+    return *this;
+  }
 }  // Rice

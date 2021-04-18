@@ -164,16 +164,23 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool IsMethod>
-  void NativeFunction<Function_T, IsMethod>::checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues)
+  void NativeFunction<Function_T, IsMethod>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues)
   {
-    Wrapper* wrapper = getWrapper(self);
-
+    // Check function arguments
+    Wrapper* selfWrapper = getWrapper(self);
     for (const Arg& arg : (*this->methodInfo_))
     {
       if (arg.isKeepAlive)
       {
-        wrapper->addKeepAlive(rubyValues[arg.position]);
+        selfWrapper->addKeepAlive(rubyValues[arg.position]);
       }
+    }
+
+    // Check return value
+    if (this->methodInfo_->returnInfo.isKeepAlive)
+    {
+      Wrapper* returnWrapper = getWrapper(returnValue);
+      returnWrapper->addKeepAlive(self);
     }
   }
 
@@ -196,18 +203,21 @@ namespace Rice::detail
       // Convert the Ruby values to native values
       Arg_Ts nativeValues = this->getNativeValues(rubyValues, nativeArgs, indices);
 
-      // Check if any rubyValues need to have their lifetimes tied to the receiver
-      this->checkKeepAlive(self, rubyValues);
-
       // Now call the native method
+      VALUE result = Qnil;
       if constexpr (std::is_same_v<Self_T, std::nullptr_t>)
       {
-        return this->invokeNativeFunction(nativeValues);
+        result = this->invokeNativeFunction(nativeValues);
       }
       else
       {
-        return this->invokeNativeMethod(self, nativeValues);
+        result = this->invokeNativeMethod(self, nativeValues);
       }
+
+      // Check if any function arguments or return values need to have their lifetimes tied to the receiver
+      this->checkKeepAlive(self, result, rubyValues);
+
+      return result;
     }
     catch (...)
     {
@@ -215,7 +225,7 @@ namespace Rice::detail
       {
         return this->handler_->handle_exception();
       }
-        RUBY_CATCH
+      RUBY_CATCH
     }
   }
 }

@@ -22,6 +22,12 @@ namespace Rice
     //! Is the returned value a Ruby value?
     bool getIsValue();
 
+    //! Tell the returned object to keep alive the receving object
+    Return& keepAlive();
+
+  public:
+    bool isKeepAlive = false;
+
   private:
     bool isOwner_ = false;
     bool isValue_ = false;
