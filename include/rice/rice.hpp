@@ -1490,7 +1490,7 @@ namespace Rice
 }
 
 
-// =========   Return.hpp   =========
+// =========   ReturnInfo.hpp   =========
 
 #include <any>
 
@@ -1539,7 +1539,7 @@ namespace Rice
 } // Rice
 
 
-// ---------   Return.ipp   ---------
+// ---------   ReturnInfo.ipp   ---------
 #include <any>
 #include <string>
 
@@ -1717,24 +1717,6 @@ namespace Rice
       */
     void addArg(const Arg& arg);
 
-    /**
-      * Specifices if Ruby owns the returned data
-      */
-    bool isOwner();
-
-    /**
-      * Tell Ruby to take ownership of the returned data
-      */
-    void takeOwnership();
-
-    /**
-      * Given a position, a type, and a ruby VALUE, figure out
-      * what argument value we need to return according to
-      * defaults and if that VALUE is nil or not
-      */
-    template<typename Arg_T>
-    Arg_T& defaultValue(size_t pos);
-
     Arg& arg(size_t pos);
 
     // Iterator support
@@ -1814,25 +1796,9 @@ namespace Rice
     return std::to_string(required) + std::to_string(optional);
   }
 
-  template<typename Arg_T>
-  inline Arg_T& MethodInfo::defaultValue(size_t pos)
-  {
-    return args_[pos].defaultValue<Arg_T>();
-  }
-
   inline Arg& MethodInfo::arg(size_t pos)
   {
     return args_[pos];
-  }
-
-  inline bool MethodInfo::isOwner()
-  {
-    return this->returnInfo.isOwner();
-  }
-
-  inline void MethodInfo::takeOwnership()
-  {
-    this->returnInfo.takeOwnership();
   }
 
   inline std::vector<Arg>::iterator MethodInfo::begin()
@@ -2661,7 +2627,7 @@ namespace Rice::detail
     // result in a crash.
     if (!std::is_reference_v<Return_T> && !std::is_pointer_v<Return_T>)
     {
-      methodInfo_->takeOwnership();
+      methodInfo_->returnInfo.takeOwnership();
     }
   }
 
@@ -2793,7 +2759,7 @@ namespace Rice::detail
         }
       }
 
-      return To_Ruby<Return_T>::convert(nativeResult, this->methodInfo_->isOwner());
+      return To_Ruby<Return_T>::convert(nativeResult, this->methodInfo_->returnInfo.isOwner());
     }
   }
 
@@ -5488,8 +5454,8 @@ namespace Rice
 // =========   Director.hpp   =========
 
 
-namespace Rice {
-
+namespace Rice
+{
   /**
    * A Director works exactly as a SWIG %director works (thus the name).
    * You use this class to help build proxy classes so that polymorphism
@@ -6098,23 +6064,23 @@ namespace Rice
   *
   *  For more information, see Rice::Data_Type::define_constructor.
   */
-  template<typename T, typename ...Arg_T>
+  template<typename T, typename...Arg_Ts>
   class Constructor
   {
   public:
-    static void construct(Object self, Arg_T... args)
+    static void construct(VALUE self, Arg_Ts...args)
     {
       T* data = new T(args...);
-      detail::replace<T>(self.value(), Data_Type<T>::rb_type(), data, true);
+      detail::replace<T>(self, Data_Type<T>::rb_type(), data, true);
     }
   };
 
   //! Special-case Constructor used when defining Directors.
-  template<typename T, typename ...Arg_T>
-  class Constructor<T, Object, Arg_T...>
+  template<typename T, typename...Arg_Ts>
+  class Constructor<T, Object, Arg_Ts...>
   {
     public:
-      static void construct(Object self, Arg_T... args)
+      static void construct(Object self, Arg_Ts...args)
       {
         T* data = new T(self, args...);
         detail::replace<T>(self.value(), Data_Type<T>::rb_type(), data, true);
