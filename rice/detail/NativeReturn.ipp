@@ -5,7 +5,7 @@
 namespace Rice::detail
 {
   template<typename T>
-  inline NativeReturn<T>::NativeReturn(ReturnInfo returnInfo) :
+  inline NativeReturn<T>::NativeReturn(Return returnInfo) :
     returnInfo_(returnInfo)
   {
   }
@@ -17,7 +17,7 @@ namespace Rice::detail
   }
 
   //template<>
-  inline NativeReturn<VALUE>::NativeReturn(ReturnInfo returnInfo) :
+  inline NativeReturn<VALUE>::NativeReturn(Return returnInfo) :
     returnInfo_(returnInfo)
   {
   }
@@ -36,7 +36,7 @@ namespace Rice::detail
   }
 
   //template<>
-  inline NativeReturn<void>::NativeReturn(ReturnInfo returnInfo) :
+  inline NativeReturn<void>::NativeReturn(Return returnInfo) :
     returnInfo_(returnInfo)
   {
   }

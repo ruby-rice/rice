@@ -195,8 +195,7 @@ to take ownership of the object returned from C++. You can mix ``Arg`` and ``Ret
 Keep Alive
 ----------
 
-Sometimes it is necessary to tie the lifetime of one Ruby object to another. This often times happens with containers.
-For example, imagine we have a ``Listener`` and a ``ListenerContainer`` class.
+Sometimes it is necessary to tie the lifetime of one Ruby object to another. This often times happens with containers. For example, imagine we have a ``Listener`` and a ``ListenerContainer`` class.
 
 
 .. code-block:: cpp
@@ -232,16 +231,81 @@ Assuming these classes are wrapped with Rice, when the following Ruby code runs:
   GC.start
   @handler.process !!!! crash !!!!!
 
-Ruby will notice that the ``Listener.new`` object is orphaned and will free it.
-That it turn frees the underlying C++ Listener object resulting in a crash when ``process`` is called.
+Ruby will notice that the ``Listener.new`` object is orphaned and will free it. That it turn frees the underlying C++ Listener object resulting in a crash when ``process`` is called.
 
-To prevent this, we want to tie the lifetime of the Ruby listener instance to the container. This is done by calling
-``keepAlive()`` in the argument list:
+To prevent this, we want to tie the lifetime of the Ruby listener instance to the container. This is done by calling ``keepAlive()`` in the argument list:
 
 .. code-block:: ruby
 
   define_class<ListenerContainer>("ListenerContainer")
     .define_method("add_listener", &ListenerContainer::addListener, Arg("listener").keepAlive())
 
-With this change, when a listener is added to the container the container keeps a reference to it and will
-call ``rb_gc_mark`` to keep it alive. The ``Listener`` object will not be freed until the container itself goes out of scope.
+With this change, when a listener is added to the container the container keeps a reference to it and will call ``rb_gc_mark`` to keep it alive. The ``Listener`` object will not be freed until the container itself goes out of scope.
+
+Another example is when a returned object is dependent upon the original object. For example:
+
+.. code-block:: cpp
+
+  class Column;
+
+  class Database
+  {
+  public:
+    Database()
+    {
+      // connect to Database
+    }
+
+    ~Database()
+    {
+      // disconnect from database
+    }
+
+    Column getColumn(uint32_t index)
+    {
+       return Column(*this, index);
+    }
+
+    std::string looupName(uint32_t index)
+    {
+      return some_name;
+    }
+  };
+
+  class Column
+  {
+  public:
+    Column(Database& database, uint32_t index): database_(database), index_(index)
+    {
+    }
+
+    Column getName()
+    {
+      return this->database.lookupName(this->index_):
+    }
+
+  private:
+    Database& database_;
+    uint32_t index_;
+  };
+
+Assuming these classes are wrapped with Rice, when the following Ruby code runs:
+
+.. code-block:: ruby
+
+  def get_column(column_index)
+    database = Database.new(...)
+    column = database.get_column(column_index)
+  end
+  
+  column = get_column(0)
+  puts column.name
+
+This code will crash. The problem is that the instance of the Database class created in ``get_column`` will likely be garbage collected when the method returns. As a result, when ``Column#name`` is called it will have a dangling reference to the no longer valid database object.
+
+Obviously this code could be rewritten to make sure the database object remains alive throughout the program. Alternatively, you can tell Rice that to tie the lifetime of the Database object to the Column object so that it will not be freed until the Column is freed:
+
+.. code-block:: ruby
+
+  define_class<Database>("Database")
+    .define_method("get_column", &Database::getColumn, Return().keepAlive())

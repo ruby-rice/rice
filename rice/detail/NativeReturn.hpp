@@ -3,7 +3,7 @@
 
 #include "ruby.hpp"
 #include "rice_traits.hpp"
-#include "../ReturnInfo.hpp"
+#include "../Return.hpp"
 
 namespace Rice::detail
 {
@@ -12,11 +12,11 @@ namespace Rice::detail
   class NativeReturn
   {
   public:
-    NativeReturn(ReturnInfo returnInfo);
+    NativeReturn(Return returnInfo);
     VALUE getValue(T& native);
 
   private:
-    ReturnInfo returnInfo_;
+    Return returnInfo_;
   };
 
   // Special case VALUE which could be a 64 bit integer or Ruby value.
@@ -24,11 +24,11 @@ namespace Rice::detail
   class NativeReturn<VALUE>
   {
   public:
-    NativeReturn(ReturnInfo returnInfo);
+    NativeReturn(Return returnInfo);
     VALUE getValue(VALUE& native);
 
   private:
-    ReturnInfo returnInfo_;
+    Return returnInfo_;
   };
 
   // Special case void which should never happen due to if constexpr check but nevertheless MSVC
@@ -37,11 +37,11 @@ namespace Rice::detail
   class NativeReturn<void>
   {
   public:
-    NativeReturn(ReturnInfo returnInfo);
+    NativeReturn(Return returnInfo);
     VALUE getValue(VALUE& native);
 
   private:
-    ReturnInfo returnInfo_;
+    Return returnInfo_;
   };
 }
 

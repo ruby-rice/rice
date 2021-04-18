@@ -353,7 +353,7 @@ TESTCASE(value_parameter)
 
 TESTCASE(value_return)
 {
-  define_global_function("value_return", &value_return, ReturnInfo().isValue());
+  define_global_function("value_return", &value_return, Return().isValue());
 
   Module m = define_module("TestingModule");
 

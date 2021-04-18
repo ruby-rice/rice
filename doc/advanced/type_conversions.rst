@@ -1,7 +1,7 @@
 .. _type_conversions:
 
-Type Conversion
-=======================
+Type Conversions
+================
 
 The purpose of Rice is to enable native C++ code and Ruby code work together. This requires making it easy to translate types between the two languages.
 
@@ -22,6 +22,7 @@ However, type conversion rarely makes sense for more complex types. You likely d
 
 As a result, a more practical approach is to provide thin wrappers that allow Ruby to access C++ objects and C++ to access Ruby objects.
 
+.. _builtin-types:
 
 Builtin Types
 ---------------

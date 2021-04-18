@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "../Arg.hpp"
-#include "../ReturnInfo.hpp"
+#include "../Return.hpp"
 
 namespace Rice
 {
@@ -30,7 +30,7 @@ namespace Rice
     std::vector<Arg>::iterator begin();
     std::vector<Arg>::iterator end();
 
-    ReturnInfo returnInfo;
+    Return returnInfo;
 
   private:
     template <typename Arg_T>
