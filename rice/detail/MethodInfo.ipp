@@ -10,7 +10,7 @@ namespace Rice
     (this->processArg(args), ...);
 
     // Fill in any missing arguments
-    for (size_t i = sizeof...(Arg_Ts); i < argCount; i++)
+    for (size_t i = this->args_.size(); i < argCount; i++)
     {
       Arg arg("arg_" + std::to_string(i));
       this->args_.emplace_back(arg);
