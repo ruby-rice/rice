@@ -73,9 +73,8 @@ TESTCASE(AutoRegister)
   Object someClass = c.call("new");
 
   Object pair = someClass.call("pair");
-  String name = pair.class_name();
-  /*
-  ASSERT_EQUAL("Rice::Std::Pair__basic_string__char_char_traits__char___allocator__char_____double__", detail::From_Ruby<std::string>::convert(name));
+  //String name = pair.class_name();
+  //ASSERT_EQUAL("Rice::Std::Pair__basic_string__char_char_traits__char___allocator__char_____double__", detail::From_Ruby<std::string>::convert(name));
 
   Class pairKlass1 = pair.class_of();
   Class pairKlass2 = Data_Type<std::pair<std::string, double>>::klass();
@@ -96,7 +95,6 @@ TESTCASE(AutoRegister)
 
   result = newPair.call("second");
   ASSERT_EQUAL(3.2, detail::From_Ruby<double>::convert(result));
-  */
 }
 
 namespace
