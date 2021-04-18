@@ -28,7 +28,7 @@ namespace Rice
     Object(VALUE value = Qnil) : value_(value) {}
 
     //! Destructor
-    virtual ~Object() = default;
+    virtual ~Object();
 
     // Enable copying
     Object(const Object& other) = default;

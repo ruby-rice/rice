@@ -14,6 +14,13 @@ namespace Rice
     other.value_ = Qnil;
   }
 
+  // Ruby auto detects VALUEs in the stack, so when an Object gets deleted make sure
+  // to clean up in case it is on the stack
+  inline Object::~Object()
+  {
+    this->value_ = Qnil;
+  }
+
   inline Object& Object::operator=(Object&& other)
   {
     this->value_ = other.value_;
