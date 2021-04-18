@@ -8,10 +8,18 @@ TESTSUITE(Data_Object);
 
 namespace
 {
+  bool test_destructor_called = false;
+  bool test_ruby_mark_called = false;
+
   struct MyDataType
   {
     MyDataType() : x(42)
     {
+    }
+
+    ~MyDataType()
+    {
+      test_destructor_called = true;
     }
     
     int x;
@@ -20,8 +28,6 @@ namespace
   struct Bar
   {
   };
-
-  bool test_ruby_mark_called = false;
 }
 
 namespace Rice
@@ -195,13 +201,15 @@ TESTCASE(ruby_custom_mark)
 TESTCASE(ruby_custom_free)
 {
   test_ruby_mark_called = false;
+  test_destructor_called = false;
 
   MyDataType* myDataType = new MyDataType;
   {
-    Data_Object<MyDataType> wrapped_foo(myDataType);
+    Data_Object<MyDataType> wrapped_foo(myDataType, true);
   }
 
   rb_gc_start();
 
-  ASSERT_EQUAL(true, test_ruby_mark_called);
+  ASSERT_EQUAL(false, test_ruby_mark_called);
+  ASSERT_EQUAL(true, test_destructor_called);
 }
