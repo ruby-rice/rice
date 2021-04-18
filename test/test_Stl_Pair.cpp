@@ -63,7 +63,7 @@ namespace
 
 // This test passes everywhere except for Ruby 2.7 on Windows
 // and I don't know why. Throws a "bad any_cast" from MethodData::data
-#if !defined(_MSC_VER)
+#ifndef _WIN32
 TESTCASE(AutoRegister)
 {
   Module m = define_module("Testing");
