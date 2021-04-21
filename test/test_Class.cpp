@@ -76,19 +76,16 @@ TESTCASE(const_set_get_by_string)
 
 namespace
 {
+  bool some_function()
+  {
+    return true;
+  }
 
-bool some_function()
-{
-  return true;
+  Object some_method(Object self)
+  {
+    return self;
+  }
 }
-
-Object some_method(Object self)
-{
-  return self;
-}
-
-
-} // namespace
 
 TESTCASE(methods)
 {
@@ -158,22 +155,20 @@ TESTCASE(module_function)
 
 namespace
 {
+  class Silly_Exception
+    : public std::exception
+  {
+  };
 
-class Silly_Exception
-  : public std::exception
-{
-};
+  void handle_silly_exception(Silly_Exception const & ex)
+  {
+    throw Exception(rb_eRuntimeError, "SILLY");
+  }
 
-void handle_silly_exception(Silly_Exception const & ex)
-{
-  throw Exception(rb_eRuntimeError, "SILLY");
-}
-
-void throw_silly_exception()
-{
-  throw Silly_Exception();
-}
-
+  void throw_silly_exception()
+  {
+    throw Silly_Exception();
+  }
 }
 
 TESTCASE(add_handler)

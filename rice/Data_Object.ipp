@@ -134,32 +134,35 @@ struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_builtin_v<T>
   }
 };
 
-template <typename T, typename>
-struct Rice::detail::From_Ruby
-{
-  static T convert(VALUE value)
-  {
-    using Intrinsic_T = intrinsic_type<T>;
-    return *Data_Object<Intrinsic_T>::from_ruby(value);
-  }
-};
- 
-template<typename T>
-struct Rice::detail::From_Ruby<T&>
-{
-  static T& convert(VALUE value)
-  {
-    using Intrinsic_T = intrinsic_type<T>;
-    return *Data_Object<Intrinsic_T>::from_ruby(value);
-  }
-};
-
 namespace Rice::detail
 {
-  template<typename T>
-  struct From_Ruby<T*>
+  template <typename T>
+  class From_Ruby
   {
-    static T* convert(VALUE value)
+  public:
+    T convert(VALUE value)
+    {
+      using Intrinsic_T = intrinsic_type<T>;
+      return *Data_Object<Intrinsic_T>::from_ruby(value);
+    }
+  };
+
+  template<typename T>
+  class From_Ruby<T&>
+  {
+  public:
+    T& convert(VALUE value)
+    {
+      using Intrinsic_T = intrinsic_type<T>;
+      return *Data_Object<Intrinsic_T>::from_ruby(value);
+    }
+  };
+
+  template<typename T>
+  class From_Ruby<T*>
+  {
+  public:
+    T* convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
 
@@ -175,8 +178,9 @@ namespace Rice::detail
   };
 
   template<typename T>
-  struct From_Ruby<Data_Object<T>>
+  class From_Ruby<Data_Object<T>>
   {
+  public:
     static Data_Object<T> convert(VALUE value)
     {
       return Data_Object<T>(value);

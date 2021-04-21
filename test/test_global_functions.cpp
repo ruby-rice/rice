@@ -49,7 +49,7 @@ TESTCASE(int_arg)
   define_global_function("method_with_args", &int_arg);
   Module m = Module(rb_mKernel);
   Object result = m.call("method_with_args", 10);
-  ASSERT_EQUAL(20, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(20, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(int_arg_lambda)
@@ -61,7 +61,7 @@ TESTCASE(int_arg_lambda)
 
   Module m = Module(rb_mKernel);
   Object result = m.call("method_with_args", 10);
-  ASSERT_EQUAL(20, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(20, detail::From_Ruby<int>().convert(result));
 }
 
 namespace

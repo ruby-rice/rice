@@ -43,12 +43,12 @@ namespace Rice::detail
   {
     if constexpr (std::is_member_object_pointer_v<Attr_T>)
     {
-      Self_T* nativeSelf = From_Ruby<Self_T*>::convert(self);
-      return To_Ruby<Return_T>::convert(nativeSelf->*attr_, false);
+      Self_T* nativeSelf = From_Ruby<Self_T*>().convert(self);
+      return To_Ruby<Return_T>().convert(nativeSelf->*attr_, false);
     }
     else
     {
-      return To_Ruby<Return_T>::convert(*attr_, false);
+      return To_Ruby<Return_T>().convert(*attr_, false);
     }
   }
 
@@ -57,12 +57,12 @@ namespace Rice::detail
   {
     if constexpr (!std::is_const_v<std::remove_pointer_t<Attr_T>> && std::is_member_object_pointer_v<Attr_T>)
     {
-      Self_T* nativeSelf = From_Ruby<Self_T*>::convert(self);
-      nativeSelf->*attr_ = From_Ruby<Return_T>::convert(value);
+      Self_T* nativeSelf = From_Ruby<Self_T*>().convert(self);
+      nativeSelf->*attr_ = From_Ruby<Return_T>().convert(value);
     }
     else if constexpr (!std::is_const_v<std::remove_pointer_t<Attr_T>>)
     {
-      *attr_ = From_Ruby<Return_T>::convert(value);
+      *attr_ = From_Ruby<Return_T>().convert(value);
     }
     return value;
   }

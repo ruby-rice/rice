@@ -73,7 +73,7 @@ namespace {
 
       virtual int process(int num)
       {
-        return detail::From_Ruby<int>::convert( getSelf().call("process", num) );
+        return detail::From_Ruby<int>().convert( getSelf().call("process", num) );
       }
 
       int default_process(int num)
@@ -84,7 +84,7 @@ namespace {
 
       virtual int doSomething(int num)
       {
-        return detail::From_Ruby<int>::convert( getSelf().call("do_something", num) );
+        return detail::From_Ruby<int>().convert( getSelf().call("do_something", num) );
       }
 
       int default_doSomething(int num)
@@ -109,7 +109,7 @@ TESTCASE(exposes_worker_as_instantiatable_class)
   Module m = define_module("Testing");
   Object result = m.instance_eval("worker = Worker.new; worker.get_number");
 
-  ASSERT_EQUAL(12, detail::From_Ruby<int>::convert(result.value()));
+  ASSERT_EQUAL(12, detail::From_Ruby<int>().convert(result.value()));
 }
 
 TESTCASE(can_call_virtual_methods_on_base_class)
@@ -124,7 +124,7 @@ TESTCASE(can_call_virtual_methods_on_base_class)
 
   Object result = m.instance_eval("worker = Worker.new; worker.do_something(4)");
 
-  ASSERT_EQUAL(16, detail::From_Ruby<int>::convert(result.value()));
+  ASSERT_EQUAL(16, detail::From_Ruby<int>().convert(result.value()));
 }
 
 TESTCASE(super_calls_pass_execution_up_the_inheritance_chain)
@@ -139,7 +139,7 @@ TESTCASE(super_calls_pass_execution_up_the_inheritance_chain)
 
   Object result = m.instance_eval("worker = RubyWorker.new; worker.do_something(10)");
 
-  ASSERT_EQUAL(400, detail::From_Ruby<int>::convert(result.value()));
+  ASSERT_EQUAL(400, detail::From_Ruby<int>().convert(result.value()));
 }
 
 TESTCASE(super_calls_on_pure_virtual_raise_error)
@@ -187,7 +187,7 @@ TESTCASE(polymorphic_calls_head_down_the_call_chain)
   Object result = m.instance_eval("$handler.process_workers(5)");
 
   // Hit's EchoWorker, so 5 + 2, then passes that to DoubleWorker, so 7 * 2 = 14
-  ASSERT_EQUAL(14, detail::From_Ruby<int>::convert(result.value()));
+  ASSERT_EQUAL(14, detail::From_Ruby<int>().convert(result.value()));
 }
 
 namespace {
@@ -211,7 +211,7 @@ namespace {
 
       virtual int doItImpl(int in)
       {
-        return detail::From_Ruby<int>::convert( getSelf().call("do_it_impl", in) );
+        return detail::From_Ruby<int>().convert( getSelf().call("do_it_impl", in) );
       }
 
       int default_doItImpl(int in)
@@ -262,7 +262,7 @@ TESTCASE(mix_of_polymorphic_calls_and_inheritance_dont_cause_infinite_loops)
       "c = MySelf.new; c.do_it(10)"
       );
 
-  ASSERT_EQUAL(100, detail::From_Ruby<int>::convert(result.value()));
+  ASSERT_EQUAL(100, detail::From_Ruby<int>().convert(result.value()));
 }
 
 TESTCASE(director_class_super_classes_get_type_bound)
@@ -278,7 +278,7 @@ TESTCASE(director_class_super_classes_get_type_bound)
 
   Object result = m.instance_eval(R"(cs = Testing::get_calls_self
                                      cs.do_it(3))");
-  ASSERT_EQUAL(36, detail::From_Ruby<int>::convert(result.value()));
+  ASSERT_EQUAL(36, detail::From_Ruby<int>().convert(result.value()));
 }
 
 TESTCASE(director_allows_abstract_types_used_as_parameters_pointers)
@@ -298,7 +298,7 @@ TESTCASE(director_allows_abstract_types_used_as_parameters_pointers)
       "Testing::do_it_on_pointer(c, 5)"
       );
 
-  ASSERT_EQUAL(50, detail::From_Ruby<int>::convert(result.value()));
+  ASSERT_EQUAL(50, detail::From_Ruby<int>().convert(result.value()));
 }
 
 TESTCASE(director_allows_abstract_types_used_as_parameters_reference)
@@ -318,5 +318,5 @@ TESTCASE(director_allows_abstract_types_used_as_parameters_reference)
       "Testing::do_it_on_ref(c, 3)"
       );
 
-  ASSERT_EQUAL(30, detail::From_Ruby<int>::convert(result.value()));
+  ASSERT_EQUAL(30, detail::From_Ruby<int>().convert(result.value()));
 }

@@ -23,22 +23,22 @@ TESTCASE(CreatePair)
   Object pair = c.call("new", 0, nullptr);
 
   Object result = pair.call("first");
-  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
   result = pair.call("second");
   ASSERT_EQUAL(Qnil, result.value());
 
   result = pair.call("first=", 77);
-  ASSERT_EQUAL(77, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(77, detail::From_Ruby<int32_t>().convert(result));
 
   result = pair.call("first");
-  ASSERT_EQUAL(77, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(77, detail::From_Ruby<int32_t>().convert(result));
 
   result = pair.call("second=", "A second value");
-  ASSERT_EQUAL("A second value", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("A second value", detail::From_Ruby<std::string>().convert(result));
 
   result = pair.call("second");
-  ASSERT_EQUAL("A second value", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("A second value", detail::From_Ruby<std::string>().convert(result));
 }
 
 namespace
@@ -77,27 +77,27 @@ TESTCASE(AutoRegister)
 
   Object pair = someClass.call("pair");
   String name = pair.class_name();
-  ASSERT_EQUAL("Rice::Std::Pair__basic_string__char_char_traits__char___allocator__char_____double__", detail::From_Ruby<std::string>::convert(name));
+  ASSERT_EQUAL("Rice::Std::Pair__basic_string__char_char_traits__char___allocator__char_____double__", detail::From_Ruby<std::string>().convert(name));
 
   Class pairKlass1 = pair.class_of();
   Class pairKlass2 = Data_Type<std::pair<std::string, double>>::klass();
   ASSERT_EQUAL(pairKlass1, pairKlass2);
 
   Object result = pair.call("first");
-  ASSERT_EQUAL("first value", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("first value", detail::From_Ruby<std::string>().convert(result));
 
   result = pair.call("second");
-  ASSERT_EQUAL(2.0, detail::From_Ruby<float>::convert(result));
+  ASSERT_EQUAL(2.0, detail::From_Ruby<float>().convert(result));
 
   Object newPair = pairKlass1.call("new", "New value", 3.2);
 
   pair = someClass.call("pair=", newPair);
 
   result = newPair.call("first");
-  ASSERT_EQUAL("New value", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("New value", detail::From_Ruby<std::string>().convert(result));
 
   result = newPair.call("second");
-  ASSERT_EQUAL(3.2, detail::From_Ruby<double>::convert(result));
+  ASSERT_EQUAL(3.2, detail::From_Ruby<double>().convert(result));
 }
 #endif
 
@@ -123,22 +123,22 @@ TESTCASE(ReferenceReturned)
   Data_Object<std::pair<char, SomeStruct>> rubyPair(&aPair);
 
   Object result = rubyPair.call("first");
-  ASSERT_EQUAL('a', detail::From_Ruby<char>::convert(result));
+  ASSERT_EQUAL('a', detail::From_Ruby<char>().convert(result));
 
   result = rubyPair.call("first=", 'b');
   ASSERT_EQUAL('b', aPair.first);
 
   result = rubyPair.call("first");
-  ASSERT_EQUAL('b', detail::From_Ruby<char>::convert(result));
+  ASSERT_EQUAL('b', detail::From_Ruby<char>().convert(result));
 
   Object rubyStruct = rubyPair.call("second");
   result = rubyStruct.call("value");
-  ASSERT_EQUAL(5, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(5, detail::From_Ruby<int32_t>().convert(result));
 
   rubyStruct.call("value=", 8);
   ASSERT_EQUAL(8, aPair.second.value);
 
   rubyStruct = rubyPair.call("second");
   result = rubyStruct.call("value");
-  ASSERT_EQUAL(8, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(8, detail::From_Ruby<int32_t>().convert(result));
 }

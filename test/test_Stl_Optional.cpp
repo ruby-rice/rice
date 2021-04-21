@@ -56,7 +56,7 @@ TESTCASE(OptionalReturn)
   Object myClass = m.instance_eval("MyClass.new");
 
   Object result = myClass.call("optional_return", true);
-  ASSERT_EQUAL("Here is a value", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("Here is a value", detail::From_Ruby<std::string>().convert(result));
 
   result = myClass.call("optional_return", false);
   ASSERT_EQUAL(Qnil, result.value());
@@ -68,10 +68,10 @@ TESTCASE(OptionalArgument)
   Object myClass = m.instance_eval("MyClass.new");
 
   Object result = myClass.call("optional_argument", 77);
-  ASSERT_EQUAL(77, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(77, detail::From_Ruby<int32_t>().convert(result));
 
   result = myClass.call("optional_argument", std::nullopt);
-  ASSERT_EQUAL(7, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(7, detail::From_Ruby<int32_t>().convert(result));
 }
 
 TESTCASE(OptionalAttribute)
@@ -83,7 +83,7 @@ TESTCASE(OptionalAttribute)
   ASSERT_EQUAL(Qnil, result.value());
 
   result = myClass.call("optional_attr=", 77.7);
-  ASSERT_EQUAL(77.7, detail::From_Ruby<double>::convert(result));
+  ASSERT_EQUAL(77.7, detail::From_Ruby<double>().convert(result));
 
   result = myClass.call("optional_attr=", std::nullopt);
   ASSERT_EQUAL(Qnil, result.value());

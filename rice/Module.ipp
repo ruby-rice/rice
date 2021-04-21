@@ -158,9 +158,10 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
-  struct From_Ruby<Module>
+  class From_Ruby<Module>
   {
-    static Module convert(VALUE value)
+  public:
+    Module convert(VALUE value)
     {
       return Module(value);
     }

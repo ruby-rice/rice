@@ -14,6 +14,42 @@ namespace Rice
     template<typename T>
     using intrinsic_type = typename std::remove_cv_t<std::remove_reference_t<std::remove_pointer_t<T>>>;
 
+    // Recursively remove const/volatilr
+    template<typename T>
+    struct remove_cv_recursive
+    {
+      using type = T;
+    };
+
+    template<typename T>
+    struct remove_cv_recursive<T const volatile>
+    {
+      using type = std::remove_cv_t<T>;
+    };
+
+    template<typename T> struct remove_cv_recursive<T volatile>
+    {
+      using type = std::remove_cv_t<T>;
+    };
+
+    template<typename T> struct remove_cv_recursive<T const>
+    {
+      using type = std::remove_cv_t<T>;
+    };
+
+    template<typename T> struct remove_cv_recursive<T&>
+    {
+      using type = std::remove_cv_t<T>&;
+    };
+
+    template<typename T> struct remove_cv_recursive<T*>
+    {
+      using type = std::remove_cv_t<T>*;
+    };
+
+    template<typename T>
+    using remove_cv_recursive_t = typename remove_cv_recursive<T>::type;
+
     // Does the Type work with ostreams? This is used to implement #to_s
     template<typename T, typename = void>
     struct is_ostreamable : std::false_type {};
@@ -56,13 +92,13 @@ namespace Rice
       using type = std::tuple<Arg_Ts...>;
     };
      
-    template<template<typename, typename = void> typename T, typename...Arg_Ts>
+    template<template<typename, typename...> typename T, typename...Arg_Ts>
     struct tuple_map;
 
-    template<template<typename, typename = void> typename T, typename...Arg_Ts>
+    template<template<typename, typename...> typename T, typename...Arg_Ts>
     struct tuple_map<T, std::tuple<Arg_Ts...>>
     {
-      using type = std::tuple<T<Arg_Ts>...>;
+      using type = std::tuple<T<remove_cv_recursive_t<Arg_Ts>>...>;
     };
   } // detail
 } // Rice

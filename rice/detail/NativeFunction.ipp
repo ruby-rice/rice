@@ -29,13 +29,50 @@ namespace Rice::detail
     {
       methodInfo_->returnInfo.takeOwnership();
     }
+
+    // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
+    // builtin types NativeArgs will keep a copy of the native value so that it 
+    // can be passed by reference or pointer to the native function. For non-builtin types
+    // it will just pass the value through.
+    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+    this->fromRubys_ = this->createFromRuby(indices);
+  }
+
+  template<typename Function_T, bool IsMethod>
+  template<typename T, std::size_t I>
+  From_Ruby<T> NativeFunction<Function_T, IsMethod>::createFromRuby()
+  {
+    // Does the From_Ruby instantiation support default values? We can tell
+    // by checking if it can be constructed with a value of its supported type.
+    if constexpr (std::is_constructible_v<From_Ruby<T>, T>)
+    {
+      Arg& arg = this->methodInfo_->arg(I);
+      if (arg.hasDefaultValue() && !arg.getIsValue())
+      {
+        T defaultValue = arg.defaultValue<T>();
+        return From_Ruby<T>(defaultValue);
+      }
+    }
+
+    // Is this type the same as Ruby's VALUE type? If so we need to tell the conversion
+    // function if this is a VALUE or not
+    if constexpr (std::is_same_v<T, VALUE>)
+    {
+      Arg& arg = this->methodInfo_->arg(I);
+      if (arg.getIsValue())
+      {
+        return From_Ruby<T>(arg.getIsValue());
+      }
+    }
+
+    return From_Ruby<T>();
   }
 
   template<typename Function_T, bool IsMethod>
   template<std::size_t... I>
-  typename NativeFunction<Function_T, IsMethod>::Native_Arg_Ts NativeFunction<Function_T, IsMethod>::createNativeArgs(std::index_sequence<I...>& indices)
+  typename NativeFunction<Function_T, IsMethod>::From_Ruby_Ts NativeFunction<Function_T, IsMethod>::createFromRuby(std::index_sequence<I...>& indices)
   {
-    return std::make_tuple(NativeArg<typename std::tuple_element<I, Arg_Ts>::type>(this->methodInfo_->arg(I))...);
+    return std::make_tuple(createFromRuby<remove_cv_recursive_t<std::tuple_element<I, Arg_Ts>::type>, I>()...);
   }
 
   template<typename Function_T, bool IsMethod>
@@ -66,14 +103,14 @@ namespace Rice::detail
   template<typename Function_T, bool IsMethod>
   template<std::size_t... I>
   typename NativeFunction<Function_T, IsMethod>::Arg_Ts NativeFunction<Function_T, IsMethod>::getNativeValues(std::vector<VALUE>& values,
-    typename NativeFunction<Function_T, IsMethod>::Native_Arg_Ts& nativeArgs, std::index_sequence<I...>& indices)
+     std::index_sequence<I...>& indices)
   {
     // Convert each Ruby value to its native value. Check each Ruby nil value to see if it has
     // a default argument, and if yes, use that. Otherwise use NativeArg<Arg_Ts> to convert
     // the Ruby value to a native value. Note that for fundamental types NativeArg<Arg_Ts> 
     // will keep a copy of the native value so it can be passed by reference or pointer to a
     // native function.
-    return std::forward_as_tuple(std::get<I>(nativeArgs).nativeValue(values[I])...);
+    return std::forward_as_tuple(std::get<I>(this->fromRubys_).convert(values[I])...);
   }
 
   template<typename Function_T, bool IsMethod>
@@ -92,7 +129,7 @@ namespace Rice::detail
     // Self parameter is an object and thus needs to be unwrapped from Ruby
     else
     {
-      return From_Ruby<Self_T>::convert(self);
+      return From_Ruby<Self_T>().convert(self);
     }
   }
 
@@ -194,14 +231,8 @@ namespace Rice::detail
 
       auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
 
-      // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
-      // builtin types NativeArgs will keep a copy of the native value so that it 
-      // can be passed by reference or pointer to the native function. For non-builtin types
-      // it will just pass the value through.
-      Native_Arg_Ts nativeArgs = this->createNativeArgs(indices);
-
       // Convert the Ruby values to native values
-      Arg_Ts nativeValues = this->getNativeValues(rubyValues, nativeArgs, indices);
+      Arg_Ts nativeValues = this->getNativeValues(rubyValues, indices);
 
       // Now call the native method
       VALUE result = Qnil;

@@ -103,11 +103,11 @@ TESTCASE(methods_with_member_pointers)
 
   result = o.call("int_arg", 42);
   ASSERT(MyClass::int_arg_called);
-  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result.value()));
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result.value()));
 
   result = o.call("multiple_args", 81, true, 7.0, "a string", "a char");
   ASSERT(MyClass::multiple_args_called);
-  ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string, a char)", detail::From_Ruby<std::string>::convert(result.value()));
+  ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string, a char)", detail::From_Ruby<std::string>().convert(result.value()));
 }
 
 TESTCASE(incorrect_number_of_args)
@@ -180,11 +180,11 @@ TESTCASE(methods_with_lambdas)
 
   result = o.call("int_arg", 42);
   ASSERT(MyClass::int_arg_called);
-  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result.value()));
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result.value()));
 
   result = o.call("multiple_args", 81, true, 7.0, "a string", "a char");
   ASSERT(MyClass::multiple_args_called);
-  ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string, a char)", detail::From_Ruby<std::string>::convert(result.value()));
+  ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string, a char)", detail::From_Ruby<std::string>().convert(result.value()));
 }
 
 TESTCASE(static_singleton_method)
@@ -208,7 +208,7 @@ TESTCASE(static_singleton_function)
   MyClass::reset();
 
   Object result = c.call("singleton_function_int", 42);
-  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(static_singleton_method_lambda)
@@ -238,7 +238,7 @@ TESTCASE(static_singleton_function_lambda)
   MyClass::reset();
 
   Object result = c.call("singleton_function_int", 42);
-  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 }
 
 namespace {

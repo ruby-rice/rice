@@ -2,7 +2,6 @@
 #define Rice__detail__Native_Attribute__hpp_
 
 #include "ruby.hpp"
-#include "NativeArg.hpp"
 #include "Exception_Handler_defn.hpp"
 #include "MethodInfo.hpp"
 

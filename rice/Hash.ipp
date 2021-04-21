@@ -59,7 +59,7 @@ namespace Rice
     Object value = operator[](ruby_key);
     try
     {
-      return detail::From_Ruby<Value_T>::convert(value);
+      return detail::From_Ruby<Value_T>().convert(value);
     }
     catch (Exception const& ex)
     {

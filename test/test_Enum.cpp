@@ -153,7 +153,7 @@ TESTCASE(compare_equal)
   Object color1 = colorEnum.const_get("RED");
   Object color2 = colorEnum.const_get("RED");
   Object result = color1.call("<=>", color2);
-  ASSERT_EQUAL(0, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(0, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(compare_less)
@@ -162,7 +162,7 @@ TESTCASE(compare_less)
   Object color1 = colorEnum.const_get("RED");
   Object color2 = colorEnum.const_get("BLACK");
   Object result = color1.call("<=>", color2);
-  ASSERT_EQUAL(-1, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(-1, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(compare_more)
@@ -171,7 +171,7 @@ TESTCASE(compare_more)
   Object color1 = colorEnum.const_get("GREEN");
   Object color2 = colorEnum.const_get("BLACK");
   Object result = color1.call("<=>", color2);
-  ASSERT_EQUAL(1, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(different_objects_eql)
@@ -188,7 +188,7 @@ TESTCASE(hash)
   Enum<Color> colorEnum = define_color_enum();
   Object color = colorEnum.const_get("GREEN");
   Object result = color.call("hash");
-  ASSERT_EQUAL((int)Color::GREEN, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL((int)Color::GREEN, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(from_int)
@@ -263,7 +263,7 @@ TESTCASE(using_enums)
   Module m = define_module("Testing");
 
   Object result = m.instance_eval("Color.my_favorite_color");
-  ASSERT_EQUAL(RED, detail::From_Ruby<Color>::convert(result.value()));
+  ASSERT_EQUAL(RED, detail::From_Ruby<Color>().convert(result.value()));
 
   result = m.instance_eval("Color.is_my_favorite_color(Color::RED)");
   ASSERT_EQUAL(Qtrue, result.value());

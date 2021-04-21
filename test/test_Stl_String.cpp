@@ -27,7 +27,7 @@ TESTCASE(std_string_to_ruby_encoding)
   Object object(value);
   Object encoding = object.call("encoding");
   Object encodingName = encoding.call("name");
-  ASSERT_EQUAL("ASCII-8BIT", detail::From_Ruby<std::string>::convert(encodingName));
+  ASSERT_EQUAL("ASCII-8BIT", detail::From_Ruby<std::string>().convert(encodingName));
 }
 
 TESTCASE(std_string_to_ruby_encoding_utf8)
@@ -41,19 +41,19 @@ TESTCASE(std_string_to_ruby_encoding_utf8)
   Object object(value);
   Object encoding = object.call("encoding");
   Object encodingName = encoding.call("name");
-  ASSERT_EQUAL("UTF-8", detail::From_Ruby<std::string>::convert(encodingName));
+  ASSERT_EQUAL("UTF-8", detail::From_Ruby<std::string>().convert(encodingName));
 
   rb_enc_set_default_external(rb_enc_from_encoding(defaultEncoding));
 }
 
 TESTCASE(std_string_from_ruby)
 {
-  ASSERT_EQUAL(std::string(""), detail::From_Ruby<std::string>::convert(rb_str_new2("")));
-  ASSERT_EQUAL(std::string("foo"), detail::From_Ruby<std::string>::convert(rb_str_new2("foo")));
+  ASSERT_EQUAL(std::string(""), detail::From_Ruby<std::string>().convert(rb_str_new2("")));
+  ASSERT_EQUAL(std::string("foo"), detail::From_Ruby<std::string>().convert(rb_str_new2("foo")));
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    detail::From_Ruby<std::string> ::convert(rb_float_new(15.512)),
+    detail::From_Ruby<std::string>().convert(rb_float_new(15.512)),
     ASSERT_EQUAL("wrong argument type Float (expected String)", ex.what())
   );
 }
@@ -68,7 +68,7 @@ TESTCASE(std_string_to_ruby_with_binary)
 
 TESTCASE(std_string_from_ruby_with_binary)
 {
-  std::string got = detail::From_Ruby<std::string>::convert(rb_str_new("\000test", 5));
+  std::string got = detail::From_Ruby<std::string>().convert(rb_str_new("\000test", 5));
   ASSERT_EQUAL(5ul, got.length());
   ASSERT_EQUAL(std::string("\000test", 5), got);
 }

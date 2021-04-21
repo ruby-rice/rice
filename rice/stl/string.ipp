@@ -10,13 +10,74 @@ namespace Rice::detail
   struct is_builtin<std::string> : public std::true_type {};
 
   template<>
-  struct From_Ruby<std::string>
+  class From_Ruby<std::string>
   {
-    static std::string convert(VALUE value)
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(std::string defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    std::string convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        detail::protect(rb_check_type, value, (int)T_STRING);
+        return std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      }
+    }
+
+  private:
+    std::optional<std::string> defaultValue_;
+  };
+
+  template<>
+  class From_Ruby<std::string*>
+  {
+  public:
+    std::string* convert(VALUE value)
     {
       detail::protect(rb_check_type, value, (int)T_STRING);
-      return std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      return &this->converted_;
     }
+
+  private:
+    std::string converted_;
+  };
+
+  template<>
+  class From_Ruby<std::string&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(std::string defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    std::string& convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        detail::protect(rb_check_type, value, (int)T_STRING);
+        this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+        return this->converted_;
+      }
+    }
+
+  private:
+    std::optional<std::string> defaultValue_;
+    std::string converted_;
   };
 
   template<>

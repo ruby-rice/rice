@@ -51,7 +51,7 @@ namespace Rice
   inline int Object::compare(Object const& other) const
   {
     Object result = call("<=>", other);
-    return detail::From_Ruby<int>::convert(result);
+    return detail::From_Ruby<int>().convert(result);
   }
 
   inline bool Object::is_equal(const Object& other) const
@@ -143,9 +143,10 @@ namespace Rice::detail
   };
 
   template<>
-  struct From_Ruby<Object>
+  class From_Ruby<Object>
   {
-    static Object convert(VALUE value)
+  public:
+    Object convert(VALUE value)
     {
       return Object(value);
     }

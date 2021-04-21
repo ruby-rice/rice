@@ -98,8 +98,8 @@ TESTCASE(SelfPointer)
   Object selfClass2 = selfClass1.call("self_pointer");
   ASSERT(selfClass2.is_equal(selfClass1));
 
-  SelfClass* pointer1 = detail::From_Ruby<SelfClass*>::convert(selfClass1);
-  SelfClass* pointer2 = detail::From_Ruby<SelfClass*>::convert(selfClass2);
+  SelfClass* pointer1 = detail::From_Ruby<SelfClass*>().convert(selfClass1);
+  SelfClass* pointer2 = detail::From_Ruby<SelfClass*>().convert(selfClass2);
   ASSERT((pointer1 == pointer2));
 
   ASSERT_EQUAL(1, SelfClass::constructorCalls);
@@ -117,8 +117,8 @@ TESTCASE(SelfReference)
   Object selfClass2 = selfClass1.call("self_reference");
   ASSERT(selfClass2.is_equal(selfClass1));
 
-  SelfClass* pointer1 = detail::From_Ruby<SelfClass*>::convert(selfClass1);
-  SelfClass* pointer2 = detail::From_Ruby<SelfClass*>::convert(selfClass2);
+  SelfClass* pointer1 = detail::From_Ruby<SelfClass*>().convert(selfClass1);
+  SelfClass* pointer2 = detail::From_Ruby<SelfClass*>().convert(selfClass2);
   ASSERT((pointer1 == pointer2));
 
   ASSERT_EQUAL(1, SelfClass::constructorCalls);
@@ -136,8 +136,8 @@ TESTCASE(SelfValue)
   Object selfClass2 = selfClass1.call("self_value");
   ASSERT(!selfClass2.is_equal(selfClass1));
 
-  SelfClass* pointer1 = detail::From_Ruby<SelfClass*>::convert(selfClass1);
-  SelfClass* pointer2 = detail::From_Ruby<SelfClass*>::convert(selfClass2);
+  SelfClass* pointer1 = detail::From_Ruby<SelfClass*>().convert(selfClass1);
+  SelfClass* pointer2 = detail::From_Ruby<SelfClass*>().convert(selfClass2);
   ASSERT((pointer1 != pointer2));
 
   ASSERT_EQUAL(1, SelfClass::constructorCalls);
@@ -155,8 +155,8 @@ TESTCASE(SelfPointerLambda)
   Object selfClass2 = selfClass1.call("self_pointer_lambda");
   ASSERT(selfClass2.is_equal(selfClass1));
 
-  SelfClass* pointer1 = detail::From_Ruby<SelfClass*>::convert(selfClass1);
-  SelfClass* pointer2 = detail::From_Ruby<SelfClass*>::convert(selfClass2);
+  SelfClass* pointer1 = detail::From_Ruby<SelfClass*>().convert(selfClass1);
+  SelfClass* pointer2 = detail::From_Ruby<SelfClass*>().convert(selfClass2);
   ASSERT((pointer1 == pointer2));
 
   ASSERT_EQUAL(1, SelfClass::constructorCalls);
@@ -175,8 +175,8 @@ TESTCASE(SelfReferenceLambda)
   Object selfClass2 = selfClass1.call("self_reference_lambda");
   ASSERT(selfClass2.is_equal(selfClass1));
 
-  SelfClass* pointer1 = detail::From_Ruby<SelfClass*>::convert(selfClass1);
-  SelfClass* pointer2 = detail::From_Ruby<SelfClass*>::convert(selfClass2);
+  SelfClass* pointer1 = detail::From_Ruby<SelfClass*>().convert(selfClass1);
+  SelfClass* pointer2 = detail::From_Ruby<SelfClass*>().convert(selfClass2);
   ASSERT((pointer1 == pointer2));
 
   ASSERT_EQUAL(1, SelfClass::constructorCalls);
@@ -194,8 +194,8 @@ TESTCASE(SelfValueLambda)
   Object selfClass2 = selfClass1.call("self_value_lambda");
   ASSERT(!selfClass2.is_equal(selfClass1));
 
-  SelfClass* pointer1 = detail::From_Ruby<SelfClass*>::convert(selfClass1);
-  SelfClass* pointer2 = detail::From_Ruby<SelfClass*>::convert(selfClass2);
+  SelfClass* pointer1 = detail::From_Ruby<SelfClass*>().convert(selfClass1);
+  SelfClass* pointer2 = detail::From_Ruby<SelfClass*>().convert(selfClass2);
   ASSERT((pointer1 != pointer2));
 
   ASSERT_EQUAL(1, SelfClass::constructorCalls);

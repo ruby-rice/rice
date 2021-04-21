@@ -31,8 +31,8 @@ namespace Rice::detail
    *  \endcode
    */
 
-  template <typename T, typename = void>
-  struct From_Ruby;
+  template <typename T>
+  class From_Ruby;
 }
 
 #endif // Rice__detail__From_Ruby2_defn__hpp_

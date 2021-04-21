@@ -40,9 +40,10 @@ namespace Rice::detail
   };
 
   template <typename T>
-  struct From_Ruby<std::unique_ptr<T>&>
+  class From_Ruby<std::unique_ptr<T>&>
   {
-    static std::unique_ptr<T>& convert(VALUE value)
+  public:
+    std::unique_ptr<T>& convert(VALUE value)
     {
       Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::rb_type());
 
@@ -82,9 +83,10 @@ namespace Rice::detail
   };
 
   template <typename T>
-  struct From_Ruby<std::shared_ptr<T>>
+  class From_Ruby<std::shared_ptr<T>>
   {
-    static std::shared_ptr<T> convert(VALUE value)
+  public:
+    std::shared_ptr<T> convert(VALUE value)
     {
       Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::rb_type());
 
@@ -100,9 +102,10 @@ namespace Rice::detail
   };
 
   template <typename T>
-  struct From_Ruby<std::shared_ptr<T>&>
+  class From_Ruby<std::shared_ptr<T>&>
   {
-    static std::shared_ptr<T>& convert(VALUE value)
+  public:
+    std::shared_ptr<T>& convert(VALUE value)
     {
       Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::rb_type());
 

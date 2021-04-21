@@ -2,10 +2,10 @@
 #define Rice__detail__Native_Function__hpp_
 
 #include "ruby.hpp"
-#include "NativeArg.hpp"
 #include "Exception_Handler_defn.hpp"
 #include "MethodInfo.hpp"
 #include "function_traits.hpp"
+#include "from_ruby.hpp"
 
 namespace Rice::detail
 {
@@ -16,7 +16,7 @@ namespace Rice::detail
     using Return_T = typename function_traits<Function_T>::return_type;
     using Self_T = typename method_traits<Function_T, IsMethod>::Self_T;
     using Arg_Ts = typename method_traits<Function_T, IsMethod>::Arg_Ts;
-    using Native_Arg_Ts = typename tuple_map<NativeArg, Arg_Ts>::type;
+    using From_Ruby_Ts = typename tuple_map<From_Ruby, Arg_Ts>::type;
 
     // Static member function that Ruby calls
     static VALUE call(int argc, VALUE* argv, VALUE self);
@@ -28,16 +28,19 @@ namespace Rice::detail
     VALUE operator()(int argc, VALUE* argv, VALUE self);
 
   private:
+    template<typename T, std::size_t I>
+    From_Ruby<T> createFromRuby();
+      
     // Create NativeArgs which are used to convert values from Ruby to C++
     template<std::size_t... I>
-    Native_Arg_Ts createNativeArgs(std::index_sequence<I...>& indices);
+    From_Ruby_Ts createFromRuby(std::index_sequence<I...>& indices);
 
     // Convert Ruby argv pointer to Ruby values
     std::vector<VALUE> getRubyValues(int argc, VALUE* argv);
 
     // Convert Ruby values to C++ values
     template<typename std::size_t... I>
-    Arg_Ts getNativeValues(std::vector<VALUE>& values, Native_Arg_Ts& nativeArgs, std::index_sequence<I...>& indices);
+    Arg_Ts getNativeValues(std::vector<VALUE>& values, std::index_sequence<I...>& indices);
 
     // Figure out what self is
     Self_T getSelf(VALUE self);
@@ -51,6 +54,7 @@ namespace Rice::detail
 
   private:
     Function_T func_;
+    From_Ruby_Ts fromRubys_;
     std::shared_ptr<Exception_Handler> handler_;
     std::unique_ptr<MethodInfo> methodInfo_;
   };

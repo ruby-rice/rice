@@ -207,9 +207,10 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
-  struct From_Ruby<Array>
+  class From_Ruby<Array>
   {
-    static Array convert(VALUE value)
+  public:
+    Array convert(VALUE value)
     {
       return Array(value);
     }

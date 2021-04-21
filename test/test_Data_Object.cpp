@@ -176,7 +176,7 @@ TESTCASE(from_ruby_const_ref)
   Data_Type<MyDataType> rb_cFoo;
   MyDataType * myDataType = new MyDataType;
   Data_Object<MyDataType> wrapped_foo(myDataType);
-  ASSERT_EQUAL(myDataType->x, detail::From_Ruby<MyDataType const &>::convert(wrapped_foo).x);
+  ASSERT_EQUAL(myDataType->x, detail::From_Ruby<MyDataType const &>().convert(wrapped_foo).x);
 }
 
 TESTCASE(from_ruby_copy)
@@ -184,7 +184,7 @@ TESTCASE(from_ruby_copy)
   Data_Type<MyDataType> rb_cFoo;
   MyDataType * myDataType = new MyDataType;
   Data_Object<MyDataType> wrapped_foo(myDataType);
-  ASSERT_EQUAL(myDataType->x, detail::From_Ruby<MyDataType>::convert(wrapped_foo).x);
+  ASSERT_EQUAL(myDataType->x, detail::From_Ruby<MyDataType>().convert(wrapped_foo).x);
 }
 
 TESTCASE(ruby_custom_mark)

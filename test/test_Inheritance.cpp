@@ -96,7 +96,7 @@ TESTCASE(return_base_pointer)
 
   Object notification = m.instance_eval("make_notification(NotificationType::Email)");
   String temp = notification.class_of().name();
-  std::string temp2 = detail::From_Ruby<std::string>::convert(temp);
+  std::string temp2 = detail::From_Ruby<std::string>().convert(temp);
 
   ASSERT(rb_obj_is_kind_of(notification, rcNotification));
   ASSERT(rb_obj_is_kind_of(notification, rcEmailNotification));
@@ -125,11 +125,11 @@ TESTCASE(base_pointer_method_call)
 
   Object message = m.instance_eval(R"EOS(notification = EmailNotification.new
                                          notification.message)EOS");
-  ASSERT_EQUAL("Email", detail::From_Ruby<std::string>::convert(message));
+  ASSERT_EQUAL("Email", detail::From_Ruby<std::string>().convert(message));
 
   message = m.instance_eval(R"EOS(notification = PushNotification.new
                                   notification.message)EOS");
-  ASSERT_EQUAL("Push", detail::From_Ruby<std::string>::convert(message));
+  ASSERT_EQUAL("Push", detail::From_Ruby<std::string>().convert(message));
 }
 
 TESTCASE(base_pointer_function_argument)
@@ -148,11 +148,11 @@ TESTCASE(base_pointer_function_argument)
   Module m = define_module("Testing");
   Object message = m.instance_eval(R"EOS(notification = EmailNotification.new
                                          process_notification(notification))EOS");
-  ASSERT_EQUAL("Email", detail::From_Ruby<std::string>::convert(message));
+  ASSERT_EQUAL("Email", detail::From_Ruby<std::string>().convert(message));
 
   message = m.instance_eval(R"EOS(notification = PushNotification.new
                                   process_notification(notification))EOS");
-  ASSERT_EQUAL("Push", detail::From_Ruby<std::string>::convert(message));
+  ASSERT_EQUAL("Push", detail::From_Ruby<std::string>().convert(message));
 }
 
 TESTCASE(module_base_pointer_method_call)
@@ -172,11 +172,11 @@ TESTCASE(module_base_pointer_method_call)
 
   Object message = m.instance_eval(R"EOS(notification = Inheritance::EmailNotification.new
                                          notification.message)EOS");
-  ASSERT_EQUAL("Email", detail::From_Ruby<std::string>::convert(message));
+  ASSERT_EQUAL("Email", detail::From_Ruby<std::string>().convert(message));
 
   message = m.instance_eval(R"EOS(notification = Inheritance::PushNotification.new
                                   notification.message)EOS");
-  ASSERT_EQUAL("Push", detail::From_Ruby<std::string>::convert(message));
+  ASSERT_EQUAL("Push", detail::From_Ruby<std::string>().convert(message));
 }
 
 namespace
@@ -217,5 +217,5 @@ TESTCASE(base_pointer_constructor)
   Object result = m.instance_eval(R"EOS(notification = PushNotification.new
                                         processor = Processor.new(notification)
                                         processor.process)EOS");
-  ASSERT_EQUAL("Push", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("Push", detail::From_Ruby<std::string>().convert(result));
 }

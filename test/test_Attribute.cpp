@@ -52,11 +52,11 @@ TESTCASE(attributes)
     .define_attr("read_write_string", &DataStruct::readWriteString);
 
   Object o = c.call("new");
-  DataStruct* dataStruct = detail::From_Ruby<DataStruct*>::convert(o);
+  DataStruct* dataStruct = detail::From_Ruby<DataStruct*>().convert(o);
 
   // Test readonly attribute
   Object result = o.call("read_chars");
-  ASSERT_EQUAL("Read some chars!", detail::From_Ruby<char*>::convert(result));
+  ASSERT_EQUAL("Read some chars!", detail::From_Ruby<char*>().convert(result));
   ASSERT_EXCEPTION_CHECK(
     Exception,
     o.call("read_char=", "some text"),
@@ -65,7 +65,7 @@ TESTCASE(attributes)
   
   // Test writeonly attribute
   result = o.call("write_int=", 5);
-  ASSERT_EQUAL(5, detail::From_Ruby<int>::convert(result.value()));
+  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result.value()));
   ASSERT_EQUAL(5, dataStruct->writeInt);
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -75,11 +75,11 @@ TESTCASE(attributes)
 
   // Test readwrite attribute
   result = o.call("read_write_string=", "Set a string");
-  ASSERT_EQUAL("Set a string", detail::From_Ruby<std::string>::convert(result.value()));
+  ASSERT_EQUAL("Set a string", detail::From_Ruby<std::string>().convert(result.value()));
   ASSERT_EQUAL("Set a string", dataStruct->readWriteString);
 
   result = o.call("read_write_string");
-  ASSERT_EQUAL("Set a string", detail::From_Ruby<std::string>::convert(result.value()));
+  ASSERT_EQUAL("Set a string", detail::From_Ruby<std::string>().convert(result.value()));
 }
 
 TESTCASE(static_attributes)
@@ -91,13 +91,13 @@ TESTCASE(static_attributes)
 
   // Test readwrite attribute
   Object result = c.call("static_float=", 7.0);
-  ASSERT_EQUAL(7.0, detail::From_Ruby<float>::convert(result.value()));
+  ASSERT_EQUAL(7.0, detail::From_Ruby<float>().convert(result.value()));
   ASSERT_EQUAL(7.0, DataStruct::staticFloat);
   result = c.call("static_float");
-  ASSERT_EQUAL(7.0, detail::From_Ruby<float>::convert(result.value()));
+  ASSERT_EQUAL(7.0, detail::From_Ruby<float>().convert(result.value()));
 
   result = c.call("static_string");
-  ASSERT_EQUAL("Static string", detail::From_Ruby<std::string>::convert(result.value()));
+  ASSERT_EQUAL("Static string", detail::From_Ruby<std::string>().convert(result.value()));
   ASSERT_EXCEPTION_CHECK(
     Exception,
     c.call("static_string=", true),
@@ -119,7 +119,7 @@ TESTCASE(global_attributes)
   ASSERT_EQUAL(Qfalse, result.value());
 
   result = c.call("global_struct");
-  DataStruct* aStruct = detail::From_Ruby<DataStruct*>::convert(result.value());
+  DataStruct* aStruct = detail::From_Ruby<DataStruct*>().convert(result.value());
   ASSERT_EQUAL(aStruct, globalStruct);
 }
 

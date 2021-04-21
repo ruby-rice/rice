@@ -45,9 +45,10 @@ namespace Rice
   namespace detail
   {
     template<>
-    struct From_Ruby<Symbol>
+    class From_Ruby<Symbol>
     {
-      static Object convert(VALUE value)
+    public:
+      Object convert(VALUE value)
       {
         return Object(value);
       }

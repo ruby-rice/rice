@@ -40,9 +40,10 @@ namespace Rice::detail
   };
 
   template<typename T>
-  struct From_Ruby<std::optional<T>>
+  class From_Ruby<std::optional<T>>
   {
-    static std::optional<T> convert(VALUE value)
+  public:
+    std::optional<T> convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -50,8 +51,29 @@ namespace Rice::detail
       }
       else
       {
-        return From_Ruby<T>::convert(value);
+        return From_Ruby<T>().convert(value);
       }
     }
+  };
+
+  template<typename T>
+  class From_Ruby<std::optional<T>&>
+  {
+  public:
+    std::optional<T>& convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        this->converted_ = std::nullopt;
+      }
+      else
+      {
+        this->converted_ = From_Ruby<T>().convert(value);
+      }
+      return this->converted_;
+    }
+    
+  private:
+    std::optional<T> converted_;
   };
 }

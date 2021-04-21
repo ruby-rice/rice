@@ -131,7 +131,7 @@ TESTCASE(define_function_int)
   Module m(anonymous_module());
   m.define_function("foo", function_int);
   Object result = m.instance_eval("o = Object.new; o.extend(self); o.foo(42)");
-  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(define_method_int)
@@ -139,7 +139,7 @@ TESTCASE(define_method_int)
   Module m(anonymous_module());
   m.define_method("foo", method_int);
   Object result = m.instance_eval("o = Object.new; o.extend(self); o.foo(42)");
-  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(define_singleton_method_int)
@@ -147,7 +147,7 @@ TESTCASE(define_singleton_method_int)
   Module m(anonymous_module());
   m.define_singleton_method("foo", method_int);
   Object result = m.call("foo", 42);
-  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(define_singleton_function_int)
@@ -155,7 +155,7 @@ TESTCASE(define_singleton_function_int)
   Module m(anonymous_module());
   m.define_singleton_function("foo", function_int);
   Object result = m.call("foo", 42);
-  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(define_module_function_int)
@@ -163,10 +163,10 @@ TESTCASE(define_module_function_int)
   Module m(anonymous_module());
   m.define_module_function("foo", function_int);
   Object result = m.instance_eval("o = Object.new; o.extend(self); o.instance_eval { foo(42) }");
-  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 
   result = m.call("foo", 42);
-  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(method_int_passed_no_args)
@@ -189,7 +189,7 @@ TESTCASE(define_singleton_method_int_foo)
   m.define_singleton_method("method_int", method_int);
 
   Object result = m.call("method_int", 42);
-  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(result));
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(include_module)
@@ -254,9 +254,7 @@ TESTCASE(mod_name_anonymous)
   ASSERT_EQUAL(String(""), m.name());
 }
 
-/**
- * Tests for default arguments
- */
+// Tests for default arguments
 namespace
 {
   int defaults_method_one_arg1;
@@ -455,7 +453,8 @@ TESTCASE(define_method_works_with_const_reference_return)
   ASSERT_EQUAL("ReturnTest", result.class_of().name().c_str());
 }
 
-namespace {
+namespace
+{
   float with_reference_defaults_x;
   std::string with_reference_defaults_str;
 
@@ -478,7 +477,8 @@ TESTCASE(define_method_works_with_reference_const_default_values)
   ASSERT_EQUAL("testing", with_reference_defaults_str);
 }
 
-namespace {
+namespace
+{
   int with_pointers_x;
   std::string with_pointers_str;
 
@@ -498,4 +498,58 @@ TESTCASE(define_method_works_with_pointers)
 
   ASSERT_EQUAL(3, with_pointers_x);
   ASSERT_EQUAL("testing", with_pointers_str);
+}
+
+namespace
+{
+  int intValue;
+  bool boolValue;
+  float floatValue;
+  double doubleValue;
+
+  void withPointers(const int* anInt, const bool* aBool, const float* aFloat, const double* aDouble)
+  {
+    intValue = *anInt;
+    boolValue = *aBool;
+    floatValue = *aFloat;
+    doubleValue = *aDouble;
+  }
+
+  void withReferences(const int& anInt, const bool& aBool, const float& aFloat, const double& aDouble)
+  {
+    intValue = anInt;
+    boolValue = aBool;
+    floatValue = aFloat;
+    doubleValue = aDouble;
+  }
+}
+
+TESTCASE(pointers)
+{
+  define_global_function("with_pointers", &withPointers);
+
+  Module m = define_module("TestingModule");
+
+  std::string code = "with_pointers(32, true, 33.0, 34.0)";
+  m.instance_eval(code);
+
+  ASSERT_EQUAL(intValue, 32);
+  ASSERT_EQUAL(boolValue, true);
+  ASSERT_EQUAL(floatValue, 33.0);
+  ASSERT_EQUAL(doubleValue, 34.0);
+}
+
+TESTCASE(references)
+{
+  define_global_function("with_references", &withReferences);
+
+  Module m = define_module("TestingModule");
+
+  std::string code = "with_references(42, true, 43.0, 44.0)";
+  m.instance_eval(code);
+
+  ASSERT_EQUAL(intValue, 42);
+  ASSERT_EQUAL(boolValue, true);
+  ASSERT_EQUAL(floatValue, 43.0);
+  ASSERT_EQUAL(doubleValue, 44.0);
 }
