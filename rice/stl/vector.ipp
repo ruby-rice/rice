@@ -356,5 +356,118 @@ namespace Rice
         return true;
       }
     };
+
+    template<typename T>
+    std::vector<T> vectorFromArray(VALUE value)
+    {
+      size_t length = protect(rb_array_len, value);
+      std::vector<T> result(length);
+
+      for (long i = 0; i < length; i++)
+      {
+        VALUE element = protect(rb_ary_entry, value, i);
+        result[i] = From_Ruby<T>().convert(element);
+      }
+
+      return result;
+    }
+
+    template<typename T>
+    class From_Ruby<std::vector<T>>
+    {
+    public:
+      std::vector<T> convert(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case T_DATA:
+          {
+            // This is a wrapped vector (hopefully!)
+            return *Data_Object<std::vector<T>>::from_ruby(value);
+          }
+          case T_ARRAY:
+          {
+            // If this an Ruby array and the vector type is copyable
+            if constexpr (std::is_default_constructible_v<T>)
+            {
+              return vectorFromArray<T>(value);
+            }
+          }
+          default:
+          {
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::vector");
+          }
+        }
+      }
+    };
+
+    template<typename T>
+    class From_Ruby<std::vector<T>&>
+    {
+    public:
+      std::vector<T>& convert(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case T_DATA:
+          {
+            // This is a wrapped vector (hopefully!)
+            return *Data_Object<std::vector<T>>::from_ruby(value);
+          }
+          case T_ARRAY:
+          {
+            // If this an Ruby array and the vector type is copyable
+            if constexpr (std::is_default_constructible_v<T>)
+            {
+              this->converted_ = vectorFromArray<T>(value);
+              return this->converted_;
+            }
+          }
+          default:
+          {
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::vector");
+          }
+        }
+      }
+
+    private:
+      std::vector<T> converted_;
+    };
+
+    template<typename T>
+    class From_Ruby<std::vector<T>*>
+    {
+    public:
+      std::vector<T>* convert(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case T_DATA:
+          {
+            // This is a wrapped vector (hopefully!)
+            return Data_Object<std::vector<T>>::from_ruby(value);
+          }
+          case T_ARRAY:
+          {
+            // If this an Ruby array and the vector type is copyable
+            if constexpr (std::is_default_constructible_v<T>)
+            {
+              this->converted_ = vectorFromArray<T>(value);
+              return &this->converted_;
+            }
+          }
+          default:
+          {
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::vector");
+          }
+        }
+      }
+
+    private:
+      std::vector<T> converted_;
+    };
   }
 }

@@ -46,21 +46,21 @@ TESTCASE(StringVector)
 
   Object vec = m.instance_eval("$vector = StringVector.new");
   Object result = vec.call("size");
-  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
   m.instance_eval("$vector << 'one' << 'two' << 'two' << 'three'");
   result = vec.call("size");
-  ASSERT_EQUAL(4, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(4, detail::From_Ruby<int32_t>().convert(result));
 
   m.instance_eval("$vector.append('four')");
   result = vec.call("size");
-  ASSERT_EQUAL(5, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(5, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("first");
-  ASSERT_EQUAL("one", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("one", detail::From_Ruby<std::string>().convert(result));
 
   result = vec.call("last");
-  ASSERT_EQUAL("four", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("four", detail::From_Ruby<std::string>().convert(result));
 }
 
 TESTCASE(WrongType)
@@ -84,7 +84,7 @@ TESTCASE(Empty)
   Object vec = c.call("new");
 
   Object result = vec.call("size");
-  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("empty?");
   ASSERT_EQUAL(Qtrue, result.value());
@@ -107,34 +107,34 @@ TESTCASE(Indexing)
   vec.call("push", 2);
   
   Object result = vec.call("size");
-  ASSERT_EQUAL(3, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(3, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("[]", 0);
-  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("[]", 1);
-  ASSERT_EQUAL(1, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(1, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("[]", 2);
-  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("[]", 3);
   ASSERT_EQUAL(Qnil, result.value());
 
   result = vec.call("[]", -1);
-  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("[]", -2);
-  ASSERT_EQUAL(1, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(1, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("[]", -3);
-  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("[]", -4);
-  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("[]", -7);
-  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 }
 
 TESTCASE(Sizing)
@@ -146,12 +146,12 @@ TESTCASE(Sizing)
   vec.call("resize", 10);
 
   Object result = vec.call("size");
-  ASSERT_EQUAL(10, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(10, detail::From_Ruby<int32_t>().convert(result));
 
   vec.call("clear");
 
   result = vec.call("size");
-  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 }
 
 TESTCASE(ToString)
@@ -163,12 +163,12 @@ TESTCASE(ToString)
   vec.call("resize", 3);
 
   Object result = vec.call("to_s");
-  ASSERT_EQUAL("[0, 0, 0]", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("[0, 0, 0]", detail::From_Ruby<std::string>().convert(result));
 
   vec.call("clear");
 
   result = vec.call("to_s");
-  ASSERT_EQUAL("[]", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("[]", detail::From_Ruby<std::string>().convert(result));
 }
 
 TESTCASE(Update)
@@ -181,13 +181,13 @@ TESTCASE(Update)
   vec.call("push", "original 2");
 
   Object result = vec.call("size");
-  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("[]=", 1, "new 2");
-  ASSERT_EQUAL("new 2", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("new 2", detail::From_Ruby<std::string>().convert(result));
 
   result = vec.call("[]", 1);
-  ASSERT_EQUAL("new 2", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("new 2", detail::From_Ruby<std::string>().convert(result));
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -209,31 +209,31 @@ TESTCASE(Modify)
   ASSERT(result.is_equal(vec));
 
   result = vec.call("size");
-  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("insert", 1, 33);
   ASSERT(result.is_equal(vec));
 
   result = vec.call("to_s");
-  ASSERT_EQUAL("[11, 33, 22]", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("[11, 33, 22]", detail::From_Ruby<std::string>().convert(result));
 
   result = vec.call("delete", 11);
-  ASSERT_EQUAL(11, detail::From_Ruby<int64_t>::convert(result));
+  ASSERT_EQUAL(11, detail::From_Ruby<int64_t>().convert(result));
 
   result = vec.call("size");
-  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("delete_at", 0);
-  ASSERT_EQUAL(33, detail::From_Ruby<int64_t>::convert(result));
+  ASSERT_EQUAL(33, detail::From_Ruby<int64_t>().convert(result));
 
   result = vec.call("size");
-  ASSERT_EQUAL(1, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(1, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("pop");
-  ASSERT_EQUAL(22, detail::From_Ruby<int64_t>::convert(result));
+  ASSERT_EQUAL(22, detail::From_Ruby<int64_t>().convert(result));
 
   result = vec.call("size");
-  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("pop");
   ASSERT_EQUAL(Qnil, result.value());
@@ -252,9 +252,9 @@ TESTCASE(Iterate)
 
   Array result = m.instance_eval(code);
   ASSERT_EQUAL(3, result.size());
-  ASSERT_EQUAL(10.0, detail::From_Ruby<double>::convert(result[0].value()));
-  ASSERT_EQUAL(12.0, detail::From_Ruby<double>::convert(result[1].value()));
-  ASSERT_EQUAL(14.0, detail::From_Ruby<double>::convert(result[2].value()));
+  ASSERT_EQUAL(10.0, detail::From_Ruby<double>().convert(result[0].value()));
+  ASSERT_EQUAL(12.0, detail::From_Ruby<double>().convert(result[1].value()));
+  ASSERT_EQUAL(14.0, detail::From_Ruby<double>().convert(result[2].value()));
 }
 
 namespace
@@ -286,7 +286,7 @@ TESTCASE(NotComparable)
   ASSERT_EQUAL(Qnil, result.value());
 
   result = vec.call("length");
-  ASSERT_EQUAL(3, detail::From_Ruby<size_t>::convert(result));
+  ASSERT_EQUAL(3, detail::From_Ruby<size_t>().convert(result));
 
   result = vec.call("include?", NotComparable(2));
   ASSERT_EQUAL(Qfalse, result.value());
@@ -307,7 +307,7 @@ TESTCASE(NotDefaultConstructable)
   ASSERT_EQUAL(Qnil, result.value());
 
   result = vec.call("length");
-  ASSERT_EQUAL(0, detail::From_Ruby<size_t>::convert(result));
+  ASSERT_EQUAL(0, detail::From_Ruby<size_t>().convert(result));
 }
 
 TESTCASE(NotPrintable)
@@ -323,7 +323,7 @@ TESTCASE(NotPrintable)
   vec.call("push", NotComparable(3));
 
   Object result = vec.call("to_s");
-  ASSERT_EQUAL("[Not printable]", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("[Not printable]", detail::From_Ruby<std::string>().convert(result));
 }
 
 namespace
@@ -369,17 +369,17 @@ TESTCASE(Comparable)
   vec.call("push", comparable3);
 
   Object result = vec.call("delete", Comparable(1));
-  Comparable comparable = detail::From_Ruby<Comparable>::convert(result);
+  Comparable comparable = detail::From_Ruby<Comparable>().convert(result);
   ASSERT_EQUAL(1, comparable.value_);
 
   result = vec.call("length");
-  ASSERT_EQUAL(2, detail::From_Ruby<size_t>::convert(result));
+  ASSERT_EQUAL(2, detail::From_Ruby<size_t>().convert(result));
 
   result = vec.call("include?", Comparable(2));
   ASSERT_EQUAL(Qtrue, result.value());
 
   result = vec.call("index", Comparable(3));
-  ASSERT_EQUAL(1, detail::From_Ruby<size_t>::convert(result.value()));
+  ASSERT_EQUAL(1, detail::From_Ruby<size_t>().convert(result.value()));
 }
 
 TESTCASE(DefaultConstructable)
@@ -394,7 +394,7 @@ TESTCASE(DefaultConstructable)
   ASSERT_EQUAL(Qnil, result.value());
 
   result = vec.call("length");
-  ASSERT_EQUAL(0, detail::From_Ruby<size_t>::convert(result));
+  ASSERT_EQUAL(0, detail::From_Ruby<size_t>().convert(result));
 }
 
 TESTCASE(Printable)
@@ -410,7 +410,7 @@ TESTCASE(Printable)
   vec.call("push", Comparable(3));
 
   Object result = vec.call("to_s");
-  ASSERT_EQUAL("[Comparable(1), Comparable(2), Comparable(3)]", detail::From_Ruby<std::string>::convert(result));
+  ASSERT_EQUAL("[Comparable(1), Comparable(2), Comparable(3)]", detail::From_Ruby<std::string>().convert(result));
 }
 
 namespace
@@ -464,9 +464,112 @@ TESTCASE(AutoRegisterParameter)
 
   Object result = vec.call("size");
   ASSERT_EQUAL("Rice::Std::Vector__complex__double___allocator__complex__double______", vec.class_name().str());
-  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>::convert(result));
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
-  std::vector<std::complex<double>> complexes = detail::From_Ruby<std::vector<std::complex<double>>>::convert(vec);
+  std::vector<std::complex<double>> complexes = detail::From_Ruby<std::vector<std::complex<double>>>().convert(vec);
   ASSERT_EQUAL(complexes[0], std::complex<double>(4, 4));
   ASSERT_EQUAL(complexes[1], std::complex<double>(5, 5));
+}
+
+namespace
+{
+  std::vector<int> ints;
+  std::vector<float> floats;
+  std::vector<std::string> strings;
+
+  void arrayToVector(std::vector<int> aInts, std::vector<float> aFloats, std::vector<std::string> aStrings)
+  {
+    ints = aInts;
+    floats = aFloats;
+    strings = aStrings;
+  }
+
+  void arrayToVectorRefs(std::vector<int>& aInts, std::vector<float>& aFloats, std::vector<std::string>& aStrings)
+  {
+    ints = aInts;
+    floats = aFloats;
+    strings = aStrings;
+  }
+
+  void arrayToVectorPointers(std::vector<int>* aInts, std::vector<float>* aFloats, std::vector<std::string>* aStrings)
+  {
+    ints = *aInts;
+    floats = *aFloats;
+    strings = *aStrings;
+  }
+}
+
+TESTCASE(ArrayToVector)
+{
+  define_global_function("array_to_vector", &arrayToVector);
+
+  Module m = define_module("Testing");
+
+  std::string code = "array_to_vector([7, 9, 1_000_000], [49.0, 78.0, 999.0], %w[one two three])";
+  m.instance_eval(code);
+
+  ASSERT_EQUAL(3, ints.size());
+  ASSERT_EQUAL(7, ints[0]);
+  ASSERT_EQUAL(9, ints[1]);
+  ASSERT_EQUAL(1'000'000, ints[2]);
+
+  ASSERT_EQUAL(3, floats.size());
+  ASSERT_EQUAL(49.0, floats[0]);
+  ASSERT_EQUAL(78.0, floats[1]);
+  ASSERT_EQUAL(999.0, floats[2]);
+
+  ASSERT_EQUAL(3, strings.size());
+  ASSERT_EQUAL("one", strings[0]);
+  ASSERT_EQUAL("two", strings[1]);
+  ASSERT_EQUAL("three", strings[2]);
+}
+
+TESTCASE(ArrayToVectorRefs)
+{
+  define_global_function("array_to_vector_refs", &arrayToVectorRefs);
+
+  Module m = define_module("Testing");
+
+  std::string code = "array_to_vector_refs([8, 10, 1_000_001], [50.0, 79.0, 1_000.0], %w[eleven twelve thirteen])";
+  m.instance_eval(code);
+
+  ASSERT_EQUAL(3, ints.size());
+  ASSERT_EQUAL(8, ints[0]);
+  ASSERT_EQUAL(10, ints[1]);
+  ASSERT_EQUAL(1'000'001, ints[2]);
+
+  ASSERT_EQUAL(3, floats.size());
+  ASSERT_EQUAL(50.0, floats[0]);
+  ASSERT_EQUAL(79.0, floats[1]);
+  ASSERT_EQUAL(1'000.0, floats[2]);
+
+  ASSERT_EQUAL(3, strings.size());
+  ASSERT_EQUAL("eleven", strings[0]);
+  ASSERT_EQUAL("twelve", strings[1]);
+  ASSERT_EQUAL("thirteen", strings[2]);
+}
+
+TESTCASE(ArrayToVectorPointers)
+{
+  define_global_function("array_to_vector_pointers", &arrayToVectorPointers);
+
+  Module m = define_module("Testing");
+
+  std::string code = "array_to_vector_pointers([9, 11, 1_000_002], [51.0, 80.0, 1_001.0], %w[fourteen fifteen sixteen])";
+  m.instance_eval(code);
+
+  ASSERT_EQUAL(3, ints.size());
+  ASSERT_EQUAL(9, ints[0]);
+  ASSERT_EQUAL(11, ints[1]);
+  ASSERT_EQUAL(1'000'002, ints[2]);
+
+  ASSERT_EQUAL(3, floats.size());
+  ASSERT_EQUAL(51.0, floats[0]);
+  ASSERT_EQUAL(80.0, floats[1]);
+  ASSERT_EQUAL(1'001.0, floats[2]);
+
+  ASSERT_EQUAL(3, strings.size());
+  ASSERT_EQUAL("fourteen", strings[0]);
+  ASSERT_EQUAL("fifteen", strings[1]);
+  ASSERT_EQUAL("sixteen", strings[2]);
 }
