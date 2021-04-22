@@ -78,15 +78,6 @@ namespace Rice::detail
     auto rubyFunction = RubyFunction<Function_T, Return_T, Arg_Ts...>(func, args...);
     return rubyFunction();
   }
-
-  /*// Create a functor for calling a Ruby function that returns void
-  template<typename ...Arg_Ts>
-  inline void protect(void(*func)(Arg_Ts...), Arg_Ts...args)
-  {
-    using Function_T = void(*)(Arg_Ts...);
-    auto rubyFunction = Ruby_Function<Function_T, void, Arg_Ts...>(func, args...);
-    rubyFunction();
-  }*/
 }
 
 namespace Rice
