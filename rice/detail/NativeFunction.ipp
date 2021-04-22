@@ -72,7 +72,7 @@ namespace Rice::detail
   template<std::size_t... I>
   typename NativeFunction<Function_T, IsMethod>::From_Ruby_Ts NativeFunction<Function_T, IsMethod>::createFromRuby(std::index_sequence<I...>& indices)
   {
-    return std::make_tuple(createFromRuby<remove_cv_recursive_t<std::tuple_element<I, Arg_Ts>::type>, I>()...);
+    return std::make_tuple(createFromRuby<remove_cv_recursive_t<typename std::tuple_element<I, Arg_Ts>::type>, I>()...);
   }
 
   template<typename Function_T, bool IsMethod>
