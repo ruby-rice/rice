@@ -477,9 +477,17 @@ namespace Rice::detail
     {
     }
 
+    explicit From_Ruby(bool isValue) : isValue_(isValue)
+    {
+    }
+
     unsigned long convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (this->isValue_)
+      {
+        return value;
+      }
+      else if (value == Qnil && this->defaultValue_)
       {
         return this->defaultValue_.value();
       }
@@ -491,6 +499,7 @@ namespace Rice::detail
   
   private:
     std::optional<unsigned long> defaultValue_;
+    unsigned long isValue_;
   };
 
   template<>
