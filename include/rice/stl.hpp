@@ -14,13 +14,74 @@ namespace Rice::detail
   struct is_builtin<std::string> : public std::true_type {};
 
   template<>
-  struct From_Ruby<std::string>
+  class From_Ruby<std::string>
   {
-    static std::string convert(VALUE value)
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(std::string defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    std::string convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        detail::protect(rb_check_type, value, (int)T_STRING);
+        return std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      }
+    }
+
+  private:
+    std::optional<std::string> defaultValue_;
+  };
+
+  template<>
+  class From_Ruby<std::string*>
+  {
+  public:
+    std::string* convert(VALUE value)
     {
       detail::protect(rb_check_type, value, (int)T_STRING);
-      return std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      return &this->converted_;
     }
+
+  private:
+    std::string converted_;
+  };
+
+  template<>
+  class From_Ruby<std::string&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(std::string defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    std::string& convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        detail::protect(rb_check_type, value, (int)T_STRING);
+        this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+        return this->converted_;
+      }
+    }
+
+  private:
+    std::optional<std::string> defaultValue_;
+    std::string converted_;
   };
 
   template<>
@@ -46,16 +107,33 @@ namespace Rice::detail
   struct is_builtin<std::complex<T>> : public std::true_type {};
 
   template<typename T>
-  struct From_Ruby<std::complex<T>>
+  class From_Ruby<std::complex<T>>
   {
-    static std::complex<T> convert(VALUE value)
+  public:
+    std::complex<T> convert(VALUE value)
     {
       VALUE real = protect(rb_funcall2, value, rb_intern("real"), 0, (const VALUE*)nullptr);
       VALUE imaginary = protect(rb_funcall2, value, rb_intern("imaginary"), 0, (const VALUE*)nullptr);
 
-      return std::complex<T>(From_Ruby<T>::convert(real),
-        From_Ruby<T>::convert(imaginary));
+      return std::complex<T>(From_Ruby<T>().convert(real), From_Ruby<T>().convert(imaginary));
     }
+  };
+
+  template<typename T>
+  class From_Ruby<std::complex<T>&>
+  {
+  public:
+    std::complex<T>& convert(VALUE value)
+    {
+      VALUE real = protect(rb_funcall2, value, rb_intern("real"), 0, (const VALUE*)nullptr);
+      VALUE imaginary = protect(rb_funcall2, value, rb_intern("imaginary"), 0, (const VALUE*)nullptr);
+      this->converted_ = std::complex<T>(From_Ruby<T>().convert(real), From_Ruby<T>().convert(imaginary));
+
+      return this->converted_;
+    }
+
+  private:
+    std::complex<T> converted_;
   };
 
   template<typename T>
@@ -117,9 +195,10 @@ namespace Rice::detail
   };
 
   template<typename T>
-  struct From_Ruby<std::optional<T>>
+  class From_Ruby<std::optional<T>>
   {
-    static std::optional<T> convert(VALUE value)
+  public:
+    std::optional<T> convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -127,9 +206,30 @@ namespace Rice::detail
       }
       else
       {
-        return From_Ruby<T>::convert(value);
+        return From_Ruby<T>().convert(value);
       }
     }
+  };
+
+  template<typename T>
+  class From_Ruby<std::optional<T>&>
+  {
+  public:
+    std::optional<T>& convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        this->converted_ = std::nullopt;
+      }
+      else
+      {
+        this->converted_ = From_Ruby<T>().convert(value);
+      }
+      return this->converted_;
+    }
+    
+  private:
+    std::optional<T> converted_;
   };
 }
 
@@ -366,9 +466,10 @@ namespace Rice::detail
   };
 
   template <typename T>
-  struct From_Ruby<std::unique_ptr<T>&>
+  class From_Ruby<std::unique_ptr<T>&>
   {
-    static std::unique_ptr<T>& convert(VALUE value)
+  public:
+    std::unique_ptr<T>& convert(VALUE value)
     {
       Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::rb_type());
 
@@ -408,9 +509,10 @@ namespace Rice::detail
   };
 
   template <typename T>
-  struct From_Ruby<std::shared_ptr<T>>
+  class From_Ruby<std::shared_ptr<T>>
   {
-    static std::shared_ptr<T> convert(VALUE value)
+  public:
+    std::shared_ptr<T> convert(VALUE value)
     {
       Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::rb_type());
 
@@ -426,9 +528,10 @@ namespace Rice::detail
   };
 
   template <typename T>
-  struct From_Ruby<std::shared_ptr<T>&>
+  class From_Ruby<std::shared_ptr<T>&>
   {
-    static std::shared_ptr<T>& convert(VALUE value)
+  public:
+    std::shared_ptr<T>& convert(VALUE value)
     {
       Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::rb_type());
 
@@ -820,6 +923,119 @@ namespace Rice
 
         return true;
       }
+    };
+
+    template<typename T>
+    std::vector<T> vectorFromArray(VALUE value)
+    {
+      size_t length = protect(rb_array_len, value);
+      std::vector<T> result(length);
+
+      for (long i = 0; i < length; i++)
+      {
+        VALUE element = protect(rb_ary_entry, value, i);
+        result[i] = From_Ruby<T>().convert(element);
+      }
+
+      return result;
+    }
+
+    template<typename T>
+    class From_Ruby<std::vector<T>>
+    {
+    public:
+      std::vector<T> convert(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case T_DATA:
+          {
+            // This is a wrapped vector (hopefully!)
+            return *Data_Object<std::vector<T>>::from_ruby(value);
+          }
+          case T_ARRAY:
+          {
+            // If this an Ruby array and the vector type is copyable
+            if constexpr (std::is_default_constructible_v<T>)
+            {
+              return vectorFromArray<T>(value);
+            }
+          }
+          default:
+          {
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::vector");
+          }
+        }
+      }
+    };
+
+    template<typename T>
+    class From_Ruby<std::vector<T>&>
+    {
+    public:
+      std::vector<T>& convert(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case T_DATA:
+          {
+            // This is a wrapped vector (hopefully!)
+            return *Data_Object<std::vector<T>>::from_ruby(value);
+          }
+          case T_ARRAY:
+          {
+            // If this an Ruby array and the vector type is copyable
+            if constexpr (std::is_default_constructible_v<T>)
+            {
+              this->converted_ = vectorFromArray<T>(value);
+              return this->converted_;
+            }
+          }
+          default:
+          {
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::vector");
+          }
+        }
+      }
+
+    private:
+      std::vector<T> converted_;
+    };
+
+    template<typename T>
+    class From_Ruby<std::vector<T>*>
+    {
+    public:
+      std::vector<T>* convert(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case T_DATA:
+          {
+            // This is a wrapped vector (hopefully!)
+            return Data_Object<std::vector<T>>::from_ruby(value);
+          }
+          case T_ARRAY:
+          {
+            // If this an Ruby array and the vector type is copyable
+            if constexpr (std::is_default_constructible_v<T>)
+            {
+              this->converted_ = vectorFromArray<T>(value);
+              return &this->converted_;
+            }
+          }
+          default:
+          {
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::vector");
+          }
+        }
+      }
+
+    private:
+      std::vector<T> converted_;
     };
   }
 }

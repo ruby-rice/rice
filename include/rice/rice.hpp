@@ -53,6 +53,42 @@ namespace Rice
     template<typename T>
     using intrinsic_type = typename std::remove_cv_t<std::remove_reference_t<std::remove_pointer_t<T>>>;
 
+    // Recursively remove const/volatilr
+    template<typename T>
+    struct remove_cv_recursive
+    {
+      using type = T;
+    };
+
+    template<typename T>
+    struct remove_cv_recursive<T const volatile>
+    {
+      using type = std::remove_cv_t<T>;
+    };
+
+    template<typename T> struct remove_cv_recursive<T volatile>
+    {
+      using type = std::remove_cv_t<T>;
+    };
+
+    template<typename T> struct remove_cv_recursive<T const>
+    {
+      using type = std::remove_cv_t<T>;
+    };
+
+    template<typename T> struct remove_cv_recursive<T&>
+    {
+      using type = std::remove_cv_t<T>&;
+    };
+
+    template<typename T> struct remove_cv_recursive<T*>
+    {
+      using type = std::remove_cv_t<T>*;
+    };
+
+    template<typename T>
+    using remove_cv_recursive_t = typename remove_cv_recursive<T>::type;
+
     // Does the Type work with ostreams? This is used to implement #to_s
     template<typename T, typename = void>
     struct is_ostreamable : std::false_type {};
@@ -95,13 +131,13 @@ namespace Rice
       using type = std::tuple<Arg_Ts...>;
     };
      
-    template<template<typename, typename = void> typename T, typename...Arg_Ts>
+    template<template<typename, typename...> typename T, typename...Arg_Ts>
     struct tuple_map;
 
-    template<template<typename, typename = void> typename T, typename...Arg_Ts>
+    template<template<typename, typename...> typename T, typename...Arg_Ts>
     struct tuple_map<T, std::tuple<Arg_Ts...>>
     {
-      using type = std::tuple<T<Arg_Ts>...>;
+      using type = std::tuple<T<remove_cv_recursive_t<Arg_Ts>>...>;
     };
   } // detail
 } // Rice
@@ -879,9 +915,6 @@ namespace Rice::detail
 
   template<typename Return_T, typename ...Arg_Ts>
   Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args);
-
- // template<typename ...Arg_Ts>
- // inline void protect(void(*func)(Arg_Ts...), Arg_Ts...args);
 }
 
 namespace Rice
@@ -971,15 +1004,6 @@ namespace Rice::detail
     auto rubyFunction = RubyFunction<Function_T, Return_T, Arg_Ts...>(func, args...);
     return rubyFunction();
   }
-
-  /*// Create a functor for calling a Ruby function that returns void
-  template<typename ...Arg_Ts>
-  inline void protect(void(*func)(Arg_Ts...), Arg_Ts...args)
-  {
-    using Function_T = void(*)(Arg_Ts...);
-    auto rubyFunction = Ruby_Function<Function_T, void, Arg_Ts...>(func, args...);
-    rubyFunction();
-  }*/
 }
 
 namespace Rice
@@ -1029,8 +1053,8 @@ namespace Rice::detail
    *  \endcode
    */
 
-  template <typename T, typename = void>
-  struct From_Ruby;
+  template <typename T>
+  class From_Ruby;
 }
 
 #endif // Rice__detail__From_Ruby2_defn__hpp_
@@ -1039,100 +1063,721 @@ namespace Rice::detail
 #ifndef Rice__detail__from_ruby__ipp_
 #define Rice__detail__from_ruby__ipp_
 
+#include <optional>
 #include <stdexcept>
 
 /* This file implements conversions from Ruby to native values fo fundamental types 
    such as bool, int, float, etc. It also includes conversions for chars and strings */
 namespace Rice::detail
 {
+  // ===========  short  ============
   template<>
-  struct From_Ruby<short>
+  class From_Ruby<short>
   {
-    static short convert(VALUE value)
-    {
-      return protect(rb_num2short_inline, value);
-    }
-  };
+  public:
+    From_Ruby() = default;
 
-  template<>
-  struct From_Ruby<int>
-  {
-    static int convert(VALUE value)
+    explicit From_Ruby(short defaultValue) : defaultValue_(defaultValue)
     {
-      return (int)protect(rb_num2long_inline, value);
     }
-  };
 
-  template<>
-  struct From_Ruby<long>
-  {
-    static long convert(VALUE value)
+    short convert(VALUE value)
     {
-      return protect(rb_num2long_inline, value);
-    }
-  };
-
-  template<>
-  struct From_Ruby<long long>
-  {
-    static long long convert(VALUE value)
-    {
-      return protect(rb_num2ll_inline, value);
-    }
-  };
-
-  template<>
-  struct From_Ruby<unsigned short>
-  {
-    static unsigned short convert(VALUE value)
-    {
-      return protect(rb_num2ushort, value);
-    }
-  };
-
-  template<>
-  struct From_Ruby<unsigned int>
-  {
-    static unsigned int convert(VALUE value)
-    {
-      return (unsigned int)protect(rb_num2ulong_inline, value);
-    }
-  };
-
-  template<>
-  struct From_Ruby<unsigned long>
-  {
-    static unsigned long convert(VALUE value)
-    {
-      return protect(rb_num2ulong_inline, value);
-    }
-  };
-
-  template<>
-  struct From_Ruby<unsigned long long>
-  {
-    static unsigned long long convert(VALUE value)
-    {
-      return protect(rb_num2ull, value);
-    }
-  };
-
-  template<>
-  struct From_Ruby<bool>
-  {
-    static bool convert(VALUE value)
-    {
-      return RTEST(value);
-    }
-  };
-
-  template<>
-  struct From_Ruby<char>
-  {
-    static char convert(VALUE value)
-    {
-      switch (rb_type(value))
+      if (value == Qnil && this->defaultValue_)
       {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        return protect(rb_num2short_inline, value);
+      }
+    }
+  
+  private:
+    std::optional<short> defaultValue_;
+  };
+
+  template<>
+  class From_Ruby<short&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(short defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    short& convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        this->converted_ = protect(rb_num2short_inline, value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    std::optional<short> defaultValue_;
+    short converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<short*>
+  {
+  public:
+    short* convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        this->converted_ = protect(rb_num2short_inline, value);
+        return &this->converted_;
+      }
+    }
+
+  private:
+    short converted_ = 0;
+  };
+
+  // ===========  int  ============
+  template<>
+  class From_Ruby<int>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(int defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    int convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        return (int)protect(rb_num2long_inline, value);
+      }
+    }
+  
+  private:
+    std::optional<int> defaultValue_;
+  };
+
+  template<>
+  class From_Ruby<int&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(int defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    int& convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        this->converted_ = (int)protect(rb_num2long_inline, value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    std::optional<int> defaultValue_;
+    int converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<int*>
+  {
+  public:
+    int* convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        this->converted_ = (int)protect(rb_num2long_inline, value);
+        return &this->converted_;
+      }
+    }
+
+  private:
+    int converted_;
+  };
+
+  // ===========  long  ============
+  template<>
+  class From_Ruby<long>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(long defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    long convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        return protect(rb_num2long_inline, value);
+      }
+    }
+  
+  private:
+    std::optional<long> defaultValue_;
+  };
+
+  template<>
+  class From_Ruby<long&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(long defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    long& convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        this->converted_ = protect(rb_num2long_inline, value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    std::optional<long> defaultValue_;
+    long converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<long*>
+  {
+  public:
+    long* convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        this->converted_ = protect(rb_num2long_inline, value);
+        return &this->converted_;
+      }
+    }
+
+  private:
+    long converted_ = 0;
+  };
+
+  // ===========  long long  ============
+  template<>
+  class From_Ruby<long long>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(long long defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    long long convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        return protect(rb_num2ll_inline, value);
+      }
+    }
+  
+  private:
+    std::optional<long long> defaultValue_;
+  };
+
+  template<>
+  class From_Ruby<long long&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(long long defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    long long& convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        this->converted_ = protect(rb_num2ll_inline, value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    std::optional<long long> defaultValue_;
+    long long converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<long long*>
+  {
+  public:
+    long long* convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        this->converted_ = protect(rb_num2ll_inline, value);
+        return &this->converted_;
+      }
+    }
+
+  private:
+    long long converted_ = 0;
+  };
+
+  // ===========  unsigned short  ============
+  template<>
+  class From_Ruby<unsigned short>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(unsigned short defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    unsigned short convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        return protect(rb_num2ushort, value);
+      }
+    }
+  
+  private:
+    std::optional<unsigned short> defaultValue_;
+  };
+
+  template<>
+  class From_Ruby<unsigned short&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(unsigned short defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    unsigned short& convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        this->converted_ = protect(rb_num2ushort, value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    std::optional<unsigned short> defaultValue_;
+    unsigned short converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<unsigned short*>
+  {
+  public:
+    unsigned short* convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        this->converted_ = protect(rb_num2ushort, value);
+        return &this->converted_;
+      }
+    }
+
+  private:
+    unsigned short converted_ = 0;
+  };
+
+  // ===========  unsigned int  ============
+  template<>
+  class From_Ruby<unsigned int>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(unsigned int defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    unsigned int convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        return (unsigned int)protect(rb_num2ulong_inline, value);
+      }
+    }
+  
+  private:
+    std::optional<unsigned int> defaultValue_;
+  };
+
+  template<>
+  class From_Ruby<unsigned int&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(unsigned int defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    unsigned int& convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        this->converted_ = (unsigned int)protect(rb_num2ulong_inline, value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    std::optional<unsigned int> defaultValue_;
+    unsigned int converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<unsigned int*>
+  {
+  public:
+    unsigned int* convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        this->converted_ = (unsigned int)protect(rb_num2ulong_inline, value);
+        return &this->converted_;
+      }
+    }
+
+  private:
+    unsigned int converted_ = 0;
+  };
+
+  // ===========  unsigned long  ============
+  template<>
+  class From_Ruby<unsigned long>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(unsigned long defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    explicit From_Ruby(bool isValue) : isValue_(isValue)
+    {
+    }
+
+    unsigned long convert(VALUE value)
+    {
+      if (this->isValue_)
+      {
+        return value;
+      }
+      else if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        return protect(rb_num2ulong_inline, value);
+      }
+    }
+  
+  private:
+    std::optional<unsigned long> defaultValue_;
+    unsigned long isValue_;
+  };
+
+  template<>
+  class From_Ruby<unsigned long&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(unsigned long defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    unsigned long& convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        this->converted_ = protect(rb_num2ulong_inline, value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    std::optional<unsigned long> defaultValue_;
+    unsigned long converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<unsigned long*>
+  {
+  public:
+    unsigned long* convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        this->converted_ = protect(rb_num2ulong_inline, value);
+        return &this->converted_;
+      }
+    }
+
+  private:
+    unsigned long converted_ = 0;
+  };
+
+  // ===========  unsigned long long  ============
+  template<>
+  class From_Ruby<unsigned long long>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(unsigned long long defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    explicit From_Ruby(bool isValue) : isValue_(isValue)
+    {
+    }
+
+    unsigned long long convert(VALUE value)
+    {
+      if (this->isValue_)
+      {
+        return value;
+      }
+      else if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        return protect(rb_num2ull, value);
+      }
+    }
+  
+  private:
+    std::optional<unsigned long long> defaultValue_;
+    bool isValue_ = false;
+  };
+
+  template<>
+  class From_Ruby<unsigned long long&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(unsigned long long defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    unsigned long long& convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        this->converted_ = protect(rb_num2ull, value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    std::optional<unsigned long long> defaultValue_;
+    unsigned long long converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<unsigned long long*>
+  {
+  public:
+    unsigned long long* convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        this->converted_ = protect(rb_num2ull, value);
+        return &this->converted_;
+      }
+    }
+
+  private:
+    unsigned long long converted_ = 0;
+  };
+
+  // ===========  bool  ============
+  template<>
+  class From_Ruby<bool>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(bool defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    bool convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        return RTEST(value);
+      }
+    }
+  
+  private:
+    std::optional<bool> defaultValue_;
+  };
+
+  template<>
+  class From_Ruby<bool&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(bool defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    bool convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        this->converted_ = RTEST(value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    std::optional<bool> defaultValue_;
+    bool converted_ = false;
+  };
+
+  template<>
+  class From_Ruby<bool*>
+  {
+  public:
+    bool* convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        this->converted_ = RTEST(value);
+        return &this->converted_;
+      }
+    }
+
+  private:
+    bool converted_ = false;
+  };
+
+  // ===========  char  ============
+  template<typename T>
+  inline T charFromRuby(VALUE value)
+  {
+    switch (rb_type(value))
+    {
       case T_STRING:
       {
         if (RSTRING_LEN(value) == 1)
@@ -1147,22 +1792,76 @@ namespace Rice::detail
       }
       case T_FIXNUM:
       {
-        return From_Ruby<long>::convert(value) & 0xff;
+        return From_Ruby<long>().convert(value) & 0xff;
         break;
       }
       default:
       {
         throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
-          detail::protect(rb_obj_classname, value), "char");
-      }
+          detail::protect(rb_obj_classname, value), "char type");
       }
     }
+  }
+  
+  template<>
+  class From_Ruby<char>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(char defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    char convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        return charFromRuby<char>(value);
+      }
+    }
+  
+  private:
+    std::optional<char> defaultValue_;
   };
 
   template<>
-  struct From_Ruby<char*>
+  class From_Ruby<char&>
   {
-    static char* convert(VALUE value)
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(char defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    char& convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        this->converted_ = charFromRuby<char>(value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    std::optional<char> defaultValue_;
+    char converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<char*>
+  {
+  public:
+    char* convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -1170,15 +1869,18 @@ namespace Rice::detail
       }
       else
       {
+        detail::protect(rb_check_type, value, (int)T_STRING);
         return RSTRING_PTR(value);
       }
     }
   };
-
+  
+  // This is mostly for testing. NativeFunction removes const before calling From_Ruby
   template<>
-  struct From_Ruby<char const*>
+  class From_Ruby<char const*>
   {
-    static char const* convert(VALUE value)
+  public:
+    char const* convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -1186,68 +1888,202 @@ namespace Rice::detail
       }
       else
       {
-        protect(rb_check_type, value, (int)T_STRING);
+        detail::protect(rb_check_type, value, (int)T_STRING);
         return RSTRING_PTR(value);
       }
     }
   };
 
+  // ===========  unsinged char  ============
   template<>
-  struct From_Ruby<unsigned char>
+  class From_Ruby<unsigned char>
   {
-    static unsigned char convert(VALUE value)
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(unsigned char defaultValue) : defaultValue_(defaultValue)
     {
-      switch (rb_type(value))
+    }
+
+    unsigned char convert(VALUE value)
+    {
+      return charFromRuby<unsigned char>(value);
+    }
+  
+  private:
+    std::optional<unsigned char> defaultValue_;
+  };
+
+  // ===========  signed char  ============
+  template<>
+  class From_Ruby<signed char>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(signed char defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    signed char convert(VALUE value)
+    {
+      return charFromRuby<signed char>(value);
+    }
+  
+  private:
+    std::optional<signed char> defaultValue_;
+  };
+
+  // ===========  double  ============
+  template<>
+  class From_Ruby<double>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(double defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    double convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
       {
-      case T_FIXNUM:
-      {
-        return From_Ruby<long>::convert(value) & 0xff;
-        break;
+        return this->defaultValue_.value();
       }
-      default:
+      else
       {
-        throw std::invalid_argument("Cannot convert Ruby value to unsigned char");
-      }
+        return protect(rb_num2dbl, value);
       }
     }
+  
+  private:
+    std::optional<double> defaultValue_;
   };
 
   template<>
-  struct From_Ruby<signed char>
+  class From_Ruby<double&>
   {
-    static signed char convert(VALUE value)
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(double defaultValue) : defaultValue_(defaultValue)
     {
-      switch (rb_type(value))
+    }
+
+    double& convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
       {
-      case T_FIXNUM:
-      {
-        return From_Ruby<long>::convert(value) & 0xff;
-        break;
+        return this->defaultValue_.value();
       }
-      default:
+      else
       {
-        throw std::invalid_argument("Cannot convert Ruby value to unsigned char");
-      }
+        this->converted_ = protect(rb_num2dbl, value);
+        return this->converted_;
       }
     }
+
+  private:
+    std::optional<double> defaultValue_;
+    double converted_;
   };
 
   template<>
-  struct From_Ruby<double>
+  class From_Ruby<double*>
   {
-    static double convert(VALUE value)
+  public:
+    double* convert(VALUE value)
     {
-      return protect(rb_num2dbl, value);
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        this->converted_ = protect(rb_num2dbl, value);
+        return &this->converted_;
+      }
     }
+
+  private:
+    double converted_;
+  };
+
+  // ===========  float  ============
+  template<>
+  class From_Ruby<float>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(float defaultValue) : defaultValue_(defaultValue)
+    {
+    }
+
+    float convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        return (float)protect(rb_num2dbl, value);
+      }
+    }
+  
+  private:
+    std::optional<float> defaultValue_;
   };
 
   template<>
-  struct From_Ruby<float>
+  class From_Ruby<float&>
   {
-    static float convert(VALUE value)
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(float defaultValue) : defaultValue_(defaultValue)
     {
-      return (float)protect(rb_num2dbl, value);
     }
+
+    float& convert(VALUE value)
+    {
+      if (value == Qnil && this->defaultValue_)
+      {
+        return this->defaultValue_.value();
+      }
+      else
+      {
+        this->converted_ = (float)protect(rb_num2dbl, value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    std::optional<float> defaultValue_;
+    float converted_;
+  };
+
+  template<>
+  class From_Ruby<float*>
+  {
+  public:
+    float* convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        this->converted_ = (float)protect(rb_num2dbl, value);
+        return &this->converted_;
+      }
+    }
+
+  private:
+    float converted_;
   };
 }
 #endif // Rice__detail__from_ruby__ipp_
@@ -1490,47 +2326,34 @@ namespace Rice
 }
 
 
-// =========   ReturnInfo.hpp   =========
+// =========   Return.hpp   =========
 
 #include <any>
 
 namespace Rice
 {
   //! Helper for defining Return argument of a method
-  /*! This class exposes the ability to define the default values of a
-   *  wrapped method. Inspired by how Boost.Python handles keyword and
-   *  default arguments, the syntax is simple:
-   *
-   *  \code
-   *    define_method(
-   *      "method",
-   *      &method,
-   *      (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true)
-   *    );
-   *  \endcode
-   *
-   *  which means "for method &method, it takes 3 arguments
-   *  [arg1, arg2, arg3]. Of these arguments, arg2's default is 3
-   *  and arg3's default is true.
-   *
-   *  It may be required to explicitly cast the type of the default
-   *  value to prevent compilation errors.
-   */
 
-  class ReturnInfo
+  class Return
   {
   public:
     //! Specifies Ruby should take ownership of the returned value
-    ReturnInfo& takeOwnership();
+    Return& takeOwnership();
 
     //! Does Ruby own the returned value?
     bool isOwner();
 
     //! Specifies the returned value is a Ruby value
-    ReturnInfo& isValue();
+    Return& isValue();
 
     //! Is the returned value a Ruby value?
     bool getIsValue();
+
+    //! Tell the returned object to keep alive the receving object
+    Return& keepAlive();
+
+  public:
+    bool isKeepAlive = false;
 
   private:
     bool isOwner_ = false;
@@ -1539,32 +2362,38 @@ namespace Rice
 } // Rice
 
 
-// ---------   ReturnInfo.ipp   ---------
+// ---------   Return.ipp   ---------
 #include <any>
 #include <string>
 
 namespace Rice
 {
-  inline ReturnInfo& ReturnInfo::takeOwnership()
+  inline Return& Return::takeOwnership()
   {
     this->isOwner_ = true;
     return *this;
   }
 
-  inline bool ReturnInfo::isOwner()
+  inline bool Return::isOwner()
   {
     return this->isOwner_;
   }
 
-  inline ReturnInfo& ReturnInfo::isValue()
+  inline Return& Return::isValue()
   {
     this->isValue_ = true;
     return *this;
   }
 
-  inline bool ReturnInfo::getIsValue()
+  inline bool Return::getIsValue()
   {
     return this->isValue_;
+  }
+
+  inline Return& Return::keepAlive()
+  {
+    this->isKeepAlive = true;
+    return *this;
   }
 }  // Rice
 
@@ -1723,7 +2552,7 @@ namespace Rice
     std::vector<Arg>::iterator begin();
     std::vector<Arg>::iterator end();
 
-    ReturnInfo returnInfo;
+    Return returnInfo;
 
   private:
     template <typename Arg_T>
@@ -1745,7 +2574,7 @@ namespace Rice
     (this->processArg(args), ...);
 
     // Fill in any missing arguments
-    for (size_t i = sizeof...(Arg_Ts); i < argCount; i++)
+    for (size_t i = this->args_.size(); i < argCount; i++)
     {
       Arg arg("arg_" + std::to_string(i));
       this->args_.emplace_back(arg);
@@ -1952,156 +2781,6 @@ namespace Rice::detail
 }
 
 #endif // Rice_Iterator__hpp_
-// =========   NativeArg.hpp   =========
-
-
-namespace Rice::detail
-{
-  // Primary Template for NativeArg
-  template <typename T, typename Enable = void>
-  class NativeArg;
-
-  // NativeArg implementation that works on fundamental types. It keeps a copy of the
-  // converted value so that a reference or a pointer to the value can be passed to 
-  // the native function.
-  template <typename T>
-  class NativeArg<T, typename std::enable_if_t<is_builtin_v<intrinsic_type<T>>>>
-  {
-  public:
-    using Intrinsic_T = intrinsic_type<T>;
-    NativeArg(Arg& arg);
-    T nativeValue(VALUE value);
-      
-  private:
-    Intrinsic_T native_;
-    Arg arg_;
-  };
-
-  // Special case char which is a native type but if we have a pointer we 
-  // want to pass through the underlying Ruby pointer
-  template <>
-  class NativeArg<char*>
-  {
-  public:
-    NativeArg(Arg& arg);
-    char* nativeValue(VALUE value);
-
-  private:
-    Arg arg_;
-  };
-
-  // Special case VALUE which could be a 64 bit integer or Ruby value.
-  template <>
-  class NativeArg<VALUE>
-  {
-  public:
-    NativeArg(Arg& arg);
-    VALUE nativeValue(VALUE value);
-
-  private:
-    Arg arg_;
-  };
-
-  // NativeArg implementation that works on all other types. The primary use is for 
-  // pointers wrapped by Data_Object where there is no reason to store a local copy.
-  template <typename T>
-  class NativeArg<T, typename std::enable_if_t<!is_builtin_v<intrinsic_type<T>>>>
-  {
-  public:
-    NativeArg() = default;
-    NativeArg(Arg& arg);
-    T nativeValue(VALUE value);
-
-  private:
-    Arg arg_;
-  };
-}
-
-
-// ---------   NativeArg.ipp   ---------
-
-namespace Rice::detail
-{
-  template<typename T>
-  inline NativeArg<T, typename std::enable_if_t<is_builtin_v<intrinsic_type<T>>>>::NativeArg(Arg& arg) :
-    arg_(arg)
-  {
-  }
-
-  template<typename T>
-  inline T NativeArg<T, typename std::enable_if_t<is_builtin_v<intrinsic_type<T>>>>::nativeValue(VALUE value)
-  {
-    if (value == Qnil && arg_.hasDefaultValue())
-    {
-      this->native_ = arg_.defaultValue<Intrinsic_T>();
-    }
-    else
-    {
-      this->native_ = From_Ruby<Intrinsic_T>::convert(value);
-    }
-
-    if constexpr (std::is_pointer_v<T>)
-    {
-      return &this->native_;
-    }
-    else
-    {
-      return this->native_;
-    }
-  }
-
-  inline NativeArg<char*>::NativeArg(Arg& arg) : arg_(arg)
-  {
-  }
-
-  inline char* NativeArg<char*>::nativeValue(VALUE value)
-  {
-    if (value == Qnil && arg_.hasDefaultValue())
-    {
-      return arg_.defaultValue<char*>();
-    }
-    else
-    {
-      return From_Ruby<char*>::convert(value);
-    }
-  }
-
-  inline NativeArg<VALUE>::NativeArg(Arg& arg) : arg_(arg)
-  {
-  }
-
-  inline VALUE NativeArg<VALUE>::nativeValue(VALUE value)
-  {
-    if (arg_.getIsValue())
-    {
-      return value;
-    }
-    else
-    {
-      return From_Ruby<VALUE>::convert(value);
-    }
-  }
-
-  template<typename T>
-  inline NativeArg<T, typename std::enable_if_t<!is_builtin_v<intrinsic_type<T>>>>::NativeArg(Arg& arg) :
-    arg_(arg)
-  {
-  }
-
-  template<typename T>
-  inline T NativeArg<T, typename std::enable_if_t<!is_builtin_v<intrinsic_type<T>>>>::nativeValue(VALUE value)
-  {
-    if (value == Qnil && arg_.hasDefaultValue())
-    {
-      return arg_.defaultValue<T>();
-    }
-    else
-    {
-      return From_Ruby<T>::convert(value);
-    }
-  }
-}
-
 // =========   NativeReturn.hpp   =========
 
 
@@ -2112,11 +2791,11 @@ namespace Rice::detail
   class NativeReturn
   {
   public:
-    NativeReturn(ReturnInfo returnInfo);
+    NativeReturn(Return returnInfo);
     VALUE getValue(T& native);
 
   private:
-    ReturnInfo returnInfo_;
+    Return returnInfo_;
   };
 
   // Special case VALUE which could be a 64 bit integer or Ruby value.
@@ -2124,11 +2803,11 @@ namespace Rice::detail
   class NativeReturn<VALUE>
   {
   public:
-    NativeReturn(ReturnInfo returnInfo);
+    NativeReturn(Return returnInfo);
     VALUE getValue(VALUE& native);
 
   private:
-    ReturnInfo returnInfo_;
+    Return returnInfo_;
   };
 
   // Special case void which should never happen due to if constexpr check but nevertheless MSVC
@@ -2137,11 +2816,11 @@ namespace Rice::detail
   class NativeReturn<void>
   {
   public:
-    NativeReturn(ReturnInfo returnInfo);
+    NativeReturn(Return returnInfo);
     VALUE getValue(VALUE& native);
 
   private:
-    ReturnInfo returnInfo_;
+    Return returnInfo_;
   };
 }
 
@@ -2151,7 +2830,7 @@ namespace Rice::detail
 namespace Rice::detail
 {
   template<typename T>
-  inline NativeReturn<T>::NativeReturn(ReturnInfo returnInfo) :
+  inline NativeReturn<T>::NativeReturn(Return returnInfo) :
     returnInfo_(returnInfo)
   {
   }
@@ -2163,7 +2842,7 @@ namespace Rice::detail
   }
 
   //template<>
-  inline NativeReturn<VALUE>::NativeReturn(ReturnInfo returnInfo) :
+  inline NativeReturn<VALUE>::NativeReturn(Return returnInfo) :
     returnInfo_(returnInfo)
   {
   }
@@ -2182,7 +2861,7 @@ namespace Rice::detail
   }
 
   //template<>
-  inline NativeReturn<void>::NativeReturn(ReturnInfo returnInfo) :
+  inline NativeReturn<void>::NativeReturn(Return returnInfo) :
     returnInfo_(returnInfo)
   {
   }
@@ -2510,12 +3189,12 @@ namespace Rice::detail
   {
     if constexpr (std::is_member_object_pointer_v<Attr_T>)
     {
-      Self_T* nativeSelf = From_Ruby<Self_T*>::convert(self);
-      return To_Ruby<Return_T>::convert(nativeSelf->*attr_, false);
+      Self_T* nativeSelf = From_Ruby<Self_T*>().convert(self);
+      return To_Ruby<Return_T>().convert(nativeSelf->*attr_, false);
     }
     else
     {
-      return To_Ruby<Return_T>::convert(*attr_, false);
+      return To_Ruby<Return_T>().convert(*attr_, false);
     }
   }
 
@@ -2524,12 +3203,12 @@ namespace Rice::detail
   {
     if constexpr (!std::is_const_v<std::remove_pointer_t<Attr_T>> && std::is_member_object_pointer_v<Attr_T>)
     {
-      Self_T* nativeSelf = From_Ruby<Self_T*>::convert(self);
-      nativeSelf->*attr_ = From_Ruby<Return_T>::convert(value);
+      Self_T* nativeSelf = From_Ruby<Self_T*>().convert(self);
+      nativeSelf->*attr_ = From_Ruby<Return_T>().convert(value);
     }
     else if constexpr (!std::is_const_v<std::remove_pointer_t<Attr_T>>)
     {
-      *attr_ = From_Ruby<Return_T>::convert(value);
+      *attr_ = From_Ruby<Return_T>().convert(value);
     }
     return value;
   }
@@ -2561,7 +3240,7 @@ namespace Rice::detail
     using Return_T = typename function_traits<Function_T>::return_type;
     using Self_T = typename method_traits<Function_T, IsMethod>::Self_T;
     using Arg_Ts = typename method_traits<Function_T, IsMethod>::Arg_Ts;
-    using Native_Arg_Ts = typename tuple_map<NativeArg, Arg_Ts>::type;
+    using From_Ruby_Ts = typename tuple_map<From_Ruby, Arg_Ts>::type;
 
     // Static member function that Ruby calls
     static VALUE call(int argc, VALUE* argv, VALUE self);
@@ -2573,22 +3252,25 @@ namespace Rice::detail
     VALUE operator()(int argc, VALUE* argv, VALUE self);
 
   private:
+    template<typename T, std::size_t I>
+    From_Ruby<T> createFromRuby();
+      
     // Create NativeArgs which are used to convert values from Ruby to C++
     template<std::size_t... I>
-    Native_Arg_Ts createNativeArgs(std::index_sequence<I...>& indices);
+    From_Ruby_Ts createFromRuby(std::index_sequence<I...>& indices);
 
     // Convert Ruby argv pointer to Ruby values
     std::vector<VALUE> getRubyValues(int argc, VALUE* argv);
 
     // Convert Ruby values to C++ values
     template<typename std::size_t... I>
-    Arg_Ts getNativeValues(std::vector<VALUE>& values, Native_Arg_Ts& nativeArgs, std::index_sequence<I...>& indices);
+    Arg_Ts getNativeValues(std::vector<VALUE>& values, std::index_sequence<I...>& indices);
 
     // Figure out what self is
     Self_T getSelf(VALUE self);
 
     // Do we need to keep alive any arguments?
-    void checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues);
+    void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues);
 
     // Call the underlying C++ function
     VALUE invokeNativeFunction(Arg_Ts& nativeArgs);
@@ -2596,6 +3278,7 @@ namespace Rice::detail
 
   private:
     Function_T func_;
+    From_Ruby_Ts fromRubys_;
     std::shared_ptr<Exception_Handler> handler_;
     std::unique_ptr<MethodInfo> methodInfo_;
   };
@@ -2629,13 +3312,50 @@ namespace Rice::detail
     {
       methodInfo_->returnInfo.takeOwnership();
     }
+
+    // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
+    // builtin types NativeArgs will keep a copy of the native value so that it 
+    // can be passed by reference or pointer to the native function. For non-builtin types
+    // it will just pass the value through.
+    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+    this->fromRubys_ = this->createFromRuby(indices);
+  }
+
+  template<typename Function_T, bool IsMethod>
+  template<typename T, std::size_t I>
+  From_Ruby<T> NativeFunction<Function_T, IsMethod>::createFromRuby()
+  {
+    // Does the From_Ruby instantiation support default values? We can tell
+    // by checking if it can be constructed with a value of its supported type.
+    if constexpr (std::is_constructible_v<From_Ruby<T>, T>)
+    {
+      Arg& arg = this->methodInfo_->arg(I);
+      if (arg.hasDefaultValue() && !arg.getIsValue())
+      {
+        T defaultValue = arg.defaultValue<T>();
+        return From_Ruby<T>(defaultValue);
+      }
+    }
+
+    // Is this type the same as Ruby's VALUE type? If so we need to tell the conversion
+    // function if this is a VALUE or not
+    if constexpr (std::is_same_v<T, VALUE>)
+    {
+      Arg& arg = this->methodInfo_->arg(I);
+      if (arg.getIsValue())
+      {
+        return From_Ruby<T>(arg.getIsValue());
+      }
+    }
+
+    return From_Ruby<T>();
   }
 
   template<typename Function_T, bool IsMethod>
   template<std::size_t... I>
-  typename NativeFunction<Function_T, IsMethod>::Native_Arg_Ts NativeFunction<Function_T, IsMethod>::createNativeArgs(std::index_sequence<I...>& indices)
+  typename NativeFunction<Function_T, IsMethod>::From_Ruby_Ts NativeFunction<Function_T, IsMethod>::createFromRuby(std::index_sequence<I...>& indices)
   {
-    return std::make_tuple(NativeArg<typename std::tuple_element<I, Arg_Ts>::type>(this->methodInfo_->arg(I))...);
+    return std::make_tuple(createFromRuby<remove_cv_recursive_t<typename std::tuple_element<I, Arg_Ts>::type>, I>()...);
   }
 
   template<typename Function_T, bool IsMethod>
@@ -2666,14 +3386,14 @@ namespace Rice::detail
   template<typename Function_T, bool IsMethod>
   template<std::size_t... I>
   typename NativeFunction<Function_T, IsMethod>::Arg_Ts NativeFunction<Function_T, IsMethod>::getNativeValues(std::vector<VALUE>& values,
-    typename NativeFunction<Function_T, IsMethod>::Native_Arg_Ts& nativeArgs, std::index_sequence<I...>& indices)
+     std::index_sequence<I...>& indices)
   {
     // Convert each Ruby value to its native value. Check each Ruby nil value to see if it has
     // a default argument, and if yes, use that. Otherwise use NativeArg<Arg_Ts> to convert
     // the Ruby value to a native value. Note that for fundamental types NativeArg<Arg_Ts> 
     // will keep a copy of the native value so it can be passed by reference or pointer to a
     // native function.
-    return std::forward_as_tuple(std::get<I>(nativeArgs).nativeValue(values[I])...);
+    return std::forward_as_tuple(std::get<I>(this->fromRubys_).convert(values[I])...);
   }
 
   template<typename Function_T, bool IsMethod>
@@ -2692,7 +3412,7 @@ namespace Rice::detail
     // Self parameter is an object and thus needs to be unwrapped from Ruby
     else
     {
-      return From_Ruby<Self_T>::convert(self);
+      return From_Ruby<Self_T>().convert(self);
     }
   }
 
@@ -2764,16 +3484,23 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool IsMethod>
-  void NativeFunction<Function_T, IsMethod>::checkKeepAlive(VALUE self, std::vector<VALUE>& rubyValues)
+  void NativeFunction<Function_T, IsMethod>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues)
   {
-    Wrapper* wrapper = getWrapper(self);
-
+    // Check function arguments
+    Wrapper* selfWrapper = getWrapper(self);
     for (const Arg& arg : (*this->methodInfo_))
     {
       if (arg.isKeepAlive)
       {
-        wrapper->addKeepAlive(rubyValues[arg.position]);
+        selfWrapper->addKeepAlive(rubyValues[arg.position]);
       }
+    }
+
+    // Check return value
+    if (this->methodInfo_->returnInfo.isKeepAlive)
+    {
+      Wrapper* returnWrapper = getWrapper(returnValue);
+      returnWrapper->addKeepAlive(self);
     }
   }
 
@@ -2787,27 +3514,24 @@ namespace Rice::detail
 
       auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
 
-      // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
-      // builtin types NativeArgs will keep a copy of the native value so that it 
-      // can be passed by reference or pointer to the native function. For non-builtin types
-      // it will just pass the value through.
-      Native_Arg_Ts nativeArgs = this->createNativeArgs(indices);
-
       // Convert the Ruby values to native values
-      Arg_Ts nativeValues = this->getNativeValues(rubyValues, nativeArgs, indices);
-
-      // Check if any rubyValues need to have their lifetimes tied to the receiver
-      this->checkKeepAlive(self, rubyValues);
+      Arg_Ts nativeValues = this->getNativeValues(rubyValues, indices);
 
       // Now call the native method
+      VALUE result = Qnil;
       if constexpr (std::is_same_v<Self_T, std::nullptr_t>)
       {
-        return this->invokeNativeFunction(nativeValues);
+        result = this->invokeNativeFunction(nativeValues);
       }
       else
       {
-        return this->invokeNativeMethod(self, nativeValues);
+        result = this->invokeNativeMethod(self, nativeValues);
       }
+
+      // Check if any function arguments or return values need to have their lifetimes tied to the receiver
+      this->checkKeepAlive(self, result, rubyValues);
+
+      return result;
     }
     catch (...)
     {
@@ -2815,7 +3539,7 @@ namespace Rice::detail
       {
         return this->handler_->handle_exception();
       }
-        RUBY_CATCH
+      RUBY_CATCH
     }
   }
 }
@@ -2950,7 +3674,7 @@ namespace Rice
     Object(VALUE value = Qnil) : value_(value) {}
 
     //! Destructor
-    virtual ~Object() = default;
+    virtual ~Object();
 
     // Enable copying
     Object(const Object& other) = default;
@@ -3159,6 +3883,13 @@ namespace Rice
     other.value_ = Qnil;
   }
 
+  // Ruby auto detects VALUEs in the stack, so when an Object gets deleted make sure
+  // to clean up in case it is on the stack
+  inline Object::~Object()
+  {
+    this->value_ = Qnil;
+  }
+
   inline Object& Object::operator=(Object&& other)
   {
     this->value_ = other.value_;
@@ -3189,7 +3920,7 @@ namespace Rice
   inline int Object::compare(Object const& other) const
   {
     Object result = call("<=>", other);
-    return detail::From_Ruby<int>::convert(result);
+    return detail::From_Ruby<int>().convert(result);
   }
 
   inline bool Object::is_equal(const Object& other) const
@@ -3281,9 +4012,10 @@ namespace Rice::detail
   };
 
   template<>
-  struct From_Ruby<Object>
+  class From_Ruby<Object>
   {
-    static Object convert(VALUE value)
+  public:
+    Object convert(VALUE value)
     {
       return Object(value);
     }
@@ -3520,9 +4252,10 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
-  struct From_Ruby<String>
+  class From_Ruby<String>
   {
-    static String convert(VALUE value)
+  public:
+    String convert(VALUE value)
     {
       return String(value);
     }
@@ -3935,9 +4668,10 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
-  struct From_Ruby<Array>
+  class From_Ruby<Array>
   {
-    static Array convert(VALUE value)
+  public:
+    Array convert(VALUE value)
     {
       return Array(value);
     }
@@ -4215,7 +4949,7 @@ namespace Rice
     Object value = operator[](ruby_key);
     try
     {
-      return detail::From_Ruby<Value_T>::convert(value);
+      return detail::From_Ruby<Value_T>().convert(value);
     }
     catch (Exception const& ex)
     {
@@ -4466,9 +5200,10 @@ namespace Rice
   namespace detail
   {
     template<>
-    struct From_Ruby<Symbol>
+    class From_Ruby<Symbol>
     {
-      static Object convert(VALUE value)
+    public:
+      Object convert(VALUE value)
       {
         return Object(value);
       }
@@ -5034,9 +5769,10 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
-  struct From_Ruby<Module>
+  class From_Ruby<Module>
   {
-    static Module convert(VALUE value)
+  public:
+    Module convert(VALUE value)
     {
       return Module(value);
     }
@@ -5236,9 +5972,10 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
-  struct From_Ruby<Class>
+  class From_Ruby<Class>
   {
-    static Class convert(VALUE value)
+  public:
+    Class convert(VALUE value)
     {
       return Class(value);
     }
@@ -6157,8 +6894,8 @@ namespace Rice
      *  \param free_func a function that gets called by the garbage
      *  collector to free the object.
      */
-    Data_Object(T* obj, Class klass = Data_Type<T>::klass(), bool isOwner = false);
-    Data_Object(T& obj, Class klass = Data_Type<T>::klass(), bool isOwner = false);
+    Data_Object(T* obj, bool isOwner = false, Class klass = Data_Type<T>::klass());
+    Data_Object(T& obj, bool isOwner = false, Class klass = Data_Type<T>::klass());
 
     //! Unwrap a Ruby object.
     /*! This constructor is analogous to calling Data_Get_Struct.  Uses
@@ -6207,14 +6944,14 @@ namespace Rice
   }
 
   template<typename T>
-  inline Data_Object<T>::Data_Object(T& data, Class klass, bool isOwner)
+  inline Data_Object<T>::Data_Object(T& data, bool isOwner, Class klass)
   {
     VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data, isOwner);
     this->set_value(value);
   }
 
   template<typename T>
-  inline Data_Object<T>::Data_Object(T* data, Class klass, bool isOwner)
+  inline Data_Object<T>::Data_Object(T* data, bool isOwner, Class klass)
   {
     VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data, isOwner);
     this->set_value(value);
@@ -6325,32 +7062,35 @@ struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_builtin_v<T>
   }
 };
 
-template <typename T, typename>
-struct Rice::detail::From_Ruby
-{
-  static T convert(VALUE value)
-  {
-    using Intrinsic_T = intrinsic_type<T>;
-    return *Data_Object<Intrinsic_T>::from_ruby(value);
-  }
-};
- 
-template<typename T>
-struct Rice::detail::From_Ruby<T&>
-{
-  static T& convert(VALUE value)
-  {
-    using Intrinsic_T = intrinsic_type<T>;
-    return *Data_Object<Intrinsic_T>::from_ruby(value);
-  }
-};
-
 namespace Rice::detail
 {
-  template<typename T>
-  struct From_Ruby<T*>
+  template <typename T>
+  class From_Ruby
   {
-    static T* convert(VALUE value)
+  public:
+    T convert(VALUE value)
+    {
+      using Intrinsic_T = intrinsic_type<T>;
+      return *Data_Object<Intrinsic_T>::from_ruby(value);
+    }
+  };
+
+  template<typename T>
+  class From_Ruby<T&>
+  {
+  public:
+    T& convert(VALUE value)
+    {
+      using Intrinsic_T = intrinsic_type<T>;
+      return *Data_Object<Intrinsic_T>::from_ruby(value);
+    }
+  };
+
+  template<typename T>
+  class From_Ruby<T*>
+  {
+  public:
+    T* convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
 
@@ -6366,8 +7106,9 @@ namespace Rice::detail
   };
 
   template<typename T>
-  struct From_Ruby<Data_Object<T>>
+  class From_Ruby<Data_Object<T>>
   {
+  public:
     static Data_Object<T> convert(VALUE value)
     {
       return Data_Object<T>(value);
@@ -6530,8 +7271,8 @@ namespace Rice
     valuesToNames_[value] = name;
 
     // Store value as class constant available to Ruby
-    Data_Object<Enum_T> wrapper(value, Enum<Enum_T>::klass(), true);
-    this->const_set(name, wrapper);
+    Data_Object<Enum_T> object(value, true, Enum<Enum_T>::klass());
+    this->const_set(name, object);
 
     return *this;
   }
