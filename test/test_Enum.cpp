@@ -110,41 +110,51 @@ TESTCASE(each_seasons)
 
 TESTCASE(to_s)
 {
+  Module m = define_module("Testing");
+
   Enum<Color> colorEnum = define_color_enum();
-  ASSERT_EQUAL(String("RED"), String(detail::protect(rb_eval_string, "Color::RED.to_s")));
-  ASSERT_EQUAL(String("BLACK"), String(detail::protect(rb_eval_string, "Color::BLACK.to_s")));
-  ASSERT_EQUAL(String("GREEN"), String(detail::protect(rb_eval_string, "Color::GREEN.to_s")));
+  ASSERT_EQUAL(String("RED"), String(m.instance_eval("Color::RED.to_s")));
+  ASSERT_EQUAL(String("BLACK"), String(m.instance_eval("Color::BLACK.to_s")));
+  ASSERT_EQUAL(String("GREEN"), String(m.instance_eval("Color::GREEN.to_s")));
 }
 
 TESTCASE(to_i)
 {
+  Module m = define_module("Testing");
+
   Enum<Color> colorEnum = define_color_enum();
-  ASSERT_EQUAL(detail::to_ruby(int(RED)), rb_eval_string("Color::RED.to_i"));
-  ASSERT_EQUAL(detail::to_ruby(int(BLACK)), rb_eval_string("Color::BLACK.to_i"));
-  ASSERT_EQUAL(detail::to_ruby(int(GREEN)), rb_eval_string("Color::GREEN.to_i"));
+  ASSERT_EQUAL(detail::to_ruby(int(RED)), m.instance_eval("Color::RED.to_i").value());
+  ASSERT_EQUAL(detail::to_ruby(int(BLACK)), m.instance_eval("Color::BLACK.to_i").value());
+  ASSERT_EQUAL(detail::to_ruby(int(GREEN)), m.instance_eval("Color::GREEN.to_i").value());
 }
 
 TESTCASE(inspect)
 {
+  Module m = define_module("Testing");
+
   Enum<Color> colorEnum = define_color_enum();
-  ASSERT_EQUAL(String("#<Color::RED>"), String(rb_eval_string("Color::RED.inspect")));
-  ASSERT_EQUAL(String("#<Color::BLACK>"), String(rb_eval_string("Color::BLACK.inspect")));
-  ASSERT_EQUAL(String("#<Color::GREEN>"), String(rb_eval_string("Color::GREEN.inspect")));
+  ASSERT_EQUAL(String("#<Color::RED>"), String(m.instance_eval("Color::RED.inspect")));
+  ASSERT_EQUAL(String("#<Color::BLACK>"), String(m.instance_eval("Color::BLACK.inspect")));
+  ASSERT_EQUAL(String("#<Color::GREEN>"), String(m.instance_eval("Color::GREEN.inspect")));
 }
 
 TESTCASE(compare)
 {
+  Module m = define_module("Testing");
+
   Enum<Color> colorEnum = define_color_enum();
-  ASSERT_EQUAL(detail::to_ruby(-1), rb_eval_string("Color::RED <=> Color::BLACK"));
-  ASSERT_EQUAL(detail::to_ruby(1), rb_eval_string("Color::GREEN <=> Color::RED"));
-  ASSERT_EQUAL(detail::to_ruby(0), rb_eval_string("Color::BLACK <=> Color::BLACK"));
+  ASSERT_EQUAL(detail::to_ruby(-1), m.instance_eval("Color::RED <=> Color::BLACK").value());
+  ASSERT_EQUAL(detail::to_ruby(1), m.instance_eval("Color::GREEN <=> Color::RED").value());
+  ASSERT_EQUAL(detail::to_ruby(0), m.instance_eval("Color::BLACK <=> Color::BLACK").value());
 }
 
 TESTCASE(eql)
 {
+  Module m = define_module("Testing");
+
   Enum<Color> colorEnum = define_color_enum();
-  ASSERT_EQUAL(detail::to_ruby(false), rb_eval_string("Color::RED == Color::BLACK"));
-  ASSERT_EQUAL(detail::to_ruby(true), rb_eval_string("Color::GREEN == Color::GREEN"));
+  ASSERT_EQUAL(detail::to_ruby(false), m.instance_eval("Color::RED == Color::BLACK").value());
+  ASSERT_EQUAL(detail::to_ruby(true), m.instance_eval("Color::GREEN == Color::GREEN").value());
 }
 
 TESTCASE(compare_equal)
@@ -225,18 +235,18 @@ namespace
 
 TESTCASE(nested_enums)
 {
-  {
-    Data_Type<Inner> inner = define_class<Inner>("Inner");
-    define_enum<Inner::Props>("Props", inner)
-      .define_value("VALUE1", Inner::VALUE1)
-      .define_value("VALUE2", Inner::VALUE2)
-      .define_value("VALUE3", Inner::VALUE3);
-    inner.define_constructor(Constructor<Inner>());
-  }
+  Data_Type<Inner> inner = define_class<Inner>("Inner");
+  define_enum<Inner::Props>("Props", inner)
+    .define_value("VALUE1", Inner::VALUE1)
+    .define_value("VALUE2", Inner::VALUE2)
+    .define_value("VALUE3", Inner::VALUE3);
+  inner.define_constructor(Constructor<Inner>());
 
-  ASSERT_EQUAL(detail::to_ruby(int(0)), rb_eval_string("Inner::Props::VALUE1.to_i"));
-  ASSERT_EQUAL(detail::to_ruby(int(1)), rb_eval_string("Inner::Props::VALUE2.to_i"));
-  ASSERT_EQUAL(detail::to_ruby(int(2)), rb_eval_string("Inner::Props::VALUE3.to_i"));
+  Module m = define_module("Testing");
+
+  ASSERT_EQUAL(detail::to_ruby(int(0)), m.instance_eval("Inner::Props::VALUE1.to_i").value());
+  ASSERT_EQUAL(detail::to_ruby(int(1)), m.instance_eval("Inner::Props::VALUE2.to_i").value());
+  ASSERT_EQUAL(detail::to_ruby(int(2)), m.instance_eval("Inner::Props::VALUE3.to_i").value());
 }
 
 namespace
