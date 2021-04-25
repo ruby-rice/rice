@@ -63,27 +63,37 @@ namespace Rice
     template<typename T>
     struct remove_cv_recursive<T const volatile>
     {
-      using type = std::remove_cv_t<T>;
+      using type = typename remove_cv_recursive<T>::type;
     };
 
-    template<typename T> struct remove_cv_recursive<T volatile>
+    template<typename T>
+    struct remove_cv_recursive<T volatile>
     {
-      using type = std::remove_cv_t<T>;
+      using type = typename remove_cv_recursive<T>::type;
     };
 
-    template<typename T> struct remove_cv_recursive<T const>
+    template<typename T>
+    struct remove_cv_recursive<T const>
     {
-      using type = std::remove_cv_t<T>;
+      using type = typename remove_cv_recursive<T>::type;
     };
 
-    template<typename T> struct remove_cv_recursive<T&>
+    template<typename T>
+    struct remove_cv_recursive<T&>
     {
-      using type = std::remove_cv_t<T>&;
+      using type = typename remove_cv_recursive<T>::type&;
     };
 
-    template<typename T> struct remove_cv_recursive<T*>
+   /* template<typename T>
+    struct remove_cv_recursive<T&&>
     {
-      using type = std::remove_cv_t<T>*;
+      using type = typename remove_cv_recursive<T>::type&&;
+    };*/
+
+    template<typename T>
+    struct remove_cv_recursive<T*>
+    {
+      using type = typename remove_cv_recursive<T>::type*;
     };
 
     template<typename T>
@@ -1545,7 +1555,7 @@ namespace Rice::detail
     {
       if (this->isValue_)
       {
-        return value;
+        return (unsigned long)value;
       }
       else if (value == Qnil && this->defaultValue_)
       {
@@ -2119,48 +2129,23 @@ namespace Rice
      *    rb_p(to_ruby(p_foo));
      *  \endcode
      */
-    template <typename T, typename = void>
+    template <typename T>
     struct To_Ruby;
    
-    template<typename T>
-    struct To_Ruby<const T, std::enable_if_t<is_builtin_v<T>>>
-    {
-      static VALUE convert(T const& x, bool takeOwnership = false)
-      {
-        return To_Ruby<T>::convert(x, takeOwnership);
-      }
-    };
-
-    template<typename T>
-    struct To_Ruby<T&, std::enable_if_t<is_builtin_v<T>>>
-    {
-      static VALUE convert(T& x, bool takeOwnership = false)
-      {
-        return To_Ruby<intrinsic_type<T>>::convert(x, takeOwnership);
-      }
-    };
-
-    template<typename T>
-    struct To_Ruby<T*, std::enable_if_t<is_builtin_v<T>>>
-    {
-      static VALUE convert(T* x, bool takeOwnership = false)
-      {
-        return To_Ruby<intrinsic_type<T>>::convert(*x, takeOwnership);
-      }
-    };
-
     // Helper template function that let's users avoid having to specify the template type - its deduced
     template <typename T>
     VALUE to_ruby(T&& x)
     {
-      return To_Ruby<T>::convert(std::forward<T>(x), true);
+      using Unqualified_T = remove_cv_recursive_t<T>;
+      return To_Ruby<Unqualified_T>().convert(std::forward<T>(x));
     }
 
     // Helper template function that let's users avoid having to specify the template type - its deduced
     template <typename T>
     VALUE to_ruby(T* x)
     {
-      return To_Ruby<T*>::convert(x);
+      using Unqualified_T = remove_cv_recursive_t<T>;
+      return To_Ruby<Unqualified_T*>().convert(x);
     }
   } // detail
 } // Rice
@@ -2173,16 +2158,10 @@ namespace Rice
 {
   namespace detail
   {
-    // This template is never called but needs to exist for MSVC to successfully compile
-    // this line from Wrapped_Function.ipp:
-    // 
-    //   return To_Ruby<Return_T>::convert(result);
-    // 
-    // Note there is a if constexpr check for Return_T being void. Sigh.
     template<>
     struct To_Ruby<void>
     {
-      static VALUE convert(void*, bool takeOwnership = false)
+      VALUE convert(void const*)
       {
         return Qnil;
       }
@@ -2191,7 +2170,7 @@ namespace Rice
     template<>
     struct To_Ruby<std::nullptr_t>
     {
-      static VALUE convert(std::nullptr_t, bool takeOwnership = false)
+      VALUE convert(std::nullptr_t const)
       {
         return Qnil;
       }
@@ -2200,97 +2179,260 @@ namespace Rice
     template<>
     struct To_Ruby<short>
     {
-      static VALUE convert(short const& x, bool takeOwnership = false)
+      VALUE convert(short const& x)
       {
-        return INT2NUM(x);
+        return protect(rb_int2num_inline, (int)x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<short&>
+    {
+      VALUE convert(short const& x)
+      {
+        return protect(rb_int2num_inline, (int)x);
       }
     };
 
     template<>
     struct To_Ruby<int>
     {
-      static VALUE convert(int const& x, bool takeOwnership = false)
+      VALUE convert(int const& x)
       {
-        return INT2NUM(x);
+        return protect(rb_int2num_inline, x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<int&>
+    {
+      VALUE convert(int const& x)
+      {
+        return protect(rb_int2num_inline, x);
       }
     };
 
     template<>
     struct To_Ruby<long>
     {
-      static VALUE convert(long const& x, bool takeOwnership = false)
+      VALUE convert(long const& x)
       {
-        return LONG2NUM(x);
+        return protect(rb_long2num_inline, x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<long&>
+    {
+      VALUE convert(long const& x)
+      {
+        return protect(rb_long2num_inline, x);
       }
     };
 
     template<>
     struct To_Ruby<long long>
     {
-      static VALUE convert(long long const& x, bool takeOwnership = false)
+      VALUE convert(long long const& x)
       {
-        return LL2NUM(x);
+        return protect(rb_ll2inum, x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<long long&>
+    {
+      VALUE convert(long long const& x)
+      {
+        return protect(rb_ll2inum, x);
       }
     };
 
     template<>
     struct To_Ruby<unsigned short>
     {
-      static VALUE convert(unsigned short const& x, bool takeOwnership = false)
+      VALUE convert(unsigned short const& x)
       {
-        return UINT2NUM(x);
+        return protect(rb_uint2num_inline, (unsigned int)x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<unsigned short&>
+    {
+      VALUE convert(unsigned short const& x)
+      {
+        return protect(rb_uint2num_inline, (unsigned int)x);
       }
     };
 
     template<>
     struct To_Ruby<unsigned int>
     {
-      static VALUE convert(unsigned int const& x, bool takeOwnership = false)
+      VALUE convert(unsigned int const& x)
       {
-        return UINT2NUM(x);
+        return protect(rb_uint2num_inline, x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<unsigned int&>
+    {
+      VALUE convert(unsigned int const& x)
+      {
+        return protect(rb_uint2num_inline, x);
       }
     };
 
     template<>
     struct To_Ruby<unsigned long>
     {
-      static VALUE convert(unsigned long const& x, bool takeOwnership = false)
+      To_Ruby() = default;
+
+      explicit To_Ruby(bool isValue) : isValue_(isValue)
       {
-        return ULONG2NUM(x);
       }
+
+      VALUE convert(unsigned long const& x)
+      {
+        if (this->isValue_)
+        {
+          return x;
+        }
+        else
+        {
+          return protect(rb_ulong2num_inline, x);
+        }
+      }
+
+    private:
+      bool isValue_ = false;
+    };
+
+    template<>
+    struct To_Ruby<unsigned long&>
+    {
+      To_Ruby() = default;
+
+      explicit To_Ruby(bool isValue) : isValue_(isValue)
+      {
+      }
+
+      VALUE convert(unsigned long const& x)
+      {
+        if (this->isValue_)
+        {
+          return x;
+        }
+        else
+        {
+          return protect(rb_ulong2num_inline, x);
+        }
+      }
+
+    private:
+      bool isValue_ = false;
     };
 
     template<>
     struct To_Ruby<unsigned long long>
     {
-      static VALUE convert(unsigned long long const& x, bool takeOwnership = false)
+      To_Ruby() = default;
+
+      explicit To_Ruby(bool isValue) : isValue_(isValue)
       {
-        return ULL2NUM(x);
       }
+
+      VALUE convert(unsigned long long const& x)
+      {
+        if (this->isValue_)
+        {
+          return x;
+        }
+        else
+        {
+          return protect(rb_ull2inum, (unsigned long long)x);
+        }
+      }
+
+    private:
+      bool isValue_ = false;
+    };
+
+    template<>
+    struct To_Ruby<unsigned long long&>
+    {
+      To_Ruby() = default;
+
+      explicit To_Ruby(bool isValue) : isValue_(isValue)
+      {
+      }
+
+      VALUE convert(unsigned long long const& x)
+      {
+        if (this->isValue_)
+        {
+          return x;
+        }
+        else
+        {
+          return protect(rb_ull2inum, (unsigned long long)x);
+        }
+      }
+
+    private:
+      bool isValue_ = false;
     };
 
     template<>
     struct To_Ruby<float>
     {
-      static VALUE convert(float const& x, bool takeOwnership = false)
+      VALUE convert(float const& x)
       {
-        return rb_float_new(x);
+        return protect(rb_float_new, (double)x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<float&>
+    {
+      VALUE convert(float const& x)
+      {
+        return protect(rb_float_new, (double)x);
       }
     };
 
     template<>
     struct To_Ruby<double>
     {
-      static VALUE convert(double const& x, bool takeOwnership = false)
+      VALUE convert(double const& x)
       {
-        return rb_float_new(x);
+        return protect(rb_float_new, x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<double&>
+    {
+      VALUE convert(double const& x)
+      {
+        return protect(rb_float_new, x);
       }
     };
 
     template<>
     struct To_Ruby<bool>
     {
-      static VALUE convert(bool const& x, bool takeOwnership = false)
+      VALUE convert(bool const& x)
+      {
+        return x ? Qtrue : Qfalse;
+      }
+    };
+
+    template<>
+    struct To_Ruby<bool&>
+    {
+      VALUE convert(bool const& x)
       {
         return x ? Qtrue : Qfalse;
       }
@@ -2299,27 +2441,63 @@ namespace Rice
     template<>
     struct To_Ruby<char>
     {
-      static VALUE convert(char const& x, bool takeOwnership = false)
+      VALUE convert(char const& x)
       {
-        return To_Ruby<int>::convert(x, takeOwnership);
+        return To_Ruby<int>().convert(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<char&>
+    {
+      VALUE convert(char const& x)
+      {
+        return To_Ruby<int>().convert(x);
       }
     };
 
     template<>
     struct To_Ruby<unsigned char>
     {
-      static VALUE convert(unsigned char const& x, bool takeOwnership = false)
+      VALUE convert(unsigned char const& x)
       {
-        return To_Ruby<unsigned int>::convert(x, takeOwnership);
+        return To_Ruby<unsigned int>().convert(x);
       }
     };
 
     template<>
-    struct To_Ruby<const char*>
+    struct To_Ruby<unsigned char&>
     {
-      static VALUE convert(const char* x, bool takeOwnership = false)
+      VALUE convert(unsigned char const& x)
       {
-        return rb_str_new2(x);
+        return To_Ruby<unsigned int>().convert(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<signed char>
+    {
+      VALUE convert(signed char const& x)
+      {
+        return To_Ruby<signed int>().convert(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<signed char&>
+    {
+      VALUE convert(signed char const& x)
+      {
+        return To_Ruby<signed int>().convert(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<char*>
+    {
+      VALUE convert(char const* x)
+      {
+        return protect(rb_str_new2, x);
       }
     };
   }
@@ -2781,98 +2959,6 @@ namespace Rice::detail
 }
 
 #endif // Rice_Iterator__hpp_
-// =========   NativeReturn.hpp   =========
-
-
-namespace Rice::detail
-{
-  // Primary Template for NativeReturn
-  template <typename T>
-  class NativeReturn
-  {
-  public:
-    NativeReturn(Return returnInfo);
-    VALUE getValue(T& native);
-
-  private:
-    Return returnInfo_;
-  };
-
-  // Special case VALUE which could be a 64 bit integer or Ruby value.
-  template <>
-  class NativeReturn<VALUE>
-  {
-  public:
-    NativeReturn(Return returnInfo);
-    VALUE getValue(VALUE& native);
-
-  private:
-    Return returnInfo_;
-  };
-
-  // Special case void which should never happen due to if constexpr check but nevertheless MSVC
-  // seems to compile
-  template <>
-  class NativeReturn<void>
-  {
-  public:
-    NativeReturn(Return returnInfo);
-    VALUE getValue(VALUE& native);
-
-  private:
-    Return returnInfo_;
-  };
-}
-
-
-// ---------   NativeReturn.ipp   ---------
-
-namespace Rice::detail
-{
-  template<typename T>
-  inline NativeReturn<T>::NativeReturn(Return returnInfo) :
-    returnInfo_(returnInfo)
-  {
-  }
-
-  template<typename T>
-  inline VALUE NativeReturn<T>::getValue(T& native)
-  {
-    return To_Ruby<T>::convert(native, this->returnInfo_.isOwner());
-  }
-
-  //template<>
-  inline NativeReturn<VALUE>::NativeReturn(Return returnInfo) :
-    returnInfo_(returnInfo)
-  {
-  }
-
-  //template<>
-  inline VALUE NativeReturn<VALUE>::getValue(VALUE& native)
-  {
-    if (this->returnInfo_.getIsValue())
-    {
-      return native;
-    }
-    else
-    {
-      return To_Ruby<VALUE>::convert(native, this->returnInfo_.isOwner());
-    }
-  }
-
-  //template<>
-  inline NativeReturn<void>::NativeReturn(Return returnInfo) :
-    returnInfo_(returnInfo)
-  {
-  }
-
-  //template<>
-  inline VALUE NativeReturn<void>::getValue(VALUE& native)
-  {
-    return Qnil;
-  }
-}
-
 // =========   Exception.ipp   =========
 
 
@@ -3187,14 +3273,15 @@ namespace Rice::detail
   template<typename Return_T, typename Attr_T, typename Self_T>
   inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::read(VALUE self)
   {
+    using Unqualified_T = remove_cv_recursive_t<Return_T>;
     if constexpr (std::is_member_object_pointer_v<Attr_T>)
     {
       Self_T* nativeSelf = From_Ruby<Self_T*>().convert(self);
-      return To_Ruby<Return_T>().convert(nativeSelf->*attr_, false);
+      return To_Ruby<Unqualified_T>().convert(nativeSelf->*attr_);
     }
     else
     {
-      return To_Ruby<Return_T>().convert(*attr_, false);
+      return To_Ruby<Unqualified_T>().convert(*attr_);
     }
   }
 
@@ -3237,7 +3324,9 @@ namespace Rice::detail
   class NativeFunction
   {
   public:
-    using Return_T = typename function_traits<Function_T>::return_type;
+    // We remove const to avoid an explosion of To_Ruby specializations and Ruby doesn't
+    // have the concept of constants anyways
+    using Return_T = remove_cv_recursive_t<typename function_traits<Function_T>::return_type>;
     using Self_T = typename method_traits<Function_T, IsMethod>::Self_T;
     using Arg_Ts = typename method_traits<Function_T, IsMethod>::Arg_Ts;
     using From_Ruby_Ts = typename tuple_map<From_Ruby, Arg_Ts>::type;
@@ -3259,6 +3348,8 @@ namespace Rice::detail
     template<std::size_t... I>
     From_Ruby_Ts createFromRuby(std::index_sequence<I...>& indices);
 
+    To_Ruby<Return_T> createToRuby();
+      
     // Convert Ruby argv pointer to Ruby values
     std::vector<VALUE> getRubyValues(int argc, VALUE* argv);
 
@@ -3279,6 +3370,7 @@ namespace Rice::detail
   private:
     Function_T func_;
     From_Ruby_Ts fromRubys_;
+    To_Ruby<Return_T> toRuby_;
     std::shared_ptr<Exception_Handler> handler_;
     std::unique_ptr<MethodInfo> methodInfo_;
   };
@@ -3287,6 +3379,7 @@ namespace Rice::detail
 // ---------   NativeFunction.ipp   ---------
 #include <array>
 #include <algorithm>
+#include <stdexcept>
 
 
 namespace Rice::detail
@@ -3303,22 +3396,14 @@ namespace Rice::detail
   NativeFunction<Function_T, IsMethod>::NativeFunction(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
     : func_(func), handler_(handler), methodInfo_(methodInfo)
   {
-    // Ruby takes ownership of types returned by value. We do this here so that users
-    // don't have to be bothered to specify this in define_method. Note we *must* set 
-    // this correctly because To_Ruby<T>::convert routines work with const T& and thus
-    // if ownership is false they will store a reference to the value and that will
-    // result in a crash.
-    if (!std::is_reference_v<Return_T> && !std::is_pointer_v<Return_T>)
-    {
-      methodInfo_->returnInfo.takeOwnership();
-    }
-
     // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
     // builtin types NativeArgs will keep a copy of the native value so that it 
     // can be passed by reference or pointer to the native function. For non-builtin types
     // it will just pass the value through.
     auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
     this->fromRubys_ = this->createFromRuby(indices);
+
+    this->toRuby_ = this->createToRuby();
   }
 
   template<typename Function_T, bool IsMethod>
@@ -3349,6 +3434,39 @@ namespace Rice::detail
     }
 
     return From_Ruby<T>();
+  }
+
+  template<typename Function_T, bool IsMethod>
+  To_Ruby<typename NativeFunction<Function_T, IsMethod>::Return_T> NativeFunction<Function_T, IsMethod>::createToRuby()
+  {
+    if (this->methodInfo_->returnInfo.isOwner())
+    {
+      if constexpr (std::is_constructible_v<To_Ruby<Return_T>, bool>)
+      {
+        return To_Ruby<Return_T>(true);
+      }
+      else
+      {
+        throw std::runtime_error("Type does not support taking onwership: " + typeName(typeid(Return_T)));
+      }
+    }
+    // Is this type the same as Ruby's VALUE type? If so we need to tell the conversion
+    // function if this is a VALUE or not
+    else if (this->methodInfo_->returnInfo.getIsValue())
+    {
+      if constexpr (std::is_same_v<Return_T, VALUE>)
+      {
+        return To_Ruby<Return_T>(true);
+      }
+      else
+      {
+        throw std::runtime_error("Type does not support passing by VALUE: " + typeName(typeid(Return_T)));
+      }
+    }
+    else
+    {
+      return To_Ruby<Return_T>();
+    }
   }
 
   template<typename Function_T, bool IsMethod>
@@ -3429,11 +3547,8 @@ namespace Rice::detail
       // Call the native method and get the result
       Return_T nativeResult = std::apply(this->func_, nativeArgs);
       
-      // Create a wrapper object to convert to Ruby
-      NativeReturn<Return_T> nativeReturn(this->methodInfo_->returnInfo);
-
       // Return the result
-      return nativeReturn.getValue(nativeResult);
+      return this->toRuby_.convert(nativeResult);
     }
   }
 
@@ -3450,8 +3565,7 @@ namespace Rice::detail
     }
     else
     {
-      // Call the native method
-      Return_T nativeResult = std::apply(this->func_, selfAndNativeArgs);
+      Return_T nativeResult = (Return_T)std::apply(this->func_, selfAndNativeArgs);
 
       // Special handling if the method returns self. If so we do not want
       // to create a new Ruby wrapper object and instead return self.
@@ -3479,7 +3593,7 @@ namespace Rice::detail
         }
       }
 
-      return To_Ruby<Return_T>::convert(nativeResult, this->methodInfo_->returnInfo.isOwner());
+      return this->toRuby_.convert(nativeResult);
     }
   }
 
@@ -3907,14 +4021,14 @@ namespace Rice
        to the destination method resulting in a segmentation fault. This is
        easy to duplicate by setting GC.stress to true and calling a constructor
        that takes multiple values like a std::pair wrapper. */
-    std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<Arg_Ts>::convert(args, false)... };
+    std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Arg_Ts>>().convert(args)... };
     return detail::protect(rb_funcall2, value(), id.id(), (int)values.size(), (const VALUE*)values.data());
   }
 
   template<typename T>
   inline void Object::iv_set(Identifier name, T const& value)
   {
-    detail::protect(rb_ivar_set, this->value(), name.id(), detail::To_Ruby<T>::convert(value));
+    detail::protect(rb_ivar_set, this->value(), name.id(), detail::To_Ruby<T>().convert(value));
   }
 
   inline int Object::compare(Object const& other) const
@@ -4012,21 +4126,30 @@ namespace Rice::detail
   };
 
   template<>
+  struct To_Ruby<Object>
+  {
+    static VALUE convert(Object const& x)
+    {
+      return x.value();
+    }
+  };
+
+  template<>
+  struct To_Ruby<Object&>
+  {
+    static VALUE convert(Object const& x)
+    {
+      return x.value();
+    }
+  };
+
+  template<>
   class From_Ruby<Object>
   {
   public:
     Object convert(VALUE value)
     {
       return Object(value);
-    }
-  };
-
-  template<>
-  struct To_Ruby<Object>
-  {
-    static VALUE convert(Object const& x, bool takeOwnership = false)
-    {
-      return x.value();
     }
   };
 }
@@ -4252,21 +4375,21 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
+  struct To_Ruby<String>
+  {
+    VALUE convert(String const& x)
+    {
+      return x.value();
+    }
+  };
+
+  template<>
   class From_Ruby<String>
   {
   public:
     String convert(VALUE value)
     {
       return String(value);
-    }
-  };
-
-  template<>
-  struct To_Ruby<String>
-  {
-    static VALUE convert(String const& x, bool takeOwnership = false)
-    {
-      return x.value();
     }
   };
 }
@@ -4512,7 +4635,7 @@ namespace Rice
   template<typename T>
   inline Object Array::push(T const& obj)
   {
-    return detail::protect(rb_ary_push, value(), detail::To_Ruby<T>::convert(obj, true));
+    return detail::protect(rb_ary_push, value(), detail::To_Ruby<T>().convert(obj));
   }
 
   inline Object Array::pop()
@@ -4523,7 +4646,7 @@ namespace Rice
   template<typename T>
   inline Object Array::unshift(T const& obj)
   {
-    return detail::protect(rb_ary_unshift, value(), detail::To_Ruby<T>::convert(obj, true));
+    return detail::protect(rb_ary_unshift, value(), detail::To_Ruby<T>().convert(obj));
   }
 
   inline Object Array::shift()
@@ -4562,7 +4685,7 @@ namespace Rice
   template<typename T>
   Object Array::Proxy::operator=(T const& value)
   {
-    Object o = detail::To_Ruby<T>::convert(value, true);
+    Object o = detail::To_Ruby<T>().convert(value);
     detail::protect(rb_ary_store, array_.value(), index_, o.value());
     return o;
   }
@@ -4668,21 +4791,39 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
+  struct To_Ruby<Array>
+  {
+    VALUE convert(Array const& x)
+    {
+      return x.value();
+    }
+  };
+
+  template<>
+  struct To_Ruby<Array&>
+  {
+    VALUE convert(Array const& x)
+    {
+      return x.value();
+    }
+  };
+
+  template<>
+  struct To_Ruby<Array*>
+  {
+    VALUE convert(Array const* x)
+    {
+      return x->value();
+    }
+  };
+
+  template<>
   class From_Ruby<Array>
   {
   public:
     Array convert(VALUE value)
     {
       return Array(value);
-    }
-  };
-
-  template<>
-  struct To_Ruby<Array>
-  {
-    static VALUE convert(Array const& x, bool takeOwnership = false)
-    {
-      return x.value();
     }
   };
 }
@@ -4927,25 +5068,25 @@ namespace Rice
   template<typename T>
   inline Object Hash::Proxy::operator=(T const& value)
   {
-    return detail::protect(rb_hash_aset, hash_->value(), key_.value(), detail::To_Ruby<T>::convert(value));
+    return detail::protect(rb_hash_aset, hash_->value(), key_.value(), detail::To_Ruby<T>().convert(value));
   }
 
   template<typename Key_T>
   inline Hash::Proxy const Hash::operator[](Key_T const& key) const
   {
-    return Proxy(*this, detail::To_Ruby<Key_T>::convert(key));
+    return Proxy(*this, detail::To_Ruby<Key_T>().convert(key));
   }
 
   template<typename Key_T>
   inline Hash::Proxy Hash::operator[](Key_T const& key)
   {
-    return Proxy(this, detail::To_Ruby<Key_T>::convert(key));
+    return Proxy(this, detail::To_Ruby<Key_T>().convert(key));
   }
 
   template<typename Value_T, typename Key_T>
   inline Value_T Hash::get(Key_T const& key)
   {
-    Object ruby_key(detail::To_Ruby<Key_T>::convert(key));
+    Object ruby_key(detail::To_Ruby<Key_T>().convert(key));
     Object value = operator[](ruby_key);
     try
     {
@@ -5200,21 +5341,21 @@ namespace Rice
   namespace detail
   {
     template<>
+    struct To_Ruby<Symbol>
+    {
+      VALUE convert(Object const& x)
+      {
+        return x.value();
+      }
+    };
+
+    template<>
     class From_Ruby<Symbol>
     {
     public:
       Object convert(VALUE value)
       {
         return Object(value);
-      }
-    };
-
-    template<>
-    struct To_Ruby<Symbol>
-    {
-      static VALUE convert(Object const& x, bool takeOwnership = false)
-      {
-        return x.value();
       }
     };
   }
@@ -5769,21 +5910,21 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
+  struct To_Ruby<Module>
+  {
+    VALUE convert(Object const& x)
+    {
+      return x.value();
+    }
+  };
+
+  template<>
   class From_Ruby<Module>
   {
   public:
     Module convert(VALUE value)
     {
       return Module(value);
-    }
-  };
-
-  template<>
-  struct To_Ruby<Module>
-  {
-    static VALUE convert(Object const& x, bool takeOwnership = false)
-    {
-      return x.value();
     }
   };
 }
@@ -5972,21 +6113,21 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
+  struct To_Ruby<Class>
+  {
+    static VALUE convert(Object const& x)
+    {
+      return x.value();
+    }
+  };
+
+  template<>
   class From_Ruby<Class>
   {
   public:
     Class convert(VALUE value)
     {
       return Class(value);
-    }
-  };
-
-  template<>
-  struct To_Ruby<Class>
-  {
-    static VALUE convert(Object const& x, bool takeOwnership = false)
-    {
-      return x.value();
     }
   };
 }
@@ -6356,10 +6497,10 @@ namespace Rice
     Data_Type<T>& define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name = "each");
 
     template <typename Attr_T>
-    Data_Type<T>& define_attr(std::string name, Attr_T&& attr, AttrAccess access = AttrAccess::ReadWrite);
+    Data_Type<T>& define_attr(std::string name, Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
   
     template <typename Attr_T>
-    Data_Type<T>& define_singleton_attr(std::string name, Attr_T&& attr, AttrAccess access = AttrAccess::ReadWrite);
+    Data_Type<T>& define_singleton_attr(std::string name, Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
 
   // Include these methods to call methods from Module but return
 // an instance of the current classes. This is an alternative to
@@ -6723,7 +6864,7 @@ namespace Rice
 
   template <typename T>
   template <typename Attr_T>
-  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T&& attr, AttrAccess access)
+  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T attr, AttrAccess access)
   {
     auto* native = detail::Make_Native_Attribute(attr, access);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
@@ -6752,7 +6893,7 @@ namespace Rice
 
   template <typename T>
   template <typename Attr_T>
-  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_T&& attr, AttrAccess access)
+  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_T attr, AttrAccess access)
   {
     auto* native = detail::Make_Native_Attribute(attr, access);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
@@ -7019,51 +7160,76 @@ namespace Rice
   }
 }
 
-template<typename T, typename>
-struct Rice::detail::To_Ruby
+namespace Rice::detail
 {
-  static VALUE convert(T& data, bool isOwner)
+  template<typename T>
+  struct To_Ruby
   {
-    // Note that T could be a pointer or reference to a base class while data is in fact a
-    // child class. Lookup the correct type so we return an instance of the correct Ruby class
-    std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
-    return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
-  }
-};
+    VALUE convert(T& data)
+    {
+      // Get the ruby typeinfo
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
 
-template <typename T>
-struct Rice::detail::To_Ruby<const T&, std::enable_if_t<!Rice::detail::is_builtin_v<T>>>
-{
-  static VALUE convert(const T& data, bool isOwner)
-  {
-    // Note that T could be a pointer or reference to a base class while data is in fact a
-    // child class. Lookup the correct type so we return an instance of the correct Ruby class
-    std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
-    return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
-  }
-};
+      // We always take ownership of data passed by value (yes the parameter is T& but the template
+      // matched <typename T> thus we have to tell wrap to copy the reference we are sending to it
+      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
+  };
 
-template <typename T>
-struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_builtin_v<T>>>
-{
-  static VALUE convert(T* data, bool isOwner)
+  template <typename T>
+  struct To_Ruby<T&>
   {
-    if (data)
+    To_Ruby(bool isOwner = false) : isOwner_(isOwner)
+    {
+    }
+
+    VALUE convert(T& data)
     {
       // Note that T could be a pointer or reference to a base class while data is in fact a
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(*data);
-      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
+      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, this->isOwner_);
     }
-    else
-    {
-      return Qnil;
-    }
-  }
-};
 
-namespace Rice::detail
-{
+  private:
+    bool isOwner_ = false;
+  };
+
+  template <typename T>
+  struct To_Ruby<T*>
+  {
+    To_Ruby(bool isOwner = false) : isOwner_(isOwner)
+    {
+    }
+
+    VALUE convert(const T* data)
+    {
+      if (data)
+      {
+        // Note that T could be a pointer or reference to a base class while data is in fact a
+        // child class. Lookup the correct type so we return an instance of the correct Ruby class
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(*data);
+        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, this->isOwner_);
+      }
+      else
+      {
+        return Qnil;
+      }
+    }
+
+  private:
+    bool isOwner_ = false;
+  };
+
+  template<typename T>
+  struct To_Ruby<Data_Object<T>>
+  {
+    VALUE convert(const Object& x)
+    {
+      return x.value();
+    }
+  };
+
   template <typename T>
   class From_Ruby
   {
@@ -7114,15 +7280,6 @@ namespace Rice::detail
       return Data_Object<T>(value);
     }
   };
-
-  template<typename T>
-  struct To_Ruby<Data_Object<T>>
-  {
-    static VALUE convert(Object const& x, bool takeOwnership = false)
-    {
-      return x.value();
-    }
-  };
 }
 #endif // Rice__Data_Object__ipp_
 
@@ -7165,7 +7322,7 @@ namespace Rice::detail
 
     for (; it != end; ++it)
     {
-      protect(rb_yield, detail::To_Ruby<Value_T>::convert(*it));
+      protect(rb_yield, detail::To_Ruby<Value_T>().convert(*it));
     }
 
     return self;
@@ -7341,7 +7498,7 @@ namespace Rice
           for (auto& pair : valuesToNames_)
           {
             Enum_T enumValue = pair.first;
-            VALUE value = detail::To_Ruby<Enum_T>::convert(enumValue, true);
+            VALUE value = detail::To_Ruby<Enum_T>().convert(enumValue);
             detail::protect(rb_yield, value);
           }
       })

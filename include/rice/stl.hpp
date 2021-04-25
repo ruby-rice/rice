@@ -14,6 +14,24 @@ namespace Rice::detail
   struct is_builtin<std::string> : public std::true_type {};
 
   template<>
+  struct To_Ruby<std::string>
+  {
+    VALUE convert(std::string const& x)
+    {
+      return detail::protect(rb_external_str_new, x.data(), (long)x.size());
+    }
+  };
+
+  template<>
+  struct To_Ruby<std::string&>
+  {
+    VALUE convert(std::string const& x)
+    {
+      return detail::protect(rb_external_str_new, x.data(), (long)x.size());
+    }
+  };
+
+  template<>
   class From_Ruby<std::string>
   {
   public:
@@ -83,15 +101,6 @@ namespace Rice::detail
     std::optional<std::string> defaultValue_;
     std::string converted_;
   };
-
-  template<>
-  struct To_Ruby<std::string>
-  {
-    static VALUE convert(std::string const& x, bool takeOwnership = false)
-    {
-      return detail::protect(rb_external_str_new, x.data(), (long)x.size());
-    }
-  };
 }
 
 // =========   complex.hpp   =========
@@ -105,6 +114,18 @@ namespace Rice::detail
 {
   template<typename T>
   struct is_builtin<std::complex<T>> : public std::true_type {};
+
+  template<typename T>
+  struct To_Ruby<std::complex<T>>
+  {
+    VALUE convert(const std::complex<T>& data)
+    {
+      std::vector<VALUE> args(2);
+      args[0] = To_Ruby<T>().convert(data.real());
+      args[1] = To_Ruby<T>().convert(data.imag());
+      return protect(rb_funcall2, rb_mKernel, rb_intern("Complex"), (int)args.size(), (const VALUE*)args.data());
+    }
+  };
 
   template<typename T>
   class From_Ruby<std::complex<T>>
@@ -135,18 +156,6 @@ namespace Rice::detail
   private:
     std::complex<T> converted_;
   };
-
-  template<typename T>
-  struct To_Ruby<std::complex<T>>
-  {
-    static VALUE convert(const std::complex<T>& data, bool takeOwnership = false)
-    {
-      std::vector<VALUE> args(2);
-      args[0] = To_Ruby<T>::convert(data.real());
-      args[1] = To_Ruby<T>::convert(data.imag());
-      return protect(rb_funcall2, rb_mKernel, rb_intern("Complex"), (int)args.size(), (const VALUE*)args.data());
-    }
-  };
 }
 
 // =========   optional.hpp   =========
@@ -172,7 +181,7 @@ namespace Rice::detail
   template<>
   struct To_Ruby<std::nullopt_t>
   {
-    static VALUE convert(std::nullopt_t& _, bool takeOwnership = false)
+    VALUE convert(std::nullopt_t& _)
     {
       return Qnil;
     }
@@ -185,7 +194,23 @@ namespace Rice::detail
     {
       if (data.has_value())
       {
-        return To_Ruby<T>::convert(data.value(), takeOwnership);
+        return To_Ruby<T>().convert(data.value());
+      }
+      else
+      {
+        return Qnil;
+      }
+    }
+  };
+
+  template<typename T>
+  struct To_Ruby<std::optional<T>&>
+  {
+    static VALUE convert(std::optional<T>& data, bool takeOwnership = false)
+    {
+      if (data.has_value())
+      {
+        return To_Ruby<T>().convert(data.value());
       }
       else
       {
@@ -454,9 +479,8 @@ namespace Rice::detail
   template <typename T>
   struct To_Ruby<std::unique_ptr<T>>
   {
-    static VALUE convert(std::unique_ptr<T>& data, bool takeOwnership = true)
+    VALUE convert(std::unique_ptr<T>& data)
     {
-      assert(takeOwnership);
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(*data);
 
       // Use custom wrapper type 
@@ -497,9 +521,8 @@ namespace Rice::detail
   template <typename T>
   struct To_Ruby<std::shared_ptr<T>>
   {
-    static VALUE convert(std::shared_ptr<T>& data, bool takeOwnership = true)
+    VALUE convert(std::shared_ptr<T>& data)
     {
-      assert(takeOwnership);
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(*data);
 
       // Use custom wrapper type 
@@ -823,7 +846,7 @@ namespace Rice
             {
               for (Value_T& item : self)
               {
-                VALUE element = detail::To_Ruby<Value_T>::convert(item, false);
+                VALUE element = detail::To_Ruby<Value_T>().convert(item);
                 rb_yield(element);
               }
               return self;
