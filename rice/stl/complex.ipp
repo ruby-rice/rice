@@ -8,6 +8,18 @@ namespace Rice::detail
   struct is_builtin<std::complex<T>> : public std::true_type {};
 
   template<typename T>
+  struct To_Ruby<std::complex<T>>
+  {
+    VALUE convert(const std::complex<T>& data)
+    {
+      std::vector<VALUE> args(2);
+      args[0] = To_Ruby<T>().convert(data.real());
+      args[1] = To_Ruby<T>().convert(data.imag());
+      return protect(rb_funcall2, rb_mKernel, rb_intern("Complex"), (int)args.size(), (const VALUE*)args.data());
+    }
+  };
+
+  template<typename T>
   class From_Ruby<std::complex<T>>
   {
   public:
@@ -35,17 +47,5 @@ namespace Rice::detail
 
   private:
     std::complex<T> converted_;
-  };
-
-  template<typename T>
-  struct To_Ruby<std::complex<T>>
-  {
-    static VALUE convert(const std::complex<T>& data, bool takeOwnership = false)
-    {
-      std::vector<VALUE> args(2);
-      args[0] = To_Ruby<T>::convert(data.real());
-      args[1] = To_Ruby<T>::convert(data.imag());
-      return protect(rb_funcall2, rb_mKernel, rb_intern("Complex"), (int)args.size(), (const VALUE*)args.data());
-    }
   };
 }

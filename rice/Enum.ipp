@@ -90,7 +90,7 @@ namespace Rice
           for (auto& pair : valuesToNames_)
           {
             Enum_T enumValue = pair.first;
-            VALUE value = detail::To_Ruby<Enum_T>::convert(enumValue, true);
+            VALUE value = detail::To_Ruby<Enum_T>().convert(enumValue);
             detail::protect(rb_yield, value);
           }
       })

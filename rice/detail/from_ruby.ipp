@@ -485,7 +485,7 @@ namespace Rice::detail
     {
       if (this->isValue_)
       {
-        return value;
+        return (unsigned long)value;
       }
       else if (value == Qnil && this->defaultValue_)
       {

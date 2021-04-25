@@ -24,27 +24,37 @@ namespace Rice
     template<typename T>
     struct remove_cv_recursive<T const volatile>
     {
-      using type = std::remove_cv_t<T>;
+      using type = typename remove_cv_recursive<T>::type;
     };
 
-    template<typename T> struct remove_cv_recursive<T volatile>
+    template<typename T>
+    struct remove_cv_recursive<T volatile>
     {
-      using type = std::remove_cv_t<T>;
+      using type = typename remove_cv_recursive<T>::type;
     };
 
-    template<typename T> struct remove_cv_recursive<T const>
+    template<typename T>
+    struct remove_cv_recursive<T const>
     {
-      using type = std::remove_cv_t<T>;
+      using type = typename remove_cv_recursive<T>::type;
     };
 
-    template<typename T> struct remove_cv_recursive<T&>
+    template<typename T>
+    struct remove_cv_recursive<T&>
     {
-      using type = std::remove_cv_t<T>&;
+      using type = typename remove_cv_recursive<T>::type&;
     };
 
-    template<typename T> struct remove_cv_recursive<T*>
+   /* template<typename T>
+    struct remove_cv_recursive<T&&>
     {
-      using type = std::remove_cv_t<T>*;
+      using type = typename remove_cv_recursive<T>::type&&;
+    };*/
+
+    template<typename T>
+    struct remove_cv_recursive<T*>
+    {
+      using type = typename remove_cv_recursive<T>::type*;
     };
 
     template<typename T>

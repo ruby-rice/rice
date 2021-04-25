@@ -260,7 +260,7 @@ namespace Rice
 
   template <typename T>
   template <typename Attr_T>
-  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T&& attr, AttrAccess access)
+  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T attr, AttrAccess access)
   {
     auto* native = detail::Make_Native_Attribute(attr, access);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
@@ -289,7 +289,7 @@ namespace Rice
 
   template <typename T>
   template <typename Attr_T>
-  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_T&& attr, AttrAccess access)
+  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_T attr, AttrAccess access)
   {
     auto* native = detail::Make_Native_Attribute(attr, access);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;

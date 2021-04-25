@@ -17,7 +17,7 @@ namespace Rice::detail
   template<>
   struct To_Ruby<std::nullopt_t>
   {
-    static VALUE convert(std::nullopt_t& _, bool takeOwnership = false)
+    VALUE convert(std::nullopt_t& _)
     {
       return Qnil;
     }
@@ -30,7 +30,23 @@ namespace Rice::detail
     {
       if (data.has_value())
       {
-        return To_Ruby<T>::convert(data.value(), takeOwnership);
+        return To_Ruby<T>().convert(data.value());
+      }
+      else
+      {
+        return Qnil;
+      }
+    }
+  };
+
+  template<typename T>
+  struct To_Ruby<std::optional<T>&>
+  {
+    static VALUE convert(std::optional<T>& data, bool takeOwnership = false)
+    {
+      if (data.has_value())
+      {
+        return To_Ruby<T>().convert(data.value());
       }
       else
       {

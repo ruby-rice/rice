@@ -68,21 +68,21 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
+  struct To_Ruby<String>
+  {
+    VALUE convert(String const& x)
+    {
+      return x.value();
+    }
+  };
+
+  template<>
   class From_Ruby<String>
   {
   public:
     String convert(VALUE value)
     {
       return String(value);
-    }
-  };
-
-  template<>
-  struct To_Ruby<String>
-  {
-    static VALUE convert(String const& x, bool takeOwnership = false)
-    {
-      return x.value();
     }
   };
 }

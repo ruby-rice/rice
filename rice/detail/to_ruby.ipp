@@ -1,18 +1,13 @@
+#include "RubyFunction.hpp"
 
 namespace Rice
 {
   namespace detail
   {
-    // This template is never called but needs to exist for MSVC to successfully compile
-    // this line from Wrapped_Function.ipp:
-    // 
-    //   return To_Ruby<Return_T>::convert(result);
-    // 
-    // Note there is a if constexpr check for Return_T being void. Sigh.
     template<>
     struct To_Ruby<void>
     {
-      static VALUE convert(void*, bool takeOwnership = false)
+      VALUE convert(void const*)
       {
         return Qnil;
       }
@@ -21,7 +16,7 @@ namespace Rice
     template<>
     struct To_Ruby<std::nullptr_t>
     {
-      static VALUE convert(std::nullptr_t, bool takeOwnership = false)
+      VALUE convert(std::nullptr_t const)
       {
         return Qnil;
       }
@@ -30,97 +25,260 @@ namespace Rice
     template<>
     struct To_Ruby<short>
     {
-      static VALUE convert(short const& x, bool takeOwnership = false)
+      VALUE convert(short const& x)
       {
-        return INT2NUM(x);
+        return protect(rb_int2num_inline, (int)x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<short&>
+    {
+      VALUE convert(short const& x)
+      {
+        return protect(rb_int2num_inline, (int)x);
       }
     };
 
     template<>
     struct To_Ruby<int>
     {
-      static VALUE convert(int const& x, bool takeOwnership = false)
+      VALUE convert(int const& x)
       {
-        return INT2NUM(x);
+        return protect(rb_int2num_inline, x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<int&>
+    {
+      VALUE convert(int const& x)
+      {
+        return protect(rb_int2num_inline, x);
       }
     };
 
     template<>
     struct To_Ruby<long>
     {
-      static VALUE convert(long const& x, bool takeOwnership = false)
+      VALUE convert(long const& x)
       {
-        return LONG2NUM(x);
+        return protect(rb_long2num_inline, x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<long&>
+    {
+      VALUE convert(long const& x)
+      {
+        return protect(rb_long2num_inline, x);
       }
     };
 
     template<>
     struct To_Ruby<long long>
     {
-      static VALUE convert(long long const& x, bool takeOwnership = false)
+      VALUE convert(long long const& x)
       {
-        return LL2NUM(x);
+        return protect(rb_ll2inum, x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<long long&>
+    {
+      VALUE convert(long long const& x)
+      {
+        return protect(rb_ll2inum, x);
       }
     };
 
     template<>
     struct To_Ruby<unsigned short>
     {
-      static VALUE convert(unsigned short const& x, bool takeOwnership = false)
+      VALUE convert(unsigned short const& x)
       {
-        return UINT2NUM(x);
+        return protect(rb_uint2num_inline, (unsigned int)x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<unsigned short&>
+    {
+      VALUE convert(unsigned short const& x)
+      {
+        return protect(rb_uint2num_inline, (unsigned int)x);
       }
     };
 
     template<>
     struct To_Ruby<unsigned int>
     {
-      static VALUE convert(unsigned int const& x, bool takeOwnership = false)
+      VALUE convert(unsigned int const& x)
       {
-        return UINT2NUM(x);
+        return protect(rb_uint2num_inline, x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<unsigned int&>
+    {
+      VALUE convert(unsigned int const& x)
+      {
+        return protect(rb_uint2num_inline, x);
       }
     };
 
     template<>
     struct To_Ruby<unsigned long>
     {
-      static VALUE convert(unsigned long const& x, bool takeOwnership = false)
+      To_Ruby() = default;
+
+      explicit To_Ruby(bool isValue) : isValue_(isValue)
       {
-        return ULONG2NUM(x);
       }
+
+      VALUE convert(unsigned long const& x)
+      {
+        if (this->isValue_)
+        {
+          return x;
+        }
+        else
+        {
+          return protect(rb_ulong2num_inline, x);
+        }
+      }
+
+    private:
+      bool isValue_ = false;
+    };
+
+    template<>
+    struct To_Ruby<unsigned long&>
+    {
+      To_Ruby() = default;
+
+      explicit To_Ruby(bool isValue) : isValue_(isValue)
+      {
+      }
+
+      VALUE convert(unsigned long const& x)
+      {
+        if (this->isValue_)
+        {
+          return x;
+        }
+        else
+        {
+          return protect(rb_ulong2num_inline, x);
+        }
+      }
+
+    private:
+      bool isValue_ = false;
     };
 
     template<>
     struct To_Ruby<unsigned long long>
     {
-      static VALUE convert(unsigned long long const& x, bool takeOwnership = false)
+      To_Ruby() = default;
+
+      explicit To_Ruby(bool isValue) : isValue_(isValue)
       {
-        return ULL2NUM(x);
       }
+
+      VALUE convert(unsigned long long const& x)
+      {
+        if (this->isValue_)
+        {
+          return x;
+        }
+        else
+        {
+          return protect(rb_ull2inum, (unsigned long long)x);
+        }
+      }
+
+    private:
+      bool isValue_ = false;
+    };
+
+    template<>
+    struct To_Ruby<unsigned long long&>
+    {
+      To_Ruby() = default;
+
+      explicit To_Ruby(bool isValue) : isValue_(isValue)
+      {
+      }
+
+      VALUE convert(unsigned long long const& x)
+      {
+        if (this->isValue_)
+        {
+          return x;
+        }
+        else
+        {
+          return protect(rb_ull2inum, (unsigned long long)x);
+        }
+      }
+
+    private:
+      bool isValue_ = false;
     };
 
     template<>
     struct To_Ruby<float>
     {
-      static VALUE convert(float const& x, bool takeOwnership = false)
+      VALUE convert(float const& x)
       {
-        return rb_float_new(x);
+        return protect(rb_float_new, (double)x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<float&>
+    {
+      VALUE convert(float const& x)
+      {
+        return protect(rb_float_new, (double)x);
       }
     };
 
     template<>
     struct To_Ruby<double>
     {
-      static VALUE convert(double const& x, bool takeOwnership = false)
+      VALUE convert(double const& x)
       {
-        return rb_float_new(x);
+        return protect(rb_float_new, x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<double&>
+    {
+      VALUE convert(double const& x)
+      {
+        return protect(rb_float_new, x);
       }
     };
 
     template<>
     struct To_Ruby<bool>
     {
-      static VALUE convert(bool const& x, bool takeOwnership = false)
+      VALUE convert(bool const& x)
+      {
+        return x ? Qtrue : Qfalse;
+      }
+    };
+
+    template<>
+    struct To_Ruby<bool&>
+    {
+      VALUE convert(bool const& x)
       {
         return x ? Qtrue : Qfalse;
       }
@@ -129,27 +287,63 @@ namespace Rice
     template<>
     struct To_Ruby<char>
     {
-      static VALUE convert(char const& x, bool takeOwnership = false)
+      VALUE convert(char const& x)
       {
-        return To_Ruby<int>::convert(x, takeOwnership);
+        return To_Ruby<int>().convert(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<char&>
+    {
+      VALUE convert(char const& x)
+      {
+        return To_Ruby<int>().convert(x);
       }
     };
 
     template<>
     struct To_Ruby<unsigned char>
     {
-      static VALUE convert(unsigned char const& x, bool takeOwnership = false)
+      VALUE convert(unsigned char const& x)
       {
-        return To_Ruby<unsigned int>::convert(x, takeOwnership);
+        return To_Ruby<unsigned int>().convert(x);
       }
     };
 
     template<>
-    struct To_Ruby<const char*>
+    struct To_Ruby<unsigned char&>
     {
-      static VALUE convert(const char* x, bool takeOwnership = false)
+      VALUE convert(unsigned char const& x)
       {
-        return rb_str_new2(x);
+        return To_Ruby<unsigned int>().convert(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<signed char>
+    {
+      VALUE convert(signed char const& x)
+      {
+        return To_Ruby<signed int>().convert(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<signed char&>
+    {
+      VALUE convert(signed char const& x)
+      {
+        return To_Ruby<signed int>().convert(x);
+      }
+    };
+
+    template<>
+    struct To_Ruby<char*>
+    {
+      VALUE convert(char const* x)
+      {
+        return protect(rb_str_new2, x);
       }
     };
   }

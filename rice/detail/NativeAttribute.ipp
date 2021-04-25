@@ -41,14 +41,15 @@ namespace Rice::detail
   template<typename Return_T, typename Attr_T, typename Self_T>
   inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::read(VALUE self)
   {
+    using Unqualified_T = remove_cv_recursive_t<Return_T>;
     if constexpr (std::is_member_object_pointer_v<Attr_T>)
     {
       Self_T* nativeSelf = From_Ruby<Self_T*>().convert(self);
-      return To_Ruby<Return_T>().convert(nativeSelf->*attr_, false);
+      return To_Ruby<Unqualified_T>().convert(nativeSelf->*attr_);
     }
     else
     {
-      return To_Ruby<Return_T>().convert(*attr_, false);
+      return To_Ruby<Unqualified_T>().convert(*attr_);
     }
   }
 

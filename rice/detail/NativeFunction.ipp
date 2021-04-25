@@ -1,9 +1,9 @@
 #include <array>
 #include <algorithm>
+#include <stdexcept>
 
 #include "method_data.hpp"
 #include "to_ruby_defn.hpp"
-#include "NativeReturn.hpp"
 #include "../ruby_try_catch.hpp"
 
 namespace Rice::detail
@@ -20,22 +20,14 @@ namespace Rice::detail
   NativeFunction<Function_T, IsMethod>::NativeFunction(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
     : func_(func), handler_(handler), methodInfo_(methodInfo)
   {
-    // Ruby takes ownership of types returned by value. We do this here so that users
-    // don't have to be bothered to specify this in define_method. Note we *must* set 
-    // this correctly because To_Ruby<T>::convert routines work with const T& and thus
-    // if ownership is false they will store a reference to the value and that will
-    // result in a crash.
-    if (!std::is_reference_v<Return_T> && !std::is_pointer_v<Return_T>)
-    {
-      methodInfo_->returnInfo.takeOwnership();
-    }
-
     // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
     // builtin types NativeArgs will keep a copy of the native value so that it 
     // can be passed by reference or pointer to the native function. For non-builtin types
     // it will just pass the value through.
     auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
     this->fromRubys_ = this->createFromRuby(indices);
+
+    this->toRuby_ = this->createToRuby();
   }
 
   template<typename Function_T, bool IsMethod>
@@ -66,6 +58,39 @@ namespace Rice::detail
     }
 
     return From_Ruby<T>();
+  }
+
+  template<typename Function_T, bool IsMethod>
+  To_Ruby<typename NativeFunction<Function_T, IsMethod>::Return_T> NativeFunction<Function_T, IsMethod>::createToRuby()
+  {
+    if (this->methodInfo_->returnInfo.isOwner())
+    {
+      if constexpr (std::is_constructible_v<To_Ruby<Return_T>, bool>)
+      {
+        return To_Ruby<Return_T>(true);
+      }
+      else
+      {
+        throw std::runtime_error("Type does not support taking onwership: " + typeName(typeid(Return_T)));
+      }
+    }
+    // Is this type the same as Ruby's VALUE type? If so we need to tell the conversion
+    // function if this is a VALUE or not
+    else if (this->methodInfo_->returnInfo.getIsValue())
+    {
+      if constexpr (std::is_same_v<Return_T, VALUE>)
+      {
+        return To_Ruby<Return_T>(true);
+      }
+      else
+      {
+        throw std::runtime_error("Type does not support passing by VALUE: " + typeName(typeid(Return_T)));
+      }
+    }
+    else
+    {
+      return To_Ruby<Return_T>();
+    }
   }
 
   template<typename Function_T, bool IsMethod>
@@ -146,11 +171,8 @@ namespace Rice::detail
       // Call the native method and get the result
       Return_T nativeResult = std::apply(this->func_, nativeArgs);
       
-      // Create a wrapper object to convert to Ruby
-      NativeReturn<Return_T> nativeReturn(this->methodInfo_->returnInfo);
-
       // Return the result
-      return nativeReturn.getValue(nativeResult);
+      return this->toRuby_.convert(nativeResult);
     }
   }
 
@@ -167,8 +189,7 @@ namespace Rice::detail
     }
     else
     {
-      // Call the native method
-      Return_T nativeResult = std::apply(this->func_, selfAndNativeArgs);
+      Return_T nativeResult = (Return_T)std::apply(this->func_, selfAndNativeArgs);
 
       // Special handling if the method returns self. If so we do not want
       // to create a new Ruby wrapper object and instead return self.
@@ -196,7 +217,7 @@ namespace Rice::detail
         }
       }
 
-      return To_Ruby<Return_T>::convert(nativeResult, this->methodInfo_->returnInfo.isOwner());
+      return this->toRuby_.convert(nativeResult);
     }
   }
 

@@ -10,6 +10,24 @@ namespace Rice::detail
   struct is_builtin<std::string> : public std::true_type {};
 
   template<>
+  struct To_Ruby<std::string>
+  {
+    VALUE convert(std::string const& x)
+    {
+      return detail::protect(rb_external_str_new, x.data(), (long)x.size());
+    }
+  };
+
+  template<>
+  struct To_Ruby<std::string&>
+  {
+    VALUE convert(std::string const& x)
+    {
+      return detail::protect(rb_external_str_new, x.data(), (long)x.size());
+    }
+  };
+
+  template<>
   class From_Ruby<std::string>
   {
   public:
@@ -78,14 +96,5 @@ namespace Rice::detail
   private:
     std::optional<std::string> defaultValue_;
     std::string converted_;
-  };
-
-  template<>
-  struct To_Ruby<std::string>
-  {
-    static VALUE convert(std::string const& x, bool takeOwnership = false)
-    {
-      return detail::protect(rb_external_str_new, x.data(), (long)x.size());
-    }
   };
 }

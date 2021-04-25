@@ -28,9 +28,8 @@ namespace Rice::detail
   template <typename T>
   struct To_Ruby<std::unique_ptr<T>>
   {
-    static VALUE convert(std::unique_ptr<T>& data, bool takeOwnership = true)
+    VALUE convert(std::unique_ptr<T>& data)
     {
-      assert(takeOwnership);
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(*data);
 
       // Use custom wrapper type 
@@ -71,9 +70,8 @@ namespace Rice::detail
   template <typename T>
   struct To_Ruby<std::shared_ptr<T>>
   {
-    static VALUE convert(std::shared_ptr<T>& data, bool takeOwnership = true)
+    VALUE convert(std::shared_ptr<T>& data)
     {
-      assert(takeOwnership);
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(*data);
 
       // Use custom wrapper type 

@@ -38,14 +38,14 @@ namespace Rice
        to the destination method resulting in a segmentation fault. This is
        easy to duplicate by setting GC.stress to true and calling a constructor
        that takes multiple values like a std::pair wrapper. */
-    std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<Arg_Ts>::convert(args, false)... };
+    std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Arg_Ts>>().convert(args)... };
     return detail::protect(rb_funcall2, value(), id.id(), (int)values.size(), (const VALUE*)values.data());
   }
 
   template<typename T>
   inline void Object::iv_set(Identifier name, T const& value)
   {
-    detail::protect(rb_ivar_set, this->value(), name.id(), detail::To_Ruby<T>::convert(value));
+    detail::protect(rb_ivar_set, this->value(), name.id(), detail::To_Ruby<T>().convert(value));
   }
 
   inline int Object::compare(Object const& other) const
@@ -143,21 +143,30 @@ namespace Rice::detail
   };
 
   template<>
+  struct To_Ruby<Object>
+  {
+    static VALUE convert(Object const& x)
+    {
+      return x.value();
+    }
+  };
+
+  template<>
+  struct To_Ruby<Object&>
+  {
+    static VALUE convert(Object const& x)
+    {
+      return x.value();
+    }
+  };
+
+  template<>
   class From_Ruby<Object>
   {
   public:
     Object convert(VALUE value)
     {
       return Object(value);
-    }
-  };
-
-  template<>
-  struct To_Ruby<Object>
-  {
-    static VALUE convert(Object const& x, bool takeOwnership = false)
-    {
-      return x.value();
     }
   };
 }

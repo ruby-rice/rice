@@ -13,7 +13,9 @@ namespace Rice::detail
   class NativeFunction
   {
   public:
-    using Return_T = typename function_traits<Function_T>::return_type;
+    // We remove const to avoid an explosion of To_Ruby specializations and Ruby doesn't
+    // have the concept of constants anyways
+    using Return_T = remove_cv_recursive_t<typename function_traits<Function_T>::return_type>;
     using Self_T = typename method_traits<Function_T, IsMethod>::Self_T;
     using Arg_Ts = typename method_traits<Function_T, IsMethod>::Arg_Ts;
     using From_Ruby_Ts = typename tuple_map<From_Ruby, Arg_Ts>::type;
@@ -35,6 +37,8 @@ namespace Rice::detail
     template<std::size_t... I>
     From_Ruby_Ts createFromRuby(std::index_sequence<I...>& indices);
 
+    To_Ruby<Return_T> createToRuby();
+      
     // Convert Ruby argv pointer to Ruby values
     std::vector<VALUE> getRubyValues(int argc, VALUE* argv);
 
@@ -55,6 +59,7 @@ namespace Rice::detail
   private:
     Function_T func_;
     From_Ruby_Ts fromRubys_;
+    To_Ruby<Return_T> toRuby_;
     std::shared_ptr<Exception_Handler> handler_;
     std::unique_ptr<MethodInfo> methodInfo_;
   };

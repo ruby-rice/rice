@@ -127,7 +127,7 @@ SETUP(Ownership)
     define_method("move_value", &Factory::moveValue).
     define_method("transfer_pointer", &Factory::transferPointer, Return().takeOwnership()).
     define_method("keep_pointer", &Factory::keepPointer).
-    define_method("tranfer_reference", &Factory::keepReference, Return().takeOwnership()).
+    define_method("copy_reference", &Factory::keepReference, Return().takeOwnership()).
     define_method("keep_reference", &Factory::keepReference);
 }
 
@@ -213,7 +213,7 @@ TESTCASE(CopyReference)
   // Create ruby objects that point to the same instance of MyClass
   std::string code = R"(factory = Factory.new
                         10.times do |i|
-                          my_class = factory.tranfer_reference
+                          my_class = factory.copy_reference
                           my_class.set_flag(i)
                         end)";
 
@@ -227,7 +227,7 @@ TESTCASE(CopyReference)
   ASSERT_EQUAL(0, Factory::instance_->flag);
 }
 
-TESTCASE(TransferValue)
+/*TESTCASE(TransferValue)
 {
   Factory::reset();
   MyClass::reset();
@@ -272,3 +272,4 @@ TESTCASE(MoveValue)
   ASSERT_EQUAL(30, MyClass::destructorCalls);
   ASSERT(!Factory::instance_);
 }
+*/

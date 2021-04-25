@@ -255,7 +255,7 @@ namespace Rice
             {
               for (Value_T& item : self)
               {
-                VALUE element = detail::To_Ruby<Value_T>::convert(item, false);
+                VALUE element = detail::To_Ruby<Value_T>().convert(item);
                 rb_yield(element);
               }
               return self;

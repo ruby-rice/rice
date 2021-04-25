@@ -24,48 +24,23 @@ namespace Rice
      *    rb_p(to_ruby(p_foo));
      *  \endcode
      */
-    template <typename T, typename = void>
+    template <typename T>
     struct To_Ruby;
    
-    template<typename T>
-    struct To_Ruby<const T, std::enable_if_t<is_builtin_v<T>>>
-    {
-      static VALUE convert(T const& x, bool takeOwnership = false)
-      {
-        return To_Ruby<T>::convert(x, takeOwnership);
-      }
-    };
-
-    template<typename T>
-    struct To_Ruby<T&, std::enable_if_t<is_builtin_v<T>>>
-    {
-      static VALUE convert(T& x, bool takeOwnership = false)
-      {
-        return To_Ruby<intrinsic_type<T>>::convert(x, takeOwnership);
-      }
-    };
-
-    template<typename T>
-    struct To_Ruby<T*, std::enable_if_t<is_builtin_v<T>>>
-    {
-      static VALUE convert(T* x, bool takeOwnership = false)
-      {
-        return To_Ruby<intrinsic_type<T>>::convert(*x, takeOwnership);
-      }
-    };
-
     // Helper template function that let's users avoid having to specify the template type - its deduced
     template <typename T>
     VALUE to_ruby(T&& x)
     {
-      return To_Ruby<T>::convert(std::forward<T>(x), true);
+      using Unqualified_T = remove_cv_recursive_t<T>;
+      return To_Ruby<Unqualified_T>().convert(std::forward<T>(x));
     }
 
     // Helper template function that let's users avoid having to specify the template type - its deduced
     template <typename T>
     VALUE to_ruby(T* x)
     {
-      return To_Ruby<T*>::convert(x);
+      using Unqualified_T = remove_cv_recursive_t<T>;
+      return To_Ruby<Unqualified_T*>().convert(x);
     }
   } // detail
 } // Rice

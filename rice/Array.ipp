@@ -51,7 +51,7 @@ namespace Rice
   template<typename T>
   inline Object Array::push(T const& obj)
   {
-    return detail::protect(rb_ary_push, value(), detail::To_Ruby<T>::convert(obj, true));
+    return detail::protect(rb_ary_push, value(), detail::To_Ruby<T>().convert(obj));
   }
 
   inline Object Array::pop()
@@ -62,7 +62,7 @@ namespace Rice
   template<typename T>
   inline Object Array::unshift(T const& obj)
   {
-    return detail::protect(rb_ary_unshift, value(), detail::To_Ruby<T>::convert(obj, true));
+    return detail::protect(rb_ary_unshift, value(), detail::To_Ruby<T>().convert(obj));
   }
 
   inline Object Array::shift()
@@ -101,7 +101,7 @@ namespace Rice
   template<typename T>
   Object Array::Proxy::operator=(T const& value)
   {
-    Object o = detail::To_Ruby<T>::convert(value, true);
+    Object o = detail::To_Ruby<T>().convert(value);
     detail::protect(rb_ary_store, array_.value(), index_, o.value());
     return o;
   }
@@ -207,21 +207,39 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
+  struct To_Ruby<Array>
+  {
+    VALUE convert(Array const& x)
+    {
+      return x.value();
+    }
+  };
+
+  template<>
+  struct To_Ruby<Array&>
+  {
+    VALUE convert(Array const& x)
+    {
+      return x.value();
+    }
+  };
+
+  template<>
+  struct To_Ruby<Array*>
+  {
+    VALUE convert(Array const* x)
+    {
+      return x->value();
+    }
+  };
+
+  template<>
   class From_Ruby<Array>
   {
   public:
     Array convert(VALUE value)
     {
       return Array(value);
-    }
-  };
-
-  template<>
-  struct To_Ruby<Array>
-  {
-    static VALUE convert(Array const& x, bool takeOwnership = false)
-    {
-      return x.value();
     }
   };
 }

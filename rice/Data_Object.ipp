@@ -91,51 +91,76 @@ namespace Rice
   }
 }
 
-template<typename T, typename>
-struct Rice::detail::To_Ruby
+namespace Rice::detail
 {
-  static VALUE convert(T& data, bool isOwner)
+  template<typename T>
+  struct To_Ruby
   {
-    // Note that T could be a pointer or reference to a base class while data is in fact a
-    // child class. Lookup the correct type so we return an instance of the correct Ruby class
-    std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
-    return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
-  }
-};
+    VALUE convert(T& data)
+    {
+      // Get the ruby typeinfo
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
 
-template <typename T>
-struct Rice::detail::To_Ruby<const T&, std::enable_if_t<!Rice::detail::is_builtin_v<T>>>
-{
-  static VALUE convert(const T& data, bool isOwner)
-  {
-    // Note that T could be a pointer or reference to a base class while data is in fact a
-    // child class. Lookup the correct type so we return an instance of the correct Ruby class
-    std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
-    return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
-  }
-};
+      // We always take ownership of data passed by value (yes the parameter is T& but the template
+      // matched <typename T> thus we have to tell wrap to copy the reference we are sending to it
+      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
+  };
 
-template <typename T>
-struct Rice::detail::To_Ruby<T*, std::enable_if_t<!Rice::detail::is_builtin_v<T>>>
-{
-  static VALUE convert(T* data, bool isOwner)
+  template <typename T>
+  struct To_Ruby<T&>
   {
-    if (data)
+    To_Ruby(bool isOwner = false) : isOwner_(isOwner)
+    {
+    }
+
+    VALUE convert(T& data)
     {
       // Note that T could be a pointer or reference to a base class while data is in fact a
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(*data);
-      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
+      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, this->isOwner_);
     }
-    else
-    {
-      return Qnil;
-    }
-  }
-};
 
-namespace Rice::detail
-{
+  private:
+    bool isOwner_ = false;
+  };
+
+  template <typename T>
+  struct To_Ruby<T*>
+  {
+    To_Ruby(bool isOwner = false) : isOwner_(isOwner)
+    {
+    }
+
+    VALUE convert(const T* data)
+    {
+      if (data)
+      {
+        // Note that T could be a pointer or reference to a base class while data is in fact a
+        // child class. Lookup the correct type so we return an instance of the correct Ruby class
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(*data);
+        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, this->isOwner_);
+      }
+      else
+      {
+        return Qnil;
+      }
+    }
+
+  private:
+    bool isOwner_ = false;
+  };
+
+  template<typename T>
+  struct To_Ruby<Data_Object<T>>
+  {
+    VALUE convert(const Object& x)
+    {
+      return x.value();
+    }
+  };
+
   template <typename T>
   class From_Ruby
   {
@@ -184,15 +209,6 @@ namespace Rice::detail
     static Data_Object<T> convert(VALUE value)
     {
       return Data_Object<T>(value);
-    }
-  };
-
-  template<typename T>
-  struct To_Ruby<Data_Object<T>>
-  {
-    static VALUE convert(Object const& x, bool takeOwnership = false)
-    {
-      return x.value();
     }
   };
 }
