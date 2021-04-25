@@ -283,12 +283,6 @@ namespace Rice::detail
 
 namespace Rice::detail
 {
-  template <typename T, typename = void>
-  struct is_builtin : public std::false_type {};
-
-  template <typename T>
-  constexpr bool is_builtin_v = is_builtin<T>::value;
-
   template<typename T>
   struct Type
   {
@@ -323,10 +317,6 @@ namespace Rice::detail
 
 namespace Rice::detail
 {
-  template <typename T>
-  struct is_builtin<T, std::enable_if_t<std::is_fundamental_v<intrinsic_type<T>>>> : 
-    public std::true_type {};
-
   template<>
   struct Type<void>
   {
@@ -590,7 +580,7 @@ namespace Rice::detail
     // for pointers, references, const, etc.
     using Intrinsic_T = intrinsic_type<T>;
 
-    if constexpr (is_builtin_v<Intrinsic_T>)
+    if constexpr (std::is_fundamental_v<Intrinsic_T>)
     {
       return true;
     }
@@ -4119,10 +4109,13 @@ namespace Rice
 
 namespace Rice::detail
 {
-  template <typename T>
-  struct is_builtin<T, std::enable_if_t<std::is_base_of_v<Rice::Object, intrinsic_type<T>>>> :
-    public std::true_type
+  template<>
+  struct Type<Object>
   {
+    static bool verify()
+    {
+      return true;
+    }
   };
 
   template<>
@@ -4374,6 +4367,15 @@ namespace Rice
 
 namespace Rice::detail
 {
+  template<>
+  struct Type<String>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
+  
   template<>
   struct To_Ruby<String>
   {
@@ -4790,6 +4792,15 @@ namespace Rice
 
 namespace Rice::detail
 {
+  template<>
+  struct Type<Array>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
+
   template<>
   struct To_Ruby<Array>
   {
@@ -5247,6 +5258,19 @@ namespace Rice
     }
   }
 }
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<Hash>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
+}
+
 #endif // Rice__Hash__ipp_
 
 
@@ -6326,6 +6350,18 @@ namespace Rice
   {
     return (*this)[Identifier(name)];
   }
+}
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<Struct>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
 }
 
 

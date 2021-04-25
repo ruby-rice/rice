@@ -10,8 +10,14 @@
 
 namespace Rice::detail
 {
-  template <>
-  struct is_builtin<std::string> : public std::true_type {};
+  template<>
+  struct Type<std::string>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
 
   template<>
   struct To_Ruby<std::string>
@@ -113,7 +119,13 @@ namespace Rice::detail
 namespace Rice::detail
 {
   template<typename T>
-  struct is_builtin<std::complex<T>> : public std::true_type {};
+  struct Type<std::complex<T>>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
 
   template<typename T>
   struct To_Ruby<std::complex<T>>
@@ -166,9 +178,6 @@ namespace Rice::detail
 
 namespace Rice::detail
 {
-  template <typename T>
-  struct is_builtin<std::optional<T>> : public std::true_type {};
-
   template<typename T>
   struct Type<std::optional<T>>
   {
