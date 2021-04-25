@@ -93,7 +93,7 @@ namespace Rice::detail
     // for pointers, references, const, etc.
     using Intrinsic_T = intrinsic_type<T>;
 
-    if constexpr (is_builtin_v<Intrinsic_T>)
+    if constexpr (std::is_fundamental_v<Intrinsic_T>)
     {
       return true;
     }

@@ -14,10 +14,6 @@
 
 namespace Rice::detail
 {
-  template <typename T>
-  struct is_builtin<T, std::enable_if_t<std::is_fundamental_v<intrinsic_type<T>>>> : 
-    public std::true_type {};
-
   template<>
   struct Type<void>
   {

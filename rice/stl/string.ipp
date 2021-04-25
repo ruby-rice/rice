@@ -6,8 +6,14 @@
 
 namespace Rice::detail
 {
-  template <>
-  struct is_builtin<std::string> : public std::true_type {};
+  template<>
+  struct Type<std::string>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
 
   template<>
   struct To_Ruby<std::string>

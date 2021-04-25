@@ -216,4 +216,17 @@ namespace Rice
     }
   }
 }
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<Hash>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
+}
+
 #endif // Rice__Hash__ipp_

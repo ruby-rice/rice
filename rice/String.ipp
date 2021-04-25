@@ -68,6 +68,15 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
+  struct Type<String>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
+  
+  template<>
   struct To_Ruby<String>
   {
     VALUE convert(String const& x)

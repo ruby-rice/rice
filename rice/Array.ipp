@@ -207,6 +207,15 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
+  struct Type<Array>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
+
+  template<>
   struct To_Ruby<Array>
   {
     VALUE convert(Array const& x)

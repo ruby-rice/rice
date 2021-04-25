@@ -136,10 +136,13 @@ namespace Rice
 
 namespace Rice::detail
 {
-  template <typename T>
-  struct is_builtin<T, std::enable_if_t<std::is_base_of_v<Rice::Object, intrinsic_type<T>>>> :
-    public std::true_type
+  template<>
+  struct Type<Object>
   {
+    static bool verify()
+    {
+      return true;
+    }
   };
 
   template<>

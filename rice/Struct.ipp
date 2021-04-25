@@ -79,3 +79,15 @@ namespace Rice
     return (*this)[Identifier(name)];
   }
 }
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<Struct>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
+}

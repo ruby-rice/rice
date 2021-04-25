@@ -5,7 +5,13 @@
 namespace Rice::detail
 {
   template<typename T>
-  struct is_builtin<std::complex<T>> : public std::true_type {};
+  struct Type<std::complex<T>>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
 
   template<typename T>
   struct To_Ruby<std::complex<T>>
