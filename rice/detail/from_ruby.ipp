@@ -673,7 +673,7 @@ namespace Rice::detail
     {
     }
 
-    bool convert(VALUE value)
+    bool& convert(VALUE value)
     {
       if (value == Qnil && this->defaultValue_)
       {
