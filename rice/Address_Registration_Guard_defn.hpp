@@ -1,7 +1,7 @@
 #ifndef Rice__Address_Registration_Guard_defn__hpp_
 #define Rice__Address_Registration_Guard_defn__hpp_
 
-#include "Object_defn.hpp"
+#include "cpp_api/Object_defn.hpp"
 #include "detail/ruby.hpp"
 
 namespace Rice

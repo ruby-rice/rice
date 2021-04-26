@@ -7,17 +7,17 @@ OTHER_INCLUDE_REGEX = %r{#include <(.*)>}
 RICE_HEADER_GUARD_1 = %r{#ifndef Rice__}
 RICE_HEADER_GUARD_2 = %r{#define Rice__}
 RICE_HEADER_GUARD_3 = %r{#endif\s*//\s*Rice__}
-SHARED_METHODS_INCLUDE = '#include "shared_methods.hpp"'
+SHARED_METHODS_REGEX = %r{#include "((?:cpp_api\/)?shared_methods.hpp)"}
 
 def load_file(relative_path)
   content = File.read(relative_path, mode: 'rb')
 
   # Special case shared_methods.hpp which if requested we want to
   # merge into the current file
-  index = content.index(SHARED_METHODS_INCLUDE)
-  if index
-    shared_path = File.join(File.dirname(relative_path), "shared_methods.hpp")
-    content.gsub!(SHARED_METHODS_INCLUDE, File.read(shared_path, mode: 'rb'))
+  match = content.match(SHARED_METHODS_REGEX)
+  if match
+    shared_path = File.join(File.dirname(relative_path), match[1])
+    content.gsub!(SHARED_METHODS_REGEX, File.read(shared_path, mode: 'rb'))
   end
 
   content

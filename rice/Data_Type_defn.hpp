@@ -127,7 +127,7 @@ namespace Rice
     template <typename Attr_T>
     Data_Type<T>& define_singleton_attr(std::string name, Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
 
-  #include "shared_methods.hpp"
+  #include "cpp_api/shared_methods.hpp"
 
   protected:
     //! Bind a Data_Type to a VALUE.

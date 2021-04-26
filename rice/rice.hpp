@@ -28,20 +28,19 @@
 
 #include "Identifier.hpp"
 
-#include "Object.hpp"
-
-#include "Builtin_Object.hpp"
-#include "String.hpp"
-#include "Array.hpp"
-#include "Hash.hpp"
-#include "Symbol.hpp"
+#include "cpp_api/Object.hpp"
+#include "cpp_api/Builtin_Object.hpp"
+#include "cpp_api/String.hpp"
+#include "cpp_api/Array.hpp"
+#include "cpp_api/Hash.hpp"
+#include "cpp_api/Symbol.hpp"
 
 #include "Address_Registration_Guard.hpp"
 #include "Module.hpp"
 #include "global_function.hpp"
 
-#include "Class.hpp"
-#include "Struct.hpp"
+#include "cpp_api/Class.hpp"
+#include "cpp_api/Struct.hpp"
 
 #include "Director.hpp"
 #include "Data_Type.hpp"

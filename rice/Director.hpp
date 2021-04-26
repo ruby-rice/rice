@@ -1,7 +1,7 @@
 #ifndef Rice__Director__hpp_
 #define Rice__Director__hpp_
 
-#include "Object.hpp"
+#include "cpp_api/Object.hpp"
 
 namespace Rice
 {

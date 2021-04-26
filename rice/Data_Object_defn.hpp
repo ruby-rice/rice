@@ -5,7 +5,7 @@
 
 #include "detail/to_ruby.hpp"
 #include "detail/ruby.hpp"
-#include "Object_defn.hpp"
+#include "cpp_api/Object_defn.hpp"
 
 /*! \file
  *  \brief Provides a helper class for wrapping and unwrapping C++

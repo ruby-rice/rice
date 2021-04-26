@@ -1,6 +1,3 @@
-#include "Object.hpp"
-#include <algorithm>
-
 namespace Rice
 {
   inline Address_Registration_Guard::Address_Registration_Guard(VALUE* address) : address_(address)
