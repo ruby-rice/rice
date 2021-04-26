@@ -7,6 +7,7 @@ Advanced
 
   advanced/functions
   advanced/memory_management
+  advanced/types_overview
   advanced/type_conversions
   advanced/type_verification
   advanced/inheritance
