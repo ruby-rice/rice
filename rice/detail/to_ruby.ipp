@@ -27,7 +27,11 @@ namespace Rice
     {
       VALUE convert(short const& x)
       {
+#ifdef rb_int2num_inline
         return protect(rb_int2num_inline, (int)x);
+#else
+        return RB_INT2NUM(x);
+#endif
       }
     };
 
@@ -36,7 +40,11 @@ namespace Rice
     {
       VALUE convert(short const& x)
       {
+#ifdef rb_int2num_inline
         return protect(rb_int2num_inline, (int)x);
+#else
+        return RB_INT2NUM(x);
+#endif
       }
     };
 
@@ -45,7 +53,11 @@ namespace Rice
     {
       VALUE convert(int const& x)
       {
-        return protect(rb_int2num_inline, x);
+#ifdef rb_int2num_inline
+        return protect(rb_int2num_inline, (int)x);
+#else
+        return RB_INT2NUM(x);
+#endif
       }
     };
 
@@ -54,7 +66,11 @@ namespace Rice
     {
       VALUE convert(int const& x)
       {
-        return protect(rb_int2num_inline, x);
+#ifdef rb_int2num_inline
+        return protect(rb_int2num_inline, (int)x);
+#else
+        return RB_INT2NUM(x);
+#endif
       }
     };
 
@@ -99,7 +115,11 @@ namespace Rice
     {
       VALUE convert(unsigned short const& x)
       {
+#ifdef rb_int2num_inline
         return protect(rb_uint2num_inline, (unsigned int)x);
+#else
+        return RB_UINT2NUM(x);
+#endif
       }
     };
 
@@ -108,7 +128,11 @@ namespace Rice
     {
       VALUE convert(unsigned short const& x)
       {
+#ifdef rb_int2num_inline
         return protect(rb_uint2num_inline, (unsigned int)x);
+#else
+        return RB_UINT2NUM(x);
+#endif
       }
     };
 
@@ -117,7 +141,11 @@ namespace Rice
     {
       VALUE convert(unsigned int const& x)
       {
-        return protect(rb_uint2num_inline, x);
+#ifdef rb_int2num_inline
+        return protect(rb_uint2num_inline, (unsigned int)x);
+#else
+        return RB_UINT2NUM(x);
+#endif
       }
     };
 
@@ -126,7 +154,11 @@ namespace Rice
     {
       VALUE convert(unsigned int const& x)
       {
-        return protect(rb_uint2num_inline, x);
+#ifdef rb_int2num_inline
+        return protect(rb_uint2num_inline, (unsigned int)x);
+#else
+        return RB_UINT2NUM(x);
+#endif
       }
     };
 
