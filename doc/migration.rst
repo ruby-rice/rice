@@ -4,21 +4,15 @@
 Migrating from 3 to 4
 =====================
 
-Prior versions of Rice required compiling some initial code on ``gem install``. This has made
-Rice and libraries that use Rice to be difficult to use on some platforms, such as Heroku or Github Actions, where
+Prior versions of Rice required compiling some initial code on ``gem install``. This has made Rice and libraries that use Rice to be difficult to use on some platforms, such as Heroku or Github Actions, where
 where the appropriate shared libraries and/or build systems are not allowed or available.
 
-Rice 4 transitions to being a header only library, making it much easier for libraries using Rice to provide
-binary builds. However, this work was substantial and required making a few backwards-incompatible
-changes. This page documents the major changes that any one using Rice 3 will need to apply
-to their libraries to work with Rice 4 or newer.
+Rice 4 transitions to being a header only library, making it much easier for libraries using Rice to provide binary builds. However, this work was substantial and required making a few backwards-incompatible changes This page documents the major changes that any one using Rice 3 will need to apply to their libraries to work with Rice 4 or newer.
 
 #include <rice/rice.hpp>
 ------------------------
 
-The first change is that Rice is now published as a single, combined header file, so all includes
-can be changed to just this one. There is one other header file that contains STL wrapper definitions,
-you can get that with ``#include <rice/stl.hpp>``. For more information see the :doc:`stl` section.
+The first change is that Rice is now published as a single, combined header file, so all includes can be changed to just this one. There is one other header file that contains STL wrapper definitions, you can get that with ``#include <rice/stl.hpp>``. For more information see the :doc:`stl/stl` section.
 
 to_ruby / from_ruby
 -------------------
@@ -51,7 +45,7 @@ as a ``convert`` function in a struct, and they need to live in the ``Rice::deta
     template<>
     struct From_Ruby<Foo>
     {
-      static Foo convert(Rice::Object x)
+      Foo convert(VALUE x)
       {
         // ...
       }
@@ -60,15 +54,18 @@ as a ``convert`` function in a struct, and they need to live in the ``Rice::deta
     template<>
     struct To_Ruby<Foo>
     {
-      static Rice::Object convert(Foo const & x)
+      VALUE convert(Foo const & x)
       {
         // ...
       }
     };
   }
 
-Functions and Self
-------------------
+In addition, they work with Ruby VALUE type as opposed to Rice's Object type. This switch was made to avoid making extra copies of objects when translating between C++ and Ruby. For more information, please refer to the :doc:`type converstion <advanced/type_conversions>` section.
+
+
+Functions vs Methods
+--------------------
 
 Rice now has different ``define_`` methods depending on if you are defining a method on an object or
 a normal function. If you need ``self``, use ``define_method`` or ``define_singleton_method``. Otherwise
@@ -77,5 +74,4 @@ you should use ``define_function`` and ``define_singleton_function``. You can re
 Memory Management
 -----------------
 
-Rice 4 also requires and provides more tools for explicitly defining which objects should and should not be managed by the
-Ruby garbage collector. Read more in :ref:`Memory Management`.
+Rice 4 also requires and provides more tools for explicitly defining which objects should and should not be managed by the Ruby garbage collector. Read more in :ref:`Memory Management`.
