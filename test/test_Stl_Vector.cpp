@@ -573,3 +573,33 @@ TESTCASE(ArrayToVectorPointers)
   ASSERT_EQUAL("fifteen", strings[1]);
   ASSERT_EQUAL("sixteen", strings[2]);
 }
+
+TESTCASE(ArrayToVectorWrongTypes)
+{
+  define_global_function("array_to_vector", &arrayToVector);
+
+  Module m = define_module("Testing");
+
+  std::string code = "array_to_vector(%w[one two three], %w[one two three], [49.0, 78.0, 999.0])";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.instance_eval(code),
+    ASSERT_EQUAL("wrong argument type Float (expected String)", ex.what())
+  );
+}
+
+TESTCASE(ArrayToVectorMixedTypes)
+{
+  define_global_function("array_to_vector", &arrayToVector);
+
+  Module m = define_module("Testing");
+
+  std::string code = "array_to_vector([7, 'nine', true], [49.0, 78.0, 999.0], %w[one two three])";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.instance_eval(code),
+    ASSERT_EQUAL("no implicit conversion of String into Integer", ex.what())
+  );
+}
