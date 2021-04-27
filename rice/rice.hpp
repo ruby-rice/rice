@@ -36,7 +36,7 @@
 #include "cpp_api/Symbol.hpp"
 
 #include "Address_Registration_Guard.hpp"
-#include "Module.hpp"
+#include "cpp_api/Module.hpp"
 #include "global_function.hpp"
 
 #include "cpp_api/Class.hpp"

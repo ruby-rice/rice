@@ -1,4 +1,4 @@
-#include "Module.hpp"
+#include "cpp_api/Module.hpp"
 
 template<typename Function_T>
 void Rice::define_global_function(char const * name, Function_T&& func, MethodInfo* methodInfo)
