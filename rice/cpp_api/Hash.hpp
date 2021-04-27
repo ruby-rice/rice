@@ -193,15 +193,6 @@ namespace Rice
   };
 } // namespace Rice
 
-template<>
-struct Rice::detail::From_Ruby<Rice::Hash>
-{
-  static Rice::Hash convert(VALUE value)
-  {
-    return Rice::Hash(value);
-  }
-};
-
 #include "Hash.ipp"
 
 #endif // Rice__Hash__hpp_

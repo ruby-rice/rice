@@ -40,27 +40,33 @@ namespace Rice
   }
 }
 
-namespace Rice
+namespace Rice::detail
 {
-  namespace detail
+  template<>
+  struct Type<Symbol>
   {
-    template<>
-    struct To_Ruby<Symbol>
+    static bool verify()
     {
-      VALUE convert(Object const& x)
-      {
-        return x.value();
-      }
-    };
+      return true;
+    }
+  };
+  
+  template<>
+  struct To_Ruby<Symbol>
+  {
+    VALUE convert(Object const& x)
+    {
+      return x.value();
+    }
+  };
 
-    template<>
-    class From_Ruby<Symbol>
+  template<>
+  class From_Ruby<Symbol>
+  {
+  public:
+    Object convert(VALUE value)
     {
-    public:
-      Object convert(VALUE value)
-      {
-        return Object(value);
-      }
-    };
-  }
+      return Object(value);
+    }
+  };
 }

@@ -227,6 +227,25 @@ namespace Rice::detail
       return true;
     }
   };
+
+  template<>
+  struct To_Ruby<Hash>
+  {
+    VALUE convert(Hash const& x)
+    {
+      return x.value();
+    }
+  };
+
+  template<>
+  class From_Ruby<Hash>
+  {
+  public:
+    Hash convert(VALUE value)
+    {
+      return Hash(value);
+    }
+  };
 }
 
 #endif // Rice__Hash__ipp_
