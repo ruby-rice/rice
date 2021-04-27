@@ -580,7 +580,7 @@ TESTCASE(ArrayToVectorWrongTypes)
 
   Module m = define_module("Testing");
 
-  std::string code = "array_to_vector(%w[one two three], %w[one two three], [49.0, 78.0, 999.0])";
+  std::string code = "array_to_vector([7, 9, 1_000_000], [49.0, 78.0, 999.0], [50.0, 79.0, 1000.0])";
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
