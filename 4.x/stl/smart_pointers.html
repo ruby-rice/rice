@@ -1,0 +1,439 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="std::pair" href="pair.html" /><link rel="prev" title="std::complex" href="complex.html" />
+
+    <meta name="generator" content="sphinx-3.5.3, furo 2021.03.20.beta30"/>
+        <title>Smart Pointers - Rice documentation</title>
+      <link rel="stylesheet" href="../_static/styles/furo.css?digest=978e1795dfe158b585dda6a8417f6411828bf3ed">
+    <link rel="stylesheet" href="../_static/pygments.css">
+    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
+    
+
+
+<style>
+  :root {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+
+  /* For allowing end-user-specific overrides */
+  .override-light {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  .override-dark {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+</style><link rel="stylesheet" href="../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+  <body dir="">
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z"/>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">Rice  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">Rice  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html">
+  <input class="sidebar-search" placeholder=Search name="q">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../advanced.html">Advanced</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/functions.html">Functions and Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/memory_management.html">Memory Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/types_overview.html">Types Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/type_conversions.html">Type Conversions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/type_verification.html">Type Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/inheritance.html">Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/cpp_api.html">Ruby C++ API</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../stl.html">STL</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="stl.html">STL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="string.html">std::string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optional.html">std::optional</a></li>
+<li class="toctree-l2"><a class="reference internal" href="complex.html">std::complex</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair.html">std::pair</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector.html">std::vector</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../migration.html">Migrating from 3 to 4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../history.html">Why Rice?</a></li>
+</ul>
+
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <main class="main">
+    <div class="content">
+      <article role="main">
+        <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        </label>
+        <section id="smart-pointers">
+<h1>Smart Pointers<a class="headerlink" href="#smart-pointers" title="Permalink to this headline">¶</a></h1>
+<p>Smart pointers are key tool in modern C++ to write memory safe code. Rice provides support for <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code> and <code class="docutils literal notranslate"><span class="pre">std::shared_ptr</span></code>. Rice can also be easily extended to support custom smart pointer types.</p>
+<section id="std-unique-ptr">
+<h2>std::unique_ptr<a class="headerlink" href="#std-unique-ptr" title="Permalink to this headline">¶</a></h2>
+<p>When a native method returns a <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code>, Rice copies it via its move constructor. Therefore, Rice takes ownership of the <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code>, which in turns owns its underlying object.</p>
+<p>Use of the <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code> is transparent to Ruby code. As far a Ruby is concerned, its wrapping the type managed by the unique pointer, thus <code class="docutils literal notranslate"><span class="pre">std::unique_ptr::element_type</span></code>. As a result, there is not a Ruby visible API to the <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code> itself.</p>
+<p>Rice supports <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code> out of the box - there is no additional work you have to do except include the “rice/stl.hpp” header. Let’s take a look at an example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyClass</span>
+<span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="kt">int</span> <span class="n">flag</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="k">public</span><span class="o">:</span>
+  <span class="kt">void</span> <span class="n">setFlag</span><span class="p">(</span><span class="kt">int</span> <span class="n">value</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="k">this</span><span class="o">-&gt;</span><span class="n">flag</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="k">class</span> <span class="nc">Factory</span>
+<span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">MyClass</span><span class="o">&gt;</span> <span class="n">transfer</span><span class="p">()</span>
+  <span class="p">{</span>
+    <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">MyClass</span><span class="o">&gt;</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="kt">int</span> <span class="nf">extractFlagUniquePtrRef</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">MyClass</span><span class="o">&gt;&amp;</span> <span class="n">myClass</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="n">myClass</span><span class="o">-&gt;</span><span class="n">flag</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">setupRice</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">define_class</span><span class="o">&lt;</span><span class="n">MyClass</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"MyClass"</span><span class="p">).</span>
+    <span class="n">define_method</span><span class="p">(</span><span class="s">"set_flag"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">MyClass</span><span class="o">::</span><span class="n">setFlag</span><span class="p">);</span>
+
+  <span class="n">define_class</span><span class="o">&lt;</span><span class="n">Factory</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Factory"</span><span class="p">).</span>
+    <span class="n">define_constructor</span><span class="p">(</span><span class="n">Constructor</span><span class="o">&lt;</span><span class="n">Factory</span><span class="o">&gt;</span><span class="p">()).</span>
+    <span class="n">define_method</span><span class="p">(</span><span class="s">"transfer"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Factory</span><span class="o">::</span><span class="n">transfer</span><span class="p">);</span>
+
+  <span class="n">define_global_function</span><span class="p">(</span><span class="s">"extract_flag_unique_ptr_ref"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">extractFlagUniquePtrRef</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>And in Ruby:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">factory</span> <span class="o">=</span> <span class="n">Factory</span><span class="p">.</span><span class="k">new</span>
+<span class="n">my_instance</span> <span class="o">=</span> <span class="n">factor</span><span class="p">.</span><span class="n">transfer</span>
+<span class="n">my_instance</span><span class="p">.</span><span class="n">set_flag</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">flag</span> <span class="o">=</span> <span class="n">extract_flag_unique_ptr_ref</span><span class="p">(</span><span class="n">my_instance</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">myInstance</span></code> goes out of scope and is garbage collected, it will free the <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code> it wraps which will in turn free the C++ MyClass instance that it manages.</p>
+<p>Note Rice does not support transferring ownership of the <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code> back to C++ by passing it as a function parameter to a native function. In other words, once a <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code> is transferred to Ruby it will be freed by Ruby. You can, however, pass back a reference as shown in the example above. Note that passing a reference to <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code> does <em>not</em> not transer its ownership.</p>
+</section>
+<section id="std-shared-ptr">
+<h2>std::shared_ptr<a class="headerlink" href="#std-shared-ptr" title="Permalink to this headline">¶</a></h2>
+<p>When a native method returns a <code class="docutils literal notranslate"><span class="pre">std::shared_ptr</span></code>, Rice copies it via its move constructor and therefore owns one instance of the shared_pointer. Of course it is likely there are other copies of the <code class="docutils literal notranslate"><span class="pre">std::shared_ptr</span></code> owned by other objects.</p>
+<p>Use of the <code class="docutils literal notranslate"><span class="pre">std::shared_ptr</span></code> is transparent to Ruby code. As far a Ruby is concerned, its wrapping the type managed by the shareed pointer, thus <code class="docutils literal notranslate"><span class="pre">std::shared_ptr::element_type</span></code>. As a result, there is not a Ruby visible API to the <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code> itself.</p>
+<p>Rice supports <code class="docutils literal notranslate"><span class="pre">std::shared_ptr</span></code> out of the box - there is no additional work you have to do except include the “rice/stl.hpp” header. Let’s take a look at an example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyClass</span>
+<span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="kt">int</span> <span class="n">flag</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="k">public</span><span class="o">:</span>
+  <span class="kt">void</span> <span class="n">setFlag</span><span class="p">(</span><span class="kt">int</span> <span class="n">value</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="k">this</span><span class="o">-&gt;</span><span class="n">flag</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="k">class</span> <span class="nc">Factory</span>
+<span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">MyClass</span><span class="o">&gt;</span> <span class="n">share</span><span class="p">()</span>
+  <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">instance_</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">instance_</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">make_shared</span><span class="o">&lt;</span><span class="n">MyClass</span><span class="o">&gt;</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">instance_</span><span class="p">;</span>
+  <span class="p">}</span>
+
+<span class="k">public</span><span class="o">:</span>
+  <span class="k">static</span> <span class="kr">inline</span> <span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">MyClass</span><span class="o">&gt;</span> <span class="n">instance_</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="kt">int</span> <span class="nf">extractFlagSharedPtr</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">MyClass</span><span class="o">&gt;</span> <span class="n">myClass</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="n">myClass</span><span class="o">-&gt;</span><span class="n">flag</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">extractFlagSharedPtrRef</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">MyClass</span><span class="o">&gt;&amp;</span> <span class="n">myClass</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="n">myClass</span><span class="o">-&gt;</span><span class="n">flag</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">setupRice</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">embed_ruby</span><span class="p">();</span>
+
+  <span class="n">define_class</span><span class="o">&lt;</span><span class="n">MyClass</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"MyClass"</span><span class="p">).</span>
+    <span class="n">define_method</span><span class="p">(</span><span class="s">"set_flag"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">MyClass</span><span class="o">::</span><span class="n">setFlag</span><span class="p">);</span>
+
+  <span class="n">define_class</span><span class="o">&lt;</span><span class="n">Factory</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Factory"</span><span class="p">).</span>
+    <span class="n">define_constructor</span><span class="p">(</span><span class="n">Constructor</span><span class="o">&lt;</span><span class="n">Factory</span><span class="o">&gt;</span><span class="p">()).</span>
+    <span class="n">define_method</span><span class="p">(</span><span class="s">"share"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Factory</span><span class="o">::</span><span class="n">share</span><span class="p">);</span>
+
+  <span class="n">define_global_function</span><span class="p">(</span><span class="s">"extract_flag_shared_ptr"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">extractFlagSharedPtr</span><span class="p">);</span>
+  <span class="n">define_global_function</span><span class="p">(</span><span class="s">"extract_flag_shared_ptr_ref"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">extractFlagSharedPtrRef</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>And in Ruby:</p>
+<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="n">factory</span> <span class="o">=</span> <span class="no">Factory</span><span class="o">.</span><span class="n">new</span>
+<span class="n">my_instance</span> <span class="o">=</span> <span class="n">factor</span><span class="o">.</span><span class="n">share</span>
+<span class="n">my_instance</span><span class="o">.</span><span class="n">set_flag</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">flag</span> <span class="o">=</span> <span class="n">extract_flag_shared_ptr</span><span class="p">(</span><span class="n">my_instance</span><span class="p">)</span>
+<span class="n">flag</span> <span class="o">=</span> <span class="n">extract_flag_shared_ptr_ref</span><span class="p">(</span><span class="n">my_instance</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">myInstance</span></code> goes out of scope and is garbage collected, it will free the <code class="docutils literal notranslate"><span class="pre">std::shared_ptr</span></code> it wraps. That may or may not free the underlying C++ MyClass instance depending if there are other <code class="docutils literal notranslate"><span class="pre">std::smart_pointer</span></code> instances managing it.</p>
+<p>Unlike <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code>, you can pass a copy of a <code class="docutils literal notranslate"><span class="pre">std::sharted_ptr</span></code> back to native code via a function parameter. However, Ruby will always mantain one copy of the shared pointer until the wrapper Ruby object is freed.</p>
+</section>
+<section id="custom-smart-pointer">
+<h2>Custom Smart Pointer<a class="headerlink" href="#custom-smart-pointer" title="Permalink to this headline">¶</a></h2>
+<p>It is possible to extend Rice to support additional smart pointer types. Start by looking at <code class="docutils literal notranslate"><span class="pre">stl/smart_ptr.hpp</span></code>. It defines the following template class that is used to store smart pointers:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="n">Rice</span><span class="o">::</span><span class="n">detail</span>
+<span class="p">{</span>
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span><span class="p">,</span> <span class="k">typename</span><span class="p">...</span><span class="o">&gt;</span> <span class="k">typename</span> <span class="nc">SmartPointer_T</span><span class="p">,</span> <span class="k">typename</span><span class="p">...</span><span class="n">Arg_Ts</span><span class="o">&gt;</span>
+  <span class="k">class</span> <span class="nc">WrapperSmartPointer</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Wrapper</span>
+  <span class="p">{</span>
+  <span class="k">public</span><span class="o">:</span>
+    <span class="n">WrapperSmartPointer</span><span class="p">(</span><span class="n">SmartPointer_T</span><span class="o">&lt;</span><span class="n">Arg_Ts</span><span class="p">...</span><span class="o">&gt;&amp;</span> <span class="n">data</span><span class="p">);</span>
+    <span class="kt">void</span><span class="o">*</span> <span class="nf">get</span><span class="p">()</span> <span class="k">override</span><span class="p">;</span>
+    <span class="n">SmartPointer_T</span><span class="o">&lt;</span><span class="n">Arg_Ts</span><span class="p">...</span><span class="o">&gt;&amp;</span> <span class="n">data</span><span class="p">();</span>
+
+  <span class="k">private</span><span class="o">:</span>
+    <span class="n">SmartPointer_T</span><span class="o">&lt;</span><span class="n">Arg_Ts</span><span class="p">...</span><span class="o">&gt;</span> <span class="n">data_</span><span class="p">;</span>
+  <span class="p">};</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Assuming that your smart pointer fits into the template class, you need to tell Rice three things:</p>
+<ul class="simple">
+<li><p>How to wrap it in a Ruby object</p></li>
+<li><p>How to extract it from a Ruby object</p></li>
+<li><p>How to access its managed type</p></li>
+</ul>
+<p>Let’s start by telling Rice how to wrap the smart pointer. Here is how that is done for <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="n">Rice</span><span class="o">::</span><span class="n">detail</span>
+<span class="p">{</span>
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="o">&gt;</span>
+  <span class="k">struct</span> <span class="nc">To_Ruby</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&gt;</span>
+  <span class="p">{</span>
+    <span class="k">static</span> <span class="n">VALUE</span> <span class="n">convert</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&amp;</span> <span class="n">data</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">takeOwnership</span> <span class="o">=</span> <span class="nb">true</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">VALUE</span><span class="p">,</span> <span class="n">rb_data_type_t</span><span class="o">*&gt;</span> <span class="n">rubyTypeInfo</span> <span class="o">=</span> <span class="n">detail</span><span class="o">::</span><span class="n">TypeRegistry</span><span class="o">::</span><span class="n">figureType</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">);</span>
+
+      <span class="c1">// Use custom wrapper type</span>
+      <span class="k">using</span> <span class="n">Wrapper_T</span> <span class="o">=</span> <span class="n">WrapperSmartPointer</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">wrap</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">Wrapper_T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">rubyTypeInfo</span><span class="p">.</span><span class="n">first</span><span class="p">,</span> <span class="n">rubyTypeInfo</span><span class="p">.</span><span class="n">second</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">};</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>First we specialize <code class="docutils literal notranslate"><span class="pre">detail::To_Ruby</span></code> for our smart pointer type, in this case <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code>.
+Next we pass the pointer to Rice’s TypeRegistry to look up what Ruby class wraps the C++ class. Then we instantiate a Wrapper_T class from the <code class="docutils literal notranslate"><span class="pre">WrapperSmartPointer</span></code>. Finally we pass the type information and pointer to a helper method that will first create an instance of Wrapper_T and then an a Ruby object to store it.</p>
+<p>The second step is to tell Rice how to extract the smart pointer from Ruby.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="n">Rice</span><span class="o">::</span><span class="n">detail</span>
+<span class="p">{</span>
+  <span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="o">&gt;</span>
+  <span class="k">struct</span> <span class="nc">From_Ruby</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&amp;&gt;</span>
+  <span class="p">{</span>
+    <span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&amp;</span> <span class="n">convert</span><span class="p">(</span><span class="n">VALUE</span> <span class="n">value</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">Wrapper</span><span class="o">*</span> <span class="n">wrapper</span> <span class="o">=</span> <span class="n">detail</span><span class="o">::</span><span class="n">getWrapper</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;::</span><span class="n">rb_type</span><span class="p">());</span>
+
+      <span class="k">using</span> <span class="n">Wrapper_T</span> <span class="o">=</span> <span class="n">WrapperSmartPointer</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span><span class="p">;</span>
+      <span class="n">Wrapper_T</span><span class="o">*</span> <span class="n">smartWrapper</span> <span class="o">=</span> <span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">Wrapper_T</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">wrapper</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">smartWrapper</span><span class="p">)</span>
+      <span class="p">{</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">message</span> <span class="o">=</span> <span class="s">"Invalid smart pointer wrapper"</span><span class="p">;</span>
+        <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">(</span><span class="n">message</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="n">smartWrapper</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">};</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Similarly to above, we specialize <code class="docutils literal notranslate"><span class="pre">detail::From_Ruby</span></code> for our smart pointer type, in this case <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code>.</p>
+<p>Next we use a helper method to get back a pointer to the <code class="docutils literal notranslate"><span class="pre">Wrapper</span></code> instance we created in the <code class="docutils literal notranslate"><span class="pre">detail::To_Ruby</span></code> method. Note <code class="docutils literal notranslate"><span class="pre">detail::Wrapper</span></code> is the base class for our custom wrapper type, so we have to typecast it to <code class="docutils literal notranslate"><span class="pre">Wrapper_T</span></code>. Finally we call its <code class="docutils literal notranslate"><span class="pre">data()</span></code> method to access to stored smart pointer.</p>
+<p>Last, we have to tell Rice how to verify the type our smart pointer contains. That is done like this:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span>  <span class="k">namespace</span> <span class="n">Rice</span><span class="o">::</span><span class="n">detail</span>
+  <span class="p">{</span>
+    <span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="o">&gt;</span>
+    <span class="k">struct</span> <span class="nc">Type</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&gt;</span>
+    <span class="p">{</span>
+      <span class="k">static</span> <span class="kt">bool</span> <span class="n">verify</span><span class="p">()</span>
+      <span class="p">{</span>
+        <span class="k">return</span> <span class="n">Type</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;::</span><span class="n">verify</span><span class="p">();</span>
+      <span class="p">}</span>
+    <span class="p">};</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="pair.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">std::pair</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="complex.html">
+              <svg><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">std::complex</div>
+                
+              </div>
+            </a>
+        </div>
+
+        <div class="related-information">
+              Copyright &#169; 2021, Paul Brannon, Jason Roelofs, Charlie Savage
+            |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+            |
+            <a class="muted-link" href="../_sources/stl/smart_pointers.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Smart Pointers</a><ul>
+<li><a class="reference internal" href="#std-unique-ptr">std::unique_ptr</a></li>
+<li><a class="reference internal" href="#std-shared-ptr">std::shared_ptr</a></li>
+<li><a class="reference internal" href="#custom-smart-pointer">Custom Smart Pointer</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </main>
+</div>
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
+</html>

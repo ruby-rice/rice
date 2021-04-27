@@ -1,0 +1,271 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Migrating from 3 to 4" href="../migration.html" /><link rel="prev" title="std::pair" href="pair.html" />
+
+    <meta name="generator" content="sphinx-3.5.3, furo 2021.03.20.beta30"/>
+        <title>std::vector - Rice documentation</title>
+      <link rel="stylesheet" href="../_static/styles/furo.css?digest=978e1795dfe158b585dda6a8417f6411828bf3ed">
+    <link rel="stylesheet" href="../_static/pygments.css">
+    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
+    
+
+
+<style>
+  :root {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+
+  /* For allowing end-user-specific overrides */
+  .override-light {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  .override-dark {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+</style><link rel="stylesheet" href="../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+  <body dir="">
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z"/>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">Rice  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">Rice  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html">
+  <input class="sidebar-search" placeholder=Search name="q">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../advanced.html">Advanced</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/functions.html">Functions and Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/memory_management.html">Memory Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/types_overview.html">Types Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/type_conversions.html">Type Conversions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/type_verification.html">Type Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/inheritance.html">Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/cpp_api.html">Ruby C++ API</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../stl.html">STL</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="stl.html">STL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="string.html">std::string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optional.html">std::optional</a></li>
+<li class="toctree-l2"><a class="reference internal" href="complex.html">std::complex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smart_pointers.html">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair.html">std::pair</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">std::vector</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../migration.html">Migrating from 3 to 4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../history.html">Why Rice?</a></li>
+</ul>
+
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <main class="main">
+    <div class="content">
+      <article role="main">
+        <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        </label>
+        <section id="std-vector">
+<h1>std::vector<a class="headerlink" href="#std-vector" title="Permalink to this headline">¶</a></h1>
+<p>Along with <code class="docutils literal notranslate"><span class="pre">std::string</span></code>, <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> is a workhorse of many C++ code bases. Although there is a direct conceptual mapping between a <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> and a Ruby <code class="docutils literal notranslate"><span class="pre">Array</span></code>, Rice does not copy a vector to an Array. Instead, it wraps <code class="docutils literal notranslate"><span class="pre">std::vector</span></code>.</p>
+<p>There are multiple reasons for this:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">std::vector</span></code> instantiations can only contain one type, while Ruby Arrays can contain different types</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::vector</span></code> instances can be quite large</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::vector</span></code> instances commonly contain C++ classes that have complex copy semantics</p></li>
+<li><p>having two disconnected copies of data, one in C++ and one in Ruby, is usually not what you want</p></li>
+</ul>
+<p>Rice will automatically define Ruby classes for each instantation of <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> it finds. You may manually define Ruby classes via the use of <code class="docutils literal notranslate"><span class="pre">define_vector</span></code> or <code class="docutils literal notranslate"><span class="pre">define_vector_under</span></code> methods.</p>
+<p>Example:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">makeStringVector</span><span class="p">())</span>
+<span class="p">{</span>
+   <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span> <span class="p">{</span><span class="s">"one"</span><span class="p">,</span> <span class="s">"two"</span><span class="p">,</span> <span class="s">"three"</span><span class="p">};</span>
+<span class="p">}</span>
+
+<span class="n">define_vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"StringVector"</span><span class="p">);</span>
+<span class="n">define_global_function</span><span class="p">(</span><span class="s">"make_string_vector"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">makeStringVector</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Once you have defined this Ruby class, you can create a new instance like this:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">vector</span> <span class="o">=</span> <span class="n">StringVector</span><span class="p">.</span><span class="k">new</span>
+<span class="n">vector</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="s">"value 1"</span><span class="p">)</span>
+<span class="n">vector</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="s">"value 2"</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="ruby-api">
+<h2>Ruby API<a class="headerlink" href="#ruby-api" title="Permalink to this headline">¶</a></h2>
+<p>Rice tries to make <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> look like a Ruby Array by giving it an API that is a subset of <code class="docutils literal notranslate"><span class="pre">Array</span></code>. However, there are differences you need to keep in mind.</p>
+<p>First, the following methods only work if the vector type is copyable (copying is done in C++):</p>
+<ul class="simple">
+<li><p>Vector#copy(other)</p></li>
+<li><p>Vector#resize</p></li>
+</ul>
+<p>Second, the following methods only work if the vector type implements C++’s equal operator, <code class="docutils literal notranslate"><span class="pre">operator==</span></code>:</p>
+<ul class="simple">
+<li><p>Vector#delete</p></li>
+<li><p>Vector#include?</p></li>
+<li><p>Vector#index</p></li>
+</ul>
+<p>Third, if the vector type supports C++ streams, then the following method will work, otherwise it will return “Not Printable”</p>
+<ul class="simple">
+<li><p>Vector#to_s</p></li>
+</ul>
+</section>
+</section>
+
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../migration.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Migrating from 3 to 4</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="pair.html">
+              <svg><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">std::pair</div>
+                
+              </div>
+            </a>
+        </div>
+
+        <div class="related-information">
+              Copyright &#169; 2021, Paul Brannon, Jason Roelofs, Charlie Savage
+            |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+            |
+            <a class="muted-link" href="../_sources/stl/vector.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">std::vector</a><ul>
+<li><a class="reference internal" href="#ruby-api">Ruby API</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </main>
+</div>
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
+</html>
