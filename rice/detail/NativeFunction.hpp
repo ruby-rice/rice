@@ -34,7 +34,7 @@ namespace Rice::detail
     From_Ruby<T> createFromRuby();
       
     // Create NativeArgs which are used to convert values from Ruby to C++
-    template<std::size_t... I>
+    template<std::size_t...I>
     From_Ruby_Ts createFromRuby(std::index_sequence<I...>& indices);
 
     To_Ruby<Return_T> createToRuby();
@@ -43,7 +43,7 @@ namespace Rice::detail
     std::vector<VALUE> getRubyValues(int argc, VALUE* argv);
 
     // Convert Ruby values to C++ values
-    template<typename std::size_t... I>
+    template<typename std::size_t...I>
     Arg_Ts getNativeValues(std::vector<VALUE>& values, std::index_sequence<I...>& indices);
 
     // Figure out what self is

@@ -130,11 +130,9 @@ namespace Rice::detail
   typename NativeFunction<Function_T, IsMethod>::Arg_Ts NativeFunction<Function_T, IsMethod>::getNativeValues(std::vector<VALUE>& values,
      std::index_sequence<I...>& indices)
   {
-    // Convert each Ruby value to its native value. Check each Ruby nil value to see if it has
-    // a default argument, and if yes, use that. Otherwise use NativeArg<Arg_Ts> to convert
-    // the Ruby value to a native value. Note that for fundamental types NativeArg<Arg_Ts> 
-    // will keep a copy of the native value so it can be passed by reference or pointer to a
-    // native function.
+    // Convert each Ruby value to its native value by calling the appropriate fromRuby instance.
+    // Note that for fundamental types From_Ruby<Arg_Ts> will keep a copy of the native value
+    // so it can be passed by reference or pointer to a native function.
     return std::forward_as_tuple(std::get<I>(this->fromRubys_).convert(values[I])...);
   }
 
