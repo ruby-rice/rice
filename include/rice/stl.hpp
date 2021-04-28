@@ -20,8 +20,9 @@ namespace Rice::detail
   };
 
   template<>
-  struct To_Ruby<std::string>
+  class To_Ruby<std::string>
   {
+  public:
     VALUE convert(std::string const& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
@@ -29,8 +30,9 @@ namespace Rice::detail
   };
 
   template<>
-  struct To_Ruby<std::string&>
+  class To_Ruby<std::string&>
   {
+  public:
     VALUE convert(std::string const& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
@@ -128,8 +130,9 @@ namespace Rice::detail
   };
 
   template<typename T>
-  struct To_Ruby<std::complex<T>>
+  class To_Ruby<std::complex<T>>
   {
+  public:
     VALUE convert(const std::complex<T>& data)
     {
       std::vector<VALUE> args(2);
@@ -188,8 +191,9 @@ namespace Rice::detail
   };
 
   template<>
-  struct To_Ruby<std::nullopt_t>
+  class To_Ruby<std::nullopt_t>
   {
+  public:
     VALUE convert(std::nullopt_t& _)
     {
       return Qnil;
@@ -197,8 +201,9 @@ namespace Rice::detail
   };
 
   template<typename T>
-  struct To_Ruby<std::optional<T>>
+  class To_Ruby<std::optional<T>>
   {
+  public:
     static VALUE convert(std::optional<T>& data, bool takeOwnership = false)
     {
       if (data.has_value())
@@ -213,8 +218,9 @@ namespace Rice::detail
   };
 
   template<typename T>
-  struct To_Ruby<std::optional<T>&>
+  class To_Ruby<std::optional<T>&>
   {
+  public:
     static VALUE convert(std::optional<T>& data, bool takeOwnership = false)
     {
       if (data.has_value())
@@ -486,8 +492,9 @@ namespace Rice::detail
 
   // ---- unique_ptr ------
   template <typename T>
-  struct To_Ruby<std::unique_ptr<T>>
+  class To_Ruby<std::unique_ptr<T>>
   {
+  public:
     VALUE convert(std::unique_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(*data);
@@ -528,8 +535,9 @@ namespace Rice::detail
 
   // ----- shared_ptr -------------
   template <typename T>
-  struct To_Ruby<std::shared_ptr<T>>
+  class To_Ruby<std::shared_ptr<T>>
   {
+  public:
     VALUE convert(std::shared_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(*data);
