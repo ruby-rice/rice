@@ -40,7 +40,7 @@ namespace Rice::detail
   class To_Ruby<Class>
   {
   public:
-    static VALUE convert(Object const& x)
+    static VALUE convert(Class const& x)
     {
       return x.value();
     }

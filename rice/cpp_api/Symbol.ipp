@@ -55,7 +55,7 @@ namespace Rice::detail
   class To_Ruby<Symbol>
   {
   public:
-    VALUE convert(Object const& x)
+    VALUE convert(Symbol const& x)
     {
       return x.value();
     }
@@ -65,9 +65,9 @@ namespace Rice::detail
   class From_Ruby<Symbol>
   {
   public:
-    Object convert(VALUE value)
+    Symbol convert(VALUE value)
     {
-      return Object(value);
+      return Symbol(value);
     }
   };
 }
