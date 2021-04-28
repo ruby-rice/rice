@@ -16,8 +16,9 @@ namespace Rice::detail
   };
 
   template<>
-  struct To_Ruby<std::string>
+  class To_Ruby<std::string>
   {
+  public:
     VALUE convert(std::string const& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
@@ -25,8 +26,9 @@ namespace Rice::detail
   };
 
   template<>
-  struct To_Ruby<std::string&>
+  class To_Ruby<std::string&>
   {
+  public:
     VALUE convert(std::string const& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());

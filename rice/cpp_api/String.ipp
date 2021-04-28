@@ -77,8 +77,9 @@ namespace Rice::detail
   };
   
   template<>
-  struct To_Ruby<String>
+  class To_Ruby<String>
   {
+  public:
     VALUE convert(String const& x)
     {
       return x.value();

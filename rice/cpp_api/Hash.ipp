@@ -229,8 +229,9 @@ namespace Rice::detail
   };
 
   template<>
-  struct To_Ruby<Hash>
+  class To_Ruby<Hash>
   {
+  public:
     VALUE convert(Hash const& x)
     {
       return x.value();

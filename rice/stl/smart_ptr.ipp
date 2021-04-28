@@ -26,8 +26,9 @@ namespace Rice::detail
 
   // ---- unique_ptr ------
   template <typename T>
-  struct To_Ruby<std::unique_ptr<T>>
+  class To_Ruby<std::unique_ptr<T>>
   {
+  public:
     VALUE convert(std::unique_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(*data);
@@ -68,8 +69,9 @@ namespace Rice::detail
 
   // ----- shared_ptr -------------
   template <typename T>
-  struct To_Ruby<std::shared_ptr<T>>
+  class To_Ruby<std::shared_ptr<T>>
   {
+  public:
     VALUE convert(std::shared_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(*data);

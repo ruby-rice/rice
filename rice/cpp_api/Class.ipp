@@ -37,8 +37,9 @@ namespace Rice
 namespace Rice::detail
 {
   template<>
-  struct To_Ruby<Class>
+  class To_Ruby<Class>
   {
+  public:
     static VALUE convert(Object const& x)
     {
       return x.value();

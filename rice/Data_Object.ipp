@@ -94,8 +94,9 @@ namespace Rice
 namespace Rice::detail
 {
   template<typename T>
-  struct To_Ruby
+  class To_Ruby
   {
+  public:
     VALUE convert(T& data)
     {
       // Get the ruby typeinfo
@@ -108,8 +109,9 @@ namespace Rice::detail
   };
 
   template <typename T>
-  struct To_Ruby<T&>
+  class To_Ruby<T&>
   {
+  public:
     To_Ruby(bool isOwner = false) : isOwner_(isOwner)
     {
     }
@@ -127,8 +129,9 @@ namespace Rice::detail
   };
 
   template <typename T>
-  struct To_Ruby<T*>
+  class To_Ruby<T*>
   {
+  public:
     To_Ruby(bool isOwner = false) : isOwner_(isOwner)
     {
     }
@@ -153,8 +156,9 @@ namespace Rice::detail
   };
 
   template<typename T>
-  struct To_Ruby<Data_Object<T>>
+  class To_Ruby<Data_Object<T>>
   {
+  public:
     VALUE convert(const Object& x)
     {
       return x.value();

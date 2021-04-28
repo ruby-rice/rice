@@ -25,7 +25,7 @@ namespace Rice
      *  \endcode
      */
     template <typename T>
-    struct To_Ruby;
+    class To_Ruby;
    
     // Helper template function that let's users avoid having to specify the template type - its deduced
     template <typename T>

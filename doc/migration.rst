@@ -43,7 +43,7 @@ as a ``convert`` function in a struct, and they need to live in the ``Rice::deta
   namespace Rice::detail
   {
     template<>
-    struct From_Ruby<Foo>
+    class From_Ruby<Foo>
     {
       Foo convert(VALUE x)
       {
@@ -52,7 +52,7 @@ as a ``convert`` function in a struct, and they need to live in the ``Rice::deta
     };
 
     template<>
-    struct To_Ruby<Foo>
+    class To_Ruby<Foo>
     {
       VALUE convert(Foo const & x)
       {
@@ -61,7 +61,7 @@ as a ``convert`` function in a struct, and they need to live in the ``Rice::deta
     };
   }
 
-In addition, they work with Ruby VALUE type as opposed to Rice's Object type. This switch was made to avoid making extra copies of objects when translating between C++ and Ruby. For more information, please refer to the :doc:`type converstion <advanced/type_conversions>` section.
+In addition, they work with Ruby's VALUE type as opposed to Rice's Object type. This switch was made to avoid making extra copies of objects when translating between C++ and Ruby. For more information, please refer to the :doc:`type converstion <advanced/type_conversions>` section.
 
 
 Functions vs Methods

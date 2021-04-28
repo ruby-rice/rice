@@ -60,7 +60,7 @@ Next, we need to write C++ code that converts the ``std::deque<int>`` to a Ruby 
   namespace Rice::detail
   {
     template<>
-    struct To_Ruby<std::deque<int>>
+    class To_Ruby<std::deque<int>>
     {
       VALUE convert(const std::deque<int>& deque)
       {
@@ -94,7 +94,7 @@ Last, if we want to convert a Ruby array to a  ``std::deque<int>``, then we need
   namespace Rice::detail
   {
     template<>
-    struct From_Ruby<std::deque<int>>
+    class From_Ruby<std::deque<int>>
     {
       std::deque<int> convert(VALUE ary)
       {

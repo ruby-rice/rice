@@ -52,8 +52,9 @@ namespace Rice::detail
   };
   
   template<>
-  struct To_Ruby<Symbol>
+  class To_Ruby<Symbol>
   {
+  public:
     VALUE convert(Object const& x)
     {
       return x.value();

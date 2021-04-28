@@ -14,8 +14,9 @@ namespace Rice::detail
   };
 
   template<typename T>
-  struct To_Ruby<std::complex<T>>
+  class To_Ruby<std::complex<T>>
   {
+  public:
     VALUE convert(const std::complex<T>& data)
     {
       std::vector<VALUE> args(2);

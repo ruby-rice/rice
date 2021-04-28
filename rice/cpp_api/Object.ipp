@@ -146,8 +146,9 @@ namespace Rice::detail
   };
 
   template<>
-  struct To_Ruby<Object>
+  class To_Ruby<Object>
   {
+  public:
     static VALUE convert(Object const& x)
     {
       return x.value();
@@ -155,8 +156,9 @@ namespace Rice::detail
   };
 
   template<>
-  struct To_Ruby<Object&>
+  class To_Ruby<Object&>
   {
+  public:
     static VALUE convert(Object const& x)
     {
       return x.value();

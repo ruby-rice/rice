@@ -216,8 +216,9 @@ namespace Rice::detail
   };
 
   template<>
-  struct To_Ruby<Array>
+  class To_Ruby<Array>
   {
+  public:
     VALUE convert(Array const& x)
     {
       return x.value();
@@ -225,8 +226,9 @@ namespace Rice::detail
   };
 
   template<>
-  struct To_Ruby<Array&>
+  class To_Ruby<Array&>
   {
+  public:
     VALUE convert(Array const& x)
     {
       return x.value();
@@ -234,8 +236,9 @@ namespace Rice::detail
   };
 
   template<>
-  struct To_Ruby<Array*>
+  class To_Ruby<Array*>
   {
+  public:
     VALUE convert(Array const* x)
     {
       return x->value();

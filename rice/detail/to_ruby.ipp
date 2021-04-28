@@ -5,8 +5,9 @@ namespace Rice
   namespace detail
   {
     template<>
-    struct To_Ruby<void>
+    class To_Ruby<void>
     {
+    public:
       VALUE convert(void const*)
       {
         return Qnil;
@@ -14,8 +15,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<std::nullptr_t>
+    class To_Ruby<std::nullptr_t>
     {
+    public:
       VALUE convert(std::nullptr_t const)
       {
         return Qnil;
@@ -23,8 +25,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<short>
+    class To_Ruby<short>
     {
+    public:
       VALUE convert(short const& x)
       {
 #ifdef rb_int2num_inline
@@ -36,8 +39,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<short&>
+    class To_Ruby<short&>
     {
+    public:
       VALUE convert(short const& x)
       {
 #ifdef rb_int2num_inline
@@ -49,8 +53,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<int>
+    class To_Ruby<int>
     {
+    public:
       VALUE convert(int const& x)
       {
 #ifdef rb_int2num_inline
@@ -62,8 +67,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<int&>
+    class To_Ruby<int&>
     {
+    public:
       VALUE convert(int const& x)
       {
 #ifdef rb_int2num_inline
@@ -75,8 +81,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<long>
+    class To_Ruby<long>
     {
+    public:
       VALUE convert(long const& x)
       {
         return protect(rb_long2num_inline, x);
@@ -84,8 +91,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<long&>
+    class To_Ruby<long&>
     {
+    public:
       VALUE convert(long const& x)
       {
         return protect(rb_long2num_inline, x);
@@ -93,8 +101,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<long long>
+    class To_Ruby<long long>
     {
+    public:
       VALUE convert(long long const& x)
       {
         return protect(rb_ll2inum, x);
@@ -102,8 +111,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<long long&>
+    class To_Ruby<long long&>
     {
+    public:
       VALUE convert(long long const& x)
       {
         return protect(rb_ll2inum, x);
@@ -111,8 +121,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<unsigned short>
+    class To_Ruby<unsigned short>
     {
+    public:
       VALUE convert(unsigned short const& x)
       {
 #ifdef rb_int2num_inline
@@ -124,8 +135,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<unsigned short&>
+    class To_Ruby<unsigned short&>
     {
+    public:
       VALUE convert(unsigned short const& x)
       {
 #ifdef rb_int2num_inline
@@ -137,8 +149,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<unsigned int>
+    class To_Ruby<unsigned int>
     {
+    public:
       VALUE convert(unsigned int const& x)
       {
 #ifdef rb_int2num_inline
@@ -150,8 +163,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<unsigned int&>
+    class To_Ruby<unsigned int&>
     {
+    public:
       VALUE convert(unsigned int const& x)
       {
 #ifdef rb_int2num_inline
@@ -163,8 +177,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<unsigned long>
+    class To_Ruby<unsigned long>
     {
+    public:
       To_Ruby() = default;
 
       explicit To_Ruby(bool isValue) : isValue_(isValue)
@@ -188,8 +203,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<unsigned long&>
+    class To_Ruby<unsigned long&>
     {
+    public:
       To_Ruby() = default;
 
       explicit To_Ruby(bool isValue) : isValue_(isValue)
@@ -213,8 +229,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<unsigned long long>
+    class To_Ruby<unsigned long long>
     {
+    public:
       To_Ruby() = default;
 
       explicit To_Ruby(bool isValue) : isValue_(isValue)
@@ -238,8 +255,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<unsigned long long&>
+    class To_Ruby<unsigned long long&>
     {
+    public:
       To_Ruby() = default;
 
       explicit To_Ruby(bool isValue) : isValue_(isValue)
@@ -263,8 +281,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<float>
+    class To_Ruby<float>
     {
+    public:
       VALUE convert(float const& x)
       {
         return protect(rb_float_new, (double)x);
@@ -272,8 +291,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<float&>
+    class To_Ruby<float&>
     {
+    public:
       VALUE convert(float const& x)
       {
         return protect(rb_float_new, (double)x);
@@ -281,8 +301,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<double>
+    class To_Ruby<double>
     {
+    public:
       VALUE convert(double const& x)
       {
         return protect(rb_float_new, x);
@@ -290,8 +311,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<double&>
+    class To_Ruby<double&>
     {
+    public:
       VALUE convert(double const& x)
       {
         return protect(rb_float_new, x);
@@ -299,8 +321,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<bool>
+    class To_Ruby<bool>
     {
+    public:
       VALUE convert(bool const& x)
       {
         return x ? Qtrue : Qfalse;
@@ -308,8 +331,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<bool&>
+    class To_Ruby<bool&>
     {
+    public:
       VALUE convert(bool const& x)
       {
         return x ? Qtrue : Qfalse;
@@ -317,8 +341,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<char>
+    class To_Ruby<char>
     {
+    public:
       VALUE convert(char const& x)
       {
         return To_Ruby<int>().convert(x);
@@ -326,8 +351,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<char&>
+    class To_Ruby<char&>
     {
+    public:
       VALUE convert(char const& x)
       {
         return To_Ruby<int>().convert(x);
@@ -335,8 +361,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<unsigned char>
+    class To_Ruby<unsigned char>
     {
+    public:
       VALUE convert(unsigned char const& x)
       {
         return To_Ruby<unsigned int>().convert(x);
@@ -344,8 +371,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<unsigned char&>
+    class To_Ruby<unsigned char&>
     {
+    public:
       VALUE convert(unsigned char const& x)
       {
         return To_Ruby<unsigned int>().convert(x);
@@ -353,8 +381,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<signed char>
+    class To_Ruby<signed char>
     {
+    public:
       VALUE convert(signed char const& x)
       {
         return To_Ruby<signed int>().convert(x);
@@ -362,8 +391,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<signed char&>
+    class To_Ruby<signed char&>
     {
+    public:
       VALUE convert(signed char const& x)
       {
         return To_Ruby<signed int>().convert(x);
@@ -371,8 +401,9 @@ namespace Rice
     };
 
     template<>
-    struct To_Ruby<char*>
+    class To_Ruby<char*>
     {
+    public:
       VALUE convert(char const* x)
       {
         return protect(rb_str_new2, x);
