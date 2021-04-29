@@ -486,7 +486,7 @@ namespace Rice::detail
       }
       else if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<unsigned short>();
+        return this->arg_->defaultValue<unsigned long>();
       }
       else
       {
@@ -838,7 +838,14 @@ namespace Rice::detail
 
     unsigned char convert(VALUE value)
     {
-      return charFromRuby<unsigned char>(value);
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<unsigned char>();
+      }
+      else
+      {
+        return charFromRuby<unsigned char>(value);
+      }
     }
   
   private:
@@ -858,7 +865,14 @@ namespace Rice::detail
 
     signed char convert(VALUE value)
     {
-      return charFromRuby<signed char>(value);
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<signed char>();
+      }
+      else
+      {
+        return charFromRuby<signed char>(value);
+      }
     }
   
   private:
