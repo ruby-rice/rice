@@ -115,7 +115,8 @@ namespace Rice::detail
     {
       return self;
     }
-    // Self parameter is an object and thus needs to be unwrapped from Ruby
+    // Self parameter could be derived from Object or it is an C++ instdance and
+    // needs to be unwrapped from Ruby
     else
     {
       return From_Ruby<Self_T>().convert(self);
