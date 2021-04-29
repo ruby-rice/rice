@@ -5,7 +5,9 @@ Type Conversions
 
 Rice refers to types that should be converted (copied) between Ruby and C++ as builtin types. Builtin types are types that directly map from C++ to Ruby. Examples include nullptr, bool, numeric types (integer, float, double, complex), char types and strings.
 
-Since they are copied, instances of builtin types are disconnected. Therefore, if a Ruby string is converted to a std::string then the two strings are independent and changes in one will *not* be reflected in the other. Also understand that if you allocate a new char* in C++ and pass it to Ruby, then you will get a memory leak because Ruby will copy the contents on the char* but will *not* free the original buffer. Generally you don't have to worry about builtin types because Rice supports them out of the box.
+Since they are copied, instances of builtin types are disconnected. Therefore, if a Ruby string is converted to a std::string then the two strings are independent and changes in one will *not* be reflected in the other. Also understand that if you allocate a new char* in C++ and pass it to Ruby, then you will get a memory leak because Ruby will copy the contents on the char* but will *not* free the original buffer. 
+
+Rice supports all common builtin types out of the box. In general, to add new C++ types to Ruby you should wrap them by using ``define_class``, ``define_enum``, etc.  It should be quite rare to add new builtin types.
 
 Adding a Builtin Type
 ---------------------
@@ -16,7 +18,7 @@ For the sake of an example, let's say you want to expose ``std::deque<int>`` to 
 3. Specialize From_Ruby template
 
 Step 1 - Specialize Type
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 First we have to tell Rice that ``std::deque<int>`` is a known type so that it passes :doc:`type verification <type_verification>`. This is done by specializing the Type template:
 
 .. code-block:: cpp
@@ -52,7 +54,7 @@ The specialization *must* be in the ``Rice::detail`` namespace. If your type con
 Notice that std::optional is only valid if the type it stores is valid.
 
 Step 2 - Specialize To_Ruby
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Next, we need to write C++ code that converts the ``std::deque<int>`` to a Ruby object. The most obvious Ruby object to map it to is an array.
 
 .. code-block:: cpp
@@ -86,7 +88,7 @@ Once again, the definition *must* be in the  ``Rice::detail`` namespace.
 Instead of using the raw Ruby C API as above, you may prefer to use ``Rice::Array`` which provides an nice C++ wrapper for Ruby arrays.
 
 Step 3 - Specialize From_Ruby
------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Last, if we want to convert a Ruby array to a  ``std::deque<int>``, then we need to write C++ code for that too.
 
 .. code-block:: cpp
@@ -123,3 +125,43 @@ Last, if we want to convert a Ruby array to a  ``std::deque<int>``, then we need
   }
 
 And as usual, the definition *must* be in the ``Rice::detail`` namespace.
+
+Supporting Default Arguments
+----------------------------
+Rice supports C++ :ref:`default_arguments`. To enable this support for your custom type requires making the following changes to the ``From_Ruby`` specialization:
+
+*  Add an additional constructor that takes the specialized type and store it in a member variable. A good way to do this is using C++'s ``std::optional`` class.
+*  Add back in the default constructor.
+*  In the ``convert`` method, if the Ruby value is ``nil (ie, Qnil)`` return the default value.
+
+Expanding on our example above:
+
+.. code-block:: cpp
+
+    namespace Rice::detail
+    {
+      template<>
+      class From_Ruby<std::deque<int>>
+      {
+        From_Ruby() = default;
+
+        explicit From_Ruby(std::deque<int> defaultValue) : defaultValue_(defaultValue)
+        {
+        }
+
+        std::deque<int> convert(VALUE ary)
+        {
+          if (value == Qnil && this->defaultValue_)
+          {
+            return this->defaultValue_.value();
+          }
+          else
+          {
+            // .... Same as code from example above
+          }
+        }
+
+      private:
+        std::optional<std::deque<int>> defaultValue_;
+      };
+    }

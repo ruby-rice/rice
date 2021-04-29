@@ -1,10 +1,10 @@
-.. _functions:
-
 Functions and Methods
 =====================
 
 In the tutorial we touched upon how to wrap C++ functions, static member functions and
 member functions. Now let's go into more depth.
+
+.. _default_arguments:
 
 Default Arguments
 -----------------
