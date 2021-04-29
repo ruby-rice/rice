@@ -169,22 +169,56 @@ namespace Rice::detail
   class From_Ruby
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg * arg) : arg_(arg)
+    {
+    }
+    
     T convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
-      return *Data_Object<Intrinsic_T>::from_ruby(value);
+
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<Intrinsic_T>();
+      }
+      else
+      {
+        return *Data_Object<Intrinsic_T>::from_ruby(value);
+      }
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
   class From_Ruby<T&>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg * arg) : arg_(arg)
+    {
+    }
+
     T& convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
-      return *Data_Object<Intrinsic_T>::from_ruby(value);
+
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<Intrinsic_T>();
+      }
+      else
+      {
+        return *Data_Object<Intrinsic_T>::from_ruby(value);
+      }
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>

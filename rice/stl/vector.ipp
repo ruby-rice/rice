@@ -376,6 +376,12 @@ namespace Rice
     class From_Ruby<std::vector<T>>
     {
     public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg * arg) : arg_(arg)
+      {
+      }
+
       std::vector<T> convert(VALUE value)
       {
         switch (rb_type(value))
@@ -393,6 +399,13 @@ namespace Rice
               return vectorFromArray<T>(value);
             }
           }
+          case T_NIL:
+          {
+            if (this->arg_ && this->arg_->hasDefaultValue())
+            {
+              return this->arg_->defaultValue<std::vector<T>>();
+            }
+          }
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
@@ -400,12 +413,21 @@ namespace Rice
           }
         }
       }
+
+    private:
+      Arg* arg_ = nullptr;
     };
 
     template<typename T>
     class From_Ruby<std::vector<T>&>
     {
     public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg * arg) : arg_(arg)
+      {
+      }
+
       std::vector<T>& convert(VALUE value)
       {
         switch (rb_type(value))
@@ -424,6 +446,13 @@ namespace Rice
               return this->converted_;
             }
           }
+          case T_NIL:
+          {
+            if (this->arg_ && this->arg_->hasDefaultValue())
+            {
+              return this->arg_->defaultValue<std::vector<T>>();
+            }
+          }
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
@@ -433,6 +462,7 @@ namespace Rice
       }
 
     private:
+      Arg* arg_ = nullptr;
       std::vector<T> converted_;
     };
 

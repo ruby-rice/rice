@@ -34,30 +34,15 @@ namespace Rice::detail
   template<typename T, std::size_t I>
   From_Ruby<T> NativeFunction<Function_T, IsMethod>::createFromRuby()
   {
-    // Does the From_Ruby instantiation support default values? We can tell
-    // by checking if it can be constructed with a value of its supported type.
-    if constexpr (std::is_constructible_v<From_Ruby<T>, T>)
+    // Does the From_Ruby instantiation work with Arg?
+    if constexpr (std::is_constructible_v<From_Ruby<T>, Arg*>)
     {
-      Arg& arg = this->methodInfo_->arg(I);
-      if (arg.hasDefaultValue() && !arg.getIsValue())
-      {
-        T defaultValue = arg.defaultValue<T>();
-        return From_Ruby<T>(defaultValue);
-      }
+      return From_Ruby<T>(&this->methodInfo_->arg(I));
     }
-
-    // Is this type the same as Ruby's VALUE type? If so we need to tell the conversion
-    // function if this is a VALUE or not
-    if constexpr (std::is_same_v<T, VALUE>)
+    else
     {
-      Arg& arg = this->methodInfo_->arg(I);
-      if (arg.getIsValue())
-      {
-        return From_Ruby<T>(arg.getIsValue());
-      }
+      return From_Ruby<T>();
     }
-
-    return From_Ruby<T>();
   }
 
   template<typename Function_T, bool IsMethod>

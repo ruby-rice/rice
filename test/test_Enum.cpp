@@ -290,6 +290,23 @@ TESTCASE(using_enums)
 
 namespace
 {
+  Color defaultColor(Color aColor = BLACK)
+  {
+    return aColor;
+  }
+}
+
+TESTCASE(default_argument)
+{
+  define_global_function("default_color", &defaultColor, Arg("aColor") = Color::BLACK);
+
+  Module m = define_module("Testing");
+  Object result = m.instance_eval("default_color");
+  ASSERT_EQUAL(Color::BLACK, detail::From_Ruby<Color>().convert(result.value()));
+}
+
+namespace
+{
   enum class Undefined { A, B, C };
 
   void undefinedArg(Undefined undefined)

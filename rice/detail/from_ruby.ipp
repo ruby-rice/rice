@@ -4,6 +4,7 @@
 #include <optional>
 #include <stdexcept>
 #include "../Exception_defn.hpp"
+#include "../Arg.hpp"
 #include "RubyFunction.hpp"
 
 /* This file implements conversions from Ruby to native values fo fundamental types 
@@ -17,15 +18,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(short defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     short convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<short>();
       }
       else
       {
@@ -34,7 +35,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<short> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -43,15 +44,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(short defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     short& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<short>();
       }
       else
       {
@@ -61,7 +62,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<short> defaultValue_;
+    Arg* arg_ = nullptr;
     short converted_ = 0;
   };
 
@@ -93,15 +94,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(int defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     int convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<int>();
       }
       else
       {
@@ -110,7 +111,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<int> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -119,15 +120,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(int defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     int& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<int>();
       }
       else
       {
@@ -137,7 +138,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<int> defaultValue_;
+    Arg* arg_ = nullptr;
     int converted_ = 0;
   };
 
@@ -169,15 +170,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(long defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     long convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<long>();
       }
       else
       {
@@ -186,7 +187,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<long> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -195,15 +196,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(long defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     long& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<long>();
       }
       else
       {
@@ -213,7 +214,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<long> defaultValue_;
+    Arg* arg_ = nullptr;
     long converted_ = 0;
   };
 
@@ -245,15 +246,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(long long defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     long long convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<long long>();
       }
       else
       {
@@ -262,7 +263,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<long long> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -271,15 +272,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(long long defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     long long& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<long long>();
       }
       else
       {
@@ -289,7 +290,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<long long> defaultValue_;
+    Arg* arg_ = nullptr;
     long long converted_ = 0;
   };
 
@@ -321,15 +322,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(unsigned short defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     unsigned short convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<unsigned short>();
       }
       else
       {
@@ -338,7 +339,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<unsigned short> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -347,15 +348,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(unsigned short defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     unsigned short& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<unsigned short>();
       }
       else
       {
@@ -365,7 +366,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<unsigned short> defaultValue_;
+    Arg* arg_ = nullptr;
     unsigned short converted_ = 0;
   };
 
@@ -397,15 +398,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(unsigned int defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     unsigned int convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<unsigned int>();
       }
       else
       {
@@ -414,7 +415,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<unsigned int> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -423,15 +424,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(unsigned int defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     unsigned int& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<unsigned int>();
       }
       else
       {
@@ -441,7 +442,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<unsigned int> defaultValue_;
+    Arg* arg_ = nullptr;
     unsigned int converted_ = 0;
   };
 
@@ -473,23 +474,19 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(unsigned long defaultValue) : defaultValue_(defaultValue)
-    {
-    }
-
-    explicit From_Ruby(bool isValue) : isValue_(isValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     unsigned long convert(VALUE value)
     {
-      if (this->isValue_)
+      if (this->arg_ && this->arg_->getIsValue())
       {
         return (unsigned long)value;
       }
-      else if (value == Qnil && this->defaultValue_)
+      else if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<unsigned short>();
       }
       else
       {
@@ -498,8 +495,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<unsigned long> defaultValue_;
-    unsigned long isValue_;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -508,15 +504,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(unsigned long defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     unsigned long& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<unsigned long>();
       }
       else
       {
@@ -526,7 +522,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<unsigned long> defaultValue_;
+    Arg* arg_ = nullptr;
     unsigned long converted_ = 0;
   };
 
@@ -558,23 +554,19 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(unsigned long long defaultValue) : defaultValue_(defaultValue)
-    {
-    }
-
-    explicit From_Ruby(bool isValue) : isValue_(isValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     unsigned long long convert(VALUE value)
     {
-      if (this->isValue_)
+      if (this->arg_ && this->arg_->getIsValue())
       {
         return value;
       }
-      else if (value == Qnil && this->defaultValue_)
+      else if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<unsigned long long>();
       }
       else
       {
@@ -583,8 +575,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<unsigned long long> defaultValue_;
-    bool isValue_ = false;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -593,15 +584,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(unsigned long long defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     unsigned long long& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<unsigned long long>();
       }
       else
       {
@@ -611,7 +602,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<unsigned long long> defaultValue_;
+    Arg* arg_ = nullptr;
     unsigned long long converted_ = 0;
   };
 
@@ -643,15 +634,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(bool defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     bool convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<bool>();
       }
       else
       {
@@ -660,7 +651,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<bool> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -669,15 +660,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(bool defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     bool& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<bool>();
       }
       else
       {
@@ -687,7 +678,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<bool> defaultValue_;
+    Arg* arg_ = nullptr;
     bool converted_ = false;
   };
 
@@ -749,15 +740,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(char defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     char convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<char>();
       }
       else
       {
@@ -766,7 +757,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<char> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -775,15 +766,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(char defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     char& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<char>();
       }
       else
       {
@@ -793,7 +784,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<char> defaultValue_;
+    Arg* arg_ = nullptr;
     char converted_ = 0;
   };
 
@@ -841,7 +832,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(unsigned char defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -851,7 +842,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<unsigned char> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   // ===========  signed char  ============
@@ -861,7 +852,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(signed char defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -871,7 +862,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<signed char> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   // ===========  double  ============
@@ -881,15 +872,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(double defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     double convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<double>();
       }
       else
       {
@@ -898,7 +889,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<double> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -907,15 +898,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(double defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     double& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<double>();
       }
       else
       {
@@ -925,7 +916,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<double> defaultValue_;
+    Arg* arg_ = nullptr;
     double converted_;
   };
 
@@ -957,15 +948,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(float defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     float convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<float>();
       }
       else
       {
@@ -974,7 +965,7 @@ namespace Rice::detail
     }
   
   private:
-    std::optional<float> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -983,15 +974,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(float defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     float& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<float>();
       }
       else
       {
@@ -1001,7 +992,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<float> defaultValue_;
+    Arg* arg_ = nullptr;
     float converted_;
   };
 

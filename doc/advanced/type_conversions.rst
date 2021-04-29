@@ -130,9 +130,9 @@ Supporting Default Arguments
 ----------------------------
 Rice supports C++ :ref:`default_arguments`. To enable this support for your custom type requires making the following changes to the ``From_Ruby`` specialization:
 
-*  Add an additional constructor that takes the specialized type and store it in a member variable. A good way to do this is using C++'s ``std::optional`` class.
+*  Add an additional constructor that takes a ``detail::Arg`` pointer and store it in a member variable
 *  Add back in the default constructor.
-*  In the ``convert`` method, if the Ruby value is ``nil (ie, Qnil)`` return the default value.
+*  In the ``convert`` method, if the Ruby value is ``nil (ie, Qnil)`` and arg is set then return the default value.
 
 Expanding on our example above:
 
@@ -145,15 +145,15 @@ Expanding on our example above:
       {
         From_Ruby() = default;
 
-        explicit From_Ruby(std::deque<int> defaultValue) : defaultValue_(defaultValue)
+        explicit From_Ruby(Arg* arg) : arg_(arg)
         {
         }
 
         std::deque<int> convert(VALUE ary)
         {
-          if (value == Qnil && this->defaultValue_)
+          if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
           {
-            return this->defaultValue_.value();
+            return this->arg_->defaultValue();
           }
           else
           {
@@ -162,6 +162,6 @@ Expanding on our example above:
         }
 
       private:
-        std::optional<std::deque<int>> defaultValue_;
+        Arg* arg_ = nullptr;
       };
     }

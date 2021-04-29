@@ -41,15 +41,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(std::string defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     std::string convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<std::string>();
       }
       else
       {
@@ -59,7 +59,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<std::string> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -83,15 +83,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(std::string defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     std::string& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<std::string>();
       }
       else
       {
@@ -102,7 +102,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<std::string> defaultValue_;
+    Arg* arg_ = nullptr;
     std::string converted_;
   };
 }

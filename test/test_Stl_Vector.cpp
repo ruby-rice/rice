@@ -473,6 +473,31 @@ TESTCASE(AutoRegisterParameter)
 
 namespace
 {
+  std::vector<std::string> defaultVector(std::vector<std::string> strings = {"one", "two", "three"})
+  {
+    return strings;
+  }
+}
+
+TESTCASE(DefaultValue)
+{
+  define_vector<std::vector<std::string>>("StringVector");
+  define_global_function("default_vector", &defaultVector, Arg("strings") = std::vector<std::string> { "one", "two", "three" });
+
+  Module m = define_module("Testing");
+  Object result = m.instance_eval("default_vector");
+  std::vector<std::string> actual = detail::From_Ruby<std::vector<std::string>>().convert(result);
+
+  std::vector<std::string> expected{ "one", "two", "three" };
+
+  ASSERT_EQUAL(expected.size(), actual.size());
+  ASSERT_EQUAL(expected[0], actual[0]);
+  ASSERT_EQUAL(expected[1], actual[1]);
+  ASSERT_EQUAL(expected[2], actual[2]);
+}
+
+namespace
+{
   std::vector<int> ints;
   std::vector<float> floats;
   std::vector<std::string> strings;
