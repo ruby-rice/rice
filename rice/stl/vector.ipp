@@ -403,7 +403,7 @@ namespace Rice
           {
             if (this->arg_ && this->arg_->hasDefaultValue())
             {
-              return this->arg_->defaultValue<std::vector<T>>();
+              return this->arg_->template defaultValue<std::vector<T>>();
             }
           }
           default:
@@ -450,7 +450,7 @@ namespace Rice
           {
             if (this->arg_ && this->arg_->hasDefaultValue())
             {
-              return this->arg_->defaultValue<std::vector<T>>();
+              return this->arg_->template defaultValue<std::vector<T>>();
             }
           }
           default:

@@ -49,7 +49,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<std::string>();
+        return this->arg_->template defaultValue<std::string>();
       }
       else
       {
@@ -91,7 +91,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<std::string>();
+        return this->arg_->template defaultValue<std::string>();
       }
       else
       {

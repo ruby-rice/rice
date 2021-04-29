@@ -188,7 +188,7 @@ namespace Rice::detail
 
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<Intrinsic_T>();
+        return this->arg_->template defaultValue<Intrinsic_T>();
       }
       else
       {
@@ -216,7 +216,7 @@ namespace Rice::detail
 
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<Intrinsic_T>();
+        return this->arg_->template defaultValue<Intrinsic_T>();
       }
       else
       {

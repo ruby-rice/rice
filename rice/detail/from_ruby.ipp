@@ -26,7 +26,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<short>();
+        return this->arg_->template defaultValue<short>();
       }
       else
       {
@@ -52,7 +52,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<short>();
+        return this->arg_->template defaultValue<short>();
       }
       else
       {
@@ -102,7 +102,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<int>();
+        return this->arg_->template defaultValue<int>();
       }
       else
       {
@@ -128,7 +128,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<int>();
+        return this->arg_->template defaultValue<int>();
       }
       else
       {
@@ -178,7 +178,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<long>();
+        return this->arg_->template defaultValue<long>();
       }
       else
       {
@@ -204,7 +204,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<long>();
+        return this->arg_->template defaultValue<long>();
       }
       else
       {
@@ -254,7 +254,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<long long>();
+        return this->arg_->template defaultValue<long long>();
       }
       else
       {
@@ -280,7 +280,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<long long>();
+        return this->arg_->template defaultValue<long long>();
       }
       else
       {
@@ -330,7 +330,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<unsigned short>();
+        return this->arg_->template defaultValue<unsigned short>();
       }
       else
       {
@@ -356,7 +356,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<unsigned short>();
+        return this->arg_->template defaultValue<unsigned short>();
       }
       else
       {
@@ -406,7 +406,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<unsigned int>();
+        return this->arg_->template defaultValue<unsigned int>();
       }
       else
       {
@@ -432,7 +432,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<unsigned int>();
+        return this->arg_->template defaultValue<unsigned int>();
       }
       else
       {
@@ -486,7 +486,7 @@ namespace Rice::detail
       }
       else if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<unsigned long>();
+        return this->arg_->template defaultValue<unsigned long>();
       }
       else
       {
@@ -512,7 +512,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<unsigned long>();
+        return this->arg_->template defaultValue<unsigned long>();
       }
       else
       {
@@ -566,7 +566,7 @@ namespace Rice::detail
       }
       else if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<unsigned long long>();
+        return this->arg_->template defaultValue<unsigned long long>();
       }
       else
       {
@@ -592,7 +592,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<unsigned long long>();
+        return this->arg_->template defaultValue<unsigned long long>();
       }
       else
       {
@@ -642,7 +642,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<bool>();
+        return this->arg_->template defaultValue<bool>();
       }
       else
       {
@@ -668,7 +668,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<bool>();
+        return this->arg_->template defaultValue<bool>();
       }
       else
       {
@@ -748,7 +748,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<char>();
+        return this->arg_->template defaultValue<char>();
       }
       else
       {
@@ -774,7 +774,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<char>();
+        return this->arg_->template defaultValue<char>();
       }
       else
       {
@@ -840,7 +840,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<unsigned char>();
+        return this->arg_->template defaultValue<unsigned char>();
       }
       else
       {
@@ -867,7 +867,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<signed char>();
+        return this->arg_->template defaultValue<signed char>();
       }
       else
       {
@@ -894,7 +894,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<double>();
+        return this->arg_->template defaultValue<double>();
       }
       else
       {
@@ -920,7 +920,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<double>();
+        return this->arg_->template defaultValue<double>();
       }
       else
       {
@@ -970,7 +970,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<float>();
+        return this->arg_->template defaultValue<float>();
       }
       else
       {
@@ -996,7 +996,7 @@ namespace Rice::detail
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->defaultValue<float>();
+        return this->arg_->template defaultValue<float>();
       }
       else
       {
