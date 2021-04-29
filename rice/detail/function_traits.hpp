@@ -72,7 +72,7 @@ namespace Rice::detail
   };
 
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
-  struct function_traits<Return_T(Class_T::*)(Arg_Ts...) const noexcept> : public function_traits<Return_T(Class_T, Arg_Ts...)>
+  struct function_traits<Return_T(Class_T::*)(Arg_Ts...) const noexcept> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
   {
   };
 
