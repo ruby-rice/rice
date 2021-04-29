@@ -45,15 +45,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(std::string defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     std::string convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<std::string>();
       }
       else
       {
@@ -63,7 +63,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<std::string> defaultValue_;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -87,15 +87,15 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(std::string defaultValue) : defaultValue_(defaultValue)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     std::string& convert(VALUE value)
     {
-      if (value == Qnil && this->defaultValue_)
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->defaultValue_.value();
+        return this->arg_->defaultValue<std::string>();
       }
       else
       {
@@ -106,7 +106,7 @@ namespace Rice::detail
     }
 
   private:
-    std::optional<std::string> defaultValue_;
+    Arg* arg_ = nullptr;
     std::string converted_;
   };
 }
@@ -984,6 +984,12 @@ namespace Rice
     class From_Ruby<std::vector<T>>
     {
     public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg * arg) : arg_(arg)
+      {
+      }
+
       std::vector<T> convert(VALUE value)
       {
         switch (rb_type(value))
@@ -1001,6 +1007,13 @@ namespace Rice
               return vectorFromArray<T>(value);
             }
           }
+          case T_NIL:
+          {
+            if (this->arg_ && this->arg_->hasDefaultValue())
+            {
+              return this->arg_->defaultValue<std::vector<T>>();
+            }
+          }
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
@@ -1008,12 +1021,21 @@ namespace Rice
           }
         }
       }
+
+    private:
+      Arg* arg_ = nullptr;
     };
 
     template<typename T>
     class From_Ruby<std::vector<T>&>
     {
     public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg * arg) : arg_(arg)
+      {
+      }
+
       std::vector<T>& convert(VALUE value)
       {
         switch (rb_type(value))
@@ -1032,6 +1054,13 @@ namespace Rice
               return this->converted_;
             }
           }
+          case T_NIL:
+          {
+            if (this->arg_ && this->arg_->hasDefaultValue())
+            {
+              return this->arg_->defaultValue<std::vector<T>>();
+            }
+          }
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
@@ -1041,6 +1070,7 @@ namespace Rice
       }
 
     private:
+      Arg* arg_ = nullptr;
       std::vector<T> converted_;
     };
 
