@@ -3,6 +3,8 @@ STL
 
 Rice provides partial support for C++'s standard template library (STL). To enable this support you need to include the ``rice/stl.hpp`` header file after ``rice/rice.hpp``.
 
+.. _stl_class_names:
+
 Automatically Generated Ruby Classes
 ------------------------------------
 Remember that STL classes are template classes, and thus must be instantiated with concrete types to define actual C++ classes. A ``std::vector<int>`` is a different class than a ``std::vector<std::string>``. This means there can be a large number of STL instantianted classes in a C++ code base.
