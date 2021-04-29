@@ -48,29 +48,10 @@ namespace Rice::detail
   template<typename Function_T, bool IsMethod>
   To_Ruby<typename NativeFunction<Function_T, IsMethod>::Return_T> NativeFunction<Function_T, IsMethod>::createToRuby()
   {
-    if (this->methodInfo_->returnInfo.isOwner())
+    // Does the From_Ruby instantiation work with ReturnInfo?
+    if constexpr (std::is_constructible_v<To_Ruby<Return_T>, Return*>)
     {
-      if constexpr (std::is_constructible_v<To_Ruby<Return_T>, bool>)
-      {
-        return To_Ruby<Return_T>(true);
-      }
-      else
-      {
-        throw std::runtime_error("Type does not support taking onwership: " + typeName(typeid(Return_T)));
-      }
-    }
-    // Is this type the same as Ruby's VALUE type? If so we need to tell the conversion
-    // function if this is a VALUE or not
-    else if (this->methodInfo_->returnInfo.getIsValue())
-    {
-      if constexpr (std::is_same_v<Return_T, VALUE>)
-      {
-        return To_Ruby<Return_T>(true);
-      }
-      else
-      {
-        throw std::runtime_error("Type does not support passing by VALUE: " + typeName(typeid(Return_T)));
-      }
+      return To_Ruby<Return_T>(&this->methodInfo_->returnInfo);
     }
     else
     {

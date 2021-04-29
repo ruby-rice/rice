@@ -1,4 +1,5 @@
 #include "RubyFunction.hpp"
+#include "../Return.hpp"
 
 namespace Rice
 {
@@ -182,13 +183,13 @@ namespace Rice
     public:
       To_Ruby() = default;
 
-      explicit To_Ruby(bool isValue) : isValue_(isValue)
+      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
       {
       }
 
       VALUE convert(unsigned long const& x)
       {
-        if (this->isValue_)
+        if (this->returnInfo_ && this->returnInfo_->getIsValue())
         {
           return x;
         }
@@ -199,7 +200,7 @@ namespace Rice
       }
 
     private:
-      bool isValue_ = false;
+      Return* returnInfo_ = nullptr;
     };
 
     template<>
@@ -208,13 +209,13 @@ namespace Rice
     public:
       To_Ruby() = default;
 
-      explicit To_Ruby(bool isValue) : isValue_(isValue)
+      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
       {
       }
 
       VALUE convert(unsigned long const& x)
       {
-        if (this->isValue_)
+        if (this->returnInfo_ && this->returnInfo_->getIsValue())
         {
           return x;
         }
@@ -225,7 +226,7 @@ namespace Rice
       }
 
     private:
-      bool isValue_ = false;
+      Return* returnInfo_ = nullptr;
     };
 
     template<>
@@ -234,13 +235,13 @@ namespace Rice
     public:
       To_Ruby() = default;
 
-      explicit To_Ruby(bool isValue) : isValue_(isValue)
+      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
       {
       }
 
       VALUE convert(unsigned long long const& x)
       {
-        if (this->isValue_)
+        if (this->returnInfo_ && this->returnInfo_->getIsValue())
         {
           return x;
         }
@@ -251,7 +252,7 @@ namespace Rice
       }
 
     private:
-      bool isValue_ = false;
+      Return* returnInfo_ = nullptr;
     };
 
     template<>
@@ -260,13 +261,13 @@ namespace Rice
     public:
       To_Ruby() = default;
 
-      explicit To_Ruby(bool isValue) : isValue_(isValue)
+      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
       {
       }
 
       VALUE convert(unsigned long long const& x)
       {
-        if (this->isValue_)
+        if (this->returnInfo_ && this->returnInfo_->getIsValue())
         {
           return x;
         }
@@ -277,7 +278,7 @@ namespace Rice
       }
 
     private:
-      bool isValue_ = false;
+      Return* returnInfo_ = nullptr;
     };
 
     template<>

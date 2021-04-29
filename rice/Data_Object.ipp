@@ -112,7 +112,9 @@ namespace Rice::detail
   class To_Ruby<T&>
   {
   public:
-    To_Ruby(bool isOwner = false) : isOwner_(isOwner)
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return * returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -121,18 +123,22 @@ namespace Rice::detail
       // Note that T could be a pointer or reference to a base class while data is in fact a
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
-      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, this->isOwner_);
+
+      bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
     }
 
   private:
-    bool isOwner_ = false;
+    Return* returnInfo_ = nullptr;
   };
 
   template <typename T>
   class To_Ruby<T*>
   {
   public:
-    To_Ruby(bool isOwner = false) : isOwner_(isOwner)
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -143,7 +149,8 @@ namespace Rice::detail
         // Note that T could be a pointer or reference to a base class while data is in fact a
         // child class. Lookup the correct type so we return an instance of the correct Ruby class
         std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(*data);
-        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, this->isOwner_);
+        bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
       }
       else
       {
@@ -152,7 +159,7 @@ namespace Rice::detail
     }
 
   private:
-    bool isOwner_ = false;
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>
