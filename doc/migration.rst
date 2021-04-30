@@ -71,6 +71,20 @@ Rice now has different ``define_`` methods depending on if you are defining a me
 a normal function. If you need ``self``, use ``define_method`` or ``define_singleton_method``. Otherwise
 you should use ``define_function`` and ``define_singleton_function``. You can read more in :ref:`the tutorial <Defining Methods>`.
 
+Default Arguments
+-----------------
+They way Rice defines C++ :ref:`default_arguments` has subtly changed - this is an easy one to miss and can introduce bugs (default values will not be set correctly). Previously Rice relied on C++'s comma operator to combine arguments together:
+
+.. code-block:: cpp
+
+  define_method("hello", &Test::hello, (Arg("hello"), Arg("second") = "world"));
+
+Notice that the two ``Args`` are surrounded by parentheses. Rice *no* longer support this style. Instead, just pass the ``Args`` in a more natural way without the parentheses:
+
+.. code-block:: cpp
+
+  define_method("hello", &Test::hello, Arg("hello"), Arg("second") = "world");
+
 Memory Management
 -----------------
 
