@@ -153,7 +153,7 @@ Expanding on our example above:
         {
           if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
           {
-            return this->arg_->defaultValue();
+            return this->arg_->defaultValue<std::deque<int>>();
           }
           else
           {
