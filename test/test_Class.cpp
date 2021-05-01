@@ -285,6 +285,18 @@ TESTCASE(define_method_default_arguments)
   ASSERT(!defaults_method_one_arg3);
 }
 
+TESTCASE(invalid_comma_operator)
+{
+  Class c = define_class<DefaultArgs>("DefaultArgs")
+    .define_constructor(Constructor<DefaultArgs>());
+
+  ASSERT_EXCEPTION_CHECK(
+    std::runtime_error,
+    c.define_method("with_defaults", &DefaultArgs::defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true)),
+    ASSERT_EQUAL("The Arg class no longer supports the comma operator, please remove the surounding parentheses", ex.what())
+  );
+}
+
 namespace
 {
   int func1 = 0;
