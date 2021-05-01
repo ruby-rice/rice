@@ -104,7 +104,7 @@ end
 # Now pull in the C++ support
 include MakeMakefile['C++']
 
-# Rice needs c++17. Check if we are using msvc
+# Rice needs c++17.
 if IS_MSWIN
   $CXXFLAGS += " /std:c++17 /EHsc /permissive-"
   $CPPFLAGS += " -D_ALLOW_KEYWORD_MACROS"
@@ -116,7 +116,9 @@ end
 # to make this easy
 path = File.expand_path(File.join(__dir__, '../include'))
 
-find_header('rice/rice.hpp', path)
+unless find_header('rice/rice.hpp', path)
+  raise("Could not find rice/rice.hpp header")
+end
 
 if IS_DARWIN
   have_library('c++')
