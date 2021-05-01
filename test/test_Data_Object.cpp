@@ -210,6 +210,6 @@ TESTCASE(ruby_custom_free)
 
   rb_gc_start();
 
-  ASSERT_EQUAL(false, test_ruby_mark_called);
   ASSERT_EQUAL(true, test_destructor_called);
+  ASSERT_EQUAL(false, test_ruby_mark_called);
 }
