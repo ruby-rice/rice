@@ -239,6 +239,28 @@ TESTCASE(Modify)
   ASSERT_EQUAL(Qnil, result.value());
 }
 
+TESTCASE(Copy)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_vector<std::vector<double>>("DoubleVector");
+  Object object = c.call("new");
+
+  object.call("push", 11.1);
+  object.call("push", 22.2);
+  std::vector<double>& vec = detail::From_Ruby<std::vector<double>&>().convert(object);
+
+  Object result = object.call("copy");
+  std::vector<double>& vecCopy = detail::From_Ruby<std::vector<double>&>().convert(result);
+
+  ASSERT_EQUAL(vec.size(), vecCopy.size());
+  ASSERT_EQUAL(vec[0], vecCopy[0]);
+  ASSERT_EQUAL(vec[1], vecCopy[1]);
+
+  vecCopy.push_back(33.3);
+  ASSERT_NOT_EQUAL(vec.size(), vecCopy.size());
+}
+
 TESTCASE(Iterate)
 {
   Module m = define_module("Testing");
