@@ -64,6 +64,7 @@ Next, we need to write C++ code that converts the ``std::deque<int>`` to a Ruby 
     template<>
     class To_Ruby<std::deque<int>>
     {
+    public:
       VALUE convert(const std::deque<int>& deque)
       {
         // Notice we wrap Ruby API calls with protect in case Ruby throws an exception.
@@ -98,6 +99,7 @@ Last, if we want to convert a Ruby array to a  ``std::deque<int>``, then we need
     template<>
     class From_Ruby<std::deque<int>>
     {
+    public:
       std::deque<int> convert(VALUE ary)
       {
         // Make sure array is really an array - if not this call will
@@ -143,6 +145,7 @@ Expanding on our example above:
       template<>
       class From_Ruby<std::deque<int>>
       {
+      public:
         From_Ruby() = default;
 
         explicit From_Ruby(Arg* arg) : arg_(arg)
