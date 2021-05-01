@@ -39,8 +39,7 @@ namespace Rice
    *  \endcode
    */
   template<typename T>
-  class Data_Object
-    : public Object
+  class Data_Object : public Object
   {
     static_assert(!std::is_pointer_v<T>);
     static_assert(!std::is_reference_v<T>);
