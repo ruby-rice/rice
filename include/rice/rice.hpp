@@ -1154,6 +1154,9 @@ namespace Rice
     //! Returns if the argument should be treated as a value
     bool getIsValue();
 
+    // No longer supported - implemented to raise error
+    Arg operator,(const Arg& other);
+
   public:
     bool isKeepAlive = false;
     const std::string name;
@@ -1211,6 +1214,12 @@ namespace Rice
   inline bool Arg::getIsValue()
   {
     return isValue_;
+  }
+
+  // Function to overload the, operator
+  inline Arg Arg::operator,(const Arg& other)
+  {
+    throw std::runtime_error("The Arg class no longer supports the comma operator, please remove the surounding parentheses");
   }
 } // Rice
 
