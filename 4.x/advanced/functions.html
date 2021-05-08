@@ -148,11 +148,11 @@
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
         <section id="functions-and-methods">
-<span id="functions"></span><h1>Functions and Methods<a class="headerlink" href="#functions-and-methods" title="Permalink to this headline">¶</a></h1>
+<h1>Functions and Methods<a class="headerlink" href="#functions-and-methods" title="Permalink to this headline">¶</a></h1>
 <p>In the tutorial we touched upon how to wrap C++ functions, static member functions and
 member functions. Now let’s go into more depth.</p>
 <section id="default-arguments">
-<h2>Default Arguments<a class="headerlink" href="#default-arguments" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2>Default Arguments<a class="headerlink" href="#default-arguments" title="Permalink to this headline">¶</a></h2>
 <p>Going back to our initial C++ class example, lets say that <code class="docutils literal notranslate"><span class="pre">hello()</span></code> now
 takes more arguments, one of which has a default value:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Test</span>
@@ -254,7 +254,7 @@ then by default the lambda will return by value. That will invoke <code class="d
 <em>two</em> <code class="docutils literal notranslate"><span class="pre">std::vector&lt;int32_t&gt;</span></code> instance and two Ruby objects. Not at all what you want.</p>
 </section>
 <section id="ownership">
-<span id="id1"></span><h2>Ownership<a class="headerlink" href="#ownership" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2>Ownership<a class="headerlink" href="#ownership" title="Permalink to this headline">¶</a></h2>
 <p>When Rice wraps a C++ object returned either by reference or pointer, it does <em>not</em> take ownership
 of that object. Instead, Rice simply keeps a copy of the reference or pointer for later use. This
 is consistent with modern C++ practices where the use of a reference or pointer does not imply a transfer
@@ -303,7 +303,7 @@ to take ownership of the object returned from C++. You can mix <code class="docu
 </div>
 </section>
 <section id="keep-alive">
-<span id="id2"></span><h2>Keep Alive<a class="headerlink" href="#keep-alive" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2>Keep Alive<a class="headerlink" href="#keep-alive" title="Permalink to this headline">¶</a></h2>
 <p>Sometimes it is necessary to tie the lifetime of one Ruby object to another. This often times happens with containers. For example, imagine we have a <code class="docutils literal notranslate"><span class="pre">Listener</span></code> and a <code class="docutils literal notranslate"><span class="pre">ListenerContainer</span></code> class.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Listener</span> <span class="p">{</span>
 <span class="p">};</span>

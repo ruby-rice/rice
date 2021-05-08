@@ -178,7 +178,7 @@ as a <code class="docutils literal notranslate"><span class="pre">convert</span>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="n">Rice</span><span class="o">::</span><span class="n">detail</span>
 <span class="p">{</span>
   <span class="k">template</span><span class="o">&lt;&gt;</span>
-  <span class="k">struct</span> <span class="nc">From_Ruby</span><span class="o">&lt;</span><span class="n">Foo</span><span class="o">&gt;</span>
+  <span class="k">class</span> <span class="nc">From_Ruby</span><span class="o">&lt;</span><span class="n">Foo</span><span class="o">&gt;</span>
   <span class="p">{</span>
     <span class="n">Foo</span> <span class="nf">convert</span><span class="p">(</span><span class="n">VALUE</span> <span class="n">x</span><span class="p">)</span>
     <span class="p">{</span>
@@ -187,7 +187,7 @@ as a <code class="docutils literal notranslate"><span class="pre">convert</span>
   <span class="p">};</span>
 
   <span class="k">template</span><span class="o">&lt;&gt;</span>
-  <span class="k">struct</span> <span class="nc">To_Ruby</span><span class="o">&lt;</span><span class="n">Foo</span><span class="o">&gt;</span>
+  <span class="k">class</span> <span class="nc">To_Ruby</span><span class="o">&lt;</span><span class="n">Foo</span><span class="o">&gt;</span>
   <span class="p">{</span>
     <span class="n">VALUE</span> <span class="nf">convert</span><span class="p">(</span><span class="n">Foo</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">x</span><span class="p">)</span>
     <span class="p">{</span>
@@ -197,13 +197,24 @@ as a <code class="docutils literal notranslate"><span class="pre">convert</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>In addition, they work with Ruby VALUE type as opposed to Rice’s Object type. This switch was made to avoid making extra copies of objects when translating between C++ and Ruby. For more information, please refer to the <a class="reference internal" href="advanced/type_conversions.html"><span class="doc">type converstion</span></a> section.</p>
+<p>In addition, they work with Ruby’s VALUE type as opposed to Rice’s Object type. This switch was made to avoid making extra copies of objects when translating between C++ and Ruby. For more information, please refer to the <a class="reference internal" href="advanced/type_conversions.html"><span class="doc">type converstion</span></a> section.</p>
 </section>
 <section id="functions-vs-methods">
 <h2>Functions vs Methods<a class="headerlink" href="#functions-vs-methods" title="Permalink to this headline">¶</a></h2>
 <p>Rice now has different <code class="docutils literal notranslate"><span class="pre">define_</span></code> methods depending on if you are defining a method on an object or
 a normal function. If you need <code class="docutils literal notranslate"><span class="pre">self</span></code>, use <code class="docutils literal notranslate"><span class="pre">define_method</span></code> or <code class="docutils literal notranslate"><span class="pre">define_singleton_method</span></code>. Otherwise
 you should use <code class="docutils literal notranslate"><span class="pre">define_function</span></code> and <code class="docutils literal notranslate"><span class="pre">define_singleton_function</span></code>. You can read more in <a class="reference internal" href="tutorial.html#defining-methods"><span class="std std-ref">the tutorial</span></a>.</p>
+</section>
+<section id="default-arguments">
+<h2>Default Arguments<a class="headerlink" href="#default-arguments" title="Permalink to this headline">¶</a></h2>
+<p>They way Rice defines C++ <a class="reference internal" href="advanced/functions.html#default-arguments"><span class="std std-ref">Default Arguments</span></a> has subtly changed - this is an easy one to miss and can introduce bugs (default values will not be set correctly). Previously Rice relied on C++’s comma operator to combine arguments together:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">define_method</span><span class="p">(</span><span class="s">"hello"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Test</span><span class="o">::</span><span class="n">hello</span><span class="p">,</span> <span class="p">(</span><span class="n">Arg</span><span class="p">(</span><span class="s">"hello"</span><span class="p">),</span> <span class="n">Arg</span><span class="p">(</span><span class="s">"second"</span><span class="p">)</span> <span class="o">=</span> <span class="s">"world"</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>Notice that the two <code class="docutils literal notranslate"><span class="pre">Args</span></code> are surrounded by parentheses. Rice <em>no</em> longer support this style. Instead, just pass the <code class="docutils literal notranslate"><span class="pre">Args</span></code> in a more natural way without the parentheses:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">define_method</span><span class="p">(</span><span class="s">"hello"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Test</span><span class="o">::</span><span class="n">hello</span><span class="p">,</span> <span class="n">Arg</span><span class="p">(</span><span class="s">"hello"</span><span class="p">),</span> <span class="n">Arg</span><span class="p">(</span><span class="s">"second"</span><span class="p">)</span> <span class="o">=</span> <span class="s">"world"</span><span class="p">);</span>
+</pre></div>
+</div>
 </section>
 <section id="memory-management">
 <h2>Memory Management<a class="headerlink" href="#memory-management" title="Permalink to this headline">¶</a></h2>
@@ -269,6 +280,7 @@ you should use <code class="docutils literal notranslate"><span class="pre">defi
 <li><a class="reference internal" href="#include-rice-rice-hpp">#include &lt;rice/rice.hpp&gt;</a></li>
 <li><a class="reference internal" href="#to-ruby-from-ruby">to_ruby / from_ruby</a></li>
 <li><a class="reference internal" href="#functions-vs-methods">Functions vs Methods</a></li>
+<li><a class="reference internal" href="#default-arguments">Default Arguments</a></li>
 <li><a class="reference internal" href="#memory-management">Memory Management</a></li>
 </ul>
 </li>

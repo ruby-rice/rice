@@ -27,15 +27,15 @@ For example:
   Object object_id = rb_cTest.call("object_id");
   std::cout << object_id << std::endl;
 
-The `Array` and `Hash` types can even be iterated over the same way one
+The ``Array`` and ``Hash`` types can even be iterated over the same way one
 would iterate over an STL container:
 
 .. code-block:: cpp
 
   Array a;
-  a.push(detail::to_ruby(42));
-  a.push(detail::to_ruby(43));
-  a.push(detail::to_ruby(44));
+  a.push(detail::To_Ruby<int>().convert(42));
+  a.push(detail::To_Ruby<int>().convert(43));
+  a.push(detail::To_Ruby<int>().convert(44));
   Array::iterator it = a.begin();
   Array::iterator end = a.end();
   for(; it != end; ++it)
@@ -43,5 +43,5 @@ would iterate over an STL container:
     std::cout << *it << std::endl;
   }
 
-STL algorithms should also work as expected on `Array` and `Hash` containers.
+STL algorithms should also work as expected on ``Array`` and ``Hash`` containers.
 

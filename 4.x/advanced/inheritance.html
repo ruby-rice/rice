@@ -214,7 +214,7 @@ and use this new proxy class as the type to wrap with <code class="docutils lite
     <span class="n">VirtualBaseProxy</span><span class="p">(</span><span class="n">Object</span> <span class="n">self</span><span class="p">)</span> <span class="o">:</span> <span class="n">Rice</span><span class="o">::</span><span class="n">Director</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
 
     <span class="k">virtual</span> <span class="kt">int</span> <span class="n">doWork</span><span class="p">()</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="n">from_ruby</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span> <span class="n">getSelf</span><span class="p">().</span><span class="n">call</span><span class="p">(</span><span class="s">"do_work"</span><span class="p">)</span> <span class="p">);</span>
+      <span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">From_Ruby</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span> <span class="n">getSelf</span><span class="p">().</span><span class="n">call</span><span class="p">(</span><span class="s">"do_work"</span><span class="p">)</span> <span class="p">);</span>
     <span class="p">}</span>
 
     <span class="kt">int</span> <span class="n">default_doWork</span><span class="p">()</span> <span class="p">{</span>
@@ -222,7 +222,7 @@ and use this new proxy class as the type to wrap with <code class="docutils lite
     <span class="p">}</span>
 
     <span class="k">virtual</span> <span class="kt">int</span> <span class="n">processWorker</span><span class="p">()</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="n">from_ruby</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span> <span class="n">getSelf</span><span class="p">().</span><span class="n">call</span><span class="p">(</span><span class="s">"process_worker"</span><span class="p">)</span> <span class="p">);</span>
+      <span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">From_Ruby</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span> <span class="n">getSelf</span><span class="p">().</span><span class="n">call</span><span class="p">(</span><span class="s">"process_worker"</span><span class="p">)</span> <span class="p">);</span>
     <span class="p">}</span>
 
     <span class="kt">int</span> <span class="n">default_processWorker</span><span class="p">()</span> <span class="p">{</span>
@@ -245,7 +245,7 @@ have a handle to its Ruby instance. The constructor
 must take a <code class="docutils literal notranslate"><span class="pre">Rice::Object</span></code> as the first argument and pass it up into
 <code class="docutils literal notranslate"><span class="pre">Rice::Director</span></code>. The code here is the minimum required for a <code class="docutils literal notranslate"><span class="pre">Rice::Director</span></code> proxy.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">virtual</span> <span class="kt">int</span> <span class="n">doWork</span><span class="p">()</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="n">from_ruby</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span> <span class="n">getSelf</span><span class="p">().</span><span class="n">call</span><span class="p">(</span><span class="s">"do_work"</span><span class="p">)</span> <span class="p">);</span>
+  <span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">From_Ruby</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span> <span class="n">getSelf</span><span class="p">().</span><span class="n">call</span><span class="p">(</span><span class="s">"do_work"</span><span class="p">)</span> <span class="p">);</span>
 <span class="p">}</span>
 
 <span class="kt">int</span> <span class="n">default_doWork</span><span class="p">()</span> <span class="p">{</span>

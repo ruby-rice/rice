@@ -150,7 +150,8 @@
         <section id="type-conversions">
 <span id="id1"></span><h1>Type Conversions<a class="headerlink" href="#type-conversions" title="Permalink to this headline">¶</a></h1>
 <p>Rice refers to types that should be converted (copied) between Ruby and C++ as builtin types. Builtin types are types that directly map from C++ to Ruby. Examples include nullptr, bool, numeric types (integer, float, double, complex), char types and strings.</p>
-<p>Since they are copied, instances of builtin types are disconnected. Therefore, if a Ruby string is converted to a std::string then the two strings are independent and changes in one will <em>not</em> be reflected in the other. Also understand that if you allocate a new char* in C++ and pass it to Ruby, then you will get a memory leak because Ruby will copy the contents on the char* but will <em>not</em> free the original buffer. Generally you don’t have to worry about builtin types because Rice supports them out of the box.</p>
+<p>Since they are copied, instances of builtin types are disconnected. Therefore, if a Ruby string is converted to a std::string then the two strings are independent and changes in one will <em>not</em> be reflected in the other. Also understand that if you allocate a new char* in C++ and pass it to Ruby, then you will get a memory leak because Ruby will copy the contents on the char* but will <em>not</em> free the original buffer.</p>
+<p>Rice supports all common builtin types out of the box. In general, to add new C++ types to Ruby you should wrap them by using <code class="docutils literal notranslate"><span class="pre">define_class</span></code>, <code class="docutils literal notranslate"><span class="pre">define_enum</span></code>, etc.  It should be quite rare to add new builtin types.</p>
 <section id="adding-a-builtin-type">
 <h2>Adding a Builtin Type<a class="headerlink" href="#adding-a-builtin-type" title="Permalink to this headline">¶</a></h2>
 <p>For the sake of an example, let’s say you want to expose <code class="docutils literal notranslate"><span class="pre">std::deque&lt;int&gt;</span></code> to Ruby and are not using Rice’s STL (standard template library) support. You also want to copy the data between the two languages, as opposed to providing wrappers. To do this requires requires the following steps:</p>
@@ -159,9 +160,8 @@
 <li><p>Specialize To_Ruby template</p></li>
 <li><p>Specialize From_Ruby template</p></li>
 </ol>
-</section>
 <section id="step-1-specialize-type">
-<h2>Step 1 - Specialize Type<a class="headerlink" href="#step-1-specialize-type" title="Permalink to this headline">¶</a></h2>
+<h3>Step 1 - Specialize Type<a class="headerlink" href="#step-1-specialize-type" title="Permalink to this headline">¶</a></h3>
 <p>First we have to tell Rice that <code class="docutils literal notranslate"><span class="pre">std::deque&lt;int&gt;</span></code> is a known type so that it passes <a class="reference internal" href="type_verification.html"><span class="doc">type verification</span></a>. This is done by specializing the Type template:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="n">Rice</span><span class="o">::</span><span class="n">detail</span>
 <span class="p">{</span>
@@ -193,14 +193,15 @@
 <p>Notice that std::optional is only valid if the type it stores is valid.</p>
 </section>
 <section id="step-2-specialize-to-ruby">
-<h2>Step 2 - Specialize To_Ruby<a class="headerlink" href="#step-2-specialize-to-ruby" title="Permalink to this headline">¶</a></h2>
+<h3>Step 2 - Specialize To_Ruby<a class="headerlink" href="#step-2-specialize-to-ruby" title="Permalink to this headline">¶</a></h3>
 <p>Next, we need to write C++ code that converts the <code class="docutils literal notranslate"><span class="pre">std::deque&lt;int&gt;</span></code> to a Ruby object. The most obvious Ruby object to map it to is an array.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="n">Rice</span><span class="o">::</span><span class="n">detail</span>
 <span class="p">{</span>
   <span class="k">template</span><span class="o">&lt;&gt;</span>
-  <span class="k">struct</span> <span class="nc">To_Ruby</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">deque</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;</span>
+  <span class="k">class</span> <span class="nc">To_Ruby</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">deque</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;</span>
   <span class="p">{</span>
-    <span class="n">VALUE</span> <span class="nf">convert</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">deque</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">deque</span><span class="p">)</span>
+  <span class="k">public</span><span class="o">:</span>
+    <span class="n">VALUE</span> <span class="n">convert</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">deque</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">deque</span><span class="p">)</span>
     <span class="p">{</span>
       <span class="c1">// Notice we wrap Ruby API calls with protect in case Ruby throws an exception.</span>
       <span class="c1">// If you do not  use protect and Ruby throws an exception then your program</span>
@@ -224,13 +225,14 @@
 <p>Instead of using the raw Ruby C API as above, you may prefer to use <code class="docutils literal notranslate"><span class="pre">Rice::Array</span></code> which provides an nice C++ wrapper for Ruby arrays.</p>
 </section>
 <section id="step-3-specialize-from-ruby">
-<h2>Step 3 - Specialize From_Ruby<a class="headerlink" href="#step-3-specialize-from-ruby" title="Permalink to this headline">¶</a></h2>
+<h3>Step 3 - Specialize From_Ruby<a class="headerlink" href="#step-3-specialize-from-ruby" title="Permalink to this headline">¶</a></h3>
 <p>Last, if we want to convert a Ruby array to a  <code class="docutils literal notranslate"><span class="pre">std::deque&lt;int&gt;</span></code>, then we need to write C++ code for that too.</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="n">Rice</span><span class="o">::</span><span class="n">detail</span>
 <span class="p">{</span>
   <span class="k">template</span><span class="o">&lt;&gt;</span>
-  <span class="k">struct</span> <span class="nc">From_Ruby</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">deque</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;</span>
+  <span class="k">class</span> <span class="nc">From_Ruby</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">deque</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;</span>
   <span class="p">{</span>
+  <span class="k">public</span><span class="o">:</span>
     <span class="n">std</span><span class="o">::</span><span class="n">deque</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">convert</span><span class="p">(</span><span class="n">VALUE</span> <span class="n">ary</span><span class="p">)</span>
     <span class="p">{</span>
       <span class="c1">// Make sure array is really an array - if not this call will</span>
@@ -259,6 +261,47 @@
 </pre></div>
 </div>
 <p>And as usual, the definition <em>must</em> be in the <code class="docutils literal notranslate"><span class="pre">Rice::detail</span></code> namespace.</p>
+</section>
+</section>
+<section id="supporting-default-arguments">
+<h2>Supporting Default Arguments<a class="headerlink" href="#supporting-default-arguments" title="Permalink to this headline">¶</a></h2>
+<p>Rice supports C++ <a class="reference internal" href="functions.html#default-arguments"><span class="std std-ref">Default Arguments</span></a>. To enable this support for your custom type requires making the following changes to the <code class="docutils literal notranslate"><span class="pre">From_Ruby</span></code> specialization:</p>
+<ul class="simple">
+<li><p>Add an additional constructor that takes a <code class="docutils literal notranslate"><span class="pre">detail::Arg</span></code> pointer and store it in a member variable</p></li>
+<li><p>Add back in the default constructor.</p></li>
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">convert</span></code> method, if the Ruby value is <code class="docutils literal notranslate"><span class="pre">nil</span> <span class="pre">(ie,</span> <span class="pre">Qnil)</span></code> and arg is set then return the default value.</p></li>
+</ul>
+<p>Expanding on our example above:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">namespace</span> <span class="n">Rice</span><span class="o">::</span><span class="n">detail</span>
+<span class="p">{</span>
+  <span class="k">template</span><span class="o">&lt;&gt;</span>
+  <span class="k">class</span> <span class="nc">From_Ruby</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">deque</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;</span>
+  <span class="p">{</span>
+  <span class="k">public</span><span class="o">:</span>
+    <span class="n">From_Ruby</span><span class="p">()</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+
+    <span class="k">explicit</span> <span class="nf">From_Ruby</span><span class="p">(</span><span class="n">Arg</span><span class="o">*</span> <span class="n">arg</span><span class="p">)</span> <span class="o">:</span> <span class="n">arg_</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+    <span class="p">{</span>
+    <span class="p">}</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">deque</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">convert</span><span class="p">(</span><span class="n">VALUE</span> <span class="n">ary</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">value</span> <span class="o">==</span> <span class="n">Qnil</span> <span class="o">&amp;&amp;</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">arg_</span> <span class="o">&amp;&amp;</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">arg_</span><span class="o">-&gt;</span><span class="n">hasDefaultValue</span><span class="p">())</span>
+      <span class="p">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="o">-&gt;</span><span class="n">arg_</span><span class="o">-&gt;</span><span class="n">defaultValue</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">deque</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&gt;</span><span class="p">();</span>
+      <span class="p">}</span>
+      <span class="k">else</span>
+      <span class="p">{</span>
+        <span class="c1">// .... Same as code from example above</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+  <span class="k">private</span><span class="o">:</span>
+    <span class="n">Arg</span><span class="o">*</span> <span class="n">arg_</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+  <span class="p">};</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -317,10 +360,13 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Type Conversions</a><ul>
-<li><a class="reference internal" href="#adding-a-builtin-type">Adding a Builtin Type</a></li>
+<li><a class="reference internal" href="#adding-a-builtin-type">Adding a Builtin Type</a><ul>
 <li><a class="reference internal" href="#step-1-specialize-type">Step 1 - Specialize Type</a></li>
 <li><a class="reference internal" href="#step-2-specialize-to-ruby">Step 2 - Specialize To_Ruby</a></li>
 <li><a class="reference internal" href="#step-3-specialize-from-ruby">Step 3 - Specialize From_Ruby</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#supporting-default-arguments">Supporting Default Arguments</a></li>
 </ul>
 </li>
 </ul>
