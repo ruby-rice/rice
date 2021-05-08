@@ -1,3 +1,19 @@
+## 4.0
+
+Rice 4.0 is a significant change from 3.0 and has multiple backwards-incompatible
+changes. Rice 4.0 no longer requires pre-compilation and is now a header-only library,
+delivered as a combined header file.
+
+For migrating from 3 to 4, see [the migration guide](https://jasonroelofs.com/rice/4.x/migration.html).
+
+There are a ton of changes, but some of the most important ones:
+
+* Header only! `#include <rice/rice.hpp>`
+* Requires C++17 or later
+* Brand new, expanded documentation
+* [Built-in STL support](https://jasonroelofs.com/rice/4.x/stl/stl.html)
+* And so much more. See the documentation for more details.
+
 ## 3.0
 
 * Now requires a compiler supporting for C++14 or later
