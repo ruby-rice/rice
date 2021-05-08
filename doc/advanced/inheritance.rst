@@ -79,7 +79,7 @@ and use this new proxy class as the type to wrap with ``define_class``:
       VirtualBaseProxy(Object self) : Rice::Director(self) { }
 
       virtual int doWork() {
-        return from_ruby<int>( getSelf().call("do_work") );
+        return detail::From_Ruby<int>().convert( getSelf().call("do_work") );
       }
 
       int default_doWork() {
@@ -87,7 +87,7 @@ and use this new proxy class as the type to wrap with ``define_class``:
       }
 
       virtual int processWorker() {
-        return from_ruby<int>( getSelf().call("process_worker") );
+        return detail::From_Ruby<int>().convert( getSelf().call("process_worker") );
       }
 
       int default_processWorker() {
@@ -116,7 +116,7 @@ must take a ``Rice::Object`` as the first argument and pass it up into
 .. code-block:: cpp
 
       virtual int doWork() {
-        return from_ruby<int>( getSelf().call("do_work") );
+        return detail::From_Ruby<int>().convert( getSelf().call("do_work") );
       }
 
       int default_doWork() {
