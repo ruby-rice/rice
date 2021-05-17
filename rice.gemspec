@@ -41,6 +41,7 @@ Ruby extensions with C++ easier.
 
     # rice.hpp
     'include/rice/rice.hpp',
+    'include/rice/stl.hpp',
 
     # Source files
     'rice/*.?pp',
