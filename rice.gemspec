@@ -16,6 +16,13 @@ exception-safe interface in order to make embedding Ruby and writing
 Ruby extensions with C++ easier.
   END
 
+  s.metadata = {
+    "bug_tracker_uri"   => "https://github.com/jasonroelofs/rice/issues",
+    "changelog_uri"     => "https://github.com/jasonroelofs/rice/blob/master/CHANGELOG.md",
+    "documentation_uri" => "https://jasonroelofs.com/rice",
+    "source_code_uri"   => "https://github.com/jasonroelofs/rice",
+  }
+
   s.test_files = Dir['test/ruby/*.rb']
   s.extra_rdoc_files = ['README.md']
   s.require_paths = ['lib']
