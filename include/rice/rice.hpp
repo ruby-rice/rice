@@ -5707,8 +5707,8 @@ namespace Rice
      *  plain function or lambda, the first argument must be SELF - ie, 
      *  the current object. If it is specified as a VALUE, then
      *  the current Ruby object is passed. If it is specified as a C++ class, 
-     *  then the C++ oject is passed. If you don't want to include the 
-     *  SELF argument see define_fuction.
+     *  then the C++ object is passed. If you don't want to include the
+     *  SELF argument see define_function.
      *  Rice will automatically convert method method from Ruby to C++ and
      *  then convert the return value from C++ to Ruby.
      *  \param name the name of the method
@@ -5737,9 +5737,9 @@ namespace Rice
     //! Define a singleton method.
     /*! The method's implementation can be a static member function,
     *   plain function or lambda. In all cases the first argument 
-    *   must be SELF - ie, he current object. If it is specified as a VALUE, then
+    *   must be SELF - ie, the current object. If it is specified as a VALUE, then
      *  the current Ruby object is passed. If it is specified as a C++ class, 
-     *  then the C++ oject is passed. If you don't want to include the 
+     *  then the C++ object is passed. If you don't want to include the
      *  SELF argument see define_singleton_function.
      *  Rice will automatically convert method method from Ruby to C++ and
      *  then convert the return value from C++ to Ruby.

@@ -183,7 +183,7 @@ Note that we pass self as a reference since we do not want to copy it!
 Defining functions
 ------------------
 
-If is also possible to add methods to a ruby class using ``define_fuction``. The difference is
+It is also possible to add methods to a Ruby class using ``define_function``. The difference is
 that no implicit self parameter is passed. Once again, you can use function pointers
 or lambdas:
 
@@ -200,7 +200,7 @@ or lambdas:
     Class rb_cTest =
       define_class("Test")
       .define_function("some_function", &some_function);
-      .define_fuction("some_function_lambda", []() {
+      .define_function("some_function_lambda", []() {
         return some_function();
       });
   }
