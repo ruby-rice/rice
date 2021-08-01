@@ -303,7 +303,7 @@ to define_method, the lambda takes self as an implicit parameter:</p>
 </section>
 <section id="defining-functions">
 <h2>Defining functions<a class="headerlink" href="#defining-functions" title="Permalink to this headline">¶</a></h2>
-<p>If is also possible to add methods to a ruby class using <code class="docutils literal notranslate"><span class="pre">define_fuction</span></code>. The difference is
+<p>It is also possible to add methods to a Ruby class using <code class="docutils literal notranslate"><span class="pre">define_function</span></code>. The difference is
 that no implicit self parameter is passed. Once again, you can use function pointers
 or lambdas:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">some_function</span><span class="p">()</span>
@@ -317,7 +317,7 @@ or lambdas:</p>
   <span class="n">Class</span> <span class="n">rb_cTest</span> <span class="o">=</span>
     <span class="n">define_class</span><span class="p">(</span><span class="s">"Test"</span><span class="p">)</span>
     <span class="p">.</span><span class="n">define_function</span><span class="p">(</span><span class="s">"some_function"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">some_function</span><span class="p">);</span>
-    <span class="p">.</span><span class="n">define_fuction</span><span class="p">(</span><span class="s">"some_function_lambda"</span><span class="p">,</span> <span class="p">[]()</span> <span class="p">{</span>
+    <span class="p">.</span><span class="n">define_function</span><span class="p">(</span><span class="s">"some_function_lambda"</span><span class="p">,</span> <span class="p">[]()</span> <span class="p">{</span>
       <span class="k">return</span> <span class="nf">some_function</span><span class="p">();</span>
     <span class="p">});</span>
 <span class="p">}</span>
