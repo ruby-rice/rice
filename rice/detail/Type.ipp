@@ -1,6 +1,7 @@
 #include "rice_traits.hpp"
 
 #include <iosfwd>
+#include <iterator>
 #include <numeric>
 #include <regex>
 #include <sstream>
