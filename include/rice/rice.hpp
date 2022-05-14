@@ -304,6 +304,7 @@ namespace Rice::detail
 // ---------   Type.ipp   ---------
 
 #include <iosfwd>
+#include <iterator>
 #include <numeric>
 #include <regex>
 #include <sstream>
