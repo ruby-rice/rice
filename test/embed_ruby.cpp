@@ -21,7 +21,7 @@ void embed_ruby()
     // results in a crash.
     // See https://bugs.ruby-lang.org/issues/17643
     if (RUBY_API_VERSION_MAJOR == 3 &&
-       (RUBY_API_VERSION_MINOR == 1 ||
+       (RUBY_API_VERSION_MINOR >= 1 ||
        (RUBY_API_VERSION_MINOR == 0 &&
         RUBY_API_VERSION_TEENY == 0)))
     {
