@@ -88,7 +88,7 @@ namespace Rice
     klass.define_singleton_function("each", [klass]()
         {
 //        Get rid of LocalJumpErrors
-            if (detail::protect(rb_block_given_p))
+            if (rb_block_given_p())
             {
                 for (auto& pair : valuesToNames_)
                 {
