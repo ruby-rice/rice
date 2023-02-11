@@ -83,6 +83,33 @@ TESTCASE(each)
   ASSERT_EQUAL(GREEN, *enum_2);
 }
 
+TESTCASE(each_without_block)
+{
+  Module m = define_module("Testing");
+
+  Enum<Color> colorEnum = define_color_enum();
+
+  ASSERT_EQUAL(Class(rb_cEnumerator), Class(m.instance_eval("Color.each.class")));
+}
+
+TESTCASE(enumerable_methods)
+{
+  Module m = define_module("Testing");
+
+  Enum<Color> colorEnum = define_color_enum();
+
+  ASSERT_EQUAL(true, detail::From_Ruby<bool>().convert(m.instance_eval("Color.singleton_class.ancestors.include?(Enumerable)").value()));
+
+  Array a = m.instance_eval("Color.map(&:to_i)");
+  ASSERT_EQUAL(3u, a.size());
+
+  ASSERT_EQUAL(RED, detail::From_Ruby<int>().convert(a[0].value()));
+  ASSERT_EQUAL(BLACK, detail::From_Ruby<int>().convert(a[1].value()));
+  ASSERT_EQUAL(GREEN, detail::From_Ruby<int>().convert(a[2].value()));
+
+  ASSERT_EQUAL(2u, detail::From_Ruby<int>().convert(m.instance_eval("Color.count { |c| c.to_s.size == 5 }").value()));
+}
+
 TESTCASE(each_seasons)
 {
   Module m = define_module("Testing");
