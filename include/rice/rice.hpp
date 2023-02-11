@@ -7646,17 +7646,24 @@ namespace Rice
     // Add comparable support
     klass.include_module(rb_mComparable);
 
-    // Singleton methods
-    klass.define_singleton_method("each", [](VALUE klass)
+        // Singleton methods
+    klass.define_singleton_function("each", [klass]()
         {
-          for (auto& pair : valuesToNames_)
-          {
-            Enum_T enumValue = pair.first;
-            VALUE value = detail::To_Ruby<Enum_T>().convert(enumValue);
-            detail::protect(rb_yield, value);
-          }
+//        Get rid of LocalJumpErrors
+            if (rb_block_given_p())
+            {
+                for (auto& pair : valuesToNames_)
+                {
+                    Enum_T enumValue = pair.first;
+                    VALUE value = detail::To_Ruby<Enum_T>().convert(enumValue);
+                    detail::protect(rb_yield, value);
+                }
+                return Nil;
+            } else {
+                return klass.call("to_enum");
+            }
       })
-      .define_singleton_method("from_int", [](VALUE klass, int32_t value)
+      .define_singleton_function("from_int", [klass](int32_t value)
       {
           auto iter = Enum<Enum_T>::valuesToNames_.find((Enum_T)value);
           if (iter == Enum<Enum_T>::valuesToNames_.end())
@@ -7665,8 +7672,11 @@ namespace Rice
           }
 
           std::string name = iter->second;
-          return Class(klass).const_get(name);
+          return klass.const_get(name);
       });
+// same as klass.extend_object, which is not implemented
+// since rb_extend_object(VALUE obj, VALUE module) is just rb_include_module(rb_singleton_class(obj), module);
+    klass.singleton_class().include_module(rb_mEnumerable);
   }
 
   template<typename Enum_T>
@@ -7680,6 +7690,7 @@ namespace Rice
     return Enum<Enum_T>(name, module);
   }
 }
+
 
 // Dependent on Module, Class, Array and String
 
