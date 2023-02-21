@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <iostream>
 #include <map>
+#include <ruby.h>
 #include "unittest.hpp"
 
 size_t assertions;
@@ -156,6 +157,8 @@ int main(int argc, char** argv)
       std::cout << *it << std::endl;
     }
   }
+
+  ruby_cleanup(0);
 
   return (int)result.errors().size() + (int)result.failures().size();
 }

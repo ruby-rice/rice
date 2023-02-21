@@ -208,7 +208,7 @@ TESTCASE(ruby_custom_free)
     Data_Object<MyDataType> wrapped_foo(myDataType, true);
   }
 
-  rb_gc_start();
+  rb_gc();
 
   ASSERT_EQUAL(true, test_destructor_called);
   // This fails somtimes on Ubuntu with Ruby 2.5 and 2.6. The important thing is that the destructor
