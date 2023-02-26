@@ -90,6 +90,10 @@ TESTCASE(each_without_block)
   Enum<Color> colorEnum = define_color_enum();
 
   ASSERT_EQUAL(Class(rb_cEnumerator), Class(m.instance_eval("Color.each.class")));
+  std::string code = R"(sum = 0
+                        Color.each.with_index { |c, i| sum += c.to_i * i }
+                        sum)";
+  ASSERT_EQUAL(BLACK + 2u * GREEN, detail::From_Ruby<int>().convert(m.instance_eval(code).value()));
 }
 
 TESTCASE(enumerable_methods)
