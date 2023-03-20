@@ -437,13 +437,13 @@ TESTCASE(Printable)
 
 namespace
 {
-  std::vector<std::complex<uint32_t>> returnComplexVector()
+  std::vector<std::complex<double>> returnComplexVector()
   {
-    std::complex<uint32_t> complex1(1, 1);
-    std::complex<uint32_t> complex2(2, 2);
-    std::complex<uint32_t> complex3(3, 3);
+    std::complex<double> complex1(1, 1);
+    std::complex<double> complex2(2, 2);
+    std::complex<double> complex3(3, 3);
 
-    std::vector<std::complex<uint32_t>> result;
+    std::vector<std::complex<double>> result;
     result.push_back(complex1);
     result.push_back(complex2);
     result.push_back(complex3);
@@ -462,7 +462,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object vec = m.instance_eval("return_complex_vector");
-  ASSERT_EQUAL("Rice::Std::Vector__complex__unsignedInt___allocator__complex__unsignedInt______", vec.class_name().str());
+  ASSERT_EQUAL("Rice::Std::Vector__complex__double___allocator__complex__double______", vec.class_name().str());
 
   std::string code = R"(vector = return_complex_vector
                         complex = vector.last
