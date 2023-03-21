@@ -115,7 +115,6 @@ namespace Rice::detail
   inline T* unwrap(VALUE value, rb_data_type_t* rb_type)
   {
     Wrapper* wrapper = getWrapper(value, rb_type);
-    TypedData_Get_Struct(value, Wrapper, rb_type, wrapper);
     return static_cast<T*>(wrapper->get());
   }
 
