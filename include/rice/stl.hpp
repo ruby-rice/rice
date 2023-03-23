@@ -511,7 +511,7 @@ namespace Rice::detail
   public:
     std::unique_ptr<T>& convert(VALUE value)
     {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::rb_type());
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
 
       using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
       Wrapper_T* smartWrapper = dynamic_cast<Wrapper_T*>(wrapper);
@@ -554,7 +554,7 @@ namespace Rice::detail
   public:
     std::shared_ptr<T> convert(VALUE value)
     {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::rb_type());
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
 
       using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
       Wrapper_T* smartWrapper = dynamic_cast<Wrapper_T*>(wrapper);
@@ -573,7 +573,7 @@ namespace Rice::detail
   public:
     std::shared_ptr<T>& convert(VALUE value)
     {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::rb_type());
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
 
       using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
       Wrapper_T* smartWrapper = dynamic_cast<Wrapper_T*>(wrapper);
