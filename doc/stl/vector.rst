@@ -54,11 +54,11 @@ One way to call it from Ruby is like this:
   vector.push(37)
   pass_vector(vector)
 
-In this case, Ruby is wrapping a C++ vector. Thefore any changes made to the vector in C++ will be visible to Ruby.
+In this case, Ruby is wrapping a C++ vector. Therefore any changes made to the vector in C++ will be visible to Ruby.
 
 However, it is often more convenient to pass a Ruby array instead. This is especially true if you are using Rice's :ref:`automatic <stl_class_names>` stl classes. 
 
-Therefore Rice also suppors this usage:
+Therefore Rice also supports this usage:
 
 .. code-block:: ruby
 
