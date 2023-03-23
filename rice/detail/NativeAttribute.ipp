@@ -11,25 +11,23 @@ namespace Rice::detail
   template<typename Return_T, typename Attr_T, typename Self_T>
   inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::get(VALUE self)
   {
-    RUBY_TRY
+    return cpp_protect([&]
     {
       using Native_Attr_T = NativeAttribute<Return_T, Attr_T, Self_T>;
       Native_Attr_T* attr = detail::MethodData::data<Native_Attr_T*>();
       return attr->read(self);
-    }
-    RUBY_CATCH
+    });
   }
 
   template<typename Return_T, typename Attr_T, typename Self_T>
   inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::set(VALUE self, VALUE value)
   {
-    RUBY_TRY
+    return cpp_protect([&]
     {
       using Native_Attr_T = NativeAttribute<Return_T, Attr_T, Self_T>;
       Native_Attr_T* attr = detail::MethodData::data<Native_Attr_T*>();
       return attr->write(self, value);
-    }
-    RUBY_CATCH
+    });
   }
 
   template<typename Return_T, typename Attr_T, typename Self_T>
