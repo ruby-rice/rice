@@ -247,7 +247,7 @@ namespace Rice
   {
     if (detail::TypeRegistry::isDefined<T>())
     {
-      return Data_Type<T>(Data_Type<T>());
+      return Data_Type<T>();
     }
 
     Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(module, name.c_str());
@@ -260,7 +260,7 @@ namespace Rice
   {
     if (detail::TypeRegistry::isDefined<T>())
     {
-      return Data_Type<T>(Data_Type<T>());
+      return Data_Type<T>();
     }
 
     Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
