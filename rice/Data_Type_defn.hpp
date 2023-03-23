@@ -38,8 +38,8 @@ namespace Rice
      */
     static Class klass();
 
-    //! Return the Ruby type.
-    static rb_data_type_t* rb_type();
+    //! Return the Ruby data type.
+    static rb_data_type_t* ruby_data_type();
 
     //! Assignment operator which takes a Module
     /*! \param klass must be the class to which this data type is already
@@ -153,7 +153,7 @@ namespace Rice
     static inline VALUE klass_ = Qnil;
 
     // Typed Data support
-    static inline rb_data_type_t* rb_type_ = nullptr;
+    static inline rb_data_type_t* rb_data_type_ = nullptr;
 
     typedef std::set<Data_Type<T> *> Instances;
 

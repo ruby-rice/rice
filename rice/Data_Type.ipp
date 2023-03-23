@@ -49,21 +49,21 @@ namespace Rice
 
     klass_ = klass;
 
-    rb_type_ = new rb_data_type_t();
-    rb_type_->wrap_struct_name = strdup(Rice::detail::protect(rb_class2name, klass_));
-    rb_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
-    rb_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
-    rb_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
-    rb_type_->data = nullptr;
-    rb_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
+    rb_data_type_ = new rb_data_type_t();
+    rb_data_type_->wrap_struct_name = strdup(Rice::detail::protect(rb_class2name, klass_));
+    rb_data_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
+    rb_data_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
+    rb_data_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
+    rb_data_type_->data = nullptr;
+    rb_data_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
 
     if constexpr (!std::is_void_v<Base_T>)
     {
-      rb_type_->parent = Data_Type<Base_T>::rb_type();
+      rb_data_type_->parent = Data_Type<Base_T>::ruby_data_type();
     }
 
     // Now register with the type registry
-    detail::TypeRegistry::add<T>(klass_, rb_type_);
+    detail::TypeRegistry::add<T>(klass_, rb_data_type_);
 
     for (typename Instances::iterator it = unbound_instances().begin(),
       end = unbound_instances().end();
@@ -88,7 +88,7 @@ namespace Rice
 
     // There could be objects floating around using the existing rb_type so 
     // do not delete it. This is of course a memory leak.
-    rb_type_ = nullptr;
+    rb_data_type_ = nullptr;
   }
 
   template<typename T>
@@ -113,10 +113,10 @@ namespace Rice
   }
 
   template<typename T>
-  inline rb_data_type_t* Data_Type<T>::rb_type()
+  inline rb_data_type_t* Data_Type<T>::ruby_data_type()
   {
     check_is_bound();
-    return rb_type_;
+    return rb_data_type_;
   }
 
   template<typename T>
@@ -172,7 +172,7 @@ namespace Rice
 
     // TODO - hack to fake Ruby into thinking that a Director is
     // the same as the base data type
-    Data_Type<Director_T>::rb_type_ = Data_Type<T>::rb_type_;
+    Data_Type<Director_T>::rb_data_type_ = Data_Type<T>::rb_data_type_;
     return *this;
   }
 

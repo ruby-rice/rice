@@ -18,14 +18,14 @@ namespace Rice
   template<typename T>
   inline Data_Object<T>::Data_Object(T& data, bool isOwner, Class klass)
   {
-    VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data, isOwner);
+    VALUE value = detail::wrap(klass, Data_Type<T>::ruby_data_type(), data, isOwner);
     this->set_value(value);
   }
 
   template<typename T>
   inline Data_Object<T>::Data_Object(T* data, bool isOwner, Class klass)
   {
-    VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data, isOwner);
+    VALUE value = detail::wrap(klass, Data_Type<T>::ruby_data_type(), data, isOwner);
     this->set_value(value);
   }
 
@@ -73,7 +73,7 @@ namespace Rice
     }
     else
     {
-      return detail::unwrap<T>(this->value(), Data_Type<T>::rb_type());
+      return detail::unwrap<T>(this->value(), Data_Type<T>::ruby_data_type());
     }
   }
 
@@ -82,7 +82,7 @@ namespace Rice
   {
     if (Data_Type<T>::is_descendant(value))
     {
-      return detail::unwrap<T>(value, Data_Type<T>::rb_type());
+      return detail::unwrap<T>(value, Data_Type<T>::ruby_data_type());
     }
     else
     {
