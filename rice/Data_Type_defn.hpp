@@ -146,6 +146,10 @@ namespace Rice
     template<typename T_, typename Base_T_>
     friend Rice::Data_Type<T_> define_class(char const * name);
 
+    template<bool IsMethod, typename Function_T>
+    void wrap_native_call(VALUE klass, Identifier name, Function_T&& function,
+      std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo);
+
   private:
     template<typename T_>
     friend class Data_Type;
@@ -185,7 +189,6 @@ namespace Rice
    */
   template<typename T, typename Base_T = void>
   Data_Type<T> define_class(char const* name);
-
 } // namespace Rice
 
 #include "Data_Type.ipp"
