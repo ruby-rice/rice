@@ -7,9 +7,10 @@ STL
   :maxdepth: 2
 
   stl/stl
-  stl/string
-  stl/optional
   stl/complex
-  stl/smart_pointers
+  stl/map
+  stl/optional
   stl/pair
+  stl/smart_pointers
+  stl/string
   stl/vector
