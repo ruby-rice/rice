@@ -410,5 +410,15 @@ namespace Rice
         return protect(rb_str_new2, x);
       }
     };
+
+    template<int N>
+    class To_Ruby<char[N]>
+    {
+    public:
+      VALUE convert(char const x[])
+      {
+        return protect(rb_str_new2, x);
+      }
+    };
   }
 }
