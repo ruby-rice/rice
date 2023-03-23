@@ -1,7 +1,7 @@
 #ifndef Rice__Data_Type_defn__hpp_
 #define Rice__Data_Type_defn__hpp_
 
-#include "Class_defn.hpp"
+#include "cpp_api/Class_defn.hpp"
 #include "detail/ruby.hpp"
 #include <set>
 

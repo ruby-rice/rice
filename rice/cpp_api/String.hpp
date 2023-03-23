@@ -1,7 +1,7 @@
 #ifndef Rice__String__hpp_
 #define Rice__String__hpp_
 
-#include "Identifier.hpp"
+#include "../Identifier.hpp"
 #include "Builtin_Object_defn.hpp"
 
 namespace Rice

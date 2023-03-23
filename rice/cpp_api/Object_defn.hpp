@@ -4,9 +4,9 @@
 /*! \file Object.hpp
  */
 
-#include "Identifier.hpp"
-#include "detail/from_ruby_defn.hpp"
-#include "detail/to_ruby_defn.hpp"
+#include "../Identifier.hpp"
+#include "../detail/from_ruby_defn.hpp"
+#include "../detail/to_ruby_defn.hpp"
 
 #include <iosfwd>
 #include <vector>

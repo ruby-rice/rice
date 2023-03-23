@@ -1,9 +1,9 @@
 #ifndef Rice__Module_defn__hpp_
 #define Rice__Module_defn__hpp_
 
-#include "detail/Exception_Handler_defn.hpp"
-#include "detail/ruby.hpp"
-#include "cpp_api/Object_defn.hpp"
+#include "../detail/Exception_Handler_defn.hpp"
+#include "../detail/ruby.hpp"
+#include "Object_defn.hpp"
 
 namespace Rice
 {

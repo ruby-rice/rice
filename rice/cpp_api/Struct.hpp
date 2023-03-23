@@ -4,7 +4,7 @@
 #include "Class.hpp"
 #include "Array.hpp"
 #include "Hash.hpp"
-#include "Address_Registration_Guard.hpp"
+#include "../Address_Registration_Guard.hpp"
 
 namespace Rice
 {

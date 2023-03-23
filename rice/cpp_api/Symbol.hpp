@@ -1,9 +1,9 @@
 #ifndef Rice__Symbol__hpp_
 #define Rice__Symbol__hpp_
 
-#include "Identifier.hpp"
+#include "../Identifier.hpp"
 #include "Object_defn.hpp"
-#include "detail/ruby.hpp"
+#include "../detail/ruby.hpp"
 #include <string>
 
 namespace Rice

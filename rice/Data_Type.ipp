@@ -7,8 +7,8 @@
 #include "detail/TypeRegistry.hpp"
 #include "detail/Wrapper.hpp"
 #include "detail/Iterator.hpp"
-#include "Class.hpp"
-#include "String.hpp"
+#include "cpp_api/Class.hpp"
+#include "cpp_api/String.hpp"
 
 #include <stdexcept>
 

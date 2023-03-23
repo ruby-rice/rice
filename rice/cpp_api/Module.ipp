@@ -1,11 +1,11 @@
 #ifndef Rice__Module__ipp_
 #define Rice__Module__ipp_
 
-#include "detail/rice_traits.hpp"
-#include "detail/function_traits.hpp"
-#include "detail/Type.hpp"
-#include "detail/NativeFunction.hpp"
-#include "Exception.hpp"
+#include "../detail/rice_traits.hpp"
+#include "../detail/function_traits.hpp"
+#include "../detail/Type.hpp"
+#include "../detail/NativeFunction.hpp"
+#include "../Exception.hpp"
 
 namespace Rice
 {
