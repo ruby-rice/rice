@@ -321,7 +321,8 @@ namespace Rice
     {
       std::map<T, U> result;
       VALUE user_data = (VALUE)(&result);
-      detail::protect<void>(rb_hash_foreach, value, mapFromHashPair<T, U>, user_data);
+      // Should use protect but older compilers won't compile this (latest MSVC and GCC are fine)
+      //detail::protect<void>(rb_hash_foreach, value, mapFromHashPair<T, U>, user_data);
       rb_hash_foreach(value, mapFromHashPair<T, U>, user_data);
 
       return result;
