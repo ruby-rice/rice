@@ -45,7 +45,7 @@ add_executable (unittest
 
 if (MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
-  target_compile_options(unittest PRIVATE /bigobj)
+  target_compile_options(unittest PRIVATE /bigobj /std:c++17)
   include_directories ("C:/msys64/usr/local/ruby-3.2.1-vc/include/ruby-3.2.0")
   include_directories ("C:/msys64/usr/local/ruby-3.2.1-vc/include/ruby-3.2.0/x64-mswin64_140")
   target_link_libraries(unittest "C:/msys64/usr/local/ruby-3.2.1-vc/lib/x64-vcruntime140-ruby320.lib")
