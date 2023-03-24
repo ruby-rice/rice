@@ -368,7 +368,7 @@ namespace Rice
     template<typename T>
     std::vector<T> vectorFromArray(VALUE value)
     {
-      size_t length = protect(rb_array_len, value);
+      long length = protect(rb_array_len, value);
       std::vector<T> result(length);
 
       for (long i = 0; i < length; i++)
