@@ -470,6 +470,18 @@ TESTCASE(AutoRegisterReturn)
 
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
+
+  // Now register this same vector
+  define_vector<std::vector<std::complex<double>>>("ComplexVector");
+  code = R"(vector = ComplexVector.new)";
+  result = m.instance_eval(code);
+  ASSERT(result.is_instance_of(vec.class_of()));
+
+  // Now register it again in the module
+  define_vector_under<std::vector<std::complex<double>>>(m, "ComplexVector2");
+  code = R"(vector = Testing::ComplexVector2.new)";
+  result = m.instance_eval(code);
+  ASSERT(result.is_instance_of(vec.class_of()));
 }
 
 TESTCASE(AutoRegisterParameter)

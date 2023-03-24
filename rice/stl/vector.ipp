@@ -309,6 +309,10 @@ namespace Rice
   {
     if (detail::TypeRegistry::isDefined<T>())
     {
+      // If the vector has been previously seen it will be registered but may
+      // not be associated with the constant Module::<name>
+      module.const_set_maybe(name, Data_Type<T>().klass());
+
       return Data_Type<T>();
     }
 
@@ -322,6 +326,10 @@ namespace Rice
   {
     if (detail::TypeRegistry::isDefined<T>())
     {
+      // If the vector has been previously seen it will be registered but may
+      // not be associated with the constant Module::<name>
+      Object(rb_cObject).const_set_maybe(name, Data_Type<T>().klass());
+
       return Data_Type<T>();
     }
 

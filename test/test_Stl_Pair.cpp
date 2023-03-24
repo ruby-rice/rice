@@ -63,7 +63,6 @@ namespace
 
 // This test passes everywhere except for Ruby 2.7 on Windows
 // and I don't know why. Throws a "bad any_cast" from MethodData::data
-#ifndef _WIN32
 TESTCASE(AutoRegister)
 {
   Module m = define_module("Testing");
@@ -98,8 +97,19 @@ TESTCASE(AutoRegister)
 
   result = newPair.call("second");
   ASSERT_EQUAL(3.2, detail::From_Ruby<double>().convert(result));
+
+  // Now register the pair again
+  define_pair<std::pair<std::string, double>>("SomePair");
+  std::string code = R"(pair = SomePair.new('string', 2.0))";
+  result = m.instance_eval(code);
+  ASSERT(result.is_instance_of(pair.class_of()));
+
+  // And again in the module
+  define_pair_under<std::pair<std::string, double>>(m, "SomePair2");
+  code = R"(pair = Testing::SomePair2.new('string', 3.0))";
+  result = m.instance_eval(code);
+  ASSERT(result.is_instance_of(pair.class_of()));
 }
-#endif
 
 namespace
 {

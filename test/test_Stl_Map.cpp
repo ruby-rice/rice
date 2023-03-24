@@ -400,6 +400,18 @@ TESTCASE(AutoRegisterReturn)
 
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
+
+  // Now register the map again
+  define_map<std::map<std::string, std::complex<double>>>("ComplexMap");
+  code = R"(map = ComplexMap.new)";
+  result = m.instance_eval(code);
+  ASSERT(result.is_instance_of(map.class_of()));
+
+  // And again in the module
+  define_map_under<std::map<std::string, std::complex<double>>>(m, "ComplexMap2");
+  code = R"(map = Testing::ComplexMap2.new)";
+  result = m.instance_eval(code);
+  ASSERT(result.is_instance_of(map.class_of()));
 }
 
 TESTCASE(AutoRegisterParameter)
