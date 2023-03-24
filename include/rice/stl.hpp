@@ -431,7 +431,10 @@ namespace Rice
   {
     if (detail::TypeRegistry::isDefined<T>())
     {
-      return Data_Type<T>(Data_Type<T>());
+      // If the map has been previously seen it will be registered but may
+      // not be associated with the constant Module::<name>
+      module.const_set_maybe(name, Data_Type<T>().klass());
+      return Data_Type<T>();
     }
 
     Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(module, name.c_str());
@@ -444,7 +447,10 @@ namespace Rice
   {
     if (detail::TypeRegistry::isDefined<T>())
     {
-      return Data_Type<T>(Data_Type<T>());
+      // If the map has been previously seen it will be registered but may
+      // not be associated with the constant Object::<name>
+      Object(rb_cObject).const_set_maybe(name, Data_Type<T>().klass());
+      return Data_Type<T>();
     }
 
     Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
@@ -854,7 +860,10 @@ namespace Rice
   {
     if (detail::TypeRegistry::isDefined<T>())
     {
-      return Data_Type<T>(Data_Type<T>());
+      // If the pair has been previously seen it will be registered but may
+      // not be associated with the constant Module::<name>
+      module.const_set_maybe(name, Data_Type<T>().klass());
+      return Data_Type<T>();
     }
 
     Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(module, name.c_str());
@@ -867,7 +876,10 @@ namespace Rice
   {
     if (detail::TypeRegistry::isDefined<T>())
     {
-      return Data_Type<T>(Data_Type<T>());
+      // If the pair has been previously seen it will be registered but may
+      // not be associated with the constant Object::<name>
+      Object(rb_cObject).const_set_maybe(name, Data_Type<T>().klass());
+      return Data_Type<T>();
     }
 
     Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
@@ -1379,7 +1391,11 @@ namespace Rice
   {
     if (detail::TypeRegistry::isDefined<T>())
     {
-      return Data_Type<T>(Data_Type<T>());
+      // If the vector has been previously seen it will be registered but may
+      // not be associated with the constant Module::<name>
+      module.const_set_maybe(name, Data_Type<T>().klass());
+
+      return Data_Type<T>();
     }
 
     Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(module, name.c_str());
@@ -1392,7 +1408,11 @@ namespace Rice
   {
     if (detail::TypeRegistry::isDefined<T>())
     {
-      return Data_Type<T>(Data_Type<T>());
+      // If the vector has been previously seen it will be registered but may
+      // not be associated with the constant Module::<name>
+      Object(rb_cObject).const_set_maybe(name, Data_Type<T>().klass());
+
+      return Data_Type<T>();
     }
 
     Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());

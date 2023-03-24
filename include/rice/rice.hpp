@@ -4061,8 +4061,7 @@ namespace Rice
     /*! \param name the name of the instance variable to get
      *  \return the value of the instance variable
      */
-    Object attr_get(
-      Identifier name) const;
+    Object attr_get(Identifier name) const;
 
     //! Call the Ruby method specified by 'id' on object 'obj'.
     /*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
@@ -4092,6 +4091,38 @@ namespace Rice
      *  \return the return value of the method call
      */
     Object vcall(Identifier id, Array args);
+
+    //! Get a constant.
+    /*! \param name the name of the constant to get.
+     *  \return the value of the constant.
+     */
+    Object const_get(Identifier name) const;
+
+    //! Determine whether a constant is defined.
+    /*! \param name the name of the constant to check.
+     *  \return true if the constant is defined in this module or false
+     *  otherwise.
+     */
+    bool const_defined(Identifier name) const;
+
+    //! Set a constant.
+    /*! \param name the name of the constant to set.
+      *  \param value the value of the constant.
+      *  \return *this
+      */
+    inline Object const_set(Identifier name, Object value);
+
+    //! Set a constant if it not already set.
+    /*! \param name the name of the constant to set.
+      *  \param value the value of the constant.
+      *  \return *this
+      */
+    inline Object const_set_maybe(Identifier name, Object value);
+
+    //! Remove a constant.
+    /*! \param name the name of the constant to remove.
+     */
+    void remove_const(Identifier name);
 
   protected:
     //! Set the encapsulated value.
@@ -4227,6 +4258,37 @@ namespace Rice
   inline void Object::set_value(VALUE v)
   {
     value_ = v;
+  }
+
+  inline Object Object::const_get(Identifier name) const
+  {
+    return detail::protect(rb_const_get, this->value(), name.id());
+  }
+
+  inline bool Object::const_defined(Identifier name) const
+  {
+    size_t result = detail::protect(rb_const_defined, this->value(), name.id());
+    return bool(result);
+  }
+
+  inline Object Object::const_set(Identifier name, Object value)
+  {
+    detail::protect(rb_const_set, this->value(), name.id(), value.value());
+    return value;
+  }
+
+  inline Object Object::const_set_maybe(Identifier name, Object value)
+  {
+    if (!this->const_defined(name))
+    {
+      this->const_set(name, value);
+    }
+    return value;
+  }
+
+  inline void Object::remove_const(Identifier name)
+  {
+    detail::protect(rb_mod_remove_const, this->value(), name.to_sym());
   }
 
   inline bool operator==(Object const& lhs, Object const& rhs)
@@ -5798,39 +5860,10 @@ namespace Rice
     template<typename Exception_T, typename Functor_T>
     Module& add_handler(Functor_T functor);
 
-    //! Get a constant.
-    /*! \param name the name of the constant to get.
-     *  \return the value of the constant.
-     */
-    Object const_get(Identifier name) const;
-
-    //! Determine whether a constant is defined.
-    /*! \param name the name of the constant to check.
-     *  \return true if the constant is defined in this module or false
-     *  otherwise.
-     */
-    bool const_defined(Identifier name) const;
-
-    //! Remove a constant.
-    /*! \param name the name of the constant to remove.
-     */
-    void remove_const(Identifier name);
-
     // Include these methods to call methods from Module but return
 // an instance of the current classes. This is an alternative to
 // using CRTP.
 
-
-//! Set a constant.
-/*! \param name the name of the constant to set.
-  *  \param value the value of the constant.
-  *  \return *this
-  */
-inline auto& const_set(Identifier name, Object value)
-{
-  detail::protect(rb_const_set, this->value(), name.id(), value.value());
-  return *this;
-}
 
 //! Include a module.
 /*! \param inc the module to be included.
@@ -6041,22 +6074,6 @@ namespace Rice
     detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
   }
 
-  inline Object Module::const_get(Identifier name) const
-  {
-    return detail::protect(rb_const_get, this->value(), name.id());
-  }
-
-  inline bool Module::const_defined(Identifier name) const
-  {
-    size_t result = detail::protect(rb_const_defined, this->value(), name.id());
-    return bool(result);
-  }
-
-  inline void Module::remove_const(Identifier name)
-  {
-    detail::protect(rb_mod_remove_const, this->value(), name.to_sym());
-  }
-
   inline Module define_module_under(Object module, char const* name)
   {
     return detail::protect(rb_define_module_under, module.value(), name);
@@ -6186,17 +6203,6 @@ namespace Rice
 // an instance of the current classes. This is an alternative to
 // using CRTP.
 
-
-//! Set a constant.
-/*! \param name the name of the constant to set.
-  *  \param value the value of the constant.
-  *  \return *this
-  */
-inline auto& const_set(Identifier name, Object value)
-{
-  detail::protect(rb_const_set, this->value(), name.id(), value.value());
-  return *this;
-}
 
 //! Include a module.
 /*! \param inc the module to be included.
@@ -6795,17 +6801,6 @@ namespace Rice
 // an instance of the current classes. This is an alternative to
 // using CRTP.
 
-
-//! Set a constant.
-/*! \param name the name of the constant to set.
-  *  \param value the value of the constant.
-  *  \return *this
-  */
-inline auto& const_set(Identifier name, Object value)
-{
-  detail::protect(rb_const_set, this->value(), name.id(), value.value());
-  return *this;
-}
 
 //! Include a module.
 /*! \param inc the module to be included.
