@@ -85,14 +85,23 @@ namespace Rice
     klass.include_module(rb_mComparable);
 
     // Singleton methods
-    klass.define_singleton_method("each", [](VALUE klass)
+    klass.define_singleton_method("each", [](VALUE ruby_klass) -> Object
         {
+          Class enumClass(ruby_klass);
+
+          if (!rb_block_given_p())
+          {
+            return enumClass.call("to_enum");
+          }
+
           for (auto& pair : valuesToNames_)
           {
             Enum_T enumValue = pair.first;
             VALUE value = detail::To_Ruby<Enum_T>().convert(enumValue);
             detail::protect(rb_yield, value);
           }
+
+          return enumClass;
       })
       .define_singleton_method("from_int", [](VALUE klass, int32_t value)
       {

@@ -70,6 +70,7 @@ TESTCASE(each)
   std::string code = R"(a = []
                         Color.each { |x| a << x }
                         a)";
+
   Array a = m.instance_eval(code);
   ASSERT_EQUAL(3u, a.size());
 
@@ -81,6 +82,44 @@ TESTCASE(each)
   
   Data_Object<Color> enum_2(a[2]);
   ASSERT_EQUAL(GREEN, *enum_2);
+}
+
+TESTCASE(each_return)
+{
+  Module m = define_module("Testing");
+
+  Enum<Color> colorEnum = define_color_enum();
+
+  std::string code = R"(Color.each {|x|})";
+  Object colorEnum2 = m.instance_eval(code);
+  ASSERT_EQUAL(colorEnum2, Enum<Color>().klass());
+}
+
+TESTCASE(each_enum)
+{
+  Module m = define_module("Testing");
+
+  Enum<Color> colorEnum = define_color_enum();
+
+  std::string code = R"(a = []
+                        Color.each.with_index {|x, i| a << x }
+                        a)";
+
+  Array a = m.instance_eval(code);
+  ASSERT_EQUAL(3u, a.size());
+
+  Data_Object<Color> enum_0(a[0]);
+  ASSERT_EQUAL(RED, *enum_0);
+
+  Data_Object<Color> enum_1(a[1]);
+  ASSERT_EQUAL(BLACK, *enum_1);
+
+  Data_Object<Color> enum_2(a[2]);
+  ASSERT_EQUAL(GREEN, *enum_2);
+
+  code = R"(Color.each)";
+  Object enumerator = m.instance_eval(code);
+  ASSERT(enumerator.is_instance_of(rb_cEnumerator));
 }
 
 TESTCASE(each_seasons)
