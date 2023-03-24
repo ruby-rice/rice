@@ -13,4 +13,5 @@ STL
   stl/pair
   stl/smart_pointers
   stl/string
+  stl/unordered_map
   stl/vector

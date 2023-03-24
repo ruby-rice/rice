@@ -7,6 +7,7 @@
 #include "stl/optional.hpp"
 #include "stl/pair.hpp"
 #include "stl/smart_ptr.hpp"
+#include "stl/unordered_map.hpp"
 #include "stl/vector.hpp"
 
 #endif // Rice__stl__hpp_

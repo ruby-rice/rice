@@ -35,6 +35,7 @@ add_executable (unittest
 				"test_Stl_Pair.cpp"
 				"test_Stl_SmartPointer.cpp"
 				"test_Stl_String.cpp"
+				"test_Stl_Unordered_Map.cpp"
 				"test_Stl_Vector.cpp"
 				"test_String.cpp"
 				"test_Struct.cpp"
