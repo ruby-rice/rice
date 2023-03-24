@@ -303,30 +303,30 @@ namespace Rice
     };
 
     template<typename T, typename U>
-    int unordered_mapFromHashPair(VALUE key, VALUE value, VALUE user_data)
+    struct UnorderedMapFromHash
     {
-      std::unordered_map<T, U> *unordered_map = (std::unordered_map<T, U>*)(user_data);
+      static int convertPair(VALUE key, VALUE value, VALUE user_data)
+      {
+        std::unordered_map<T, U>* result = (std::unordered_map<T, U>*)(user_data);
 
-      // This method is being called from Ruby so we cannot let any C++ 
-      // exceptions propogate back to Ruby
-      return cpp_protect([&]
+        // This method is being called from Ruby so we cannot let any C++ 
+        // exceptions propogate back to Ruby
+        return cpp_protect([&]
         {
-          unordered_map->operator[](From_Ruby<T>().convert(key)) = From_Ruby<U>().convert(value);
+          result->operator[](From_Ruby<T>().convert(key)) = From_Ruby<U>().convert(value);
           return ST_CONTINUE;
         });
-    }
+      }
 
-    template<typename T, typename U>
-    std::unordered_map<T, U> unordered_mapFromHash(VALUE value)
-    {
-      std::unordered_map<T, U> result;
-      VALUE user_data = (VALUE)(&result);
-      // Should use protect but older compilers won't compile this (latest MSVC and GCC are fine)
-      //detail::protect<void>(rb_hash_foreach, value, mapFromHashPair<T, U>, user_data);
-      rb_hash_foreach(value, unordered_mapFromHashPair<T, U>, user_data);
+      static std::unordered_map<T, U> convert(VALUE value)
+      {
+        std::unordered_map<T, U> result;
+        VALUE user_data = (VALUE)(&result);
+        detail::protect<void>(rb_hash_foreach, value, convertPair, user_data);
 
-      return result;
-    }
+        return result;
+      }
+    };
 
     template<typename T, typename U>
     class From_Ruby<std::unordered_map<T, U>>
@@ -352,7 +352,7 @@ namespace Rice
             // If this an Ruby hash and the unordered_mapped type is copyable
             if constexpr (std::is_default_constructible_v<U>)
             {
-              return unordered_mapFromHash<T, U>(value);
+              return UnorderedMapFromHash<T, U>::convert(value);
             }
           }
           case T_NIL:
@@ -398,7 +398,7 @@ namespace Rice
             // If this an Ruby array and the unordered_map type is copyable
             if constexpr (std::is_default_constructible_v<std::unordered_map<T, U>>)
             {
-              this->converted_ = unordered_mapFromHash<T, U>(value);
+              this->converted_ = UnorderedMapFromHash<T, U>::convert(value);
               return this->converted_;
             }
           }
@@ -440,7 +440,7 @@ namespace Rice
             // If this an Ruby array and the unordered_map type is copyable
             if constexpr (std::is_default_constructible_v<U>)
             {
-              this->converted_ = unordered_mapFromHash<T, U>(value);
+              this->converted_ = UnorderedMapFromHash<T, U>::convert(value);
               return &this->converted_;
             }
           }
