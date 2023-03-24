@@ -3,17 +3,6 @@
 // using CRTP.
 
 
-//! Set a constant.
-/*! \param name the name of the constant to set.
-  *  \param value the value of the constant.
-  *  \return *this
-  */
-inline auto& const_set(Identifier name, Object value)
-{
-  detail::protect(rb_const_set, this->value(), name.id(), value.value());
-  return *this;
-}
-
 //! Include a module.
 /*! \param inc the module to be included.
 *  \return *this

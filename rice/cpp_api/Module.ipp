@@ -53,22 +53,6 @@ namespace Rice
     detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
   }
 
-  inline Object Module::const_get(Identifier name) const
-  {
-    return detail::protect(rb_const_get, this->value(), name.id());
-  }
-
-  inline bool Module::const_defined(Identifier name) const
-  {
-    size_t result = detail::protect(rb_const_defined, this->value(), name.id());
-    return bool(result);
-  }
-
-  inline void Module::remove_const(Identifier name)
-  {
-    detail::protect(rb_mod_remove_const, this->value(), name.to_sym());
-  }
-
   inline Module define_module_under(Object module, char const* name)
   {
     return detail::protect(rb_define_module_under, module.value(), name);

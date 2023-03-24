@@ -111,6 +111,37 @@ namespace Rice
     value_ = v;
   }
 
+  inline Object Object::const_get(Identifier name) const
+  {
+    return detail::protect(rb_const_get, this->value(), name.id());
+  }
+
+  inline bool Object::const_defined(Identifier name) const
+  {
+    size_t result = detail::protect(rb_const_defined, this->value(), name.id());
+    return bool(result);
+  }
+
+  inline Object Object::const_set(Identifier name, Object value)
+  {
+    detail::protect(rb_const_set, this->value(), name.id(), value.value());
+    return value;
+  }
+
+  inline Object Object::const_set_maybe(Identifier name, Object value)
+  {
+    if (!this->const_defined(name))
+    {
+      this->const_set(name, value);
+    }
+    return value;
+  }
+
+  inline void Object::remove_const(Identifier name)
+  {
+    detail::protect(rb_mod_remove_const, this->value(), name.to_sym());
+  }
+
   inline bool operator==(Object const& lhs, Object const& rhs)
   {
     return detail::protect(rb_equal, lhs.value(), rhs.value()) == Qtrue;

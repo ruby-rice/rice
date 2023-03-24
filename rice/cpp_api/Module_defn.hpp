@@ -76,24 +76,6 @@ namespace Rice
     template<typename Exception_T, typename Functor_T>
     Module& add_handler(Functor_T functor);
 
-    //! Get a constant.
-    /*! \param name the name of the constant to get.
-     *  \return the value of the constant.
-     */
-    Object const_get(Identifier name) const;
-
-    //! Determine whether a constant is defined.
-    /*! \param name the name of the constant to check.
-     *  \return true if the constant is defined in this module or false
-     *  otherwise.
-     */
-    bool const_defined(Identifier name) const;
-
-    //! Remove a constant.
-    /*! \param name the name of the constant to remove.
-     */
-    void remove_const(Identifier name);
-
     #include "shared_methods.hpp"
 
   protected:
