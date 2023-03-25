@@ -2,6 +2,10 @@
 # project specific logic here.
 #
 
+# Include sub-directories.
+add_subdirectory ("ext/t1")
+add_subdirectory ("ext/t2")
+
 include_directories ("..")
 
 # Add source to this project's executable.
@@ -42,7 +46,6 @@ add_executable (unittest
 				"test_Symbol.cpp"
 				"test_To_From_Ruby.cpp"
 				"test_global_functions.cpp")
-
 
 if (MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
