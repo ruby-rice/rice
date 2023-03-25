@@ -94,7 +94,7 @@ TESTCASE(SelfPointer)
   SelfClass::reset();
 
   Module m = define_module("TestingModule");
-  Object selfClass1 = m.instance_eval("SelfClass.new");
+  Object selfClass1 = m.module_eval("SelfClass.new");
   Object selfClass2 = selfClass1.call("self_pointer");
   ASSERT(selfClass2.is_equal(selfClass1));
 
@@ -113,7 +113,7 @@ TESTCASE(SelfReference)
   SelfClass::reset();
 
   Module m = define_module("TestingModule");
-  Object selfClass1 = m.instance_eval("SelfClass.new");
+  Object selfClass1 = m.module_eval("SelfClass.new");
   Object selfClass2 = selfClass1.call("self_reference");
   ASSERT(selfClass2.is_equal(selfClass1));
 
@@ -132,7 +132,7 @@ TESTCASE(SelfValue)
   SelfClass::reset();
 
   Module m = define_module("TestingModule");
-  Object selfClass1 = m.instance_eval("SelfClass.new");
+  Object selfClass1 = m.module_eval("SelfClass.new");
   Object selfClass2 = selfClass1.call("self_value");
   ASSERT(!selfClass2.is_equal(selfClass1));
 
@@ -151,7 +151,7 @@ TESTCASE(SelfPointerLambda)
   SelfClass::reset();
 
   Module m = define_module("TestingModule");
-  Object selfClass1 = m.instance_eval("SelfClass.new");
+  Object selfClass1 = m.module_eval("SelfClass.new");
   Object selfClass2 = selfClass1.call("self_pointer_lambda");
   ASSERT(selfClass2.is_equal(selfClass1));
 
@@ -171,7 +171,7 @@ TESTCASE(SelfReferenceLambda)
   SelfClass::reset();
 
   Module m = define_module("TestingModule");
-  Object selfClass1 = m.instance_eval("SelfClass.new");
+  Object selfClass1 = m.module_eval("SelfClass.new");
   Object selfClass2 = selfClass1.call("self_reference_lambda");
   ASSERT(selfClass2.is_equal(selfClass1));
 
@@ -190,7 +190,7 @@ TESTCASE(SelfValueLambda)
   SelfClass::reset();
 
   Module m = define_module("TestingModule");
-  Object selfClass1 = m.instance_eval("SelfClass.new");
+  Object selfClass1 = m.module_eval("SelfClass.new");
   Object selfClass2 = selfClass1.call("self_value_lambda");
   ASSERT(!selfClass2.is_equal(selfClass1));
 

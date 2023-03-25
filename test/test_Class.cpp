@@ -323,10 +323,10 @@ TESTCASE(value_parameter)
   Module m = define_module("TestingModule");
   
   std::string code = R"($object = Object.new)";
-  Object object = m.instance_eval(code);
+  Object object = m.module_eval(code);
 
   code = R"(value_parameter($object))";
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(someValue, object.value());
 }
@@ -337,7 +337,7 @@ TESTCASE(value_return)
 
   Module m = define_module("TestingModule");
 
-  VALUE value = m.instance_eval("value_return");
+  VALUE value = m.module_eval("value_return");
   detail::protect(rb_check_type, value, (int)T_ARRAY);
 
   ASSERT_EQUAL(3, Array(value).size());

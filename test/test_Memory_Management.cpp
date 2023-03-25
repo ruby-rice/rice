@@ -44,6 +44,6 @@ TESTCASE(allows_copy_contructors_to_work)
 
   Module m = define_module("TestingModule");
 
-  Object result = m.instance_eval("return_test_class.tmp");
+  Object result = m.module_eval("return_test_class.tmp");
   ASSERT_EQUAL(8.0, detail::From_Ruby<double>().convert(result.value()));
 }

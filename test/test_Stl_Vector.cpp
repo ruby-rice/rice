@@ -44,15 +44,15 @@ TESTCASE(StringVector)
 
   Class c = define_vector<std::vector<std::string>>("StringVector");
 
-  Object vec = m.instance_eval("$vector = StringVector.new");
+  Object vec = m.module_eval("$vector = StringVector.new");
   Object result = vec.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
-  m.instance_eval("$vector << 'one' << 'two' << 'two' << 'three'");
+  m.module_eval("$vector << 'one' << 'two' << 'two' << 'three'");
   result = vec.call("size");
   ASSERT_EQUAL(4, detail::From_Ruby<int32_t>().convert(result));
 
-  m.instance_eval("$vector.append('four')");
+  m.module_eval("$vector.append('four')");
   result = vec.call("size");
   ASSERT_EQUAL(5, detail::From_Ruby<int32_t>().convert(result));
 
@@ -69,10 +69,10 @@ TESTCASE(WrongType)
 
   Class c = define_vector<std::vector<std::string>>("StringVector");
 
-  Object vec = m.instance_eval("$vector = StringVector.new");
+  Object vec = m.module_eval("$vector = StringVector.new");
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval("$vector << 1"),
+    m.module_eval("$vector << 1"),
     ASSERT_EQUAL("wrong argument type Integer (expected String)", ex.what()));
 }
 
@@ -272,7 +272,7 @@ TESTCASE(Iterate)
                                     value * 2.0
                                   end)";
 
-  Array result = m.instance_eval(code);
+  Array result = m.module_eval(code);
   ASSERT_EQUAL(3, result.size());
   ASSERT_EQUAL(10.0, detail::From_Ruby<double>().convert(result[0].value()));
   ASSERT_EQUAL(12.0, detail::From_Ruby<double>().convert(result[1].value()));
@@ -461,26 +461,26 @@ TESTCASE(AutoRegisterReturn)
   define_global_function("return_complex_vector", &returnComplexVector);
 
   Module m = define_module("Testing");
-  Object vec = m.instance_eval("return_complex_vector");
+  Object vec = m.module_eval("return_complex_vector");
   ASSERT_EQUAL("Rice::Std::Vector__complex__double___allocator__complex__double______", vec.class_name().str());
 
   std::string code = R"(vector = return_complex_vector
                         complex = vector.last
                         complex == Complex(3, 3))";
 
-  Object result = m.instance_eval(code);
+  Object result = m.module_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
 
   // Now register this same vector
   define_vector<std::vector<std::complex<double>>>("ComplexVector");
   code = R"(vector = ComplexVector.new)";
-  result = m.instance_eval(code);
+  result = m.module_eval(code);
   ASSERT(result.is_instance_of(vec.class_of()));
 
   // Now register it again in the module
   define_vector_under<std::vector<std::complex<double>>>(m, "ComplexVector2");
   code = R"(vector = Testing::ComplexVector2.new)";
-  result = m.instance_eval(code);
+  result = m.module_eval(code);
   ASSERT(result.is_instance_of(vec.class_of()));
 }
 
@@ -494,7 +494,7 @@ TESTCASE(AutoRegisterParameter)
                         pass_complex_vector(vector))";
 
   Module m = define_module("Testing");
-  Object vec = m.instance_eval(code);
+  Object vec = m.module_eval(code);
 
   Object result = vec.call("size");
   ASSERT_EQUAL("Rice::Std::Vector__complex__double___allocator__complex__double______", vec.class_name().str());
@@ -519,7 +519,7 @@ TESTCASE(DefaultValue)
   define_global_function("default_vector", &defaultVector, Arg("strings") = std::vector<std::string> { "one", "two", "three" });
 
   Module m = define_module("Testing");
-  Object result = m.instance_eval("default_vector");
+  Object result = m.module_eval("default_vector");
   std::vector<std::string> actual = detail::From_Ruby<std::vector<std::string>>().convert(result);
 
   std::vector<std::string> expected{ "one", "two", "three" };
@@ -565,7 +565,7 @@ TESTCASE(ArrayToVector)
   Module m = define_module("Testing");
 
   std::string code = "array_to_vector([7, 9, 1_000_000], [49.0, 78.0, 999.0], %w[one two three])";
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(3, ints.size());
   ASSERT_EQUAL(7, ints[0]);
@@ -590,7 +590,7 @@ TESTCASE(ArrayToVectorRefs)
   Module m = define_module("Testing");
 
   std::string code = "array_to_vector_refs([8, 10, 1_000_001], [50.0, 79.0, 1_000.0], %w[eleven twelve thirteen])";
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(3, ints.size());
   ASSERT_EQUAL(8, ints[0]);
@@ -615,7 +615,7 @@ TESTCASE(ArrayToVectorPointers)
   Module m = define_module("Testing");
 
   std::string code = "array_to_vector_pointers([9, 11, 1_000_002], [51.0, 80.0, 1_001.0], %w[fourteen fifteen sixteen])";
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(3, ints.size());
   ASSERT_EQUAL(9, ints[0]);
@@ -643,7 +643,7 @@ TESTCASE(ArrayToVectorWrongTypes)
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval(code),
+    m.module_eval(code),
     ASSERT_EQUAL("wrong argument type Float (expected String)", ex.what())
   );
 }
@@ -658,7 +658,7 @@ TESTCASE(ArrayToVectorMixedTypes)
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval(code),
+    m.module_eval(code),
     ASSERT_EQUAL("no implicit conversion of String into Integer", ex.what())
   );
 }

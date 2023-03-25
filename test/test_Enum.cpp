@@ -71,7 +71,7 @@ TESTCASE(each)
                         Color.each { |x| a << x }
                         a)";
 
-  Array a = m.instance_eval(code);
+  Array a = m.module_eval(code);
   ASSERT_EQUAL(3u, a.size());
 
   Data_Object<Color> enum_0(a[0]);
@@ -91,7 +91,7 @@ TESTCASE(each_return)
   Enum<Color> colorEnum = define_color_enum();
 
   std::string code = R"(Color.each {|x|})";
-  Object colorEnum2 = m.instance_eval(code);
+  Object colorEnum2 = m.module_eval(code);
   ASSERT_EQUAL(colorEnum2, Enum<Color>().klass());
 }
 
@@ -105,7 +105,7 @@ TESTCASE(each_enum)
                         Color.each.with_index {|x, i| a << x }
                         a)";
 
-  Array a = m.instance_eval(code);
+  Array a = m.module_eval(code);
   ASSERT_EQUAL(3u, a.size());
 
   Data_Object<Color> enum_0(a[0]);
@@ -118,7 +118,7 @@ TESTCASE(each_enum)
   ASSERT_EQUAL(GREEN, *enum_2);
 
   code = R"(Color.each)";
-  Object enumerator = m.instance_eval(code);
+  Object enumerator = m.module_eval(code);
   ASSERT(enumerator.is_instance_of(rb_cEnumerator));
 }
 
@@ -131,7 +131,7 @@ TESTCASE(each_seasons)
                         Season.each { |x| a << x }
                         a)";
 
-  Array a = m.instance_eval(code);
+  Array a = m.module_eval(code);
   ASSERT_EQUAL(4u, a.size());
 
   Data_Object<Season> enum_0(a[0]);
@@ -152,9 +152,9 @@ TESTCASE(to_s)
   Module m = define_module("Testing");
 
   Enum<Color> colorEnum = define_color_enum();
-  ASSERT_EQUAL(String("RED"), String(m.instance_eval("Color::RED.to_s")));
-  ASSERT_EQUAL(String("BLACK"), String(m.instance_eval("Color::BLACK.to_s")));
-  ASSERT_EQUAL(String("GREEN"), String(m.instance_eval("Color::GREEN.to_s")));
+  ASSERT_EQUAL(String("RED"), String(m.module_eval("Color::RED.to_s")));
+  ASSERT_EQUAL(String("BLACK"), String(m.module_eval("Color::BLACK.to_s")));
+  ASSERT_EQUAL(String("GREEN"), String(m.module_eval("Color::GREEN.to_s")));
 }
 
 TESTCASE(to_i)
@@ -162,9 +162,9 @@ TESTCASE(to_i)
   Module m = define_module("Testing");
 
   Enum<Color> colorEnum = define_color_enum();
-  ASSERT_EQUAL(detail::to_ruby(int(RED)), m.instance_eval("Color::RED.to_i").value());
-  ASSERT_EQUAL(detail::to_ruby(int(BLACK)), m.instance_eval("Color::BLACK.to_i").value());
-  ASSERT_EQUAL(detail::to_ruby(int(GREEN)), m.instance_eval("Color::GREEN.to_i").value());
+  ASSERT_EQUAL(detail::to_ruby(int(RED)), m.module_eval("Color::RED.to_i").value());
+  ASSERT_EQUAL(detail::to_ruby(int(BLACK)), m.module_eval("Color::BLACK.to_i").value());
+  ASSERT_EQUAL(detail::to_ruby(int(GREEN)), m.module_eval("Color::GREEN.to_i").value());
 }
 
 TESTCASE(inspect)
@@ -172,9 +172,9 @@ TESTCASE(inspect)
   Module m = define_module("Testing");
 
   Enum<Color> colorEnum = define_color_enum();
-  ASSERT_EQUAL(String("#<Color::RED>"), String(m.instance_eval("Color::RED.inspect")));
-  ASSERT_EQUAL(String("#<Color::BLACK>"), String(m.instance_eval("Color::BLACK.inspect")));
-  ASSERT_EQUAL(String("#<Color::GREEN>"), String(m.instance_eval("Color::GREEN.inspect")));
+  ASSERT_EQUAL(String("#<Color::RED>"), String(m.module_eval("Color::RED.inspect")));
+  ASSERT_EQUAL(String("#<Color::BLACK>"), String(m.module_eval("Color::BLACK.inspect")));
+  ASSERT_EQUAL(String("#<Color::GREEN>"), String(m.module_eval("Color::GREEN.inspect")));
 }
 
 TESTCASE(compare)
@@ -182,9 +182,9 @@ TESTCASE(compare)
   Module m = define_module("Testing");
 
   Enum<Color> colorEnum = define_color_enum();
-  ASSERT_EQUAL(detail::to_ruby(-1), m.instance_eval("Color::RED <=> Color::BLACK").value());
-  ASSERT_EQUAL(detail::to_ruby(1), m.instance_eval("Color::GREEN <=> Color::RED").value());
-  ASSERT_EQUAL(detail::to_ruby(0), m.instance_eval("Color::BLACK <=> Color::BLACK").value());
+  ASSERT_EQUAL(detail::to_ruby(-1), m.module_eval("Color::RED <=> Color::BLACK").value());
+  ASSERT_EQUAL(detail::to_ruby(1), m.module_eval("Color::GREEN <=> Color::RED").value());
+  ASSERT_EQUAL(detail::to_ruby(0), m.module_eval("Color::BLACK <=> Color::BLACK").value());
 }
 
 TESTCASE(eql)
@@ -192,8 +192,8 @@ TESTCASE(eql)
   Module m = define_module("Testing");
 
   Enum<Color> colorEnum = define_color_enum();
-  ASSERT_EQUAL(detail::to_ruby(false), m.instance_eval("Color::RED == Color::BLACK").value());
-  ASSERT_EQUAL(detail::to_ruby(true), m.instance_eval("Color::GREEN == Color::GREEN").value());
+  ASSERT_EQUAL(detail::to_ruby(false), m.module_eval("Color::RED == Color::BLACK").value());
+  ASSERT_EQUAL(detail::to_ruby(true), m.module_eval("Color::GREEN == Color::GREEN").value());
 }
 
 TESTCASE(compare_equal)
@@ -283,9 +283,9 @@ TESTCASE(nested_enums)
 
   Module m = define_module("Testing");
 
-  ASSERT_EQUAL(detail::to_ruby(int(0)), m.instance_eval("Inner::Props::VALUE1.to_i").value());
-  ASSERT_EQUAL(detail::to_ruby(int(1)), m.instance_eval("Inner::Props::VALUE2.to_i").value());
-  ASSERT_EQUAL(detail::to_ruby(int(2)), m.instance_eval("Inner::Props::VALUE3.to_i").value());
+  ASSERT_EQUAL(detail::to_ruby(int(0)), m.module_eval("Inner::Props::VALUE1.to_i").value());
+  ASSERT_EQUAL(detail::to_ruby(int(1)), m.module_eval("Inner::Props::VALUE2.to_i").value());
+  ASSERT_EQUAL(detail::to_ruby(int(2)), m.module_eval("Inner::Props::VALUE3.to_i").value());
 }
 
 namespace
@@ -311,19 +311,19 @@ TESTCASE(using_enums)
 
   Module m = define_module("Testing");
 
-  Object result = m.instance_eval("Color.my_favorite_color");
+  Object result = m.module_eval("Color.my_favorite_color");
   ASSERT_EQUAL(RED, detail::From_Ruby<Color>().convert(result.value()));
 
-  result = m.instance_eval("Color.is_my_favorite_color(Color::RED)");
+  result = m.module_eval("Color.is_my_favorite_color(Color::RED)");
   ASSERT_EQUAL(Qtrue, result.value());
 
-  result = m.instance_eval("Color.is_my_favorite_color(Color::BLACK)");
+  result = m.module_eval("Color.is_my_favorite_color(Color::BLACK)");
   ASSERT_EQUAL(Qfalse, result.value());
 
-  result = m.instance_eval("Color::RED.is_my_favorite_color");
+  result = m.module_eval("Color::RED.is_my_favorite_color");
   ASSERT_EQUAL(Qtrue, result.value());
 
-  result = m.instance_eval("Color::BLACK.is_my_favorite_color");
+  result = m.module_eval("Color::BLACK.is_my_favorite_color");
   ASSERT_EQUAL(Qfalse, result.value());
 }
 
@@ -340,7 +340,7 @@ TESTCASE(default_argument)
   define_global_function("default_color", &defaultColor, Arg("aColor") = Color::BLACK);
 
   Module m = define_module("Testing");
-  Object result = m.instance_eval("default_color");
+  Object result = m.module_eval("default_color");
   ASSERT_EQUAL(Color::BLACK, detail::From_Ruby<Color>().convert(result.value()));
 }
 

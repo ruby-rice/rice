@@ -44,15 +44,15 @@ TESTCASE(StringUnorderedMap)
 
   Class c = define_unordered_map<std::unordered_map<std::string, std::string>>("StringUnorderedMap");
 
-  Object unordered_map = m.instance_eval("$unordered_map = StringUnorderedMap.new");
+  Object unordered_map = m.module_eval("$unordered_map = StringUnorderedMap.new");
   Object result = unordered_map.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
-  m.instance_eval("$unordered_map['a_key'] = 'a_value'");
+  m.module_eval("$unordered_map['a_key'] = 'a_value'");
   result = unordered_map.call("size");
   ASSERT_EQUAL(1, detail::From_Ruby<int32_t>().convert(result));
 
-  m.instance_eval("$unordered_map.clear");
+  m.module_eval("$unordered_map.clear");
   result = unordered_map.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 }
@@ -62,16 +62,16 @@ TESTCASE(WrongType)
   Module m = define_module("Testing");
 
   Class c = define_unordered_map<std::unordered_map<std::string, std::string>>("StringUnorderedMap");
-  Object unordered_map = m.instance_eval("$unordered_map = StringUnorderedMap.new");
+  Object unordered_map = m.module_eval("$unordered_map = StringUnorderedMap.new");
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval("$unordered_map[1] = 'abc'"),
+    m.module_eval("$unordered_map[1] = 'abc'"),
     ASSERT_EQUAL("wrong argument type Integer (expected String)", ex.what()));
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval("$unordered_map['abc'] = true"),
+    m.module_eval("$unordered_map['abc'] = true"),
     ASSERT_EQUAL("wrong argument type true (expected String)", ex.what()));
 }
 
@@ -249,7 +249,7 @@ TESTCASE(Iterate)
                                   end
                         result)";
 
-  Hash result = m.instance_eval(code);
+  Hash result = m.module_eval(code);
   ASSERT_EQUAL(3, result.size());
 
   std::string result_string = result.to_s().str();
@@ -390,7 +390,7 @@ TESTCASE(AutoRegisterReturn)
   define_global_function("return_complex_unordered_map", &returnComplexUnorderedMap);
 
   Module m = define_module("Testing");
-  Object unordered_map = m.instance_eval("return_complex_unordered_map");
+  Object unordered_map = m.module_eval("return_complex_unordered_map");
   ASSERT_EQUAL("Rice::Std::Unordered_map__basic_string__char_char_traits__char___allocator__char_____complex__double___hash__basic_string__char_char_traits__char___allocator__char_______equal_to__basic_string__char_char_traits__char___allocator__char_______allocator__pair__basic_string__char_char_traits__char___allocator__char____Const_complex__double________",
                unordered_map.class_name().str());
 
@@ -398,19 +398,19 @@ TESTCASE(AutoRegisterReturn)
                         complex = unordered_map['three']
                         complex == Complex(3, 3))";
 
-  Object result = m.instance_eval(code);
+  Object result = m.module_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
 
   // Now register the unordered_map again
   define_unordered_map<std::unordered_map<std::string, std::complex<double>>>("ComplexUnorderedMap");
   code = R"(unordered_map = ComplexUnorderedMap.new)";
-  result = m.instance_eval(code);
+  result = m.module_eval(code);
   ASSERT(result.is_instance_of(unordered_map.class_of()));
 
   // And again in the module
   define_unordered_map_under<std::unordered_map<std::string, std::complex<double>>>(m, "ComplexUnorderedMap2");
   code = R"(unordered_map = Testing::ComplexUnorderedMap2.new)";
-  result = m.instance_eval(code);
+  result = m.module_eval(code);
   ASSERT(result.is_instance_of(unordered_map.class_of()));
 }
 
@@ -424,7 +424,7 @@ TESTCASE(AutoRegisterParameter)
                         pass_complex_unordered_map(unordered_map))";
 
   Module m = define_module("Testing");
-  Object unordered_map = m.instance_eval(code);
+  Object unordered_map = m.module_eval(code);
 
   Object result = unordered_map.call("size");
   ASSERT_EQUAL("Rice::Std::Unordered_map__basic_string__char_char_traits__char___allocator__char_____complex__double___hash__basic_string__char_char_traits__char___allocator__char_______equal_to__basic_string__char_char_traits__char___allocator__char_______allocator__pair__basic_string__char_char_traits__char___allocator__char____Const_complex__double________",
@@ -450,7 +450,7 @@ TESTCASE(DefaultValue)
   define_global_function("default_unordered_map", &defaultUnorderedMap, Arg("strings") = std::unordered_map<std::string, std::string>{ {"one", "value 1"}, {"two", "value 2"}, {"three", "value 3"} });
 
   Module m = define_module("Testing");
-  Object result = m.instance_eval("default_unordered_map");
+  Object result = m.module_eval("default_unordered_map");
   std::unordered_map<std::string, std::string> actual = detail::From_Ruby<std::unordered_map<std::string, std::string>>().convert(result);
 
   std::unordered_map<std::string, std::string> expected{ {"one", "value 1"}, {"two", "value 2"}, {"three", "value 3"} };
@@ -505,7 +505,7 @@ TESTCASE(HashToUnorderedMap)
                                      "two" => "two",
                                      "three" => "three"}))";
 
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(3, ints.size());
   ASSERT_EQUAL(7, ints["seven"]);
@@ -538,7 +538,7 @@ TESTCASE(HashToUnorderedMapRefs)
                                          {"eleven" => "eleven", 
                                           "twelve" => "twelve",
                                           "thirteen" => "thirteen"}))";
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(3, ints.size());
   ASSERT_EQUAL(8, ints["eight"]);
@@ -572,7 +572,7 @@ TESTCASE(HashToUnorderedMapPointers)
                                               "fifteen" => "fifteen",
                                               "sixteen" => "sixteen"}))";
 
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(3, ints.size());
   ASSERT_EQUAL(9, ints["nine"]);
@@ -608,7 +608,7 @@ TESTCASE(HashToUnorderedMapWrongTypes)
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval(code),
+    m.module_eval(code),
     ASSERT_EQUAL("wrong argument type Float (expected String)", ex.what())
   );
 }
@@ -631,7 +631,7 @@ TESTCASE(HashToUnorderedMapMixedTypes)
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval(code),
+    m.module_eval(code),
     ASSERT_EQUAL("no implicit conversion of String into Integer", ex.what())
   );
 }
@@ -645,7 +645,7 @@ TESTCASE(UnorderedMapToHash)
                         unordered_map = my_class.stringUnorderedMap
                         hash = unordered_map.to_h)";
 
-  Hash hash = m.instance_eval(code);
+  Hash hash = m.module_eval(code);
   ASSERT_EQUAL(3, hash.size());
   
   ASSERT_EQUAL("1", detail::From_Ruby<std::string>().convert(hash["One"].value()));

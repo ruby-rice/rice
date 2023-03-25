@@ -44,15 +44,15 @@ TESTCASE(StringMap)
 
   Class c = define_map<std::map<std::string, std::string>>("StringMap");
 
-  Object map = m.instance_eval("$map = StringMap.new");
+  Object map = m.module_eval("$map = StringMap.new");
   Object result = map.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
-  m.instance_eval("$map['a_key'] = 'a_value'");
+  m.module_eval("$map['a_key'] = 'a_value'");
   result = map.call("size");
   ASSERT_EQUAL(1, detail::From_Ruby<int32_t>().convert(result));
 
-  m.instance_eval("$map.clear");
+  m.module_eval("$map.clear");
   result = map.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 }
@@ -62,16 +62,16 @@ TESTCASE(WrongType)
   Module m = define_module("Testing");
 
   Class c = define_map<std::map<std::string, std::string>>("StringMap");
-  Object map = m.instance_eval("$map = StringMap.new");
+  Object map = m.module_eval("$map = StringMap.new");
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval("$map[1] = 'abc'"),
+    m.module_eval("$map[1] = 'abc'"),
     ASSERT_EQUAL("wrong argument type Integer (expected String)", ex.what()));
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval("$map['abc'] = true"),
+    m.module_eval("$map['abc'] = true"),
     ASSERT_EQUAL("wrong argument type true (expected String)", ex.what()));
 }
 
@@ -249,7 +249,7 @@ TESTCASE(Iterate)
                                   end
                         result)";
 
-  Hash result = m.instance_eval(code);
+  Hash result = m.module_eval(code);
   ASSERT_EQUAL(3, result.size());
 
   std::string result_string = result.to_s().str();
@@ -390,7 +390,7 @@ TESTCASE(AutoRegisterReturn)
   define_global_function("return_complex_map", &returnComplexMap);
 
   Module m = define_module("Testing");
-  Object map = m.instance_eval("return_complex_map");
+  Object map = m.module_eval("return_complex_map");
   ASSERT_EQUAL("Rice::Std::Map__basic_string__char_char_traits__char___allocator__char_____complex__double___less__basic_string__char_char_traits__char___allocator__char_______allocator__pair__basic_string__char_char_traits__char___allocator__char____Const_complex__double________",
                map.class_name().str());
 
@@ -398,19 +398,19 @@ TESTCASE(AutoRegisterReturn)
                         complex = map['three']
                         complex == Complex(3, 3))";
 
-  Object result = m.instance_eval(code);
+  Object result = m.module_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
 
   // Now register the map again
   define_map<std::map<std::string, std::complex<double>>>("ComplexMap");
   code = R"(map = ComplexMap.new)";
-  result = m.instance_eval(code);
+  result = m.module_eval(code);
   ASSERT(result.is_instance_of(map.class_of()));
 
   // And again in the module
   define_map_under<std::map<std::string, std::complex<double>>>(m, "ComplexMap2");
   code = R"(map = Testing::ComplexMap2.new)";
-  result = m.instance_eval(code);
+  result = m.module_eval(code);
   ASSERT(result.is_instance_of(map.class_of()));
 }
 
@@ -424,7 +424,7 @@ TESTCASE(AutoRegisterParameter)
                         pass_complex_map(map))";
 
   Module m = define_module("Testing");
-  Object map = m.instance_eval(code);
+  Object map = m.module_eval(code);
 
   Object result = map.call("size");
   ASSERT_EQUAL("Rice::Std::Map__basic_string__char_char_traits__char___allocator__char_____complex__double___less__basic_string__char_char_traits__char___allocator__char_______allocator__pair__basic_string__char_char_traits__char___allocator__char____Const_complex__double________",
@@ -450,7 +450,7 @@ TESTCASE(DefaultValue)
   define_global_function("default_map", &defaultMap, Arg("strings") = std::map<std::string, std::string>{ {"one", "value 1"}, {"two", "value 2"}, {"three", "value 3"} });
 
   Module m = define_module("Testing");
-  Object result = m.instance_eval("default_map");
+  Object result = m.module_eval("default_map");
   std::map<std::string, std::string> actual = detail::From_Ruby<std::map<std::string, std::string>>().convert(result);
 
   std::map<std::string, std::string> expected{ {"one", "value 1"}, {"two", "value 2"}, {"three", "value 3"} };
@@ -505,7 +505,7 @@ TESTCASE(HashToMap)
                                      "two" => "two",
                                      "three" => "three"}))";
 
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(3, ints.size());
   ASSERT_EQUAL(7, ints["seven"]);
@@ -538,7 +538,7 @@ TESTCASE(HashToMapRefs)
                                          {"eleven" => "eleven", 
                                           "twelve" => "twelve",
                                           "thirteen" => "thirteen"}))";
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(3, ints.size());
   ASSERT_EQUAL(8, ints["eight"]);
@@ -572,7 +572,7 @@ TESTCASE(HashToMapPointers)
                                               "fifteen" => "fifteen",
                                               "sixteen" => "sixteen"}))";
 
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(3, ints.size());
   ASSERT_EQUAL(9, ints["nine"]);
@@ -608,7 +608,7 @@ TESTCASE(HashToMapWrongTypes)
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval(code),
+    m.module_eval(code),
     ASSERT_EQUAL("wrong argument type Float (expected String)", ex.what())
   );
 }
@@ -631,7 +631,7 @@ TESTCASE(HashToMapMixedTypes)
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval(code),
+    m.module_eval(code),
     ASSERT_EQUAL("no implicit conversion of String into Integer", ex.what())
   );
 }
@@ -645,7 +645,7 @@ TESTCASE(MapToHash)
                         map = my_class.stringMap
                         hash = map.to_h)";
 
-  Hash hash = m.instance_eval(code);
+  Hash hash = m.module_eval(code);
   ASSERT_EQUAL(3, hash.size());
   
   ASSERT_EQUAL("1", detail::From_Ruby<std::string>().convert(hash["One"].value()));

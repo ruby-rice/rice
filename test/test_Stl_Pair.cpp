@@ -101,13 +101,13 @@ TESTCASE(AutoRegister)
   // Now register the pair again
   define_pair<std::pair<std::string, double>>("SomePair");
   std::string code = R"(pair = SomePair.new('string', 2.0))";
-  result = m.instance_eval(code);
+  result = m.module_eval(code);
   ASSERT(result.is_instance_of(pair.class_of()));
 
   // And again in the module
   define_pair_under<std::pair<std::string, double>>(m, "SomePair2");
   code = R"(pair = Testing::SomePair2.new('string', 3.0))";
-  result = m.instance_eval(code);
+  result = m.module_eval(code);
   ASSERT(result.is_instance_of(pair.class_of()));
 }
 

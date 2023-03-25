@@ -44,7 +44,7 @@ TESTCASE(add_handler)
   Module m(anonymous_module());
   m.add_handler<Quite_Silly_Exception>(handle_silly_exception);
   m.define_singleton_method("foo", throw_silly_exception);
-  Object exc = m.instance_eval("begin; foo; rescue Exception; $!; end");
+  Object exc = m.module_eval("begin; foo; rescue Exception; $!; end");
   ASSERT_EQUAL(rb_eRuntimeError, CLASS_OF(exc));
   Exception ex(exc);
   ASSERT_EQUAL(String("SILLY"), String(ex.what()));
@@ -80,8 +80,8 @@ TESTCASE(define_method)
   Module m(anonymous_module());
   m.define_method("some_method", some_method);
   
-  Object o = m.instance_eval("$o = Object.new");
-  Object result = m.instance_eval(R"EOS($o.extend(self)
+  Object o = m.module_eval("$o = Object.new");
+  Object result = m.module_eval(R"EOS($o.extend(self)
                                         $o.some_method)EOS");
   ASSERT_EQUAL(o, result);
 }
@@ -99,7 +99,7 @@ TESTCASE(define_module_function)
   Module m(anonymous_module());
   m.define_module_function("some_function", some_function);
 
-  Object result = m.instance_eval(R"EOS(o = Object.new
+  Object result = m.module_eval(R"EOS(o = Object.new
                                    o.extend(self)
                                    o.instance_eval do
                                      some_function
@@ -130,7 +130,7 @@ TESTCASE(define_function_int)
 {
   Module m(anonymous_module());
   m.define_function("foo", function_int);
-  Object result = m.instance_eval("o = Object.new; o.extend(self); o.foo(42)");
+  Object result = m.module_eval("o = Object.new; o.extend(self); o.foo(42)");
   ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 }
 
@@ -138,7 +138,7 @@ TESTCASE(define_method_int)
 {
   Module m(anonymous_module());
   m.define_method("foo", method_int);
-  Object result = m.instance_eval("o = Object.new; o.extend(self); o.foo(42)");
+  Object result = m.module_eval("o = Object.new; o.extend(self); o.foo(42)");
   ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 }
 
@@ -162,7 +162,7 @@ TESTCASE(define_module_function_int)
 {
   Module m(anonymous_module());
   m.define_module_function("foo", function_int);
-  Object result = m.instance_eval("o = Object.new; o.extend(self); o.instance_eval { foo(42) }");
+  Object result = m.module_eval("o = Object.new; o.extend(self); o.instance_eval { foo(42) }");
   ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 
   result = m.call("foo", 42);
@@ -175,7 +175,7 @@ TESTCASE(method_int_passed_no_args)
   m.define_method("foo", method_int);
   ASSERT_EXCEPTION_CHECK(
       Exception,
-      m.instance_eval("o = Object.new; o.extend(self); o.foo"),
+      m.module_eval("o = Object.new; o.extend(self); o.foo"),
       ASSERT_EQUAL(
           Object(rb_eArgError),
           Object(CLASS_OF(ex.value()))
@@ -230,7 +230,7 @@ TESTCASE(define_method_default_arguments)
   Module m(anonymous_module());
   m.define_function("foo", &defaults_method_one, Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true);
 
-  Object o = m.instance_eval("o = Object.new; o.extend(self); o");
+  Object o = m.module_eval("o = Object.new; o.extend(self); o");
   o.call("foo", 2);
 
   ASSERT_EQUAL(2, defaults_method_one_arg1);
@@ -257,7 +257,7 @@ TESTCASE(default_arguments_still_throws_argument_error)
 
   ASSERT_EXCEPTION_CHECK(
       Exception,
-      m.instance_eval("o = Object.new; o.extend(self); o.foo()"),
+      m.module_eval("o = Object.new; o.extend(self); o.foo()"),
       ASSERT_EQUAL(
           Object(rb_eArgError),
           Object(CLASS_OF(ex.value()))
@@ -266,7 +266,7 @@ TESTCASE(default_arguments_still_throws_argument_error)
 
   ASSERT_EXCEPTION_CHECK(
       Exception,
-      m.instance_eval("o = Object.new; o.extend(self); o.foo(3, 4, false, 17)"),
+      m.module_eval("o = Object.new; o.extend(self); o.foo(3, 4, false, 17)"),
       ASSERT_EQUAL(
           Object(rb_eArgError),
           Object(CLASS_OF(ex.value()))
@@ -286,7 +286,7 @@ TESTCASE(defining_methods_with_single_default_argument)
   // define_method
   Module m(anonymous_module());
   m.define_function("foo", &method_with_one_default_arg, (Arg("num") = 4));
-  m.instance_eval("o = Object.new; o.extend(self); o.foo()");
+  m.module_eval("o = Object.new; o.extend(self); o.foo()");
   ASSERT_EQUAL(4, the_one_default_arg);
 
   the_one_default_arg = 0;
@@ -404,7 +404,7 @@ TESTCASE(define_method_works_with_const_reference_return)
 
   Module m(anonymous_module());
 
-  Object result = m.instance_eval("Factory.new.get_return_test");
+  Object result = m.module_eval("Factory.new.get_return_test");
 
   ASSERT_EQUAL("ReturnTest", result.class_of().name().c_str());
 }
@@ -487,7 +487,7 @@ TESTCASE(pointers)
   Module m = define_module("TestingModule");
 
   std::string code = "with_pointers(32, true, 33.0, 34.0)";
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(intValue, 32);
   ASSERT_EQUAL(boolValue, true);
@@ -502,7 +502,7 @@ TESTCASE(references)
   Module m = define_module("TestingModule");
 
   std::string code = "with_references(42, true, 43.0, 44.0)";
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(intValue, 42);
   ASSERT_EQUAL(boolValue, true);

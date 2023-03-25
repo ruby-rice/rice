@@ -145,7 +145,7 @@ TESTCASE(TransferPointer)
                           my_class = nil
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(10, MyClass::constructorCalls);
@@ -169,7 +169,7 @@ TESTCASE(KeepPointer)
                           my_class.set_flag(i)
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(1, MyClass::constructorCalls);
@@ -193,7 +193,7 @@ TESTCASE(KeepReference)
                           my_class.set_flag(i)
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(1, MyClass::constructorCalls);
@@ -217,7 +217,7 @@ TESTCASE(CopyReference)
                           my_class.set_flag(i)
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(1, MyClass::constructorCalls);
@@ -240,7 +240,7 @@ TESTCASE(CopyReference)
                           my_class.set_flag(i)
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(10, MyClass::constructorCalls);
@@ -263,7 +263,7 @@ TESTCASE(MoveValue)
                           my_class.set_flag(i)
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(10, MyClass::constructorCalls);
