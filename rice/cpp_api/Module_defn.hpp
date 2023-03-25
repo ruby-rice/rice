@@ -76,6 +76,13 @@ namespace Rice
     template<typename Exception_T, typename Functor_T>
     Module& add_handler(Functor_T functor);
 
+    //! Evaluate the given string in the context of the module.
+    /*! This is equivalant to calling obj.module_eval(s) from inside the
+     *  interpreter.
+     *  \return the result of the expression.
+     */
+    Object module_eval(String const& s);
+
     #include "shared_methods.hpp"
 
   protected:

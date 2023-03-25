@@ -115,6 +115,16 @@ namespace Rice::detail
   inline T* unwrap(VALUE value, rb_data_type_t* rb_type)
   {
     Wrapper* wrapper = getWrapper(value, rb_type);
+
+    if (wrapper == nullptr)
+    {
+      std::string message = "Wrapped C++ object is nil. Did you override " + 
+                            std::string(detail::protect(rb_obj_classname, value)) + 
+                            "#initialize and forget to call super?";
+
+      throw std::runtime_error(message);
+    }
+
     return static_cast<T*>(wrapper->get());
   }
 
@@ -122,6 +132,16 @@ namespace Rice::detail
   {
     // Direct access to avoid any type checking
     Wrapper* wrapper = (Wrapper*)RTYPEDDATA_DATA(value);
+
+    if (wrapper == nullptr)
+    {
+      std::string message = "Wrapped C++ object is nil. Did you override " +
+                            std::string(detail::protect(rb_obj_classname, value)) +
+                            "#initialize and forget to call super?";
+
+      throw std::runtime_error(message);
+    }
+
     return wrapper->get();
   }
 

@@ -246,6 +246,16 @@ namespace {
   {
   public:
     BaseClass() {}
+
+    bool some_method()
+    {
+      return true;
+    }
+
+    bool another_method()
+    {
+      return true;
+    }
   };
 }
 
@@ -253,15 +263,50 @@ TESTCASE(subclassing)
 {
   Module m = define_module("Testing");
   define_class_under<BaseClass>(m, "BaseClass").
-    define_constructor(Constructor<BaseClass>());
+    define_constructor(Constructor<BaseClass>()).
+    define_method("some_method", &BaseClass::some_method).
+    define_method("another_method", &BaseClass::another_method);
 
-  // Not sure how to make this a true failure case. If the subclassing
-  // doesn't work, Ruby will throw an error:
-  //
-  //    in `new': wrong instance allocation
-  //
-  m.instance_eval("class NewClass < Testing::BaseClass; end;");
-  m.instance_eval("n = NewClass.new");
+    std::string code = R"(class ChildClass < BaseClass
+                            def child_method
+                              false
+                            end
+
+                            def another_method
+                              super
+                            end
+                          end
+
+                          instance = ChildClass.new
+                          instance.some_method
+                          instance.child_method
+                          instance.another_method)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
+}
+
+TESTCASE(subclass_override_initializer)
+{
+  Module m = define_module("Testing");
+  define_class_under<BaseClass>(m, "BaseClass").
+    define_constructor(Constructor<BaseClass>()).
+    define_method("some_method", &BaseClass::some_method);
+
+  std::string code = R"(class ChildClass < BaseClass
+                          def initialize
+                            # Note NO super call so class in incorrectly initialized
+                          end
+                        end
+
+                        instance = ChildClass.new
+                        instance.some_method)";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval(code),
+    ASSERT_EQUAL("Wrapped C++ object is nil. Did you override Testing::ChildClass#initialize and forget to call super?", ex.what())
+  );
 }
 
 namespace {
@@ -277,7 +322,6 @@ namespace {
       with_reference_defaults_str = str;
     }
   };
-
 }
 
 TESTCASE(define_method_works_with_reference_const_default_values)
@@ -318,7 +362,7 @@ TESTCASE(define_singleton_method_returning_reference)
 
   Module m(anonymous_module());
 
-  Object result = m.instance_eval("RefTest.get_reference");
+  Object result = m.module_eval("RefTest.get_reference");
   ASSERT_EQUAL(result, String("foo"));
 }
 
@@ -400,18 +444,18 @@ TESTCASE(not_defined)
 TESTCASE(no_super_in_constructor_still_works)
 {
   Module m = define_module("TestingModule");
-  Object handler = m.instance_eval("@handler = ListenerHandler.new");
+  Object handler = m.module_eval("@handler = ListenerHandler.new");
 
   ASSERT_EQUAL(INT2NUM(0), handler.call("listener_count").value());
 
   // Because of this, there's a constructor but no super call
-  m.instance_eval("class MyListener < Listener; def initialize; @val = 10; end; end;");
-  m.instance_eval("@handler.add_listener(MyListener.new)");
+  m.module_eval("class MyListener < Listener; def initialize; @val = 10; end; end;");
+  m.module_eval("@handler.add_listener(MyListener.new)");
 
   ASSERT_EQUAL(INT2NUM(1), handler.call("listener_count").value());
   ASSERT_EQUAL(INT2NUM(4), handler.call("process").value());
 
-  m.instance_eval("@handler.add_listener(MyListener.new)");
+  m.module_eval("@handler.add_listener(MyListener.new)");
 
   ASSERT_EQUAL(INT2NUM(2), handler.call("listener_count").value());
   ASSERT_EQUAL(INT2NUM(8), handler.call("process").value());
