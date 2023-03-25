@@ -54,21 +54,6 @@ namespace Rice
           // been included by the user
           return String(result.str());
         })
-      .define_method("<=>", [](Enum_T& self, Enum_T& other)
-        {
-          if (self == other)
-          {
-            return 0;
-          }
-          else if (self < other)
-          {
-            return -1;
-          }
-          else
-          {
-            return 1;
-          }
-        })
       .define_method("hash", [](Enum_T& self) ->  Underlying_T
         {
           return (Underlying_T)self;
@@ -82,10 +67,26 @@ namespace Rice
     rb_define_alias(klass, "===", "eql?");
 
     // Add comparable support
-    klass.include_module(rb_mComparable);
+    klass.include_module(rb_mComparable)
+      .define_method("<=>", [](Enum_T& self, Enum_T& other)
+    {
+      if (self == other)
+      {
+        return 0;
+      }
+      else if (self < other)
+      {
+        return -1;
+      }
+      else
+      {
+        return 1;
+      }
+    });
 
-    // Singleton methods
-    klass.define_singleton_method("each", [](VALUE ruby_klass) -> Object
+    // Add enumerable support
+    klass.include_module(rb_mEnumerable)
+      .define_singleton_method("each", [](VALUE ruby_klass) -> Object
         {
           Class enumClass(ruby_klass);
 
@@ -103,7 +104,7 @@ namespace Rice
 
           return enumClass;
       })
-      .define_singleton_method("from_int", [](VALUE klass, int32_t value)
+      .define_singleton_method("from_int", [](VALUE ruby_klass, int32_t value) -> Object
       {
           auto iter = Enum<Enum_T>::valuesToNames_.find((Enum_T)value);
           if (iter == Enum<Enum_T>::valuesToNames_.end())
@@ -112,7 +113,7 @@ namespace Rice
           }
 
           std::string name = iter->second;
-          return Class(klass).const_get(name);
+          return Object(ruby_klass).const_get(name);
       });
   }
 
