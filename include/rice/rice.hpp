@@ -598,206 +598,6 @@ namespace Rice::detail
   }
 }
 
-// =========   Wrapper.hpp   =========
-
-
-namespace Rice
-{
-namespace detail
-{
-
-class Wrapper
-{
-public:
-  virtual ~Wrapper() = default;
-  virtual void* get() = 0;
-
-  void ruby_mark();
-  void addKeepAlive(VALUE value);
-
-private:
-  // We use a vector for speed and memory locality versus a set which does
-  // not scale well when getting to tens of thousands of objects (not expecting
-  // that to happen...but just in case)
-  std::vector<VALUE> keepAlive_;
-};
-
-template <typename T, typename Wrapper_T = void>
-VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner);
-
-template <typename T, typename Wrapper_T = void>
-VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner);
-
-template <typename T>
-T* unwrap(VALUE value, rb_data_type_t* rb_type);
-
-Wrapper* getWrapper(VALUE value, rb_data_type_t* rb_type);
-
-void* unwrap(VALUE value);
-
-template <typename T>
-void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner);
-
-Wrapper* getWrapper(VALUE value);
-
-} // namespace detail
-} // namespace Rice
-
-
-// ---------   Wrapper.ipp   ---------
-#include <memory>
-
-namespace Rice::detail
-{
-  inline void Wrapper::ruby_mark()
-  {
-    for (VALUE value : this->keepAlive_)
-    {
-      rb_gc_mark(value);
-    }
-  }
-
-  inline void Wrapper::addKeepAlive(VALUE value)
-  {
-    this->keepAlive_.push_back(value);
-  }
-
-  template <typename T>
-  class WrapperValue : public Wrapper
-  {
-  public:
-    WrapperValue(T& data): data_(std::move(data))
-    {
-    }
-
-    void* get() override
-    {
-      return (void*)&this->data_;
-    }
-
-  private:
-    T data_;
-  };
-
-  template <typename T>
-  class WrapperReference : public Wrapper
-  {
-  public:
-    WrapperReference(const T& data): data_(data)
-    {
-    }
-
-    void* get() override
-    {
-      return (void*)&this->data_;
-    }
-
-  private:
-    const T& data_;
-  };
-
-  template <typename T>
-  class WrapperPointer : public Wrapper
-  {
-  public:
-    WrapperPointer(T* data, bool isOwner) : data_(data), isOwner_(isOwner)
-    {
-    }
-
-    ~WrapperPointer()
-    {
-      if (this->isOwner_)
-      {
-        delete this->data_;
-      }
-    }
-
-    void* get() override
-    {
-      return (void*)this->data_;
-    }
-
-  private:
-    T* data_ = nullptr;
-    bool isOwner_ = false;
-  };
-
-  // ---- Helper Functions -------
-  template <typename T, typename Wrapper_T>
-  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner)
-  {
-    if constexpr (!std::is_void_v<Wrapper_T>)
-    {
-      Wrapper_T* wrapper = new Wrapper_T(data);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
-    }
-    else if (isOwner)
-    {
-      WrapperValue<T>* wrapper = new WrapperValue<T>(data);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
-    }
-    else
-    {
-      WrapperReference<T>* wrapper = new WrapperReference<T>(data);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
-    }
-  };
-
-  template <typename T, typename Wrapper_T>
-  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner)
-  {
-    if constexpr (!std::is_void_v<Wrapper_T>)
-    {
-      Wrapper_T* wrapper = new Wrapper_T(data);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
-    }
-    else
-    {
-      WrapperPointer<T>* wrapper = new WrapperPointer<T>(data, isOwner);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
-    }
-  };
-
-  template <typename T>
-  inline T* unwrap(VALUE value, rb_data_type_t* rb_type)
-  {
-    Wrapper* wrapper = getWrapper(value, rb_type);
-    return static_cast<T*>(wrapper->get());
-  }
-
-  inline void* unwrap(VALUE value)
-  {
-    // Direct access to avoid any type checking
-    Wrapper* wrapper = (Wrapper*)RTYPEDDATA_DATA(value);
-    return wrapper->get();
-  }
-
-  inline Wrapper* getWrapper(VALUE value, rb_data_type_t* rb_type)
-  {
-    Wrapper* wrapper = nullptr;
-    TypedData_Get_Struct(value, Wrapper, rb_type, wrapper);
-    return wrapper;
-  }
-
-  template <typename T>
-  inline void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner)
-  {
-    WrapperPointer<T>* wrapper = nullptr;
-    TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
-    delete wrapper;
-
-    wrapper = new WrapperPointer<T>(data, true);
-    RTYPEDDATA_DATA(value) = wrapper;
-  }
-
-  inline Wrapper* getWrapper(VALUE value)
-  {
-    return static_cast<Wrapper*>(RTYPEDDATA_DATA(value));
-  }
-} // namespace
-
-
-
 // =========   default_allocation_func.hpp   =========
 
 namespace Rice::detail
@@ -1021,6 +821,226 @@ namespace Rice
     return rubyFunction();
   }
 }
+
+// =========   Wrapper.hpp   =========
+
+
+namespace Rice
+{
+namespace detail
+{
+
+class Wrapper
+{
+public:
+  virtual ~Wrapper() = default;
+  virtual void* get() = 0;
+
+  void ruby_mark();
+  void addKeepAlive(VALUE value);
+
+private:
+  // We use a vector for speed and memory locality versus a set which does
+  // not scale well when getting to tens of thousands of objects (not expecting
+  // that to happen...but just in case)
+  std::vector<VALUE> keepAlive_;
+};
+
+template <typename T, typename Wrapper_T = void>
+VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner);
+
+template <typename T, typename Wrapper_T = void>
+VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner);
+
+template <typename T>
+T* unwrap(VALUE value, rb_data_type_t* rb_type);
+
+Wrapper* getWrapper(VALUE value, rb_data_type_t* rb_type);
+
+void* unwrap(VALUE value);
+
+template <typename T>
+void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner);
+
+Wrapper* getWrapper(VALUE value);
+
+} // namespace detail
+} // namespace Rice
+
+
+// ---------   Wrapper.ipp   ---------
+#include <memory>
+
+namespace Rice::detail
+{
+  inline void Wrapper::ruby_mark()
+  {
+    for (VALUE value : this->keepAlive_)
+    {
+      rb_gc_mark(value);
+    }
+  }
+
+  inline void Wrapper::addKeepAlive(VALUE value)
+  {
+    this->keepAlive_.push_back(value);
+  }
+
+  template <typename T>
+  class WrapperValue : public Wrapper
+  {
+  public:
+    WrapperValue(T& data): data_(std::move(data))
+    {
+    }
+
+    void* get() override
+    {
+      return (void*)&this->data_;
+    }
+
+  private:
+    T data_;
+  };
+
+  template <typename T>
+  class WrapperReference : public Wrapper
+  {
+  public:
+    WrapperReference(const T& data): data_(data)
+    {
+    }
+
+    void* get() override
+    {
+      return (void*)&this->data_;
+    }
+
+  private:
+    const T& data_;
+  };
+
+  template <typename T>
+  class WrapperPointer : public Wrapper
+  {
+  public:
+    WrapperPointer(T* data, bool isOwner) : data_(data), isOwner_(isOwner)
+    {
+    }
+
+    ~WrapperPointer()
+    {
+      if (this->isOwner_)
+      {
+        delete this->data_;
+      }
+    }
+
+    void* get() override
+    {
+      return (void*)this->data_;
+    }
+
+  private:
+    T* data_ = nullptr;
+    bool isOwner_ = false;
+  };
+
+  // ---- Helper Functions -------
+  template <typename T, typename Wrapper_T>
+  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner)
+  {
+    if constexpr (!std::is_void_v<Wrapper_T>)
+    {
+      Wrapper_T* wrapper = new Wrapper_T(data);
+      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+    }
+    else if (isOwner)
+    {
+      WrapperValue<T>* wrapper = new WrapperValue<T>(data);
+      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+    }
+    else
+    {
+      WrapperReference<T>* wrapper = new WrapperReference<T>(data);
+      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+    }
+  };
+
+  template <typename T, typename Wrapper_T>
+  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner)
+  {
+    if constexpr (!std::is_void_v<Wrapper_T>)
+    {
+      Wrapper_T* wrapper = new Wrapper_T(data);
+      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+    }
+    else
+    {
+      WrapperPointer<T>* wrapper = new WrapperPointer<T>(data, isOwner);
+      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+    }
+  };
+
+  template <typename T>
+  inline T* unwrap(VALUE value, rb_data_type_t* rb_type)
+  {
+    Wrapper* wrapper = getWrapper(value, rb_type);
+
+    if (wrapper == nullptr)
+    {
+      std::string message = "Wrapped C++ object is nil. Did you override " + 
+                            std::string(detail::protect(rb_obj_classname, value)) + 
+                            "#initialize and forget to call super?";
+
+      throw std::runtime_error(message);
+    }
+
+    return static_cast<T*>(wrapper->get());
+  }
+
+  inline void* unwrap(VALUE value)
+  {
+    // Direct access to avoid any type checking
+    Wrapper* wrapper = (Wrapper*)RTYPEDDATA_DATA(value);
+
+    if (wrapper == nullptr)
+    {
+      std::string message = "Wrapped C++ object is nil. Did you override " +
+                            std::string(detail::protect(rb_obj_classname, value)) +
+                            "#initialize and forget to call super?";
+
+      throw std::runtime_error(message);
+    }
+
+    return wrapper->get();
+  }
+
+  inline Wrapper* getWrapper(VALUE value, rb_data_type_t* rb_type)
+  {
+    Wrapper* wrapper = nullptr;
+    TypedData_Get_Struct(value, Wrapper, rb_type, wrapper);
+    return wrapper;
+  }
+
+  template <typename T>
+  inline void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner)
+  {
+    WrapperPointer<T>* wrapper = nullptr;
+    TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
+    delete wrapper;
+
+    wrapper = new WrapperPointer<T>(data, true);
+    RTYPEDDATA_DATA(value) = wrapper;
+  }
+
+  inline Wrapper* getWrapper(VALUE value)
+  {
+    return static_cast<Wrapper*>(RTYPEDDATA_DATA(value));
+  }
+} // namespace
+
+
 
 // =========   Return.hpp   =========
 
@@ -5860,6 +5880,13 @@ namespace Rice
     template<typename Exception_T, typename Functor_T>
     Module& add_handler(Functor_T functor);
 
+    //! Evaluate the given string in the context of the module.
+    /*! This is equivalant to calling obj.module_eval(s) from inside the
+     *  interpreter.
+     *  \return the result of the expression.
+     */
+    Object module_eval(String const& s);
+
     // Include these methods to call methods from Module but return
 // an instance of the current classes. This is an alternative to
 // using CRTP.
@@ -7907,21 +7934,6 @@ namespace Rice
           // been included by the user
           return String(result.str());
         })
-      .define_method("<=>", [](Enum_T& self, Enum_T& other)
-        {
-          if (self == other)
-          {
-            return 0;
-          }
-          else if (self < other)
-          {
-            return -1;
-          }
-          else
-          {
-            return 1;
-          }
-        })
       .define_method("hash", [](Enum_T& self) ->  Underlying_T
         {
           return (Underlying_T)self;
@@ -7935,19 +7947,44 @@ namespace Rice
     rb_define_alias(klass, "===", "eql?");
 
     // Add comparable support
-    klass.include_module(rb_mComparable);
+    klass.include_module(rb_mComparable)
+      .define_method("<=>", [](Enum_T& self, Enum_T& other)
+    {
+      if (self == other)
+      {
+        return 0;
+      }
+      else if (self < other)
+      {
+        return -1;
+      }
+      else
+      {
+        return 1;
+      }
+    });
 
-    // Singleton methods
-    klass.define_singleton_method("each", [](VALUE klass)
+    // Add enumerable support
+    klass.include_module(rb_mEnumerable)
+      .define_singleton_method("each", [](VALUE ruby_klass) -> Object
         {
+          Class enumClass(ruby_klass);
+
+          if (!rb_block_given_p())
+          {
+            return enumClass.call("to_enum");
+          }
+
           for (auto& pair : valuesToNames_)
           {
             Enum_T enumValue = pair.first;
             VALUE value = detail::To_Ruby<Enum_T>().convert(enumValue);
             detail::protect(rb_yield, value);
           }
+
+          return enumClass;
       })
-      .define_singleton_method("from_int", [](VALUE klass, int32_t value)
+      .define_singleton_method("from_int", [](VALUE ruby_klass, int32_t value) -> Object
       {
           auto iter = Enum<Enum_T>::valuesToNames_.find((Enum_T)value);
           if (iter == Enum<Enum_T>::valuesToNames_.end())
@@ -7956,7 +7993,7 @@ namespace Rice
           }
 
           std::string name = iter->second;
-          return Class(klass).const_get(name);
+          return Object(ruby_klass).const_get(name);
       });
   }
 
@@ -8052,6 +8089,12 @@ namespace Rice
   inline Class Module::singleton_class() const
   {
     return CLASS_OF(value());
+  }
+
+  inline Object Module::module_eval(String const& s)
+  {
+    const VALUE argv[] = { s.value() };
+    return detail::protect(rb_mod_module_eval, 1, &argv[0], this->value());
   }
 }
 
