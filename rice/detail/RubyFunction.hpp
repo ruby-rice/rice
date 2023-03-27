@@ -29,14 +29,6 @@ namespace Rice::detail
   template<typename Function_T, typename ...Arg_Ts>
   auto protect(Function_T func, Arg_Ts...args);
 }
-
-namespace Rice
-{
-  template<typename Function_T, typename ...Arg_Ts>
-  [[deprecated("Please use detail::protect")]]
-  auto protect(Function_T func, Arg_Ts...args);
-}
-
 #include "RubyFunction.ipp"
 
 #endif // Rice__detail__ruby_function__hpp_

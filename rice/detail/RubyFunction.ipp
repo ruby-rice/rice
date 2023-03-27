@@ -78,13 +78,3 @@ namespace Rice::detail
     return rubyFunction();
   }
 }
-
-namespace Rice
-{
-  template<typename Function_T, typename ...Arg_Ts>
-  auto protect(Function_T func, Arg_Ts...args)
-  {
-    auto rubyFunction = detail::RubyFunction<Function_T, Arg_Ts...>(func, std::forward<Arg_Ts>(args)...);
-    return rubyFunction();
-  }
-}

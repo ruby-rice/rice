@@ -48,11 +48,6 @@ namespace Rice
      */
     virtual Data_Type & operator=(Module const & klass);
 
-    //! Define a constructor for the class.
-    template<typename Constructor_T>
-    [[deprecated("Please call define_constructor with Arg parameters")]]
-    Data_Type<T> & define_constructor(Constructor_T constructor, MethodInfo * methodInfo);
-
     /*! Creates a singleton method allocate and an instance method called
      *  initialize which together create a new instance of the class.  The
      *  allocate method allocates memory for the object reference and the
