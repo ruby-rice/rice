@@ -1,3 +1,11 @@
+## 4.1
+
+* Add support for stl::map and stl::unordered_map
+* Enable calling of C++ member functions that are defined in ancestor classes
+* Internal improvements to enable calling more ruby api methods including those with a variable number of parameters
+* Remove deprecated APIs
+* Deprecate support for Ruby 2.5 and 2.6 which are no longer supported
+
 ## 4.0
 
 Rice 4.0 is a significant change from 3.0 and has multiple backwards-incompatible
