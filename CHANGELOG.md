@@ -5,6 +5,7 @@
 * Internal improvements to enable calling more ruby api methods including those with a variable number of parameters
 * Remove deprecated APIs
 * Deprecate support for Ruby 2.5 and 2.6 which are no longer supported
+* Added support for building tests with CMake
 
 ## 4.0
 
