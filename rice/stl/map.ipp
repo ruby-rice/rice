@@ -180,8 +180,8 @@ namespace Rice
               {
                 VALUE key = detail::To_Ruby<Key_T>().convert(pair.first);
                 VALUE value = detail::To_Ruby<Mapped_T>().convert(pair.second);
-                VALUE result = rb_ary_new3(2, key, value);
-                rb_yield(result);
+                const VALUE argv[] = { key, value };
+                detail::protect(rb_yield_values2, 2, argv);
               }
               return self;
             });
@@ -322,7 +322,10 @@ namespace Rice
       {
         std::map<T, U> result;
         VALUE user_data = (VALUE)(&result);
-        detail::protect<void>(rb_hash_foreach, value, convertPair, user_data);
+
+        // MSVC needs help here, but g++ does not
+        using Rb_Hash_ForEach_T = void(*)(VALUE, int(*)(VALUE, VALUE, VALUE), VALUE);
+        detail::protect<Rb_Hash_ForEach_T>(rb_hash_foreach, value, convertPair, user_data);
 
         return result;
       }
