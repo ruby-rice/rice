@@ -76,7 +76,12 @@ namespace Rice
 
   inline int Object::rb_type() const
   {
-    return ::rb_type(*this);
+    return ::rb_type(this->value());
+  }
+
+  inline VALUE Object::object_id() const
+  {
+    return detail::protect(rb_obj_id, this->value());
   }
 
   inline bool Object::is_a(Object klass) const

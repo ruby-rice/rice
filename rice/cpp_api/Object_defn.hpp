@@ -111,6 +111,9 @@ namespace Rice
      */
     int rb_type() const;
 
+    //! Return the object's id
+    VALUE object_id() const;
+
     //! Determine whether the object is an instance of a class/module.
     /*! \param klass a class or module.
      *  \return true if the object is an instance of the given
@@ -150,16 +153,13 @@ namespace Rice
      *  a Ruby type if necessary.
      */
     template<typename T>
-    void iv_set(
-      Identifier name,
-      T const& value);
+    void iv_set(Identifier name, T const& value);
 
     //! Get the value of an instance variable.
     /*! \param name the name of the instance variable to get
      *  \return the value of the instance variable
      */
-    Object iv_get(
-      Identifier name) const;
+    Object iv_get(Identifier name) const;
 
     //! Get the value of an instance variable, but don't warn if it is
     //unset.
