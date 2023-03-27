@@ -182,6 +182,12 @@ namespace Rice::detail
     {
     }
     
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_DATA &&
+        Data_Type<T>::is_descendant(value);
+    }
+
     T convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
@@ -210,6 +216,12 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_DATA &&
+        Data_Type<T>::is_descendant(value);
+    }
+
     T& convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
@@ -232,6 +244,12 @@ namespace Rice::detail
   class From_Ruby<T*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_DATA &&
+        Data_Type<T>::is_descendant(value);
+    }
+
     T* convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;

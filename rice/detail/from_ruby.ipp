@@ -22,6 +22,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     short convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -48,6 +53,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     short& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -70,6 +80,11 @@ namespace Rice::detail
   class From_Ruby<short*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     short* convert(VALUE value)
     {
       if (value == Qnil)
@@ -98,6 +113,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     int convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -124,6 +144,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     int& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -146,6 +171,11 @@ namespace Rice::detail
   class From_Ruby<int*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     int* convert(VALUE value)
     {
       if (value == Qnil)
@@ -174,6 +204,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     long convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -200,6 +235,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     long& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -222,6 +262,11 @@ namespace Rice::detail
   class From_Ruby<long*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     long* convert(VALUE value)
     {
       if (value == Qnil)
@@ -250,6 +295,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     long long convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -276,6 +326,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     long long& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -298,6 +353,11 @@ namespace Rice::detail
   class From_Ruby<long long*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     long long* convert(VALUE value)
     {
       if (value == Qnil)
@@ -326,6 +386,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned short convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -352,6 +417,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned short& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -374,6 +444,11 @@ namespace Rice::detail
   class From_Ruby<unsigned short*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned short* convert(VALUE value)
     {
       if (value == Qnil)
@@ -402,6 +477,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned int convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -428,6 +508,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned int& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -450,6 +535,11 @@ namespace Rice::detail
   class From_Ruby<unsigned int*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned int* convert(VALUE value)
     {
       if (value == Qnil)
@@ -476,6 +566,11 @@ namespace Rice::detail
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
+    }
+
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
     }
 
     unsigned long convert(VALUE value)
@@ -508,6 +603,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned long& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -530,6 +630,11 @@ namespace Rice::detail
   class From_Ruby<unsigned long*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned long* convert(VALUE value)
     {
       if (value == Qnil)
@@ -556,6 +661,11 @@ namespace Rice::detail
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
+    }
+
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
     }
 
     unsigned long long convert(VALUE value)
@@ -588,6 +698,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned long long& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -610,6 +725,11 @@ namespace Rice::detail
   class From_Ruby<unsigned long long*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned long long* convert(VALUE value)
     {
       if (value == Qnil)
@@ -638,6 +758,14 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      ruby_value_type ruby_type = rb_type(value);
+      return ruby_type == RUBY_T_TRUE ||
+            ruby_type == RUBY_T_FALSE ||
+            ruby_type == RUBY_T_NIL;
+    }
+
     bool convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -664,6 +792,14 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      ruby_value_type ruby_type = rb_type(value);
+      return ruby_type == RUBY_T_TRUE ||
+             ruby_type == RUBY_T_FALSE ||
+             ruby_type == RUBY_T_NIL;
+    }
+
     bool& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -686,6 +822,14 @@ namespace Rice::detail
   class From_Ruby<bool*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      ruby_value_type ruby_type = rb_type(value);
+      return ruby_type == RUBY_T_TRUE ||
+             ruby_type == RUBY_T_FALSE ||
+             ruby_type == RUBY_T_NIL;
+    }
+
     bool* convert(VALUE value)
     {
       if (value == Qnil)
@@ -744,6 +888,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
     char convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -770,6 +919,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
     char& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -792,6 +946,11 @@ namespace Rice::detail
   class From_Ruby<char*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
     char* convert(VALUE value)
     {
       if (value == Qnil)
@@ -811,6 +970,11 @@ namespace Rice::detail
   class From_Ruby<char const*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
     char const* convert(VALUE value)
     {
       if (value == Qnil)
@@ -834,6 +998,11 @@ namespace Rice::detail
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
+    }
+
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
     }
 
     unsigned char convert(VALUE value)
@@ -863,6 +1032,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
     signed char convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -888,6 +1062,11 @@ namespace Rice::detail
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
+    }
+
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FLOAT;
     }
 
     double convert(VALUE value)
@@ -916,6 +1095,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FLOAT;
+    }
+
     double& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -938,6 +1122,11 @@ namespace Rice::detail
   class From_Ruby<double*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FLOAT;
+    }
+
     double* convert(VALUE value)
     {
       if (value == Qnil)
@@ -966,6 +1155,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FLOAT;
+    }
+
     float convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -992,6 +1186,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FLOAT;
+    }
+
     float& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1014,6 +1213,11 @@ namespace Rice::detail
   class From_Ruby<float*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FLOAT;
+    }
+
     float* convert(VALUE value)
     {
       if (value == Qnil)
