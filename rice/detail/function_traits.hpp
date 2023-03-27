@@ -10,29 +10,9 @@ namespace Rice::detail
   template<typename Function_T>
   struct function_traits;
 
-  // Base definition that support functors and lambdas
-  template<class Function_T>
-  struct function_traits
-  {
-  private:
-    using functor_t = function_traits<decltype(&Function_T::operator())>;
-
-  public:
-    using arg_types = typename functor_t::arg_types;
-
-    static constexpr std::size_t arity = functor_t::arity - 1;
-
-    template<std::size_t N>
-    using nth_arg = typename std::tuple_element<N, typename functor_t::arg_types>::type;
-
-    using return_type = typename functor_t::return_type;
-    using class_type = std::nullptr_t;
-  };
-
-  // Specialization for functions, member functions and static member functions
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
   struct function_traits<Return_T(Class_T, Arg_Ts...)>
-  {
+    {
     using arg_types = std::tuple<Arg_Ts...>;
 
     static constexpr std::size_t arity = sizeof...(Arg_Ts);
@@ -44,39 +24,64 @@ namespace Rice::detail
     using class_type = Class_T;
   };
 
-  // Free functions and static member functions passed by pointer or reference
+  // Functors and lambdas with operator()
+  template<typename Function_T>
+  struct function_traits : public function_traits<decltype(&Function_T::operator())>
+  {
+  private:
+    using functor_t = function_traits<decltype(&Function_T::operator())>;
+
+  public:
+    using arg_types = typename functor_t::arg_types;
+    static constexpr std::size_t arity = functor_t::arity - 1;
+    using class_type = std::nullptr_t;
+  };
+
+  // C functions and static member functions passed by pointer
   template<typename Return_T, typename ...Arg_Ts>
   struct function_traits<Return_T(*)(Arg_Ts...)> : public function_traits<Return_T(std::nullptr_t, Arg_Ts...)>
   {
   };
   
+  // C functions passed by pointer that take one or more defined parameter than a variable 
+  // number of parameters (the second ...)
+  template<typename Return_T, typename ...Arg_Ts>
+  struct function_traits<Return_T(*)(Arg_Ts..., ...)> : public function_traits<Return_T(std::nullptr_t, Arg_Ts...)>
+  {
+  };
+
+  // C Functions or static member functions passed by reference
   template<typename Return_T, typename ...Arg_Ts>
   struct function_traits<Return_T(&)(Arg_Ts...)> : public function_traits<Return_T(std::nullptr_t, Arg_Ts...)>
   {
   };
 
-  // Member Functions
+  // Member Functions on C++ classes
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
   struct function_traits<Return_T(Class_T::*)(Arg_Ts...)> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
   {
   };
 
+  // const member Functions on C++ classes
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
   struct function_traits<Return_T(Class_T::*)(Arg_Ts...) const> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
   {
   };
 
+  // noexcept member Functions on C++ classes
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
   struct function_traits<Return_T(Class_T::*)(Arg_Ts...) noexcept> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
   {
   };
 
+
+  // const noexcept member Functions on C++ classes
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
   struct function_traits<Return_T(Class_T::*)(Arg_Ts...) const noexcept> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
   {
   };
 
-  // Functors and lambdas
+  /*// Functors and lambdas
   template<class Function_T>
   struct function_traits<Function_T&> : public function_traits<Function_T>
   {
@@ -85,7 +90,7 @@ namespace Rice::detail
   template<class Function_T>
   struct function_traits<Function_T&&> : public function_traits<Function_T>
   {
-  };
+  };*/
 
   // --------------   Method Traits --------------
   // Declare struct

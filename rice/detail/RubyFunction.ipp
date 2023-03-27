@@ -5,14 +5,14 @@
 
 namespace Rice::detail
 {
-  template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  inline RubyFunction<Function_T, Return_T, Arg_Ts...>::RubyFunction(Function_T func, const Arg_Ts&... args)
+  template<typename Function_T, typename...Arg_Ts>
+  inline RubyFunction<Function_T, Arg_Ts...>::RubyFunction(Function_T func, const Arg_Ts&... args)
     : func_(func), args_(std::forward_as_tuple(args...))
   {
   }
 
-  template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  inline Return_T RubyFunction<Function_T, Return_T, Arg_Ts...>::operator()()
+  template<typename Function_T, typename...Arg_Ts>
+  inline typename RubyFunction<Function_T, Arg_Ts...>::Return_T RubyFunction<Function_T, Arg_Ts...>::operator()()
   {
     const int TAG_RAISE = 0x6; // From Ruby header files
     int state = 0;
@@ -27,7 +27,7 @@ namespace Rice::detail
     thread_local std::any result;
 
     // Callback that will invoke the Ruby function
-    using Functor_T = RubyFunction<Function_T, Return_T, Arg_Ts...>;
+    using Functor_T = RubyFunction<Function_T, Arg_Ts...>;
     auto callback = [](VALUE value)
     {
       Functor_T* functor = (Functor_T*)value;
@@ -71,22 +71,20 @@ namespace Rice::detail
   }
     
   // Create a functor for calling a Ruby function and define some aliases for readability.
-  template<typename Return_T, typename ...Arg_Ts>
-  inline Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args)
+  template<typename Function_T, typename ...Arg_Ts>
+  auto protect(Function_T func, Arg_Ts...args)
   {
-    using Function_T = Return_T(*)(Arg_Ts...);
-    auto rubyFunction = RubyFunction<Function_T, Return_T, Arg_Ts...>(func, args...);
+    auto rubyFunction = RubyFunction<Function_T, Arg_Ts...>(func, std::forward<Arg_Ts>(args)...);
     return rubyFunction();
   }
 }
 
 namespace Rice
 {
-  template<typename Return_T, typename ...Arg_Ts>
-  inline Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args)
+  template<typename Function_T, typename ...Arg_Ts>
+  auto protect(Function_T func, Arg_Ts...args)
   {
-    using Function_T = Return_T(*)(Arg_Ts...);
-    auto rubyFunction = detail::RubyFunction<Function_T, Return_T, Arg_Ts...>(func, args...);
+    auto rubyFunction = detail::RubyFunction<Function_T, Arg_Ts...>(func, std::forward<Arg_Ts>(args)...);
     return rubyFunction();
   }
 }

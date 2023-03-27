@@ -11,9 +11,12 @@ namespace Rice::detail
      instance of a Ruby_Function. That instance then in turn calls the original
      Ruby method passing along its required arguments. */
 
-  template<typename Function_T, typename Return_T, typename...Arg_Ts>
+  template<typename Function_T, typename...Arg_Ts>
   class RubyFunction
   {
+  public:
+    using Return_T = typename function_traits<Function_T>::return_type;
+
   public:
     RubyFunction(Function_T func, const Arg_Ts&... args);
     Return_T operator()();
@@ -23,15 +26,15 @@ namespace Rice::detail
     std::tuple<Arg_Ts...> args_;
   };
 
-  template<typename Return_T, typename ...Arg_Ts>
-  Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args);
+  template<typename Function_T, typename ...Arg_Ts>
+  auto protect(Function_T func, Arg_Ts...args);
 }
 
 namespace Rice
 {
-  template<typename Return_T, typename ...Arg_Ts>
+  template<typename Function_T, typename ...Arg_Ts>
   [[deprecated("Please use detail::protect")]]
-  Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args);
+  auto protect(Function_T func, Arg_Ts...args);
 }
 
 #include "RubyFunction.ipp"
