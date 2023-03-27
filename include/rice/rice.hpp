@@ -164,29 +164,9 @@ namespace Rice::detail
   template<typename Function_T>
   struct function_traits;
 
-  // Base definition that support functors and lambdas
-  template<class Function_T>
-  struct function_traits
-  {
-  private:
-    using functor_t = function_traits<decltype(&Function_T::operator())>;
-
-  public:
-    using arg_types = typename functor_t::arg_types;
-
-    static constexpr std::size_t arity = functor_t::arity - 1;
-
-    template<std::size_t N>
-    using nth_arg = typename std::tuple_element<N, typename functor_t::arg_types>::type;
-
-    using return_type = typename functor_t::return_type;
-    using class_type = std::nullptr_t;
-  };
-
-  // Specialization for functions, member functions and static member functions
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
   struct function_traits<Return_T(Class_T, Arg_Ts...)>
-  {
+    {
     using arg_types = std::tuple<Arg_Ts...>;
 
     static constexpr std::size_t arity = sizeof...(Arg_Ts);
@@ -198,39 +178,64 @@ namespace Rice::detail
     using class_type = Class_T;
   };
 
-  // Free functions and static member functions passed by pointer or reference
+  // Functors and lambdas with operator()
+  template<typename Function_T>
+  struct function_traits : public function_traits<decltype(&Function_T::operator())>
+  {
+  private:
+    using functor_t = function_traits<decltype(&Function_T::operator())>;
+
+  public:
+    using arg_types = typename functor_t::arg_types;
+    static constexpr std::size_t arity = functor_t::arity - 1;
+    using class_type = std::nullptr_t;
+  };
+
+  // C functions and static member functions passed by pointer
   template<typename Return_T, typename ...Arg_Ts>
   struct function_traits<Return_T(*)(Arg_Ts...)> : public function_traits<Return_T(std::nullptr_t, Arg_Ts...)>
   {
   };
   
+  // C functions passed by pointer that take one or more defined parameter than a variable 
+  // number of parameters (the second ...)
+  template<typename Return_T, typename ...Arg_Ts>
+  struct function_traits<Return_T(*)(Arg_Ts..., ...)> : public function_traits<Return_T(std::nullptr_t, Arg_Ts...)>
+  {
+  };
+
+  // C Functions or static member functions passed by reference
   template<typename Return_T, typename ...Arg_Ts>
   struct function_traits<Return_T(&)(Arg_Ts...)> : public function_traits<Return_T(std::nullptr_t, Arg_Ts...)>
   {
   };
 
-  // Member Functions
+  // Member Functions on C++ classes
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
   struct function_traits<Return_T(Class_T::*)(Arg_Ts...)> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
   {
   };
 
+  // const member Functions on C++ classes
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
   struct function_traits<Return_T(Class_T::*)(Arg_Ts...) const> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
   {
   };
 
+  // noexcept member Functions on C++ classes
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
   struct function_traits<Return_T(Class_T::*)(Arg_Ts...) noexcept> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
   {
   };
 
+
+  // const noexcept member Functions on C++ classes
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
   struct function_traits<Return_T(Class_T::*)(Arg_Ts...) const noexcept> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
   {
   };
 
-  // Functors and lambdas
+  /*// Functors and lambdas
   template<class Function_T>
   struct function_traits<Function_T&> : public function_traits<Function_T>
   {
@@ -239,7 +244,7 @@ namespace Rice::detail
   template<class Function_T>
   struct function_traits<Function_T&&> : public function_traits<Function_T>
   {
-  };
+  };*/
 
   // --------------   Method Traits --------------
   // Declare struct
@@ -706,9 +711,12 @@ namespace Rice::detail
      instance of a Ruby_Function. That instance then in turn calls the original
      Ruby method passing along its required arguments. */
 
-  template<typename Function_T, typename Return_T, typename...Arg_Ts>
+  template<typename Function_T, typename...Arg_Ts>
   class RubyFunction
   {
+  public:
+    using Return_T = typename function_traits<Function_T>::return_type;
+
   public:
     RubyFunction(Function_T func, const Arg_Ts&... args);
     Return_T operator()();
@@ -718,17 +726,9 @@ namespace Rice::detail
     std::tuple<Arg_Ts...> args_;
   };
 
-  template<typename Return_T, typename ...Arg_Ts>
-  Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args);
+  template<typename Function_T, typename ...Arg_Ts>
+  auto protect(Function_T func, Arg_Ts...args);
 }
-
-namespace Rice
-{
-  template<typename Return_T, typename ...Arg_Ts>
-  [[deprecated("Please use detail::protect")]]
-  Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args);
-}
-
 
 // ---------   RubyFunction.ipp   ---------
 
@@ -736,14 +736,14 @@ namespace Rice
 
 namespace Rice::detail
 {
-  template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  inline RubyFunction<Function_T, Return_T, Arg_Ts...>::RubyFunction(Function_T func, const Arg_Ts&... args)
+  template<typename Function_T, typename...Arg_Ts>
+  inline RubyFunction<Function_T, Arg_Ts...>::RubyFunction(Function_T func, const Arg_Ts&... args)
     : func_(func), args_(std::forward_as_tuple(args...))
   {
   }
 
-  template<typename Function_T, typename Return_T, typename...Arg_Ts>
-  inline Return_T RubyFunction<Function_T, Return_T, Arg_Ts...>::operator()()
+  template<typename Function_T, typename...Arg_Ts>
+  inline typename RubyFunction<Function_T, Arg_Ts...>::Return_T RubyFunction<Function_T, Arg_Ts...>::operator()()
   {
     const int TAG_RAISE = 0x6; // From Ruby header files
     int state = 0;
@@ -758,7 +758,7 @@ namespace Rice::detail
     thread_local std::any result;
 
     // Callback that will invoke the Ruby function
-    using Functor_T = RubyFunction<Function_T, Return_T, Arg_Ts...>;
+    using Functor_T = RubyFunction<Function_T, Arg_Ts...>;
     auto callback = [](VALUE value)
     {
       Functor_T* functor = (Functor_T*)value;
@@ -802,22 +802,10 @@ namespace Rice::detail
   }
     
   // Create a functor for calling a Ruby function and define some aliases for readability.
-  template<typename Return_T, typename ...Arg_Ts>
-  inline Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args)
+  template<typename Function_T, typename ...Arg_Ts>
+  auto protect(Function_T func, Arg_Ts...args)
   {
-    using Function_T = Return_T(*)(Arg_Ts...);
-    auto rubyFunction = RubyFunction<Function_T, Return_T, Arg_Ts...>(func, args...);
-    return rubyFunction();
-  }
-}
-
-namespace Rice
-{
-  template<typename Return_T, typename ...Arg_Ts>
-  inline Return_T protect(Return_T(*func)(Arg_Ts...), Arg_Ts...args)
-  {
-    using Function_T = Return_T(*)(Arg_Ts...);
-    auto rubyFunction = detail::RubyFunction<Function_T, Return_T, Arg_Ts...>(func, args...);
+    auto rubyFunction = RubyFunction<Function_T, Arg_Ts...>(func, std::forward<Arg_Ts>(args)...);
     return rubyFunction();
   }
 }
@@ -6156,10 +6144,6 @@ namespace Rice::detail
 
 namespace Rice
 {
-  template<typename Function_T>
-  [[deprecated("Please call define_global_function with Arg parameters")]]
-  void define_global_function(char const * name, Function_T&& func, MethodInfo* arguments);
-
    //! Define an global function
    /*! The method's implementation can be any function or static member
     *  function.  A wrapper will be generated which will convert the arguments
@@ -6177,12 +6161,6 @@ namespace Rice
 
 
 // ---------   global_function.ipp   ---------
-
-template<typename Function_T>
-void Rice::define_global_function(char const * name, Function_T&& func, MethodInfo* methodInfo)
-{
-  Module(rb_mKernel).define_module_function(name, std::forward<Function_T>(func), methodInfo);
-}
 
 template<typename Function_T, typename...Arg_Ts>
 void Rice::define_global_function(char const * name, Function_T&& func, Arg_Ts const& ...args)
@@ -6745,11 +6723,6 @@ namespace Rice
      */
     virtual Data_Type & operator=(Module const & klass);
 
-    //! Define a constructor for the class.
-    template<typename Constructor_T>
-    [[deprecated("Please call define_constructor with Arg parameters")]]
-    Data_Type<T> & define_constructor(Constructor_T constructor, MethodInfo * methodInfo);
-
     /*! Creates a singleton method allocate and an instance method called
      *  initialize which together create a new instance of the class.  The
      *  allocate method allocates memory for the object reference and the
@@ -7148,19 +7121,6 @@ namespace Rice
   inline Data_Type<T>& Data_Type<T>::operator=(Module const& klass)
   {
     this->bind(klass);
-    return *this;
-  }
-
-  template<typename T>
-  template<typename Constructor_T>
-  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T, MethodInfo* methodInfo)
-  {
-    check_is_bound();
-
-    // Normal constructor pattern with new/initialize
-    detail::protect(rb_define_alloc_func, static_cast<VALUE>(*this), detail::default_allocation_func<T>);
-    this->define_method("initialize", &Constructor_T::construct, methodInfo);
-
     return *this;
   }
 
