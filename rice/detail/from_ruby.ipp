@@ -760,7 +760,7 @@ namespace Rice::detail
 
     bool is_convertible(VALUE value)
     {
-      ruby_value_type ruby_type = rb_type(value);
+      ruby_value_type ruby_type = (ruby_value_type)rb_type(value);
       return ruby_type == RUBY_T_TRUE ||
             ruby_type == RUBY_T_FALSE ||
             ruby_type == RUBY_T_NIL;
@@ -794,7 +794,7 @@ namespace Rice::detail
 
     bool is_convertible(VALUE value)
     {
-      ruby_value_type ruby_type = rb_type(value);
+      ruby_value_type ruby_type = (ruby_value_type)rb_type(value);
       return ruby_type == RUBY_T_TRUE ||
              ruby_type == RUBY_T_FALSE ||
              ruby_type == RUBY_T_NIL;
@@ -824,7 +824,7 @@ namespace Rice::detail
   public:
     bool is_convertible(VALUE value)
     {
-      ruby_value_type ruby_type = rb_type(value);
+      ruby_value_type ruby_type = (ruby_value_type)rb_type(value);
       return ruby_type == RUBY_T_TRUE ||
              ruby_type == RUBY_T_FALSE ||
              ruby_type == RUBY_T_NIL;
