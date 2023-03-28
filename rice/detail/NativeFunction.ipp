@@ -135,7 +135,7 @@ namespace Rice::detail
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::invokeNativeFunction(Arg_Ts& nativeArgs)
+  VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::invokeNativeFunction(const Arg_Ts& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
@@ -153,7 +153,7 @@ namespace Rice::detail
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::invokeNativeMethod(VALUE self, Arg_Ts& nativeArgs)
+  VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::invokeNativeMethod(VALUE self, const Arg_Ts& nativeArgs)
   {
     Class_T receiver = this->getSelf(self);
     auto selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeArgs);

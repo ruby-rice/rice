@@ -85,8 +85,8 @@ namespace Rice::detail
     void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues);
 
     // Call the underlying C++ function
-    VALUE invokeNativeFunction(Arg_Ts& nativeArgs);
-    VALUE invokeNativeMethod(VALUE self, Arg_Ts& nativeArgs);
+    VALUE invokeNativeFunction(const Arg_Ts& nativeArgs);
+    VALUE invokeNativeMethod(VALUE self, const Arg_Ts& nativeArgs);
 
   private:
     Function_T func_;

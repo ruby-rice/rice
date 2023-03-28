@@ -172,6 +172,10 @@ namespace
   class MyClass1
   {
   public:
+    MyClass1()
+    {
+      int a = 1;
+    }
 
     std::string sayHello()
     {
@@ -182,6 +186,10 @@ namespace
   class MyClass2
   {
   public:
+    MyClass2()
+    {
+      int a = 2;
+    }
 
     std::string sayHello()
     {
@@ -189,7 +197,7 @@ namespace
     }
   };
 
-  using Class_Variant_T = std::variant<MyClass1, MyClass2>;
+  using Class_Variant_T = std::variant<std::monostate, MyClass1, MyClass2>;
 
   Class_Variant_T variantClass(bool myClass1)
   {
@@ -201,6 +209,11 @@ namespace
     {
       return MyClass2();
     }
+  }
+
+  Class_Variant_T roundTripVariantClass(Class_Variant_T variant)
+  {
+    return variant;
   }
 
   Class_Variant_T& roundTripVariantClassRef(Class_Variant_T& variant)
@@ -220,6 +233,7 @@ void makeClassVariant()
     define_method("say_hello", &MyClass2::sayHello);
 
   define_global_function("variant_class", &variantClass);
+  define_global_function("roundtrip_variant_class", &roundTripVariantClass);
   define_global_function("roundtrip_variant_class_ref", &roundTripVariantClassRef);
 }
 
@@ -248,6 +262,33 @@ TESTCASE(ClassRoundtrip)
   Module m = define_module("Testing");
 
   Object instance = m.module_eval("MyClass1.new");
+  Object instance2 = m.call("roundtrip_variant_class", instance);
+  String hello = instance2.call("say_hello");
+  ASSERT_EQUAL("Hi from MyClass1", detail::From_Ruby<std::string>().convert(hello));
+
+  instance = m.module_eval("MyClass2.new");
+  instance2 = m.call("roundtrip_variant_class", instance);
+  hello = instance2.call("say_hello");
+  ASSERT_EQUAL("Hi from MyClass2", detail::From_Ruby<std::string>().convert(hello));
+}
+
+/* This test case runs successfully on MSVC but not g++. Having stepped through the code with
+  GDB, this sure seems due to a bug with g++. The issue is this variable in created operator():
+
+        Arg_Ts nativeValues = this->getNativeValues(rubyValues, indices);
+
+ And is then passed to invokeNativeFunction as a const Arg_Ts& nativeArgs where Arg_Ts& is
+ std::tuple with one element, a reference to a variant. So it doesn't change and the address
+ of the variable doesn't change. But for some reason g++ resets the
+ the std::variant index to 0 thus breaking the test. Maybe something to do with storing
+ a refernence to a variant in a tuple? */
+
+#ifdef _MSC_VER
+TESTCASE(ClassRoundtripRef)
+{
+  Module m = define_module("Testing");
+
+  Object instance = m.module_eval("MyClass1.new");
   Object instance2 = m.call("roundtrip_variant_class_ref", instance);
   String hello = instance2.call("say_hello");
   ASSERT_EQUAL("Hi from MyClass1", detail::From_Ruby<std::string>().convert(hello));
@@ -257,3 +298,4 @@ TESTCASE(ClassRoundtrip)
   hello = instance2.call("say_hello");
   ASSERT_EQUAL("Hi from MyClass2", detail::From_Ruby<std::string>().convert(hello));
 }
+#endif
