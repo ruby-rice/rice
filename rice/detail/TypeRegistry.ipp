@@ -7,13 +7,6 @@
 namespace Rice::detail
 {
   template <typename T>
-  inline void TypeRegistry::add()
-  {
-    std::type_index key(typeid(T));
-    registry_[key] = std::pair(Qnil, nullptr);
-  }
-
-  template <typename T>
   inline void TypeRegistry::add(VALUE klass, rb_data_type_t* rbType)
   {
     std::type_index key(typeid(T));

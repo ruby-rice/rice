@@ -22,9 +22,6 @@ namespace Rice::detail
   {
   public:
     template <typename T>
-    static void add();
-
-    template <typename T>
     static void add(VALUE klass, rb_data_type_t* rbType);
 
     template <typename T>
