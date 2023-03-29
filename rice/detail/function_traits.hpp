@@ -102,6 +102,7 @@ namespace Rice::detail
   template<typename Function_T, bool IsMethod>
   struct method_traits<Function_T, IsMethod, std::enable_if_t<!IsMethod>>
   {
+    using Return_T = typename function_traits<Function_T>::return_type;
     using Class_T = std::nullptr_t;
     using Arg_Ts = typename function_traits<Function_T>::arg_types;
     static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
@@ -114,6 +115,7 @@ namespace Rice::detail
   template<typename Function_T, bool IsMethod>
   struct method_traits<Function_T, IsMethod, std::enable_if_t<IsMethod && std::is_same_v<typename function_traits<Function_T>::class_type, std::nullptr_t>>>
   {
+    using Return_T = typename function_traits<Function_T>::return_type;
     using Class_T = typename function_traits<Function_T>::template nth_arg<0>;
     using Arg_Ts = typename tuple_shift<typename function_traits<Function_T>::arg_types>::type;
     static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
@@ -124,11 +126,10 @@ namespace Rice::detail
   template<typename Function_T, bool IsMethod>
   struct method_traits<Function_T, IsMethod, std::enable_if_t<IsMethod && !std::is_same_v<typename function_traits<Function_T>::class_type, std::nullptr_t>>>
   {
+    using Return_T = typename function_traits<Function_T>::return_type;
     using Class_T = typename function_traits<Function_T>::class_type;
     using Arg_Ts = typename function_traits<Function_T>::arg_types;
     static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
   };
-
 }
-
 #endif // Rice__detail__function_traits__hpp_
