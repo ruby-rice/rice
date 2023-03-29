@@ -312,8 +312,8 @@ namespace Rice
   {
     // Make sure the return type and arguments have been previously seen by Rice
     using traits = detail::method_traits<Function_T, IsMethod>;
-    detail::verifyType<traits::Return_T>();
-    detail::verifyTypes<traits::Arg_Ts>();
+    detail::verifyType<typename traits::Return_T>();
+    detail::verifyTypes<typename traits::Arg_Ts>();
 
     // Create a NativeFunction instance to wrap this native call and 
     auto* native = new detail::NativeFunction<T, Function_T, IsMethod>(std::forward<Function_T>(function), handler, methodInfo);
