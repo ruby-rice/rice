@@ -54,6 +54,15 @@ namespace Rice::detail
   template<typename Return_T, typename Attr_T, typename Self_T>
   inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::write(VALUE self, VALUE value)
   {
+    if constexpr (std::is_fundamental_v<intrinsic_type<Attr_T>> && std::is_pointer_v<Attr_T>)
+    {
+      static_assert(true, "An fundamental value, such as an integer, cannot be assigned to an attribute that is a pointer");
+    }
+    else if constexpr (std::is_same_v<intrinsic_type<Attr_T>, std::string> && std::is_pointer_v<Attr_T>)
+    {
+      static_assert(true, "An string cannot be assigned to an attribute that is a pointer");
+    }
+    
     if constexpr (!std::is_const_v<std::remove_pointer_t<Attr_T>> && std::is_member_object_pointer_v<Attr_T>)
     {
       Self_T* nativeSelf = From_Ruby<Self_T*>().convert(self);
@@ -63,6 +72,7 @@ namespace Rice::detail
     {
       *attr_ = From_Ruby<Return_T>().convert(value);
     }
+
     return value;
   }
 
