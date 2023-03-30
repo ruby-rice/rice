@@ -249,11 +249,10 @@ namespace Rice::detail
     }
     catch (...)
     {
-      RUBY_TRY
+      return cpp_protect([this]
       {
         return this->handler_->handle_exception();
-      }
-      RUBY_CATCH
+      });
     }
   }
 }
