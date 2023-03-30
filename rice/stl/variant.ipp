@@ -106,63 +106,82 @@ namespace Rice::detail
   template<typename...Types>
   class From_Ruby<std::variant<Types...>>
   {
+  private:
+    // Possible converters we could use for this variant
+    using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
+
   public:
-    template<typename T>
-    std::variant<Types...> convertElement(VALUE value)
+    /* This method loops over each type in the variant, creates a From_Ruby converter,
+       and then check if the converter can work with the provided Rby value (it checks
+       the type of the Ruby object to see if it matches the variant type). 
+       If yes, then the converter runs. If no, then the method recursively calls itself
+       increasing the index. 
+       
+       We use recursion, with a constexpr, to avoid having to instantiate an instance
+       of the variant to store results from a fold expression like the To_Ruby code
+       does above. That allows us to process variants with non default constructible
+       arguments like std::reference_wrapper. */
+    template <std::size_t I = 0>
+    std::variant<Types...> convertInternal(VALUE value)
     {
-      return From_Ruby<T>().convert(value);
-    }
+      // Loop over each possible type in the variant.
+      if constexpr (I < std::variant_size_v<std::variant<Types...>>)
+      {
+        // Get the converter for the current index
+        typename std::tuple_element_t<I, From_Ruby_Ts> converter;
 
-    template<std::size_t... I>
-    std::variant<Types...> convertIterator(VALUE value, std::index_sequence<I...>& indices)
-    {
-      // Create a tuple of the variant types so we can look over the tuple's types
-      using Tuple_T = std::tuple<Types...>;
-
-      std::variant<Types...> result;
-      ((From_Ruby<std::tuple_element_t<I, Tuple_T>>().is_convertible(value) ?
-        (result = convertElement<std::tuple_element_t<I, Tuple_T>>(value), true) : false) || ...);
-
-      return result;
+        // See if it will work
+        if (converter.is_convertible(value))
+        {
+          return converter.convert(value);
+        }
+        else
+        {
+          return convertInternal<I + 1>(value);
+        }
+      }
+      throw std::runtime_error("Could not find converter for variant");
     }
 
     std::variant<Types...> convert(VALUE value)
     {
-      auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
-      return convertIterator(value, indices);
+      return convertInternal(value);
     }
   };
 
   template<typename...Types>
   class From_Ruby<std::variant<Types...>&>
   {
+  private:
+    // Possible converters we could use for this variant
+    using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
+
   public:
-    template<typename T>
-    std::variant<Types...> convertElement(VALUE value)
+    template <std::size_t I = 0>
+    std::variant<Types...> convertInternal(VALUE value)
     {
-      return From_Ruby<T>().convert(value);
-    }
+      // Loop over each possible type in the variant
+      if constexpr (I < std::variant_size_v<std::variant<Types...>>)
+      {
+        // Get the converter for the current index
+        typename std::tuple_element_t<I, From_Ruby_Ts> converter;
 
-    template<std::size_t... I>
-    std::variant<Types...> convertIterator(VALUE value, std::index_sequence<I...>& indices)
-    {
-      // Create a tuple of the variant types so we can look over the tuple's types
-      using Tuple_T = std::tuple<Types...>;
-
-      std::variant<Types...> result;
-      ((From_Ruby<std::tuple_element_t<I, Tuple_T>>().is_convertible(value) ?
-        (result = convertElement<std::tuple_element_t<I, Tuple_T>>(value), true) : false) || ...);
-
-      return result;
+        // See if it will work
+        if (converter.is_convertible(value))
+        {
+          return converter.convert(value);
+        }
+        else
+        {
+          return convertInternal<I + 1>(value);
+        }
+      }
+      throw std::runtime_error("Could not find converter for variant");
     }
 
     std::variant<Types...> convert(VALUE value)
     {
-      auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
-      return convertIterator(value, indices);
+      return convertInternal(value);
     }
-
-  private:
-    std::variant<Types...> converted_;
   };
 }

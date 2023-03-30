@@ -7,6 +7,7 @@
 #include "stl/monostate.hpp"
 #include "stl/optional.hpp"
 #include "stl/pair.hpp"
+#include "stl/reference_wrapper.hpp"
 #include "stl/smart_ptr.hpp"
 #include "stl/unordered_map.hpp"
 #include "stl/variant.hpp"
