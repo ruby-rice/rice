@@ -159,7 +159,7 @@ namespace Rice::detail
     TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
     delete wrapper;
 
-    wrapper = new WrapperPointer<T>(data, true);
+    wrapper = new WrapperPointer<T>(data, isOwner);
     RTYPEDDATA_DATA(value) = wrapper;
   }
 
