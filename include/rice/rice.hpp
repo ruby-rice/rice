@@ -53,7 +53,7 @@ namespace Rice
     template<typename T>
     using intrinsic_type = typename std::remove_cv_t<std::remove_reference_t<std::remove_pointer_t<T>>>;
 
-    // Recursively remove const/volatilr
+    // Recursively remove const/volatile
     template<typename T>
     struct remove_cv_recursive
     {
@@ -256,6 +256,7 @@ namespace Rice::detail
   template<typename Function_T, bool IsMethod>
   struct method_traits<Function_T, IsMethod, std::enable_if_t<!IsMethod>>
   {
+    using Return_T = typename function_traits<Function_T>::return_type;
     using Class_T = std::nullptr_t;
     using Arg_Ts = typename function_traits<Function_T>::arg_types;
     static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
@@ -268,6 +269,7 @@ namespace Rice::detail
   template<typename Function_T, bool IsMethod>
   struct method_traits<Function_T, IsMethod, std::enable_if_t<IsMethod && std::is_same_v<typename function_traits<Function_T>::class_type, std::nullptr_t>>>
   {
+    using Return_T = typename function_traits<Function_T>::return_type;
     using Class_T = typename function_traits<Function_T>::template nth_arg<0>;
     using Arg_Ts = typename tuple_shift<typename function_traits<Function_T>::arg_types>::type;
     static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
@@ -278,13 +280,12 @@ namespace Rice::detail
   template<typename Function_T, bool IsMethod>
   struct method_traits<Function_T, IsMethod, std::enable_if_t<IsMethod && !std::is_same_v<typename function_traits<Function_T>::class_type, std::nullptr_t>>>
   {
+    using Return_T = typename function_traits<Function_T>::return_type;
     using Class_T = typename function_traits<Function_T>::class_type;
     using Arg_Ts = typename function_traits<Function_T>::arg_types;
     static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
   };
-
 }
-
 
 // =========   Type.hpp   =========
 
@@ -474,9 +475,6 @@ namespace Rice::detail
   {
   public:
     template <typename T>
-    static void add();
-
-    template <typename T>
     static void add(VALUE klass, rb_data_type_t* rbType);
 
     template <typename T>
@@ -504,13 +502,6 @@ namespace Rice::detail
 
 namespace Rice::detail
 {
-  template <typename T>
-  inline void TypeRegistry::add()
-  {
-    std::type_index key(typeid(T));
-    registry_[key] = std::pair(Qnil, nullptr);
-  }
-
   template <typename T>
   inline void TypeRegistry::add(VALUE klass, rb_data_type_t* rbType)
   {
@@ -1024,7 +1015,11 @@ namespace Rice::detail
 
   inline Wrapper* getWrapper(VALUE value)
   {
+    // Turn off spurious warning on g++ 12
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
     return static_cast<Wrapper*>(RTYPEDDATA_DATA(value));
+#pragma GCC diagnostic pop
   }
 } // namespace
 
@@ -1300,6 +1295,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     short convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1326,6 +1326,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     short& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1348,6 +1353,11 @@ namespace Rice::detail
   class From_Ruby<short*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     short* convert(VALUE value)
     {
       if (value == Qnil)
@@ -1376,6 +1386,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     int convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1402,6 +1417,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     int& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1424,6 +1444,11 @@ namespace Rice::detail
   class From_Ruby<int*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     int* convert(VALUE value)
     {
       if (value == Qnil)
@@ -1452,6 +1477,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     long convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1478,6 +1508,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     long& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1500,6 +1535,11 @@ namespace Rice::detail
   class From_Ruby<long*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     long* convert(VALUE value)
     {
       if (value == Qnil)
@@ -1528,6 +1568,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     long long convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1554,6 +1599,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     long long& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1576,6 +1626,11 @@ namespace Rice::detail
   class From_Ruby<long long*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     long long* convert(VALUE value)
     {
       if (value == Qnil)
@@ -1604,6 +1659,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned short convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1630,6 +1690,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned short& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1652,6 +1717,11 @@ namespace Rice::detail
   class From_Ruby<unsigned short*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned short* convert(VALUE value)
     {
       if (value == Qnil)
@@ -1680,6 +1750,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned int convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1706,6 +1781,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned int& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1728,6 +1808,11 @@ namespace Rice::detail
   class From_Ruby<unsigned int*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned int* convert(VALUE value)
     {
       if (value == Qnil)
@@ -1754,6 +1839,11 @@ namespace Rice::detail
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
+    }
+
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
     }
 
     unsigned long convert(VALUE value)
@@ -1786,6 +1876,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned long& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1808,6 +1903,11 @@ namespace Rice::detail
   class From_Ruby<unsigned long*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned long* convert(VALUE value)
     {
       if (value == Qnil)
@@ -1834,6 +1934,11 @@ namespace Rice::detail
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
+    }
+
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
     }
 
     unsigned long long convert(VALUE value)
@@ -1866,6 +1971,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned long long& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1888,6 +1998,11 @@ namespace Rice::detail
   class From_Ruby<unsigned long long*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FIXNUM;
+    }
+
     unsigned long long* convert(VALUE value)
     {
       if (value == Qnil)
@@ -1916,6 +2031,14 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      ruby_value_type ruby_type = (ruby_value_type)rb_type(value);
+      return ruby_type == RUBY_T_TRUE ||
+            ruby_type == RUBY_T_FALSE ||
+            ruby_type == RUBY_T_NIL;
+    }
+
     bool convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1942,6 +2065,14 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      ruby_value_type ruby_type = (ruby_value_type)rb_type(value);
+      return ruby_type == RUBY_T_TRUE ||
+             ruby_type == RUBY_T_FALSE ||
+             ruby_type == RUBY_T_NIL;
+    }
+
     bool& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -1964,6 +2095,14 @@ namespace Rice::detail
   class From_Ruby<bool*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      ruby_value_type ruby_type = (ruby_value_type)rb_type(value);
+      return ruby_type == RUBY_T_TRUE ||
+             ruby_type == RUBY_T_FALSE ||
+             ruby_type == RUBY_T_NIL;
+    }
+
     bool* convert(VALUE value)
     {
       if (value == Qnil)
@@ -2022,6 +2161,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
     char convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -2048,6 +2192,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
     char& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -2070,6 +2219,11 @@ namespace Rice::detail
   class From_Ruby<char*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
     char* convert(VALUE value)
     {
       if (value == Qnil)
@@ -2089,6 +2243,11 @@ namespace Rice::detail
   class From_Ruby<char const*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
     char const* convert(VALUE value)
     {
       if (value == Qnil)
@@ -2112,6 +2271,11 @@ namespace Rice::detail
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
+    }
+
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
     }
 
     unsigned char convert(VALUE value)
@@ -2141,6 +2305,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
     signed char convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -2166,6 +2335,11 @@ namespace Rice::detail
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
+    }
+
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FLOAT;
     }
 
     double convert(VALUE value)
@@ -2194,6 +2368,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FLOAT;
+    }
+
     double& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -2216,6 +2395,11 @@ namespace Rice::detail
   class From_Ruby<double*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FLOAT;
+    }
+
     double* convert(VALUE value)
     {
       if (value == Qnil)
@@ -2244,6 +2428,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FLOAT;
+    }
+
     float convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -2270,6 +2459,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FLOAT;
+    }
+
     float& convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -2292,6 +2486,11 @@ namespace Rice::detail
   class From_Ruby<float*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_FLOAT;
+    }
+
     float* convert(VALUE value)
     {
       if (value == Qnil)
@@ -3197,83 +3396,6 @@ namespace Rice::detail
 #include <stdexcept>
 
 
-/*! \def RUBY_TRY
- *  \brief Start a block to catch Ruby exceptions and rethrow them.
- */
-// Goto is used here to avoid having to use a second try/catch block (we
-// can't rb_exc_raise directly out of the catch blocks below, since the
-// exceptions will not get properly cleaned up).
-// The labels are located before the try and not after it so the function can't
-// "fall through" into the exception-handling code accidentally.
-#define RUBY_TRY \
-  VALUE Rice__ruby_exc = Qnil; \
-  int Rice__ruby_jump_tag = 0; \
-  \
-  goto start_of_RUBY_TRY; \
-  \
-  Rice__ruby_exception: \
-    rb_exc_raise(Rice__ruby_exc); \
-  Rice__ruby_jump_tag: \
-    rb_jump_tag(Rice__ruby_jump_tag); \
-  \
-  start_of_RUBY_TRY: \
-  try
-
-/*! \def RUBY_RETHROW(ex)
- *  \brief Given a Ruby exception as a VALUE, safely raise the exception as a
- *         Ruby exception.  This should be used inside a RUBY_TRY/RUBY_CATCH
- *         block.
- */
-#define RUBY_RETHROW(ex) \
-  Rice__ruby_exc = ex; \
-  goto Rice__ruby_exception;
-
-/*! \def RUBY_CATCH
- *  \brief End a RUBY_TRY block.
- */
-#define RUBY_CATCH \
-  catch(::Rice::Exception const & ex) \
-  { \
-    RUBY_RETHROW(ex.value()); \
-  } \
-  catch(::Rice::Jump_Tag const & ex) \
-  { \
-    Rice__ruby_jump_tag = ex.tag; \
-    goto Rice__ruby_jump_tag; \
-  } \
-  catch(std::bad_alloc const & ex) \
-  { \
-    /* This won't work quite right if the rb_exc_new2 fails; not    */ \
-    /* much we can do about that, since Ruby doesn't give us access */ \
-    /* to a pre-allocated NoMemoryError object                      */ \
-    RUBY_RETHROW(rb_exc_new2(rb_eNoMemError, ex.what())); \
-  } \
-  catch(std::invalid_argument const & ex) \
-  { \
-    /* This can raise a NoMemoryError in VERY rare circumstances    */ \
-    RUBY_RETHROW(rb_exc_new2(rb_eArgError, ex.what())); \
-  } \
-  catch(std::domain_error const & ex) \
-  { \
-    /* This can raise a NoMemoryError in VERY rare circumstances    */ \
-    RUBY_RETHROW(rb_exc_new2(rb_eFloatDomainError, ex.what())); \
-  } \
-  catch(std::out_of_range const & ex) \
-  { \
-    /* This can raise a NoMemoryError in VERY rare circumstances    */ \
-    RUBY_RETHROW(rb_exc_new2(rb_eRangeError, ex.what())); \
-  } \
-  catch(std::exception const & ex) \
-  { \
-    /* This can raise a NoMemoryError in VERY rare circumstances    */ \
-    RUBY_RETHROW(rb_exc_new2(rb_eRuntimeError, ex.what())); \
-  } \
-  catch(...) \
-  { \
-    RUBY_RETHROW(rb_exc_new2(rb_eRuntimeError, "unknown C++ exception thrown")); \
-  } \
-
-
 template <typename Callable_T>
 auto cpp_protect(Callable_T && func)
 {
@@ -3423,6 +3545,15 @@ namespace Rice::detail
   template<typename Return_T, typename Attr_T, typename Self_T>
   inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::write(VALUE self, VALUE value)
   {
+    if constexpr (std::is_fundamental_v<intrinsic_type<Attr_T>> && std::is_pointer_v<Attr_T>)
+    {
+      static_assert(true, "An fundamental value, such as an integer, cannot be assigned to an attribute that is a pointer");
+    }
+    else if constexpr (std::is_same_v<intrinsic_type<Attr_T>, std::string> && std::is_pointer_v<Attr_T>)
+    {
+      static_assert(true, "An string cannot be assigned to an attribute that is a pointer");
+    }
+    
     if constexpr (!std::is_const_v<std::remove_pointer_t<Attr_T>> && std::is_member_object_pointer_v<Attr_T>)
     {
       Self_T* nativeSelf = From_Ruby<Self_T*>().convert(self);
@@ -3432,6 +3563,7 @@ namespace Rice::detail
     {
       *attr_ = From_Ruby<Return_T>().convert(value);
     }
+
     return value;
   }
 
@@ -3531,8 +3663,8 @@ namespace Rice::detail
     void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues);
 
     // Call the underlying C++ function
-    VALUE invokeNativeFunction(Arg_Ts& nativeArgs);
-    VALUE invokeNativeMethod(VALUE self, Arg_Ts& nativeArgs);
+    VALUE invokeNativeFunction(const Arg_Ts& nativeArgs);
+    VALUE invokeNativeMethod(VALUE self, const Arg_Ts& nativeArgs);
 
   private:
     Function_T func_;
@@ -3678,7 +3810,7 @@ namespace Rice::detail
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::invokeNativeFunction(Arg_Ts& nativeArgs)
+  VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::invokeNativeFunction(const Arg_Ts& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
@@ -3696,7 +3828,7 @@ namespace Rice::detail
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::invokeNativeMethod(VALUE self, Arg_Ts& nativeArgs)
+  VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::invokeNativeMethod(VALUE self, const Arg_Ts& nativeArgs)
   {
     Class_T receiver = this->getSelf(self);
     auto selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeArgs);
@@ -3792,11 +3924,10 @@ namespace Rice::detail
     }
     catch (...)
     {
-      RUBY_TRY
+      return cpp_protect([this]
       {
         return this->handler_->handle_exception();
-      }
-      RUBY_CATCH
+      });
     }
   }
 }
@@ -4014,6 +4145,9 @@ namespace Rice
      */
     int rb_type() const;
 
+    //! Return the object's id
+    VALUE object_id() const;
+
     //! Determine whether the object is an instance of a class/module.
     /*! \param klass a class or module.
      *  \return true if the object is an instance of the given
@@ -4053,16 +4187,13 @@ namespace Rice
      *  a Ruby type if necessary.
      */
     template<typename T>
-    void iv_set(
-      Identifier name,
-      T const& value);
+    void iv_set(Identifier name, T const& value);
 
     //! Get the value of an instance variable.
     /*! \param name the name of the instance variable to get
      *  \return the value of the instance variable
      */
-    Object iv_get(
-      Identifier name) const;
+    Object iv_get(Identifier name) const;
 
     //! Get the value of an instance variable, but don't warn if it is
     //unset.
@@ -4233,7 +4364,12 @@ namespace Rice
 
   inline int Object::rb_type() const
   {
-    return ::rb_type(*this);
+    return ::rb_type(this->value());
+  }
+
+  inline VALUE Object::object_id() const
+  {
+    return detail::protect(rb_obj_id, this->value());
   }
 
   inline bool Object::is_a(Object klass) const
@@ -7301,12 +7437,16 @@ namespace Rice
   inline void Data_Type<T>::wrap_native_call(VALUE klass, Identifier name, Function_T&& function,
     std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo)
   {
+    // Make sure the return type and arguments have been previously seen by Rice
+    using traits = detail::method_traits<Function_T, IsMethod>;
+    detail::verifyType<typename traits::Return_T>();
+    detail::verifyTypes<typename traits::Arg_Ts>();
+
+    // Create a NativeFunction instance to wrap this native call and 
     auto* native = new detail::NativeFunction<T, Function_T, IsMethod>(std::forward<Function_T>(function), handler, methodInfo);
+
+    // Now define the method
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
-
-    detail::verifyType<typename Native_T::Return_T>();
-    detail::verifyTypes<typename Native_T::Arg_Ts>();
-
     detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
   }
 }
@@ -7415,12 +7555,9 @@ namespace Rice
      *  constructed objects that need to be managed by Ruby's garbage
      *  collector).
      *  \param obj the object to wrap.
+     *  \param isOwner Should the Data_Object take ownership of the object?
      *  \param klass the Ruby class to use for the newly created Ruby
      *  object.
-     *  \param mark_func a function that gets called by the garbage
-     *  collector to mark the object's children.
-     *  \param free_func a function that gets called by the garbage
-     *  collector to free the object.
      */
     Data_Object(T* obj, bool isOwner = false, Class klass = Data_Type<T>::klass());
     Data_Object(T& obj, bool isOwner = false, Class klass = Data_Type<T>::klass());
@@ -7631,6 +7768,8 @@ namespace Rice::detail
   template <typename T>
   class From_Ruby
   {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
   public:
     From_Ruby() = default;
 
@@ -7638,6 +7777,12 @@ namespace Rice::detail
     {
     }
     
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_DATA &&
+        Data_Type<T>::is_descendant(value);
+    }
+
     T convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
@@ -7659,11 +7804,19 @@ namespace Rice::detail
   template<typename T>
   class From_Ruby<T&>
   {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
   public:
     From_Ruby() = default;
 
     explicit From_Ruby(Arg * arg) : arg_(arg)
     {
+    }
+
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_DATA &&
+        Data_Type<T>::is_descendant(value);
     }
 
     T& convert(VALUE value)
@@ -7687,7 +7840,15 @@ namespace Rice::detail
   template<typename T>
   class From_Ruby<T*>
   {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_DATA &&
+        Data_Type<T>::is_descendant(value);
+    }
+
     T* convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
@@ -7706,6 +7867,8 @@ namespace Rice::detail
   template<typename T>
   class From_Ruby<Data_Object<T>>
   {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
   public:
     static Data_Object<T> convert(VALUE value)
     {
