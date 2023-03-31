@@ -1,6 +1,14 @@
 #include <rice/rice.hpp>
 #include <ruby/version.h>
 
+// See https://bugs.ruby-lang.org/issues/17643. Note there is a function called 
+// rb_call_builtin_inits that properly intializes the GC and other modules.
+// It is exported on Windows builds (MSVC and MinGW) by the ruby shared library
+// so we can use it although it is not defined in any header.
+extern "C" {
+  void rb_call_builtin_inits(void);
+}
+
 void embed_ruby()
 {
   static bool initialized__ = false;
@@ -17,19 +25,16 @@ void embed_ruby()
 
     initialized__ = true;
 
-    // Because Ruby 3 no longer initializes the GC module when embedding, calling GC.stress 
-    // results in a crash.
-    // See https://bugs.ruby-lang.org/issues/17643
-    if (RUBY_API_VERSION_MAJOR == 3 &&
-       (RUBY_API_VERSION_MINOR >= 1 ||
-       (RUBY_API_VERSION_MINOR == 0 &&
-        RUBY_API_VERSION_TEENY == 0)))
-    {
-      // do nothing
-    }
-    else
+    if (RUBY_API_VERSION_MAJOR < 3)
     {
       rb_eval_string("GC.stress = true");
     }
+#ifdef _WIN64
+    else
+    {
+      rb_call_builtin_inits();
+      rb_eval_string("GC.stress = true");
+    }
+#endif
   }
 }
