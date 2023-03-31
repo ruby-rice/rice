@@ -216,10 +216,9 @@ TESTCASE(remove_const)
   );
 }
 
-
-/*TESTCASE(test_mark)
+TESTCASE(test_mark)
 {
   Object o(INT2NUM(42));
   rb_gc_start();
-  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(o.value()));
-}*/
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(o.value()));
+}
