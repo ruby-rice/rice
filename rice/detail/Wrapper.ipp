@@ -166,9 +166,13 @@ namespace Rice::detail
   inline Wrapper* getWrapper(VALUE value)
   {
     // Turn off spurious warning on g++ 12
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
     return static_cast<Wrapper*>(RTYPEDDATA_DATA(value));
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
   }
 } // namespace
