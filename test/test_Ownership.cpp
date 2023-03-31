@@ -227,7 +227,7 @@ TESTCASE(CopyReference)
   ASSERT_EQUAL(0, Factory::instance_->flag);
 }
 
-/*TESTCASE(TransferValue)
+TESTCASE(TransferValue)
 {
   Factory::reset();
   MyClass::reset();
@@ -272,4 +272,3 @@ TESTCASE(MoveValue)
   ASSERT_EQUAL(30, MyClass::destructorCalls);
   ASSERT(!Factory::instance_);
 }
-*/
