@@ -198,9 +198,6 @@ TESTCASE(ruby_custom_mark)
   ASSERT_EQUAL(true, test_ruby_mark_called);
 }
 
-// Don't know what's going on here, maybe a bug in Ruby,
-// but Ruby 3.2 on Windows fails this test reliably.
-#ifndef _WIN32
 TESTCASE(ruby_custom_free)
 {
   test_ruby_mark_called = false;
@@ -209,13 +206,13 @@ TESTCASE(ruby_custom_free)
   MyDataType* myDataType = new MyDataType;
   {
     Data_Object<MyDataType> wrapped_foo(myDataType, true);
+    // Force a mark
+    rb_gc_start();
   }
+  ASSERT_EQUAL(true, test_ruby_mark_called);
 
+  // Force a free
   rb_gc_start();
 
   ASSERT_EQUAL(true, test_destructor_called);
-  // This fails somtimes on Ubuntu with Ruby 2.5 and 2.6. The important thing is that the destructor
-  //  gets called
-  // ASSERT_EQUAL(false, test_ruby_mark_called);
 }
-#endif
