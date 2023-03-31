@@ -37,7 +37,7 @@ TESTCASE(construct_from_vector_of_int)
   v.push_back(6);
   v.push_back(42);
   Array a(v.begin(), v.end());
-  ASSERT_EQUAL(3u, a.size());
+  ASSERT_EQUAL(3, a.size());
   ASSERT(rb_equal(detail::to_ruby(10), a[0].value()));
   ASSERT(rb_equal(detail::to_ruby(6), a[1].value()));
   ASSERT(rb_equal(detail::to_ruby(42), a[2].value()));
