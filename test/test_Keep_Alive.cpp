@@ -16,7 +16,7 @@ namespace
   };
 
   /**
-   * This class will recieve a new Listener instance
+   * This class will receive a new Listener instance
    * from Ruby
    */
   class ListenerContainer
