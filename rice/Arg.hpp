@@ -64,9 +64,6 @@ namespace Rice
     //! Returns if the argument should be treated as a value
     bool getIsValue();
 
-    // No longer supported - implemented to raise error
-    Arg operator,(const Arg& other);
-
   public:
     bool isKeepAlive = false;
     const std::string name;
