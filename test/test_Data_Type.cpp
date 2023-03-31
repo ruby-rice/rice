@@ -435,29 +435,3 @@ TESTCASE(not_defined)
     ASSERT_EQUAL(message, ex.what())
   );
 }
-
-
-/**
- * The following test SEGFAULTs right now
- */
-/*
-TESTCASE(no_super_in_constructor_still_works)
-{
-  Module m = define_module("TestingModule");
-  Object handler = m.module_eval("@handler = ListenerHandler.new");
-
-  ASSERT_EQUAL(INT2NUM(0), handler.call("listener_count").value());
-
-  // Because of this, there's a constructor but no super call
-  m.module_eval("class MyListener < Listener; def initialize; @val = 10; end; end;");
-  m.module_eval("@handler.add_listener(MyListener.new)");
-
-  ASSERT_EQUAL(INT2NUM(1), handler.call("listener_count").value());
-  ASSERT_EQUAL(INT2NUM(4), handler.call("process").value());
-
-  m.module_eval("@handler.add_listener(MyListener.new)");
-
-  ASSERT_EQUAL(INT2NUM(2), handler.call("listener_count").value());
-  ASSERT_EQUAL(INT2NUM(8), handler.call("process").value());
-}
-*/
