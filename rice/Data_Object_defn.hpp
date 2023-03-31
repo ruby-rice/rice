@@ -58,12 +58,9 @@ namespace Rice
      *  constructed objects that need to be managed by Ruby's garbage
      *  collector).
      *  \param obj the object to wrap.
+     *  \param isOwner Should the Data_Object take ownership of the object?
      *  \param klass the Ruby class to use for the newly created Ruby
      *  object.
-     *  \param mark_func a function that gets called by the garbage
-     *  collector to mark the object's children.
-     *  \param free_func a function that gets called by the garbage
-     *  collector to free the object.
      */
     Data_Object(T* obj, bool isOwner = false, Class klass = Data_Type<T>::klass());
     Data_Object(T& obj, bool isOwner = false, Class klass = Data_Type<T>::klass());
