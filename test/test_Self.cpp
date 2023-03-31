@@ -13,11 +13,11 @@ namespace
   class SelfClass
   {
   public:
-    static inline uint32_t constructorCalls = 0;
-    static inline uint32_t copyConstructorCalls = 0;
-    static inline uint32_t moveConstructorCalls = 0;
-    static inline uint32_t destructorCalls = 0;
-    static inline uint32_t methodCalls = 0;
+    static inline int constructorCalls = 0;
+    static inline int copyConstructorCalls = 0;
+    static inline int moveConstructorCalls = 0;
+    static inline int destructorCalls = 0;
+    static inline int methodCalls = 0;
 
     static void reset()
     {

@@ -308,7 +308,7 @@ TESTCASE(NotComparable)
   ASSERT_EQUAL(Qnil, result.value());
 
   result = vec.call("length");
-  ASSERT_EQUAL(3, detail::From_Ruby<size_t>().convert(result));
+  ASSERT_EQUAL(3u, detail::From_Ruby<size_t>().convert(result));
 
   result = vec.call("include?", NotComparable(2));
   ASSERT_EQUAL(Qfalse, result.value());

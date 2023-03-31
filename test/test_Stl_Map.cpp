@@ -197,7 +197,7 @@ TESTCASE(keysAndValues)
   // Keys returns a std::vector
   Data_Object<std::vector<std::string>> keys = map.call("keys");
   std::vector<std::string> expected_keys{ {"one", "three", "two"} };
-  ASSERT_EQUAL(3, keys->size());
+  ASSERT_EQUAL(3u, keys->size());
   ASSERT_EQUAL(expected_keys[0], keys->operator[](0));
   ASSERT_EQUAL(expected_keys[1], keys->operator[](1));
   ASSERT_EQUAL(expected_keys[2], keys->operator[](2));
@@ -205,7 +205,7 @@ TESTCASE(keysAndValues)
   // Keys returns a std::vector
   Data_Object<std::vector<std::int32_t>> values = map.call("values");
   std::vector<std::int32_t> expected_values{ {1, 3, 2} };
-  ASSERT_EQUAL(3, values->size());
+  ASSERT_EQUAL(3u, values->size());
   ASSERT_EQUAL(expected_values[0], values->operator[](0));
   ASSERT_EQUAL(expected_values[1], values->operator[](1));
   ASSERT_EQUAL(expected_values[2], values->operator[](2));
@@ -250,7 +250,7 @@ TESTCASE(Iterate)
                         result)";
 
   Hash result = m.module_eval(code);
-  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL(3u, result.size());
 
   std::string result_string = result.to_s().str();
   ASSERT_EQUAL("{\"five\"=>10, \"seven\"=>14, \"six\"=>12}", result_string);
@@ -507,17 +507,17 @@ TESTCASE(HashToMap)
 
   m.module_eval(code);
 
-  ASSERT_EQUAL(3, ints.size());
+  ASSERT_EQUAL(3u, ints.size());
   ASSERT_EQUAL(7, ints["seven"]);
   ASSERT_EQUAL(9, ints["nine"]);
   ASSERT_EQUAL(1'000'000, ints["million"]);
 
-  ASSERT_EQUAL(3, floats.size());
+  ASSERT_EQUAL(3u, floats.size());
   ASSERT_EQUAL(49.0, floats["forty nine"]);
   ASSERT_EQUAL(78.0, floats["seventy eight"]);
   ASSERT_EQUAL(999.0, floats["nine hundred ninety nine"]);
 
-  ASSERT_EQUAL(3, strings.size());
+  ASSERT_EQUAL(3u, strings.size());
   ASSERT_EQUAL("one", strings["one"]);
   ASSERT_EQUAL("two", strings["two"]);
   ASSERT_EQUAL("three", strings["three"]);
@@ -540,17 +540,17 @@ TESTCASE(HashToMapRefs)
                                           "thirteen" => "thirteen"}))";
   m.module_eval(code);
 
-  ASSERT_EQUAL(3, ints.size());
+  ASSERT_EQUAL(3u, ints.size());
   ASSERT_EQUAL(8, ints["eight"]);
   ASSERT_EQUAL(10, ints["ten"]);
   ASSERT_EQUAL(1'000'001, ints["million one"]);
 
-  ASSERT_EQUAL(3, floats.size());
+  ASSERT_EQUAL(3u, floats.size());
   ASSERT_EQUAL(50.0, floats["fifty"]);
   ASSERT_EQUAL(79.0, floats["seventy nine"]);
   ASSERT_EQUAL(1'000.0, floats["one thousand"]);
 
-  ASSERT_EQUAL(3, strings.size());
+  ASSERT_EQUAL(3u, strings.size());
   ASSERT_EQUAL("eleven", strings["eleven"]);
   ASSERT_EQUAL("twelve", strings["twelve"]);
   ASSERT_EQUAL("thirteen", strings["thirteen"]);
@@ -574,17 +574,17 @@ TESTCASE(HashToMapPointers)
 
   m.module_eval(code);
 
-  ASSERT_EQUAL(3, ints.size());
+  ASSERT_EQUAL(3u, ints.size());
   ASSERT_EQUAL(9, ints["nine"]);
   ASSERT_EQUAL(11, ints["eleven"]);
   ASSERT_EQUAL(1'000'002, ints["million two"]);
 
-  ASSERT_EQUAL(3, floats.size());
+  ASSERT_EQUAL(3u, floats.size());
   ASSERT_EQUAL(51.0, floats["fifty one"]);
   ASSERT_EQUAL(80.0, floats["eighty"]);
   ASSERT_EQUAL(1'001.0, floats["one thousand one"]);
 
-  ASSERT_EQUAL(3, strings.size());
+  ASSERT_EQUAL(3u, strings.size());
   ASSERT_EQUAL("fourteen", strings["fourteen"]);
   ASSERT_EQUAL("fifteen", strings["fifteen"]);
   ASSERT_EQUAL("sixteen", strings["sixteen"]);
@@ -646,7 +646,7 @@ TESTCASE(MapToHash)
                         hash = map.to_h)";
 
   Hash hash = m.module_eval(code);
-  ASSERT_EQUAL(3, hash.size());
+  ASSERT_EQUAL(3u, hash.size());
   
   ASSERT_EQUAL("1", detail::From_Ruby<std::string>().convert(hash["One"].value()));
   ASSERT_EQUAL("2", detail::From_Ruby<std::string>().convert(hash["Two"].value()));

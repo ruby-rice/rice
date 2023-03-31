@@ -35,7 +35,6 @@ namespace
 
   std::reference_wrapper<MyClass> roundtrip_class(std::reference_wrapper<MyClass> instance)
   {
-    MyClass& ref = instance.get();
     return instance;
   }
 
