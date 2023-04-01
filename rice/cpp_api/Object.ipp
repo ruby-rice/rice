@@ -8,12 +8,6 @@ namespace Rice
   inline const Object False(Qfalse);
   inline const Object Undef(Qundef);
 
-  inline Object::Object(Object&& other)
-  {
-    this->value_ = other.value_;
-    other.value_ = Qnil;
-  }
-
   // Ruby auto detects VALUEs in the stack, so when an Object gets deleted make sure
   // to clean up in case it is on the stack
   inline Object::~Object()
@@ -21,6 +15,14 @@ namespace Rice
     this->value_ = Qnil;
   }
 
+  // Move constructor
+  inline Object::Object(Object&& other)
+  {
+    this->value_ = other.value_;
+    other.value_ = Qnil;
+  }
+
+  // Move assignment
   inline Object& Object::operator=(Object&& other)
   {
     this->value_ = other.value_;
