@@ -18,12 +18,12 @@ namespace Rice
     return *this;
   }
 
-  inline Class define_class_under(Object module, char const* name, Object superclass)
+  inline Class define_class_under(Object module, char const* name, const Class& superclass)
   {
     return detail::protect(rb_define_class_under, module.value(), name, superclass.value());
   }
 
-  inline Class define_class(char const* name, Object superclass)
+  inline Class define_class(char const* name, const Class& superclass)
   {
     return detail::protect(rb_define_class, name, superclass.value());
   }
