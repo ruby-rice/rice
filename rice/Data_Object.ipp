@@ -37,13 +37,6 @@ namespace Rice
   }
 
   template<typename T>
-  template<typename U>
-  inline Data_Object<T>::Data_Object(Object value) : Object(value)
-  {
-    check_ruby_type(value);
-  }
-
-  template<typename T>
   inline void Data_Object<T>::check_ruby_type(VALUE value)
   {
     if (rb_obj_is_kind_of(value, Data_Type<T>::klass()) == Qfalse)

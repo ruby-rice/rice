@@ -72,16 +72,6 @@ namespace Rice
      */
     Data_Object(Object value);
 
-    //! Unwrap a Ruby object.
-    /*! This constructor is analogous to calling Data_Get_Struct.  Will
-     *  throw an exception if the class of the object differs from the
-     *  specified class.
-     *  \param value the Ruby object to unwrap.
-     *  \param klass the expected class of the object.
-     */
-    template<typename U>
-    Data_Object(Object value);
-
     T& operator*() const; //!< Return a reference to obj_
     T* operator->() const; //!< Return a pointer to obj_
     T* get() const;        //!< Return a pointer to obj_
