@@ -86,13 +86,12 @@ namespace Rice
 
     // Add enumerable support
     klass.include_module(rb_mEnumerable)
-      .define_singleton_method("each", [](VALUE ruby_klass) -> Object
+      .define_singleton_method("each", [](VALUE ruby_klass) -> VALUE
         {
-          Class enumClass(ruby_klass);
-
           if (!rb_block_given_p())
           {
-            return enumClass.call("to_enum");
+            return rb_enumeratorize_with_size(ruby_klass, Identifier("each").to_sym(),
+                                      0, nullptr, 0);
           }
 
           for (auto& pair : valuesToNames_)
@@ -102,8 +101,8 @@ namespace Rice
             detail::protect(rb_yield, value);
           }
 
-          return enumClass;
-      })
+          return ruby_klass;
+      }, Return().isValue())
       .define_singleton_method("from_int", [](VALUE ruby_klass, int32_t value) -> Object
       {
           auto iter = Enum<Enum_T>::valuesToNames_.find((Enum_T)value);
