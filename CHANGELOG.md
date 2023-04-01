@@ -1,6 +1,6 @@
 ## 4.1
 
-* Add support for std::map, std::unordered_map, std::variant, std::monostate
+* Add support for std::map, std::unordered_map, std::variant, std::monostate, std::reference_wrapper
 * Enable calling of C++ member functions that are defined in ancestor classes
 * Internal improvements to enable calling more ruby api methods including those with a variable number of parameters
 * Remove deprecated APIs
