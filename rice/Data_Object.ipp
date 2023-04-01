@@ -46,6 +46,12 @@ namespace Rice
   }
 
   template<typename T>
+  inline void Data_Object<T>::clear()
+  {
+    return this->set_value(Qnil);
+  }
+
+  template<typename T>
   inline T& Data_Object<T>::operator*() const
   {
     return *this->get();
