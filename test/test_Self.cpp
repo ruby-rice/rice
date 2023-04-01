@@ -162,8 +162,7 @@ TESTCASE(SelfPointerLambda)
   ASSERT_EQUAL(1, SelfClass::constructorCalls);
   ASSERT_EQUAL(0, SelfClass::copyConstructorCalls);
   ASSERT_EQUAL(0, SelfClass::moveConstructorCalls);
-  // TODO: re-enable this. It fails regularly on Ubuntu + Ruby 2.7, and nothing else.
-  // ASSERT_EQUAL(0, SelfClass::destructorCalls);
+  ASSERT_EQUAL(0, SelfClass::destructorCalls);
 }
 
 TESTCASE(SelfReferenceLambda)
