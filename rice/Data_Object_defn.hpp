@@ -76,9 +76,6 @@ namespace Rice
     T* operator->() const; //!< Return a pointer to obj_
     T* get() const;        //!< Return a pointer to obj_
 
-    //! Clear the wrapped Ruby object.
-    void clear();
-
   private:
     static void check_ruby_type(VALUE value);
   };

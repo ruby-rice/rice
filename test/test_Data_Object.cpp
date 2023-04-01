@@ -203,15 +203,18 @@ TESTCASE(ruby_custom_free)
   test_ruby_mark_called = false;
   test_destructor_called = false;
 
-  MyDataType* myDataType = new MyDataType;
-  Data_Object<MyDataType> wrapped_foo(myDataType, true);
+  {
+    // Put this code in a block so wrapped_foo is destroyed at the end of it.
+    // That will set its value field to Qnil allowing myDataType to be freed
+    MyDataType* myDataType = new MyDataType;
+    Data_Object<MyDataType> wrapped_foo(myDataType, true);
 
-  // Force a mark
-  rb_gc_start();
-  ASSERT_EQUAL(true, test_ruby_mark_called);
+    // Force a mark
+    rb_gc_start();
+    ASSERT_EQUAL(true, test_ruby_mark_called);
+  }
 
   // Force a free
-  wrapped_foo.clear();
   rb_gc_start();
 
   ASSERT_EQUAL(true, test_destructor_called);

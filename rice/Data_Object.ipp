@@ -32,7 +32,6 @@ namespace Rice
   template<typename T>
   inline Data_Object<T>::Data_Object(Object value) : Object(value)
   {
-    Data_Type<T> klass;
     check_ruby_type(value);
   }
 
@@ -43,12 +42,6 @@ namespace Rice
     {
       throw create_type_exception<T>(value);
     }
-  }
-
-  template<typename T>
-  inline void Data_Object<T>::clear()
-  {
-    return this->set_value(Qnil);
   }
 
   template<typename T>
