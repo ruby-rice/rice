@@ -1009,17 +1009,21 @@ namespace Rice::detail
     TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
     delete wrapper;
 
-    wrapper = new WrapperPointer<T>(data, true);
+    wrapper = new WrapperPointer<T>(data, isOwner);
     RTYPEDDATA_DATA(value) = wrapper;
   }
 
   inline Wrapper* getWrapper(VALUE value)
   {
     // Turn off spurious warning on g++ 12
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
     return static_cast<Wrapper*>(RTYPEDDATA_DATA(value));
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
   }
 } // namespace
 
@@ -1162,9 +1166,6 @@ namespace Rice
     //! Returns if the argument should be treated as a value
     bool getIsValue();
 
-    // No longer supported - implemented to raise error
-    Arg operator,(const Arg& other);
-
   public:
     bool isKeepAlive = false;
     const std::string name;
@@ -1222,12 +1223,6 @@ namespace Rice
   inline bool Arg::getIsValue()
   {
     return isValue_;
-  }
-
-  // Function to overload the, operator
-  inline Arg Arg::operator,(const Arg& other)
-  {
-    throw std::runtime_error("The Arg class no longer supports the comma operator, please remove the surounding parentheses");
   }
 } // Rice
 
@@ -7569,19 +7564,12 @@ namespace Rice
      */
     Data_Object(Object value);
 
-    //! Unwrap a Ruby object.
-    /*! This constructor is analogous to calling Data_Get_Struct.  Will
-     *  throw an exception if the class of the object differs from the
-     *  specified class.
-     *  \param value the Ruby object to unwrap.
-     *  \param klass the expected class of the object.
-     */
-    template<typename U>
-    Data_Object(Object value);
-
     T& operator*() const; //!< Return a reference to obj_
     T* operator->() const; //!< Return a pointer to obj_
     T* get() const;        //!< Return a pointer to obj_
+
+    //! Clear the wrapped Ruby object.
+    void clear();
 
   private:
     static void check_ruby_type(VALUE value);
@@ -7630,19 +7618,18 @@ namespace Rice
   }
 
   template<typename T>
-  template<typename U>
-  inline Data_Object<T>::Data_Object(Object value) : Object(value)
-  {
-    check_ruby_type(value);
-  }
-
-  template<typename T>
   inline void Data_Object<T>::check_ruby_type(VALUE value)
   {
     if (rb_obj_is_kind_of(value, Data_Type<T>::klass()) == Qfalse)
     {
       throw create_type_exception<T>(value);
     }
+  }
+
+  template<typename T>
+  inline void Data_Object<T>::clear()
+  {
+    return this->set_value(Qnil);
   }
 
   template<typename T>
