@@ -39,7 +39,7 @@ namespace Rice
 
   template<typename T>
   template <typename Base_T>
-  inline Data_Type<T> Data_Type<T>::bind(Module const& klass)
+  inline Data_Type<T> Data_Type<T>::bind(const Module& klass)
   {
     if (is_bound())
     {

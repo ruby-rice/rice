@@ -133,7 +133,7 @@ namespace Rice
      *  \return *this
      */
     template <typename Base_T = void>
-    static Data_Type bind(Module const & klass);
+    static Data_Type bind(const Module& klass);
 
     template<typename T_, typename Base_T_>
     friend Rice::Data_Type<T_> define_class_under(Object module, char const * name);
