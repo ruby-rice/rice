@@ -31,7 +31,7 @@ namespace
 
 Class makeVectorClass()
 {
-  Class c= define_class<MyClass>("MyClass").
+  Class c = define_class<MyClass>("MyClass").
     define_constructor(Constructor<MyClass>()).
     define_method("stringVector", &MyClass::stringVector);
 
@@ -661,4 +661,63 @@ TESTCASE(ArrayToVectorMixedTypes)
     m.module_eval(code),
     ASSERT_EQUAL("no implicit conversion of String into Integer", ex.what())
   );
+}
+
+namespace
+{
+
+  class Factory
+  {
+  public:
+    std::vector<std::string>* returnPointer()
+    {
+      return &this->instance_;
+    }
+
+    std::vector<std::string>& returnReference()
+    {
+      return this->instance_;
+    }
+
+    std::vector<std::string> returnValue()
+    {
+      return this->instance_;
+    }
+
+  public:
+    static inline std::vector<std::string> instance_{ "one", "two", "three" };
+  };
+
+  inline std::ostream& operator<<(std::ostream& stream, std::vector<std::string> const& vector)
+  {
+    stream << "Vector";
+    return stream;
+  }
+}
+
+void createFactoryClass()
+{
+  define_class<Factory>("Factory").
+    define_constructor(Constructor<Factory>()).
+    define_method("pointer", &Factory::returnPointer).
+    define_method("reference", &Factory::returnReference).
+    define_method("value", &Factory::returnValue);
+}
+
+TESTCASE(Returns)
+{
+  createFactoryClass();
+  Module m = define_module("TestingModule");
+  Object factory = m.module_eval("Factory.new");
+
+  std::vector<std::string> expected{ "one", "two", "three" };
+
+  Data_Object<std::vector<std::string>> vec1 = factory.call("pointer");
+  ASSERT_EQUAL(expected, *vec1);
+
+  Data_Object<std::vector<std::string>> vec2 = factory.call("reference");
+  ASSERT_EQUAL(expected, *vec2);
+
+  Data_Object<std::vector<std::string>> vec3 = factory.call("value");
+  ASSERT_EQUAL(expected, *vec3);
 }
