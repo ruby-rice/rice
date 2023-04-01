@@ -1,16 +1,14 @@
 Functions and Methods
 =====================
 
-In the tutorial we touched upon how to wrap C++ functions, static member functions and
-member functions. Now let's go into more depth.
+In the tutorial we touched upon how to wrap C++ functions, static member functions and member functions. Now let's go into more depth.
 
 .. _default_arguments:
 
 Default Arguments
 -----------------
 
-Going back to our initial C++ class example, lets say that ``hello()`` now
-takes more arguments, one of which has a default value:
+Going back to our initial C++ class example, lets say that ``hello()`` now takes more arguments, one of which has a default value:
 
 .. code-block:: cpp
 
@@ -21,8 +19,7 @@ takes more arguments, one of which has a default value:
     std::string hello(std::string first, std::string second = "world");
   };
 
-As default parameter information is not available through templates,
-it is necessary to define this in Rice explicitly using ``Rice::Arg``:
+As default parameter information is not available through templates, it is necessary to define this in Rice explicitly using ``Rice::Arg``:
 
 .. code-block:: cpp
 
@@ -42,10 +39,7 @@ it is necessary to define this in Rice explicitly using ``Rice::Arg``:
       );
   }
 
-The syntax here is ``Arg(nameOfParameter)[ = defaultValue]``. The name of the
-parameter is not important here (it is for readability), but the value set via ``operator=``
-must match the type of the parameter. As such it may be necessary to
-explicitly cast the default value.
+The syntax here is ``Arg(nameOfParameter)[ = defaultValue]``. The name of the parameter is not important here (it is for readability), but the value set via ``operator=`` must match the type of the parameter. As such it may be necessary to explicitly cast the default value.
 
 .. code-block:: cpp
 
@@ -54,11 +48,9 @@ explicitly cast the default value.
      Arg("hello"), Arg("second") = (std::string)"world"
   );
 
-These ``Rice::Arg`` objects must be in the correct positional order. Thus if the second argument
-has a default value, then there must be two Arg objects.
+These ``Rice::Arg`` objects must be in the correct positional order. Thus if the second argument has a default value, then there must be two Arg objects.
 
-Now, Ruby will now know about the default arguments, and this wrapper
-can be used as expected:
+Now, Ruby will now know about the default arguments, and this wrapper can be used as expected:
 
 .. code-block:: ruby
 
@@ -96,16 +88,11 @@ To avoid this incorrect conversion, use the ``isValue()`` method on the ``Arg`` 
 Return Values
 -------------
 
-Every C++ object returned from a function, except for ``self``, is wrapped in a new Ruby object.
-Therefore if you make multiple calls to a C++ method that returns the same C++ object each time via a reference
-or pointer, multiple wrapping Ruby objects will be created. It would be possible for Rice to track this
-and return the same Ruby object each time, but at potentially significant runtime cost especially in multi-threaded
-programs. As a result, Rice does not do this. By default having multiple Ruby objects wrap a C++ object is
-fine since the Ruby objects do not own the C++ object. For more information please carefully read
-the :ref:`Ownership` section below.
+Every C++ object returned from a function, except for ``self``, is wrapped in a new Ruby object. Therefore if you make multiple calls to a C++ method that returns the same C++ object each time via a reference
+or pointer, multiple wrapping Ruby objects will be created. It would be possible for Rice to track this and return the same Ruby object each time, but at potentially significant runtime cost especially in multi-threaded
+programs. As a result, Rice does not do this. By default having multiple Ruby objects wrap a C++ object is fine since the Ruby objects do not own the C++ object. For more information please carefully read the :ref:`Ownership` section below.
 
-In the case of methods that return ``self`` - meaning they return back the same C++ object that was the receiver of
-the function call - Rice does ensure that the same Ruby object is returned. Returning self is a common pattern in Ruby.
+In the case of methods that return ``self`` - meaning they return back the same C++ object that was the receiver of the function call - Rice does ensure that the same Ruby object is returned. Returning self is a common pattern in Ruby.
 For example:
 
 .. code-block:: ruby
@@ -113,8 +100,7 @@ For example:
   a = Array.new
   a << 1 << 2 << 3 << 4
 
-The above code works because the ``<<`` method returns the Array ``a``. You can mimic this behavior by the use of lambdas
-when wrapping C++ classes. For example, Rice wraps ``std::vector`` like this:
+The above code works because the ``<<`` method returns the Array ``a``. You can mimic this behavior by the use of lambdas when wrapping C++ classes. For example, Rice wraps ``std::vector`` like this:
 
 .. code-block:: cpp
 
@@ -125,23 +111,18 @@ when wrapping C++ classes. For example, Rice wraps ``std::vector`` like this:
     return self;  // <------  Allows chaining on calls
   });
 
-Pay careful attention to the lambda return type of ``std::vector<int32_t>&``. If the return type is *not* specified,
-then by default the lambda will return by value. That will invoke ``std::vector``'s copy constructor, resulting in
-*two* ``std::vector<int32_t>`` instance and two Ruby objects. Not at all what you want.
+Pay careful attention to the lambda return type of ``std::vector<int32_t>&``. If the return type is *not* specified, then by default the lambda will return by value. That will invoke ``std::vector``'s copy constructor, resulting in *two* ``std::vector<int32_t>`` instance and two Ruby objects. Not at all what you want.
 
 .. _Ownership:
 
 Ownership
 ---------
 
-When Rice wraps a C++ object returned either by reference or pointer, it does *not* take ownership
-of that object. Instead, Rice simply keeps a copy of the reference or pointer for later use. This
-is consistent with modern C++ practices where the use of a reference or pointer does not imply a transfer
-of ownership. Instead, a transfer of ownership should be indicated via the use of and the appropriate type
+When Rice wraps a C++ object returned either by reference or pointer, it does *not* take ownership of that object. Instead, Rice simply keeps a copy of the reference or pointer for later use. This
+is consistent with modern C++ practices where the use of a reference or pointer does not imply a transfer of ownership. Instead, a transfer of ownership should be indicated via the use of and the appropriate type
 of smart pointer as function parameter or return type.
 
-Of course, many APIs exist that do not follow these rules. Therefore, Rice let's you override the ownership
-rules for each method call. Let's look at an example:
+Of course, many APIs exist that do not follow these rules. Therefore, Rice let's you override the ownership rules for each method call. Let's look at an example:
 
 .. code-block:: cpp
 
@@ -168,8 +149,7 @@ rules for each method call. Let's look at an example:
   }
 
 
-Each time Factory#create is called from Ruby, a new C++ instance of MyClass will be created. Using Rice's default rules,
-this will result in a memory leak because those instance will never be freed.
+Each time Factory#create is called from Ruby, a new C++ instance of MyClass will be created. Using Rice's default rules, this will result in a memory leak because those instance will never be freed.
 
 .. code-block:: ruby
 
@@ -183,8 +163,7 @@ To fix this, you need to tell Rice that it should take ownership of the returned
 
   define_function("create", &Factory::create, Return().takeOwnership());
 
-Notice the addition of the ``Return().takeOwnership()``, which creates an instance of Return class and tells it
-to take ownership of the object returned from C++. You can mix ``Arg`` and ``Return`` objects in any order. For example:
+Notice the addition of the ``Return().takeOwnership()``, which creates an instance of Return class and tells it to take ownership of the object returned from C++. You can mix ``Arg`` and ``Return`` objects in any order. For example:
 
 .. code-block:: cpp
 
