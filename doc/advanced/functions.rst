@@ -88,11 +88,11 @@ To avoid this incorrect conversion, use the ``isValue()`` method on the ``Arg`` 
 Return Values
 -------------
 
-Every C++ object returned from a function, except for ``self``, is wrapped in a new Ruby object. Therefore if you make multiple calls to a C++ method that returns the same C++ object each time via a reference
-or pointer, multiple wrapping Ruby objects will be created. It would be possible for Rice to track this and return the same Ruby object each time, but at potentially significant runtime cost especially in multi-threaded
+Every C++ object returned from a function, except for ``self``, is wrapped in a new Ruby object. Therefore if you make multiple calls to a C++ method that returns the same C++ object each time via a reference or pointer, multiple wrapping Ruby objects will be created. It would be possible for Rice to track this and return the same Ruby object each time, but at potentially significant runtime cost especially in multi-threaded
 programs. As a result, Rice does not do this. By default having multiple Ruby objects wrap a C++ object is fine since the Ruby objects do not own the C++ object. For more information please carefully read the :ref:`Ownership` section below.
 
 In the case of methods that return ``self`` - meaning they return back the same C++ object that was the receiver of the function call - Rice does ensure that the same Ruby object is returned. Returning self is a common pattern in Ruby.
+
 For example:
 
 .. code-block:: ruby
@@ -117,10 +117,6 @@ Pay careful attention to the lambda return type of ``std::vector<int32_t>&``. If
 
 Ownership
 ---------
-
-When Rice wraps a C++ object returned either by reference or pointer, it does *not* take ownership of that object. Instead, Rice simply keeps a copy of the reference or pointer for later use. This
-is consistent with modern C++ practices where the use of a reference or pointer does not imply a transfer of ownership. Instead, a transfer of ownership should be indicated via the use of and the appropriate type
-of smart pointer as function parameter or return type.
 
 Of course, many APIs exist that do not follow these rules. Therefore, Rice let's you override the ownership rules for each method call. Let's look at an example:
 
