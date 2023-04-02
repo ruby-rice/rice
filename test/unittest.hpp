@@ -214,6 +214,12 @@ inline bool is_not_equal(T const & t, U const & u)
 
 extern size_t assertions;
 
+template<typename S, typename T, typename = void>
+struct is_streamable: std::false_type {};
+
+template<typename S, typename T>
+struct is_streamable<S, T, std::void_t<decltype(std::declval<S&>()<<std::declval<T>())>>: std::true_type {};
+
 template<typename T, typename U>
 void assert_equal(
     T const & t,
@@ -226,10 +232,13 @@ void assert_equal(
   if(!is_equal(t, u))
   {
     std::stringstream strm;
-    strm << "Assertion failed: "
-      << s_t << " != " << s_u
-      << " (" << t << " != " << u << ")"
-      << " at " << file << ":" << line;
+    strm << "Assertion failed: ";
+
+    if constexpr (is_streamable<std::stringstream, T>::value && is_streamable<std::stringstream, U>::value)
+    {
+      strm << s_t << " != " << s_u;
+    }
+    strm << " at " << file << ":" << line;
     throw Assertion_Failed(strm.str());
   }
 }
