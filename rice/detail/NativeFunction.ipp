@@ -11,9 +11,9 @@ namespace Rice::detail
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::call(int argc, VALUE* argv, VALUE self)
   {
-    using Wrapper_T = NativeFunction<From_Ruby_T, Function_T, IsMethod>;
-    Wrapper_T* wrapper = detail::MethodData::data<Wrapper_T*>();
-    return wrapper->operator()(argc, argv, self);
+    using NativeFunction_T = NativeFunction<From_Ruby_T, Function_T, IsMethod>;
+    NativeFunction_T* nativeFunction = detail::MethodData::data<NativeFunction_T*>();
+    return nativeFunction->operator()(argc, argv, self);
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
