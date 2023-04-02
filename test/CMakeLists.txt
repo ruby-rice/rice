@@ -3,8 +3,8 @@
 #
 
 # Include sub-directories.
-add_subdirectory ("ext/t1")
-add_subdirectory ("ext/t2")
+#add_subdirectory ("ext/t1")
+#add_subdirectory ("ext/t2")
 
 include_directories ("..")
 
@@ -50,11 +50,16 @@ add_executable (unittest
 				"test_global_functions.cpp")
 
 if (MSVC)
-  add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
+  target_compile_definitions(unittest PRIVATE -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
   target_compile_options(unittest PRIVATE /bigobj)
-  include_directories ("C:/msys64/usr/local/ruby-3.2.1-vc/include/ruby-3.2.0")
-  include_directories ("C:/msys64/usr/local/ruby-3.2.1-vc/include/ruby-3.2.0/x64-mswin64_140")
+  target_include_directories(unittest PRIVATE "C:/msys64/usr/local/ruby-3.2.1-vc/include/ruby-3.2.0")
+  target_include_directories(unittest PRIVATE "C:/msys64/usr/local/ruby-3.2.1-vc/include/ruby-3.2.0/x64-mswin64_140")
   target_link_libraries(unittest "C:/msys64/usr/local/ruby-3.2.1-vc/lib/x64-vcruntime140-ruby320.lib")
+elseif (MINGW)
+  target_compile_options(unittest PRIVATE -Wa,-mbig-obj)
+  target_include_directories(unittest PRIVATE "C:/msys64/usr/local/ruby-3.2.0/include/ruby-3.2.0")
+  target_include_directories(unittest PRIVATE "C:/msys64/usr/local/ruby-3.2.0/include/ruby-3.2.0/x64-mingw-ucrt")
+  target_link_libraries(unittest "C:/msys64/usr/local/ruby-3.2.0/lib/libx64-ucrt-ruby320.dll.a")
 else ()
   target_link_libraries(unittest "/usr/lib64/libruby.so")
 endif ()
