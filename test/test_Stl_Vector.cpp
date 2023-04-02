@@ -1,5 +1,4 @@
 #include <complex>
-#include <memory>
 
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
@@ -665,7 +664,6 @@ TESTCASE(ArrayToVectorMixedTypes)
 
 namespace
 {
-
   class Factory
   {
   public:
@@ -688,7 +686,7 @@ namespace
     static inline std::vector<std::string> instance_{ "one", "two", "three" };
   };
 
-  inline std::ostream& operator<<(std::ostream& stream, std::vector<std::string> const& vector)
+  std::ostream& operator<<(std::ostream& stream, const std::vector<std::string>& vector)
   {
     stream << "Vector";
     return stream;

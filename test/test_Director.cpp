@@ -3,7 +3,6 @@
 #include <rice/rice.hpp>
 
 #include <vector>
-#include <iostream>
 
 using namespace Rice;
 

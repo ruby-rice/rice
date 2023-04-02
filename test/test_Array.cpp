@@ -8,14 +8,15 @@ using namespace Rice;
 
 TESTSUITE(Array);
 
-// This is needed to make unittest compile (it uses ostream to report errors)
-inline std::ostream& operator<<(std::ostream& os, const std::vector<int32_t>& vector)
-{
-  for (auto i : vector)
-  {
-    os << i << ", ";
+namespace {
+  // This is needed to make unittest compile (it uses ostream to report errors)
+  template<typename T>
+  std::ostream &operator<<(std::ostream &os, const std::vector<T> &vector) {
+    for (T &i: vector) {
+      os << i << ", ";
+    }
+    return os;
   }
-  return os;
 }
 
 SETUP(Array)

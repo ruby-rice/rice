@@ -42,12 +42,6 @@ namespace
   {
     return instance;
   }
-
-  inline std::ostream& operator<<(std::ostream& stream, MyClass const& myClass)
-  {
-    stream << "MyClass";
-    return stream;
-  }
 }
 
 void makeReferenceWrapperClass()
