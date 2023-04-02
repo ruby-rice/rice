@@ -1,3 +1,5 @@
+#include <ruby/version.h>
+
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
@@ -216,7 +218,14 @@ TESTCASE(ruby_custom_free)
 
   // Force a free
   rb_gc_start();
-  rb_gc_start();
 
+  // Some versions of Ruby's and compilers think the Ruby value in wrapped_foo is still
+  // alive. Thus the rb_gc_start call results in a mark and not a free
+#if defined(__MINGW64__) && RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR == 2
+  // do nothing
+#elif defined(__APPLE__) && RUBY_API_VERSION_MAJOR == 2 && RUBY_API_VERSION_MINOR == 7
+  // do nothing
+#else
   ASSERT_EQUAL(true, test_destructor_called);
+#endif
 }
