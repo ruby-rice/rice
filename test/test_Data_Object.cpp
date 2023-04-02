@@ -216,6 +216,7 @@ TESTCASE(ruby_custom_free)
 
   // Force a free
   rb_gc_start();
+  rb_gc_start();
 
   ASSERT_EQUAL(true, test_destructor_called);
 }
