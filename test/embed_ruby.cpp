@@ -25,7 +25,7 @@ void embed_ruby()
 
     initialized__ = true;
 
-    if (RUBY_API_VERSION_MAJOR < 3)
+    if constexpr (RUBY_API_VERSION_MAJOR < 3)
     {
       rb_eval_string("GC.stress = true");
     }
