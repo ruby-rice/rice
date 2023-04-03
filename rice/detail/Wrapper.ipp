@@ -36,7 +36,7 @@ namespace Rice::detail
   class WrapperReference : public Wrapper
   {
   public:
-    WrapperReference(const T& data): data_(data)
+    WrapperReference(T& data): data_(data)
     {
     }
 
@@ -46,7 +46,7 @@ namespace Rice::detail
     }
 
   private:
-    const T& data_;
+    T& data_;
   };
 
   template <typename T>
