@@ -397,7 +397,7 @@ namespace Rice
           case T_DATA:
           {
             // This is a wrapped vector (hopefully!)
-            return *Data_Object<std::vector<T>>::from_ruby(value);
+            return Data_Object<std::vector<T>>::template from_ruby<std::vector<T>>(value);
           }
           case T_ARRAY:
           {
@@ -443,7 +443,7 @@ namespace Rice
           case T_DATA:
           {
             // This is a wrapped vector (hopefully!)
-            return *Data_Object<std::vector<T>>::from_ruby(value);
+            return Data_Object<std::vector<T>>::template from_ruby<std::vector<T>&>(value);
           }
           case T_ARRAY:
           {
@@ -485,7 +485,7 @@ namespace Rice
           case T_DATA:
           {
             // This is a wrapped vector (hopefully!)
-            return Data_Object<std::vector<T>>::from_ruby(value);
+            return Data_Object<std::vector<T>>::template from_ruby<std::vector<T>*>(value);
           }
           case T_ARRAY:
           {

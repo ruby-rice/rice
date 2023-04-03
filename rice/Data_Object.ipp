@@ -65,16 +65,17 @@ namespace Rice
     }
     else
     {
-      return detail::unwrap<T>(this->value(), Data_Type<T>::ruby_data_type());
+      return detail::unwrap<T*>(this->value(), Data_Type<T>::ruby_data_type());
     }
   }
 
   template<typename T>
-  inline T* Data_Object<T>::from_ruby(VALUE value)
+  template<typename U>
+  inline U Data_Object<T>::from_ruby(VALUE value)
   {
     if (Data_Type<T>::is_descendant(value))
     {
-      return detail::unwrap<T>(value, Data_Type<T>::ruby_data_type());
+      return detail::unwrap<U>(value, Data_Type<T>::ruby_data_type());
     }
     else
     {
@@ -192,7 +193,7 @@ namespace Rice::detail
       }
       else
       {
-        return *Data_Object<Intrinsic_T>::from_ruby(value);
+        return Data_Object<Intrinsic_T>::template from_ruby<T>(value);
       }
     }
 
@@ -228,7 +229,7 @@ namespace Rice::detail
       }
       else
       {
-        return *Data_Object<Intrinsic_T>::from_ruby(value);
+        return Data_Object<Intrinsic_T>::template from_ruby<T&>(value);
       }
     }
 
@@ -258,7 +259,7 @@ namespace Rice::detail
       }
       else
       {
-        return Data_Object<Intrinsic_T>::from_ruby(value);
+        return Data_Object<Intrinsic_T>::template from_ruby<T*>(value);
       }
     }
   };

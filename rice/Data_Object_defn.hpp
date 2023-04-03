@@ -47,8 +47,8 @@ namespace Rice
     static_assert(!std::is_volatile_v<T>);
 
   public:
-    static T* from_ruby(VALUE value);
-    static std::optional<T> implicit_from_ruby(VALUE value);
+    template<typename U>
+    static U from_ruby(VALUE value);
 
   public:
     //! Wrap a C++ object.

@@ -348,7 +348,7 @@ namespace Rice
           case T_DATA:
           {
             // This is a wrapped map (hopefully!)
-            return *Data_Object<std::map<T, U>>::from_ruby(value);
+            return Data_Object<std::map<T, U>>::template from_ruby<std::map<T, U>>(value);
           }
           case T_HASH:
           {
@@ -394,7 +394,7 @@ namespace Rice
           case T_DATA:
           {
             // This is a wrapped map (hopefully!)
-            return *Data_Object<std::map<T, U>>::from_ruby(value);
+            return Data_Object<std::map<T, U>>::template from_ruby<std::map<T, U>&>(value);
           }
           case T_HASH:
           {
@@ -436,7 +436,7 @@ namespace Rice
           case T_DATA:
           {
             // This is a wrapped map (hopefully!)
-            return Data_Object<std::map<T, U>>::from_ruby(value);
+            return Data_Object<std::map<T, U>>::template from_ruby<std::map<T, U>*>(value);
           }
           case T_HASH:
           {

@@ -15,6 +15,11 @@ namespace Rice::detail
     this->keepAlive_.push_back(value);
   }
 
+  inline WrapperType Wrapper::wrapperType()
+  {
+    return WrapperType::Other;
+  }
+
   template <typename T>
   class WrapperValue : public Wrapper
   {
@@ -23,9 +28,24 @@ namespace Rice::detail
     {
     }
 
+    WrapperType wrapperType() override
+    {
+      return WrapperType::Value;
+    }
+
     void* get() override
     {
       return (void*)&this->data_;
+    }
+
+    T& getReference()
+    {
+      return this->data_;
+    }
+
+    T* getPointer()
+    {
+      return &this->data_;
     }
 
   private:
@@ -36,8 +56,13 @@ namespace Rice::detail
   class WrapperReference : public Wrapper
   {
   public:
-    WrapperReference(const T& data): data_(data)
+    WrapperReference(T& data): data_(data)
     {
+    }
+
+    WrapperType wrapperType() override
+    {
+      return WrapperType::Reference;
     }
 
     void* get() override
@@ -45,8 +70,18 @@ namespace Rice::detail
       return (void*)&this->data_;
     }
 
+    T& getReference()
+    {
+      return this->data_;
+    }
+
+    T* getPointer()
+    {
+      return &this->data_;
+    }
+
   private:
-    const T& data_;
+    T& data_;
   };
 
   template <typename T>
@@ -65,9 +100,24 @@ namespace Rice::detail
       }
     }
 
+    WrapperType wrapperType() override
+    {
+      return WrapperType::Pointer;
+    }
+
     void* get() override
     {
       return (void*)this->data_;
+    }
+
+    T& getReference()
+    {
+      return *this->data_;
+    }
+
+    T* getPointer()
+    {
+      return this->data_;
     }
 
   private:
@@ -111,21 +161,68 @@ namespace Rice::detail
     }
   };
 
+  template<typename T, template<typename> typename Wrapper_Template>
+  T unwrapInternal(VALUE value, Wrapper* wrapper)
+  {
+    using Wrapper_T = Wrapper_Template<intrinsic_type<T>>;
+    Wrapper_T* actualWrapper = static_cast<Wrapper_T*>(wrapper);
+
+    if constexpr (std::is_pointer_v<T>)
+    {
+      return actualWrapper->getPointer();
+    }
+    else if constexpr (std::is_reference_v<T>)
+    {
+      return actualWrapper->getReference();
+    }
+    else
+    {
+      // Should there be return by value or just assume it get copies on the return?
+      return actualWrapper->getReference();
+    }
+  };
+
   template <typename T>
-  inline T* unwrap(VALUE value, rb_data_type_t* rb_type)
+  inline T unwrap(VALUE value, rb_data_type_t* rb_type)
   {
     Wrapper* wrapper = getWrapper(value, rb_type);
 
     if (wrapper == nullptr)
     {
-      std::string message = "Wrapped C++ object is nil. Did you override " + 
-                            std::string(detail::protect(rb_obj_classname, value)) + 
-                            "#initialize and forget to call super?";
+      std::string message = "Wrapped C++ object is nil. Did you override " +
+        std::string(detail::protect(rb_obj_classname, value)) +
+        "#initialize and forget to call super?";
 
       throw std::runtime_error(message);
     }
 
-    return static_cast<T*>(wrapper->get());
+    WrapperType wrapperType = wrapper->wrapperType();
+
+    if constexpr (!std::is_abstract_v<intrinsic_type<T>>)
+    {
+      if (wrapperType == WrapperType::Value)
+      {
+        return unwrapInternal<T, WrapperValue>(value, wrapper);
+      }
+    }
+  
+    if (wrapperType == WrapperType::Reference)
+    {
+      return unwrapInternal<T, WrapperReference>(value, wrapper);
+    }
+    else if (wrapperType == WrapperType::Pointer)
+    {
+     return unwrapInternal<T, WrapperPointer>(value, wrapper);
+    }
+    else if (wrapperType == WrapperType::Other)
+    {
+      if constexpr (std::is_pointer_v<T>)
+      {
+        return static_cast<T>(wrapper->get());
+      }
+    }
+
+    throw std::runtime_error("Unknown wrapper type");
   }
     
   inline Wrapper* getWrapper(VALUE value, rb_data_type_t* rb_type)
@@ -145,7 +242,7 @@ namespace Rice::detail
     wrapper = new WrapperPointer<T>(data, isOwner);
     RTYPEDDATA_DATA(value) = wrapper;
   }
-
+  
   inline Wrapper* getWrapper(VALUE value)
   {
     // Turn off spurious warning on g++ 12
