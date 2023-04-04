@@ -204,14 +204,14 @@ namespace Rice::detail
     Wrapper* selfWrapper = getWrapper(self);
     for (const Arg& arg : (*this->methodInfo_))
     {
-      if (arg.isKeepAlive)
+      if (arg.isKeepAlive())
       {
         selfWrapper->addKeepAlive(rubyValues[arg.position]);
       }
     }
 
     // Check return value
-    if (this->methodInfo_->returnInfo.isKeepAlive)
+    if (this->methodInfo_->returnInfo.isKeepAlive())
     {
       Wrapper* returnWrapper = getWrapper(returnValue);
       returnWrapper->addKeepAlive(self);

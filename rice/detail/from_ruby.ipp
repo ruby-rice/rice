@@ -575,7 +575,7 @@ namespace Rice::detail
 
     unsigned long convert(VALUE value)
     {
-      if (this->arg_ && this->arg_->getIsValue())
+      if (this->arg_ && this->arg_->isValue())
       {
         return (unsigned long)value;
       }
@@ -670,7 +670,7 @@ namespace Rice::detail
 
     unsigned long long convert(VALUE value)
     {
-      if (this->arg_ && this->arg_->getIsValue())
+      if (this->arg_ && this->arg_->isValue())
       {
         return value;
       }

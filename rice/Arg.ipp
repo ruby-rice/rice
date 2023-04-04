@@ -28,17 +28,22 @@ namespace Rice
 
   inline Arg& Arg::keepAlive()
   {
-    this->isKeepAlive = true;
+    this->isKeepAlive_ = true;
     return *this;
   }
 
-  inline Arg& Arg::isValue()
+  inline bool Arg::isKeepAlive() const
+  {
+    return this->isKeepAlive_;
+  }
+
+  inline Arg& Arg::setValue()
   {
     isValue_ = true;
     return *this;
   }
 
-  inline bool Arg::getIsValue()
+  inline bool Arg::isValue() const
   {
     return isValue_;
   }

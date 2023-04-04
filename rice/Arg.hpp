@@ -57,15 +57,17 @@ namespace Rice
     //! Tell the receiving object to keep this argument alive
     //! until the receiving object is freed.
     Arg& keepAlive();
+    
+    //! Returns if the argument should be kept alive
+    bool isKeepAlive() const;
 
     //! Specifies if the argument should be treated as a value
-    Arg& isValue();
+    Arg& setValue();
 
     //! Returns if the argument should be treated as a value
-    bool getIsValue();
+    bool isValue() const;
 
   public:
-    bool isKeepAlive = false;
     const std::string name;
     int32_t position = -1;
 
@@ -73,6 +75,7 @@ namespace Rice
     //! Our saved default value
     std::any defaultValue_;
     bool isValue_ = false;
+    bool isKeepAlive_ = false;
   };
 } // Rice
 

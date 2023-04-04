@@ -189,7 +189,7 @@ namespace Rice
 
       VALUE convert(unsigned long const& x)
       {
-        if (this->returnInfo_ && this->returnInfo_->getIsValue())
+        if (this->returnInfo_ && this->returnInfo_->isValue())
         {
           return x;
         }
@@ -215,7 +215,7 @@ namespace Rice
 
       VALUE convert(unsigned long const& x)
       {
-        if (this->returnInfo_ && this->returnInfo_->getIsValue())
+        if (this->returnInfo_ && this->returnInfo_->isValue())
         {
           return x;
         }
@@ -241,7 +241,7 @@ namespace Rice
 
       VALUE convert(unsigned long long const& x)
       {
-        if (this->returnInfo_ && this->returnInfo_->getIsValue())
+        if (this->returnInfo_ && this->returnInfo_->isValue())
         {
           return x;
         }
@@ -267,7 +267,7 @@ namespace Rice
 
       VALUE convert(unsigned long long const& x)
       {
-        if (this->returnInfo_ && this->returnInfo_->getIsValue())
+        if (this->returnInfo_ && this->returnInfo_->isValue())
         {
           return x;
         }

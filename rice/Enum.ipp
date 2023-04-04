@@ -102,7 +102,7 @@ namespace Rice
           }
 
           return ruby_klass;
-      }, Return().isValue())
+      }, Return().setValue())
       .define_singleton_method("from_int", [](VALUE ruby_klass, int32_t value) -> Object
       {
           auto iter = Enum<Enum_T>::valuesToNames_.find((Enum_T)value);

@@ -1047,10 +1047,10 @@ namespace Rice
     bool isOwner();
 
     //! Specifies the returned value is a Ruby value
-    Return& isValue();
+    Return& setValue();
 
     //! Is the returned value a Ruby value?
-    bool getIsValue();
+    bool isValue();
 
     //! Tell the returned object to keep alive the receving object
     Return& keepAlive();
@@ -1082,13 +1082,13 @@ namespace Rice
     return this->isOwner_;
   }
 
-  inline Return& Return::isValue()
+  inline Return& Return::setValue()
   {
     this->isValue_ = true;
     return *this;
   }
 
-  inline bool Return::getIsValue()
+  inline bool Return::isValue()
   {
     return this->isValue_;
   }
@@ -1161,10 +1161,10 @@ namespace Rice
     Arg& keepAlive();
 
     //! Specifies if the argument should be treated as a value
-    Arg& isValue();
+    Arg& setValue();
 
     //! Returns if the argument should be treated as a value
-    bool getIsValue();
+    bool isValue();
 
   public:
     bool isKeepAlive = false;
@@ -1214,13 +1214,13 @@ namespace Rice
     return *this;
   }
 
-  inline Arg& Arg::isValue()
+  inline Arg& Arg::setValue()
   {
     isValue_ = true;
     return *this;
   }
 
-  inline bool Arg::getIsValue()
+  inline bool Arg::isValue()
   {
     return isValue_;
   }
@@ -1843,7 +1843,7 @@ namespace Rice::detail
 
     unsigned long convert(VALUE value)
     {
-      if (this->arg_ && this->arg_->getIsValue())
+      if (this->arg_ && this->arg_->isValue())
       {
         return (unsigned long)value;
       }
@@ -1938,7 +1938,7 @@ namespace Rice::detail
 
     unsigned long long convert(VALUE value)
     {
-      if (this->arg_ && this->arg_->getIsValue())
+      if (this->arg_ && this->arg_->isValue())
       {
         return value;
       }
@@ -2749,7 +2749,7 @@ namespace Rice
 
       VALUE convert(unsigned long const& x)
       {
-        if (this->returnInfo_ && this->returnInfo_->getIsValue())
+        if (this->returnInfo_ && this->returnInfo_->isValue())
         {
           return x;
         }
@@ -2775,7 +2775,7 @@ namespace Rice
 
       VALUE convert(unsigned long const& x)
       {
-        if (this->returnInfo_ && this->returnInfo_->getIsValue())
+        if (this->returnInfo_ && this->returnInfo_->isValue())
         {
           return x;
         }
@@ -2801,7 +2801,7 @@ namespace Rice
 
       VALUE convert(unsigned long long const& x)
       {
-        if (this->returnInfo_ && this->returnInfo_->getIsValue())
+        if (this->returnInfo_ && this->returnInfo_->isValue())
         {
           return x;
         }
@@ -2827,7 +2827,7 @@ namespace Rice
 
       VALUE convert(unsigned long long const& x)
       {
-        if (this->returnInfo_ && this->returnInfo_->getIsValue())
+        if (this->returnInfo_ && this->returnInfo_->isValue())
         {
           return x;
         }

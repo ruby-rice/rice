@@ -6,6 +6,8 @@
 * Remove deprecated APIs
 * Deprecate support for Ruby 2.5 and 2.6 which are no longer supported
 * Added support for building tests with CMake
+* Rename Arg#isValue to Arg#setValue and then Arg#getIsValue to Arg#isValue
+* Rename Return#isValue to Return#setValue and Return#getIsValue to Return#isValue
 
 ## 4.0
 

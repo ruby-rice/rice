@@ -72,7 +72,7 @@ The Ruby API uses a type called VALUE to represent Ruby objects. Most of the tim
 
 However, if a native method takes or returns a VALUE then you have to tell Rice about it. That is because VALUE is a typedef for long long and thus Rice cannot distinguish them because they are the same type. As a result, if a method takes a VALUE parameter then Rice will convert it to a C++ long long value instead of  passing it through. Similarly, if a method returns a VALUE then Rice will also convert it to a numeric Ruby object as opposed to simply returning it.
 
-To avoid this incorrect conversion, use the ``isValue()`` method on the ``Arg`` and ``Return`` classes. For example:
+To avoid this incorrect conversion, use the ``setValue()`` method on the ``Arg`` and ``Return`` classes. For example:
 
 .. code-block:: cpp
 
@@ -83,7 +83,7 @@ To avoid this incorrect conversion, use the ``isValue()`` method on the ``Arg`` 
     return new_ary;
   }
 
-  define_global_function("some_function", &some_function, Arg("ary").isValue(), Return.isValue());
+  define_global_function("some_function", &some_function, Arg("ary").setValue(), Return.setValue());
 
 Return Values
 -------------

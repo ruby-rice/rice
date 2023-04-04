@@ -305,7 +305,7 @@ namespace
 
 TESTCASE(value_parameter)
 {
-  define_global_function("value_parameter", &value_parameter, Arg("value").isValue());
+  define_global_function("value_parameter", &value_parameter, Arg("value").setValue());
 
   Module m = define_module("TestingModule");
   
@@ -320,7 +320,7 @@ TESTCASE(value_parameter)
 
 TESTCASE(value_return)
 {
-  define_global_function("value_return", &value_return, Return().isValue());
+  define_global_function("value_return", &value_return, Return().setValue());
 
   Module m = define_module("TestingModule");
 
