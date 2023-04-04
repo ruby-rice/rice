@@ -79,7 +79,7 @@ namespace Rice::detail
     Arg_Ts getNativeValues(std::vector<VALUE>& values, std::index_sequence<I...>& indices);
 
     // Figure out what self is
-    Class_T getSelf(VALUE self);
+    Class_T getReceiver(VALUE self);
 
     // Do we need to keep alive any arguments?
     void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues);
