@@ -13,6 +13,12 @@ namespace Rice::detail
   }
 
   template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
+  inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::~WrapperSmartPointer()
+  {
+    INSTANCE_TRACKER.remove(this->get());
+  }
+
+  template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
   inline void* WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::get()
   {
     return (void*)this->data_.get();
