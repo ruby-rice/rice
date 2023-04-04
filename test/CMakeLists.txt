@@ -24,6 +24,7 @@ add_executable (unittest
 				"test_Enum.cpp"
 				"test_Exception.cpp"
 				"test_Hash.cpp"
+				"test_global_functions.cpp"
 				"test_Identifier.cpp"
 				"test_Inheritance.cpp"
 				"test_Iterator.cpp"
@@ -47,7 +48,7 @@ add_executable (unittest
 				"test_Struct.cpp"
 				"test_Symbol.cpp"
 				"test_To_From_Ruby.cpp"
-				"test_global_functions.cpp")
+				"test_Tracking")
 
 if (MSVC)
   target_compile_definitions(unittest PRIVATE -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)

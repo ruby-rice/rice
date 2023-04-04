@@ -1,4 +1,5 @@
 #include <memory>
+#include "InstanceTracker.hpp"
 
 namespace Rice::detail
 {
@@ -23,6 +24,11 @@ namespace Rice::detail
     {
     }
 
+    ~WrapperValue()
+    {
+      INSTANCE_TRACKER.remove(this->get());
+    }
+
     void* get() override
     {
       return (void*)&this->data_;
@@ -38,6 +44,11 @@ namespace Rice::detail
   public:
     WrapperReference(T& data): data_(data)
     {
+    }
+
+    ~WrapperReference()
+    {
+      INSTANCE_TRACKER.remove(this->get());
     }
 
     void* get() override
@@ -59,6 +70,8 @@ namespace Rice::detail
 
     ~WrapperPointer()
     {
+      INSTANCE_TRACKER.remove(this->get());
+
       if (this->isOwner_)
       {
         delete this->data_;
@@ -79,36 +92,57 @@ namespace Rice::detail
   template <typename T, typename Wrapper_T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner)
   {
+    VALUE result = INSTANCE_TRACKER.lookup(&data);
+
+    if (result != Qnil)
+      return result;
+
+    Wrapper* wrapper = nullptr;
+
     if constexpr (!std::is_void_v<Wrapper_T>)
     {
-      Wrapper_T* wrapper = new Wrapper_T(data);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      wrapper = new Wrapper_T(data);
+      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
     else if (isOwner)
     {
-      WrapperValue<T>* wrapper = new WrapperValue<T>(data);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      wrapper = new WrapperValue<T>(data);
+      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
     else
     {
-      WrapperReference<T>* wrapper = new WrapperReference<T>(data);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      wrapper = new WrapperReference<T>(data);
+      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
+
+    INSTANCE_TRACKER.add(wrapper->get(), result);
+
+    return result;
   };
 
   template <typename T, typename Wrapper_T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner)
   {
+    VALUE result = INSTANCE_TRACKER.lookup(data);
+
+    if (result != Qnil)
+      return result;
+
+    Wrapper* wrapper = nullptr;
+
     if constexpr (!std::is_void_v<Wrapper_T>)
     {
-      Wrapper_T* wrapper = new Wrapper_T(data);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      wrapper = new Wrapper_T(data);
+      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
     else
     {
-      WrapperPointer<T>* wrapper = new WrapperPointer<T>(data, isOwner);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      wrapper = new WrapperPointer<T>(data, isOwner);
+      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
+
+    INSTANCE_TRACKER.add(wrapper->get(), result);
+    return result;
   };
 
   template <typename T>
@@ -140,10 +174,16 @@ namespace Rice::detail
   {
     WrapperPointer<T>* wrapper = nullptr;
     TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
-    delete wrapper;
+    if (wrapper)
+    {
+      INSTANCE_TRACKER.remove(wrapper->get());
+      delete wrapper;
+    }
 
     wrapper = new WrapperPointer<T>(data, isOwner);
     RTYPEDDATA_DATA(value) = wrapper;
+
+    INSTANCE_TRACKER.add(data, value);
   }
 
   inline Wrapper* getWrapper(VALUE value)
