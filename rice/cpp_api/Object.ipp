@@ -58,12 +58,14 @@ namespace Rice
 
   inline bool Object::is_equal(const Object& other) const
   {
-    return detail::protect(rb_equal, this->value_, other.value_);
+    VALUE result = detail::protect(rb_equal, this->value_, other.value_);
+    return result == Qtrue ? true : false;
   }
 
   inline bool Object::is_eql(const Object& other) const
   {
-    return detail::protect(rb_eql, this->value_, other.value_);
+    VALUE result = detail::protect(rb_eql, this->value_, other.value_);
+    return result == Qtrue ? true : false;
   }
 
   inline void Object::freeze()
@@ -88,19 +90,20 @@ namespace Rice
 
   inline bool Object::is_a(Object klass) const
   {
-    Object result = detail::protect(rb_obj_is_kind_of, this->value(), klass.value());
-    return result.test();
+    VALUE result = detail::protect(rb_obj_is_kind_of, this->value(), klass.value());
+    return result == Qtrue ? true : false;
   }
 
   inline bool Object::respond_to(Identifier id) const
   {
     return bool(rb_respond_to(this->value(), id.id()));
+
   }
 
   inline bool Object::is_instance_of(Object klass) const
   {
-    Object result = detail::protect(rb_obj_is_instance_of, this->value(), klass.value());
-    return result.test();
+    VALUE result = detail::protect(rb_obj_is_instance_of, this->value(), klass.value());
+    return result == Qtrue ? true : false;
   }
 
   inline Object Object::iv_get(Identifier name) const
@@ -151,7 +154,8 @@ namespace Rice
 
   inline bool operator==(Object const& lhs, Object const& rhs)
   {
-    return detail::protect(rb_equal, lhs.value(), rhs.value()) == Qtrue;
+    VALUE result = detail::protect(rb_equal, lhs.value(), rhs.value());
+    return result == Qtrue ? true : false;
   }
 
   inline bool operator!=(Object const& lhs, Object const& rhs)
