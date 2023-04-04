@@ -213,3 +213,28 @@ TESTCASE(MoveValue)
   ASSERT(!my_class1.is_equal(my_class2));
   ASSERT_NOT_EQUAL(my_class1.get(), my_class2.get());
 }
+
+TESTCASE(RubyObjectGced)
+{
+  detail::INSTANCE_TRACKER.isEnabled = true;
+  Factory::reset();
+
+  Module m = define_module("TestingModule");
+  Object factory = m.module_eval("Factory.new");
+
+  {
+    // Track the C++ object returned by keepPointer
+    Data_Object<MyClass> my_class1 = factory.call("keep_pointer");
+    rb_gc_start();
+  }
+
+  // Make my_class1 invalid
+  rb_gc_start();
+
+  // Get the object again - this should *not* return the previous value
+  Data_Object<MyClass> my_class2 = factory.call("keep_pointer");
+
+  // Call a method on the ruby object
+  String className = my_class2.class_name();
+  ASSERT_EQUAL(std::string("MyClass"), className.str());
+}
