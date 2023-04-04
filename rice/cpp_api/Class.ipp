@@ -8,7 +8,7 @@ namespace Rice
 {
   inline Class::Class(VALUE value) : Module(value)
   {
-    detail::protect(rb_check_type, value, (int)T_CLASS);
+    detail::protect(Check_Type, value, RUBY_T_CLASS);
   }
 
   inline Class& Class::undef_creation_funcs()
