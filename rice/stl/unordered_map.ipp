@@ -45,17 +45,17 @@ namespace Rice
       {
         if constexpr (std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& unordered_map) -> T
             {
-              return self;
+              return unordered_map;
             });
         }
         else
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& unordered_map) -> T
             {
               throw std::runtime_error("Cannot copy unordered_maps with non-copy constructible types");
-              return self;
+              return unordered_map;
             });
         }
       }
@@ -73,11 +73,11 @@ namespace Rice
       void define_access_methods()
       {
         // Access methods
-        klass_.define_method("[]", [](const T& self, const Key_T& key) -> std::optional<Mapped_T>
+        klass_.define_method("[]", [](const T& unordered_map, const Key_T& key) -> std::optional<Mapped_T>
           {
-            auto iter = self.find(key);
+            auto iter = unordered_map.find(key);
 
-            if (iter != self.end())
+            if (iter != unordered_map.end())
             {
               return iter->second;
             }
@@ -86,14 +86,14 @@ namespace Rice
               return std::nullopt;
             }
           })
-          .define_method("include?", [](T& self, Key_T& key) -> bool
+          .define_method("include?", [](T& unordered_map, Key_T& key) -> bool
           {
-              return self.find(key) != self.end();
+              return unordered_map.find(key) != unordered_map.end();
           })
-          .define_method("keys", [](T& self) -> std::vector<Key_T>
+          .define_method("keys", [](T& unordered_map) -> std::vector<Key_T>
             {
               std::vector<Key_T> result;
-              std::transform(self.begin(), self.end(), std::back_inserter(result),
+              std::transform(unordered_map.begin(), unordered_map.end(), std::back_inserter(result),
                 [](const auto& pair)
                 {
                   return pair.first;
@@ -101,10 +101,10 @@ namespace Rice
 
               return result;
             })
-          .define_method("values", [](T& self) -> std::vector<Mapped_T>
+          .define_method("values", [](T& unordered_map) -> std::vector<Mapped_T>
             {
               std::vector<Mapped_T> result;
-              std::transform(self.begin(), self.end(), std::back_inserter(result),
+              std::transform(unordered_map.begin(), unordered_map.end(), std::back_inserter(result),
                 [](const auto& pair)
                 {
                   return pair.second;
@@ -121,20 +121,20 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<Mapped_T>)
         {
-          klass_.define_method("value?", [](T& self, Mapped_T& value) -> bool
+          klass_.define_method("value?", [](T& unordered_map, Mapped_T& value) -> bool
             {
-              auto it = std::find_if(self.begin(), self.end(),
+              auto it = std::find_if(unordered_map.begin(), unordered_map.end(),
               [&value](auto& pair)
                 {
                   return pair.second == value;
                 });
 
-              return it != self.end();
+              return it != unordered_map.end();
           });
         }
         else
         {
-          klass_.define_method("value?", [](T& self, Mapped_T& value) -> bool
+          klass_.define_method("value?", [](T& unordered_map, Mapped_T& value) -> bool
           {
               return false;
           });
@@ -146,14 +146,14 @@ namespace Rice
       void define_modify_methods()
       {
         klass_.define_method("clear", &T::clear)
-          .define_method("delete", [](T& self, Key_T& key) -> std::optional<Mapped_T>
+          .define_method("delete", [](T& unordered_map, Key_T& key) -> std::optional<Mapped_T>
             {
-              auto iter = self.find(key);
+              auto iter = unordered_map.find(key);
 
-              if (iter != self.end())
+              if (iter != unordered_map.end())
               {
                 Mapped_T result = iter->second;
-                self.erase(iter);
+                unordered_map.erase(iter);
                 return result;
               }
               else
@@ -161,9 +161,9 @@ namespace Rice
                 return std::nullopt;
               }
             })
-          .define_method("[]=", [](T& self, Key_T key, Mapped_T value) -> Mapped_T
+          .define_method("[]=", [](T& unordered_map, Key_T key, Mapped_T value) -> Mapped_T
             {
-              self[key] = value;
+              unordered_map[key] = value;
               return value;
             });
 
@@ -174,26 +174,26 @@ namespace Rice
       {
         // Add enumerable support
         klass_.include_module(rb_mEnumerable)
-          .define_method("each", [](T& self) -> const T&
+          .define_method("each", [](T& unordered_map) -> const T&
             {
-              for (Value_T& pair : self)
+              for (Value_T& pair : unordered_map)
               {
                 VALUE key = detail::To_Ruby<Key_T>().convert(pair.first);
                 VALUE value = detail::To_Ruby<Mapped_T>().convert(pair.second);
                 const VALUE argv[] = { key, value };
                 detail::protect(rb_yield_values2, 2, argv);
               }
-              return self;
+              return unordered_map;
             });
       }
 
       void define_to_hash()
       {
         // Add enumerable support
-        klass_.define_method("to_h", [](T& self)
+        klass_.define_method("to_h", [](T& unordered_map)
         {
           VALUE result = rb_hash_new();
-          std::for_each(self.begin(), self.end(), [&result](const auto& pair)
+          std::for_each(unordered_map.begin(), unordered_map.end(), [&result](const auto& pair)
           {
             VALUE key = detail::To_Ruby<Key_T>().convert(pair->first);
             VALUE value = detail::To_Ruby<Mapped_T>().convert(pair->second);
@@ -208,16 +208,16 @@ namespace Rice
       {
         if constexpr (detail::is_ostreamable_v<Key_T> && detail::is_ostreamable_v<Mapped_T>)
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& unordered_map)
             {
-              auto iter = self.begin();
+              auto iter = unordered_map.begin();
 
               std::stringstream stream;
               stream << "{";
 
-              for (; iter != self.end(); iter++)
+              for (; iter != unordered_map.end(); iter++)
               {
-                if (iter != self.begin())
+                if (iter != unordered_map.begin())
                 {
                   stream << ", ";
                 }
@@ -230,7 +230,7 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& unordered_map)
             {
               return "[Not printable]";
             });

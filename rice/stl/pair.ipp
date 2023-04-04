@@ -34,17 +34,17 @@ namespace Rice
       {
         if constexpr (std::is_copy_constructible_v<typename T::first_type> && std::is_copy_constructible_v<typename T::second_type>)
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& pair) -> T
             {
-              return self;
+              return pair;
             });
         }
         else
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& pair) -> T
             {
               throw std::runtime_error("Cannot copy pair with non-copy constructible types");
-              return self;
+              return pair;
             });
         }
       }
@@ -52,28 +52,28 @@ namespace Rice
       void define_access_methods()
       {
         // Access methods
-        klass_.define_method("first", [](T& self) -> typename T::first_type&
+        klass_.define_method("first", [](T& pair) -> typename T::first_type&
           {
-            return self.first;
+            return pair.first;
           })
-        .define_method("second", [](T& self) -> typename T::second_type&
+        .define_method("second", [](T& pair) -> typename T::second_type&
           {
-            return self.second;
+            return pair.second;
           });
       }
 
       void define_modify_methods()
       {
         // Access methods
-        klass_.define_method("first=", [](T& self, typename T::first_type& value) -> typename T::first_type&
+        klass_.define_method("first=", [](T& pair, typename T::first_type& value) -> typename T::first_type&
           {
-            self.first = value;
-            return self.first;
+            pair.first = value;
+            return pair.first;
           })
-        .define_method("second=", [](T& self, typename T::second_type& value) -> typename T::second_type&
+        .define_method("second=", [](T& pair, typename T::second_type& value) -> typename T::second_type&
           {
-            self.second = value;
-            return self.second;
+            pair.second = value;
+            return pair.second;
           });
       }
 
@@ -81,16 +81,16 @@ namespace Rice
       {
         if constexpr (detail::is_ostreamable_v<typename T::first_type> && detail::is_ostreamable_v<typename T::second_type>)
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& pair)
             {
               std::stringstream stream;
-              stream << "[" << self.first << ", " << self.second << "]";
+              stream << "[" << pair.first << ", " << pair.second << "]";
               return stream.str();
             });
         }
         else
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& pair)
             {
               return "[Not printable]";
             });
