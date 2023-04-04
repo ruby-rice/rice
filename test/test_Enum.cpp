@@ -95,7 +95,7 @@ TESTCASE(each_return)
   ASSERT_EQUAL(colorEnum2, Enum<Color>().klass());
 }
 
-TESTCASE(each_enum)
+TESTCASE(to_enum)
 {
   Module m = define_module("Testing");
 
