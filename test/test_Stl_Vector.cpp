@@ -260,24 +260,6 @@ TESTCASE(Copy)
   ASSERT_NOT_EQUAL(vec.size(), vecCopy.size());
 }
 
-TESTCASE(Iterate)
-{
-  Module m = define_module("Testing");
-  Class c = define_vector<std::vector<double>>("DoubleVector");
-
-  std::string code = R"(vector = DoubleVector.new
-                        vector << 5.0 << 6.0 << 7.0
-                        updated = vector.map do |value|
-                                    value * 2.0
-                                  end)";
-
-  Array result = m.module_eval(code);
-  ASSERT_EQUAL(3, result.size());
-  ASSERT_EQUAL(10.0, detail::From_Ruby<double>().convert(result[0].value()));
-  ASSERT_EQUAL(12.0, detail::From_Ruby<double>().convert(result[1].value()));
-  ASSERT_EQUAL(14.0, detail::From_Ruby<double>().convert(result[2].value()));
-}
-
 namespace
 {
   class NotComparable
@@ -718,4 +700,91 @@ TESTCASE(Returns)
 
   Data_Object<std::vector<std::string>> vec3 = factory.call("value");
   ASSERT_EQUAL(expected, *vec3);
+}
+
+TESTCASE(Iterate)
+{
+  Module m = define_module("Testing");
+  Class c = define_vector<std::vector<double>>("DoubleVector");
+
+  std::string code = R"(vector = DoubleVector.new
+                        vector << 5.0 << 6.0 << 7.0
+                        updated = vector.map do |value|
+                                    value * 2.0
+                                  end)";
+
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL(10.0, detail::From_Ruby<double>().convert(result[0].value()));
+  ASSERT_EQUAL(12.0, detail::From_Ruby<double>().convert(result[1].value()));
+  ASSERT_EQUAL(14.0, detail::From_Ruby<double>().convert(result[2].value()));
+}
+
+TESTCASE(ToEnumPointer)
+{
+  createFactoryClass();
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(factory = Factory.new
+                        vector = factory.pointer
+                        updated = vector.each.map do |value|
+                                    value + "_updated"
+                                  end)";
+
+  Array result = m.module_eval(code);
+
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL("one_updated", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("two_updated", detail::From_Ruby<std::string>().convert(result[1].value()));
+  ASSERT_EQUAL("three_updated", detail::From_Ruby<std::string>().convert(result[2].value()));
+}
+
+TESTCASE(ToEnumReference)
+{
+  createFactoryClass();
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(factory = Factory.new
+                        vector = factory.reference
+                        updated = vector.each.map do |value|
+                                    value + "_updated"
+                                  end)";
+
+  Array result = m.module_eval(code);
+
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL("one_updated", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("two_updated", detail::From_Ruby<std::string>().convert(result[1].value()));
+  ASSERT_EQUAL("three_updated", detail::From_Ruby<std::string>().convert(result[2].value()));
+}
+
+TESTCASE(ToEnumValue)
+{
+  createFactoryClass();
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(factory = Factory.new
+                        vector = factory.value
+                        updated = vector.each.map do |value|
+                                    value + "_updated"
+                                  end)";
+
+  Array result = m.module_eval(code);
+
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL("one_updated", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("two_updated", detail::From_Ruby<std::string>().convert(result[1].value()));
+  ASSERT_EQUAL("three_updated", detail::From_Ruby<std::string>().convert(result[2].value()));
+}
+
+TESTCASE(ToEnumSize)
+{
+  createFactoryClass();
+  Module m = define_module("TestingModule");
+  Object factory = m.module_eval("Factory.new");
+  Object vector = factory.call("pointer");
+  Object enumerable = vector.call("each");
+  Object result = enumerable.call("size");
+
+  ASSERT_EQUAL(3, detail::From_Ruby<int>().convert(result));
 }

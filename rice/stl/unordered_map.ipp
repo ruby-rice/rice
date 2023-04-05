@@ -174,8 +174,23 @@ namespace Rice
       {
         // Add enumerable support
         klass_.include_module(rb_mEnumerable)
-          .define_method("each", [](T& unordered_map) -> const T&
+          // Note we return Object for the enumerator - if we returned value Rice will think its a unsigned long long
+          .define_method("each", [](T& unordered_map) -> const std::variant<std::reference_wrapper<T>, Object>
             {
+              if (!rb_block_given_p())
+              {
+                auto rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
+                {
+                  // Since we can't capture the unordered_map from above (because then we can't send
+                  // this lambda to rb_enumeratorize_with_size), extract it from recv
+                  T* receiver = Data_Object<T>::from_ruby(recv);
+                  return detail::To_Ruby<size_t>().convert(receiver->size());
+                };
+
+                VALUE self = detail::INSTANCE_TRACKER.lookup(unordered_map);
+                return rb_enumeratorize_with_size(self, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
+              }
+
               for (Value_T& pair : unordered_map)
               {
                 VALUE key = detail::To_Ruby<Key_T>().convert(pair.first);
@@ -183,7 +198,8 @@ namespace Rice
                 const VALUE argv[] = { key, value };
                 detail::protect(rb_yield_values2, 2, argv);
               }
-              return unordered_map;
+
+              return std::ref(unordered_map);
             });
       }
 

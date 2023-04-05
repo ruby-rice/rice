@@ -2,6 +2,7 @@
 #include "../detail/from_ruby.hpp"
 #include "../detail/to_ruby.hpp"
 #include "../Data_Type.hpp"
+#include "../Data_Object.hpp"
 
 #include <sstream>
 #include <stdexcept>
@@ -251,15 +252,31 @@ namespace Rice
       {
         // Add enumerable support
         klass_.include_module(rb_mEnumerable)
-          .define_method("each", [](T& vector) -> const T&
+          // Note we return Object for the enumerator - if we returned value Rice will think its a unsigned long long
+          .define_method("each", [](T& vector) -> const std::variant<std::reference_wrapper<T>, Object>
+          {
+            if (!rb_block_given_p())
             {
-              for (Value_T& item : vector)
+              auto rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
               {
-                VALUE element = detail::To_Ruby<Value_T>().convert(item);
-                rb_yield(element);
-              }
-              return vector;
-            });
+                // Since we can't capture the vector from above (because then we can't send
+                // this lambda to rb_enumeratorize_with_size), extract it from recv
+                T* receiver = Data_Object<T>::from_ruby(recv);
+                return detail::To_Ruby<size_t>().convert(receiver->size());
+              };
+
+              VALUE self = detail::INSTANCE_TRACKER.lookup(vector);
+              return rb_enumeratorize_with_size(self, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
+            }
+
+            for (Value_T& item : vector)
+            {
+              VALUE element = detail::To_Ruby<Value_T>().convert(item);
+              rb_yield(element);
+            }
+
+            return std::ref(vector);
+          });
       }
 
       void define_to_s()

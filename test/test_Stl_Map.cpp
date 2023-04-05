@@ -244,7 +244,7 @@ TESTCASE(Iterate)
                         map["seven"] = 7
 
                         result = Hash.new
-                        map.each do |key, value|
+                        map.map do |key, value|
                                     result[key] = 2 * value
                                   end
                         result)";
@@ -254,6 +254,48 @@ TESTCASE(Iterate)
 
   std::string result_string = result.to_s().str();
   ASSERT_EQUAL("{\"five\"=>10, \"seven\"=>14, \"six\"=>12}", result_string);
+}
+
+TESTCASE(ToEnum)
+{
+  Module m = define_module("Testing");
+  Class c = define_map<std::map<std::string, int>>("IntMap");
+
+  std::string code = R"(map = IntMap.new
+                        map["five"] = 5
+                        map["six"] = 6
+                        map["seven"] = 7
+
+                        result = Hash.new
+                        map.each.each do |key, value|
+                                    result[key] = 2 * value
+                                  end
+                        result)";
+
+  Hash result = m.module_eval(code);
+  ASSERT_EQUAL(3u, result.size());
+
+  std::string result_string = result.to_s().str();
+  ASSERT_EQUAL("{\"five\"=>10, \"seven\"=>14, \"six\"=>12}", result_string);
+}
+
+TESTCASE(ToEnumSize)
+{
+  Module m = define_module("TestingModule");
+  Class c = define_map<std::map<std::string, int>>("IntMap");
+
+  std::string code = R"(map = IntMap.new
+                        map["five"] = 5
+                        map["six"] = 6
+                        map["seven"] = 7
+                        map["eight"] = 7
+                        map)";
+
+  Object map = m.module_eval(code);
+  Object enumerable = map.call("each");
+  Object result = enumerable.call("size");
+
+  ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(result));
 }
 
 namespace

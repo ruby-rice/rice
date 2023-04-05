@@ -256,6 +256,49 @@ TESTCASE(Iterate)
   ASSERT_EQUAL(R"({"seven"=>14, "six"=>12, "five"=>10})", result_string);
 }
 
+TESTCASE(ToEnum)
+{
+  Module m = define_module("Testing");
+  Class c = define_unordered_map<std::unordered_map<std::string, int>>("IntUnorderedMap");
+
+  std::string code = R"(unordered_map = IntUnorderedMap.new
+                        unordered_map["five"] = 5
+                        unordered_map["six"] = 6
+                        unordered_map["seven"] = 7
+
+                        result = Hash.new
+                        unordered_map.each.each do |key, value|
+                                    result[key] = 2 * value
+                                  end
+                        result)";
+
+  Hash result = m.module_eval(code);
+  ASSERT_EQUAL(3u, result.size());
+
+  std::string result_string = result.to_s().str();
+  ASSERT_EQUAL(R"({"seven"=>14, "six"=>12, "five"=>10})", result_string);
+}
+
+TESTCASE(ToEnumSize)
+{
+  Module m = define_module("TestingModule");
+  Class c = define_unordered_map<std::unordered_map<std::string, int>>("IntUnorderedMap");
+
+  std::string code = R"(map = IntUnorderedMap.new
+                        map["five"] = 5
+                        map["six"] = 6
+                        map["seven"] = 7
+                        map["eight"] = 7
+                        map)";
+
+  Object map = m.module_eval(code);
+  Object enumerable = map.call("each");
+  Object result = enumerable.call("size");
+
+  ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(result));
+}
+
+
 namespace
 {
   class NotComparable
