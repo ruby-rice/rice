@@ -4322,7 +4322,7 @@ namespace Rice
        easy to duplicate by setting GC.stress to true and calling a constructor
        that takes multiple values like a std::pair wrapper. */
     std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Arg_Ts>>().convert(args)... };
-    return detail::protect(rb_funcall2, value(), id.id(), (int)values.size(), (const VALUE*)values.data());
+    return detail::protect(rb_funcallv, value(), id.id(), (int)values.size(), (const VALUE*)values.data());
   }
 
   template<typename T>
