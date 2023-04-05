@@ -413,7 +413,7 @@ namespace Rice
           char* symbol = new char[symbolLength];
           strncpy(symbol, x + 1, symbolLength);
           ID id = protect(rb_intern2, symbol, (long)symbolLength);
-          delete symbol;
+          delete[] symbol;
           return protect(rb_id2sym, id);
         }
         else
