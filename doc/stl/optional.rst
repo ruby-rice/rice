@@ -1,3 +1,5 @@
+.. _std_optional:
+
 std::optional
 -------------
 Introduced in C++17, ``std::optional`` provides C++ code an additional way (besides pointers) to return values from functions that may not be set.

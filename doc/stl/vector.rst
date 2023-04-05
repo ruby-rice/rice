@@ -1,3 +1,5 @@
+.. _std_vector:
+
 std::vector
 -----------
 Along with ``std::string``, ``std::vector`` is a workhorse of many C++ code bases. Although there is a direct conceptual mapping between a ``std::vector`` and a Ruby ``Array``, Rice does not copy a vector to an Array. Instead, it wraps ``std::vector``.
@@ -9,7 +11,7 @@ There are multiple reasons for this:
 * ``std::vector`` instances commonly contain C++ classes that have complex copy or move semantics
 * having two disconnected copies of data, one in C++ and one in Ruby, is usually undesirable
 
-Rice will automatically define Ruby classes for each instantation of ``std::vector`` it finds. You may also manually define Ruby classes via the use of ``define_vector`` or ``define_vector_under`` methods. But make sure to define them *before* Rice automatically creates them.
+Rice will automatically define Ruby classes for each instantiation of ``std::vector`` it finds. You may also manually define Ruby classes via the use of ``define_vector`` or ``define_vector_under`` methods. But make sure to define them *before* Rice automatically creates them.
 
 Example:
 

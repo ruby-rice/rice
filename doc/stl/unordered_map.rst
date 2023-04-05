@@ -1,3 +1,5 @@
+.. _std_unordered_map:
+
 std::unordered_map
 -----------
 ``std::unordered_map`` is the Hash table of C++. However, Rice does not copy unordered_maps to Hash tables and instead wraps them.

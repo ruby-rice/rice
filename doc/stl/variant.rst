@@ -1,3 +1,5 @@
+.. _std_variant:
+
 std::variant
 -------------
 Introduced in C++17, ``std::variant`` is a type safe Union. A variant can hold a single value of one of its supported types.

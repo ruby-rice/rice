@@ -1,3 +1,5 @@
+.. _smart_pointers:
+
 Smart Pointers
 ==============
 Smart pointers are key tool in modern C++ to write memory safe code. Rice provides support for ``std::unique_ptr`` and ``std::shared_ptr``. Rice can also be easily extended to support custom smart pointer types.

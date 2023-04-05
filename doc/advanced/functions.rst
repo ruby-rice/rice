@@ -1,3 +1,5 @@
+.. _methods:
+
 Functions and Methods
 =====================
 
@@ -84,6 +86,8 @@ To avoid this incorrect conversion, use the ``setValue()`` method on the ``Arg``
   }
 
   define_global_function("some_function", &some_function, Arg("ary").setValue(), Return.setValue());
+
+.. _return_values:
 
 Return Values
 -------------
