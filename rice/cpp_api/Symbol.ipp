@@ -11,16 +11,16 @@ namespace Rice
   }
 
   inline Symbol::Symbol(char const* s)
-    : Object(ID2SYM(rb_intern(s)))
+    : Object(detail::protect(rb_id2sym, detail::protect(rb_intern, s)))
   {
   }
 
   inline Symbol::Symbol(std::string const& s)
-    : Object(ID2SYM(rb_intern(s.c_str())))
+    : Object(detail::protect(rb_id2sym, detail::protect(rb_intern, s.c_str())))
   {
   }
 
-  inline Symbol::Symbol(Identifier id) : Object(ID2SYM(id))
+  inline Symbol::Symbol(Identifier id) : Object(detail::protect(rb_id2sym, id))
   {
   }
 
