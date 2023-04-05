@@ -6,7 +6,10 @@
 
 #include <sstream>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
+#include <variant>
+
 
 namespace Rice
 {

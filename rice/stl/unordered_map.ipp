@@ -6,7 +6,9 @@
 
 #include <sstream>
 #include <stdexcept>
+#include <type_traits>
 #include <unordered_map>
+#include <variant>
 
 namespace Rice
 {

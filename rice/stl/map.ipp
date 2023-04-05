@@ -8,6 +8,8 @@
 #include <sstream>
 #include <stdexcept>
 #include <map>
+#include <type_traits>
+#include <variant>
 
 namespace Rice
 {
