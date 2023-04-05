@@ -172,6 +172,25 @@ TESTCASE(call_return_rice_object)
   ASSERT_EQUAL(Object(detail::to_ruby(3)), three);
 }
 
+TESTCASE(call_with_keywords)
+{
+  Module kernel = Module("Kernel");
+
+
+  Hash keywords;
+  keywords[":exception"] = false;
+  Object result = kernel.call("Integer", "charlie", keywords);
+  ASSERT_EQUAL(Qnil, result.value());
+
+  keywords[":exception"] = true;
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    kernel.call("Integer", "charlie", keywords),
+    ASSERT_EQUAL("invalid value for Integer(): \"charlie\"", ex.what())
+  );
+}
+
 TESTCASE(const_set_get_by_id)
 {
   Class c(anonymous_class());
