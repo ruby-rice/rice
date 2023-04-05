@@ -7,8 +7,6 @@
 #include <sstream>
 #include <tuple>
 
-#include "TypeRegistry.hpp"
-
 #ifdef __GNUC__
 #include <cxxabi.h>
 #include <cstdlib>
@@ -17,24 +15,6 @@
 
 namespace Rice::detail
 {
-  template<typename T>
-  bool Type<T>::verify()
-  {
-    // Use intrinsic_type so that we don't have to define specializations
-    // for pointers, references, const, etc.
-    using Intrinsic_T = intrinsic_type<T>;
-
-    if constexpr (std::is_fundamental_v<Intrinsic_T>)
-    {
-      return true;
-    }
-    else
-    {
-      TypeRegistry::verifyDefined<Intrinsic_T>();
-      return true;
-    }
-  }
-
   template<>
   struct Type<void>
   {
