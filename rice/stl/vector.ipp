@@ -272,7 +272,7 @@ namespace Rice
             for (Value_T& item : vector)
             {
               VALUE element = detail::To_Ruby<Value_T>().convert(item);
-              rb_yield(element);
+              detail::protect(rb_yield, element);
             }
 
             return std::ref(vector);
