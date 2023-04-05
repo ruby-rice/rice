@@ -153,7 +153,7 @@ namespace Rice::detail
       std::vector<VALUE> args(2);
       args[0] = To_Ruby<T>().convert(data.real());
       args[1] = To_Ruby<T>().convert(data.imag());
-      return protect(rb_funcall2, rb_mKernel, rb_intern("Complex"), (int)args.size(), (const VALUE*)args.data());
+      return protect(rb_funcallv, rb_mKernel, rb_intern("Complex"), (int)args.size(), (const VALUE*)args.data());
     }
   };
 
@@ -163,8 +163,8 @@ namespace Rice::detail
   public:
     std::complex<T> convert(VALUE value)
     {
-      VALUE real = protect(rb_funcall2, value, rb_intern("real"), 0, (const VALUE*)nullptr);
-      VALUE imaginary = protect(rb_funcall2, value, rb_intern("imaginary"), 0, (const VALUE*)nullptr);
+      VALUE real = protect(rb_funcallv, value, rb_intern("real"), 0, (const VALUE*)nullptr);
+      VALUE imaginary = protect(rb_funcallv, value, rb_intern("imaginary"), 0, (const VALUE*)nullptr);
 
       return std::complex<T>(From_Ruby<T>().convert(real), From_Ruby<T>().convert(imaginary));
     }
@@ -176,8 +176,8 @@ namespace Rice::detail
   public:
     std::complex<T>& convert(VALUE value)
     {
-      VALUE real = protect(rb_funcall2, value, rb_intern("real"), 0, (const VALUE*)nullptr);
-      VALUE imaginary = protect(rb_funcall2, value, rb_intern("imaginary"), 0, (const VALUE*)nullptr);
+      VALUE real = protect(rb_funcallv, value, rb_intern("real"), 0, (const VALUE*)nullptr);
+      VALUE imaginary = protect(rb_funcallv, value, rb_intern("imaginary"), 0, (const VALUE*)nullptr);
       this->converted_ = std::complex<T>(From_Ruby<T>().convert(real), From_Ruby<T>().convert(imaginary));
 
       return this->converted_;
@@ -244,17 +244,17 @@ namespace Rice
       {
         if constexpr (std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& map) -> T
             {
-              return self;
+              return map;
             });
         }
         else
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& map) -> T
             {
               throw std::runtime_error("Cannot copy maps with non-copy constructible types");
-              return self;
+              return map;
             });
         }
       }
@@ -272,11 +272,11 @@ namespace Rice
       void define_access_methods()
       {
         // Access methods
-        klass_.define_method("[]", [](const T& self, const Key_T& key) -> std::optional<Mapped_T>
+        klass_.define_method("[]", [](const T& map, const Key_T& key) -> std::optional<Mapped_T>
           {
-            auto iter = self.find(key);
+            auto iter = map.find(key);
 
-            if (iter != self.end())
+            if (iter != map.end())
             {
               return iter->second;
             }
@@ -285,14 +285,14 @@ namespace Rice
               return std::nullopt;
             }
           })
-          .define_method("include?", [](T& self, Key_T& key) -> bool
+          .define_method("include?", [](T& map, Key_T& key) -> bool
           {
-              return self.find(key) != self.end();
+              return map.find(key) != map.end();
           })
-          .define_method("keys", [](T& self) -> std::vector<Key_T>
+          .define_method("keys", [](T& map) -> std::vector<Key_T>
             {
               std::vector<Key_T> result;
-              std::transform(self.begin(), self.end(), std::back_inserter(result),
+              std::transform(map.begin(), map.end(), std::back_inserter(result),
                 [](const auto& pair)
                 {
                   return pair.first;
@@ -300,10 +300,10 @@ namespace Rice
 
               return result;
             })
-          .define_method("values", [](T& self) -> std::vector<Mapped_T>
+          .define_method("values", [](T& map) -> std::vector<Mapped_T>
             {
               std::vector<Mapped_T> result;
-              std::transform(self.begin(), self.end(), std::back_inserter(result),
+              std::transform(map.begin(), map.end(), std::back_inserter(result),
                 [](const auto& pair)
                 {
                   return pair.second;
@@ -320,20 +320,20 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<Mapped_T>)
         {
-          klass_.define_method("value?", [](T& self, Mapped_T& value) -> bool
+          klass_.define_method("value?", [](T& map, Mapped_T& value) -> bool
             {
-              auto it = std::find_if(self.begin(), self.end(),
+              auto it = std::find_if(map.begin(), map.end(),
               [&value](auto& pair)
                 {
                   return pair.second == value;
                 });
 
-              return it != self.end();
+              return it != map.end();
           });
         }
         else
         {
-          klass_.define_method("value?", [](T& self, Mapped_T& value) -> bool
+          klass_.define_method("value?", [](T& map, Mapped_T& value) -> bool
           {
               return false;
           });
@@ -345,14 +345,14 @@ namespace Rice
       void define_modify_methods()
       {
         klass_.define_method("clear", &T::clear)
-          .define_method("delete", [](T& self, Key_T& key) -> std::optional<Mapped_T>
+          .define_method("delete", [](T& map, Key_T& key) -> std::optional<Mapped_T>
             {
-              auto iter = self.find(key);
+              auto iter = map.find(key);
 
-              if (iter != self.end())
+              if (iter != map.end())
               {
                 Mapped_T result = iter->second;
-                self.erase(iter);
+                map.erase(iter);
                 return result;
               }
               else
@@ -360,9 +360,9 @@ namespace Rice
                 return std::nullopt;
               }
             })
-          .define_method("[]=", [](T& self, Key_T key, Mapped_T value) -> Mapped_T
+          .define_method("[]=", [](T& map, Key_T key, Mapped_T value) -> Mapped_T
             {
-              self[key] = value;
+              map[key] = value;
               return value;
             });
 
@@ -373,26 +373,42 @@ namespace Rice
       {
         // Add enumerable support
         klass_.include_module(rb_mEnumerable)
-          .define_method("each", [](T& self) -> const T&
+          // Note we return Object for the enumerator - if we returned value Rice will think its a unsigned long long
+          .define_method("each", [](T& map) -> const std::variant<std::reference_wrapper<T>, Object>
             {
-              for (Value_T& pair : self)
+              if (!rb_block_given_p())
+              {
+                auto rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
+                {
+                  // Since we can't capture the map from above (because then we can't send
+                  // this lambda to rb_enumeratorize_with_size), extract it from recv
+                  T* receiver = Data_Object<T>::from_ruby(recv);
+                  return detail::To_Ruby<size_t>().convert(receiver->size());
+                };
+
+                VALUE self = detail::INSTANCE_TRACKER.lookup(map);
+                return rb_enumeratorize_with_size(self, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
+              }
+
+              for (Value_T& pair : map)
               {
                 VALUE key = detail::To_Ruby<Key_T>().convert(pair.first);
                 VALUE value = detail::To_Ruby<Mapped_T>().convert(pair.second);
                 const VALUE argv[] = { key, value };
                 detail::protect(rb_yield_values2, 2, argv);
               }
-              return self;
-            });
+
+              return std::ref(map);
+        });
       }
 
       void define_to_hash()
       {
         // Add enumerable support
-        klass_.define_method("to_h", [](T& self)
+        klass_.define_method("to_h", [](T& map)
         {
           VALUE result = rb_hash_new();
-          std::for_each(self.begin(), self.end(), [&result](const auto& pair)
+          std::for_each(map.begin(), map.end(), [&result](const auto& pair)
           {
             VALUE key = detail::To_Ruby<Key_T>().convert(pair->first);
             VALUE value = detail::To_Ruby<Mapped_T>().convert(pair->second);
@@ -407,16 +423,16 @@ namespace Rice
       {
         if constexpr (detail::is_ostreamable_v<Key_T> && detail::is_ostreamable_v<Mapped_T>)
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& map)
             {
-              auto iter = self.begin();
+              auto iter = map.begin();
 
               std::stringstream stream;
               stream << "{";
 
-              for (; iter != self.end(); iter++)
+              for (; iter != map.end(); iter++)
               {
-                if (iter != self.begin())
+                if (iter != map.begin())
                 {
                   stream << ", ";
                 }
@@ -429,7 +445,7 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& map)
             {
               return "[Not printable]";
             });
@@ -877,17 +893,17 @@ namespace Rice
       {
         if constexpr (std::is_copy_constructible_v<typename T::first_type> && std::is_copy_constructible_v<typename T::second_type>)
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& pair) -> T
             {
-              return self;
+              return pair;
             });
         }
         else
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& pair) -> T
             {
               throw std::runtime_error("Cannot copy pair with non-copy constructible types");
-              return self;
+              return pair;
             });
         }
       }
@@ -895,28 +911,28 @@ namespace Rice
       void define_access_methods()
       {
         // Access methods
-        klass_.define_method("first", [](T& self) -> typename T::first_type&
+        klass_.define_method("first", [](T& pair) -> typename T::first_type&
           {
-            return self.first;
+            return pair.first;
           })
-        .define_method("second", [](T& self) -> typename T::second_type&
+        .define_method("second", [](T& pair) -> typename T::second_type&
           {
-            return self.second;
+            return pair.second;
           });
       }
 
       void define_modify_methods()
       {
         // Access methods
-        klass_.define_method("first=", [](T& self, typename T::first_type& value) -> typename T::first_type&
+        klass_.define_method("first=", [](T& pair, typename T::first_type& value) -> typename T::first_type&
           {
-            self.first = value;
-            return self.first;
+            pair.first = value;
+            return pair.first;
           })
-        .define_method("second=", [](T& self, typename T::second_type& value) -> typename T::second_type&
+        .define_method("second=", [](T& pair, typename T::second_type& value) -> typename T::second_type&
           {
-            self.second = value;
-            return self.second;
+            pair.second = value;
+            return pair.second;
           });
       }
 
@@ -924,16 +940,16 @@ namespace Rice
       {
         if constexpr (detail::is_ostreamable_v<typename T::first_type> && detail::is_ostreamable_v<typename T::second_type>)
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& pair)
             {
               std::stringstream stream;
-              stream << "[" << self.first << ", " << self.second << "]";
+              stream << "[" << pair.first << ", " << pair.second << "]";
               return stream.str();
             });
         }
         else
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& pair)
             {
               return "[Not printable]";
             });
@@ -1065,6 +1081,7 @@ namespace Rice::detail
   {
   public:
     WrapperSmartPointer(SmartPointer_T<Arg_Ts...>& data);
+    ~WrapperSmartPointer();
     void* get() override;
     SmartPointer_T<Arg_Ts...>& data();
 
@@ -1086,6 +1103,12 @@ namespace Rice::detail
   inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::WrapperSmartPointer(SmartPointer_T<Arg_Ts...>& data) 
     : data_(std::move(data))
   {
+  }
+
+  template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
+  inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::~WrapperSmartPointer()
+  {
+    INSTANCE_TRACKER.remove(this->get());
   }
 
   template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
@@ -1262,17 +1285,17 @@ namespace Rice
       {
         if constexpr (std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& unordered_map) -> T
             {
-              return self;
+              return unordered_map;
             });
         }
         else
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& unordered_map) -> T
             {
               throw std::runtime_error("Cannot copy unordered_maps with non-copy constructible types");
-              return self;
+              return unordered_map;
             });
         }
       }
@@ -1290,11 +1313,11 @@ namespace Rice
       void define_access_methods()
       {
         // Access methods
-        klass_.define_method("[]", [](const T& self, const Key_T& key) -> std::optional<Mapped_T>
+        klass_.define_method("[]", [](const T& unordered_map, const Key_T& key) -> std::optional<Mapped_T>
           {
-            auto iter = self.find(key);
+            auto iter = unordered_map.find(key);
 
-            if (iter != self.end())
+            if (iter != unordered_map.end())
             {
               return iter->second;
             }
@@ -1303,14 +1326,14 @@ namespace Rice
               return std::nullopt;
             }
           })
-          .define_method("include?", [](T& self, Key_T& key) -> bool
+          .define_method("include?", [](T& unordered_map, Key_T& key) -> bool
           {
-              return self.find(key) != self.end();
+              return unordered_map.find(key) != unordered_map.end();
           })
-          .define_method("keys", [](T& self) -> std::vector<Key_T>
+          .define_method("keys", [](T& unordered_map) -> std::vector<Key_T>
             {
               std::vector<Key_T> result;
-              std::transform(self.begin(), self.end(), std::back_inserter(result),
+              std::transform(unordered_map.begin(), unordered_map.end(), std::back_inserter(result),
                 [](const auto& pair)
                 {
                   return pair.first;
@@ -1318,10 +1341,10 @@ namespace Rice
 
               return result;
             })
-          .define_method("values", [](T& self) -> std::vector<Mapped_T>
+          .define_method("values", [](T& unordered_map) -> std::vector<Mapped_T>
             {
               std::vector<Mapped_T> result;
-              std::transform(self.begin(), self.end(), std::back_inserter(result),
+              std::transform(unordered_map.begin(), unordered_map.end(), std::back_inserter(result),
                 [](const auto& pair)
                 {
                   return pair.second;
@@ -1338,20 +1361,20 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<Mapped_T>)
         {
-          klass_.define_method("value?", [](T& self, Mapped_T& value) -> bool
+          klass_.define_method("value?", [](T& unordered_map, Mapped_T& value) -> bool
             {
-              auto it = std::find_if(self.begin(), self.end(),
+              auto it = std::find_if(unordered_map.begin(), unordered_map.end(),
               [&value](auto& pair)
                 {
                   return pair.second == value;
                 });
 
-              return it != self.end();
+              return it != unordered_map.end();
           });
         }
         else
         {
-          klass_.define_method("value?", [](T& self, Mapped_T& value) -> bool
+          klass_.define_method("value?", [](T& unordered_map, Mapped_T& value) -> bool
           {
               return false;
           });
@@ -1363,14 +1386,14 @@ namespace Rice
       void define_modify_methods()
       {
         klass_.define_method("clear", &T::clear)
-          .define_method("delete", [](T& self, Key_T& key) -> std::optional<Mapped_T>
+          .define_method("delete", [](T& unordered_map, Key_T& key) -> std::optional<Mapped_T>
             {
-              auto iter = self.find(key);
+              auto iter = unordered_map.find(key);
 
-              if (iter != self.end())
+              if (iter != unordered_map.end())
               {
                 Mapped_T result = iter->second;
-                self.erase(iter);
+                unordered_map.erase(iter);
                 return result;
               }
               else
@@ -1378,9 +1401,9 @@ namespace Rice
                 return std::nullopt;
               }
             })
-          .define_method("[]=", [](T& self, Key_T key, Mapped_T value) -> Mapped_T
+          .define_method("[]=", [](T& unordered_map, Key_T key, Mapped_T value) -> Mapped_T
             {
-              self[key] = value;
+              unordered_map[key] = value;
               return value;
             });
 
@@ -1391,26 +1414,42 @@ namespace Rice
       {
         // Add enumerable support
         klass_.include_module(rb_mEnumerable)
-          .define_method("each", [](T& self) -> const T&
+          // Note we return Object for the enumerator - if we returned value Rice will think its a unsigned long long
+          .define_method("each", [](T& unordered_map) -> const std::variant<std::reference_wrapper<T>, Object>
             {
-              for (Value_T& pair : self)
+              if (!rb_block_given_p())
+              {
+                auto rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
+                {
+                  // Since we can't capture the unordered_map from above (because then we can't send
+                  // this lambda to rb_enumeratorize_with_size), extract it from recv
+                  T* receiver = Data_Object<T>::from_ruby(recv);
+                  return detail::To_Ruby<size_t>().convert(receiver->size());
+                };
+
+                VALUE self = detail::INSTANCE_TRACKER.lookup(unordered_map);
+                return rb_enumeratorize_with_size(self, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
+              }
+
+              for (Value_T& pair : unordered_map)
               {
                 VALUE key = detail::To_Ruby<Key_T>().convert(pair.first);
                 VALUE value = detail::To_Ruby<Mapped_T>().convert(pair.second);
                 const VALUE argv[] = { key, value };
                 detail::protect(rb_yield_values2, 2, argv);
               }
-              return self;
+
+              return std::ref(unordered_map);
             });
       }
 
       void define_to_hash()
       {
         // Add enumerable support
-        klass_.define_method("to_h", [](T& self)
+        klass_.define_method("to_h", [](T& unordered_map)
         {
           VALUE result = rb_hash_new();
-          std::for_each(self.begin(), self.end(), [&result](const auto& pair)
+          std::for_each(unordered_map.begin(), unordered_map.end(), [&result](const auto& pair)
           {
             VALUE key = detail::To_Ruby<Key_T>().convert(pair->first);
             VALUE value = detail::To_Ruby<Mapped_T>().convert(pair->second);
@@ -1425,16 +1464,16 @@ namespace Rice
       {
         if constexpr (detail::is_ostreamable_v<Key_T> && detail::is_ostreamable_v<Mapped_T>)
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& unordered_map)
             {
-              auto iter = self.begin();
+              auto iter = unordered_map.begin();
 
               std::stringstream stream;
               stream << "{";
 
-              for (; iter != self.end(); iter++)
+              for (; iter != unordered_map.end(); iter++)
               {
-                if (iter != self.begin())
+                if (iter != unordered_map.begin())
                 {
                   stream << ", ";
                 }
@@ -1447,7 +1486,7 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& unordered_map)
             {
               return "[Not printable]";
             });
@@ -1944,17 +1983,17 @@ namespace Rice
       {
         if constexpr (std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& vector) -> T
             {
-              return self;
+              return vector;
             });
         }
         else
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& vector) -> T
             {
               throw std::runtime_error("Cannot copy vectors with non-copy constructible types");
-              return self;
+              return vector;
             });
         }
       }
@@ -1967,7 +2006,7 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("resize", [](const T& self, Size_T newSize)
+          klass_.define_method("resize", [](const T& vector, Size_T newSize)
               {
                 // Do nothing
               });
@@ -1991,38 +2030,38 @@ namespace Rice
       void define_access_methods()
       {
         // Access methods
-        klass_.define_method("first", [](const T& self) -> std::optional<Value_T>
+        klass_.define_method("first", [](const T& vector) -> std::optional<Value_T>
           {
-            if (self.size() > 0)
+            if (vector.size() > 0)
             {
-              return self.front();
+              return vector.front();
             }
             else
             {
               return std::nullopt;
             }
           })
-          .define_method("last", [](const T& self) -> std::optional<Value_T>
+          .define_method("last", [](const T& vector) -> std::optional<Value_T>
             {
-              if (self.size() > 0)
+              if (vector.size() > 0)
               {
-                return self.back();
+                return vector.back();
               }
               else
               {
                 return std::nullopt;
               }
             })
-            .define_method("[]", [this](const T& self, Difference_T index) -> std::optional<Value_T>
+            .define_method("[]", [this](const T& vector, Difference_T index) -> std::optional<Value_T>
               {
-                index = normalizeIndex(self.size(), index);
-                if (index < 0 || index >= (Difference_T)self.size())
+                index = normalizeIndex(vector.size(), index);
+                if (index < 0 || index >= (Difference_T)vector.size())
                 {
                   return std::nullopt;
                 }
                 else
                 {
-                  return self[index];
+                  return vector[index];
                 }
               });
 
@@ -2034,48 +2073,48 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<Value_T>)
         {
-          klass_.define_method("delete", [](T& self, Value_T& element) -> std::optional<Value_T>
+          klass_.define_method("delete", [](T& vector, Value_T& element) -> std::optional<Value_T>
             {
-              auto iter = std::find(self.begin(), self.end(), element);
-              if (iter == self.end())
+              auto iter = std::find(vector.begin(), vector.end(), element);
+              if (iter == vector.end())
               {
                 return std::nullopt;
               }
               else
               {
                 Value_T result = *iter;
-                self.erase(iter);
+                vector.erase(iter);
                 return result;
               }
             })
-          .define_method("include?", [](T& self, Value_T& element)
+          .define_method("include?", [](T& vector, Value_T& element)
             {
-              return std::find(self.begin(), self.end(), element) != self.end();
+              return std::find(vector.begin(), vector.end(), element) != vector.end();
             })
-          .define_method("index", [](T& self, Value_T& element) -> std::optional<Difference_T>
+          .define_method("index", [](T& vector, Value_T& element) -> std::optional<Difference_T>
             {
-              auto iter = std::find(self.begin(), self.end(), element);
-              if (iter == self.end())
+              auto iter = std::find(vector.begin(), vector.end(), element);
+              if (iter == vector.end())
               {
                 return std::nullopt;
               }
               else
               {
-                return iter - self.begin();
+                return iter - vector.begin();
               }
             });
         }
         else
         {
-          klass_.define_method("delete", [](T& self, Value_T& element) -> std::optional<Value_T>
+          klass_.define_method("delete", [](T& vector, Value_T& element) -> std::optional<Value_T>
             {
               return std::nullopt;
             })
-          .define_method("include?", [](const T& self, Value_T& element)
+          .define_method("include?", [](const T& vector, Value_T& element)
             {
               return false;
             })
-          .define_method("index", [](const T& self, Value_T& element) -> std::optional<Difference_T>
+          .define_method("index", [](const T& vector, Value_T& element) -> std::optional<Difference_T>
             {
               return std::nullopt;
             });
@@ -2085,26 +2124,26 @@ namespace Rice
       void define_modify_methods()
       {
         klass_.define_method("clear", &T::clear)
-          .define_method("delete_at", [](T& self, const size_t& pos)
+          .define_method("delete_at", [](T& vector, const size_t& pos)
             {
-              auto iter = self.begin() + pos;
+              auto iter = vector.begin() + pos;
               Value_T result = *iter;
-              self.erase(iter);
+              vector.erase(iter);
               return result;
             })
-          .define_method("insert", [this](T& self, Difference_T index, Value_T& element) -> T&
+          .define_method("insert", [this](T& vector, Difference_T index, Value_T& element) -> T&
             {
-              index = normalizeIndex(self.size(), index, true);
-              auto iter = self.begin() + index;
-              self.insert(iter, element);
-              return self;
+              index = normalizeIndex(vector.size(), index, true);
+              auto iter = vector.begin() + index;
+              vector.insert(iter, element);
+              return vector;
             })
-          .define_method("pop", [](T& self) -> std::optional<Value_T>
+          .define_method("pop", [](T& vector) -> std::optional<Value_T>
             {
-              if (self.size() > 0)
+              if (vector.size() > 0)
               {
-                Value_T result = self.back();
-                self.pop_back();
+                Value_T result = vector.back();
+                vector.pop_back();
                 return result;
               }
               else
@@ -2112,16 +2151,16 @@ namespace Rice
                 return std::nullopt;
               }
             })
-          .define_method("push", [](T& self, Value_T& element) -> T&
+          .define_method("push", [](T& vector, Value_T& element) -> T&
             {
-              self.push_back(element);
-              return self;
+              vector.push_back(element);
+              return vector;
             })
           .define_method("shrink_to_fit", &T::shrink_to_fit)
-          .define_method("[]=", [this](T& self, Difference_T index, Value_T& element) -> Value_T&
+          .define_method("[]=", [this](T& vector, Difference_T index, Value_T& element) -> Value_T&
             {
-              index = normalizeIndex(self.size(), index, true);
-              self[index] = element;
+              index = normalizeIndex(vector.size(), index, true);
+              vector[index] = element;
               return element;
             });
 
@@ -2133,32 +2172,48 @@ namespace Rice
       {
         // Add enumerable support
         klass_.include_module(rb_mEnumerable)
-          .define_method("each", [](T& self) -> const T&
+          // Note we return Object for the enumerator - if we returned value Rice will think its a unsigned long long
+          .define_method("each", [](T& vector) -> const std::variant<std::reference_wrapper<T>, Object>
+          {
+            if (!rb_block_given_p())
             {
-              for (Value_T& item : self)
+              auto rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
               {
-                VALUE element = detail::To_Ruby<Value_T>().convert(item);
-                rb_yield(element);
-              }
-              return self;
-            });
+                // Since we can't capture the vector from above (because then we can't send
+                // this lambda to rb_enumeratorize_with_size), extract it from recv
+                T* receiver = Data_Object<T>::from_ruby(recv);
+                return detail::To_Ruby<size_t>().convert(receiver->size());
+              };
+
+              VALUE self = detail::INSTANCE_TRACKER.lookup(vector);
+              return rb_enumeratorize_with_size(self, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
+            }
+
+            for (Value_T& item : vector)
+            {
+              VALUE element = detail::To_Ruby<Value_T>().convert(item);
+              detail::protect(rb_yield, element);
+            }
+
+            return std::ref(vector);
+          });
       }
 
       void define_to_s()
       {
         if constexpr (detail::is_ostreamable_v<Value_T>)
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& vector)
             {
-              auto iter = self.begin();
-              auto finish = self.size() > 1000 ? self.begin() + 1000 : self.end();
+              auto iter = vector.begin();
+              auto finish = vector.size() > 1000 ? vector.begin() + 1000 : vector.end();
 
               std::stringstream stream;
               stream << "[";
 
               for (; iter != finish; iter++)
               {
-                if (iter == self.begin())
+                if (iter == vector.begin())
                 {
                   stream << *iter;
                 }
@@ -2174,7 +2229,7 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& vector)
             {
               return "[Not printable]";
             });

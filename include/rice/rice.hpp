@@ -594,6 +594,96 @@ namespace Rice::detail
   }
 }
 
+// =========   InstanceTracker.hpp   =========
+
+#include <map>
+
+namespace Rice::detail
+{
+
+class InstanceTracker
+{
+public:
+  template <typename T>
+  VALUE lookup(T& cppInstance);
+
+  template <typename T>
+  VALUE lookup(T* cppInstance);
+
+  void add(void* cppInstance, VALUE rubyInstance);
+  void remove(void* cppInstance);
+  void clear();
+
+public:
+  bool isEnabled = true;
+
+private:
+  VALUE lookup(void* cppInstance);
+  std::map<void*, VALUE> objectMap_;
+};
+
+extern InstanceTracker INSTANCE_TRACKER;
+
+} // namespace Rice::detail
+
+
+// ---------   InstanceTracker.ipp   ---------
+#include <memory>
+
+namespace Rice::detail
+{
+  template <typename T>
+  inline VALUE InstanceTracker::lookup(T& cppInstance)
+  {
+    return this->lookup((void*)&cppInstance);
+  }
+
+  template <typename T>
+  inline VALUE InstanceTracker::lookup(T* cppInstance)
+  {
+    return this->lookup((void*)cppInstance);
+  }
+
+  inline VALUE InstanceTracker::lookup(void* cppInstance)
+  {
+    if (!this->isEnabled)
+      return Qnil;
+
+    auto it = this->objectMap_.find(cppInstance);
+    if (it != this->objectMap_.end())
+    {
+      return it->second;
+    }
+    else
+    {
+      return Qnil;
+    }
+  }
+
+  inline void InstanceTracker::add(void* cppInstance, VALUE rubyInstance)
+  {
+    if (this->isEnabled)
+    {
+      this->objectMap_[cppInstance] = rubyInstance;
+    }
+  }
+
+  inline void InstanceTracker::remove(void* cppInstance)
+  {
+    this->objectMap_.erase(cppInstance);
+  }
+
+  inline void InstanceTracker::clear()
+  {
+    this->objectMap_.clear();
+  }
+
+  inline InstanceTracker INSTANCE_TRACKER;
+
+} // namespace
+
+
+
 // =========   default_allocation_func.hpp   =========
 
 namespace Rice::detail
@@ -836,8 +926,6 @@ T* unwrap(VALUE value, rb_data_type_t* rb_type);
 
 Wrapper* getWrapper(VALUE value, rb_data_type_t* rb_type);
 
-void* unwrap(VALUE value);
-
 template <typename T>
 void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner);
 
@@ -873,6 +961,11 @@ namespace Rice::detail
     {
     }
 
+    ~WrapperValue()
+    {
+      INSTANCE_TRACKER.remove(this->get());
+    }
+
     void* get() override
     {
       return (void*)&this->data_;
@@ -886,8 +979,13 @@ namespace Rice::detail
   class WrapperReference : public Wrapper
   {
   public:
-    WrapperReference(const T& data): data_(data)
+    WrapperReference(T& data): data_(data)
     {
+    }
+
+    ~WrapperReference()
+    {
+      INSTANCE_TRACKER.remove(this->get());
     }
 
     void* get() override
@@ -896,7 +994,7 @@ namespace Rice::detail
     }
 
   private:
-    const T& data_;
+    T& data_;
   };
 
   template <typename T>
@@ -909,6 +1007,8 @@ namespace Rice::detail
 
     ~WrapperPointer()
     {
+      INSTANCE_TRACKER.remove(this->get());
+
       if (this->isOwner_)
       {
         delete this->data_;
@@ -929,36 +1029,57 @@ namespace Rice::detail
   template <typename T, typename Wrapper_T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner)
   {
+    VALUE result = INSTANCE_TRACKER.lookup(&data);
+
+    if (result != Qnil)
+      return result;
+
+    Wrapper* wrapper = nullptr;
+
     if constexpr (!std::is_void_v<Wrapper_T>)
     {
-      Wrapper_T* wrapper = new Wrapper_T(data);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      wrapper = new Wrapper_T(data);
+      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
     else if (isOwner)
     {
-      WrapperValue<T>* wrapper = new WrapperValue<T>(data);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      wrapper = new WrapperValue<T>(data);
+      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
     else
     {
-      WrapperReference<T>* wrapper = new WrapperReference<T>(data);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      wrapper = new WrapperReference<T>(data);
+      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
+
+    INSTANCE_TRACKER.add(wrapper->get(), result);
+
+    return result;
   };
 
   template <typename T, typename Wrapper_T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner)
   {
+    VALUE result = INSTANCE_TRACKER.lookup(data);
+
+    if (result != Qnil)
+      return result;
+
+    Wrapper* wrapper = nullptr;
+
     if constexpr (!std::is_void_v<Wrapper_T>)
     {
-      Wrapper_T* wrapper = new Wrapper_T(data);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      wrapper = new Wrapper_T(data);
+      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
     else
     {
-      WrapperPointer<T>* wrapper = new WrapperPointer<T>(data, isOwner);
-      return TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      wrapper = new WrapperPointer<T>(data, isOwner);
+      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
+
+    INSTANCE_TRACKER.add(wrapper->get(), result);
+    return result;
   };
 
   template <typename T>
@@ -977,24 +1098,7 @@ namespace Rice::detail
 
     return static_cast<T*>(wrapper->get());
   }
-
-  inline void* unwrap(VALUE value)
-  {
-    // Direct access to avoid any type checking
-    Wrapper* wrapper = (Wrapper*)RTYPEDDATA_DATA(value);
-
-    if (wrapper == nullptr)
-    {
-      std::string message = "Wrapped C++ object is nil. Did you override " +
-                            std::string(detail::protect(rb_obj_classname, value)) +
-                            "#initialize and forget to call super?";
-
-      throw std::runtime_error(message);
-    }
-
-    return wrapper->get();
-  }
-
+    
   inline Wrapper* getWrapper(VALUE value, rb_data_type_t* rb_type)
   {
     Wrapper* wrapper = nullptr;
@@ -1007,10 +1111,16 @@ namespace Rice::detail
   {
     WrapperPointer<T>* wrapper = nullptr;
     TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
-    delete wrapper;
+    if (wrapper)
+    {
+      INSTANCE_TRACKER.remove(wrapper->get());
+      delete wrapper;
+    }
 
     wrapper = new WrapperPointer<T>(data, isOwner);
     RTYPEDDATA_DATA(value) = wrapper;
+
+    INSTANCE_TRACKER.add(data, value);
   }
 
   inline Wrapper* getWrapper(VALUE value)
@@ -1050,15 +1160,16 @@ namespace Rice
     Return& setValue();
 
     //! Is the returned value a Ruby value?
-    bool isValue();
+    bool isValue() const;
 
     //! Tell the returned object to keep alive the receving object
     Return& keepAlive();
 
-  public:
-    bool isKeepAlive = false;
+    //! Is the returned value being kept alive?
+    bool isKeepAlive() const;
 
   private:
+    bool isKeepAlive_ = false;
     bool isOwner_ = false;
     bool isValue_ = false;
   };
@@ -1088,15 +1199,20 @@ namespace Rice
     return *this;
   }
 
-  inline bool Return::isValue()
+  inline bool Return::isValue() const
   {
     return this->isValue_;
   }
 
   inline Return& Return::keepAlive()
   {
-    this->isKeepAlive = true;
+    this->isKeepAlive_ = true;
     return *this;
+  }
+
+  inline bool Return::isKeepAlive() const
+  {
+    return this->isKeepAlive_;
   }
 }  // Rice
 
@@ -1159,15 +1275,17 @@ namespace Rice
     //! Tell the receiving object to keep this argument alive
     //! until the receiving object is freed.
     Arg& keepAlive();
+    
+    //! Returns if the argument should be kept alive
+    bool isKeepAlive() const;
 
     //! Specifies if the argument should be treated as a value
     Arg& setValue();
 
     //! Returns if the argument should be treated as a value
-    bool isValue();
+    bool isValue() const;
 
   public:
-    bool isKeepAlive = false;
     const std::string name;
     int32_t position = -1;
 
@@ -1175,6 +1293,7 @@ namespace Rice
     //! Our saved default value
     std::any defaultValue_;
     bool isValue_ = false;
+    bool isKeepAlive_ = false;
   };
 } // Rice
 
@@ -1210,8 +1329,13 @@ namespace Rice
 
   inline Arg& Arg::keepAlive()
   {
-    this->isKeepAlive = true;
+    this->isKeepAlive_ = true;
     return *this;
+  }
+
+  inline bool Arg::isKeepAlive() const
+  {
+    return this->isKeepAlive_;
   }
 
   inline Arg& Arg::setValue()
@@ -1220,7 +1344,7 @@ namespace Rice
     return *this;
   }
 
-  inline bool Arg::isValue()
+  inline bool Arg::isValue() const
   {
     return isValue_;
   }
@@ -2967,7 +3091,19 @@ namespace Rice
     public:
       VALUE convert(char const* x)
       {
-        return protect(rb_str_new2, x);
+        if (strlen(x) > 0 && x[0] == ':')
+        {
+          size_t symbolLength = strlen(x) - 1;
+          char* symbol = new char[symbolLength];
+          strncpy(symbol, x + 1, symbolLength);
+          ID id = protect(rb_intern2, symbol, (long)symbolLength);
+          delete[] symbol;
+          return protect(rb_id2sym, id);
+        }
+        else
+        {
+          return protect(rb_str_new2, x);
+        }
       }
     };
 
@@ -2977,7 +3113,19 @@ namespace Rice
     public:
       VALUE convert(char const x[])
       {
-        return protect(rb_str_new2, x);
+        if (N > 0 && x[0] == ':')
+        {
+          // N count includes a NULL character at the end of the string
+          constexpr size_t symbolLength = N - 1;
+          char symbol[symbolLength];
+          strncpy(symbol, x + 1, symbolLength);
+          ID id = protect(rb_intern, symbol);
+          return protect(rb_id2sym, id);
+        }
+        else
+        {
+          return protect(rb_str_new2, x);
+        }
       }
     };
   }
@@ -3652,7 +3800,7 @@ namespace Rice::detail
     Arg_Ts getNativeValues(std::vector<VALUE>& values, std::index_sequence<I...>& indices);
 
     // Figure out what self is
-    Class_T getSelf(VALUE self);
+    Class_T getReceiver(VALUE self);
 
     // Do we need to keep alive any arguments?
     void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues);
@@ -3681,9 +3829,9 @@ namespace Rice::detail
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::call(int argc, VALUE* argv, VALUE self)
   {
-    using Wrapper_T = NativeFunction<From_Ruby_T, Function_T, IsMethod>;
-    Wrapper_T* wrapper = detail::MethodData::data<Wrapper_T*>();
-    return wrapper->operator()(argc, argv, self);
+    using NativeFunction_T = NativeFunction<From_Ruby_T, Function_T, IsMethod>;
+    NativeFunction_T* nativeFunction = detail::MethodData::data<NativeFunction_T*>();
+    return nativeFunction->operator()(argc, argv, self);
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
@@ -3773,7 +3921,7 @@ namespace Rice::detail
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  typename NativeFunction<From_Ruby_T, Function_T, IsMethod>::Class_T NativeFunction<From_Ruby_T, Function_T, IsMethod>::getSelf(VALUE self)
+  typename NativeFunction<From_Ruby_T, Function_T, IsMethod>::Class_T NativeFunction<From_Ruby_T, Function_T, IsMethod>::getReceiver(VALUE self)
   {
     // There is no self parameter
     if constexpr (std::is_same_v<Class_T, std::nullptr_t>)
@@ -3825,7 +3973,7 @@ namespace Rice::detail
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::invokeNativeMethod(VALUE self, const Arg_Ts& nativeArgs)
   {
-    Class_T receiver = this->getSelf(self);
+    Class_T receiver = this->getReceiver(self);
     auto selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeArgs);
 
     if constexpr (std::is_void_v<Return_T>)
@@ -3874,14 +4022,14 @@ namespace Rice::detail
     Wrapper* selfWrapper = getWrapper(self);
     for (const Arg& arg : (*this->methodInfo_))
     {
-      if (arg.isKeepAlive)
+      if (arg.isKeepAlive())
       {
         selfWrapper->addKeepAlive(rubyValues[arg.position]);
       }
     }
 
     // Check return value
-    if (this->methodInfo_->returnInfo.isKeepAlive)
+    if (this->methodInfo_->returnInfo.isKeepAlive())
     {
       Wrapper* returnWrapper = getWrapper(returnValue);
       returnWrapper->addKeepAlive(self);
@@ -4291,12 +4439,6 @@ namespace Rice
   inline const Object False(Qfalse);
   inline const Object Undef(Qundef);
 
-  inline Object::Object(Object&& other)
-  {
-    this->value_ = other.value_;
-    other.value_ = Qnil;
-  }
-
   // Ruby auto detects VALUEs in the stack, so when an Object gets deleted make sure
   // to clean up in case it is on the stack
   inline Object::~Object()
@@ -4304,6 +4446,14 @@ namespace Rice
     this->value_ = Qnil;
   }
 
+  // Move constructor
+  inline Object::Object(Object&& other)
+  {
+    this->value_ = other.value_;
+    other.value_ = Qnil;
+  }
+
+  // Move assignment
   inline Object& Object::operator=(Object&& other)
   {
     this->value_ = other.value_;
@@ -4322,7 +4472,7 @@ namespace Rice
        easy to duplicate by setting GC.stress to true and calling a constructor
        that takes multiple values like a std::pair wrapper. */
     std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Arg_Ts>>().convert(args)... };
-    return detail::protect(rb_funcallv, value(), id.id(), (int)values.size(), (const VALUE*)values.data());
+    return detail::protect(rb_funcallv_kw, value(), id.id(), (int)values.size(), (const VALUE*)values.data(), RB_PASS_CALLED_KEYWORDS);
   }
 
   template<typename T>
@@ -4339,12 +4489,14 @@ namespace Rice
 
   inline bool Object::is_equal(const Object& other) const
   {
-    return detail::protect(rb_equal, this->value_, other.value_);
+    VALUE result = detail::protect(rb_equal, this->value_, other.value_);
+    return result == Qtrue ? true : false;
   }
 
   inline bool Object::is_eql(const Object& other) const
   {
-    return detail::protect(rb_eql, this->value_, other.value_);
+    VALUE result = detail::protect(rb_eql, this->value_, other.value_);
+    return result == Qtrue ? true : false;
   }
 
   inline void Object::freeze()
@@ -4369,19 +4521,20 @@ namespace Rice
 
   inline bool Object::is_a(Object klass) const
   {
-    Object result = detail::protect(rb_obj_is_kind_of, this->value(), klass.value());
-    return result.test();
+    VALUE result = detail::protect(rb_obj_is_kind_of, this->value(), klass.value());
+    return result == Qtrue ? true : false;
   }
 
   inline bool Object::respond_to(Identifier id) const
   {
     return bool(rb_respond_to(this->value(), id.id()));
+
   }
 
   inline bool Object::is_instance_of(Object klass) const
   {
-    Object result = detail::protect(rb_obj_is_instance_of, this->value(), klass.value());
-    return result.test();
+    VALUE result = detail::protect(rb_obj_is_instance_of, this->value(), klass.value());
+    return result == Qtrue ? true : false;
   }
 
   inline Object Object::iv_get(Identifier name) const
@@ -4432,7 +4585,8 @@ namespace Rice
 
   inline bool operator==(Object const& lhs, Object const& rhs)
   {
-    return detail::protect(rb_equal, lhs.value(), rhs.value()) == Qtrue;
+    VALUE result = detail::protect(rb_equal, lhs.value(), rhs.value());
+    return result == Qtrue ? true : false;
   }
 
   inline bool operator!=(Object const& lhs, Object const& rhs)
@@ -5693,16 +5847,16 @@ namespace Rice
   }
 
   inline Symbol::Symbol(char const* s)
-    : Object(ID2SYM(rb_intern(s)))
+    : Object(detail::protect(rb_id2sym, detail::protect(rb_intern, s)))
   {
   }
 
   inline Symbol::Symbol(std::string const& s)
-    : Object(ID2SYM(rb_intern(s.c_str())))
+    : Object(detail::protect(rb_id2sym, detail::protect(rb_intern, s.c_str())))
   {
   }
 
-  inline Symbol::Symbol(Identifier id) : Object(ID2SYM(id))
+  inline Symbol::Symbol(Identifier id) : Object(detail::protect(rb_id2sym, id))
   {
   }
 
@@ -5951,6 +6105,9 @@ namespace Rice
     //! Construct a Module from an existing Module object.
     Module(VALUE v);
 
+    //! Construct a Module from an string that references a Module
+    Module(std::string name, Object under = rb_cObject);
+
     //! Return the name of the module.
     String name() const;
 
@@ -6189,6 +6346,22 @@ namespace Rice
         "Expected a Module but got a %s",
         detail::protect(rb_obj_classname, value)); // TODO: might raise an exception
     }
+  }
+
+  //! Construct a Module from an string that references a Module
+  inline Module::Module(std::string name, Object under)
+  {
+    VALUE result = under.const_get(name);
+
+    if (::rb_type(result) != T_MODULE)
+    {
+      throw Exception(
+        rb_eTypeError,
+        "Expected a Module but got a %s",
+        detail::protect(rb_obj_classname, result)); // TODO: might raise an exception
+    }
+
+    this->set_value(result);
   }
 
   template<typename Exception_T, typename Functor_T>
@@ -6477,14 +6650,14 @@ inline auto& define_module_function(Identifier name, Function_T&& func, const Ar
    *  \param superclass the base class to use.
    *  \return the new class.
    */
-  Class define_class_under(Object module, char const * name, Object superclass = rb_cObject);
+  Class define_class_under(Object module, char const * name, const Class& superclass = rb_cObject);
 
   //! Define a new class in the default namespace.
   /*! \param name the name of the class.
    *  \param superclass the base class to use.
    *  \return the new class.
    */
-  Class define_class(char const * name, Object superclass = rb_cObject);
+  Class define_class(char const * name, const Class& superclass = rb_cObject);
 
   //! Create a new anonymous class.
   /*! \return the new class.
@@ -6512,12 +6685,12 @@ namespace Rice
     return *this;
   }
 
-  inline Class define_class_under(Object module, char const* name, Object superclass)
+  inline Class define_class_under(Object module, char const* name, const Class& superclass)
   {
     return detail::protect(rb_define_class_under, module.value(), name, superclass.value());
   }
 
-  inline Class define_class(char const* name, Object superclass)
+  inline Class define_class(char const* name, const Class& superclass)
   {
     return detail::protect(rb_define_class, name, superclass.value());
   }
@@ -7072,7 +7245,7 @@ inline auto& define_module_function(Identifier name, Function_T&& func, const Ar
      *  \return *this
      */
     template <typename Base_T = void>
-    static Data_Type bind(Module const & klass);
+    static Data_Type bind(const Module& klass);
 
     template<typename T_, typename Base_T_>
     friend Rice::Data_Type<T_> define_class_under(Object module, char const * name);
@@ -7161,7 +7334,7 @@ namespace Rice
 
   template<typename T>
   template <typename Base_T>
-  inline Data_Type<T> Data_Type<T>::bind(Module const& klass)
+  inline Data_Type<T> Data_Type<T>::bind(const Module& klass)
   {
     if (is_bound())
     {
@@ -7540,7 +7713,6 @@ namespace Rice
 
   public:
     static T* from_ruby(VALUE value);
-    static std::optional<T> implicit_from_ruby(VALUE value);
 
   public:
     //! Wrap a C++ object.
@@ -7567,9 +7739,6 @@ namespace Rice
     T& operator*() const; //!< Return a reference to obj_
     T* operator->() const; //!< Return a pointer to obj_
     T* get() const;        //!< Return a pointer to obj_
-
-    //! Clear the wrapped Ruby object.
-    void clear();
 
   private:
     static void check_ruby_type(VALUE value);
@@ -7613,7 +7782,6 @@ namespace Rice
   template<typename T>
   inline Data_Object<T>::Data_Object(Object value) : Object(value)
   {
-    Data_Type<T> klass;
     check_ruby_type(value);
   }
 
@@ -7624,12 +7792,6 @@ namespace Rice
     {
       throw create_type_exception<T>(value);
     }
-  }
-
-  template<typename T>
-  inline void Data_Object<T>::clear()
-  {
-    return this->set_value(Qnil);
   }
 
   template<typename T>
@@ -8076,13 +8238,12 @@ namespace Rice
 
     // Add enumerable support
     klass.include_module(rb_mEnumerable)
-      .define_singleton_method("each", [](VALUE ruby_klass) -> Object
+      .define_singleton_method("each", [](VALUE ruby_klass) -> VALUE
         {
-          Class enumClass(ruby_klass);
-
           if (!rb_block_given_p())
           {
-            return enumClass.call("to_enum");
+            return rb_enumeratorize_with_size(ruby_klass, Identifier("each").to_sym(),
+                                      0, nullptr, 0);
           }
 
           for (auto& pair : valuesToNames_)
@@ -8092,8 +8253,8 @@ namespace Rice
             detail::protect(rb_yield, value);
           }
 
-          return enumClass;
-      })
+          return ruby_klass;
+      }, Return().setValue())
       .define_singleton_method("from_int", [](VALUE ruby_klass, int32_t value) -> Object
       {
           auto iter = Enum<Enum_T>::valuesToNames_.find((Enum_T)value);
