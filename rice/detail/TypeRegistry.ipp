@@ -2,7 +2,6 @@
 
 #include "ruby.hpp"
 #include "rice_traits.hpp"
-#include "Type.hpp"
 
 namespace Rice::detail
 {
@@ -76,24 +75,5 @@ namespace Rice::detail
     // Give up!
     std::string message = "Type " + typeName(typeid(object)) + " is not registered";
     throw std::runtime_error(message.c_str());
-  }
-
-  // TODO - hacky to put this here but there is a circular dependency between Type and TypeRegistry
-  template<typename T>
-  bool Type<T>::verify()
-  {
-    // Use intrinsic_type so that we don't have to define specializations
-    // for pointers, references, const, etc.
-    using Intrinsic_T = intrinsic_type<T>;
-
-    if constexpr (std::is_fundamental_v<Intrinsic_T>)
-    {
-      return true;
-    }
-    else
-    {
-      TypeRegistry::verifyDefined<Intrinsic_T>();
-      return true;
-    }
-  }
+  } 
 }
