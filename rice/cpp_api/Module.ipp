@@ -24,6 +24,22 @@ namespace Rice
     }
   }
 
+  //! Construct a Module from an string that references a Module
+  inline Module::Module(std::string name, Object under)
+  {
+    VALUE result = under.const_get(name);
+
+    if (::rb_type(result) != T_MODULE)
+    {
+      throw Exception(
+        rb_eTypeError,
+        "Expected a Module but got a %s",
+        detail::protect(rb_obj_classname, result)); // TODO: might raise an exception
+    }
+
+    this->set_value(result);
+  }
+
   template<typename Exception_T, typename Functor_T>
   inline Module& Module::add_handler(Functor_T functor)
   {

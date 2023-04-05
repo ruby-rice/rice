@@ -28,6 +28,9 @@ namespace Rice
     //! Construct a Module from an existing Module object.
     Module(VALUE v);
 
+    //! Construct a Module from an string that references a Module
+    Module(std::string name, Object under = rb_cObject);
+
     //! Return the name of the module.
     String name() const;
 

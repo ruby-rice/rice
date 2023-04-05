@@ -8,14 +8,20 @@ using namespace Rice;
 
 TESTSUITE(Module);
 
-SETUP(Object)
+SETUP(Module)
 {
   embed_ruby();
 }
 
-TESTCASE(construct_from_value)
+TESTCASE(FromConstant)
 {
   Module m(rb_mEnumerable);
+  ASSERT_EQUAL(rb_mEnumerable, m.value());
+}
+
+TESTCASE(FromName)
+{
+  Module m("Enumerable");
   ASSERT_EQUAL(rb_mEnumerable, m.value());
 }
 
