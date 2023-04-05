@@ -1,15 +1,9 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 using namespace Rice;
 
 TESTSUITE(Iterator);
-
-SETUP(Iterator)
-{
-  embed_ruby();
-}
 
 namespace
 {

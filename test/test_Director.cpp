@@ -1,5 +1,4 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 #include <vector>
@@ -93,11 +92,6 @@ namespace {
   };
 };
 
-SETUP(Director)
-{
-  embed_ruby();
-}
-
 TESTCASE(exposes_worker_as_instantiatable_class)
 {
   define_class<Worker>("Worker")
@@ -163,15 +157,15 @@ TESTCASE(super_calls_on_pure_virtual_raise_error)
 
 TESTCASE(polymorphic_calls_head_down_the_call_chain)
 {
-  define_class<Handler>("Handler")
-    .define_constructor(Constructor<Handler>())
-    .define_method("add_worker", &Handler::addWorker, Arg("worker").keepAlive())
-    .define_method("process_workers", &Handler::processWorkers);
-
   define_class<Worker>("Worker")
     .define_director<WorkerDirector>()
     .define_constructor(Constructor<WorkerDirector, Object>())
     .define_method("process", &WorkerDirector::default_process);
+
+  define_class<Handler>("Handler")
+    .define_constructor(Constructor<Handler>())
+    .define_method("add_worker", &Handler::addWorker, Arg("worker").keepAlive())
+    .define_method("process_workers", &Handler::processWorkers);
 
   Module m = define_module("Testing");
 
@@ -266,14 +260,14 @@ TESTCASE(mix_of_polymorphic_calls_and_inheritance_dont_cause_infinite_loops)
 
 TESTCASE(director_class_super_classes_get_type_bound)
 {
-  Module m = define_module("Testing");
-  m.define_module_function("get_calls_self", &getCallsSelf);
-
   define_class<CallsSelf>("CallsSelf")
     .define_director<CallsSelfDirector>()
     .define_constructor(Constructor<CallsSelfDirector, Rice::Object>())
     .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
     .define_method("do_it", &CallsSelf::doIt);
+
+  Module m = define_module("Testing");
+  m.define_module_function("get_calls_self", &getCallsSelf);
 
   Object result = m.module_eval(R"(cs = Testing::get_calls_self
                                      cs.do_it(3))");
@@ -282,14 +276,14 @@ TESTCASE(director_class_super_classes_get_type_bound)
 
 TESTCASE(director_allows_abstract_types_used_as_parameters_pointers)
 {
-  Module m = define_module("Testing");
-  m.define_module_function("do_it_on_pointer", &doItOnPointer);
-
   define_class<CallsSelf>("CallsSelf")
     .define_director<CallsSelfDirector>()
     .define_constructor(Constructor<CallsSelfDirector, Rice::Object>())
     .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
     .define_method("do_it", &CallsSelf::doIt);
+
+  Module m = define_module("Testing");
+  m.define_module_function("do_it_on_pointer", &doItOnPointer);
 
   Object result = m.module_eval(
       "class MySelf < CallsSelf; def do_it_impl(num); num * 10; end; end;"
@@ -302,14 +296,14 @@ TESTCASE(director_allows_abstract_types_used_as_parameters_pointers)
 
 TESTCASE(director_allows_abstract_types_used_as_parameters_reference)
 {
-  Module m = define_module("Testing");
-  m.define_module_function("do_it_on_ref", &doItOnReference);
-
   define_class<CallsSelf>("CallsSelf")
     .define_director<CallsSelfDirector>()
     .define_constructor(Constructor<CallsSelfDirector, Rice::Object>())
     .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
     .define_method("do_it", &CallsSelf::doIt);
+
+  Module m = define_module("Testing");
+  m.define_module_function("do_it_on_ref", &doItOnReference);
 
   Object result = m.module_eval(
       "class MySelf < CallsSelf; def do_it_impl(num); num * 10; end; end;"

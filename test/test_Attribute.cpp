@@ -1,18 +1,12 @@
 #include <assert.h> 
 
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
 using namespace Rice;
 
 TESTSUITE(Attribute);
-
-SETUP(Attribute)
-{
-  embed_ruby();
-}
 
 namespace
 {

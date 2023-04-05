@@ -1,5 +1,4 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 #include <vector>
@@ -9,11 +8,6 @@
 using namespace Rice;
 
 TESTSUITE(Hash);
-
-SETUP(Hash)
-{
-  embed_ruby();
-}
 
 TESTCASE(default_construct)
 {
@@ -210,5 +204,5 @@ namespace {
 }
 
 TESTCASE(use_hash_in_wrapped_function) {
-  define_global_function("test_hash_arg", &testHashArg);
+  define_global_function("get_hash_arg", &testHashArg);
 }

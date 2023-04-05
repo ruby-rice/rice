@@ -1,5 +1,4 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 
 #include <rice/rice.hpp>
 
@@ -16,11 +15,6 @@ namespace
     {
     }
   };
-}
-
-SETUP(Array)
-{
-  embed_ruby();
 }
 
 TESTCASE(default_constructor)

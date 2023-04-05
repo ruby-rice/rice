@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 
 #include <rice/rice.hpp>
 
@@ -41,11 +40,6 @@ namespace
 
     return seasons;
   }
-}
-
-SETUP(Enum)
-{
-  embed_ruby();
 }
 
 TESTCASE(copy_construct)

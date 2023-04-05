@@ -1,7 +1,6 @@
 #include <ruby/version.h>
 
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 using namespace Rice;
@@ -43,8 +42,6 @@ namespace Rice
 
 SETUP(Data_Object)
 {
-  embed_ruby();
-
   if (!Data_Type<MyDataType>::is_bound())
   {
     Class object(rb_cObject);

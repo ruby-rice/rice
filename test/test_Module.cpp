@@ -1,5 +1,4 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
@@ -7,11 +6,6 @@
 using namespace Rice;
 
 TESTSUITE(Module);
-
-SETUP(Module)
-{
-  embed_ruby();
-}
 
 TESTCASE(FromConstant)
 {

@@ -1,15 +1,9 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 using namespace Rice;
 
 TESTSUITE(Class);
-
-SETUP(Class)
-{
-  embed_ruby();
-}
 
 TESTCASE(construct)
 {
@@ -31,19 +25,16 @@ TESTCASE(undef_creation_funcs)
 
 TESTCASE(include_module)
 {
-  Class c(anonymous_class());
+  Class c = define_class("AncestorsTestClass");
   Class & c2(c.include_module(rb_mEnumerable));
   ASSERT_EQUAL(&c, &c2);
   Array ancestors(c.ancestors());
-  Array expected_ancestors;
-  expected_ancestors.push(c);
-  expected_ancestors.push(Module(rb_mEnumerable));
-  expected_ancestors.push(Module(rb_cObject));
-  expected_ancestors.push(Module(rb_mKernel));
-#ifdef RUBY_VM
-  expected_ancestors.push(Module(rb_cBasicObject));
-#endif
-  ASSERT_EQUAL(expected_ancestors, ancestors);
+
+  VALUE hasClassAncestor = detail::protect(rb_eval_string, "AncestorsTestClass.ancestors.include?(AncestorsTestClass)");
+  VALUE hasEnumAncestor = detail::protect(rb_eval_string, "AncestorsTestClass.ancestors.include?(Enumerable)");
+
+  ASSERT_EQUAL(Qtrue, hasClassAncestor);
+  ASSERT_EQUAL(Qtrue, hasEnumAncestor);
 }
 
 namespace

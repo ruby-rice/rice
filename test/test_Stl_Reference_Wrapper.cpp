@@ -1,5 +1,4 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
@@ -57,7 +56,6 @@ void makeReferenceWrapperClass()
 
 SETUP(ReferenceWrapper)
 {
-  embed_ruby();
   makeReferenceWrapperClass();
 }
 

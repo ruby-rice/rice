@@ -30,6 +30,8 @@ public:
 
   friend std::ostream & operator<<(std::ostream & out, Failure const & failure);
 
+  std::string what() { return what_; }
+
 private:
   std::string test_suite_name_;
   std::string test_case_name_;
@@ -94,6 +96,8 @@ private:
 class Test_Suite
 {
 public:
+  typedef std::vector<Test_Case> Test_Cases;
+
   Test_Suite(std::string const & name = "");
 
   void add_test_case(Test_Case const & test_case)
@@ -110,10 +114,17 @@ public:
 
   size_t size() const { return test_cases_.size(); }
 
+  Test_Cases test_cases() { return test_cases_; }
+
+  void run_setup() {
+    if (setup_) {
+      setup_();
+    }
+  }
+
 private:
   std::string name_;
 
-  typedef std::vector<Test_Case> Test_Cases;
   Test_Cases test_cases_;
 
   void (*setup_)();
@@ -236,7 +247,7 @@ void assert_equal(
 
     if constexpr (is_streamable<std::stringstream, T>::value && is_streamable<std::stringstream, U>::value)
     {
-      strm << s_t << " != " << s_u;
+      strm << "Expected `" << s_u << "` to be\n\n\t" << t << "\n\nbut was\n\n\t" << u << "\n\n";
     }
     strm << " at " << file << ":" << line;
     throw Assertion_Failed(strm.str());

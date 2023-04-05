@@ -1,5 +1,4 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
@@ -96,8 +95,6 @@ namespace
 
 SETUP(SmartPointer)
 {
-  embed_ruby();
-
   define_class<MyClass>("MyClass").
     define_method("set_flag", &MyClass::setFlag);
 

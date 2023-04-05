@@ -1,5 +1,4 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 using namespace Rice;
@@ -17,11 +16,6 @@ namespace
       .initialize(rb_mKernel, "Point");
     return rb_cPoint;
   }
-}
-
-SETUP(Struct)
-{
-  embed_ruby();
 }
 
 TESTCASE(default_construct)
@@ -192,5 +186,5 @@ namespace {
 }
 
 TESTCASE(use_struct_in_wrapped_function) {
-  define_global_function("test_struct_arg", &testStructArg);
+  define_global_function("get_struct_arg", &testStructArg);
 }

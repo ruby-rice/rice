@@ -1,5 +1,4 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
@@ -53,11 +52,6 @@ namespace
     private:
       std::vector<Listener*> mListeners;
   };
-}
-
-SETUP(Keep_Alive)
-{
-  embed_ruby();
 }
 
 TESTCASE(test_arg)

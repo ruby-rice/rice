@@ -1,15 +1,9 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 using namespace Rice;
 
 TESTSUITE(Builtin_Object);
-
-SETUP(Builtin_Object)
-{
-  embed_ruby();
-}
 
 TESTCASE(construct_with_object)
 {

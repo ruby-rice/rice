@@ -1,18 +1,12 @@
 #include <assert.h> 
 
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
 using namespace Rice;
 
 TESTSUITE(Data_Type);
-
-SETUP(Data_Type)
-{
-  embed_ruby();
-}
 
 /**
  * The tests here are for the feature of taking an instance
@@ -268,6 +262,10 @@ TESTCASE(subclassing)
     define_method("another_method", &BaseClass::another_method);
 
     std::string code = R"(class ChildClass < BaseClass
+                            def initialize
+                              super
+                            end
+
                             def child_method
                               false
                             end

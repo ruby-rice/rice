@@ -1,5 +1,4 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 #include <limits>
@@ -8,11 +7,6 @@
 using namespace Rice;
 
 TESTSUITE(To_From_Ruby);
-
-SETUP(To_From_Ruby)
-{
-  embed_ruby();
-}
 
 TESTCASE(object_to_ruby)
 {

@@ -1,5 +1,4 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 #include <memory>
@@ -70,8 +69,6 @@ namespace
 
 SETUP(Tracking)
 {
-  embed_ruby();
-
   define_class<MyClass>("MyClass");
 
   define_class<Factory>("Factory").

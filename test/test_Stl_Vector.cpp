@@ -1,18 +1,12 @@
 #include <complex>
 
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
 using namespace Rice;
 
 TESTSUITE(Vector);
-
-SETUP(Vector)
-{
-  embed_ruby();
-}
 
 namespace
 {

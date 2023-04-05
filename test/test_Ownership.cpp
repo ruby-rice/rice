@@ -1,5 +1,4 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 #include <memory>
@@ -115,8 +114,6 @@ namespace
 
 SETUP(Ownership)
 {
-  embed_ruby();
-
   define_class<MyClass>("MyClass").
     define_method("process", &MyClass::process).
     define_method("set_flag", &MyClass::setFlag);

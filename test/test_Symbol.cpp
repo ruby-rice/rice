@@ -1,15 +1,9 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 using namespace Rice;
 
 TESTSUITE(Symbol);
-
-SETUP(Symbol)
-{
-  embed_ruby();
-}
 
 TESTCASE(construct_from_symbol)
 {

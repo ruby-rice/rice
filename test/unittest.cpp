@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <iostream>
 #include <map>
+#include <rice/rice.hpp>
+#include <rice/stl.hpp>
 #include "unittest.hpp"
 
 size_t assertions;
@@ -158,5 +160,30 @@ int main(int argc, char** argv)
   }
 
   return (int)result.errors().size() + (int)result.failures().size();
+}
+
+extern "C" void Init_unittest() {
+
+  Rice::define_class<Test_Case>("TestCase")
+    .define_method("name", &Test_Case::name)
+    .define_method("run", &Test_Case::run);
+
+  Rice::define_class<Failure>("Failure")
+    .define_method("what", &Failure::what);
+
+  Rice::define_class<Test_Result>("TestResult")
+    .define_constructor(Rice::Constructor<Test_Result>())
+    .define_method("failures", &Test_Result::failures)
+    .define_method("errors", &Test_Result::errors);
+
+  Rice::Class cTestSuite = Rice::define_class<Test_Suite>("TestSuite")
+    .define_constructor(Rice::Constructor<Test_Suite, std::string>(), Rice::Arg("name") = (std::string)"")
+    .define_method("name", &Test_Suite::name)
+    .define_method("size", &Test_Suite::size)
+    .define_method("test_cases", &Test_Suite::test_cases)
+    .define_method("run_setup", &Test_Suite::run_setup);
+
+  Rice::define_map<std::map<std::string, Test_Suite>>("TestSuiteMap");
+  cTestSuite.define_singleton_function("all", &test_suites);
 }
 

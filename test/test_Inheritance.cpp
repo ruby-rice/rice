@@ -1,7 +1,6 @@
 #include <assert.h> 
 
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
@@ -72,7 +71,6 @@ Enum<NotificationType> createNotificationEnum()
 
 SETUP(Inheritance)
 {
-  embed_ruby();
   static Enum<NotificationType> NotificationEnum = createNotificationEnum();
 
   Data_Type<Notification>::unbind();

@@ -1,15 +1,9 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 using namespace Rice;
 
 TESTSUITE(Exception);
-
-SETUP(Exception)
-{
-  embed_ruby();
-}
 
 TESTCASE(construct_from_exception_object)
 {

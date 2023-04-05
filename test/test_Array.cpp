@@ -1,5 +1,4 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 #include <vector>
@@ -17,11 +16,6 @@ namespace {
     }
     return os;
   }
-}
-
-SETUP(Array)
-{
-  embed_ruby();
 }
 
 TESTCASE(default_construct)
@@ -276,7 +270,7 @@ namespace {
 }
 
 TESTCASE(use_array_in_wrapped_function) {
-  define_global_function("test_array_arg", &testArrayArg);
+  define_global_function("get_array_arg", &testArrayArg);
 }
 
 TESTCASE(array_to_ruby)

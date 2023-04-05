@@ -1,15 +1,9 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
 using namespace Rice;
 
 TESTSUITE(String);
-
-SETUP(String)
-{
-  embed_ruby();
-}
 
 TESTCASE(default_construct)
 {
@@ -103,5 +97,5 @@ namespace {
 }
 
 TESTCASE(use_string_in_wrapped_function) {
-  define_global_function("test_string_arg", &testStringArg);
+  define_global_function("get_string_arg", &testStringArg);
 }

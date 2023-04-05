@@ -1,5 +1,4 @@
 #include "unittest.hpp"
-#include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <ruby/encoding.h>
 #include <rice/stl.hpp>
@@ -9,11 +8,6 @@
 using namespace Rice;
 
 TESTSUITE(StlString);
-
-SETUP(StlString)
-{
-  embed_ruby();
-}
 
 TESTCASE(std_string_to_ruby)
 {
@@ -27,13 +21,13 @@ TESTCASE(std_string_to_ruby_encoding)
   Object object(value);
   Object encoding = object.call("encoding");
   Object encodingName = encoding.call("name");
-  ASSERT_EQUAL("ASCII-8BIT", detail::From_Ruby<std::string>().convert(encodingName));
+  ASSERT_EQUAL("UTF-8", detail::From_Ruby<std::string>().convert(encodingName));
 }
 
 TESTCASE(std_string_to_ruby_encoding_utf8)
 {
   rb_encoding* defaultEncoding = rb_default_external_encoding();
-  
+
   VALUE utf8Encoding = rb_enc_from_encoding(rb_utf8_encoding());
   rb_enc_set_default_external(utf8Encoding);
 
