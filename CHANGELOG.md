@@ -2,12 +2,22 @@
 
 * Add support for std::map, std::unordered_map, std::variant, std::monostate, std::reference_wrapper
 * Enable calling of C++ member functions that are defined in ancestor classes
+* Add instance tracking so that Rice maps the same C++ instance to the same Ruby instance each time it is passed to Ruby
+* Enable creating enumerators for C++ collections like std::vector and std::map
 * Internal improvements to enable calling more ruby api methods including those with a variable number of parameters
+* Add support for mapping more C++ exception classes to Ruby classes (for example, std::system_error to SystemCallError)
+* Updated documentation, including new pages for instance tracking, enumerators, exceptions and newly supported STL classes
+* Add support for calling Ruby methods with keywords from Rice::Object and its ancestors
+* Automatically translate C++ character arrays that start with colons to symbols (ie, ":mysymbol") when sent to Ruby
+* Add constructor for Rice::Module that takes a name, so you can do things like Module("Kernel")
+* Fix comparison methods in Rice::Object, such as Object#is_equal, to actually return the correct result
+* Fix various compiler warnings
 * Remove deprecated APIs
-* Deprecate support for Ruby 2.5 and 2.6 which are no longer supported
-* Added support for building tests with CMake
-* Rename Arg#isValue to Arg#setValue and then Arg#getIsValue to Arg#isValue
-* Rename Return#isValue to Return#setValue and Return#getIsValue to Return#isValue
+* Deprecate support for Ruby 2.5 and 2.6 which are officially out of support
+* Add support for building tests with CMake
+* Rename Arg#isValue to Arg#setValue and then Arg#getIsValue to Arg#isValue (this may be a breaking change for some users)
+* Rename Return#isValue to Return#setValue and Return#getIsValue to Return#isValue (this may be a breaking change for some users)
+* And lots of other fixes and code improvements
 
 ## 4.0
 
