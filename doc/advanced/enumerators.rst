@@ -72,7 +72,7 @@ Since std::vector doesn't have an ``each`` method, Rice creates a lambda functio
 
 Even more interestingly, notice the return type is a ``std::variant``. This is needed because the method can either return a Ruby enumerator or the vector.
 
-In the first case, returning the vector is the same as returning ``this`` from a C++ member function or ``self`` from a Ruby function. This allows methods to be chained together - for example  ``vector.each.map``.
+In the first case, returning the vector is the same as returning ``this`` from a C++ member function or ``self`` from a Ruby function. This allows methods to be chained together - for example  ``vector.a.b``.
 
 We have to return a reference to the vector and not a copy. Besides being potentially wasteful, a copy would result in creating a new Ruby object. Thus ``self`` would no longer be self - which would be quite unexpected. However, ``std::variants`` cannot container references and thus what we need to return is a ``std::reference_wrapper<T>``.
 
@@ -104,6 +104,8 @@ If a block is not provided by the user, then the method should return an enumera
 
       VALUE self = detail::INSTANCE_TRACKER.lookup(vector);
       return rb_enumeratorize_with_size(self, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
+
+Notice the first parameter of ``rb_enumeratorize_with_size`` requires a Ruby instance and not a C++ instance. The correct Ruby instance is the one that is wrapping the C++ instance. Thus the code looks it up using Rice's instance tracker. For more information refer to :ref:`Instance Tracking`.
 
 Supporting Enumerator Size
 --------------------------

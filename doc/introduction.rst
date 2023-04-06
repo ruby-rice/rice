@@ -39,7 +39,5 @@ Installation
 
   gem install rice
 
-Rice is header-only library and therefore does not need to be built separately.
-Instead it should be #included in your C++ project. Rice requires C++17 or later
-and is tested on Windows (MSVC and Mingw64), MacOS (Xcode/clang) and Linux (g++).
+Rice is header-only library and therefore does not need to be built separately. Instead it should be #included in your C++ project. Rice requires C++17 or later and is tested on Windows (MSVC and Mingw64), MacOS (Xcode/clang) and Linux (g++).
 

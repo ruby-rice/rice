@@ -1,3 +1,5 @@
+.. _advanced:
+
 ========
 Advanced
 ========
@@ -11,6 +13,6 @@ Advanced
   advanced/types_overview
   advanced/type_conversions
   advanced/type_verification
+  advanced/exceptions
   advanced/inheritance
   advanced/enumerators
-  advanced/cpp_api

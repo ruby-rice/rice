@@ -413,8 +413,7 @@ by the garbage collector as long as the ``Data_Object`` is on the stack.
 Exceptions
 ----------
 
-Suppose we added a member function to our example class that throws an
-exception:
+In general Rice automatically handles exceptions. For example, suppose a member function of our example class could throw an exception:
 
 .. code-block:: cpp
 
@@ -431,10 +430,6 @@ exception:
     void error();
   };
 
-If we were to wrap this function:
-
-.. code-block:: cpp
-
   extern "C"
   void Init_test()
   {
@@ -445,58 +440,18 @@ If we were to wrap this function:
       .define_method("error", &Test::error);
   }
 
-and call it from inside Ruby:
+If we call this function from Ruby, C++ will raise an exception. Rice will automatically catch it and convert it to a Ruby exception:
 
 .. code-block:: ruby
 
   test = Test.new
-  test.error()
+  begin
+    test.error()
+  rescue => e
+    ..
+  end
 
-we would get an exception. Rice will automatically convert any
-C++ exception it catches into a Ruby exception. But what if we wanted
-to use a custom error message when we convert the exception, or what if
-we wanted to convert to a different type of exception? We can write
-an exception handler like so:
-
-.. code-block:: cpp
-
-  extern "C"
-  void Init_test()
-  {
-    Data_Type<Test> rb_cTest =
-      define_class<Test>("Test")
-      .add_handler<MyException>(handle_my_exception)
-      .define_constructor(Constructor<Test>())
-      .define_method("hello", &Test::hello)
-      .define_method("error", &Test::error);
-  }
-
-The ``handle_my_exception`` function need only rethrow the exception as a
-``Rice::Exception``:
-
-.. code-block:: cpp
-
-  void handle_my_exception(MyException const & ex)
-  {
-    throw Exception(rb_eRuntimeError, "Goodnight, moon");
-  }
-
-And what if we want to call Ruby code from C++? These exceptions are
-also converted:
-
-.. code-block:: cpp
-
-  Object o;
-  o.call("some_function_that_raises", 42);
-
-  protect(rb_raise, rb_eRuntimeError, "some exception msg");
-
-Internally whenever Rice catches a C++ or a Ruby exception, it converts
-it to an ``Exception`` object. This object will later be re-raised as a
-Ruby exception when control is returned to the Ruby VM.
-
-Rice uses a similar class called ``Jump_Tag`` to handle symbols thrown by
-Ruby's ``throw``/``catch`` or other non-local jumps from inside the Ruby VM.
+For much more information about exceptions please refer to the :ref:`Exceptions` section.
 
 Overloaded functions
 --------------------

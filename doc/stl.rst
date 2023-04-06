@@ -1,7 +1,6 @@
-.. _stl:
-
+===
 STL
-========
+===
 
 .. toctree::
   :maxdepth: 2

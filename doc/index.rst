@@ -9,5 +9,6 @@ Rice - Ruby Interface for C++ Extensions
   tutorial
   advanced
   stl
+  cpp_api
   migration
   history
