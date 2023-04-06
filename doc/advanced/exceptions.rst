@@ -46,11 +46,11 @@ The mapping of C++ exceptions to Ruby exceptions is summarized in the table belo
     +--------------------------------------------+--------------------------------------+
     | Any other exception                        | ``RuntimeError``                     |
     +--------------------------------------------+--------------------------------------+
-    
+
 Note the Rice::Exception class is a custom exception type defined by Rice and used when Rice itself needs to raise an exception.
 
 Custom Handlers
-===============
+---------------
 Rice also enables you to register a custom exception handler. This can be done like this:
 
 .. code-block:: cpp
@@ -77,7 +77,8 @@ The ``handle_my_exception`` function need only rethrow the exception as a
   }
 
 Ruby Exceptions
-===============
+---------------
+
 If your C++ code calls a Ruby API it must protect the call to catch any Ruby exceptions. Rice provides a ``protect`` method do this. For example, assume you have implemented an ``each`` method to add enumerable support to a custom C++ class. The ``each`` method should yield values to a user specified block using ``rb_yield``. However if you directly call ``rb_yield`` and the Ruby code raises an exception, your program will crash. Instead, use the ``protect`` function:
 
 .. code-block:: cpp
@@ -98,7 +99,7 @@ Rice uses a similar class called ``Jump_Tag`` to handle symbols thrown by
 Ruby's ``throw``/``catch`` or other non-local jumps from inside the Ruby VM.
 
 C++ Exceptions
-===============
+--------------
 If your C++ code calls a Ruby API which then in turns calls C++ code, you will need to catch any potential C++ exceptions. This is an uncommon case, but can happen when iterating over a Ruby collection from C++. For example:
 
 .. code-block:: cpp
