@@ -3537,6 +3537,7 @@ namespace Rice::detail
 // =========   ruby_try_catch.hpp   =========
 
 #include <stdexcept>
+#include <filesystem>
 
 
 template <typename Callable_T>
@@ -3561,32 +3562,55 @@ auto cpp_protect(Callable_T && func)
        to a pre-allocated NoMemoryError object */
     rb_exc_raise(rb_exc_new2(rb_eNoMemError, ex.what()));
   }
-  catch (std::invalid_argument const& ex)
-  {
-    // This can raise a NoMemoryError in VERY rare circumstances
-    rb_exc_raise(rb_exc_new2(rb_eArgError, ex.what()));
-  }
   catch (std::domain_error const& ex)
   {
-    // This can raise a NoMemoryError in VERY rare circumstances
     rb_exc_raise(rb_exc_new2(rb_eFloatDomainError, ex.what()));
+  }
+  catch (std::invalid_argument const& ex)
+  {
+    rb_exc_raise(rb_exc_new2(rb_eArgError, ex.what()));
+  }
+  catch (std::filesystem::filesystem_error const& ex)
+  {
+    rb_exc_raise(rb_exc_new2(rb_eIOError, ex.what()));
+  }
+  catch (std::length_error const& ex)
+  {
+    rb_exc_raise(rb_exc_new2(rb_eRuntimeError, ex.what()));
   }
   catch (std::out_of_range const& ex)
   {
-    // This can raise a NoMemoryError in VERY rare circumstances
+    rb_exc_raise(rb_exc_new2(rb_eRangeError, ex.what()));
+  }
+  catch (std::overflow_error const& ex)
+  {
+    rb_exc_raise(rb_exc_new2(rb_eRangeError, ex.what()));
+  }
+  catch (std::range_error const& ex)
+  {
+    rb_exc_raise(rb_exc_new2(rb_eRangeError, ex.what()));
+  }
+  catch (std::regex_error const& ex)
+  {
+    rb_exc_raise(rb_exc_new2(rb_eRegexpError, ex.what()));
+  }
+  catch (std::system_error const& ex)
+  {
+    rb_exc_raise(rb_exc_new2(rb_eSystemCallError, ex.what()));
+  }
+  catch (std::underflow_error const& ex)
+  {
     rb_exc_raise(rb_exc_new2(rb_eRangeError, ex.what()));
   }
   catch (std::exception const& ex)
   {
-    // This can raise a NoMemoryError in VERY rare circumstances
     rb_exc_raise(rb_exc_new2(rb_eRuntimeError, ex.what()));
   }
   catch (...)
   {
-    rb_exc_raise(rb_exc_new2(rb_eRuntimeError, "unknown C++ exception thrown"));
+    rb_exc_raise(rb_exc_new2(rb_eRuntimeError, "Unknown C++ exception thrown"));
   }
 }
-
 
 // =========   NativeAttribute.hpp   =========
 
