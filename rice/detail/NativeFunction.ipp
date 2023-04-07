@@ -69,26 +69,26 @@ namespace Rice::detail
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   std::vector<VALUE> NativeFunction<From_Ruby_T, Function_T, IsMethod>::getRubyValues(int argc, VALUE* argv)
   {
-    // Setup a tuple to contain required methodInfo to rb_scan_args
+    // Setup a tuple for the leading rb_scan_args arguments
     std::string scanFormat = this->methodInfo_->formatString();
-    std::tuple<int, VALUE*, const char*> rbScanMandatory = std::forward_as_tuple(argc, argv, scanFormat.c_str());
+    std::tuple<int, VALUE*, const char*> rbScanArgs = std::forward_as_tuple(argc, argv, scanFormat.c_str());
 
-    // Create a vector to store the variable number of Ruby Values
-    std::vector<VALUE> rbScanArgsOptional(std::tuple_size_v<Arg_Ts>, Qnil);
+    // Create a vector to store the VALUEs that will be returned by rb_scan_args
+    std::vector<VALUE> rbScanValues(std::tuple_size_v<Arg_Ts>, Qnil);
 
-    // Convert the vector to an array so it can then be concatenated to a tuple
-    std::array<VALUE*, std::tuple_size_v<Arg_Ts>> rbScanArgsOptionalPointers;
-    std::transform(rbScanArgsOptional.begin(), rbScanArgsOptional.end(), rbScanArgsOptionalPointers.begin(),
+    // Convert the vector to an array so it can be concatenated to a tuple. As importantly
+    // fill it with pointers to rbScanValues
+    std::array<VALUE*, std::tuple_size_v<Arg_Ts>> rbScanValuePointers;
+    std::transform(rbScanValues.begin(), rbScanValues.end(), rbScanValuePointers.begin(),
       [](VALUE& value)
       {
         return &value;
       });
 
     // Combine the tuples and call rb_scan_args
-    auto rbScanArgs = std::tuple_cat(rbScanMandatory, rbScanArgsOptionalPointers);
-    std::apply(rb_scan_args, rbScanArgs);
+    std::apply(rb_scan_args, std::tuple_cat(rbScanArgs, rbScanValuePointers));
 
-    return rbScanArgsOptional;
+    return rbScanValues;
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
