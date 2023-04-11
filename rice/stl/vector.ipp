@@ -1,4 +1,5 @@
 #include "../detail/rice_traits.hpp"
+#include "../detail/self.hpp"
 #include "../detail/from_ruby.hpp"
 #include "../detail/to_ruby.hpp"
 #include "../Data_Type.hpp"
@@ -268,8 +269,7 @@ namespace Rice
                 return detail::To_Ruby<size_t>().convert(receiver->size());
               };
 
-              VALUE self = detail::INSTANCE_TRACKER.lookup(vector);
-              return rb_enumeratorize_with_size(self, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
+              return rb_enumeratorize_with_size(detail::selfThread, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
             }
 
             for (Value_T& item : vector)

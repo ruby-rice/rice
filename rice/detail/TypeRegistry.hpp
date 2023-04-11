@@ -9,7 +9,7 @@
 
 #include "ruby.hpp"
 
-/* The type registery keeps track of all C++ types wrapped by Rice. When a native function returns 
+/* The type registry keeps track of all C++ types wrapped by Rice. When a native function returns 
    an instance of a class/struct we look up its type to verity that it has been registered. 
    
    We have to do this to support C++ inheritance. If a C++ function returns a pointer/reference

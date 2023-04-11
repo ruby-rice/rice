@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <stdexcept>
 
+
+#include "self.hpp"
 #include "method_data.hpp"
 #include "to_ruby_defn.hpp"
 #include "../ruby_try_catch.hpp"
@@ -11,8 +13,14 @@ namespace Rice::detail
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::call(int argc, VALUE* argv, VALUE self)
   {
+    // Set self for this thread
+    Rice::detail::selfThread = self;
+
+    // Get the native function
     using NativeFunction_T = NativeFunction<From_Ruby_T, Function_T, IsMethod>;
     NativeFunction_T* nativeFunction = detail::MethodData::data<NativeFunction_T*>();
+
+    // Execute the function
     return nativeFunction->operator()(argc, argv, self);
   }
 

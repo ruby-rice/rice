@@ -44,8 +44,7 @@ Let's start with looking at the code:
         return detail::To_Ruby<size_t>().convert(receiver->size());
       };
 
-      VALUE self = detail::INSTANCE_TRACKER.lookup(vector);
-      return rb_enumeratorize_with_size(self, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
+      return rb_enumeratorize_with_size(detail::selfThread, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
     }
 
     for (Value_T& item : vector)
@@ -94,18 +93,16 @@ Next, let's look at the code that returns an enumerator:
         return detail::To_Ruby<size_t>().convert(receiver->size());
       };
 
-      VALUE self = detail::INSTANCE_TRACKER.lookup(vector);
-      return rb_enumeratorize_with_size(self, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
+      return rb_enumeratorize_with_size(detail::selfThread, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
     }
 
 If a block is not provided by the user, then the method should return an enumerator. The enumerator is created like this:
 
 .. code-block:: cpp
 
-      VALUE self = detail::INSTANCE_TRACKER.lookup(vector);
-      return rb_enumeratorize_with_size(self, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
+      return rb_enumeratorize_with_size(detail::selfThread, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
 
-Notice the first parameter of ``rb_enumeratorize_with_size`` requires a Ruby instance and not a C++ instance. The correct Ruby instance is the one that is wrapping the C++ instance. Thus the code looks it up using Rice's instance tracker. For more information refer to :ref:`Instance Tracking`.
+Notice the first parameter of ``rb_enumeratorize_with_size`` requires a Ruby instance and not a C++ instance. The correct Ruby instance is the one that is wrapping the C++ instance which is stored in a thread-local variable called selfThread.
 
 Supporting Enumerator Size
 --------------------------

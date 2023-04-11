@@ -22,6 +22,7 @@
 #include "Exception.ipp"
 #include "detail/method_data.hpp"
 #include "ruby_try_catch.hpp"
+#include "detail/self.hpp"
 #include "detail/NativeAttribute.hpp"
 #include "detail/NativeFunction.hpp"
 
