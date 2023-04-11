@@ -2,7 +2,7 @@
 #define Rice__detail__Native_Function__hpp_
 
 #include "ruby.hpp"
-#include "Exception_Handler_defn.hpp"
+#include "ExceptionHandler_defn.hpp"
 #include "MethodInfo.hpp"
 #include "function_traits.hpp"
 #include "from_ruby.hpp"
@@ -56,7 +56,7 @@ namespace Rice::detail
     static VALUE call(int argc, VALUE* argv, VALUE self);
 
   public:
-    NativeFunction(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
+    NativeFunction(Function_T func, MethodInfo* methodInfo);
 
     // Invokes the wrapped function
     VALUE operator()(int argc, VALUE* argv, VALUE self);
@@ -92,7 +92,6 @@ namespace Rice::detail
     Function_T func_;
     From_Ruby_Args_Ts fromRubys_;
     To_Ruby<Return_T> toRuby_;
-    std::shared_ptr<Exception_Handler> handler_;
     std::unique_ptr<MethodInfo> methodInfo_;
   };
 }

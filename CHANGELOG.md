@@ -9,6 +9,7 @@
 * Updated documentation, including new pages for instance tracking, enumerators, exceptions and newly supported STL classes
 * Add support for calling Ruby methods with keywords from Rice::Object and its ancestors
 * Automatically translate C++ character arrays that start with colons to symbols (ie, ":mysymbol") when sent to Ruby
+* Register exception handlers globally versus per module. This requires updating code that calls add_handler to use register_handler
 * Add constructor for Rice::Module that takes a name, so you can do things like Module("Kernel")
 * Fix comparison methods in Rice::Object, such as Object#is_equal, to actually return the correct result
 * Fix various compiler warnings

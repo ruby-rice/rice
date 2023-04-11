@@ -2,11 +2,10 @@
 #include <algorithm>
 #include <stdexcept>
 
-
 #include "self.hpp"
 #include "method_data.hpp"
 #include "to_ruby_defn.hpp"
-#include "../ruby_try_catch.hpp"
+#include "cpp_protect.hpp"
 
 namespace Rice::detail
 {
@@ -25,8 +24,8 @@ namespace Rice::detail
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  NativeFunction<From_Ruby_T, Function_T, IsMethod>::NativeFunction(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
-    : func_(func), handler_(handler), methodInfo_(methodInfo)
+  NativeFunction<From_Ruby_T, Function_T, IsMethod>::NativeFunction(Function_T func, MethodInfo* methodInfo)
+    : func_(func), methodInfo_(methodInfo)
   {
     // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
     // builtin types NativeArgs will keep a copy of the native value so that it 
@@ -229,7 +228,7 @@ namespace Rice::detail
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::operator()(int argc, VALUE* argv, VALUE self)
   {
-    try
+    return cpp_protect([&]
     {
       // Get the ruby values
       std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv);
@@ -254,13 +253,6 @@ namespace Rice::detail
       this->checkKeepAlive(self, result, rubyValues);
 
       return result;
-    }
-    catch (...)
-    {
-      return cpp_protect([this]
-      {
-        return this->handler_->handle_exception();
-      });
-    }
+    });
   }
 }

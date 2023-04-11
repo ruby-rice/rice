@@ -2,7 +2,7 @@
 #define Rice__detail__Native_Attribute__hpp_
 
 #include "ruby.hpp"
-#include "Exception_Handler_defn.hpp"
+#include "ExceptionHandler_defn.hpp"
 #include "MethodInfo.hpp"
 
 namespace Rice

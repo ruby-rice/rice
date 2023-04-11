@@ -58,23 +58,27 @@ Rice also enables you to register a custom exception handler. This can be done l
   extern "C"
   void Init_test()
   {
+    register_handler<MyException>(handle_my_exception);
+
     Data_Type<Test> rb_cTest =
       define_class<Test>("Test")
-      .add_handler<MyException>(handle_my_exception)
       .define_constructor(Constructor<Test>())
       .define_method("hello", &Test::hello)
       .define_method("error", &Test::error);
   }
 
-The ``handle_my_exception`` function need only rethrow the exception as a
-``Rice::Exception``:
+The ``handle_my_exception`` function should rethrow the exception it wants to return to Ruby. For example:
 
 .. code-block:: cpp
 
-  void handle_my_exception(MyException const & ex)
+  void handle_my_exception(const MyException& ex)
   {
-    throw Exception(rb_eRuntimeError, "Goodnight, moon");
+    throw Rice::Exception(rb_eRuntimeError, ex.what_without_backtrace());
   }
+
+Exception handlers are applied in order in which they are registered. Thus if you register handlers A, B and C then A will be checked first, then B and then C.
+
+Exception handlers are global, meaning they are used when Ruby calls C++ functions or reads/writes attributes. They are also applied if you use cpp_protect (see :ref:`c++_exceptions`).
 
 Ruby Exceptions
 ---------------
@@ -97,6 +101,8 @@ In almost all cases, the ``protect`` method will correctly maps its function par
 
 Rice uses a similar class called ``Jump_Tag`` to handle symbols thrown by
 Ruby's ``throw``/``catch`` or other non-local jumps from inside the Ruby VM.
+
+.. _c++_exceptions:
 
 C++ Exceptions
 --------------
@@ -130,7 +136,7 @@ If your C++ code calls a Ruby API which then in turns calls C++ code, you will n
         return result;
       }
 
-This code creates a new :ref:`std_map` from a Ruby hash. To do this, it iterates over the hash  using ``rb_hash_foreach``. The ``rb_hash_foreach`` function takes a pointer to a C++ function, in our case called ``convertPair``. Note this is a rare case where the ``protect`` call needs help understaing the types of the method it is calling. In this case, the function signature of ``rb_hash_foreach`` is ``void(*)(VALUE, int(*)(VALUE, VALUE, VALUE), VALUE)``.
+This code creates a new :ref:`std_map` from a Ruby hash. To do this, it iterates over the hash  using ``rb_hash_foreach``. The ``rb_hash_foreach`` function takes a pointer to a C++ function, in our case called ``convertPair``. Note this is a rare case where the ``protect`` call needs help understanding the types of the method it is calling. In this case, the function signature of ``rb_hash_foreach`` is ``void(*)(VALUE, int(*)(VALUE, VALUE, VALUE), VALUE)``.
 
 For each item in the hash, Ruby calls the ``convertPair`` function. Thus we have gone from C++ to Ruby to C++. The ``convertPair`` function must catch any raised C++ exceptions. It does that by wrapping the function's code inside a ``cpp_protect`` lambda:
 

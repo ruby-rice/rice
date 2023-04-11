@@ -1,5 +1,5 @@
-#ifndef Rice__detail__Exception_Handler_defn__hpp_
-#define Rice__detail__Exception_Handler_defn__hpp_
+#ifndef Rice__detail__ExceptionHandler_defn__hpp_
+#define Rice__detail__ExceptionHandler_defn__hpp_
 
 #include <memory>
 #include "ruby.hpp"
@@ -14,7 +14,7 @@ namespace Rice::detail
      }
      catch(...)
      {
-       handler->handle_exception();
+       handler->handle();
      }
 
    If an exception is thrown the handler will pass the exception up the
@@ -23,7 +23,7 @@ namespace Rice::detail
 
    try
    {
-     return call_next_exception_handler();
+     return call_next_ExceptionHandler();
    }
    catch(MyException const & ex)
    {
@@ -36,27 +36,26 @@ namespace Rice::detail
     using std::shared_ptr. Thus the Module (or its inherited children) can be destroyed
     without corrupting the metadata references to the shared exception handler. */
 
-  class Exception_Handler
+  class ExceptionHandler
   {
   public:
-    Exception_Handler() = default;
-    virtual ~Exception_Handler() = default;
+    ExceptionHandler() = default;
+    virtual ~ExceptionHandler() = default;
 
     // Don't allow copying or assignment
-    Exception_Handler(const Exception_Handler& other) = delete;
-    Exception_Handler& operator=(const Exception_Handler& other) = delete;
+    ExceptionHandler(const ExceptionHandler& other) = delete;
+    ExceptionHandler& operator=(const ExceptionHandler& other) = delete;
 
-    virtual VALUE handle_exception() const = 0;
+    virtual VALUE handle() const = 0;
   };
 
   // The default exception handler just rethrows the exception.  If there
   // are other handlers in the chain, they will try to handle the rethrown
   // exception.
-  class Default_Exception_Handler
-    : public Exception_Handler
+  class DefaultExceptionHandler : public ExceptionHandler
   {
   public:
-    virtual VALUE handle_exception() const override;
+    virtual VALUE handle() const override;
   };
 
   // An exception handler that takes a functor as an argument.  The
@@ -64,18 +63,15 @@ namespace Rice::detail
   // the functor does not handle the exception, the exception will be
   // re-thrown.
   template <typename Exception_T, typename Functor_T>
-  class Functor_Exception_Handler
-    : public Exception_Handler
+  class CustomExceptionHandler : public ExceptionHandler
   {
   public:
-    Functor_Exception_Handler(Functor_T handler,
-      std::shared_ptr<Exception_Handler> next_exception_handler);
-
-    virtual VALUE handle_exception() const override;
+    CustomExceptionHandler(Functor_T handler, std::shared_ptr<ExceptionHandler> nextHandler);
+    virtual VALUE handle() const override;
 
   private:
     Functor_T handler_;
-    std::shared_ptr<Exception_Handler> next_exception_handler_;
+    std::shared_ptr<ExceptionHandler> nextHandler_;
   };
 }
-#endif // Rice__detail__Exception_Handler_defn__hpp_
+#endif // Rice__detail__ExceptionHandler_defn__hpp_

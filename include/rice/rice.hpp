@@ -3260,12 +3260,12 @@ namespace Rice
 }
 
 
-// =========   Exception_Handler.hpp   =========
+// =========   ExceptionHandler.hpp   =========
 
 
-// ---------   Exception_Handler_defn.hpp   ---------
-#ifndef Rice__detail__Exception_Handler_defn__hpp_
-#define Rice__detail__Exception_Handler_defn__hpp_
+// ---------   ExceptionHandler_defn.hpp   ---------
+#ifndef Rice__detail__ExceptionHandler_defn__hpp_
+#define Rice__detail__ExceptionHandler_defn__hpp_
 
 #include <memory>
 
@@ -3279,7 +3279,7 @@ namespace Rice::detail
      }
      catch(...)
      {
-       handler->handle_exception();
+       handler->handle();
      }
 
    If an exception is thrown the handler will pass the exception up the
@@ -3288,7 +3288,7 @@ namespace Rice::detail
 
    try
    {
-     return call_next_exception_handler();
+     return call_next_ExceptionHandler();
    }
    catch(MyException const & ex)
    {
@@ -3301,27 +3301,27 @@ namespace Rice::detail
     using std::shared_ptr. Thus the Module (or its inherited children) can be destroyed
     without corrupting the metadata references to the shared exception handler. */
 
-  class Exception_Handler
+  class ExceptionHandler
   {
   public:
-    Exception_Handler() = default;
-    virtual ~Exception_Handler() = default;
+    ExceptionHandler() = default;
+    virtual ~ExceptionHandler() = default;
 
     // Don't allow copying or assignment
-    Exception_Handler(const Exception_Handler& other) = delete;
-    Exception_Handler& operator=(const Exception_Handler& other) = delete;
+    ExceptionHandler(const ExceptionHandler& other) = delete;
+    ExceptionHandler& operator=(const ExceptionHandler& other) = delete;
 
-    virtual VALUE handle_exception() const = 0;
+    virtual VALUE handle() const = 0;
   };
 
   // The default exception handler just rethrows the exception.  If there
   // are other handlers in the chain, they will try to handle the rethrown
   // exception.
-  class Default_Exception_Handler
-    : public Exception_Handler
+  class Default_ExceptionHandler
+    : public ExceptionHandler
   {
   public:
-    virtual VALUE handle_exception() const override;
+    virtual VALUE handle() const override;
   };
 
   // An exception handler that takes a functor as an argument.  The
@@ -3329,42 +3329,42 @@ namespace Rice::detail
   // the functor does not handle the exception, the exception will be
   // re-thrown.
   template <typename Exception_T, typename Functor_T>
-  class Functor_Exception_Handler
-    : public Exception_Handler
+  class Functor_ExceptionHandler
+    : public ExceptionHandler
   {
   public:
-    Functor_Exception_Handler(Functor_T handler,
-      std::shared_ptr<Exception_Handler> next_exception_handler);
+    Functor_ExceptionHandler(Functor_T handler,
+      std::shared_ptr<ExceptionHandler> next_ExceptionHandler);
 
-    virtual VALUE handle_exception() const override;
+    virtual VALUE handle() const override;
 
   private:
     Functor_T handler_;
-    std::shared_ptr<Exception_Handler> next_exception_handler_;
+    std::shared_ptr<ExceptionHandler> nextHandler_;
   };
 }
-#endif // Rice__detail__Exception_Handler_defn__hpp_
-// ---------   Exception_Handler.ipp   ---------
+#endif // Rice__detail__ExceptionHandler_defn__hpp_
+// ---------   ExceptionHandler.ipp   ---------
 namespace Rice::detail
 {
-  inline VALUE Rice::detail::Default_Exception_Handler::handle_exception() const
+  inline VALUE Rice::detail::Default_ExceptionHandler::handle() const
   {
     throw;
   }
 
   template <typename Exception_T, typename Functor_T>
-  inline Rice::detail::Functor_Exception_Handler<Exception_T, Functor_T>::
-    Functor_Exception_Handler(Functor_T handler, std::shared_ptr<Exception_Handler> next_exception_handler)
-    : handler_(handler), next_exception_handler_(next_exception_handler)
+  inline Rice::detail::Functor_ExceptionHandler<Exception_T, Functor_T>::
+    Functor_ExceptionHandler(Functor_T handler, std::shared_ptr<ExceptionHandler> next_ExceptionHandler)
+    : handler_(handler), nextHandler_(next_ExceptionHandler)
   {
   }
 
   template <typename Exception_T, typename Functor_T>
-  inline VALUE Rice::detail::Functor_Exception_Handler<Exception_T, Functor_T>::handle_exception() const
+  inline VALUE Rice::detail::Functor_ExceptionHandler<Exception_T, Functor_T>::handle() const
   {
     try
     {
-      return this->next_exception_handler_->handle_exception();
+      return this->nextHandler_->handle();
     }
     catch (Exception_T const& ex)
     {
@@ -3821,7 +3821,7 @@ namespace Rice::detail
     static VALUE call(int argc, VALUE* argv, VALUE self);
 
   public:
-    NativeFunction(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo);
+    NativeFunction(Function_T func, std::shared_ptr<ExceptionHandler> handler, MethodInfo* methodInfo);
 
     // Invokes the wrapped function
     VALUE operator()(int argc, VALUE* argv, VALUE self);
@@ -3857,7 +3857,7 @@ namespace Rice::detail
     Function_T func_;
     From_Ruby_Args_Ts fromRubys_;
     To_Ruby<Return_T> toRuby_;
-    std::shared_ptr<Exception_Handler> handler_;
+    std::shared_ptr<ExceptionHandler> handler_;
     std::unique_ptr<MethodInfo> methodInfo_;
   };
 }
@@ -3886,7 +3886,7 @@ namespace Rice::detail
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  NativeFunction<From_Ruby_T, Function_T, IsMethod>::NativeFunction(Function_T func, std::shared_ptr<Exception_Handler> handler, MethodInfo* methodInfo)
+  NativeFunction<From_Ruby_T, Function_T, IsMethod>::NativeFunction(Function_T func, std::shared_ptr<ExceptionHandler> handler, MethodInfo* methodInfo)
     : func_(func), handler_(handler), methodInfo_(methodInfo)
   {
     // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
@@ -4120,7 +4120,7 @@ namespace Rice::detail
     {
       return cpp_protect([this]
       {
-        return this->handler_->handle_exception();
+        return this->handler_->handle();
       });
     }
   }
@@ -6350,14 +6350,14 @@ inline auto& define_module_function(Identifier name, Function_T&& func, const Ar
 }
 
   protected:
-    std::shared_ptr<detail::Exception_Handler> handler() const;
+    std::shared_ptr<detail::ExceptionHandler> handler() const;
 
     template<bool IsMethod, typename Function_T>
     void wrap_native_call(VALUE klass, Identifier name, Function_T&& function,
-                          std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo);
+                          std::shared_ptr<detail::ExceptionHandler> handler, MethodInfo* methodInfo);
 
   private:
-    mutable std::shared_ptr<detail::Exception_Handler> handler_ = std::make_shared<Rice::detail::Default_Exception_Handler>();
+    mutable std::shared_ptr<detail::ExceptionHandler> handler_ = std::make_shared<Rice::detail::Default_ExceptionHandler>();
   };
 
   //! Define a new module in the namespace given by module.
@@ -6420,20 +6420,20 @@ namespace Rice
   {
     // Create a new exception handler and pass ownership of the current handler to it (they
     // get chained together). Then take ownership of the new handler.
-    this->handler_ = std::make_shared<detail::Functor_Exception_Handler<Exception_T, Functor_T>>(
+    this->handler_ = std::make_shared<detail::Functor_ExceptionHandler<Exception_T, Functor_T>>(
       functor, std::move(this->handler_));
 
     return *this;
   }
 
-  inline std::shared_ptr<detail::Exception_Handler> Module::handler() const
+  inline std::shared_ptr<detail::ExceptionHandler> Module::handler() const
   {
     return this->handler_;
   }
 
   template<bool IsMethod, typename Function_T>
   inline void Module::wrap_native_call(VALUE klass, Identifier name, Function_T&& function,
-    std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo)
+    std::shared_ptr<detail::ExceptionHandler> handler, MethodInfo* methodInfo)
   {
     auto* native = new detail::NativeFunction<VALUE, Function_T, IsMethod>(std::forward<Function_T>(function), handler, methodInfo);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
@@ -7306,7 +7306,7 @@ inline auto& define_module_function(Identifier name, Function_T&& func, const Ar
 
     template<bool IsMethod, typename Function_T>
     void wrap_native_call(VALUE klass, Identifier name, Function_T&& function,
-      std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo);
+      std::shared_ptr<detail::ExceptionHandler> handler, MethodInfo* methodInfo);
 
   private:
     template<typename T_>
@@ -7654,7 +7654,7 @@ namespace Rice
   template <typename T>
   template<bool IsMethod, typename Function_T>
   inline void Data_Type<T>::wrap_native_call(VALUE klass, Identifier name, Function_T&& function,
-    std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo)
+    std::shared_ptr<detail::ExceptionHandler> handler, MethodInfo* methodInfo)
   {
     // Make sure the return type and arguments have been previously seen by Rice
     using traits = detail::method_traits<Function_T, IsMethod>;

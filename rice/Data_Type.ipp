@@ -307,8 +307,7 @@ namespace Rice
 
   template <typename T>
   template<bool IsMethod, typename Function_T>
-  inline void Data_Type<T>::wrap_native_call(VALUE klass, Identifier name, Function_T&& function,
-    std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo)
+  inline void Data_Type<T>::wrap_native_call(VALUE klass, Identifier name, Function_T&& function, MethodInfo* methodInfo)
   {
     // Make sure the return type and arguments have been previously seen by Rice
     using traits = detail::method_traits<Function_T, IsMethod>;
@@ -316,7 +315,7 @@ namespace Rice
     detail::verifyTypes<typename traits::Arg_Ts>();
 
     // Create a NativeFunction instance to wrap this native call and 
-    auto* native = new detail::NativeFunction<T, Function_T, IsMethod>(std::forward<Function_T>(function), handler, methodInfo);
+    auto* native = new detail::NativeFunction<T, Function_T, IsMethod>(std::forward<Function_T>(function), methodInfo);
 
     // Now define the method
     using Native_T = typename std::remove_pointer_t<decltype(native)>;

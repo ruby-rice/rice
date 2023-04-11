@@ -40,27 +40,10 @@ namespace Rice
     this->set_value(result);
   }
 
-  template<typename Exception_T, typename Functor_T>
-  inline Module& Module::add_handler(Functor_T functor)
-  {
-    // Create a new exception handler and pass ownership of the current handler to it (they
-    // get chained together). Then take ownership of the new handler.
-    this->handler_ = std::make_shared<detail::Functor_Exception_Handler<Exception_T, Functor_T>>(
-      functor, std::move(this->handler_));
-
-    return *this;
-  }
-
-  inline std::shared_ptr<detail::Exception_Handler> Module::handler() const
-  {
-    return this->handler_;
-  }
-
   template<bool IsMethod, typename Function_T>
-  inline void Module::wrap_native_call(VALUE klass, Identifier name, Function_T&& function,
-    std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo)
+  inline void Module::wrap_native_call(VALUE klass, Identifier name, Function_T&& function, MethodInfo* methodInfo)
   {
-    auto* native = new detail::NativeFunction<VALUE, Function_T, IsMethod>(std::forward<Function_T>(function), handler, methodInfo);
+    auto* native = new detail::NativeFunction<VALUE, Function_T, IsMethod>(std::forward<Function_T>(function), methodInfo);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
 
     detail::verifyType<typename Native_T::Return_T>();

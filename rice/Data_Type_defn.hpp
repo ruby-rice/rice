@@ -142,8 +142,7 @@ namespace Rice
     friend Rice::Data_Type<T_> define_class(char const * name);
 
     template<bool IsMethod, typename Function_T>
-    void wrap_native_call(VALUE klass, Identifier name, Function_T&& function,
-      std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo);
+    void wrap_native_call(VALUE klass, Identifier name, Function_T&& function, MethodInfo* methodInfo);
 
   private:
     template<typename T_>

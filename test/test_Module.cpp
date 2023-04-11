@@ -47,8 +47,9 @@ void throw_silly_exception(Object self)
 
 TESTCASE(add_handler)
 {
+  register_handler<Quite_Silly_Exception>(handle_silly_exception);
+
   Module m(anonymous_module());
-  m.add_handler<Quite_Silly_Exception>(handle_silly_exception);
   m.define_singleton_method("foo", throw_silly_exception);
   Object exc = m.module_eval("begin; foo; rescue Exception; $!; end");
   ASSERT_EQUAL(rb_eRuntimeError, CLASS_OF(exc));

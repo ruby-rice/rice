@@ -4,7 +4,7 @@
 #include "rice_traits.hpp"
 #include "method_data.hpp"
 #include "to_ruby_defn.hpp"
-#include "../ruby_try_catch.hpp"
+#include "cpp_protect.hpp"
 
 namespace Rice::detail
 {

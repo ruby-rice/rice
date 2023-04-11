@@ -1,8 +1,9 @@
 #ifndef Rice__Internals__hpp_
 #define Rice__Internals__hpp_
 
-#include "TypeRegistry.hpp"
+#include "HandlerRegistry.hpp"
 #include "InstanceRegistry.hpp"
+#include "TypeRegistry.hpp"
 
 namespace Rice::detail
 {
@@ -12,8 +13,9 @@ namespace Rice::detail
     static Internals instance;
 
   public:
-    TypeRegistry typeRegistry;
+    HandlerRegistry handlerRegistry;
     InstanceRegistry instanceRegistry;
+    TypeRegistry typeRegistry;
   };
 }
 
