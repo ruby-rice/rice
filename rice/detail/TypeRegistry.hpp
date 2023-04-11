@@ -22,23 +22,23 @@ namespace Rice::detail
   {
   public:
     template <typename T>
-    static void add(VALUE klass, rb_data_type_t* rbType);
+    void add(VALUE klass, rb_data_type_t* rbType);
 
     template <typename T>
-    static void remove();
+    void remove();
 
     template <typename T>
-    static bool isDefined();
+    bool isDefined();
 
     template <typename T>
-    static void verifyDefined();
+    bool verifyDefined();
       
     template <typename T>
-    static std::pair<VALUE, rb_data_type_t*> figureType(const T& object);
+    std::pair<VALUE, rb_data_type_t*> figureType(const T& object);
 
   private:
-    static std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
-    static inline std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};
+    std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
+    std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};
   };
 }
 

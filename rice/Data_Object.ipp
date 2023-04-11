@@ -92,7 +92,7 @@ namespace Rice::detail
     VALUE convert(T& data)
     {
       // Get the ruby typeinfo
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType<T>(data);
 
       // We always take ownership of data passed by value (yes the parameter is T& but the template
       // matched <typename T> thus we have to tell wrap to copy the reference we are sending to it
@@ -114,7 +114,7 @@ namespace Rice::detail
     {
       // Note that T could be a pointer or reference to a base class while data is in fact a
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType<T>(data);
 
       bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
       return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
@@ -140,7 +140,7 @@ namespace Rice::detail
       {
         // Note that T could be a pointer or reference to a base class while data is in fact a
         // child class. Lookup the correct type so we return an instance of the correct Ruby class
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(*data);
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType(*data);
         bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
         return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
       }

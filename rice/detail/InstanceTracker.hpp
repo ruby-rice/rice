@@ -6,30 +6,26 @@
 
 namespace Rice::detail
 {
+  class InstanceTracker
+  {
+  public:
+    template <typename T>
+    VALUE lookup(T& cppInstance);
 
-class InstanceTracker
-{
-public:
-  template <typename T>
-  VALUE lookup(T& cppInstance);
+    template <typename T>
+    VALUE lookup(T* cppInstance);
 
-  template <typename T>
-  VALUE lookup(T* cppInstance);
+    void add(void* cppInstance, VALUE rubyInstance);
+    void remove(void* cppInstance);
+    void clear();
 
-  void add(void* cppInstance, VALUE rubyInstance);
-  void remove(void* cppInstance);
-  void clear();
+  public:
+    bool isEnabled = false;
 
-public:
-  bool isEnabled = false;
-
-private:
-  VALUE lookup(void* cppInstance);
-  std::map<void*, VALUE> objectMap_;
-};
-
-extern InstanceTracker INSTANCE_TRACKER;
-
+  private:
+    VALUE lookup(void* cppInstance);
+    std::map<void*, VALUE> objectMap_;
+  };
 } // namespace Rice::detail
 
 #include "InstanceTracker.ipp"

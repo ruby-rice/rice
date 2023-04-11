@@ -63,7 +63,7 @@ namespace Rice
     }
 
     // Now register with the type registry
-    detail::TypeRegistry::add<T>(klass_, rb_data_type_);
+    detail::Internals::instance.typeRegistry.add<T>(klass_, rb_data_type_);
 
     for (typename Instances::iterator it = unbound_instances().begin(),
       end = unbound_instances().end();
@@ -79,7 +79,7 @@ namespace Rice
   template<typename T>
   inline void Data_Type<T>::unbind()
   {
-    detail::TypeRegistry::remove<T>();
+    detail::Internals::instance.typeRegistry.remove<T>();
 
     if (klass_ != Qnil)
     {
@@ -152,7 +152,7 @@ namespace Rice
   template<typename Director_T>
   inline Data_Type<T>& Data_Type<T>::define_director()
   {
-    if (!detail::TypeRegistry::isDefined<Director_T>())
+    if (!detail::Internals::instance.typeRegistry.isDefined<Director_T>())
     {
       Data_Type<Director_T>::bind(*this);
     }
@@ -189,7 +189,7 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class_under(Object module, char const* name)
   {
-    if (detail::TypeRegistry::isDefined<T>())
+    if (detail::Internals::instance.typeRegistry.isDefined<T>())
     {
       return Data_Type<T>();
     }
@@ -213,7 +213,7 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class(char const* name)
   {
-    if (detail::TypeRegistry::isDefined<T>())
+    if (detail::Internals::instance.typeRegistry.isDefined<T>())
     {
       return Data_Type<T>();
     }

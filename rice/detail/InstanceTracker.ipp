@@ -47,7 +47,4 @@ namespace Rice::detail
   {
     this->objectMap_.clear();
   }
-
-  inline InstanceTracker INSTANCE_TRACKER;
-
 } // namespace

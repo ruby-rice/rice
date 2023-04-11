@@ -1,8 +1,7 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
-#include <rice/rice.hpp>
 
-#include <memory>
+#include <rice/rice.hpp>
 
 using namespace Rice;
 
@@ -87,12 +86,12 @@ SETUP(Tracking)
 
 TEARDOWN(Tracking)
 {
-  detail::INSTANCE_TRACKER.isEnabled = true;
+  detail::Internals::instance.instanceTracker.isEnabled = true;
 }
 
 TESTCASE(TransferPointer)
 {
-  detail::INSTANCE_TRACKER.isEnabled = true;
+  detail::Internals::instance.instanceTracker.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -107,7 +106,7 @@ TESTCASE(TransferPointer)
 
 TESTCASE(KeepPointer)
 {
-  detail::INSTANCE_TRACKER.isEnabled = true;
+  detail::Internals::instance.instanceTracker.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -123,7 +122,7 @@ TESTCASE(KeepPointer)
 
 TESTCASE(KeepPointerWithoutTracking)
 {
-  detail::INSTANCE_TRACKER.isEnabled = false;
+  detail::Internals::instance.instanceTracker.isEnabled = false;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -139,7 +138,7 @@ TESTCASE(KeepPointerWithoutTracking)
 
 TESTCASE(KeepReference)
 {
-  detail::INSTANCE_TRACKER.isEnabled = true;
+  detail::Internals::instance.instanceTracker.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -155,7 +154,7 @@ TESTCASE(KeepReference)
 
 TESTCASE(KeepReferenceWithoutTracking)
 {
-  detail::INSTANCE_TRACKER.isEnabled = false;
+  detail::Internals::instance.instanceTracker.isEnabled = false;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -171,7 +170,7 @@ TESTCASE(KeepReferenceWithoutTracking)
 
 TESTCASE(CopyReference)
 {
-  detail::INSTANCE_TRACKER.isEnabled = true;
+  detail::Internals::instance.instanceTracker.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -186,7 +185,7 @@ TESTCASE(CopyReference)
 
 TESTCASE(TransferValue)
 {
-  detail::INSTANCE_TRACKER.isEnabled = true;
+  detail::Internals::instance.instanceTracker.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -201,7 +200,7 @@ TESTCASE(TransferValue)
 
 TESTCASE(MoveValue)
 {
-  detail::INSTANCE_TRACKER.isEnabled = true;
+  detail::Internals::instance.instanceTracker.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -216,7 +215,7 @@ TESTCASE(MoveValue)
 
 TESTCASE(RubyObjectGced)
 {
-  detail::INSTANCE_TRACKER.isEnabled = true;
+  detail::Internals::instance.instanceTracker.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");

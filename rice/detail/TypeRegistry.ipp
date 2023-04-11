@@ -29,13 +29,14 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void TypeRegistry::verifyDefined()
+  inline bool TypeRegistry::verifyDefined()
   {
     if (!isDefined<T>())
     {
       std::string message = "Type is not defined with Rice: " + detail::typeName(typeid(T));
       throw std::invalid_argument(message);
     }
+    return true;
   }
 
   inline std::optional<std::pair<VALUE, rb_data_type_t*>> TypeRegistry::lookup(const std::type_info& typeInfo)
@@ -76,24 +77,5 @@ namespace Rice::detail
     // Give up!
     std::string message = "Type " + typeName(typeid(object)) + " is not registered";
     throw std::runtime_error(message.c_str());
-  }
-
-  // TODO - hacky to put this here but there is a circular dependency between Type and TypeRegistry
-  template<typename T>
-  bool Type<T>::verify()
-  {
-    // Use intrinsic_type so that we don't have to define specializations
-    // for pointers, references, const, etc.
-    using Intrinsic_T = intrinsic_type<T>;
-
-    if constexpr (std::is_fundamental_v<Intrinsic_T>)
-    {
-      return true;
-    }
-    else
-    {
-      TypeRegistry::verifyDefined<Intrinsic_T>();
-      return true;
-    }
   }
 }
