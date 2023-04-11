@@ -2,7 +2,7 @@
 #define Rice__Internals__hpp_
 
 #include "TypeRegistry.hpp"
-#include "InstanceTracker.hpp"
+#include "InstanceRegistry.hpp"
 
 namespace Rice::detail
 {
@@ -13,7 +13,7 @@ namespace Rice::detail
 
   public:
     TypeRegistry typeRegistry;
-    InstanceTracker instanceTracker;
+    InstanceRegistry instanceRegistry;
   };
 }
 

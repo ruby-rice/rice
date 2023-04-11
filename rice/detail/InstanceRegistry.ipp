@@ -3,18 +3,18 @@
 namespace Rice::detail
 {
   template <typename T>
-  inline VALUE InstanceTracker::lookup(T& cppInstance)
+  inline VALUE InstanceRegistry::lookup(T& cppInstance)
   {
     return this->lookup((void*)&cppInstance);
   }
 
   template <typename T>
-  inline VALUE InstanceTracker::lookup(T* cppInstance)
+  inline VALUE InstanceRegistry::lookup(T* cppInstance)
   {
     return this->lookup((void*)cppInstance);
   }
 
-  inline VALUE InstanceTracker::lookup(void* cppInstance)
+  inline VALUE InstanceRegistry::lookup(void* cppInstance)
   {
     if (!this->isEnabled)
       return Qnil;
@@ -30,7 +30,7 @@ namespace Rice::detail
     }
   }
 
-  inline void InstanceTracker::add(void* cppInstance, VALUE rubyInstance)
+  inline void InstanceRegistry::add(void* cppInstance, VALUE rubyInstance)
   {
     if (this->isEnabled)
     {
@@ -38,12 +38,12 @@ namespace Rice::detail
     }
   }
 
-  inline void InstanceTracker::remove(void* cppInstance)
+  inline void InstanceRegistry::remove(void* cppInstance)
   {
     this->objectMap_.erase(cppInstance);
   }
 
-  inline void InstanceTracker::clear()
+  inline void InstanceRegistry::clear()
   {
     this->objectMap_.clear();
   }

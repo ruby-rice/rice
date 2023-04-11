@@ -6,7 +6,7 @@
 
 namespace Rice::detail
 {
-  class InstanceTracker
+  class InstanceRegistry
   {
   public:
     template <typename T>
@@ -28,7 +28,7 @@ namespace Rice::detail
   };
 } // namespace Rice::detail
 
-#include "InstanceTracker.ipp"
+#include "InstanceRegistry.ipp"
 
 #endif // Rice__detail__InstanceTracker__hpp_
 

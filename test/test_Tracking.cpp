@@ -86,12 +86,12 @@ SETUP(Tracking)
 
 TEARDOWN(Tracking)
 {
-  detail::Internals::instance.instanceTracker.isEnabled = true;
+  detail::Internals::instance.instanceRegistry.isEnabled = true;
 }
 
 TESTCASE(TransferPointer)
 {
-  detail::Internals::instance.instanceTracker.isEnabled = true;
+  detail::Internals::instance.instanceRegistry.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -106,7 +106,7 @@ TESTCASE(TransferPointer)
 
 TESTCASE(KeepPointer)
 {
-  detail::Internals::instance.instanceTracker.isEnabled = true;
+  detail::Internals::instance.instanceRegistry.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -122,7 +122,7 @@ TESTCASE(KeepPointer)
 
 TESTCASE(KeepPointerWithoutTracking)
 {
-  detail::Internals::instance.instanceTracker.isEnabled = false;
+  detail::Internals::instance.instanceRegistry.isEnabled = false;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -138,7 +138,7 @@ TESTCASE(KeepPointerWithoutTracking)
 
 TESTCASE(KeepReference)
 {
-  detail::Internals::instance.instanceTracker.isEnabled = true;
+  detail::Internals::instance.instanceRegistry.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -154,7 +154,7 @@ TESTCASE(KeepReference)
 
 TESTCASE(KeepReferenceWithoutTracking)
 {
-  detail::Internals::instance.instanceTracker.isEnabled = false;
+  detail::Internals::instance.instanceRegistry.isEnabled = false;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -170,7 +170,7 @@ TESTCASE(KeepReferenceWithoutTracking)
 
 TESTCASE(CopyReference)
 {
-  detail::Internals::instance.instanceTracker.isEnabled = true;
+  detail::Internals::instance.instanceRegistry.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -185,7 +185,7 @@ TESTCASE(CopyReference)
 
 TESTCASE(TransferValue)
 {
-  detail::Internals::instance.instanceTracker.isEnabled = true;
+  detail::Internals::instance.instanceRegistry.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -200,7 +200,7 @@ TESTCASE(TransferValue)
 
 TESTCASE(MoveValue)
 {
-  detail::Internals::instance.instanceTracker.isEnabled = true;
+  detail::Internals::instance.instanceRegistry.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -215,7 +215,7 @@ TESTCASE(MoveValue)
 
 TESTCASE(RubyObjectGced)
 {
-  detail::Internals::instance.instanceTracker.isEnabled = true;
+  detail::Internals::instance.instanceRegistry.isEnabled = true;
   Factory::reset();
 
   Module m = define_module("TestingModule");

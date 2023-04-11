@@ -16,7 +16,7 @@ namespace Rice::detail
   template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
   inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::~WrapperSmartPointer()
   {
-    Internals::instance.instanceTracker.remove(this->get());
+    Internals::instance.instanceRegistry.remove(this->get());
   }
 
   template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>

@@ -6,7 +6,7 @@
 #include "detail/function_traits.hpp"
 #include "detail/Type.hpp"
 #include "detail/TypeRegistry.hpp"
-#include "detail/InstanceTracker.hpp"
+#include "detail/InstanceRegistry.hpp"
 #include "detail/Internals.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "detail/Jump_Tag.hpp"

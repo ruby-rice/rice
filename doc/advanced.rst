@@ -9,7 +9,7 @@ Advanced
 
   advanced/functions
   advanced/memory_management
-  advanced/instance_tracking
+  advanced/instance_registry
   advanced/types_overview
   advanced/type_conversions
   advanced/type_verification

@@ -450,6 +450,24 @@ namespace Rice::detail
 
     return result;
   }
+
+  template<typename T>
+  bool Type<T>::verify()
+  {
+    // Use intrinsic_type so that we don't have to define specializations
+    // for pointers, references, const, etc.
+    using Intrinsic_T = intrinsic_type<T>;
+
+    if constexpr (std::is_fundamental_v<Intrinsic_T>)
+    {
+      return true;
+    }
+    else
+    {
+      //return Internals::instance.typeRegistry.verifyDefined<Intrinsic_T>();
+      return true;
+    }
+  }
 }
 
 
@@ -462,7 +480,7 @@ namespace Rice::detail
 #include <unordered_map>
 
 
-/* The type registery keeps track of all C++ types wrapped by Rice. When a native function returns 
+/* The type registry keeps track of all C++ types wrapped by Rice. When a native function returns 
    an instance of a class/struct we look up its type to verity that it has been registered. 
    
    We have to do this to support C++ inheritance. If a C++ function returns a pointer/reference
@@ -475,23 +493,23 @@ namespace Rice::detail
   {
   public:
     template <typename T>
-    static void add(VALUE klass, rb_data_type_t* rbType);
+    void add(VALUE klass, rb_data_type_t* rbType);
 
     template <typename T>
-    static void remove();
+    void remove();
 
     template <typename T>
-    static bool isDefined();
+    bool isDefined();
 
     template <typename T>
-    static void verifyDefined();
+    bool verifyDefined();
       
     template <typename T>
-    static std::pair<VALUE, rb_data_type_t*> figureType(const T& object);
+    std::pair<VALUE, rb_data_type_t*> figureType(const T& object);
 
   private:
-    static std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
-    static inline std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};
+    std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
+    std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};
   };
 }
 
@@ -525,13 +543,14 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void TypeRegistry::verifyDefined()
+  inline bool TypeRegistry::verifyDefined()
   {
     if (!isDefined<T>())
     {
       std::string message = "Type is not defined with Rice: " + detail::typeName(typeid(T));
       throw std::invalid_argument(message);
     }
+    return true;
   }
 
   inline std::optional<std::pair<VALUE, rb_data_type_t*>> TypeRegistry::lookup(const std::type_info& typeInfo)
@@ -573,78 +592,55 @@ namespace Rice::detail
     std::string message = "Type " + typeName(typeid(object)) + " is not registered";
     throw std::runtime_error(message.c_str());
   }
-
-  // TODO - hacky to put this here but there is a circular dependency between Type and TypeRegistry
-  template<typename T>
-  bool Type<T>::verify()
-  {
-    // Use intrinsic_type so that we don't have to define specializations
-    // for pointers, references, const, etc.
-    using Intrinsic_T = intrinsic_type<T>;
-
-    if constexpr (std::is_fundamental_v<Intrinsic_T>)
-    {
-      return true;
-    }
-    else
-    {
-      TypeRegistry::verifyDefined<Intrinsic_T>();
-      return true;
-    }
-  }
 }
 
-// =========   InstanceTracker.hpp   =========
+// =========   InstanceRegistry.hpp   =========
 
 #include <map>
 
 namespace Rice::detail
 {
+  class InstanceRegistry
+  {
+  public:
+    template <typename T>
+    VALUE lookup(T& cppInstance);
 
-class InstanceTracker
-{
-public:
-  template <typename T>
-  VALUE lookup(T& cppInstance);
+    template <typename T>
+    VALUE lookup(T* cppInstance);
 
-  template <typename T>
-  VALUE lookup(T* cppInstance);
+    void add(void* cppInstance, VALUE rubyInstance);
+    void remove(void* cppInstance);
+    void clear();
 
-  void add(void* cppInstance, VALUE rubyInstance);
-  void remove(void* cppInstance);
-  void clear();
+  public:
+    bool isEnabled = false;
 
-public:
-  bool isEnabled = true;
-
-private:
-  VALUE lookup(void* cppInstance);
-  std::map<void*, VALUE> objectMap_;
-};
-
-extern InstanceTracker INSTANCE_TRACKER;
-
+  private:
+    VALUE lookup(void* cppInstance);
+    std::map<void*, VALUE> objectMap_;
+  };
 } // namespace Rice::detail
 
 
-// ---------   InstanceTracker.ipp   ---------
+// ---------   InstanceRegistry.ipp   ---------
 #include <memory>
 
 namespace Rice::detail
 {
   template <typename T>
-  inline VALUE InstanceTracker::lookup(T& cppInstance)
+  inline VALUE InstanceRegistry::lookup(T& cppInstance)
   {
     return this->lookup((void*)&cppInstance);
   }
 
   template <typename T>
-  inline VALUE InstanceTracker::lookup(T* cppInstance)
+  inline VALUE InstanceRegistry::lookup(T* cppInstance)
   {
     return this->lookup((void*)cppInstance);
   }
 
-  inline VALUE InstanceTracker::lookup(void* cppInstance)
+  inline VALUE InstanceRegistry::lookup(void* cppInstance)
   {
     if (!this->isEnabled)
       return Qnil;
@@ -660,7 +656,7 @@ namespace Rice::detail
     }
   }
 
-  inline void InstanceTracker::add(void* cppInstance, VALUE rubyInstance)
+  inline void InstanceRegistry::add(void* cppInstance, VALUE rubyInstance)
   {
     if (this->isEnabled)
     {
@@ -668,21 +664,34 @@ namespace Rice::detail
     }
   }
 
-  inline void InstanceTracker::remove(void* cppInstance)
+  inline void InstanceRegistry::remove(void* cppInstance)
   {
     this->objectMap_.erase(cppInstance);
   }
 
-  inline void InstanceTracker::clear()
+  inline void InstanceRegistry::clear()
   {
     this->objectMap_.clear();
   }
-
-  inline InstanceTracker INSTANCE_TRACKER;
-
 } // namespace
 
 
+
+// =========   Internals.hpp   =========
+
+
+namespace Rice::detail
+{
+  class Internals
+  {
+  public:
+    static Internals instance;
+
+  public:
+    TypeRegistry typeRegistry;
+    InstanceRegistry instanceRegistry;
+  };
+}
 
 // =========   default_allocation_func.hpp   =========
 
@@ -963,7 +972,7 @@ namespace Rice::detail
 
     ~WrapperValue()
     {
-      INSTANCE_TRACKER.remove(this->get());
+      Internals::instance.instanceRegistry.remove(this->get());
     }
 
     void* get() override
@@ -985,7 +994,7 @@ namespace Rice::detail
 
     ~WrapperReference()
     {
-      INSTANCE_TRACKER.remove(this->get());
+      Internals::instance.instanceRegistry.remove(this->get());
     }
 
     void* get() override
@@ -1007,7 +1016,7 @@ namespace Rice::detail
 
     ~WrapperPointer()
     {
-      INSTANCE_TRACKER.remove(this->get());
+      Internals::instance.instanceRegistry.remove(this->get());
 
       if (this->isOwner_)
       {
@@ -1029,7 +1038,7 @@ namespace Rice::detail
   template <typename T, typename Wrapper_T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner)
   {
-    VALUE result = INSTANCE_TRACKER.lookup(&data);
+    VALUE result = Internals::instance.instanceRegistry.lookup(&data);
 
     if (result != Qnil)
       return result;
@@ -1052,7 +1061,7 @@ namespace Rice::detail
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
 
-    INSTANCE_TRACKER.add(wrapper->get(), result);
+    Internals::instance.instanceRegistry.add(wrapper->get(), result);
 
     return result;
   };
@@ -1060,7 +1069,7 @@ namespace Rice::detail
   template <typename T, typename Wrapper_T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner)
   {
-    VALUE result = INSTANCE_TRACKER.lookup(data);
+    VALUE result = Internals::instance.instanceRegistry.lookup(data);
 
     if (result != Qnil)
       return result;
@@ -1078,7 +1087,7 @@ namespace Rice::detail
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
 
-    INSTANCE_TRACKER.add(wrapper->get(), result);
+    Internals::instance.instanceRegistry.add(wrapper->get(), result);
     return result;
   };
 
@@ -1113,14 +1122,14 @@ namespace Rice::detail
     TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
     if (wrapper)
     {
-      INSTANCE_TRACKER.remove(wrapper->get());
+      Internals::instance.instanceRegistry.remove(wrapper->get());
       delete wrapper;
     }
 
     wrapper = new WrapperPointer<T>(data, isOwner);
     RTYPEDDATA_DATA(value) = wrapper;
 
-    INSTANCE_TRACKER.add(data, value);
+    Internals::instance.instanceRegistry.add(data, value);
   }
 
   inline Wrapper* getWrapper(VALUE value)
@@ -3612,6 +3621,17 @@ auto cpp_protect(Callable_T && func)
   }
 }
 
+// =========   self.hpp   =========
+
+namespace Rice::detail
+{
+  // Thread local variable that points to RUBY self value. Currently this is only needed
+  // in the case of creating enumerators. Alternative ways of doing this are adding an extra
+  // parameter to the method call but that adds a lot of complexity to this code. Or a global
+  // registry using instance tracking, but that is a more heavyweight solution.
+  thread_local static VALUE selfThread;
+}
+
 // =========   NativeAttribute.hpp   =========
 
 
@@ -3848,13 +3868,20 @@ namespace Rice::detail
 #include <stdexcept>
 
 
+
 namespace Rice::detail
 {
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::call(int argc, VALUE* argv, VALUE self)
   {
+    // Set self for this thread
+    Rice::detail::selfThread = self;
+
+    // Get the native function
     using NativeFunction_T = NativeFunction<From_Ruby_T, Function_T, IsMethod>;
     NativeFunction_T* nativeFunction = detail::MethodData::data<NativeFunction_T*>();
+
+    // Execute the function
     return nativeFunction->operator()(argc, argv, self);
   }
 
@@ -3911,26 +3938,26 @@ namespace Rice::detail
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   std::vector<VALUE> NativeFunction<From_Ruby_T, Function_T, IsMethod>::getRubyValues(int argc, VALUE* argv)
   {
-    // Setup a tuple to contain required methodInfo to rb_scan_args
+    // Setup a tuple for the leading rb_scan_args arguments
     std::string scanFormat = this->methodInfo_->formatString();
-    std::tuple<int, VALUE*, const char*> rbScanMandatory = std::forward_as_tuple(argc, argv, scanFormat.c_str());
+    std::tuple<int, VALUE*, const char*> rbScanArgs = std::forward_as_tuple(argc, argv, scanFormat.c_str());
 
-    // Create a vector to store the variable number of Ruby Values
-    std::vector<VALUE> rbScanArgsOptional(std::tuple_size_v<Arg_Ts>, Qnil);
+    // Create a vector to store the VALUEs that will be returned by rb_scan_args
+    std::vector<VALUE> rbScanValues(std::tuple_size_v<Arg_Ts>, Qnil);
 
-    // Convert the vector to an array so it can then be concatenated to a tuple
-    std::array<VALUE*, std::tuple_size_v<Arg_Ts>> rbScanArgsOptionalPointers;
-    std::transform(rbScanArgsOptional.begin(), rbScanArgsOptional.end(), rbScanArgsOptionalPointers.begin(),
+    // Convert the vector to an array so it can be concatenated to a tuple. As importantly
+    // fill it with pointers to rbScanValues
+    std::array<VALUE*, std::tuple_size_v<Arg_Ts>> rbScanValuePointers;
+    std::transform(rbScanValues.begin(), rbScanValues.end(), rbScanValuePointers.begin(),
       [](VALUE& value)
       {
         return &value;
       });
 
     // Combine the tuples and call rb_scan_args
-    auto rbScanArgs = std::tuple_cat(rbScanMandatory, rbScanArgsOptionalPointers);
-    std::apply(rb_scan_args, rbScanArgs);
+    std::apply(rb_scan_args, std::tuple_cat(rbScanArgs, rbScanValuePointers));
 
-    return rbScanArgsOptional;
+    return rbScanValues;
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
@@ -7382,7 +7409,7 @@ namespace Rice
     }
 
     // Now register with the type registry
-    detail::TypeRegistry::add<T>(klass_, rb_data_type_);
+    detail::Internals::instance.typeRegistry.add<T>(klass_, rb_data_type_);
 
     for (typename Instances::iterator it = unbound_instances().begin(),
       end = unbound_instances().end();
@@ -7398,7 +7425,7 @@ namespace Rice
   template<typename T>
   inline void Data_Type<T>::unbind()
   {
-    detail::TypeRegistry::remove<T>();
+    detail::Internals::instance.typeRegistry.remove<T>();
 
     if (klass_ != Qnil)
     {
@@ -7471,7 +7498,7 @@ namespace Rice
   template<typename Director_T>
   inline Data_Type<T>& Data_Type<T>::define_director()
   {
-    if (!detail::TypeRegistry::isDefined<Director_T>())
+    if (!detail::Internals::instance.typeRegistry.isDefined<Director_T>())
     {
       Data_Type<Director_T>::bind(*this);
     }
@@ -7508,7 +7535,7 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class_under(Object module, char const* name)
   {
-    if (detail::TypeRegistry::isDefined<T>())
+    if (detail::Internals::instance.typeRegistry.isDefined<T>())
     {
       return Data_Type<T>();
     }
@@ -7532,7 +7559,7 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class(char const* name)
   {
-    if (detail::TypeRegistry::isDefined<T>())
+    if (detail::Internals::instance.typeRegistry.isDefined<T>())
     {
       return Data_Type<T>();
     }
@@ -7866,7 +7893,7 @@ namespace Rice::detail
     VALUE convert(T& data)
     {
       // Get the ruby typeinfo
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType<T>(data);
 
       // We always take ownership of data passed by value (yes the parameter is T& but the template
       // matched <typename T> thus we have to tell wrap to copy the reference we are sending to it
@@ -7888,7 +7915,7 @@ namespace Rice::detail
     {
       // Note that T could be a pointer or reference to a base class while data is in fact a
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType<T>(data);
 
       bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
       return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
@@ -7914,7 +7941,7 @@ namespace Rice::detail
       {
         // Note that T could be a pointer or reference to a base class while data is in fact a
         // child class. Lookup the correct type so we return an instance of the correct Ruby class
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(*data);
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType(*data);
         bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
         return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
       }
@@ -8295,7 +8322,7 @@ namespace Rice
   template<typename Enum_T>
   Enum<Enum_T> define_enum(char const* name, Module module)
   {
-    if (detail::TypeRegistry::isDefined<Enum_T>())
+    if (detail::Internals::instance.typeRegistry.isDefined<Enum_T>())
     {
       return Enum<Enum_T>();
     }
