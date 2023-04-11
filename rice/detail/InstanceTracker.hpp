@@ -21,7 +21,7 @@ public:
   void clear();
 
 public:
-  bool isEnabled = true;
+  bool isEnabled = false;
 
 private:
   VALUE lookup(void* cppInstance);
