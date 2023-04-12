@@ -1,24 +1,31 @@
 ## 4.1
 
-* Add support for std::map, std::unordered_map, std::variant, std::monostate, std::reference_wrapper
+Rice 4.1 builds on the 4.0 release and has a number of improvements that both polish Rice and extend its functionality. However, there are three incompatibilities to know about:
+
+* Exception handlers are now registered globally versus per module. This requires updating code that calls Class#add_handler to use register_handler instead.
+* Rename Arg#isValue to Arg#setValue and then Arg#getIsValue to Arg#isValue
+* Rename Return#isValue to Return#setValue and Return#getIsValue to Return#isValue 
+
+New or improved functionality includes:
+
+* Add support for std::map, std::unordered_map, std::variant, std::monostate and std::reference_wrapper
 * Enable calling of C++ member functions that are defined in ancestor classes
-* Add instance tracking so that Rice maps the same C++ instance to the same Ruby instance each time it is passed to Ruby
 * Enable creating enumerators for C++ collections like std::vector and std::map
-* Internal improvements to enable calling more ruby api methods including those with a variable number of parameters
-* Add support for mapping more C++ exception classes to Ruby classes (for example, std::system_error to SystemCallError)
+* Enable calling more Ruby API methods including those with a variable number of parameters such as rb_yield_values
+* Add mappings more C++ exception classes to Ruby classes (for example, std::system_error to SystemCallError)
 * Updated documentation, including new pages for instance tracking, enumerators, exceptions and newly supported STL classes
-* Add support for calling Ruby methods with keywords from Rice::Object and its ancestors
-* Automatically translate C++ character arrays that start with colons to symbols (ie, ":mysymbol") when sent to Ruby
-* Register exception handlers globally versus per module. This requires updating code that calls add_handler to use register_handler
-* Add constructor for Rice::Module that takes a name, so you can do things like Module("Kernel")
-* Fix comparison methods in Rice::Object, such as Object#is_equal, to actually return the correct result
+* Add support for calling Ruby methods with keywords from Rice::Object and its descendants
+* Automatically translate C++ character arrays that start with colons to symbols (ie, ":mysymbol") when sending them to Ruby
+* Add constructor for Rice::Module that takes a name, to enable code like Module("Kernel")
+* Fix comparison methods in Rice::Object, such as Object#is_equal, to return the correct result
 * Fix various compiler warnings
 * Remove deprecated APIs
 * Deprecate support for Ruby 2.5 and 2.6 which are officially out of support
 * Add support for building tests with CMake
-* Rename Arg#isValue to Arg#setValue and then Arg#getIsValue to Arg#isValue (this may be a breaking change for some users)
-* Rename Return#isValue to Return#setValue and Return#getIsValue to Return#isValue (this may be a breaking change for some users)
 * And lots of other fixes and code improvements
+
+Rice also includes experimental support for instance tracking so that Rice maps the same C++ instance to the same Ruby instance each time it is passed to Ruby. See the documentation for more information.
+
 
 ## 4.0
 
