@@ -11,7 +11,6 @@
 #include <vector>
 #include <variant>
 
-
 namespace Rice
 {
   namespace stl
