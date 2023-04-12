@@ -238,9 +238,11 @@ namespace Rice
   inline Data_Type<T>& Data_Type<T>::define_iterator(Iterator_T(U::* begin)(), Iterator_T(U::* end)(), Identifier name)
   {
     using Iter_T = detail::Iterator<U, Iterator_T>;
-    Iter_T* iterator = new Iter_T(begin, end);
+    Iter_T* iterator = new Iter_T(name, begin, end);
     detail::MethodData::define_method(Data_Type<T>::klass(), name,
       (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
+
+    this->klass().include_module(rb_mEnumerable);
 
     return *this;
   }

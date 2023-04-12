@@ -159,3 +159,42 @@ TESTCASE(iterator_pointer)
   ASSERT_EQUAL(Object(detail::to_ruby(2)), a[1]);
   ASSERT_EQUAL(Object(detail::to_ruby(3)), a[2]);
 }
+
+TESTCASE(map)
+{
+  define_class<ContainerPointers>("ContainerPointers")
+    .define_constructor(Constructor<ContainerPointers>())
+    .define_iterator(&ContainerPointers::begin, &ContainerPointers::end);
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(container = ContainerPointers.new
+                        container.map do |x|
+                          x * 2
+                        end)";
+
+  Array result = m.module_eval(code);
+
+  ASSERT_EQUAL(3u, result.size());
+  ASSERT_EQUAL(Object(detail::to_ruby(2)), result[0]);
+  ASSERT_EQUAL(Object(detail::to_ruby(4)), result[1]);
+  ASSERT_EQUAL(Object(detail::to_ruby(6)), result[2]);
+}
+
+TESTCASE(to_enum)
+{
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(container = ContainerPointers.new
+                        container.each.map do |x|
+                          x * 2
+                        end)";
+
+  Array result = m.module_eval(code);
+
+  ASSERT_EQUAL(3u, result.size());
+  ASSERT_EQUAL(Object(detail::to_ruby(2)), result[0]);
+  ASSERT_EQUAL(Object(detail::to_ruby(4)), result[1]);
+  ASSERT_EQUAL(Object(detail::to_ruby(6)), result[2]);
+}
+
