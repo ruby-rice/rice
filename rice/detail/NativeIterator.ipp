@@ -1,5 +1,5 @@
-#ifndef Rice_Iterator__ipp_
-#define Rice_Iterator__ipp_
+#ifndef Rice_NativeIterator__ipp_
+#define Rice_NativeIterator__ipp_
 
 #include <iterator>
 #include <functional>
@@ -10,21 +10,21 @@
 namespace Rice::detail
 {
   template <typename T, typename Iterator_T>
-  inline Iterator<T, Iterator_T>::Iterator(Identifier name, Iterator_T(T::* begin)(), Iterator_T(T::* end)()) :
+  inline NativeIterator<T, Iterator_T>::NativeIterator(Identifier name, Iterator_T(T::* begin)(), Iterator_T(T::* end)()) :
        name_(name), begin_(begin), end_(end)
   {
   }
 
   template<typename T, typename Iterator_T>
-  inline VALUE Iterator<T, Iterator_T>::call(VALUE self)
+  inline VALUE NativeIterator<T, Iterator_T>::call(VALUE self)
   {
-    using Iter_T = Iterator<T, Iterator_T>;
+    using Iter_T = NativeIterator<T, Iterator_T>;
     Iter_T* iterator = detail::MethodData::data<Iter_T*>();
     return iterator->operator()(self);
   }
 
   template<typename T, typename Iterator_T>
-  inline VALUE Iterator<T, Iterator_T>::operator()(VALUE self)
+  inline VALUE NativeIterator<T, Iterator_T>::operator()(VALUE self)
   {
     if (!rb_block_given_p())
     {
@@ -47,5 +47,4 @@ namespace Rice::detail
     }
   }
 }
-
-#endif // Rice_Iterator__ipp_
+#endif // Rice_NativeIterator__ipp_

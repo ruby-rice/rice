@@ -1,19 +1,19 @@
-#ifndef Rice_Iterator__hpp_
-#define Rice_Iterator__hpp_
+#ifndef Rice_NativeIterator__hpp_
+#define Rice_NativeIterator__hpp_
 
 #include "../Identifier.hpp"
 
 namespace Rice::detail
 {
   template<typename T, typename Iterator_T>
-  class Iterator
+  class NativeIterator
   {
   public:
     static VALUE call(VALUE self);
 
   public:
-    Iterator(Identifier name, Iterator_T(T::* begin)(), Iterator_T(T::* end)());
-    virtual ~Iterator() = default;
+    NativeIterator(Identifier name, Iterator_T(T::* begin)(), Iterator_T(T::* end)());
+    virtual ~NativeIterator() = default;
     VALUE operator()(VALUE self);
 
   private:
@@ -22,5 +22,4 @@ namespace Rice::detail
     Iterator_T(T::* end_)();
   };
 }
-
-#endif // Rice_Iterator__hpp_
+#endif // Rice_NativeIterator__hpp_

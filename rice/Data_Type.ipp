@@ -6,7 +6,7 @@
 #include "detail/default_allocation_func.hpp"
 #include "detail/TypeRegistry.hpp"
 #include "detail/Wrapper.hpp"
-#include "detail/Iterator.hpp"
+#include "detail/NativeIterator.hpp"
 #include "cpp_api/Class.hpp"
 #include "cpp_api/String.hpp"
 
@@ -237,10 +237,9 @@ namespace Rice
   template<typename U, typename Iterator_T>
   inline Data_Type<T>& Data_Type<T>::define_iterator(Iterator_T(U::* begin)(), Iterator_T(U::* end)(), Identifier name)
   {
-    using Iter_T = detail::Iterator<U, Iterator_T>;
+    using Iter_T = detail::NativeIterator<U, Iterator_T>;
     Iter_T* iterator = new Iter_T(name, begin, end);
-    detail::MethodData::define_method(Data_Type<T>::klass(), name,
-      (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
+    detail::MethodData::define_method(Data_Type<T>::klass(), name, (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
 
     this->klass().include_module(rb_mEnumerable);
 

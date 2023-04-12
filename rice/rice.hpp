@@ -21,16 +21,16 @@
 #include "detail/MethodInfo.hpp"
 #include "detail/from_ruby.hpp"
 #include "detail/to_ruby.hpp"
-#include "detail/Iterator.hpp"
 #include "Exception.ipp"
 #include "detail/method_data.hpp"
 #include "detail/self.hpp"
+#include "Identifier.hpp"
 #include "detail/NativeAttribute.hpp"
 #include "detail/NativeFunction.hpp"
+#include "detail/NativeIterator.hpp"
 
 #include "ruby_mark.hpp"
 
-#include "Identifier.hpp"
 
 #include "cpp_api/Object.hpp"
 #include "cpp_api/Builtin_Object.hpp"
@@ -50,7 +50,7 @@
 #include "Data_Type.hpp"
 #include "Constructor.hpp"
 #include "Data_Object.hpp"
-#include "detail/Iterator.ipp"
+#include "detail/NativeIterator.ipp"
 
 // Dependent on Data_Object due to the way method metadata is stored in the Ruby class
 #include "detail/default_allocation_func.ipp"
