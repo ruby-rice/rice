@@ -1,5 +1,5 @@
 #include "../detail/to_ruby.hpp"
-#include "../detail/internals.hpp"
+#include "../detail/Registries.hpp"
 
 #include <assert.h>
 #include <memory>
@@ -16,7 +16,7 @@ namespace Rice::detail
   template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
   inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::~WrapperSmartPointer()
   {
-    Internals::instance.instanceRegistry.remove(this->get());
+    Registries::instance.instances.remove(this->get());
   }
 
   template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
@@ -38,7 +38,7 @@ namespace Rice::detail
   public:
     VALUE convert(std::unique_ptr<T>& data)
     {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType<T>(*data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
 
       // Use custom wrapper type 
       using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
@@ -81,7 +81,7 @@ namespace Rice::detail
   public:
     VALUE convert(std::shared_ptr<T>& data)
     {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType<T>(*data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
 
       // Use custom wrapper type 
       using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;

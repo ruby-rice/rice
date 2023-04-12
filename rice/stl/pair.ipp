@@ -105,7 +105,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair_under(Object module, std::string name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the pair has been previously seen it will be registered but may
       // not be associated with the constant Module::<name>
@@ -121,7 +121,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair(std::string name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the pair has been previously seen it will be registered but may
       // not be associated with the constant Object::<name>
@@ -153,7 +153,7 @@ namespace Rice
         Type<T1>::verify();
         Type<T2>::verify();
 
-        if (!detail::Internals::instance.typeRegistry.isDefined<std::pair<T1, T2>>())
+        if (!detail::Registries::instance.types.isDefined<std::pair<T1, T2>>())
         {
           define_pair_auto<std::pair<T1, T2>>();
         }

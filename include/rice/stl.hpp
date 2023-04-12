@@ -371,7 +371,7 @@ namespace Rice::detail
   template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
   inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::~WrapperSmartPointer()
   {
-    Internals::instance.instanceRegistry.remove(this->get());
+    Registries::instance.instances.remove(this->get());
   }
 
   template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
@@ -393,7 +393,7 @@ namespace Rice::detail
   public:
     VALUE convert(std::unique_ptr<T>& data)
     {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType<T>(*data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
 
       // Use custom wrapper type 
       using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
@@ -436,7 +436,7 @@ namespace Rice::detail
   public:
     VALUE convert(std::shared_ptr<T>& data)
     {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType<T>(*data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
 
       // Use custom wrapper type 
       using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
@@ -872,7 +872,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair_under(Object module, std::string name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the pair has been previously seen it will be registered but may
       // not be associated with the constant Module::<name>
@@ -888,7 +888,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair(std::string name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the pair has been previously seen it will be registered but may
       // not be associated with the constant Object::<name>
@@ -920,7 +920,7 @@ namespace Rice
         Type<T1>::verify();
         Type<T2>::verify();
 
-        if (!detail::Internals::instance.typeRegistry.isDefined<std::pair<T1, T2>>())
+        if (!detail::Registries::instance.types.isDefined<std::pair<T1, T2>>())
         {
           define_pair_auto<std::pair<T1, T2>>();
         }
@@ -1206,7 +1206,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_map_under(Object module, std::string name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the map has been previously seen it will be registered but may
       // not be associated with the constant Module::<name>
@@ -1222,7 +1222,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_map(std::string name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the map has been previously seen it will be registered but may
       // not be associated with the constant Object::<name>
@@ -1254,7 +1254,7 @@ namespace Rice
         Type<T>::verify();
         Type<U>::verify();
 
-        if (!detail::Internals::instance.typeRegistry.isDefined<std::map<T, U>>())
+        if (!detail::Registries::instance.types.isDefined<std::map<T, U>>())
         {
           define_map_auto<std::map<T, U>>();
         }
@@ -1695,7 +1695,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_unordered_map_under(Object module, std::string name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the unordered_map has been previously seen it will be registered but may
       // not be associated with the constant Module::<name>
@@ -1711,7 +1711,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_unordered_map(std::string name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the unordered_map has been previously seen it will be registered but may
       // not be associated with the constant Object::<name>
@@ -1743,7 +1743,7 @@ namespace Rice
         Type<T>::verify();
         Type<U>::verify();
 
-        if (!detail::Internals::instance.typeRegistry.isDefined<std::unordered_map<T, U>>())
+        if (!detail::Registries::instance.types.isDefined<std::unordered_map<T, U>>())
         {
           define_unordered_map_auto<std::unordered_map<T, U>>();
         }
@@ -2248,7 +2248,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector_under(Object module, std::string name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the vector has been previously seen it will be registered but may
       // not be associated with the constant Module::<name>
@@ -2265,7 +2265,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector(std::string name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the vector has been previously seen it will be registered but may
       // not be associated with the constant Module::<name>
@@ -2297,7 +2297,7 @@ namespace Rice
       {
         Type<T>::verify();
 
-        if (!detail::Internals::instance.typeRegistry.isDefined<std::vector<T>>())
+        if (!detail::Registries::instance.types.isDefined<std::vector<T>>())
         {
           define_vector_auto<std::vector<T>>();
         }

@@ -464,7 +464,7 @@ namespace Rice::detail
     }
     else
     {
-      //return Internals::instance.typeRegistry.verifyDefined<Intrinsic_T>();
+      //return Registries::instance.types.verifyDefined<Intrinsic_T>();
       return true;
     }
   }
@@ -677,19 +677,19 @@ namespace Rice::detail
 
 
 
-// =========   Internals.hpp   =========
+// =========   Registries.hpp   =========
 
 
 namespace Rice::detail
 {
-  class Internals
+  class Registries
   {
   public:
-    static Internals instance;
+    static Registries instance;
 
   public:
-    TypeRegistry typeRegistry;
-    InstanceRegistry instanceRegistry;
+    TypeRegistry types;
+    InstanceRegistry instances;
   };
 }
 
@@ -972,7 +972,7 @@ namespace Rice::detail
 
     ~WrapperValue()
     {
-      Internals::instance.instanceRegistry.remove(this->get());
+      Registries::instance.instances.remove(this->get());
     }
 
     void* get() override
@@ -994,7 +994,7 @@ namespace Rice::detail
 
     ~WrapperReference()
     {
-      Internals::instance.instanceRegistry.remove(this->get());
+      Registries::instance.instances.remove(this->get());
     }
 
     void* get() override
@@ -1016,7 +1016,7 @@ namespace Rice::detail
 
     ~WrapperPointer()
     {
-      Internals::instance.instanceRegistry.remove(this->get());
+      Registries::instance.instances.remove(this->get());
 
       if (this->isOwner_)
       {
@@ -1038,7 +1038,7 @@ namespace Rice::detail
   template <typename T, typename Wrapper_T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner)
   {
-    VALUE result = Internals::instance.instanceRegistry.lookup(&data);
+    VALUE result = Registries::instance.instances.lookup(&data);
 
     if (result != Qnil)
       return result;
@@ -1061,7 +1061,7 @@ namespace Rice::detail
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
 
-    Internals::instance.instanceRegistry.add(wrapper->get(), result);
+    Registries::instance.instances.add(wrapper->get(), result);
 
     return result;
   };
@@ -1069,7 +1069,7 @@ namespace Rice::detail
   template <typename T, typename Wrapper_T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner)
   {
-    VALUE result = Internals::instance.instanceRegistry.lookup(data);
+    VALUE result = Registries::instance.instances.lookup(data);
 
     if (result != Qnil)
       return result;
@@ -1087,7 +1087,7 @@ namespace Rice::detail
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
 
-    Internals::instance.instanceRegistry.add(wrapper->get(), result);
+    Registries::instance.instances.add(wrapper->get(), result);
     return result;
   };
 
@@ -1122,14 +1122,14 @@ namespace Rice::detail
     TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
     if (wrapper)
     {
-      Internals::instance.instanceRegistry.remove(wrapper->get());
+      Registries::instance.instances.remove(wrapper->get());
       delete wrapper;
     }
 
     wrapper = new WrapperPointer<T>(data, isOwner);
     RTYPEDDATA_DATA(value) = wrapper;
 
-    Internals::instance.instanceRegistry.add(data, value);
+    Registries::instance.instances.add(data, value);
   }
 
   inline Wrapper* getWrapper(VALUE value)
@@ -7409,7 +7409,7 @@ namespace Rice
     }
 
     // Now register with the type registry
-    detail::Internals::instance.typeRegistry.add<T>(klass_, rb_data_type_);
+    detail::Registries::instance.types.add<T>(klass_, rb_data_type_);
 
     for (typename Instances::iterator it = unbound_instances().begin(),
       end = unbound_instances().end();
@@ -7425,7 +7425,7 @@ namespace Rice
   template<typename T>
   inline void Data_Type<T>::unbind()
   {
-    detail::Internals::instance.typeRegistry.remove<T>();
+    detail::Registries::instance.types.remove<T>();
 
     if (klass_ != Qnil)
     {
@@ -7498,7 +7498,7 @@ namespace Rice
   template<typename Director_T>
   inline Data_Type<T>& Data_Type<T>::define_director()
   {
-    if (!detail::Internals::instance.typeRegistry.isDefined<Director_T>())
+    if (!detail::Registries::instance.types.isDefined<Director_T>())
     {
       Data_Type<Director_T>::bind(*this);
     }
@@ -7535,7 +7535,7 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class_under(Object module, char const* name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       return Data_Type<T>();
     }
@@ -7559,7 +7559,7 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class(char const* name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       return Data_Type<T>();
     }
@@ -7893,7 +7893,7 @@ namespace Rice::detail
     VALUE convert(T& data)
     {
       // Get the ruby typeinfo
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType<T>(data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
 
       // We always take ownership of data passed by value (yes the parameter is T& but the template
       // matched <typename T> thus we have to tell wrap to copy the reference we are sending to it
@@ -7915,7 +7915,7 @@ namespace Rice::detail
     {
       // Note that T could be a pointer or reference to a base class while data is in fact a
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType<T>(data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
 
       bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
       return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
@@ -7941,7 +7941,7 @@ namespace Rice::detail
       {
         // Note that T could be a pointer or reference to a base class while data is in fact a
         // child class. Lookup the correct type so we return an instance of the correct Ruby class
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType(*data);
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
         bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
         return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
       }
@@ -8322,7 +8322,7 @@ namespace Rice
   template<typename Enum_T>
   Enum<Enum_T> define_enum(char const* name, Module module)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<Enum_T>())
+    if (detail::Registries::instance.types.isDefined<Enum_T>())
     {
       return Enum<Enum_T>();
     }

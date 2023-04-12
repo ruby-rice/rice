@@ -23,7 +23,7 @@ namespace Rice::detail
     {
       try
       {
-        detail::Internals::instance.handlerRegistry.handler()->handle();
+        detail::Registries::instance.handlers.handler()->handle();
       }
       catch (::Rice::Exception const& ex)
       {

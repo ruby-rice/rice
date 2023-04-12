@@ -26,7 +26,7 @@ namespace Rice::detail
 
     ~WrapperValue()
     {
-      Internals::instance.instanceRegistry.remove(this->get());
+      Registries::instance.instances.remove(this->get());
     }
 
     void* get() override
@@ -48,7 +48,7 @@ namespace Rice::detail
 
     ~WrapperReference()
     {
-      Internals::instance.instanceRegistry.remove(this->get());
+      Registries::instance.instances.remove(this->get());
     }
 
     void* get() override
@@ -70,7 +70,7 @@ namespace Rice::detail
 
     ~WrapperPointer()
     {
-      Internals::instance.instanceRegistry.remove(this->get());
+      Registries::instance.instances.remove(this->get());
 
       if (this->isOwner_)
       {
@@ -92,7 +92,7 @@ namespace Rice::detail
   template <typename T, typename Wrapper_T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner)
   {
-    VALUE result = Internals::instance.instanceRegistry.lookup(&data);
+    VALUE result = Registries::instance.instances.lookup(&data);
 
     if (result != Qnil)
       return result;
@@ -115,7 +115,7 @@ namespace Rice::detail
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
 
-    Internals::instance.instanceRegistry.add(wrapper->get(), result);
+    Registries::instance.instances.add(wrapper->get(), result);
 
     return result;
   };
@@ -123,7 +123,7 @@ namespace Rice::detail
   template <typename T, typename Wrapper_T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner)
   {
-    VALUE result = Internals::instance.instanceRegistry.lookup(data);
+    VALUE result = Registries::instance.instances.lookup(data);
 
     if (result != Qnil)
       return result;
@@ -141,7 +141,7 @@ namespace Rice::detail
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
 
-    Internals::instance.instanceRegistry.add(wrapper->get(), result);
+    Registries::instance.instances.add(wrapper->get(), result);
     return result;
   };
 
@@ -176,14 +176,14 @@ namespace Rice::detail
     TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
     if (wrapper)
     {
-      Internals::instance.instanceRegistry.remove(wrapper->get());
+      Registries::instance.instances.remove(wrapper->get());
       delete wrapper;
     }
 
     wrapper = new WrapperPointer<T>(data, isOwner);
     RTYPEDDATA_DATA(value) = wrapper;
 
-    Internals::instance.instanceRegistry.add(data, value);
+    Registries::instance.instances.add(data, value);
   }
 
   inline Wrapper* getWrapper(VALUE value)

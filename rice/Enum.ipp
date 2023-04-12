@@ -119,7 +119,7 @@ namespace Rice
   template<typename Enum_T>
   Enum<Enum_T> define_enum(char const* name, Module module)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<Enum_T>())
+    if (detail::Registries::instance.types.isDefined<Enum_T>())
     {
       return Enum<Enum_T>();
     }

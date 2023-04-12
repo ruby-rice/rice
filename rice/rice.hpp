@@ -9,7 +9,7 @@
 #include "detail/TypeRegistry.hpp"
 #include "detail/InstanceRegistry.hpp"
 #include "detail/HandlerRegistry.hpp"
-#include "detail/Internals.hpp"
+#include "detail/Registries.hpp"
 #include "detail/cpp_protect.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "detail/Jump_Tag.hpp"

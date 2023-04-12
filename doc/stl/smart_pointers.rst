@@ -180,7 +180,7 @@ Let's start by telling Rice how to wrap the smart pointer. Here is how that is d
     {
       static VALUE convert(std::unique_ptr<T>& data, bool takeOwnership = true)
       {
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Internals::instance.typeRegistry.figureType<T>(*data);
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
 
         // Use custom wrapper type 
         using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;

@@ -13,7 +13,7 @@ By default, instance tracking is disabled. To turn it on:
 
 .. code-block:: cpp
 
-  detail::Internal::intance.instanceRegistry.isEnabled = true;
+  detail::Internal::intance.instances.isEnabled = true;
 
 Disabled
 --------

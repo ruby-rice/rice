@@ -263,7 +263,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_unordered_map_under(Object module, std::string name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the unordered_map has been previously seen it will be registered but may
       // not be associated with the constant Module::<name>
@@ -279,7 +279,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_unordered_map(std::string name)
   {
-    if (detail::Internals::instance.typeRegistry.isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the unordered_map has been previously seen it will be registered but may
       // not be associated with the constant Object::<name>
@@ -311,7 +311,7 @@ namespace Rice
         Type<T>::verify();
         Type<U>::verify();
 
-        if (!detail::Internals::instance.typeRegistry.isDefined<std::unordered_map<T, U>>())
+        if (!detail::Registries::instance.types.isDefined<std::unordered_map<T, U>>())
         {
           define_unordered_map_auto<std::unordered_map<T, U>>();
         }
