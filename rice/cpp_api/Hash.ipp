@@ -43,19 +43,19 @@ namespace Rice
   template<typename Key_T>
   inline Hash::Proxy const Hash::operator[](Key_T const& key) const
   {
-    return Proxy(*this, detail::To_Ruby<Key_T>().convert(key));
+    return Proxy(*this, detail::To_Ruby<std::add_const_t<Key_T>>().convert(key));
   }
 
   template<typename Key_T>
   inline Hash::Proxy Hash::operator[](Key_T const& key)
   {
-    return Proxy(this, detail::To_Ruby<Key_T>().convert(key));
+    return Proxy(this, detail::To_Ruby<std::add_const_t<Key_T>>().convert(key));
   }
 
   template<typename Value_T, typename Key_T>
   inline Value_T Hash::get(Key_T const& key)
   {
-    Object ruby_key(detail::To_Ruby<Key_T>().convert(key));
+    Object ruby_key(detail::To_Ruby<std::add_const_t<Key_T>>().convert(key));
     Object value = operator[](ruby_key);
     try
     {

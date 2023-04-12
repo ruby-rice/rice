@@ -422,27 +422,5 @@ namespace Rice
         }
       }
     };
-
-    template<int N>
-    class To_Ruby<char[N]>
-    {
-    public:
-      VALUE convert(char const x[])
-      {
-        if (N > 0 && x[0] == ':')
-        {
-          // N count includes a NULL character at the end of the string
-          constexpr size_t symbolLength = N - 1;
-          char symbol[symbolLength];
-          strncpy(symbol, x + 1, symbolLength);
-          ID id = protect(rb_intern, symbol);
-          return protect(rb_id2sym, id);
-        }
-        else
-        {
-          return protect(rb_str_new2, x);
-        }
-      }
-    };
   }
 }
