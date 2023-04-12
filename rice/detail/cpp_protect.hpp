@@ -4,14 +4,11 @@
 #include <stdexcept>
 #include <filesystem>
 
-#include "detail/Jump_Tag.hpp"
-#include "Exception_defn.hpp"
+#include "Jump_Tag.hpp"
+#include "../Exception_defn.hpp"
 
 namespace Rice::detail
 {
-#if defined(_MSC_VER)
-#pragma warning(disable:4715)
-#endif
   template <typename Callable_T>
   auto cpp_protect(Callable_T&& func)
   {
@@ -88,10 +85,8 @@ namespace Rice::detail
       {
         rb_exc_raise(rb_exc_new2(rb_eRuntimeError, "Unknown C++ exception thrown"));
       }
+      throw std::runtime_error("Should never get here - just making compilers happy");
     }
   }
-#if defined(_MSC_VER)
-#pragma warning(default:4715)
-#endif
 }
 #endif // Rice__detail__cpp_protect__hpp_
