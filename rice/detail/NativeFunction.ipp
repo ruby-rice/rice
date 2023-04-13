@@ -19,8 +19,11 @@ namespace Rice::detail
     using NativeFunction_T = NativeFunction<From_Ruby_T, Function_T, IsMethod>;
     NativeFunction_T* nativeFunction = detail::MethodData::data<NativeFunction_T*>();
 
-    // Execute the function
-    return nativeFunction->operator()(argc, argv, self);
+    // Execute the function but make sure to catch any C++ exceptions!
+    return cpp_protect([&]
+    {
+      return nativeFunction->operator()(argc, argv, self);
+    });
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
@@ -228,31 +231,28 @@ namespace Rice::detail
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::operator()(int argc, VALUE* argv, VALUE self)
   {
-    return cpp_protect([&]
+    // Get the ruby values
+    std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv);
+
+    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+
+    // Convert the Ruby values to native values
+    Arg_Ts nativeValues = this->getNativeValues(rubyValues, indices);
+
+    // Now call the native method
+    VALUE result = Qnil;
+    if constexpr (std::is_same_v<Class_T, std::nullptr_t>)
     {
-      // Get the ruby values
-      std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv);
+      result = this->invokeNativeFunction(nativeValues);
+    }
+    else
+    {
+      result = this->invokeNativeMethod(self, nativeValues);
+    }
 
-      auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+    // Check if any function arguments or return values need to have their lifetimes tied to the receiver
+    this->checkKeepAlive(self, result, rubyValues);
 
-      // Convert the Ruby values to native values
-      Arg_Ts nativeValues = this->getNativeValues(rubyValues, indices);
-
-      // Now call the native method
-      VALUE result = Qnil;
-      if constexpr (std::is_same_v<Class_T, std::nullptr_t>)
-      {
-        result = this->invokeNativeFunction(nativeValues);
-      }
-      else
-      {
-        result = this->invokeNativeMethod(self, nativeValues);
-      }
-
-      // Check if any function arguments or return values need to have their lifetimes tied to the receiver
-      this->checkKeepAlive(self, result, rubyValues);
-
-      return result;
-    });
+    return result;
   }
 }
