@@ -17,6 +17,9 @@ namespace Rice::detail
     VALUE operator()(VALUE self);
 
   private:
+    VALUE createRubyEnumerator(VALUE self);
+
+  private:
     Identifier name_;
     Iterator_T(T::* begin_)();
     Iterator_T(T::* end_)();
