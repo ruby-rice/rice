@@ -25,4 +25,6 @@ namespace Rice::detail
     Iterator_T(T::* end_)();
   };
 }
+#include "NativeIterator.ipp"
+
 #endif // Rice_NativeIterator__hpp_

@@ -1,13 +1,9 @@
-#ifndef Rice_NativeIterator__ipp_
-#define Rice_NativeIterator__ipp_
-
 #include <iterator>
 #include <functional>
 #include <type_traits>
 
 #include "cpp_protect.hpp"
 #include "method_data.hpp"
-#include "../Data_Object_defn.hpp"
 
 namespace Rice::detail
 {
@@ -49,7 +45,7 @@ namespace Rice::detail
         // this lambda to rb_enumeratorize_with_size), extract it from recv
         return cpp_protect([&]
         {
-          T* receiver = Data_Object<T>::from_ruby(recv);
+          T* receiver = detail::From_Ruby<T*>().convert(recv);
           return detail::To_Ruby<size_t>().convert(receiver->size());
         });
       };
@@ -69,9 +65,9 @@ namespace Rice::detail
     {
       using Value_T = typename std::iterator_traits<Iterator_T>::value_type;
 
-      Data_Object<T> obj(self);
-      Iterator_T it = std::invoke(this->begin_, *obj);
-      Iterator_T end = std::invoke(this->end_, *obj);
+      T* receiver = detail::From_Ruby<T*>().convert(self);
+      Iterator_T it = std::invoke(this->begin_, *receiver);
+      Iterator_T end = std::invoke(this->end_, *receiver);
 
       for (; it != end; ++it)
       {
@@ -82,4 +78,3 @@ namespace Rice::detail
     }
   }
 }
-#endif // Rice_NativeIterator__ipp_

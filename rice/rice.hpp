@@ -50,7 +50,6 @@
 #include "Data_Type.hpp"
 #include "Constructor.hpp"
 #include "Data_Object.hpp"
-#include "detail/NativeIterator.ipp"
 
 // Dependent on Data_Object due to the way method metadata is stored in the Ruby class
 #include "detail/default_allocation_func.ipp"
