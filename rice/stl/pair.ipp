@@ -66,15 +66,29 @@ namespace Rice
       {
         // Access methods
         klass_.define_method("first=", [](T& pair, typename T::first_type& value) -> typename T::first_type&
+        {
+          if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<T::first_type>>>)
+          {
+            throw std::runtime_error("Cannot set pair.first since it is a constant");
+          }
+          else
           {
             pair.first = value;
             return pair.first;
-          })
+          }
+        })
         .define_method("second=", [](T& pair, typename T::second_type& value) -> typename T::second_type&
+        {
+          if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<T::second_type>>>)
+          {
+            throw std::runtime_error("Cannot set pair.second since it is a constant");
+          }
+          else
           {
             pair.second = value;
             return pair.second;
-          });
+          }
+        });
       }
 
       void define_to_s()
@@ -150,8 +164,8 @@ namespace Rice
     {
       static bool verify()
       {
-        Type<T1>::verify();
-        Type<T2>::verify();
+        detail::verifyType<T1>();
+        detail::verifyType<T2>();
 
         if (!detail::Registries::instance.types.isDefined<std::pair<T1, T2>>())
         {

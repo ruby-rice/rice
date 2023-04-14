@@ -41,6 +41,32 @@ TESTCASE(CreatePair)
   ASSERT_EQUAL("A second value", detail::From_Ruby<std::string>().convert(result));
 }
 
+TESTCASE(CreatePairConst)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_pair<std::pair<const std::string, const std::string>>("ConstStringPair");
+  Object pair = c.call("new", "pair1", "pair2");
+
+  Object result = pair.call("first");
+  ASSERT_EQUAL("pair1", detail::From_Ruby<std::string>().convert(result));
+
+  result = pair.call("second");
+  ASSERT_EQUAL("pair2", detail::From_Ruby<std::string>().convert(result));
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    pair.call("first=", "A second value"),
+    ASSERT_EQUAL("Cannot set pair.first since it is a constant", ex.what())
+  );
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    pair.call("second=", "A second value"),
+    ASSERT_EQUAL("Cannot set pair.second since it is a constant", ex.what())
+  );
+}
+
 namespace
 {
   class SomeClass
