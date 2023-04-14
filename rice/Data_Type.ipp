@@ -234,10 +234,10 @@ namespace Rice
   }
 
   template<typename T>
-  template<typename U, typename Iterator_T>
-  inline Data_Type<T>& Data_Type<T>::define_iterator(Iterator_T(U::* begin)(), Iterator_T(U::* end)(), Identifier name)
+  template<typename Iterator_Funct_T>
+  inline Data_Type<T>& Data_Type<T>::define_iterator(Iterator_Funct_T begin, Iterator_Funct_T end, Identifier name)
   {
-    using Iter_T = detail::NativeIterator<U, Iterator_T>;
+    using Iter_T = detail::NativeIterator<T, Iterator_Funct_T>;
     Iter_T* iterator = new Iter_T(name, begin, end);
     detail::MethodData::define_method(Data_Type<T>::klass(), name, (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
 

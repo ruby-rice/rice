@@ -113,8 +113,8 @@ namespace Rice
      *  \return *this
      */
 
-    template<typename U = T, typename Iterator_Return_T>
-    Data_Type<T>& define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name = "each");
+    template<typename Iterator_Funct_T>
+    Data_Type<T>& define_iterator(Iterator_Funct_T being, Iterator_Funct_T end, Identifier name = "each");
 
     template <typename Attr_T>
     Data_Type<T>& define_attr(std::string name, Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);

@@ -7,16 +7,16 @@
 
 namespace Rice::detail
 {
-  template <typename T, typename Iterator_T>
-  inline NativeIterator<T, Iterator_T>::NativeIterator(Identifier name, Iterator_T(T::* begin)(), Iterator_T(T::* end)()) :
+  template <typename T, typename Iterator_Func_T>
+  inline NativeIterator<T, Iterator_Func_T>::NativeIterator(Identifier name, Iterator_Func_T begin, Iterator_Func_T end) :
        name_(name), begin_(begin), end_(end)
   {
   }
 
-  template<typename T, typename Iterator_T>
-  inline VALUE NativeIterator<T, Iterator_T>::call(VALUE self)
+  template<typename T, typename Iterator_Func_T>
+  inline VALUE NativeIterator<T, Iterator_Func_T>::call(VALUE self)
   {
-    using Iter_T = NativeIterator<T, Iterator_T>;
+    using Iter_T = NativeIterator<T, Iterator_Func_T>;
     Iter_T* iterator = detail::MethodData::data<Iter_T*>();
 
     return cpp_protect([&]
@@ -25,8 +25,8 @@ namespace Rice::detail
     });
   }
 
-  template<typename T, typename Iterator_T>
-  inline VALUE NativeIterator<T, Iterator_T>::createRubyEnumerator(VALUE self)
+  template<typename T, typename Iterator_Func_T>
+  inline VALUE NativeIterator<T, Iterator_Func_T>::createRubyEnumerator(VALUE self)
   {
     auto rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
     {
@@ -35,7 +35,7 @@ namespace Rice::detail
       return cpp_protect([&]
       {
         // Get the iterator instance
-        using Iter_T = NativeIterator<T, Iterator_T>;
+        using Iter_T = NativeIterator<T, Iterator_Func_T>;
         Iter_T* iterator = detail::MethodData::data<Iter_T*>();
 
         // Get the wrapped C++ instance
@@ -53,8 +53,8 @@ namespace Rice::detail
     return protect(rb_enumeratorize_with_size, self, this->name_.to_sym(), 0, nullptr, rb_size_function);
   }
 
-  template<typename T, typename Iterator_T>
-  inline VALUE NativeIterator<T, Iterator_T>::operator()(VALUE self)
+  template<typename T, typename Iterator_Func_T>
+  inline VALUE NativeIterator<T, Iterator_Func_T>::operator()(VALUE self)
   {
     if (!protect(rb_block_given_p))
     {
