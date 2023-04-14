@@ -9,6 +9,10 @@ namespace Rice::detail
   class NativeIterator
   {
   public:
+    using Value_T = typename std::iterator_traits<Iterator_T>::value_type;
+    using Difference_T = typename std::iterator_traits<Iterator_T>::difference_type;
+
+  public:
     static VALUE call(VALUE self);
 
   public:

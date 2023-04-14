@@ -25,31 +25,30 @@ namespace Rice::detail
     });
   }
 
-  template<typename T, typename = void>
-  struct has_size : std::false_type {};
-
-  template<typename T>
-  struct has_size<T, std::void_t<std::is_member_function_pointer<decltype(&T::size)>>> : std::true_type {};
-
   template<typename T, typename Iterator_T>
   inline VALUE NativeIterator<T, Iterator_T>::createRubyEnumerator(VALUE self)
   {
-    using SizeFunc_T = VALUE(*)(VALUE recv, VALUE argv, VALUE eobj);
-    SizeFunc_T rb_size_function = nullptr;
-
-    if constexpr (has_size<T>::value)
+    auto rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
     {
-      rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
+      // Since we can't capture VALUE self from above (because then we can't send
+      // this lambda to rb_enumeratorize_with_size), extract it from recv
+      return cpp_protect([&]
       {
-        // Since we can't capture VALUE self from above (because then we can't send
-        // this lambda to rb_enumeratorize_with_size), extract it from recv
-        return cpp_protect([&]
-        {
-          T* receiver = detail::From_Ruby<T*>().convert(recv);
-          return detail::To_Ruby<size_t>().convert(receiver->size());
-        });
-      };
-    }
+        // Get the iterator instance
+        using Iter_T = NativeIterator<T, Iterator_T>;
+        Iter_T* iterator = detail::MethodData::data<Iter_T*>();
+
+        // Get the wrapped C++ instance
+        T* receiver = detail::From_Ruby<T*>().convert(recv);
+
+        // Get the distance
+        Iterator_T begin = std::invoke(iterator->begin_, *receiver);
+        Iterator_T end = std::invoke(iterator->end_, *receiver);
+        Difference_T distance = std::distance(begin, end);
+
+        return detail::To_Ruby<Difference_T>().convert(distance);
+      });
+    };
 
     return protect(rb_enumeratorize_with_size, self, this->name_.to_sym(), 0, nullptr, rb_size_function);
   }
@@ -63,8 +62,6 @@ namespace Rice::detail
     }
     else
     {
-      using Value_T = typename std::iterator_traits<Iterator_T>::value_type;
-
       T* receiver = detail::From_Ruby<T*>().convert(self);
       Iterator_T it = std::invoke(this->begin_, *receiver);
       Iterator_T end = std::invoke(this->end_, *receiver);
