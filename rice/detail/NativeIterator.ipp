@@ -36,7 +36,11 @@ namespace Rice::detail
       {
         // Get the iterator instance
         using Iter_T = NativeIterator<T, Iterator_Func_T>;
-        Iter_T* iterator = detail::MethodData::data<Iter_T*>();
+        // Class is easy
+        VALUE klass = protect(rb_class_of, recv);
+        // Read the method_id from an attribute we added to the enumerator instance
+        ID method_id = protect(rb_ivar_get, eobj, rb_intern("rice_method"));
+        Iter_T* iterator = detail::MethodData::data<Iter_T*>(klass, method_id);
 
         // Get the wrapped C++ instance
         T* receiver = detail::From_Ruby<T*>().convert(recv);
@@ -50,7 +54,13 @@ namespace Rice::detail
       });
     };
 
-    return protect(rb_enumeratorize_with_size, self, this->name_.to_sym(), 0, nullptr, rb_size_function);
+    VALUE enumerator = protect(rb_enumeratorize_with_size, self, this->name_.to_sym(), 0, nullptr, rb_size_function);
+    
+    // Hack the enumerator object by storing name_ on the enumerator object so
+    // the rb_size_function above has access to it
+    protect(rb_ivar_set, enumerator, rb_intern("rice_method"), this->name_);
+
+    return enumerator;
   }
 
   template<typename T, typename Iterator_Func_T>
@@ -68,7 +78,7 @@ namespace Rice::detail
 
       for (; it != end; ++it)
       {
-        protect(rb_yield, detail::To_Ruby<Value_T>().convert(*it));
+        protect(rb_yield, detail::To_Ruby<Reference_T>().convert(*it));
       }
 
       return self;
