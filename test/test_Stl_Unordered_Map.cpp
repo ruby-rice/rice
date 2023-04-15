@@ -244,8 +244,8 @@ TESTCASE(Iterate)
                         unordered_map["seven"] = 7
 
                         result = Hash.new
-                        unordered_map.each do |key, value|
-                                    result[key] = 2 * value
+                        unordered_map.each do |pair|
+                                    result[pair.first] = 2 * pair.second
                                   end
                         result)";
 
@@ -267,8 +267,8 @@ TESTCASE(ToEnum)
                         unordered_map["seven"] = 7
 
                         result = Hash.new
-                        unordered_map.each.each do |key, value|
-                                    result[key] = 2 * value
+                        unordered_map.each.each do |pair|
+                                    result[pair.first] = 2 * pair.second
                                   end
                         result)";
 
