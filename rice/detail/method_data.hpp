@@ -19,6 +19,9 @@ namespace Rice::detail
     template <typename Return_T>
     static Return_T data();
 
+    template <typename Return_T>
+    static Return_T data(VALUE klass, ID id);
+
   private:
     static size_t key(VALUE klass, ID id);
     inline static std::unordered_map<size_t, std::any> methodWrappers_ = {};

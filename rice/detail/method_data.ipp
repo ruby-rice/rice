@@ -31,6 +31,12 @@ namespace Rice::detail
       rb_raise(rb_eRuntimeError, "Cannot get method id and class for function");
     }
 
+    return MethodData::data<Return_T>(klass, id);
+  }
+
+  template <typename Return_T>
+  inline Return_T MethodData::data(VALUE klass, ID id)
+  {
     auto iter = methodWrappers_.find(key(klass, id));
     if (iter == methodWrappers_.end())
     {
