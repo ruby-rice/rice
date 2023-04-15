@@ -1,7 +1,7 @@
 #ifndef Rice__Data_Type__ipp_
 #define Rice__Data_Type__ipp_
 
-#include "detail/method_data.hpp"
+#include "detail/NativeRegistry.hpp"
 #include "detail/NativeAttribute.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "detail/TypeRegistry.hpp"
@@ -235,11 +235,10 @@ namespace Rice
 
   template<typename T>
   template<typename Iterator_Func_T>
-  inline Data_Type<T>& Data_Type<T>::define_iterator(Iterator_Func_T begin, Iterator_Func_T end, Identifier name)
+  inline Data_Type<T>& Data_Type<T>::define_iterator(Iterator_Func_T begin, Iterator_Func_T end, std::string name)
   {
     using Iter_T = detail::NativeIterator<T, Iterator_Func_T>;
-    Iter_T* iterator = new Iter_T(name, begin, end);
-    detail::MethodData::define_method(Data_Type<T>::klass(), name, (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
+    Iter_T* iterator = new Iter_T(Data_Type<T>::klass(), name, begin, end);
 
     // Include enumerable support
     this->klass().include_module(rb_mEnumerable);
@@ -251,27 +250,9 @@ namespace Rice
   template <typename Attr_T>
   inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T attr, AttrAccess access)
   {
-    auto* native = detail::Make_Native_Attribute(attr, access);
+    auto* native = detail::Make_Native_Attribute(klass_, name, attr, access);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
-
     detail::verifyType<typename Native_T::Native_Return_T>();
-
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
-    {
-      detail::MethodData::define_method( klass_, Identifier(name).id(),
-        RUBY_METHOD_FUNC(&Native_T::get), 0, native);
-    }
-
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
-    {
-      if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
-      {
-        throw std::runtime_error(name + " is readonly");
-      }
-
-      detail::MethodData::define_method( klass_, Identifier(name + "=").id(),
-        RUBY_METHOD_FUNC(&Native_T::set), 1, native);
-    }
 
     return *this;
   }
@@ -280,36 +261,17 @@ namespace Rice
   template <typename Attr_T>
   inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_T attr, AttrAccess access)
   {
-    auto* native = detail::Make_Native_Attribute(attr, access);
+    VALUE singleton = detail::protect(rb_singleton_class, this->value());
+    auto* native = detail::Make_Native_Attribute(singleton, name, attr, access);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
-
     detail::verifyType<typename Native_T::Native_Return_T>();
-
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
-    {
-      VALUE singleton = detail::protect(rb_singleton_class, this->value());
-      detail::MethodData::define_method(singleton, Identifier(name).id(),
-        RUBY_METHOD_FUNC(&Native_T::get), 0, native);
-    }
-
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
-    {
-      if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
-      {
-        throw std::runtime_error(name  + " is readonly");
-      }
-
-      VALUE singleton = detail::protect(rb_singleton_class, this->value());
-      detail::MethodData::define_method(singleton, Identifier(name + "=").id(),
-        RUBY_METHOD_FUNC(&Native_T::set), 1, native);
-    }
 
     return *this;
   }
 
   template <typename T>
   template<bool IsMethod, typename Function_T>
-  inline void Data_Type<T>::wrap_native_call(VALUE klass, Identifier name, Function_T&& function, MethodInfo* methodInfo)
+  inline void Data_Type<T>::wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo)
   {
     // Make sure the return type and arguments have been previously seen by Rice
     using traits = detail::method_traits<Function_T, IsMethod>;
@@ -317,11 +279,7 @@ namespace Rice
     detail::verifyTypes<typename traits::Arg_Ts>();
 
     // Create a NativeFunction instance to wrap this native call and 
-    auto* native = new detail::NativeFunction<T, Function_T, IsMethod>(std::forward<Function_T>(function), methodInfo);
-
-    // Now define the method
-    using Native_T = typename std::remove_pointer_t<decltype(native)>;
-    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
+    auto* native = new detail::NativeFunction<T, Function_T, IsMethod>(klass, name, std::forward<Function_T>(function), methodInfo);
   }
 }
 #endif

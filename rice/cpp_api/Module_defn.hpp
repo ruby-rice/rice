@@ -55,7 +55,7 @@ namespace Rice
 
   protected:
     template<bool IsMethod, typename Function_T>
-    void wrap_native_call(VALUE klass, Identifier name, Function_T&& function, MethodInfo* methodInfo);
+    void wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo);
   };
 
   //! Define a new module in the namespace given by module.

@@ -1,7 +1,6 @@
 #ifndef Rice_NativeIterator__hpp_
 #define Rice_NativeIterator__hpp_
 
-#include "../Identifier.hpp"
 #include "function_traits.hpp"
 
 namespace Rice::detail
@@ -18,7 +17,7 @@ namespace Rice::detail
     static VALUE call(VALUE self);
 
   public:
-    NativeIterator(Identifier name, Iterator_Func_T begin, Iterator_Func_T end);
+    NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end);
     virtual ~NativeIterator() = default;
     VALUE operator()(VALUE self);
 
@@ -26,7 +25,8 @@ namespace Rice::detail
     VALUE createRubyEnumerator(VALUE self);
 
   private:
-    Identifier name_;
+    VALUE klass_;
+    std::string method_name_;
     Iterator_Func_T begin_;
     Iterator_Func_T end_;
   };

@@ -27,9 +27,14 @@ namespace Rice::detail
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  NativeFunction<From_Ruby_T, Function_T, IsMethod>::NativeFunction(Function_T func, MethodInfo* methodInfo)
-    : func_(func), methodInfo_(methodInfo)
+  NativeFunction<From_Ruby_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T func, MethodInfo* methodInfo)
+    : klass_(klass), method_name_(method_name), func_(func), methodInfo_(methodInfo)
   {
+    // Register the method with Ruby
+    ID method_id = Identifier(method_name).id();
+    detail::protect(rb_define_method_id, klass, method_id, (RUBY_METHOD_FUNC)this->call, -1);
+    detail::Registries::instance.natives.add(klass, method_id, this);
+
     // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
     // builtin types NativeArgs will keep a copy of the native value so that it 
     // can be passed by reference or pointer to the native function. For non-builtin types

@@ -31,9 +31,33 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename Attr_T, typename Self_T>
-  NativeAttribute<Return_T, Attr_T, Self_T>::NativeAttribute(Attr_T attr, AttrAccess access)
-    : attr_(attr), access_(access)
+  NativeAttribute<Return_T, Attr_T, Self_T>::NativeAttribute(VALUE klass, std::string name,
+                                                             Attr_T attr, AttrAccess access)
+    : klass_(klass), name_(name), attr_(attr), access_(access)
   {
+    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
+    {
+      // Define Ruby getter method
+      ID method_id = Identifier(name).id();
+      detail::protect(rb_define_method_id, klass, method_id, (RUBY_METHOD_FUNC)this->get, 0);
+      detail::Registries::instance.natives.add(klass_, method_id, this);
+    }
+
+    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
+    {
+      if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
+      {
+        throw std::runtime_error(name + " is readonly");
+      }
+
+      // Define Ruby setter method
+      ID method_id = Identifier(name + "=").id();
+      detail::protect(rb_define_method_id, klass, method_id, (RUBY_METHOD_FUNC)this->set, 1);
+      detail::Registries::instance.natives.add(klass_, method_id, this);
+    }
+
+
+
   }
 
   template<typename Return_T, typename Attr_T, typename Self_T>
@@ -77,15 +101,15 @@ namespace Rice::detail
   }
 
   template<typename T>
-  auto* Make_Native_Attribute(T* attr, AttrAccess access)
+  auto* Make_Native_Attribute(VALUE klass, std::string name, T* attr, AttrAccess access)
   {
-    return new NativeAttribute<T, T*>(attr, access);
+    return new NativeAttribute<T, T*>(klass, name, attr, access);
   }
 
   template<typename Class_T, typename T>
-  auto* Make_Native_Attribute(T Class_T::* attr, AttrAccess access)
+  auto* Make_Native_Attribute(VALUE klass, std::string name, T Class_T::* attr, AttrAccess access)
   {
     using Attr_T = T Class_T::*;
-    return new NativeAttribute<T, Attr_T, Class_T>(attr, access);
+    return new NativeAttribute<T, Attr_T, Class_T>(klass, name, attr, access);
   }
 } // Rice

@@ -56,7 +56,7 @@ namespace Rice::detail
     static VALUE call(int argc, VALUE* argv, VALUE self);
 
   public:
-    NativeFunction(Function_T func, MethodInfo* methodInfo);
+    NativeFunction(VALUE klass, std::string method_name, Function_T func, MethodInfo* methodInfo);
 
     // Invokes the wrapped function
     VALUE operator()(int argc, VALUE* argv, VALUE self);
@@ -89,6 +89,8 @@ namespace Rice::detail
     VALUE invokeNativeMethod(VALUE self, const Arg_Ts& nativeArgs);
 
   private:
+    VALUE klass_;
+    std::string method_name_;
     Function_T func_;
     From_Ruby_Args_Ts fromRubys_;
     To_Ruby<Return_T> toRuby_;

@@ -114,7 +114,7 @@ namespace Rice
      */
 
     template<typename Iterator_Func_T>
-    Data_Type<T>& define_iterator(Iterator_Func_T begin, Iterator_Func_T end, Identifier name = "each");
+    Data_Type<T>& define_iterator(Iterator_Func_T begin, Iterator_Func_T end, std::string name = "each");
 
     template <typename Attr_T>
     Data_Type<T>& define_attr(std::string name, Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
@@ -142,7 +142,7 @@ namespace Rice
     friend Rice::Data_Type<T_> define_class(char const * name);
 
     template<bool IsMethod, typename Function_T>
-    void wrap_native_call(VALUE klass, Identifier name, Function_T&& function, MethodInfo* methodInfo);
+    void wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo);
 
   private:
     template<typename T_>

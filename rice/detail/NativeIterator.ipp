@@ -3,21 +3,25 @@
 #include <type_traits>
 
 #include "cpp_protect.hpp"
-#include "method_data.hpp"
+#include "NativeRegistry.hpp"
 
 namespace Rice::detail
 {
   template <typename T, typename Iterator_Func_T>
-  inline NativeIterator<T, Iterator_Func_T>::NativeIterator(Identifier name, Iterator_Func_T begin, Iterator_Func_T end) :
-       name_(name), begin_(begin), end_(end)
+  inline NativeIterator<T, Iterator_Func_T>::NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end) :
+    klass_(klass), method_name_(method_name), begin_(begin), end_(end)
   {
+    // Register a new method with Ruby to invoke the static member function call
+    ID method_id = Identifier(method_name).id();
+    detail::protect(rb_define_method_id, klass, method_id, (RUBY_METHOD_FUNC)this->call, 0);
+    detail::Registries::instance.natives.add(klass, method_id, this);
   }
 
   template<typename T, typename Iterator_Func_T>
   inline VALUE NativeIterator<T, Iterator_Func_T>::call(VALUE self)
   {
     using Iter_T = NativeIterator<T, Iterator_Func_T>;
-    Iter_T* iterator = detail::MethodData::data<Iter_T*>();
+    Iter_T* iterator = detail::Registries::instance.natives.lookup<Iter_T*>();
 
     return cpp_protect([&]
     {
@@ -40,7 +44,7 @@ namespace Rice::detail
         VALUE klass = protect(rb_class_of, recv);
         // Read the method_id from an attribute we added to the enumerator instance
         ID method_id = protect(rb_ivar_get, eobj, rb_intern("rice_method"));
-        Iter_T* iterator = detail::MethodData::data<Iter_T*>(klass, method_id);
+        Iter_T* iterator = detail::Registries::instance.natives.lookup<Iter_T*>(klass, method_id);
 
         // Get the wrapped C++ instance
         T* receiver = detail::From_Ruby<T*>().convert(recv);
@@ -54,11 +58,13 @@ namespace Rice::detail
       });
     };
 
-    VALUE enumerator = protect(rb_enumeratorize_with_size, self, this->name_.to_sym(), 0, nullptr, rb_size_function);
+    VALUE method_sym = Identifier(this->method_name_).to_sym();
+    VALUE enumerator = protect(rb_enumeratorize_with_size, self, method_sym, 0, nullptr, rb_size_function);
     
     // Hack the enumerator object by storing name_ on the enumerator object so
     // the rb_size_function above has access to it
-    protect(rb_ivar_set, enumerator, rb_intern("rice_method"), this->name_);
+    ID method_id = Identifier(this->method_name_).id();
+    protect(rb_ivar_set, enumerator, rb_intern("rice_method"), method_id  );
 
     return enumerator;
   }

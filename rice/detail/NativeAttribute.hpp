@@ -2,8 +2,6 @@
 #define Rice__detail__Native_Attribute__hpp_
 
 #include "ruby.hpp"
-#include "ExceptionHandler_defn.hpp"
-#include "MethodInfo.hpp"
 
 namespace Rice
 {
@@ -27,13 +25,15 @@ namespace Rice
       static VALUE set(VALUE self, VALUE value);
 
     public:
-      NativeAttribute(Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
+      NativeAttribute(VALUE klass, std::string name, Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
 
       // Invokes the wrapped function
       VALUE read(VALUE self);
       VALUE write(VALUE self, VALUE value);
 
     private:
+      VALUE klass_;
+      std::string name_;
       Attr_T attr_;
       AttrAccess access_;
     };
