@@ -1,10 +1,11 @@
 #include "../detail/rice_traits.hpp"
-#include "../detail/self.hpp"
 #include "../detail/from_ruby.hpp"
 #include "../detail/to_ruby.hpp"
 #include "../detail/RubyFunction.hpp"
+#include "../detail/NativeIterator.hpp"
 #include "../Data_Type.hpp"
 #include "../Data_Object.hpp"
+#include "pair.hpp"
 
 #include <sstream>
 #include <stdexcept>
@@ -28,17 +29,24 @@ namespace Rice
     public:
       MapHelper(Data_Type<T> klass) : klass_(klass)
       {
+        this->register_pair();
         this->define_constructor();
         this->define_copyable_methods();
         this->define_capacity_methods();
         this->define_access_methods();
         this->define_comparable_methods();
         this->define_modify_methods();
-        this->define_to_s();
         this->define_enumerable();
+        this->define_to_s();
+        this->define_to_hash();
       }
 
     private:
+
+      void register_pair()
+      {
+        define_pair_auto<Value_T>();
+      }
 
       void define_constructor()
       {
@@ -177,33 +185,7 @@ namespace Rice
       void define_enumerable()
       {
         // Add enumerable support
-        klass_.include_module(rb_mEnumerable)
-          // Note we return Object for the enumerator - if we returned value Rice will think its a unsigned long long
-          .define_method("each", [](T& map) -> const std::variant<std::reference_wrapper<T>, Object>
-            {
-              if (!rb_block_given_p())
-              {
-                auto rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
-                {
-                  // Since we can't capture the map from above (because then we can't send
-                  // this lambda to rb_enumeratorize_with_size), extract it from recv
-                  T* receiver = Data_Object<T>::from_ruby(recv);
-                  return detail::To_Ruby<size_t>().convert(receiver->size());
-                };
-
-                return rb_enumeratorize_with_size(detail::selfThread, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
-              }
-
-              for (Value_T& pair : map)
-              {
-                VALUE key = detail::To_Ruby<Key_T>().convert(pair.first);
-                VALUE value = detail::To_Ruby<Mapped_T>().convert(pair.second);
-                const VALUE argv[] = { key, value };
-                detail::protect(rb_yield_values2, 2, argv);
-              }
-
-              return std::ref(map);
-        });
+        klass_.define_iterator<T::iterator(T::*)()>(&T::begin, &T::end);
       }
 
       void define_to_hash()
@@ -212,15 +194,15 @@ namespace Rice
         klass_.define_method("to_h", [](T& map)
         {
           VALUE result = rb_hash_new();
-          std::for_each(map.begin(), map.end(), [&result](const auto& pair)
+          std::for_each(map.begin(), map.end(), [&result](const T::reference pair)
           {
-            VALUE key = detail::To_Ruby<Key_T>().convert(pair->first);
-            VALUE value = detail::To_Ruby<Mapped_T>().convert(pair->second);
+            VALUE key = detail::To_Ruby<Key_T&>().convert(pair.first);
+            VALUE value = detail::To_Ruby<Mapped_T&>().convert(pair.second);
             rb_hash_aset(result, key, value);
           });
 
           return result;
-        });
+        }, Return().setValue());
       }
 
       void define_to_s()

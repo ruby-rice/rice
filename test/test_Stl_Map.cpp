@@ -244,8 +244,8 @@ TESTCASE(Iterate)
                         map["seven"] = 7
 
                         result = Hash.new
-                        map.map do |key, value|
-                                    result[key] = 2 * value
+                        map.map do |pair|
+                                    result[pair.first] = 2 * pair.second
                                   end
                         result)";
 
@@ -267,8 +267,8 @@ TESTCASE(ToEnum)
                         map["seven"] = 7
 
                         result = Hash.new
-                        map.each.each do |key, value|
-                                    result[key] = 2 * value
+                        map.each.each do |pair|
+                                    result[pair.first] = 2 * pair.second
                                   end
                         result)";
 
