@@ -241,6 +241,7 @@ namespace Rice
     Iter_T* iterator = new Iter_T(name, begin, end);
     detail::MethodData::define_method(Data_Type<T>::klass(), name, (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
 
+    // Include enumerable support
     this->klass().include_module(rb_mEnumerable);
 
     return *this;
