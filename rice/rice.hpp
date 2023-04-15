@@ -22,7 +22,7 @@
 #include "detail/from_ruby.hpp"
 #include "detail/to_ruby.hpp"
 #include "Exception.ipp"
-#include "detail/method_data.hpp"
+#include "detail/NativeRegistry.hpp"
 #include "detail/self.hpp"
 #include "Identifier.hpp"
 #include "detail/NativeAttribute.hpp"

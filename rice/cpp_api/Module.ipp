@@ -43,13 +43,18 @@ namespace Rice
   template<bool IsMethod, typename Function_T>
   inline void Module::wrap_native_call(VALUE klass, Identifier name, Function_T&& function, MethodInfo* methodInfo)
   {
+    // Make sure the return type and arguments have been previously seen by Rice
+    using traits = detail::method_traits<Function_T, IsMethod>;
+    detail::verifyType<typename traits::Return_T>();
+    detail::verifyTypes<typename traits::Arg_Ts>();
+
+    // Create a NativeFunction instance to wrap this native call and 
     auto* native = new detail::NativeFunction<VALUE, Function_T, IsMethod>(std::forward<Function_T>(function), methodInfo);
+
+    // Now define the method
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
-
-    detail::verifyType<typename Native_T::Return_T>();
-    detail::verifyTypes<typename Native_T::Arg_Ts>();
-
-    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
+    detail::protect(rb_define_method_id, klass, name.id(), (RUBY_METHOD_FUNC)&Native_T::call, -1);
+    detail::Registries::instance.natives.add(klass, name.id(), native);
   }
 
   inline Module define_module_under(Object module, char const* name)

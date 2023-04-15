@@ -3462,7 +3462,7 @@ namespace Rice
   }
 }
 
-// =========   method_data.hpp   =========
+// =========   NativeRegistry.hpp   =========
 
 #include <unordered_map>
 #include <any>
@@ -3487,7 +3487,7 @@ namespace Rice::detail
   };
 } 
 
-// ---------   method_data.ipp   ---------
+// ---------   NativeRegistry.ipp   ---------
 
 // Ruby 2.7 now includes a similarly named macro that uses templates to
 // pick the right overload for the underlying function. That doesn't work
@@ -3692,7 +3692,7 @@ namespace Rice::detail
     return cpp_protect([&]
     {
       using Native_Attr_T = NativeAttribute<Return_T, Attr_T, Self_T>;
-      Native_Attr_T* attr = detail::MethodData::data<Native_Attr_T*>();
+      Native_Attr_T* attr = detail::Registries::instance.natives.lookup<Native_Attr_T*>();
       return attr->read(self);
     });
   }
@@ -3703,7 +3703,7 @@ namespace Rice::detail
     return cpp_protect([&]
     {
       using Native_Attr_T = NativeAttribute<Return_T, Attr_T, Self_T>;
-      Native_Attr_T* attr = detail::MethodData::data<Native_Attr_T*>();
+      Native_Attr_T* attr = detail::Registries::instance.natives.lookup<Native_Attr_T*>();
       return attr->write(self, value);
     });
   }
@@ -3879,7 +3879,7 @@ namespace Rice::detail
 
     // Get the native function
     using NativeFunction_T = NativeFunction<From_Ruby_T, Function_T, IsMethod>;
-    NativeFunction_T* nativeFunction = detail::MethodData::data<NativeFunction_T*>();
+    NativeFunction_T* nativeFunction = detail::Registries::instance.natives.lookup<NativeFunction_T*>();
 
     // Execute the function
     return nativeFunction->operator()(argc, argv, self);
@@ -6441,7 +6441,7 @@ namespace Rice
     detail::verifyType<typename Native_T::Return_T>();
     detail::verifyTypes<typename Native_T::Arg_Ts>();
 
-    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
+    detail::Registries::instance.natives.add(klass, name.id(), &Native_T::call, -1, native);
   }
 
   inline Module define_module_under(Object module, char const* name)
@@ -7585,7 +7585,7 @@ namespace Rice
   {
     using Iter_T = detail::Iterator<U, Iterator_T>;
     Iter_T* iterator = new Iter_T(begin, end);
-    detail::MethodData::define_method(Data_Type<T>::klass(), name,
+    detail::Registries::instance.natives.add(Data_Type<T>::klass(), name,
       (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
 
     return *this;
@@ -7602,7 +7602,7 @@ namespace Rice
 
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
     {
-      detail::MethodData::define_method( klass_, Identifier(name).id(),
+      detail::Registries::instance.natives.add( klass_, Identifier(name).id(),
         RUBY_METHOD_FUNC(&Native_T::get), 0, native);
     }
 
@@ -7613,7 +7613,7 @@ namespace Rice
         throw std::runtime_error(name + " is readonly");
       }
 
-      detail::MethodData::define_method( klass_, Identifier(name + "=").id(),
+      detail::Registries::instance.natives.add( klass_, Identifier(name + "=").id(),
         RUBY_METHOD_FUNC(&Native_T::set), 1, native);
     }
 
@@ -7632,7 +7632,7 @@ namespace Rice
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
     {
       VALUE singleton = detail::protect(rb_singleton_class, this->value());
-      detail::MethodData::define_method(singleton, Identifier(name).id(),
+      detail::Registries::instance.natives.add(singleton, Identifier(name).id(),
         RUBY_METHOD_FUNC(&Native_T::get), 0, native);
     }
 
@@ -7644,7 +7644,7 @@ namespace Rice
       }
 
       VALUE singleton = detail::protect(rb_singleton_class, this->value());
-      detail::MethodData::define_method(singleton, Identifier(name + "=").id(),
+      detail::Registries::instance.natives.add(singleton, Identifier(name + "=").id(),
         RUBY_METHOD_FUNC(&Native_T::set), 1, native);
     }
 
@@ -7666,7 +7666,7 @@ namespace Rice
 
     // Now define the method
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
-    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
+    detail::Registries::instance.natives.add(klass, name.id(), &Native_T::call, -1, native);
   }
 }
 #endif
@@ -8101,7 +8101,7 @@ namespace Rice::detail
   call(VALUE self)
   {
     using Iter_T = Iterator<T, Iterator_T>;
-    Iter_T* iterator = detail::MethodData::data<Iter_T*>();
+    Iter_T* iterator = detail::Registries::instance.natives.lookup<Iter_T*>();
     return iterator->operator()(self);
   }
 

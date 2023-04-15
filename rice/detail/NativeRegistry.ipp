@@ -6,11 +6,13 @@
 // back to the C-API underneath again.
 #undef rb_define_method_id
 
+#include "RubyFunction.hpp"
+
 namespace Rice::detail
 {
   // Effective Java (2nd edition)
   // https://stackoverflow.com/a/2634715
-  inline size_t MethodData::key(VALUE klass, ID id)
+  inline size_t NativeRegistry::key(VALUE klass, ID id)
   {
     if (rb_type(klass) == T_ICLASS)
     {
@@ -21,39 +23,35 @@ namespace Rice::detail
     return (prime + klass) * prime + id;
   }
 
-  template <typename Return_T>
-  inline Return_T MethodData::data()
+  inline void NativeRegistry::add(VALUE klass, ID method_id, std::any callable)
   {
-    ID id;
+    // Now store data about it
+    this->natives_[key(klass, method_id)] = callable;
+  }
+
+  template <typename Return_T>
+  inline Return_T NativeRegistry::lookup()
+  {
+    ID method_id;
     VALUE klass;
-    if (!rb_frame_method_id_and_class(&id, &klass))
+    if (!rb_frame_method_id_and_class(&method_id, &klass))
     {
       rb_raise(rb_eRuntimeError, "Cannot get method id and class for function");
     }
 
-    return MethodData::data<Return_T>(klass, id);
+    return this->lookup<Return_T>(klass, method_id);
   }
 
   template <typename Return_T>
-  inline Return_T MethodData::data(VALUE klass, ID id)
+  inline Return_T NativeRegistry::lookup(VALUE klass, ID method_id)
   {
-    auto iter = methodWrappers_.find(key(klass, id));
-    if (iter == methodWrappers_.end())
+    auto iter = this->natives_.find(key(klass, method_id));
+    if (iter == this->natives_.end())
     {
       rb_raise(rb_eRuntimeError, "Could not find data for klass and method id");
     }
 
     std::any data = iter->second;
     return std::any_cast<Return_T>(data);
-  }
-
-  template<typename Function_T>
-  inline void MethodData::define_method(VALUE klass, ID id, Function_T func, int arity, std::any data)
-  {
-    // Define the method
-    protect(rb_define_method_id, klass, id, (RUBY_METHOD_FUNC)func, arity);
-
-    // Now store data about it
-    methodWrappers_[key(klass, id)] = data;
   }
 }

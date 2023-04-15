@@ -3,6 +3,7 @@
 
 #include "HandlerRegistry.hpp"
 #include "InstanceRegistry.hpp"
+#include "NativeRegistry.hpp"
 #include "TypeRegistry.hpp"
 
 namespace Rice::detail
@@ -15,6 +16,7 @@ namespace Rice::detail
   public:
     HandlerRegistry handlers;
     InstanceRegistry instances;
+    NativeRegistry natives;
     TypeRegistry types;
   };
 }

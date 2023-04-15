@@ -2,7 +2,7 @@
 #include <algorithm>
 
 #include "rice_traits.hpp"
-#include "method_data.hpp"
+#include "NativeRegistry.hpp"
 #include "to_ruby_defn.hpp"
 #include "cpp_protect.hpp"
 
@@ -14,7 +14,7 @@ namespace Rice::detail
     return cpp_protect([&]
     {
       using Native_Attr_T = NativeAttribute<Return_T, Attr_T, Self_T>;
-      Native_Attr_T* attr = detail::MethodData::data<Native_Attr_T*>();
+      Native_Attr_T* attr = detail::Registries::instance.natives.lookup<Native_Attr_T*>();
       return attr->read(self);
     });
   }
@@ -25,7 +25,7 @@ namespace Rice::detail
     return cpp_protect([&]
     {
       using Native_Attr_T = NativeAttribute<Return_T, Attr_T, Self_T>;
-      Native_Attr_T* attr = detail::MethodData::data<Native_Attr_T*>();
+      Native_Attr_T* attr = detail::Registries::instance.natives.lookup<Native_Attr_T*>();
       return attr->write(self, value);
     });
   }

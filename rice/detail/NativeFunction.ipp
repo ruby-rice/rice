@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 #include "self.hpp"
-#include "method_data.hpp"
+#include "NativeRegistry.hpp"
 #include "to_ruby_defn.hpp"
 #include "cpp_protect.hpp"
 
@@ -17,7 +17,7 @@ namespace Rice::detail
 
     // Get the native function
     using NativeFunction_T = NativeFunction<From_Ruby_T, Function_T, IsMethod>;
-    NativeFunction_T* nativeFunction = detail::MethodData::data<NativeFunction_T*>();
+    NativeFunction_T* nativeFunction = detail::Registries::instance.natives.lookup<NativeFunction_T*>();
 
     // Execute the function but make sure to catch any C++ exceptions!
     return cpp_protect([&]
