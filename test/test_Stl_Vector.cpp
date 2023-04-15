@@ -511,6 +511,27 @@ TESTCASE(DefaultValue)
   ASSERT_EQUAL(expected[2], actual[2]);
 }
 
+TESTCASE(ToArray)
+{
+  Module m = define_module("Testing");
+  
+  Class c = define_vector<std::vector<std::string>>("StringVector").
+    define_constructor(Constructor<std::vector<std::string>>());
+
+  std::string code = R"(vector = StringVector.new
+                        vector << "abc"
+                        vector << "def"
+                        vector << "ghi"
+                        vector.to_a)";
+
+  Array array = m.module_eval(code);
+  ASSERT_EQUAL(3u, array.size());
+
+  ASSERT_EQUAL("abc", detail::From_Ruby<std::string>().convert(array[0].value()));
+  ASSERT_EQUAL("def", detail::From_Ruby<std::string>().convert(array[1].value()));
+  ASSERT_EQUAL("ghi", detail::From_Ruby<std::string>().convert(array[2].value()));
+}
+
 namespace
 {
   std::vector<int> ints;
