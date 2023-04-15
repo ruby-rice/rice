@@ -11,7 +11,7 @@ namespace Rice::detail
   {
   public:
     using Iterator_T = typename function_traits<Iterator_Func_T>::return_type;
-    using Reference_T = typename std::iterator_traits<Iterator_T>::reference;
+    using Value_T = typename std::iterator_traits<Iterator_T>::value_type;
     using Difference_T = typename std::iterator_traits<Iterator_T>::difference_type;
 
   public:
