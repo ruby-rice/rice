@@ -185,7 +185,7 @@ namespace Rice
       void define_enumerable()
       {
         // Add enumerable support
-        klass_.define_iterator<T::iterator(T::*)()>(&T::begin, &T::end);
+        klass_.template define_iterator<typename T::iterator (T::*)()>(&T::begin, &T::end);
       }
 
       void define_to_hash()
@@ -194,7 +194,7 @@ namespace Rice
         klass_.define_method("to_h", [](T& map)
         {
           VALUE result = rb_hash_new();
-          std::for_each(map.begin(), map.end(), [&result](const T::reference pair)
+          std::for_each(map.begin(), map.end(), [&result](const typename T::reference pair)
           {
             VALUE key = detail::To_Ruby<Key_T&>().convert(pair.first);
             VALUE value = detail::To_Ruby<Mapped_T&>().convert(pair.second);

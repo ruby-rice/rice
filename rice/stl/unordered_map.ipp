@@ -183,7 +183,7 @@ namespace Rice
       void define_enumerable()
       {
         // Add enumerable support
-        klass_.define_iterator<T::iterator(T::*)()>(&T::begin, &T::end);
+        klass_.template define_iterator<typename T::iterator (T::*)()>(&T::begin, &T::end);
       }
 
       void define_to_hash()
