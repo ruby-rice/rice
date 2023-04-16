@@ -25,14 +25,12 @@
 #include "detail/from_ruby.hpp"
 #include "detail/to_ruby.hpp"
 #include "Exception.ipp"
-#include "detail/self.hpp"
 #include "Identifier.hpp"
 #include "detail/NativeAttribute.hpp"
 #include "detail/NativeFunction.hpp"
 #include "detail/NativeIterator.hpp"
 
 #include "ruby_mark.hpp"
-
 
 #include "cpp_api/Object.hpp"
 #include "cpp_api/Builtin_Object.hpp"
