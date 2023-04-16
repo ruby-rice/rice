@@ -2,21 +2,29 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "self.hpp"
-#include "NativeRegistry.hpp"
-#include "to_ruby_defn.hpp"
 #include "cpp_protect.hpp"
+#include "to_ruby_defn.hpp"
+#include "NativeRegistry.hpp"
 
 namespace Rice::detail
 {
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
+  void NativeFunction<From_Ruby_T, Function_T, IsMethod>::define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
+  {
+    // Tell Ruby to invoke the static method call on this class
+    detail::protect(rb_define_method, klass, method_name.c_str(), (RUBY_METHOD_FUNC)&NativeFunction_T::call, -1);
+
+    // Now create a NativeFunction instance and save it to the natives registry keyed on
+    // Ruby klass and method id. There may be multiple NativeFunction instances
+    // because the same C++ method could be mapped to multiple Ruby methods.
+    NativeFunction_T* native = new NativeFunction_T(klass, method_name, std::forward<Function_T>(function), methodInfo);
+    detail::Registries::instance.natives.add(klass, Identifier(method_name).id(), native);
+  }
+
+  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::call(int argc, VALUE* argv, VALUE self)
   {
-    // Set self for this thread
-    Rice::detail::selfThread = self;
-
-    // Get the native function
-    using NativeFunction_T = NativeFunction<From_Ruby_T, Function_T, IsMethod>;
+    // Look up the native function based on the Ruby klass and method id
     NativeFunction_T* nativeFunction = detail::Registries::instance.natives.lookup<NativeFunction_T*>();
 
     // Execute the function but make sure to catch any C++ exceptions!
@@ -27,15 +35,10 @@ namespace Rice::detail
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  NativeFunction<From_Ruby_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T func, MethodInfo* methodInfo)
-    : klass_(klass), method_name_(method_name), func_(func), methodInfo_(methodInfo)
+  NativeFunction<From_Ruby_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
+    : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo)
   {
-    // Register the method with Ruby
-    ID method_id = Identifier(method_name).id();
-    detail::protect(rb_define_method_id, klass, method_id, (RUBY_METHOD_FUNC)this->call, -1);
-    detail::Registries::instance.natives.add(klass, method_id, this);
-
-    // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
+   // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
     // builtin types NativeArgs will keep a copy of the native value so that it 
     // can be passed by reference or pointer to the native function. For non-builtin types
     // it will just pass the value through.
@@ -154,13 +157,13 @@ namespace Rice::detail
   {
     if constexpr (std::is_void_v<Return_T>)
     {
-      std::apply(this->func_, nativeArgs);
+      std::apply(this->function_, nativeArgs);
       return Qnil;
     }
     else
     {
       // Call the native method and get the result
-      Return_T nativeResult = std::apply(this->func_, nativeArgs);
+      Return_T nativeResult = std::apply(this->function_, nativeArgs);
       
       // Return the result
       return this->toRuby_.convert(nativeResult);
@@ -175,12 +178,12 @@ namespace Rice::detail
 
     if constexpr (std::is_void_v<Return_T>)
     {
-      std::apply(this->func_, selfAndNativeArgs);
+      std::apply(this->function_, selfAndNativeArgs);
       return Qnil;
     }
     else
     {
-      Return_T nativeResult = (Return_T)std::apply(this->func_, selfAndNativeArgs);
+      Return_T nativeResult = (Return_T)std::apply(this->function_, selfAndNativeArgs);
 
       // Special handling if the method returns self. If so we do not want
       // to create a new Ruby wrapper object and instead return self.

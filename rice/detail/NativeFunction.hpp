@@ -45,6 +45,8 @@ namespace Rice::detail
   class NativeFunction
   {
   public:
+    using NativeFunction_T = NativeFunction<From_Ruby_T, Function_T, IsMethod>;
+
     // We remove const to avoid an explosion of To_Ruby specializations and Ruby doesn't
     // have the concept of constants anyways
     using Return_T = remove_cv_recursive_t<typename function_traits<Function_T>::return_type>;
@@ -52,14 +54,25 @@ namespace Rice::detail
     using Arg_Ts = typename method_traits<Function_T, IsMethod>::Arg_Ts;
     using From_Ruby_Args_Ts = typename tuple_map<From_Ruby, Arg_Ts>::type;
 
+    // Register function with Ruby
+    static void define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
+
     // Static member function that Ruby calls
     static VALUE call(int argc, VALUE* argv, VALUE self);
 
   public:
-    NativeFunction(VALUE klass, std::string method_name, Function_T func, MethodInfo* methodInfo);
+    // Can't create/copy/move this class
+    NativeFunction() = delete;
+    NativeFunction(const NativeFunction_T&) = delete;
+    NativeFunction(NativeFunction_T&&) = delete;
+    void operator=(const NativeFunction_T&) = delete;
+    void operator=(NativeFunction_T&&) = delete;
 
     // Invokes the wrapped function
     VALUE operator()(int argc, VALUE* argv, VALUE self);
+
+  protected:
+    NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
 
   private:
     template<typename T, std::size_t I>
@@ -91,7 +104,7 @@ namespace Rice::detail
   private:
     VALUE klass_;
     std::string method_name_;
-    Function_T func_;
+    Function_T function_;
     From_Ruby_Args_Ts fromRubys_;
     To_Ruby<Return_T> toRuby_;
     std::unique_ptr<MethodInfo> methodInfo_;

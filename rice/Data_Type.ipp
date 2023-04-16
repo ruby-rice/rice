@@ -278,8 +278,8 @@ namespace Rice
     detail::verifyType<typename traits::Return_T>();
     detail::verifyTypes<typename traits::Arg_Ts>();
 
-    // Create a NativeFunction instance to wrap this native call and 
-    auto* native = new detail::NativeFunction<T, Function_T, IsMethod>(klass, name, std::forward<Function_T>(function), methodInfo);
+    // Define a NativeFunction to bridge Ruby to C++
+    detail::NativeFunction<T, Function_T, IsMethod>::define(klass, name, std::forward<Function_T>(function), methodInfo);
   }
 }
 #endif
