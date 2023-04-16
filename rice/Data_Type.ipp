@@ -237,8 +237,8 @@ namespace Rice
   template<typename Iterator_Func_T>
   inline Data_Type<T>& Data_Type<T>::define_iterator(Iterator_Func_T begin, Iterator_Func_T end, std::string name)
   {
-    using Iter_T = detail::NativeIterator<T, Iterator_Func_T>;
-    Iter_T* iterator = new Iter_T(Data_Type<T>::klass(), name, begin, end);
+    // Define a NativeIterator to bridge Ruby to C++
+    detail::NativeIterator<T, Iterator_Func_T>::define(Data_Type<T>::klass(), name, begin, end);
 
     // Include enumerable support
     this->klass().include_module(rb_mEnumerable);

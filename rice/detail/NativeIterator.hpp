@@ -9,17 +9,30 @@ namespace Rice::detail
   class NativeIterator
   {
   public:
+    using NativeIterator_T = NativeIterator<typename T, typename Iterator_Func_T>;
     using Iterator_T = typename function_traits<Iterator_Func_T>::return_type;
     using Value_T = typename std::iterator_traits<Iterator_T>::value_type;
     using Difference_T = typename std::iterator_traits<Iterator_T>::difference_type;
 
   public:
+    // Register function with Ruby
+    void static define(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end);
+
+    // Static member function that Ruby calls
     static VALUE call(VALUE self);
 
   public:
-    NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end);
-    virtual ~NativeIterator() = default;
+    // Disallow creating/copying/moving
+    NativeIterator() = delete;
+    NativeIterator(const NativeIterator_T&) = delete;
+    NativeIterator(NativeIterator_T&&) = delete;
+    void operator=(const NativeIterator_T&) = delete;
+    void operator=(NativeIterator_T&&) = delete;
+
     VALUE operator()(VALUE self);
+
+  protected:
+    NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end);
 
   private:
     VALUE createRubyEnumerator(VALUE self);

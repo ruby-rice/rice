@@ -8,25 +8,34 @@
 namespace Rice::detail
 {
   template <typename T, typename Iterator_Func_T>
-  inline NativeIterator<T, Iterator_Func_T>::NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end) :
-    klass_(klass), method_name_(method_name), begin_(begin), end_(end)
+  inline void NativeIterator<T, Iterator_Func_T>::define(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end)
   {
-    // Register a new method with Ruby to invoke the static member function call
-    ID method_id = Identifier(method_name).id();
-    detail::protect(rb_define_method_id, klass, method_id, (RUBY_METHOD_FUNC)this->call, 0);
-    detail::Registries::instance.natives.add(klass, method_id, this);
+    // Tell Ruby to invoke the static method call on this class
+    detail::protect(rb_define_method, klass, method_name.c_str(), (RUBY_METHOD_FUNC)&NativeIterator_T::call, 0);
+
+    // Now create a NativeIterator instance and save it to the natives registry keyed on
+    // Ruby klass and method id. There may be multiple NativeIterator instances
+    // because the same C++ method could be mapped to multiple Ruby methods.
+    NativeIterator_T* native = new NativeIterator_T(klass, method_name, begin, end);
+    detail::Registries::instance.natives.add(klass, Identifier(method_name).id(), native);
   }
 
   template<typename T, typename Iterator_Func_T>
   inline VALUE NativeIterator<T, Iterator_Func_T>::call(VALUE self)
   {
-    using Iter_T = NativeIterator<T, Iterator_Func_T>;
-    Iter_T* iterator = detail::Registries::instance.natives.lookup<Iter_T*>();
+    // Look up the native function based on the Ruby klass and method id
+    NativeIterator_T* nativeIterator = detail::Registries::instance.natives.lookup<NativeIterator_T*>();
 
     return cpp_protect([&]
     {
-      return iterator->operator()(self);
+      return nativeIterator->operator()(self);
     });
+  }
+
+  template <typename T, typename Iterator_Func_T>
+  inline NativeIterator<T, Iterator_Func_T>::NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end) :
+    klass_(klass), method_name_(method_name), begin_(begin), end_(end)
+  {
   }
 
   template<typename T, typename Iterator_Func_T>
