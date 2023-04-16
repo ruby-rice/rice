@@ -63,7 +63,6 @@ namespace Rice
     mutable VALUE exception_ = Qnil;
     mutable std::string message_;
   };
-
 } // namespace Rice
 
 #endif // Rice__Exception_defn__hpp_
