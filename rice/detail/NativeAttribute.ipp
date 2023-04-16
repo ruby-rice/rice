@@ -9,6 +9,39 @@
 namespace Rice::detail
 {
   template<typename Attribute_T>
+  void NativeAttribute<Attribute_T>::define(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access)
+  {
+    // Create a NativeAttribute that Ruby will call to read/write C++ variables
+    NativeAttribute_T* native = new NativeAttribute_T(klass, name, std::forward<Attribute_T>(attribute), access);
+
+    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
+    {
+      // Tell Ruby to invoke the static method read to get the attribute value
+      detail::protect(rb_define_method, klass, name.c_str(), (RUBY_METHOD_FUNC)&NativeAttribute_T::get, 0);
+
+      // Add to native registry
+      detail::Registries::instance.natives.add(klass, Identifier(name).id(), native);
+    }
+
+    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
+    {
+      if (std::is_const_v<std::remove_pointer_t<T>>)
+      {
+        throw std::runtime_error(name + " is readonly");
+      }
+
+      // Define the write method name
+      std::string setter = name + "=";
+
+      // Tell Ruby to invoke the static method write to get the attribute value
+      detail::protect(rb_define_method, klass, setter.c_str(), (RUBY_METHOD_FUNC)&NativeAttribute_T::set, 1);
+
+      // Add to native registry
+      detail::Registries::instance.natives.add(klass, Identifier(setter).id(), native);
+    }
+  }
+
+  template<typename Attribute_T>
   inline VALUE NativeAttribute<Attribute_T>::get(VALUE self)
   {
     return cpp_protect([&]
@@ -32,29 +65,9 @@ namespace Rice::detail
 
   template<typename Attribute_T>
   NativeAttribute<Attribute_T>::NativeAttribute(VALUE klass, std::string name,
-                                                             Attribute_T attr, AttrAccess access)
-    : klass_(klass), name_(name), attr_(attr), access_(access)
+                                                             Attribute_T attribute, AttrAccess access)
+    : klass_(klass), name_(name), attribute_(attribute), access_(access)
   {
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
-    {
-      // Define Ruby getter method
-      ID method_id = Identifier(name).id();
-      detail::protect(rb_define_method_id, klass, method_id, (RUBY_METHOD_FUNC)this->get, 0);
-      detail::Registries::instance.natives.add(klass_, method_id, this);
-    }
-
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
-    {
-      if (std::is_const_v<std::remove_pointer_t<T>>)
-      {
-        throw std::runtime_error(name + " is readonly");
-      }
-
-      // Define Ruby setter method
-      ID method_id = Identifier(name + "=").id();
-      detail::protect(rb_define_method_id, klass, method_id, (RUBY_METHOD_FUNC)this->set, 1);
-      detail::Registries::instance.natives.add(klass_, method_id, this);
-    }
   }
 
   template<typename Attribute_T>
@@ -64,11 +77,11 @@ namespace Rice::detail
     if constexpr (std::is_member_object_pointer_v<Attribute_T>)
     {
       Receiver_T* nativeSelf = From_Ruby<Receiver_T*>().convert(self);
-      return To_Ruby<T_Unqualified>().convert(nativeSelf->*attr_);
+      return To_Ruby<T_Unqualified>().convert(nativeSelf->*attribute_);
     }
     else
     {
-      return To_Ruby<T_Unqualified>().convert(*attr_);
+      return To_Ruby<T_Unqualified>().convert(*attribute_);
     }
   }
 
@@ -87,11 +100,11 @@ namespace Rice::detail
     if constexpr (!std::is_null_pointer_v<Receiver_T>)
     {
       Receiver_T* nativeSelf = From_Ruby<Receiver_T*>().convert(self);
-      nativeSelf->*attr_ = From_Ruby<T_Unqualified>().convert(value);
+      nativeSelf->*attribute_ = From_Ruby<T_Unqualified>().convert(value);
     }
     else if constexpr (!std::is_const_v<std::remove_pointer_t<T>>)
     {
-      *attr_ = From_Ruby<T_Unqualified>().convert(value);
+      *attribute_ = From_Ruby<T_Unqualified>().convert(value);
     }
 
     return value;

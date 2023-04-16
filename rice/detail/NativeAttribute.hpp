@@ -26,11 +26,24 @@ namespace Rice
       using Receiver_T = typename attribute_traits<Attribute_T>::class_type;
     
     public:
-      // Static member functions that Ruby calls
+      // Register attribute getter/setter with Ruby
+      static void define(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite);
+
+      // Static member functions that Ruby calls to read an attribute value
       static VALUE get(VALUE self);
+
+      // Static member functions that Ruby calls to write an attribute value
       static VALUE set(VALUE self, VALUE value);
 
     public:
+      // Disallow creating/copying/moving
+      NativeAttribute() = delete;
+      NativeAttribute(const NativeAttribute_T&) = delete;
+      NativeAttribute(NativeAttribute_T&&) = delete;
+      void operator=(const NativeAttribute_T&) = delete;
+      void operator=(NativeAttribute_T&&) = delete;
+
+    protected:
       NativeAttribute(VALUE klass, std::string name, Attribute_T attr, AttrAccess access = AttrAccess::ReadWrite);
 
       // Invokes the wrapped function
@@ -40,7 +53,7 @@ namespace Rice
     private:
       VALUE klass_;
       std::string name_;
-      Attribute_T attr_;
+      Attribute_T attribute_;
       AttrAccess access_;
     };
   } // detail

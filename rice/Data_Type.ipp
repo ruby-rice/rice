@@ -1,6 +1,8 @@
 #ifndef Rice__Data_Type__ipp_
 #define Rice__Data_Type__ipp_
 
+#include "traits/attribute_traits.hpp"
+#include "traits/method_traits.hpp"
 #include "detail/NativeRegistry.hpp"
 #include "detail/NativeAttribute.hpp"
 #include "detail/default_allocation_func.hpp"
@@ -248,24 +250,27 @@ namespace Rice
 
   template <typename T>
   template <typename Attribute_T>
-  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attribute_T attr, AttrAccess access)
+  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attribute_T attribute, AttrAccess access)
   {
-    auto* native = new detail::NativeAttribute(klass_, name, attr, access);
-    using Native_T = typename std::remove_pointer_t<decltype(native)>;
-    detail::verifyType<typename Native_T::T>();
+    // Make sure the Attribute type has been previously seen by Rice
+    detail::verifyType<typename detail::attribute_traits<Attribute_T>::attr_type>();
+
+    // Define native attribute
+    detail::NativeAttribute<Attribute_T>::define(klass_, name, std::forward<Attribute_T>(attribute), access);
 
     return *this;
   }
 
   template <typename T>
   template <typename Attribute_T>
-  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attribute_T attr, AttrAccess access)
+  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access)
   {
-    VALUE singleton = detail::protect(rb_singleton_class, this->value());
+    // Make sure the Attribute type has been previously seen by Rice
+    detail::verifyType<typename detail::attribute_traits<Attribute_T>::attr_type>();
 
-    auto* native = new detail::NativeAttribute(singleton, name, attr, access);
-    using Native_T = typename std::remove_pointer_t<decltype(native)>;
-    detail::verifyType<typename Native_T::T>();
+    // Define native attribute
+    VALUE singleton = detail::protect(rb_singleton_class, this->value());
+    detail::NativeAttribute<Attribute_T>::define(singleton, name, std::forward<Attribute_T>(attribute), access);
 
     return *this;
   }

@@ -117,10 +117,10 @@ namespace Rice
     Data_Type<T>& define_iterator(Iterator_Func_T begin, Iterator_Func_T end, std::string name = "each");
 
     template <typename Attribute_T>
-    Data_Type<T>& define_attr(std::string name, Attribute_T attr, AttrAccess access = AttrAccess::ReadWrite);
+    Data_Type<T>& define_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite);
   
     template <typename Attribute_T>
-    Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attr, AttrAccess access = AttrAccess::ReadWrite);
+    Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite);
 
   #include "cpp_api/shared_methods.hpp"
 
