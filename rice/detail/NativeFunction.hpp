@@ -61,7 +61,7 @@ namespace Rice::detail
     static VALUE call(int argc, VALUE* argv, VALUE self);
 
   public:
-    // Can't create/copy/move this class
+    // Disallow creating/copying/moving
     NativeFunction() = delete;
     NativeFunction(const NativeFunction_T&) = delete;
     NativeFunction(NativeFunction_T&&) = delete;
