@@ -59,13 +59,13 @@ namespace Rice
   inline bool Object::is_equal(const Object& other) const
   {
     VALUE result = detail::protect(rb_equal, this->value_, other.value_);
-    return result == Qtrue ? true : false;
+    return RB_TEST(result);
   }
 
   inline bool Object::is_eql(const Object& other) const
   {
     VALUE result = detail::protect(rb_eql, this->value_, other.value_);
-    return result == Qtrue ? true : false;
+    return RB_TEST(result);
   }
 
   inline void Object::freeze()
@@ -75,7 +75,7 @@ namespace Rice
 
   inline bool Object::is_frozen() const
   {
-    return bool(OBJ_FROZEN(value()));
+    return RB_OBJ_FROZEN(value());
   }
 
   inline int Object::rb_type() const
@@ -91,19 +91,18 @@ namespace Rice
   inline bool Object::is_a(Object klass) const
   {
     VALUE result = detail::protect(rb_obj_is_kind_of, this->value(), klass.value());
-    return result == Qtrue ? true : false;
+    return RB_TEST(result);
   }
 
   inline bool Object::respond_to(Identifier id) const
   {
     return bool(rb_respond_to(this->value(), id.id()));
-
   }
 
   inline bool Object::is_instance_of(Object klass) const
   {
     VALUE result = detail::protect(rb_obj_is_instance_of, this->value(), klass.value());
-    return result == Qtrue ? true : false;
+    return RB_TEST(result);
   }
 
   inline Object Object::iv_get(Identifier name) const
