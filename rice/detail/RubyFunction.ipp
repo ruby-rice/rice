@@ -28,7 +28,7 @@ namespace Rice::detail
 
     // Callback that will invoke the Ruby function
     using Functor_T = RubyFunction<Function_T, Arg_Ts...>;
-    auto callback = [](VALUE value)
+    auto callback = [](VALUE value) -> VALUE
     {
       Functor_T* functor = (Functor_T*)value;
 
@@ -58,7 +58,7 @@ namespace Rice::detail
     else
     {
       VALUE err = rb_errinfo();
-      if (state == TAG_RAISE && RTEST(err))
+      if (state == TAG_RAISE && RB_TEST(err))
       {
         rb_set_errinfo(Qnil);
         throw Rice::Exception(err);
