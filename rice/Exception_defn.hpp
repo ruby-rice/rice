@@ -33,11 +33,11 @@ namespace Rice
     Exception(const Exception& other, char const* fmt, Arg_Ts&&...args);
 
     //! Construct a Exception with printf-style formatting.
-  /*! \param exc either an exception object or a class that inherits
-   *  from Exception.
-   *  \param fmt a printf-style format string
-   *  \param ... the arguments to the format string.
-   */
+    /*! \param exc either an exception object or a class that inherits
+     *  from Exception.
+     *  \param fmt a printf-style format string
+     *  \param ... the arguments to the format string.
+     */
     template <typename... Arg_Ts>
     Exception(const VALUE exceptionType, char const* fmt, Arg_Ts&&...args);
 
