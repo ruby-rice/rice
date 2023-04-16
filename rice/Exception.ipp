@@ -2,7 +2,6 @@
 #define Rice__Exception__ipp_
 
 #include "detail/from_ruby.hpp"
-#include "Identifier.hpp"
 
 namespace Rice
 {
@@ -44,7 +43,9 @@ namespace Rice
   {
     if (this->message_.empty())
     {
-      VALUE rubyMessage = detail::protect(rb_funcall, this->exception_, Identifier("messsage").id(), 0);
+      // This isn't protected because if it fails then either we could eat the exception
+      // (not good) or crash the program (better)
+      VALUE rubyMessage = rb_funcall(this->exception_, rb_intern("message"), 0);
       this->message_ = std::string(RSTRING_PTR(rubyMessage), RSTRING_LEN(rubyMessage));
     }
     return this->message_.c_str();
