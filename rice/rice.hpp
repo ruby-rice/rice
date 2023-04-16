@@ -33,8 +33,7 @@
 #include "detail/NativeAttribute.hpp"
 #include "detail/NativeFunction.hpp"
 #include "detail/NativeIterator.hpp"
-#include "global_function.hpp"
-#include "Address_Registration_Guard.hpp"
+#include "HandlerRegistration.hpp"
 
 // C++ classes for using the Ruby API
 #include "cpp_api/Object.hpp"
@@ -46,6 +45,8 @@
 #include "cpp_api/Module.hpp"
 #include "cpp_api/Class.hpp"
 #include "cpp_api/Struct.hpp"
+#include "Address_Registration_Guard.hpp"
+#include "global_function.hpp"
 
 // Code involed in creating custom DataTypes (ie, Ruby classes that wrap C++ classes)
 #include "ruby_mark.hpp"

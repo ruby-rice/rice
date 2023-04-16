@@ -833,15 +833,29 @@ namespace Rice
       {
         // Access methods
         klass_.define_method("first=", [](T& pair, typename T::first_type& value) -> typename T::first_type&
+        {
+          if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::first_type>>>)
+          {
+            throw std::runtime_error("Cannot set pair.first since it is a constant");
+          }
+          else
           {
             pair.first = value;
             return pair.first;
-          })
+          }
+        })
         .define_method("second=", [](T& pair, typename T::second_type& value) -> typename T::second_type&
+        {
+          if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::second_type>>>)
+          {
+            throw std::runtime_error("Cannot set pair.second since it is a constant");
+          }
+          else
           {
             pair.second = value;
             return pair.second;
-          });
+          }
+        });
       }
 
       void define_to_s()
@@ -917,8 +931,8 @@ namespace Rice
     {
       static bool verify()
       {
-        Type<T1>::verify();
-        Type<T2>::verify();
+        detail::verifyType<T1>();
+        detail::verifyType<T2>();
 
         if (!detail::Registries::instance.types.isDefined<std::pair<T1, T2>>())
         {
@@ -970,17 +984,24 @@ namespace Rice
     public:
       MapHelper(Data_Type<T> klass) : klass_(klass)
       {
+        this->register_pair();
         this->define_constructor();
         this->define_copyable_methods();
         this->define_capacity_methods();
         this->define_access_methods();
         this->define_comparable_methods();
         this->define_modify_methods();
-        this->define_to_s();
         this->define_enumerable();
+        this->define_to_s();
+        this->define_to_hash();
       }
 
     private:
+
+      void register_pair()
+      {
+        define_pair_auto<Value_T>();
+      }
 
       void define_constructor()
       {
@@ -1119,33 +1140,7 @@ namespace Rice
       void define_enumerable()
       {
         // Add enumerable support
-        klass_.include_module(rb_mEnumerable)
-          // Note we return Object for the enumerator - if we returned value Rice will think its a unsigned long long
-          .define_method("each", [](T& map) -> const std::variant<std::reference_wrapper<T>, Object>
-            {
-              if (!rb_block_given_p())
-              {
-                auto rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
-                {
-                  // Since we can't capture the map from above (because then we can't send
-                  // this lambda to rb_enumeratorize_with_size), extract it from recv
-                  T* receiver = Data_Object<T>::from_ruby(recv);
-                  return detail::To_Ruby<size_t>().convert(receiver->size());
-                };
-
-                return rb_enumeratorize_with_size(detail::selfThread, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
-              }
-
-              for (Value_T& pair : map)
-              {
-                VALUE key = detail::To_Ruby<Key_T>().convert(pair.first);
-                VALUE value = detail::To_Ruby<Mapped_T>().convert(pair.second);
-                const VALUE argv[] = { key, value };
-                detail::protect(rb_yield_values2, 2, argv);
-              }
-
-              return std::ref(map);
-        });
+        klass_.template define_iterator<typename T::iterator (T::*)()>(&T::begin, &T::end);
       }
 
       void define_to_hash()
@@ -1154,15 +1149,15 @@ namespace Rice
         klass_.define_method("to_h", [](T& map)
         {
           VALUE result = rb_hash_new();
-          std::for_each(map.begin(), map.end(), [&result](const auto& pair)
+          std::for_each(map.begin(), map.end(), [&result](const typename T::reference pair)
           {
-            VALUE key = detail::To_Ruby<Key_T>().convert(pair->first);
-            VALUE value = detail::To_Ruby<Mapped_T>().convert(pair->second);
+            VALUE key = detail::To_Ruby<Key_T&>().convert(pair.first);
+            VALUE value = detail::To_Ruby<Mapped_T&>().convert(pair.second);
             rb_hash_aset(result, key, value);
           });
 
           return result;
-        });
+        }, Return().setValue());
       }
 
       void define_to_s()
@@ -1459,17 +1454,24 @@ namespace Rice
     public:
       UnorderedMapHelper(Data_Type<T> klass) : klass_(klass)
       {
+        this->register_pair();
         this->define_constructor();
         this->define_copyable_methods();
         this->define_capacity_methods();
         this->define_access_methods();
         this->define_comparable_methods();
         this->define_modify_methods();
-        this->define_to_s();
         this->define_enumerable();
+        this->define_to_s();
+        this->define_to_hash();
       }
 
     private:
+
+      void register_pair()
+      {
+        define_pair_auto<Value_T>();
+      }
 
       void define_constructor()
       {
@@ -1608,33 +1610,7 @@ namespace Rice
       void define_enumerable()
       {
         // Add enumerable support
-        klass_.include_module(rb_mEnumerable)
-          // Note we return Object for the enumerator - if we returned value Rice will think its a unsigned long long
-          .define_method("each", [](T& unordered_map) -> const std::variant<std::reference_wrapper<T>, Object>
-            {
-              if (!rb_block_given_p())
-              {
-                auto rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
-                {
-                  // Since we can't capture the unordered_map from above (because then we can't send
-                  // this lambda to rb_enumeratorize_with_size), extract it from recv
-                  T* receiver = Data_Object<T>::from_ruby(recv);
-                  return detail::To_Ruby<size_t>().convert(receiver->size());
-                };
-
-                return rb_enumeratorize_with_size(detail::selfThread, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
-              }
-
-              for (Value_T& pair : unordered_map)
-              {
-                VALUE key = detail::To_Ruby<Key_T>().convert(pair.first);
-                VALUE value = detail::To_Ruby<Mapped_T>().convert(pair.second);
-                const VALUE argv[] = { key, value };
-                detail::protect(rb_yield_values2, 2, argv);
-              }
-
-              return std::ref(unordered_map);
-            });
+        klass_.template define_iterator<typename T::iterator (T::*)()>(&T::begin, &T::end);
       }
 
       void define_to_hash()
@@ -1645,13 +1621,13 @@ namespace Rice
           VALUE result = rb_hash_new();
           std::for_each(unordered_map.begin(), unordered_map.end(), [&result](const auto& pair)
           {
-            VALUE key = detail::To_Ruby<Key_T>().convert(pair->first);
-            VALUE value = detail::To_Ruby<Mapped_T>().convert(pair->second);
+            VALUE key = detail::To_Ruby<Key_T>().convert(pair.first);
+            VALUE value = detail::To_Ruby<Mapped_T>().convert(pair.second);
             rb_hash_aset(result, key, value);
           });
 
           return result;
-        });
+        }, Return().setValue());
       }
 
       void define_to_s()
@@ -1932,7 +1908,6 @@ namespace Rice
 #include <vector>
 #include <variant>
 
-
 namespace Rice
 {
   namespace stl
@@ -1954,8 +1929,9 @@ namespace Rice
         this->define_access_methods();
         this->define_comparable_methods();
         this->define_modify_methods();
-        this->define_to_s();
         this->define_enumerable();
+        this->define_to_array();
+        this->define_to_s();
       }
 
     private:
@@ -2176,31 +2152,23 @@ namespace Rice
       void define_enumerable()
       {
         // Add enumerable support
-        klass_.include_module(rb_mEnumerable)
-          // Note we return Object for the enumerator - if we returned value Rice will think its a unsigned long long
-          .define_method("each", [](T& vector) -> const std::variant<std::reference_wrapper<T>, Object>
+        klass_.template define_iterator<typename T::iterator(T::*)()>(&T::begin, &T::end);
+      }
+
+      void define_to_array()
+      {
+        // Add enumerable support
+        klass_.define_method("to_a", [](T& vector)
+        {
+          VALUE result = rb_ary_new();
+          std::for_each(vector.begin(), vector.end(), [&result](const Value_T& element)
           {
-            if (!rb_block_given_p())
-            {
-              auto rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
-              {
-                // Since we can't capture the vector from above (because then we can't send
-                // this lambda to rb_enumeratorize_with_size), extract it from recv
-                T* receiver = Data_Object<T>::from_ruby(recv);
-                return detail::To_Ruby<size_t>().convert(receiver->size());
-              };
-
-              return rb_enumeratorize_with_size(detail::selfThread, Identifier("each").to_sym(), 0, nullptr, rb_size_function);
-            }
-
-            for (Value_T& item : vector)
-            {
-              VALUE element = detail::To_Ruby<Value_T>().convert(item);
-              detail::protect(rb_yield, element);
-            }
-
-            return std::ref(vector);
+            VALUE value = detail::To_Ruby<Value_T&>().convert(element);
+            rb_ary_push(result, value);
           });
+
+          return result;
+        }, Return().setValue());
       }
 
       void define_to_s()
