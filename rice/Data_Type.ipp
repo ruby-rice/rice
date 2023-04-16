@@ -247,24 +247,25 @@ namespace Rice
   }
 
   template <typename T>
-  template <typename Attr_T>
-  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T attr, AttrAccess access)
+  template <typename Attribute_T>
+  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attribute_T attr, AttrAccess access)
   {
-    auto* native = detail::Make_Native_Attribute(klass_, name, attr, access);
+    auto* native = new detail::NativeAttribute(klass_, name, attr, access);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
-    detail::verifyType<typename Native_T::Native_Return_T>();
+    detail::verifyType<typename Native_T::T>();
 
     return *this;
   }
 
   template <typename T>
-  template <typename Attr_T>
-  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_T attr, AttrAccess access)
+  template <typename Attribute_T>
+  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attribute_T attr, AttrAccess access)
   {
     VALUE singleton = detail::protect(rb_singleton_class, this->value());
-    auto* native = detail::Make_Native_Attribute(singleton, name, attr, access);
+
+    auto* native = new detail::NativeAttribute(singleton, name, attr, access);
     using Native_T = typename std::remove_pointer_t<decltype(native)>;
-    detail::verifyType<typename Native_T::Native_Return_T>();
+    detail::verifyType<typename Native_T::T>();
 
     return *this;
   }

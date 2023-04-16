@@ -8,31 +8,31 @@
 
 namespace Rice::detail
 {
-  template<typename Return_T, typename Attr_T, typename Self_T>
-  inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::get(VALUE self)
+  template<typename Attribute_T>
+  inline VALUE NativeAttribute<Attribute_T>::get(VALUE self)
   {
     return cpp_protect([&]
     {
-      using Native_Attr_T = NativeAttribute<Return_T, Attr_T, Self_T>;
+      using Native_Attr_T = NativeAttribute<Attribute_T>;
       Native_Attr_T* attr = detail::Registries::instance.natives.lookup<Native_Attr_T*>();
       return attr->read(self);
     });
   }
 
-  template<typename Return_T, typename Attr_T, typename Self_T>
-  inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::set(VALUE self, VALUE value)
+  template<typename Attribute_T>
+  inline VALUE NativeAttribute<Attribute_T>::set(VALUE self, VALUE value)
   {
     return cpp_protect([&]
     {
-      using Native_Attr_T = NativeAttribute<Return_T, Attr_T, Self_T>;
+      using Native_Attr_T = NativeAttribute<Attribute_T>;
       Native_Attr_T* attr = detail::Registries::instance.natives.lookup<Native_Attr_T*>();
       return attr->write(self, value);
     });
   }
 
-  template<typename Return_T, typename Attr_T, typename Self_T>
-  NativeAttribute<Return_T, Attr_T, Self_T>::NativeAttribute(VALUE klass, std::string name,
-                                                             Attr_T attr, AttrAccess access)
+  template<typename Attribute_T>
+  NativeAttribute<Attribute_T>::NativeAttribute(VALUE klass, std::string name,
+                                                             Attribute_T attr, AttrAccess access)
     : klass_(klass), name_(name), attr_(attr), access_(access)
   {
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
@@ -45,7 +45,7 @@ namespace Rice::detail
 
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
     {
-      if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
+      if (std::is_const_v<std::remove_pointer_t<T>>)
       {
         throw std::runtime_error(name + " is readonly");
       }
@@ -55,61 +55,45 @@ namespace Rice::detail
       detail::protect(rb_define_method_id, klass, method_id, (RUBY_METHOD_FUNC)this->set, 1);
       detail::Registries::instance.natives.add(klass_, method_id, this);
     }
-
-
-
   }
 
-  template<typename Return_T, typename Attr_T, typename Self_T>
-  inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::read(VALUE self)
+  template<typename Attribute_T>
+  inline VALUE NativeAttribute<Attribute_T>::read(VALUE self)
   {
-    using Unqualified_T = remove_cv_recursive_t<Return_T>;
-    if constexpr (std::is_member_object_pointer_v<Attr_T>)
+    using T_Unqualified = remove_cv_recursive_t<T>;
+    if constexpr (std::is_member_object_pointer_v<Attribute_T>)
     {
-      Self_T* nativeSelf = From_Ruby<Self_T*>().convert(self);
-      return To_Ruby<Unqualified_T>().convert(nativeSelf->*attr_);
+      Receiver_T* nativeSelf = From_Ruby<Receiver_T*>().convert(self);
+      return To_Ruby<T_Unqualified>().convert(nativeSelf->*attr_);
     }
     else
     {
-      return To_Ruby<Unqualified_T>().convert(*attr_);
+      return To_Ruby<T_Unqualified>().convert(*attr_);
     }
   }
 
-  template<typename Return_T, typename Attr_T, typename Self_T>
-  inline VALUE NativeAttribute<Return_T, Attr_T, Self_T>::write(VALUE self, VALUE value)
+  template<typename Attribute_T>
+  inline VALUE NativeAttribute<Attribute_T>::write(VALUE self, VALUE value)
   {
-    if constexpr (std::is_fundamental_v<intrinsic_type<Attr_T>> && std::is_pointer_v<Attr_T>)
+    if constexpr (std::is_fundamental_v<intrinsic_type<T>> && std::is_pointer_v<T>)
     {
       static_assert(true, "An fundamental value, such as an integer, cannot be assigned to an attribute that is a pointer");
     }
-    else if constexpr (std::is_same_v<intrinsic_type<Attr_T>, std::string> && std::is_pointer_v<Attr_T>)
+    else if constexpr (std::is_same_v<intrinsic_type<T>, std::string> && std::is_pointer_v<T>)
     {
       static_assert(true, "An string cannot be assigned to an attribute that is a pointer");
     }
     
-    if constexpr (!std::is_const_v<std::remove_pointer_t<Attr_T>> && std::is_member_object_pointer_v<Attr_T>)
+    if constexpr (!std::is_null_pointer_v<Receiver_T>)
     {
-      Self_T* nativeSelf = From_Ruby<Self_T*>().convert(self);
-      nativeSelf->*attr_ = From_Ruby<Return_T>().convert(value);
+      Receiver_T* nativeSelf = From_Ruby<Receiver_T*>().convert(self);
+      nativeSelf->*attr_ = From_Ruby<T_Unqualified>().convert(value);
     }
-    else if constexpr (!std::is_const_v<std::remove_pointer_t<Attr_T>>)
+    else if constexpr (!std::is_const_v<std::remove_pointer_t<T>>)
     {
-      *attr_ = From_Ruby<Return_T>().convert(value);
+      *attr_ = From_Ruby<T_Unqualified>().convert(value);
     }
 
     return value;
-  }
-
-  template<typename T>
-  auto* Make_Native_Attribute(VALUE klass, std::string name, T* attr, AttrAccess access)
-  {
-    return new NativeAttribute<T, T*>(klass, name, attr, access);
-  }
-
-  template<typename Class_T, typename T>
-  auto* Make_Native_Attribute(VALUE klass, std::string name, T Class_T::* attr, AttrAccess access)
-  {
-    using Attr_T = T Class_T::*;
-    return new NativeAttribute<T, Attr_T, Class_T>(klass, name, attr, access);
   }
 } // Rice

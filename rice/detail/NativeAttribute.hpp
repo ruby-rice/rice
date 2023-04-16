@@ -2,6 +2,7 @@
 #define Rice__detail__Native_Attribute__hpp_
 
 #include "ruby.hpp"
+#include "../traits/attribute_traits.hpp"
 
 namespace Rice
 {
@@ -14,18 +15,23 @@ namespace Rice
 
   namespace detail
   {
-    template<typename Return_T, typename Attr_T, typename Self_T = void>
+    template<typename Attribute_T>
     class NativeAttribute
     {
     public:
-      using Native_Return_T = Return_T;
+      using NativeAttribute_T = NativeAttribute<Attribute_T>;
 
+      using T = typename attribute_traits<Attribute_T>::attr_type;
+      using T_Unqualified = remove_cv_recursive_t<T>;
+      using Receiver_T = typename attribute_traits<Attribute_T>::class_type;
+    
+    public:
       // Static member functions that Ruby calls
       static VALUE get(VALUE self);
       static VALUE set(VALUE self, VALUE value);
 
     public:
-      NativeAttribute(VALUE klass, std::string name, Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
+      NativeAttribute(VALUE klass, std::string name, Attribute_T attr, AttrAccess access = AttrAccess::ReadWrite);
 
       // Invokes the wrapped function
       VALUE read(VALUE self);
@@ -34,17 +40,9 @@ namespace Rice
     private:
       VALUE klass_;
       std::string name_;
-      Attr_T attr_;
+      Attribute_T attr_;
       AttrAccess access_;
     };
-
-    // A plain function or static member call
-    template<typename T>
-    auto* Make_Native_Attribute(T* attr, AttrAccess access);
-
-    // Lambda function that does not take Self as first parameter
-    template<typename Class_T, typename T>
-    auto* Make_Native_Attribute(T Class_T::* attr, AttrAccess access);
   } // detail
 } // Rice
 

@@ -5,6 +5,7 @@
 #include "traits/rice_traits.hpp"
 #include "traits/function_traits.hpp"
 #include "traits/method_traits.hpp"
+#include "traits/attribute_traits.hpp"
 #include "Exception_defn.hpp"
 #include "detail/Jump_Tag.hpp"
 #include "detail/RubyFunction.hpp"
