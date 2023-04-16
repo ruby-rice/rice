@@ -2,8 +2,9 @@
 #define Rice__hpp_
 
 #include "detail/ruby.hpp"
-#include "detail/rice_traits.hpp"
-#include "detail/function_traits.hpp"
+#include "traits/rice_traits.hpp"
+#include "traits/function_traits.hpp"
+#include "traits/method_traits.hpp"
 #include "Exception_defn.hpp"
 #include "detail/Jump_Tag.hpp"
 #include "detail/RubyFunction.hpp"

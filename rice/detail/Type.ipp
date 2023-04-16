@@ -1,4 +1,4 @@
-#include "rice_traits.hpp"
+#include "../traits/rice_traits.hpp"
 
 #include <iosfwd>
 #include <iterator>

@@ -3,7 +3,7 @@
 
 #include <string>
 #include <typeinfo>
-#include "rice_traits.hpp"
+#include "../traits/rice_traits.hpp"
 
 namespace Rice::detail
 {

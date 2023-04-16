@@ -1,7 +1,7 @@
 #include <array>
 #include <algorithm>
 
-#include "rice_traits.hpp"
+#include "../traits/rice_traits.hpp"
 #include "NativeRegistry.hpp"
 #include "to_ruby_defn.hpp"
 #include "cpp_protect.hpp"

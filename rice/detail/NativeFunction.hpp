@@ -4,7 +4,8 @@
 #include "ruby.hpp"
 #include "ExceptionHandler_defn.hpp"
 #include "MethodInfo.hpp"
-#include "function_traits.hpp"
+#include "traits/function_traits.hpp"
+#include "traits/method_traits.hpp"
 #include "from_ruby.hpp"
 
 namespace Rice::detail
