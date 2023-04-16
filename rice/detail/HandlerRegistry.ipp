@@ -18,13 +18,3 @@ namespace Rice::detail
     return this->handler_;
   }
 } // namespace
-
-namespace Rice
-{
-  // Register exception handler
-  template<typename Exception_T, typename Functor_T>
-  inline detail::HandlerRegistry register_handler(Functor_T functor)
-  {
-    return detail::Registries::instance.handlers.add<Exception_T, Functor_T>(std::forward<Functor_T>(functor));
-  }
-}
