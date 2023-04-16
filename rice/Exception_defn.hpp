@@ -64,10 +64,6 @@ namespace Rice
     mutable std::string message_;
   };
 
-  // Register exception handler
-  template<typename Exception_T, typename Functor_T>
-  detail::HandlerRegistry register_handler(Functor_T functor);
-
 } // namespace Rice
 
 #endif // Rice__Exception_defn__hpp_

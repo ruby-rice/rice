@@ -45,6 +45,13 @@ namespace Rice::detail
   };
 } // namespace Rice::detail
 
+namespace Rice
+{
+  // Register exception handler
+  template<typename Exception_T, typename Functor_T>
+  detail::HandlerRegistry register_handler(Functor_T functor);
+}
+
 #include "HandlerRegistry.ipp"
 
 #endif // Rice__detail__HandlerRegistry__hpp_

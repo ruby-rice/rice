@@ -1,8 +1,9 @@
 #ifndef Rice__detail__cpp_protect__hpp_
 #define Rice__detail__cpp_protect__hpp_
 
-#include <stdexcept>
+#include <regex>
 #include <filesystem>
+#include <stdexcept>
 
 #include "Jump_Tag.hpp"
 #include "../Exception_defn.hpp"
