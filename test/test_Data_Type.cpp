@@ -435,3 +435,81 @@ TESTCASE(not_defined)
     ASSERT_EQUAL(message, ex.what())
   );
 }
+
+namespace
+{
+    class Container
+    {
+    public:
+      size_t capacity()
+      {
+        return this->capacity_;
+      }
+
+      void capacity(size_t value)
+      {
+        this->capacity_ = value;
+      }
+
+    private:
+      size_t capacity_;
+    };
+}
+
+TESTCASE(OverloadsWithTemplateParameter)
+{
+  Class c = define_class<Container>("Container")
+    .define_constructor(Constructor<Container>())
+    .define_method<size_t(Container::*)()>("capacity", &Container::capacity)
+    .define_method<void(Container::*)(size_t)>("capacity=", &Container::capacity);
+
+  
+  Module m = define_module("Testing");
+
+  std::string code = R"(container = Container.new
+                        container.capacity = 5
+                        container.capacity)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(OverloadsWithUsing)
+{
+  using Getter_T = size_t(Container::*)();
+  using Setter_T = void(Container::*)(size_t);
+
+  Class c = define_class<Container>("Container")
+    .define_constructor(Constructor<Container>())
+    .define_method("capacity", (Getter_T)&Container::capacity)
+    .define_method("capacity=", (Setter_T)&Container::capacity);
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(container = Container.new
+                        container.capacity = 6
+                        container.capacity)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(OverloadsWithTypedef)
+{
+  typedef size_t(Container::* Getter_T)();
+  typedef void (Container::* Setter_T)(size_t);
+
+  Class c = define_class<Container>("Container")
+    .define_constructor(Constructor<Container>())
+    .define_method("capacity", (Getter_T)&Container::capacity)
+    .define_method("capacity=", (Setter_T)&Container::capacity);
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(container = Container.new
+                        container.capacity = 7
+                        container.capacity)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(result.value()));
+}
