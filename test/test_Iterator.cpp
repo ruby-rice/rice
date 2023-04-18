@@ -284,3 +284,28 @@ TESTCASE(to_enum)
   ASSERT_EQUAL(Object(detail::to_ruby(6)), result[2]);
 }
 
+TESTCASE(std_vector)
+{
+  using IntVector = std::vector<int>;
+  define_class<IntVector>("IntVector")
+    .define_constructor(Constructor<IntVector>())
+    .define_method<void(IntVector::*)(const IntVector::value_type&)>("push_back", &IntVector::push_back)
+    .define_iterator<IntVector::iterator(IntVector::*)()>(&IntVector::begin, &IntVector::end);
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(intVector = IntVector.new
+                        intVector.push_back(1)
+                        intVector.push_back(2)
+                        intVector.push_back(3)
+                        intVector.map do |value|
+                          value * 2
+                        end)";
+
+  Array result = m.module_eval(code);
+
+  ASSERT_EQUAL(3u, result.size());
+  ASSERT_EQUAL(Object(detail::to_ruby(2)), result[0]);
+  ASSERT_EQUAL(Object(detail::to_ruby(4)), result[1]);
+  ASSERT_EQUAL(Object(detail::to_ruby(6)), result[2]);
+}
