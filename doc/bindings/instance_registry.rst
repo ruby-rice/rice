@@ -17,7 +17,9 @@ By default, instance tracking is disabled. To turn it on:
 
 Disabled
 --------
-When the instance registry is disabled, Rice will wrap a C++ instance in a new Ruby instance regardless of whether it is already wrapped by a Ruby instance. There is one exception to this rule, which happens when a C++ method returns back itself. Rice recognizes that the C++ object is wrapped by the Ruby object making the call, and thus it is returning self.
+When the instance registry is disabled, Rice will wrap a C++ instance in a new Ruby instance regardless of whether it is already wrapped by a Ruby instance. Therefore if you make multiple calls to a C++ method that returns the same C++ object each time via a reference or pointer, multiple wrapping Ruby objects will be created. By default having multiple Ruby objects wrap a C++ object is fine since the Ruby objects do not own the C++ object. For more information please carefully read the :ref:`cpp_to_ruby` topic.
+
+There is one exception to this rule, which happens when a C++ method returns back itself. Rice recognizes that the C++ object is wrapped by the Ruby object making the call, and thus it is returning self (see :ref:`return_self`).
 
 Why is Tracking Disabled?
 -------------------------

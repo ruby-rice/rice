@@ -1,4 +1,4 @@
-.. _cpp_api:
+.. _api:
 
 Ruby C++ API
 ============

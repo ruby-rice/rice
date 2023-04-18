@@ -75,7 +75,7 @@ In the first case, returning the vector is the same as returning ``this`` from a
 
 We have to return a reference to the vector and not a copy. Besides being potentially wasteful, a copy would result in creating a new Ruby object. Thus ``self`` would no longer be self - which would be quite unexpected. However, ``std::variants`` cannot container references and thus what we need to return is a ``std::reference_wrapper<T>``.
 
-In the second case, we want to return a new Ruby enumerator which has a type of VALUE. However, we can't directly return a VALUE because Rice will interpret it as an unsigned long long (which in fact is what it is). Instead, we return a ``Rice::Object.`` For more information refer to :ref:`return_values`.
+In the second case, we want to return a new Ruby enumerator which has a type of VALUE. However, we can't directly return a VALUE because Rice will interpret it as an unsigned long long (which in fact is what it is). Instead, we return a ``Rice::Object.`` For more information refer to :ref:`return` class.
 
 Creating an Enumerator
 ----------------------

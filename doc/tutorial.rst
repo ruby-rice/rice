@@ -5,8 +5,7 @@ Tutorial
 Getting started
 ---------------
 
-Writing an extension with Rice is very similar to writing an extension
-with the C API.
+Writing an extension with Rice is very similar to writing an extension with the C API.
 
 The first step is to install the Rice gem:
 
@@ -21,9 +20,7 @@ Next create an extconf.rb file:
   require 'mkmf-rice'
   create_makefile('test')
 
-Note that we use ``mkmf-rice`` instead of ``mkmf``. This will ensure that the
-extension will be linked with standard C++ library and allows access to the
-Rice header files.
+Note that we use ``mkmf-rice`` instead of ``mkmf``. This will ensure that the extension will be linked with standard C++ library and allows access to the Rice header files.
 
 .. note::
   For advanced users - instead of using mkmf-rice you can use your own build system such as CMake. In this case you may prefer to download the Rice header file, `rice.hpp <https://github.com/jasonroelofs/rice/blob/master/include/rice/rice.hpp>`_, from github and directly include it in your source tree.
@@ -37,14 +34,9 @@ Next we create our extension and save it to ``test.cpp``:
   {
   }
 
-Note the ``extern "C"`` line above. This tells the compiler that the
-function ``Init_test`` should have C linkage and calling convention. This
-turns off name mangling so that the Ruby interpreter will be able to
-find the function (remember that Ruby is written in C, not C++).
+Note the ``extern "C"`` line above. This tells the compiler that the function ``Init_test`` should have C linkage and calling convention. This turns off name mangling so that the Ruby interpreter will be able to find the function (remember that Ruby is written in C, not C++).
 
-So far we haven't put anything into the extension, so it isn't
-particularly useful. The next step is to define a class so we can add
-methods to it.
+So far we haven't put anything into the extension, so it isn't particularly useful. The next step is to define a class so we can add methods to it.
 
 Defining Classes
 ----------------
@@ -63,8 +55,7 @@ Defining a class in Rice is a single call:
     Class rb_cTest = define_class("Test");
   }
 
-This will create a class called ``Test`` that inherits from ``Object``. If we
-wanted to inherit from a different class, we do so with the second parameter:
+This will create a class called ``Test`` that inherits from ``Object``. If we wanted to inherit from a different class, we do so with the second parameter:
 
 .. code-block:: cpp
 
@@ -78,10 +69,7 @@ wanted to inherit from a different class, we do so with the second parameter:
     Class rb_cMySocket = define_class("MySocket", rb_cIO);
   }
 
-Note the prefix ``rb_c`` on the name of the class. This is a convention
-that the Ruby interpreter and many extensions tend to use. It signifies
-that this is a class and not some other type of object. Some other
-naming conventions that are commonly used:
+Note the prefix ``rb_c`` on the name of the class. This is a convention that the Ruby interpreter and many extensions tend to use. It signifies that this is a class and not some other type of object. Some other naming conventions that are commonly used:
 
 * ``rb_c`` variable name prefix for a Class
 * ``rb_m`` variable name prefix for a Module
@@ -91,10 +79,7 @@ naming conventions that are commonly used:
 * ``rb_*_s_`` indicates the function is a singleton function
 * ``*_m`` suffix to indicate the function takes variable number of arguments
 
-Also note that we don't include "ruby.h" directly. Rice has a wrapper
-for ruby.h that handles some compatibility issues across platforms and
-Ruby versions. Always include Rice headers before including anything
-that might include "ruby.h".
+Also note that we don't include "ruby.h" directly. Rice has a wrapper for ruby.h that handles some compatibility issues across platforms and Ruby versions. Always include Rice headers before including anything that might include "ruby.h".
 
 .. _Defining Methods:
 
@@ -123,9 +108,7 @@ Now let's add a method to our class:
       .define_method("hello", &test_hello);
   }
 
-Here we add a method ``Test#hello`` that returns the string
-"Hello, World". The method takes self as an implicit parameter, but
-isn't used, so we comment it out to prevent a compiler warning.
+Here we add a method ``Test#hello`` that returns the string "Hello, World". The method takes self as an implicit parameter, but isn't used, so we comment it out to prevent a compiler warning.
 
 We could also add an ``#initialize`` method to our class:
 
@@ -156,19 +139,17 @@ We could also add an ``#initialize`` method to our class:
       .define_method("hello", &test_hello);
   }
 
-The ``initialize`` method sets an instance variable ``@foo`` to the value 42.
-The number is automatically converted to a ``Fixnum`` before doing the
-assignment.
+The ``initialize`` method sets an instance variable ``@foo`` to the value 42. The number is automatically converted to a ``Fixnum`` before doing the assignment.
 
-Note that we're chaining calls on the ``Class`` object. Most member
-functions in ``Module`` and ``Class`` return a reference to ``self``, so we can
-chain as many calls as we want to define as many methods as we want.
+Note that we're chaining calls on the ``Class`` object. Most member functions in ``Module`` and ``Class`` return a reference to ``self``, so we can chain as many calls as we want to define as many methods as we want.
 
-Defining methods with lambda
-----------------------------
+.. note::
+   If your compiler complains about "no matching overloaded function found" followed by "could not deduce template argument for 'Function_T" then that means you are working with an overloaded C++ function or method. As a result, you'll need to give Rice some help as explained in the :ref:`overloaded_methods` section.
 
-It is also possible to define_methods using C++ lambdas. Similar
-to define_method, the lambda takes self as an implicit parameter:
+Defining methods with lambdas
+-----------------------------
+
+It is also possible to define_methods using C++ lambdas. Similar to define_method, the lambda takes self as an implicit parameter:
 
 .. code-block:: cpp
 
@@ -183,8 +164,7 @@ Note that we pass self as a reference since we do not want to copy it!
 Defining functions
 ------------------
 
-It is also possible to add methods to a Ruby class using ``define_function``. The difference is
-that no implicit self parameter is passed. Once again, you can use function pointers
+It is also possible to add methods to a Ruby class using ``define_function``. The difference is that no implicit self parameter is passed. Once again, you can use function pointers
 or lambdas:
 
 .. code-block:: cpp
@@ -208,9 +188,7 @@ or lambdas:
 Wrapping C++ Types
 ------------------
 
-It's useful to be able to define Ruby classes in a C++ style rather than
-using the Ruby API directly, but the real power Rice is in wrapping
-already-defined C++ types.
+It's useful to be able to define Ruby classes in a C++ style rather than using the Ruby API directly, but the real power Rice is in wrapping already-defined C++ types.
 
 Let's assume we have the following C++ class that we want to wrap:
 
@@ -225,8 +203,7 @@ Let's assume we have the following C++ class that we want to wrap:
     std::string hello();
   };
 
-This is a C++ version of the Ruby class we just created in the previous
-section. To wrap it:
+This is a C++ version of the Ruby class we just created in the previous section. To wrap it:
 
 .. code-block:: cpp
 
@@ -245,22 +222,16 @@ section. To wrap it:
       .define_method("hello", &Test::hello);
   }
 
-In this example we use ``Data_Type<>`` instead of ``Class`` and the template version
-of ``define_class()`` instead of the non-template version. This creates a binding in the Rice library
-between the Ruby class ``Test`` and the C++ class Test.
+In this example we use ``Data_Type<>`` instead of ``Class`` and the template version of ``define_class()`` instead of the non-template version. This creates a binding in the Rice library between the Ruby class ``Test`` and the C++ class Test.
 
-Next, we define a function ``static_hello`` that is implemented by a C++ static member function.
-Since static functions are not tied to a specific object, there is no self parameter. Therefore we use ``define_function`` instead of ``define_method``.
+Next, we define a function ``static_hello`` that is implemented by a C++ static member function. Since static functions are not tied to a specific object, there is no self parameter. Therefore we use ``define_function`` instead of ``define_method``.
 
-Last, we define a method ``hello`` that is implemented by a C++ member function. When Ruby calls
-this function, instead of passing an implicit self parameter, Rice is smart enough to direct the
-call to the correct C++ Test instance.
+Last, we define a method ``hello`` that is implemented by a C++ member function. When Ruby calls this function, instead of passing an implicit self parameter, Rice is smart enough to direct the call to the correct C++ Test instance.
 
 Defining attributes
 -------------------
 
-C++ structures, and sometimes classes, often have public member variables that store data. Rice makes it
-easy to wrap these member variables via the use of ``define_attr``:
+C++ structures, and sometimes classes, often have public member variables that store data. Rice makes it easy to wrap these member variables via the use of ``define_attr``:
 
 .. code-block:: cpp
 
@@ -345,7 +316,7 @@ conversion works, and when we write:
 
 We get the expected result.
 
-Rice includes default specializations for many C++ types. To define your own conversion, please refer to the :doc:`Type Conversions <advanced/type_conversions>` section.
+Rice includes default specializations for many C++ types. To define your own conversion, please refer to the :doc:`Type Conversions <bindings/type_conversions>` section.
 
 Conversions for wrapped C++ types
 ---------------------------------
@@ -363,9 +334,7 @@ Take another look at the wrapper we wrote for the ``Test`` class:
       .define_method("hello", &Test::hello);
   }
 
-When we called ``define_class<Test>``, it created a Class for us and
-automatically registered the new Class with the type system, so that the
-calls:
+When we called ``define_class<Test>``, it created a Class for us and automatically registered the new Class with the type system, so that the calls:
 
 .. code-block:: cpp
 
@@ -375,11 +344,7 @@ calls:
 
 works as expected.
 
-The ``Data_Object`` class is a wrapper for the ``TypedData_Wrap_Struct`` and the
-``TypedData_Get_Struct`` macros in C extensions. It can be used to wrap or
-unwrap any class that has been assigned to a ``Data_Type``. It inherits
-from ``Object``, so any member functions we can call on an ``Object`` we can
-also call on a ``Data_Object``:
+The ``Data_Object`` class is a wrapper for the ``TypedData_Wrap_Struct`` and the ``TypedData_Get_Struct`` macros in C extensions. It can be used to wrap or unwrap any class that has been assigned to a ``Data_Type``. It inherits from ``Object``, so any member functions we can call on an ``Object`` we can also call on a ``Data_Object``:
 
 .. code-block:: cpp
 
@@ -407,8 +372,7 @@ A ``Data_Object`` functions like a smart pointer:
   foo->foo();
   std::cout << *foo << std::endl;
 
-Like a ``VALUE`` or an ``Object``, data stored in a ``Data_Object`` will be marked
-by the garbage collector as long as the ``Data_Object`` is on the stack.
+Like a ``VALUE`` or an ``Object``, data stored in a ``Data_Object`` will be marked by the garbage collector as long as the ``Data_Object`` is on the stack.
 
 Exceptions
 ----------
@@ -452,36 +416,3 @@ If we call this function from Ruby, C++ will raise an exception. Rice will autom
   end
 
 For much more information about exceptions please refer to the :ref:`Exceptions` section.
-
-Overloaded functions
---------------------
-
-If you try to create a member function pointer to an overloaded
-function, you will get an error. So how do we wrap classes that have
-overloaded functions?
-
-Consider a class that uses this idiom for accessors:
-
-.. code-block:: cpp
-
-  class Container
-  {
-    size_t capacity(); // Get the capacity
-    void capacity(size_t cap); // Set the capacity
-  };
-
-We can wrap this class by using ``typedef``:
-
-.. code-block:: cpp
-
-  extern "C"
-  void Init_Container()
-  {
-    typedef size_t (Container::*get_capacity)();
-    typedef void (Container::*set_capacity)(size_t);
-
-    Data_Type<Container> rb_cContainer =
-      define_class<Container>("Container")
-      .define_method("capacity", get_capacity(&Container::capacity))
-      .define_method("capacity=", set_capacity(&Container::capacity))
-  }

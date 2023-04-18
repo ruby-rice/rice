@@ -6,8 +6,8 @@ Rice automatically handles exceptions - making sure that C++ exceptions do not p
 
 It may be necessary, however, for your C++ code to call Ruby code. And that Ruby code, in turn, may call into C++ code. Rice makes it easy to handle that situation as explained below.
 
-Exception Translation
----------------------
+Exceptions Translation
+----------------------
 When Ruby code calls C++ functions or methods or reads or writes C++ attributes, Rice installs an exception handler that traps any raised C++ exceptions. The handler then translates the C++ exception to a Ruby exception and re-raises it so that it can be handled by the calling Ruby code.
 
 The mapping of C++ exceptions to Ruby exceptions is summarized in the table below:
@@ -67,7 +67,16 @@ Rice also enables you to register a custom exception handler. This can be done l
       .define_method("error", &Test::error);
   }
 
-The ``handle_my_exception`` function should rethrow the exception it wants to return to Ruby. For example:
+The ``handle_my_exception`` can any type of exception it wants. For example, it can throw a C++ exception:
+
+.. code-block:: cpp
+
+  void handle_my_exception(const MyException& ex)
+  {
+    throw std::runtime_error(ex.what());
+  }
+
+Perhaps more useful though is to translate a C++ exception to a Ruby exception. That is done by using the ``Rice::Exception`` class like this:
 
 .. code-block:: cpp
 
@@ -76,9 +85,12 @@ The ``handle_my_exception`` function should rethrow the exception it wants to re
     throw Rice::Exception(rb_eRuntimeError, ex.what_without_backtrace());
   }
 
+Handler Order
+-------------
 Exception handlers are applied in order in which they are registered. Thus if you register handlers A, B and C then A will be checked first, then B and then C.
 
 Exception handlers are global, meaning they are used when Ruby calls C++ functions or reads/writes attributes. They are also applied if you use cpp_protect (see :ref:`c++_exceptions`).
+
 
 Ruby Exceptions
 ---------------
@@ -143,7 +155,7 @@ For each item in the hash, Ruby calls the ``convertPair`` function. Thus we have
 .. code-block:: cpp
 
         // This method is being called from Ruby so we cannot let any C++
-        // exceptions propogate back to Ruby
+        // exceptions propagate back to Ruby
         return cpp_protect([&]
         {
           result->operator[](From_Ruby<T>().convert(key)) = From_Ruby<U>().convert(value);
