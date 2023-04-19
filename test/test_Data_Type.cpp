@@ -438,22 +438,22 @@ TESTCASE(not_defined)
 
 namespace
 {
-    class Container
+  class Container
+  {
+  public:
+    size_t capacity()
     {
-    public:
-      size_t capacity()
-      {
-        return this->capacity_;
-      }
+      return this->capacity_;
+    }
 
-      void capacity(size_t value)
-      {
-        this->capacity_ = value;
-      }
+    void capacity(size_t value)
+    {
+      this->capacity_ = value;
+    }
 
-    private:
-      size_t capacity_;
-    };
+  private:
+    size_t capacity_;
+  };
 }
 
 TESTCASE(OverloadsWithTemplateParameter)
@@ -511,5 +511,5 @@ TESTCASE(OverloadsWithTypedef)
                         container.capacity)";
 
   Object result = m.module_eval(code);
-  ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(result.value()));
+  ASSERT_EQUAL(7, detail::From_Ruby<int>().convert(result.value()));
 }
