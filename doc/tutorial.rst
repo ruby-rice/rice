@@ -1,3 +1,5 @@
+.. _tutorial:
+
 ========
 Tutorial
 ========
@@ -110,7 +112,7 @@ Now let's add a method to our class:
 
 Here we add a method ``Test#hello`` that returns the string "Hello, World". The method takes self as an implicit parameter, but isn't used, so we comment it out to prevent a compiler warning.
 
-We could also add an ``#initialize`` method to our class:
+We can also add an ``#initialize`` method to our class:
 
 .. code-block:: cpp
 
@@ -415,4 +417,4 @@ If we call this function from Ruby, C++ will raise an exception. Rice will autom
     ..
   end
 
-For much more information about exceptions please refer to the :ref:`Exceptions` section.
+For more information about exceptions please refer to the :ref:`Exceptions` section.

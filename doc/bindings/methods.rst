@@ -3,14 +3,14 @@
 Functions and Methods
 =====================
 
-In the tutorial we touched upon how to wrap C++ functions, static member functions and member functions. Now let's go into more depth.
+In the :ref:`tutorial` we touched upon how to wrap C++ functions, static member functions and member functions. Now let's go into more depth.
 
 .. _default_arguments:
 
 Default Arguments
 -----------------
 
-Going back to our initial C++ class example, lets say that ``hello()`` now takes more arguments, one of which has a default value:
+Going back to our initial C++ class example, lets add additional arguments to the ``hello()`` method, one of which has a default value:
 
 .. code-block:: cpp
 
@@ -21,7 +21,7 @@ Going back to our initial C++ class example, lets say that ``hello()`` now takes
     std::string hello(std::string first, std::string second = "world");
   };
 
-As default parameter information is not available through templates, it is necessary to define this in Rice explicitly using ``Rice::Arg``:
+Since default parameter values are not available through templates, it is necessary to tell Rice about it using ``Rice::Arg``:
 
 .. code-block:: cpp
 
@@ -75,7 +75,7 @@ Similarly to the ``Arg`` class, Rice also supports a ``Return`` class that let's
 
 It is also helpful in dealing with Ruby's VALUE type which represent Ruby objects. Most of the time Rice will automatically handle VALUE instances, but if a native method takes a VALUE argument or returns a VALUE instance then you have tell Rice about it.
 
-This is because VALUE is a typedef for ``unsigned long long`` - under the hood it is really a pointer to the heap. However, to Rice it is just a big integer that needs to be converted to a Ruby numeric value. As a result, if a method takes a VALUE parameter then Rice will convert it to a C++ long long value instead of  passing it through. Similarly, if a method returns a VALUE then Rice will also convert it to a numeric Ruby object as opposed to simply returning it.
+This is because VALUE is a typedef for ``unsigned long long`` - under the hood it is really a pointer to a Ruby object. However, to Rice it is just an integer that needs to be converted to a Ruby numeric value. As a result, if a method takes a VALUE parameter then Rice will convert it to a C++ unsigned long long value instead of  passing it through. Similarly, if a method returns a VALUE then Rice will also convert it to a numeric Ruby object as opposed to simply returning it.
 
 To avoid this incorrect conversion, use the ``setValue()`` method on the ``Arg`` and ``Return`` classes. For example:
 
@@ -90,7 +90,7 @@ To avoid this incorrect conversion, use the ``setValue()`` method on the ``Arg``
 
   define_global_function("some_function", &some_function, Arg("ary").setValue(), Return.setValue());
 
-Note that oyu can mix ``Arg`` and ``Return`` objects in any order. For example this also works:
+Note that you can mix ``Arg`` and ``Return`` objects in any order. For example this also works:
 
 .. code-block:: cpp
 
@@ -100,7 +100,7 @@ Note that oyu can mix ``Arg`` and ``Return`` objects in any order. For example t
 
 Return Self
 -----------
-In the case of methods that return ``self`` - meaning they return back the same C++ object that was the receiver of the function call - Rice does ensure that the same Ruby object is returned. Returning self is a common pattern in Ruby.
+In the case of methods that return ``self`` - meaning they return back the same C++ object that was the receiver of the function call - Rice ensures that the same Ruby object is returned. Returning self is a common pattern in Ruby.
 
 For example:
 
