@@ -9,7 +9,7 @@ There are three main use cases:
 
 1. Converting, i.e copying, types between the two languages (:doc:`Type conversion <type_conversions>`)
 2. Enable Ruby to access C++ code via a Ruby wrapper (define_class, define_enum, etc)
-3. Enable C++ to access Ruby code via a C++ wrapper (:doc:`C++ interface <cpp_api>`)
+3. Enable C++ to access Ruby code via a C++ wrapper (:ref:`api`)
 
 :doc:`Type conversion <type_conversions>` works well for primitive types such as boolean and numeric types. For example, a C++ unsigned 32 bit integer is copied into a Ruby Fixnum instance (and vice versa). Conversion of primitive types is also easy to understand because its familiar to programmers. When you pass a boolean or integer into a method, you don't expect the method is going to change it - instead it just gets a copy.
 
@@ -22,4 +22,4 @@ However, type conversion usually does not make sense for more complex types. You
 
 As a result, a more practical approach is to provide thin wrappers that allow Ruby to access C++ objects and C++ to access Ruby objects. Ruby wrappers are created via define_enum, define_class, etc. as described in other parts of the documentation.
 
-Last, you may wish to manipulate Ruby objects from C++ using Rice's object-oriented :doc:`C++ interface <cpp_api>` versus Ruby's C api. 
+Last, you may wish to manipulate Ruby objects from C++ using Rice's object-oriented :ref:`api` versus Ruby's C api.

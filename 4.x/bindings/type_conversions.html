@@ -111,24 +111,35 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
-<li class="toctree-l1 current has-children"><a class="reference internal" href="../advanced.html">Advanced</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="functions.html">Functions and Methods</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../bindings.html">Bindings</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Functions and Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overloaded_methods.html">Overloaded Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iterators.html">Iterators</a></li>
 <li class="toctree-l2"><a class="reference internal" href="memory_management.html">Memory Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="types_overview.html">Types Overview</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Type Conversions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="type_verification.html">Type Verification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="inheritance.html">Inheritance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cpp_api.html">Ruby C++ API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="instance_registry.html">Instance Registry</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../stl.html">STL</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../stl/stl.html">STL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../stl/string.html">std::string</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../stl/optional.html">std::optional</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../stl/complex.html">std::complex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../stl/smart_pointers.html">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/map.html">std::map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/optional.html">std::optional</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../stl/pair.html">std::pair</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/reference_wrapper.html">std::reference_wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/smart_pointers.html">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/string.html">std::string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/unordered_map.html">std::unordered_map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/variant.html">std::variant</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../stl/vector.html">std::vector</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">C++ API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/overview.html">Ruby C++ API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../migration.html">Migrating from 3 to 4</a></li>
@@ -265,7 +276,7 @@
 </section>
 <section id="supporting-default-arguments">
 <h2>Supporting Default Arguments<a class="headerlink" href="#supporting-default-arguments" title="Permalink to this headline">¶</a></h2>
-<p>Rice supports C++ <a class="reference internal" href="functions.html#default-arguments"><span class="std std-ref">Default Arguments</span></a>. To enable this support for your custom type requires making the following changes to the <code class="docutils literal notranslate"><span class="pre">From_Ruby</span></code> specialization:</p>
+<p>Rice supports C++ <a class="reference internal" href="methods.html#default-arguments"><span class="std std-ref">Default Arguments</span></a>. To enable this support for your custom type requires making the following changes to the <code class="docutils literal notranslate"><span class="pre">From_Ruby</span></code> specialization:</p>
 <ul class="simple">
 <li><p>Add an additional constructor that takes a <code class="docutils literal notranslate"><span class="pre">detail::Arg</span></code> pointer and store it in a member variable</p></li>
 <li><p>Add back in the default constructor.</p></li>
@@ -332,14 +343,14 @@
         </div>
 
         <div class="related-information">
-              Copyright &#169; 2021, Paul Brannon, Jason Roelofs, Charlie Savage
+              Copyright &#169; 2023, Paul Brannon, Jason Roelofs, Charlie Savage
             |
             Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
               and
               <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
               <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
             |
-            <a class="muted-link" href="../_sources/advanced/type_conversions.rst.txt"
+            <a class="muted-link" href="../_sources/bindings/type_conversions.rst.txt"
                rel="nofollow">
               Show Source
             </a>

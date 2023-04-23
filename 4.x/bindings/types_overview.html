@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="std::unordered_map" href="unordered_map.html" /><link rel="prev" title="Smart Pointers" href="smart_pointers.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Type Conversions" href="type_conversions.html" /><link rel="prev" title="Exceptions" href="exceptions.html" />
 
     <meta name="generator" content="sphinx-3.5.3, furo 2021.03.20.beta30"/>
-        <title>std::string - Rice documentation</title>
+        <title>Types Overview - Rice documentation</title>
       <link rel="stylesheet" href="../_static/styles/furo.css?digest=978e1795dfe158b585dda6a8417f6411828bf3ed">
     <link rel="stylesheet" href="../_static/pygments.css">
     <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
@@ -111,31 +111,31 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../bindings.html">Bindings</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../bindings/methods.html">Functions and Methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../bindings/overloaded_methods.html">Overloaded Methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../bindings/iterators.html">Iterators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../bindings/memory_management.html">Memory Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../bindings/exceptions.html">Exceptions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../bindings/types_overview.html">Types Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../bindings/type_conversions.html">Type Conversions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../bindings/type_verification.html">Type Verification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../bindings/inheritance.html">Inheritance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../bindings/instance_registry.html">Instance Registry</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../bindings.html">Bindings</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Functions and Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overloaded_methods.html">Overloaded Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iterators.html">Iterators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory_management.html">Memory Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Types Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_conversions.html">Type Conversions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="type_verification.html">Type Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inheritance.html">Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="instance_registry.html">Instance Registry</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current has-children"><a class="reference internal" href="../stl.html">STL</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="stl.html">STL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="complex.html">std::complex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="map.html">std::map</a></li>
-<li class="toctree-l2"><a class="reference internal" href="optional.html">std::optional</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pair.html">std::pair</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference_wrapper.html">std::reference_wrapper</a></li>
-<li class="toctree-l2"><a class="reference internal" href="smart_pointers.html">Smart Pointers</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">std::string</a></li>
-<li class="toctree-l2"><a class="reference internal" href="unordered_map.html">std::unordered_map</a></li>
-<li class="toctree-l2"><a class="reference internal" href="variant.html">std::variant</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vector.html">std::vector</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../stl.html">STL</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../stl/stl.html">STL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/complex.html">std::complex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/map.html">std::map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/optional.html">std::optional</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/pair.html">std::pair</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/reference_wrapper.html">std::reference_wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/smart_pointers.html">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/string.html">std::string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/unordered_map.html">std::unordered_map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/variant.html">std::variant</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/vector.html">std::vector</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">C++ API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -158,36 +158,48 @@
         <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
-        <section id="std-string">
-<span id="id1"></span><h1>std::string<a class="headerlink" href="#std-string" title="Permalink to this headline">¶</a></h1>
-<p>Perhaps <code class="docutils literal notranslate"><span class="pre">std::string</span></code> is the most commonly used class in the C++ standard template library. Rice treats <code class="docutils literal notranslate"><span class="pre">std::string</span></code>’s as  Builtin types, which means strings are copied between C++ and Ruby. Thus, if you pass a <code class="docutils literal notranslate"><span class="pre">std::string</span></code> to Ruby and modify it in Ruby, C++ will not see the changes (and vice versa).</p>
-<p>Unlike Ruby, C++ has very little support for encodings. Thus it is a guessing game to correctly translate strings between C++ and Ruby and its up to you to get it right.</p>
-<p>When Rice converts a <code class="docutils literal notranslate"><span class="pre">std::string</span></code> to Ruby it is assumed to have the encoding specified by <code class="docutils literal notranslate"><span class="pre">Encoding.default_external</span></code>. That is likely to be UTF-8 on Windows while on Linux and MacOS it is based on the operating system locale. If no external encoding is specified, the converted string will have an encoding ASCII-8BIT which is Ruby’s way of saying it has no encoding at all. If the encoding is incorrect, then you need to fix it in Ruby by calling <code class="docutils literal notranslate"><span class="pre">String#force_encoding</span></code>.</p>
-<p>In contrast, when Rice converts a Ruby string to a <code class="docutils literal notranslate"><span class="pre">std::string</span></code> it simply passes the underlying <code class="docutils literal notranslate"><span class="pre">char</span></code> buffer to <code class="docutils literal notranslate"><span class="pre">std::string</span></code> for copying. Thus it is once again up to you to make sure the encoding is correctly set in Ruby before passing the string to C++.</p>
-<p>Note that Rice does not support <code class="docutils literal notranslate"><span class="pre">std::wstring</span></code>.</p>
+        <section id="types-overview">
+<span id="id1"></span><h1>Types Overview<a class="headerlink" href="#types-overview" title="Permalink to this headline">¶</a></h1>
+<p>The purpose of Rice is to enable native C++ code and Ruby code work together. This requires making it easy to translate types between the two languages.</p>
+<p>There are three main use cases:</p>
+<ol class="arabic simple">
+<li><p>Converting, i.e copying, types between the two languages (<a class="reference internal" href="type_conversions.html"><span class="doc">Type conversion</span></a>)</p></li>
+<li><p>Enable Ruby to access C++ code via a Ruby wrapper (define_class, define_enum, etc)</p></li>
+<li><p>Enable C++ to access Ruby code via a C++ wrapper (<a class="reference internal" href="../api/overview.html#api"><span class="std std-ref">Ruby C++ API</span></a>)</p></li>
+</ol>
+<p><a class="reference internal" href="type_conversions.html"><span class="doc">Type conversion</span></a> works well for primitive types such as boolean and numeric types. For example, a C++ unsigned 32 bit integer is copied into a Ruby Fixnum instance (and vice versa). Conversion of primitive types is also easy to understand because its familiar to programmers. When you pass a boolean or integer into a method, you don’t expect the method is going to change it - instead it just gets a copy.</p>
+<p>However, type conversion usually does not make sense for more complex types. You likely do not want to copy instances of simple C++ structures to Ruby, and you almost never want to copy instances of C++ classes. There are a lot of reasons for this, including:</p>
+<ul class="simple">
+<li><p>C++ objects may contain uncopyable internal state, such as a database connection or an open file handle</p></li>
+<li><p>C++ has complex object lifetime rules that control how objects are created, copied and destructed that do not translate to Ruby</p></li>
+<li><p>A C++ object may use a lot of memory, such as a million element vector, that makes it untenable to copy it to Ruby.</p></li>
+<li><p>Copying data, by definition, creates two separate versions making it impossible to share data between the two languages.</p></li>
+</ul>
+<p>As a result, a more practical approach is to provide thin wrappers that allow Ruby to access C++ objects and C++ to access Ruby objects. Ruby wrappers are created via define_enum, define_class, etc. as described in other parts of the documentation.</p>
+<p>Last, you may wish to manipulate Ruby objects from C++ using Rice’s object-oriented <a class="reference internal" href="../api/overview.html#api"><span class="std std-ref">Ruby C++ API</span></a> versus Ruby’s C api.</p>
 </section>
 
       </article>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="unordered_map.html">
+          <a class="next-page" href="type_conversions.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">std::unordered_map</div>
+                <div class="title">Type Conversions</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="smart_pointers.html">
+          <a class="prev-page" href="exceptions.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Smart Pointers</div>
+                <div class="title">Exceptions</div>
                 
               </div>
             </a>
@@ -201,7 +213,7 @@
               <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
               <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
             |
-            <a class="muted-link" href="../_sources/stl/string.rst.txt"
+            <a class="muted-link" href="../_sources/bindings/types_overview.rst.txt"
                rel="nofollow">
               Show Source
             </a>

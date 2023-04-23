@@ -1,0 +1,350 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
+
+    <meta name="generator" content="sphinx-3.5.3, furo 2021.03.20.beta30"/>
+        <title>Enumerators - Rice documentation</title>
+      <link rel="stylesheet" href="../_static/styles/furo.css?digest=978e1795dfe158b585dda6a8417f6411828bf3ed">
+    <link rel="stylesheet" href="../_static/pygments.css">
+    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
+    
+
+
+<style>
+  :root {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+
+  /* For allowing end-user-specific overrides */
+  .override-light {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  .override-dark {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+</style><link rel="stylesheet" href="../_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
+  <body dir="">
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z"/>
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      class="feather feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">Rice  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">Rice  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html">
+  <input class="sidebar-search" placeholder=Search name="q">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../bindings.html">Bindings</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/methods.html">Functions and Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/overloaded_methods.html">Overloaded Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/iterators.html">Iterators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/memory_management.html">Memory Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/types_overview.html">Types Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/type_conversions.html">Type Conversions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/type_verification.html">Type Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/inheritance.html">Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/instance_registry.html">Instance Registry</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../stl.html">STL</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../stl/stl.html">STL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/complex.html">std::complex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/map.html">std::map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/optional.html">std::optional</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/pair.html">std::pair</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/reference_wrapper.html">std::reference_wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/smart_pointers.html">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/string.html">std::string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/unordered_map.html">std::unordered_map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/variant.html">std::variant</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/vector.html">std::vector</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">C++ API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/overview.html">Ruby C++ API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../migration.html">Migrating from 3 to 4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../history.html">Why Rice?</a></li>
+</ul>
+
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <main class="main">
+    <div class="content">
+      <article role="main">
+        <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        </label>
+        <section id="enumerators">
+<span id="id1"></span><h1>Enumerators<a class="headerlink" href="#enumerators" title="Permalink to this headline">¶</a></h1>
+<p>Although not used that frequently, Ruby supports enumerators that enable both internal and external iteration. The easiest way to create an enumerator is to not pass a block to an enumerable method. For example:</p>
+<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="o">]</span>
+
+<span class="c1"># Common way to iterate</span>
+<span class="n">a</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="n">i</span>
+<span class="k">end</span>
+
+<span class="c1"># Get an enumerator instead</span>
+<span class="n">enumerator</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">each</span>
+
+<span class="c1"># Now  use it</span>
+<span class="n">enumerator</span><span class="o">.</span><span class="n">map</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+  <span class="n">i</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<p>Rice has built-in support to returning enumerators for STL containers such as <a class="reference internal" href="../stl/vector.html#std-vector"><span class="std std-ref">std::vector</span></a>, <a class="reference internal" href="../stl/map.html#std-map"><span class="std std-ref">std::map</span></a> and <a class="reference internal" href="../stl/unordered_map.html#std-unordered-map"><span class="std std-ref">std::unordered_map</span></a>.</p>
+<p>Implementing enumerators is tricky - and in fact requires a number of Rice features. So let’s take a look at how enumerator support is implemented for std::vector.</p>
+<section id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p>Let’s start with looking at the code:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">define_method</span><span class="p">(</span><span class="s">"each"</span><span class="p">,</span> <span class="p">[](</span><span class="n">T</span><span class="o">&amp;</span> <span class="n">vector</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">variant</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">reference_wrapper</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">Object</span><span class="o">&gt;</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">rb_block_given_p</span><span class="p">())</span>
+  <span class="p">{</span>
+    <span class="k">auto</span> <span class="n">rb_size_function</span> <span class="o">=</span> <span class="p">[](</span><span class="n">VALUE</span> <span class="n">recv</span><span class="p">,</span> <span class="n">VALUE</span> <span class="n">argv</span><span class="p">,</span> <span class="n">VALUE</span> <span class="n">eobj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VALUE</span>
+    <span class="p">{</span>
+      <span class="c1">// Since we can't capture the vector from above (because then we can't send</span>
+      <span class="c1">// this lambda to rb_enumeratorize_with_size), extract it from recv</span>
+      <span class="n">T</span><span class="o">*</span> <span class="n">receiver</span> <span class="o">=</span> <span class="n">Data_Object</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;::</span><span class="n">from_ruby</span><span class="p">(</span><span class="n">recv</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">To_Ruby</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="n">receiver</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">());</span>
+    <span class="p">};</span>
+
+    <span class="k">return</span> <span class="nf">rb_enumeratorize_with_size</span><span class="p">(</span><span class="n">detail</span><span class="o">::</span><span class="n">selfThread</span><span class="p">,</span> <span class="n">Identifier</span><span class="p">(</span><span class="s">"each"</span><span class="p">).</span><span class="n">to_sym</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">,</span> <span class="n">rb_size_function</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="n">Value_T</span><span class="o">&amp;</span> <span class="nl">item</span> <span class="p">:</span> <span class="n">vector</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">VALUE</span> <span class="n">element</span> <span class="o">=</span> <span class="n">detail</span><span class="o">::</span><span class="n">To_Ruby</span><span class="o">&lt;</span><span class="n">Value_T</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+    <span class="n">detail</span><span class="o">::</span><span class="n">protect</span><span class="p">(</span><span class="n">rb_yield</span><span class="p">,</span> <span class="n">element</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">ref</span><span class="p">(</span><span class="n">vector</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+<p>We will go through each section in more detail below.</p>
+</section>
+<section id="method-signature">
+<h2>Method Signature<a class="headerlink" href="#method-signature" title="Permalink to this headline">¶</a></h2>
+<p>First, Rice defines an <code class="docutils literal notranslate"><span class="pre">each</span></code> method to support Ruby’s enumerable module. Its signature looks like this:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">define_method</span><span class="p">(</span><span class="s">"each"</span><span class="p">,</span> <span class="p">[](</span><span class="n">T</span><span class="o">&amp;</span> <span class="n">vector</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">variant</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">reference_wrapper</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">Object</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Since std::vector doesn’t have an <code class="docutils literal notranslate"><span class="pre">each</span></code> method, Rice creates a lambda function instead that interacts with the vector. The vector is passed in by reference <code class="docutils literal notranslate"><span class="pre">T&amp;</span></code> to avoid a copy.</p>
+<p>Even more interestingly, notice the return type is a <code class="docutils literal notranslate"><span class="pre">std::variant</span></code>. This is needed because the method can either return a Ruby enumerator or the vector.</p>
+<p>In the first case, returning the vector is the same as returning <code class="docutils literal notranslate"><span class="pre">this</span></code> from a C++ member function or <code class="docutils literal notranslate"><span class="pre">self</span></code> from a Ruby function. This allows methods to be chained together - for example  <code class="docutils literal notranslate"><span class="pre">vector.a.b</span></code>.</p>
+<p>We have to return a reference to the vector and not a copy. Besides being potentially wasteful, a copy would result in creating a new Ruby object. Thus <code class="docutils literal notranslate"><span class="pre">self</span></code> would no longer be self - which would be quite unexpected. However, <code class="docutils literal notranslate"><span class="pre">std::variants</span></code> cannot container references and thus what we need to return is a <code class="docutils literal notranslate"><span class="pre">std::reference_wrapper&lt;T&gt;</span></code>.</p>
+<p>In the second case, we want to return a new Ruby enumerator which has a type of VALUE. However, we can’t directly return a VALUE because Rice will interpret it as an unsigned long long (which in fact is what it is). Instead, we return a <code class="docutils literal notranslate"><span class="pre">Rice::Object.</span></code> For more information refer to <a class="reference internal" href="../bindings/methods.html#return"><span class="std std-ref">Return</span></a> class.</p>
+</section>
+<section id="creating-an-enumerator">
+<h2>Creating an Enumerator<a class="headerlink" href="#creating-an-enumerator" title="Permalink to this headline">¶</a></h2>
+<p>Next, let’s look at the code that returns an enumerator:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">rb_block_given_p</span><span class="p">())</span>
+<span class="p">{</span>
+  <span class="k">auto</span> <span class="n">rb_size_function</span> <span class="o">=</span> <span class="p">[](</span><span class="n">VALUE</span> <span class="n">recv</span><span class="p">,</span> <span class="n">VALUE</span> <span class="n">argv</span><span class="p">,</span> <span class="n">VALUE</span> <span class="n">eobj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VALUE</span>
+  <span class="p">{</span>
+    <span class="c1">// Since we can't capture the vector from above (because then we can't send</span>
+    <span class="c1">// this lambda to rb_enumeratorize_with_size), extract it from recv</span>
+    <span class="n">T</span><span class="o">*</span> <span class="n">receiver</span> <span class="o">=</span> <span class="n">Data_Object</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;::</span><span class="n">from_ruby</span><span class="p">(</span><span class="n">recv</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">To_Ruby</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="n">receiver</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">());</span>
+  <span class="p">};</span>
+
+  <span class="k">return</span> <span class="nf">rb_enumeratorize_with_size</span><span class="p">(</span><span class="n">detail</span><span class="o">::</span><span class="n">selfThread</span><span class="p">,</span> <span class="n">Identifier</span><span class="p">(</span><span class="s">"each"</span><span class="p">).</span><span class="n">to_sym</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">,</span> <span class="n">rb_size_function</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If a block is not provided by the user, then the method should return an enumerator. The enumerator is created like this:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">return</span> <span class="nf">rb_enumeratorize_with_size</span><span class="p">(</span><span class="n">detail</span><span class="o">::</span><span class="n">selfThread</span><span class="p">,</span> <span class="n">Identifier</span><span class="p">(</span><span class="s">"each"</span><span class="p">).</span><span class="n">to_sym</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">,</span> <span class="n">rb_size_function</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Notice the first parameter of <code class="docutils literal notranslate"><span class="pre">rb_enumeratorize_with_size</span></code> requires a Ruby instance and not a C++ instance. The correct Ruby instance is the one that is wrapping the C++ instance which is stored in a thread-local variable called selfThread.</p>
+</section>
+<section id="supporting-enumerator-size">
+<h2>Supporting Enumerator Size<a class="headerlink" href="#supporting-enumerator-size" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">rb_enumeratorize_with_size</span></code> call includes an optional pointer to a function that can return the size of the enumerated object, in this case the vector. That is implemented as another lambda function:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span> <span class="n">rb_size_function</span> <span class="o">=</span> <span class="p">[](</span><span class="n">VALUE</span> <span class="n">recv</span><span class="p">,</span> <span class="n">VALUE</span> <span class="n">argv</span><span class="p">,</span> <span class="n">VALUE</span> <span class="n">eobj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VALUE</span>
+<span class="p">{</span>
+  <span class="c1">// Since we can't capture the vector from above (because then we can't send</span>
+  <span class="c1">// this lambda to rb_enumeratorize_with_size), extract it from recv</span>
+  <span class="n">T</span><span class="o">*</span> <span class="n">receiver</span> <span class="o">=</span> <span class="n">Data_Object</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;::</span><span class="n">from_ruby</span><span class="p">(</span><span class="n">recv</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">To_Ruby</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="n">receiver</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">());</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>Since this lambda is being sent to C code, it cannot capture any local variables. Thus it does not have direct access to the <code class="docutils literal notranslate"><span class="pre">T&amp;</span> <span class="pre">vector</span></code> parameter. Instead, it needs to extract the vector from the Ruby object wrapping the vector:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">T</span><span class="o">*</span> <span class="n">receiver</span> <span class="o">=</span> <span class="n">Data_Object</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;::</span><span class="n">from_ruby</span><span class="p">(</span><span class="n">recv</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>It then needs to determine the vector size and return it back as a Ruby object:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">To_Ruby</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="n">receiver</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">());</span>
+</pre></div>
+</div>
+</section>
+<section id="yielding-to-a-block">
+<h2>Yielding to a Block<a class="headerlink" href="#yielding-to-a-block" title="Permalink to this headline">¶</a></h2>
+<p>Finally we get to the most common use case by far - yielding values to a passed in block:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="n">Value_T</span><span class="o">&amp;</span> <span class="nl">item</span> <span class="p">:</span> <span class="n">vector</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">VALUE</span> <span class="n">element</span> <span class="o">=</span> <span class="n">detail</span><span class="o">::</span><span class="n">To_Ruby</span><span class="o">&lt;</span><span class="n">Value_T</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
+  <span class="n">detail</span><span class="o">::</span><span class="n">protect</span><span class="p">(</span><span class="n">rb_yield</span><span class="p">,</span> <span class="n">element</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The code is fairly simple. Iterate over each item in the vector by reference (no copies!), wrap it in a Ruby object, and return it to the block. Note the call to rb_yield is done via detail::protect in case Ruby raises an exception.</p>
+</section>
+<section id="returning-self">
+<h2>Returning Self<a class="headerlink" href="#returning-self" title="Permalink to this headline">¶</a></h2>
+<p>Last we return <code class="docutils literal notranslate"><span class="pre">self</span></code> is a common practice in Ruby to enable method chaining. Self in this case is the Ruby object wrapping the vector. By returning a reference to the vector, Rice is smart enough to map it back to the original Ruby object.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">ref</span><span class="p">(</span><span class="n">vector</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>As explained above, we need to put the vector inside a <code class="docutils literal notranslate"><span class="pre">std::reference_wrapper</span></code> to include it in the returned variant.</p>
+</section>
+</section>
+
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+
+        <div class="related-information">
+              Copyright &#169; 2023, Paul Brannon, Jason Roelofs, Charlie Savage
+            |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+            |
+            <a class="muted-link" href="../_sources/architecture/enumerators.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            Contents
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Enumerators</a><ul>
+<li><a class="reference internal" href="#implementation">Implementation</a></li>
+<li><a class="reference internal" href="#method-signature">Method Signature</a></li>
+<li><a class="reference internal" href="#creating-an-enumerator">Creating an Enumerator</a></li>
+<li><a class="reference internal" href="#supporting-enumerator-size">Supporting Enumerator Size</a></li>
+<li><a class="reference internal" href="#yielding-to-a-block">Yielding to a Block</a></li>
+<li><a class="reference internal" href="#returning-self">Returning Self</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </main>
+</div>
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
+</html>

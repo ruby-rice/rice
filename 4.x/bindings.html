@@ -2,9 +2,12 @@
 <html class="no-js">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="#" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Functions and Methods" href="bindings/methods.html" /><link rel="prev" title="Tutorial" href="tutorial.html" />
 
-    <meta name="generator" content="sphinx-3.5.3, furo 2021.03.20.beta30"/><title>Search - Rice  documentation</title><link rel="stylesheet" href="_static/styles/furo.css?digest=978e1795dfe158b585dda6a8417f6411828bf3ed">
+    <meta name="generator" content="sphinx-3.5.3, furo 2021.03.20.beta30"/>
+        <title>Bindings - Rice documentation</title>
+      <link rel="stylesheet" href="_static/styles/furo.css?digest=978e1795dfe158b585dda6a8417f6411828bf3ed">
     <link rel="stylesheet" href="_static/pygments.css">
     <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="_static/pygments_dark.css">
     
@@ -100,15 +103,15 @@
   
   <span class="sidebar-brand-text">Rice  documentation</span>
   
-</a><form class="sidebar-search-container" method="get" action="#">
+</a><form class="sidebar-search-container" method="get" action="search.html">
   <input class="sidebar-search" placeholder=Search name="q">
   <input type="hidden" name="check_keywords" value="yes">
   <input type="hidden" name="area" value="default">
 </form><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul>
+  <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="bindings.html">Bindings</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">Bindings</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="bindings/methods.html">Functions and Methods</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bindings/overloaded_methods.html">Overloaded Methods</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bindings/iterators.html">Iterators</a></li>
@@ -155,23 +158,87 @@
         <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
-        
-<div id="fallback" class="admonition error">
-  <p class="admonition-title">Error</p>
-  <p>
-    Please activate JavaScript to enable the search functionality.
-  </p>
+        <section id="bindings">
+<span id="id1"></span><h1>Bindings<a class="headerlink" href="#bindings" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="bindings/methods.html">Functions and Methods</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bindings/methods.html#default-arguments">Default Arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/methods.html#return">Return</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/methods.html#return-self">Return Self</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bindings/overloaded_methods.html">Overloaded Methods</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bindings/overloaded_methods.html#template-parameter">Template Parameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/overloaded_methods.html#using">Using</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/overloaded_methods.html#typedef">Typedef</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/overloaded_methods.html#ruby-example">Ruby Example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bindings/iterators.html">Iterators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bindings/iterators.html#enumerable-support-internal-iterators">Enumerable Support (Internal Iterators)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/iterators.html#enumerator-support-external-iterators">Enumerator Support (External Iterators)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bindings/memory_management.html">Memory Management</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bindings/memory_management.html#c-to-ruby">C++ to Ruby</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/memory_management.html#ruby-to-c">Ruby to C++</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/memory_management.html#c-referencing-ruby-objects">C++ Referencing Ruby Objects</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bindings/exceptions.html">Exceptions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bindings/exceptions.html#exceptions-translation">Exceptions Translation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/exceptions.html#custom-handlers">Custom Handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/exceptions.html#handler-order">Handler Order</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/exceptions.html#ruby-exceptions">Ruby Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/exceptions.html#c-exceptions">C++ Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bindings/types_overview.html">Types Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings/type_conversions.html">Type Conversions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bindings/type_conversions.html#adding-a-builtin-type">Adding a Builtin Type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/type_conversions.html#supporting-default-arguments">Supporting Default Arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bindings/type_verification.html">Type Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings/inheritance.html">Inheritance</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bindings/inheritance.html#directors">Directors</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bindings/instance_registry.html">Instance Registry</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bindings/instance_registry.html#enabled">Enabled</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/instance_registry.html#disabled">Disabled</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/instance_registry.html#why-is-tracking-disabled">Why is Tracking Disabled?</a></li>
+</ul>
+</li>
+</ul>
 </div>
-<script>document.getElementById('fallback').hidden = true;</script>
-
-<div id="search-results"></div>
+</section>
 
       </article>
       <footer>
         
         <div class="related-pages">
-          
-          
+          <a class="next-page" href="bindings/methods.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Functions and Methods</div>
+              </div>
+              <svg><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="tutorial.html">
+              <svg><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Tutorial</div>
+                
+              </div>
+            </a>
         </div>
 
         <div class="related-information">
@@ -181,6 +248,11 @@
               and
               <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
               <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+            |
+            <a class="muted-link" href="_sources/bindings.rst.txt"
+               rel="nofollow">
+              Show Source
+            </a>
         </div>
         
       </footer>
@@ -196,8 +268,5 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    
-<script src="_static/searchtools.js"></script>
-<script src="_static/language_data.js"></script><script src="_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script>
-<script src="searchindex.js"></script></body>
+    <script src="_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
 </html>

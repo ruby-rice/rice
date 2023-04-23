@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="std::vector" href="vector.html" /><link rel="prev" title="Smart Pointers" href="smart_pointers.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="std::reference_wrapper" href="reference_wrapper.html" /><link rel="prev" title="std::optional" href="optional.html" />
 
     <meta name="generator" content="sphinx-3.5.3, furo 2021.03.20.beta30"/>
         <title>std::pair - Rice documentation</title>
@@ -111,24 +111,35 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../advanced.html">Advanced</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/functions.html">Functions and Methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/memory_management.html">Memory Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/types_overview.html">Types Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/type_conversions.html">Type Conversions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/type_verification.html">Type Verification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/inheritance.html">Inheritance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/cpp_api.html">Ruby C++ API</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../bindings.html">Bindings</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/methods.html">Functions and Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/overloaded_methods.html">Overloaded Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/iterators.html">Iterators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/memory_management.html">Memory Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/types_overview.html">Types Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/type_conversions.html">Type Conversions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/type_verification.html">Type Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/inheritance.html">Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/instance_registry.html">Instance Registry</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../stl.html">STL</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="stl.html">STL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="string.html">std::string</a></li>
-<li class="toctree-l2"><a class="reference internal" href="optional.html">std::optional</a></li>
 <li class="toctree-l2"><a class="reference internal" href="complex.html">std::complex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="smart_pointers.html">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="map.html">std::map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optional.html">std::optional</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">std::pair</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_wrapper.html">std::reference_wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smart_pointers.html">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="string.html">std::string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unordered_map.html">std::unordered_map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variant.html">std::variant</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector.html">std::vector</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">C++ API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/overview.html">Ruby C++ API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../migration.html">Migrating from 3 to 4</a></li>
@@ -148,7 +159,7 @@
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
         <section id="std-pair">
-<h1>std::pair<a class="headerlink" href="#std-pair" title="Permalink to this headline">¶</a></h1>
+<span id="id1"></span><h1>std::pair<a class="headerlink" href="#std-pair" title="Permalink to this headline">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">std::pair</span></code> is a simple container that provides C++ code a way of associating two values. <code class="docutils literal notranslate"><span class="pre">std::map</span></code> and <code class="docutils literal notranslate"><span class="pre">std::unordered_map</span></code> use <code class="docutils literal notranslate"><span class="pre">std::pair</span></code> to hold keys and their associated values.</p>
 <p>Ruby does not have a concept of a pair. Therefore, Rice wraps <code class="docutils literal notranslate"><span class="pre">std::pair</span></code> which means that data is not copied between C++ and Ruby.</p>
 <p>Since <code class="docutils literal notranslate"><span class="pre">std::pair</span></code> is a template of two types, each <code class="docutils literal notranslate"><span class="pre">std::pair</span></code> instantiation is its own unique C++ class, and thus its own unique Ruby class. You may manually define pair classes or let Rice do it for you. To manually define a Ruby class, use either the <code class="docutils literal notranslate"><span class="pre">define_pair</span></code> or <code class="docutils literal notranslate"><span class="pre">define_pair_under</span></code> methods.</p>
@@ -191,30 +202,30 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="vector.html">
+          <a class="next-page" href="reference_wrapper.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">std::vector</div>
+                <div class="title">std::reference_wrapper</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="smart_pointers.html">
+          <a class="prev-page" href="optional.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Smart Pointers</div>
+                <div class="title">std::optional</div>
                 
               </div>
             </a>
         </div>
 
         <div class="related-information">
-              Copyright &#169; 2021, Paul Brannon, Jason Roelofs, Charlie Savage
+              Copyright &#169; 2023, Paul Brannon, Jason Roelofs, Charlie Savage
             |
             Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
               and

@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="C++ API" href="../api.html" /><link rel="prev" title="std::variant" href="variant.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="std::variant" href="variant.html" /><link rel="prev" title="std::string" href="string.html" />
 
     <meta name="generator" content="sphinx-3.5.3, furo 2021.03.20.beta30"/>
-        <title>std::vector - Rice documentation</title>
+        <title>std::unordered_map - Rice documentation</title>
       <link rel="stylesheet" href="../_static/styles/furo.css?digest=978e1795dfe158b585dda6a8417f6411828bf3ed">
     <link rel="stylesheet" href="../_static/pygments.css">
     <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
@@ -133,9 +133,9 @@
 <li class="toctree-l2"><a class="reference internal" href="reference_wrapper.html">std::reference_wrapper</a></li>
 <li class="toctree-l2"><a class="reference internal" href="smart_pointers.html">Smart Pointers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="string.html">std::string</a></li>
-<li class="toctree-l2"><a class="reference internal" href="unordered_map.html">std::unordered_map</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">std::unordered_map</a></li>
 <li class="toctree-l2"><a class="reference internal" href="variant.html">std::variant</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">std::vector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector.html">std::vector</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">C++ API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -158,77 +158,74 @@
         <label class="toc-overlay-icon toc-content-icon" for="__toc">
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
-        <section id="std-vector">
-<span id="id1"></span><h1>std::vector<a class="headerlink" href="#std-vector" title="Permalink to this headline">¶</a></h1>
-<p>Along with <code class="docutils literal notranslate"><span class="pre">std::string</span></code>, <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> is a workhorse of many C++ code bases. Although there is a direct conceptual mapping between a <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> and a Ruby <code class="docutils literal notranslate"><span class="pre">Array</span></code>, Rice does not copy a vector to an Array. Instead, it wraps <code class="docutils literal notranslate"><span class="pre">std::vector</span></code>.</p>
+        <section id="std-unordered-map">
+<span id="id1"></span><h1>std::unordered_map<a class="headerlink" href="#std-unordered-map" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">std::unordered_map</span></code> is the Hash table of C++. However, Rice does not copy unordered_maps to Hash tables and instead wraps them.</p>
 <p>There are multiple reasons for this:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">std::vector</span></code> instantiations can only contain one type, while Ruby Arrays can contain different types</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">std::vector</span></code> instances can be quite large</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">std::vector</span></code> instances commonly contain C++ classes that have complex copy or move semantics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::unordered_map</span></code> instantiations can only contain one type of key and value, while Ruby Hashes can contain different types of keys and values</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::unordered_map</span></code> instances can be quite large</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">std::unordered_map</span></code> instances commonly contain C++ classes that have complex copy or move semantics</p></li>
 <li><p>having two disconnected copies of data, one in C++ and one in Ruby, is usually undesirable</p></li>
 </ul>
-<p>Rice will automatically define Ruby classes for each instantiation of <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> it finds. You may also manually define Ruby classes via the use of <code class="docutils literal notranslate"><span class="pre">define_vector</span></code> or <code class="docutils literal notranslate"><span class="pre">define_vector_under</span></code> methods. But make sure to define them <em>before</em> Rice automatically creates them.</p>
+<p>Rice will automatically define Ruby classes for each instantation of <code class="docutils literal notranslate"><span class="pre">std::unordered_map</span></code> it finds. You may also manually define Ruby classes via the use of <code class="docutils literal notranslate"><span class="pre">define_unordered_map</span></code> or <code class="docutils literal notranslate"><span class="pre">define_unordered_map_under</span></code> methods. But make sure to define them <em>before</em> Rice automatically creates them.</p>
 <p>Example:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">makeStringVector</span><span class="p">())</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="n">makeStringIntMap</span><span class="p">())</span>
 <span class="p">{</span>
-   <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span> <span class="p">{</span><span class="s">"one"</span><span class="p">,</span> <span class="s">"two"</span><span class="p">,</span> <span class="s">"three"</span><span class="p">};</span>
+   <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span> <span class="p">{{</span><span class="s">"one"</span><span class="p">,</span> <span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="s">"two"</span><span class="p">,</span> <span class="mi">2</span><span class="p">},</span> <span class="p">{</span><span class="s">"three"</span><span class="p">,</span> <span class="mi">3</span><span class="p">}};</span>
 <span class="p">}</span>
 
-<span class="n">define_vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"StringVector"</span><span class="p">);</span>
-<span class="n">define_global_function</span><span class="p">(</span><span class="s">"make_string_vector"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">makeStringVector</span><span class="p">);</span>
+<span class="n">define_unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"StringIntMap"</span><span class="p">);</span>
+<span class="n">define_global_function</span><span class="p">(</span><span class="s">"make_string_int_map"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">makeStringIntMap</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>Once you have defined this Ruby class, you can create a new instance like this:</p>
-<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="n">vector</span> <span class="o">=</span> <span class="no">StringVector</span><span class="o">.</span><span class="n">new</span>
-<span class="n">vector</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="s2">"value 1"</span><span class="p">)</span>
-<span class="n">vector</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="s2">"value 2"</span><span class="p">)</span>
+<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="n">map</span> <span class="o">=</span> <span class="no">StringMap</span><span class="o">.</span><span class="n">new</span>
+<span class="n">map</span><span class="o">[</span><span class="s2">"value 1"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">map</span><span class="o">[</span><span class="s2">"value 2"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">2</span>
 </pre></div>
 </div>
-<section id="array-to-vector">
-<h2>Array to Vector<a class="headerlink" href="#array-to-vector" title="Permalink to this headline">¶</a></h2>
-<p>For C++ methods that take vector arguments, you can instantiate a new vector from Ruby (see <a class="reference internal" href="stl.html#stl-class-names"><span class="std std-ref">Automatically Generated Ruby Classes</span></a>).</p>
+<section id="hash-to-map">
+<h2>Hash to Map<a class="headerlink" href="#hash-to-map" title="Permalink to this headline">¶</a></h2>
+<p>For C++ methods that take map arguments, you can instantiate a new map from Ruby (see <a class="reference internal" href="stl.html#stl-class-names"><span class="std std-ref">Automatically Generated Ruby Classes</span></a>).</p>
 <p>For example, assume this C++ code:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">passVector</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">ints</span><span class="p">)</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">passMap</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="n">stringIntMap</span><span class="p">)</span>
 <span class="p">{</span>
 <span class="p">}</span>
 
-<span class="n">define_vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"IntVector"</span><span class="p">);</span>
-<span class="n">define_global_function</span><span class="p">(</span><span class="s">"pass_vector"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">passVector</span><span class="p">);</span>
+<span class="n">define_unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unordered_map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"StringIntMap"</span><span class="p">);</span>
+<span class="n">define_global_function</span><span class="p">(</span><span class="s">"pass_map"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">passMap</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>One way to call it from Ruby is like this:</p>
-<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="n">vector</span> <span class="o">=</span> <span class="no">IntVector</span><span class="o">.</span><span class="n">new</span>
-<span class="n">vector</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="mi">37</span><span class="p">)</span>
-<span class="n">pass_vector</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
+<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="n">map</span> <span class="o">=</span> <span class="no">StringIntMap</span><span class="o">.</span><span class="n">new</span>
+<span class="n">map</span><span class="o">[</span><span class="s2">"thrity seven"</span><span class="o">]</span> <span class="o">=</span> <span class="mi">37</span>
+<span class="n">pass_map</span><span class="p">(</span><span class="n">map</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>In this case, Ruby is wrapping a C++ vector. Therefore any changes made to the vector in C++ will be visible to Ruby.</p>
-<p>However, it is often more convenient to pass a Ruby array instead. This is especially true if you are using Rice’s <a class="reference internal" href="stl.html#stl-class-names"><span class="std std-ref">automatic</span></a> stl classes.</p>
+<p>In this case, Ruby is wrapping a C++ map. Therefore any changes made to the map in C++ will be visible to Ruby.</p>
+<p>However, it is often more convenient to pass a Ruby hash instead. This is especially true if you are using Rice’s <a class="reference internal" href="stl.html#stl-class-names"><span class="std std-ref">automatic</span></a> stl classes.</p>
 <p>Therefore Rice also supports this usage:</p>
-<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="o">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">9</span><span class="o">]</span>
-<span class="n">pass_vector</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="nb">hash</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"three"</span> <span class="o">=&gt;</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">"five"</span> <span class="o">=&gt;</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">"nine"</span> <span class="o">=&gt;</span> <span class="mi">9</span><span class="p">}</span>
+<span class="n">pass_map</span><span class="p">(</span><span class="nb">hash</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>In this case, Rice will <em>copy</em> the Ruby array instead of wrapping it. Thus any modifications made in C++ will not be visible to Ruby.</p>
+<p>In this case, Rice will <em>copy</em> the Ruby hash instead of wrapping it. Thus any modifications made in C++ will not be visible to Ruby.</p>
 </section>
 <section id="ruby-api">
 <h2>Ruby API<a class="headerlink" href="#ruby-api" title="Permalink to this headline">¶</a></h2>
-<p>Rice tries to make <code class="docutils literal notranslate"><span class="pre">std::vector</span></code> look like a Ruby Array by giving it an API that is a subset of <code class="docutils literal notranslate"><span class="pre">Array</span></code>. However, there are differences you need to keep in mind.</p>
-<p>First, the following methods only work if the vector type is copyable (copying is done in C++):</p>
+<p>Rice tries to make <code class="docutils literal notranslate"><span class="pre">std::unordered_map</span></code> look like a Ruby Hash by giving it an API that is a subset of <code class="docutils literal notranslate"><span class="pre">Hash</span></code>. However, there are differences you need to keep in mind.</p>
+<p>First, the following methods only work if the map type is copyable (copying is done in C++):</p>
 <ul class="simple">
-<li><p>Vector#copy(other)</p></li>
-<li><p>Vector#resize</p></li>
+<li><p>Map#copy(other)</p></li>
 </ul>
-<p>Second, the following methods only work if the vector type implements C++’s equal operator, <code class="docutils literal notranslate"><span class="pre">operator==</span></code>:</p>
+<p>Second, the following methods only work if the map type implements C++’s equal operator, <code class="docutils literal notranslate"><span class="pre">operator==</span></code>:</p>
 <ul class="simple">
-<li><p>Vector#delete</p></li>
-<li><p>Vector#include?</p></li>
-<li><p>Vector#index</p></li>
+<li><p>Map#value?</p></li>
 </ul>
-<p>Third, if the vector type supports C++ streams, then the following method will work, otherwise it will return “Not Printable”</p>
+<p>Third, if the map type supports C++ streams, then the following method will work, otherwise it will return “Not Printable”</p>
 <ul class="simple">
-<li><p>Vector#to_s</p></li>
+<li><p>Map#to_s</p></li>
 </ul>
 </section>
 </section>
@@ -237,23 +234,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../api.html">
+          <a class="next-page" href="variant.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">C++ API</div>
+                <div class="title">std::variant</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="variant.html">
+          <a class="prev-page" href="string.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">std::variant</div>
+                <div class="title">std::string</div>
                 
               </div>
             </a>
@@ -267,7 +264,7 @@
               <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
               <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
             |
-            <a class="muted-link" href="../_sources/stl/vector.rst.txt"
+            <a class="muted-link" href="../_sources/stl/unordered_map.rst.txt"
                rel="nofollow">
               Show Source
             </a>
@@ -287,8 +284,8 @@
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">std::vector</a><ul>
-<li><a class="reference internal" href="#array-to-vector">Array to Vector</a></li>
+<li><a class="reference internal" href="#">std::unordered_map</a><ul>
+<li><a class="reference internal" href="#hash-to-map">Hash to Map</a></li>
 <li><a class="reference internal" href="#ruby-api">Ruby API</a></li>
 </ul>
 </li>

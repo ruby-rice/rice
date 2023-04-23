@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="std::unordered_map" href="unordered_map.html" /><link rel="prev" title="Smart Pointers" href="smart_pointers.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Smart Pointers" href="smart_pointers.html" /><link rel="prev" title="std::pair" href="pair.html" />
 
     <meta name="generator" content="sphinx-3.5.3, furo 2021.03.20.beta30"/>
-        <title>std::string - Rice documentation</title>
+        <title>std::reference_wrapper - Rice documentation</title>
       <link rel="stylesheet" href="../_static/styles/furo.css?digest=978e1795dfe158b585dda6a8417f6411828bf3ed">
     <link rel="stylesheet" href="../_static/pygments.css">
     <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../_static/pygments_dark.css">
@@ -130,9 +130,9 @@
 <li class="toctree-l2"><a class="reference internal" href="map.html">std::map</a></li>
 <li class="toctree-l2"><a class="reference internal" href="optional.html">std::optional</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair.html">std::pair</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference_wrapper.html">std::reference_wrapper</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">std::reference_wrapper</a></li>
 <li class="toctree-l2"><a class="reference internal" href="smart_pointers.html">Smart Pointers</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">std::string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="string.html">std::string</a></li>
 <li class="toctree-l2"><a class="reference internal" href="unordered_map.html">std::unordered_map</a></li>
 <li class="toctree-l2"><a class="reference internal" href="variant.html">std::variant</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector.html">std::vector</a></li>
@@ -158,36 +158,34 @@
         <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
-        <section id="std-string">
-<span id="id1"></span><h1>std::string<a class="headerlink" href="#std-string" title="Permalink to this headline">¶</a></h1>
-<p>Perhaps <code class="docutils literal notranslate"><span class="pre">std::string</span></code> is the most commonly used class in the C++ standard template library. Rice treats <code class="docutils literal notranslate"><span class="pre">std::string</span></code>’s as  Builtin types, which means strings are copied between C++ and Ruby. Thus, if you pass a <code class="docutils literal notranslate"><span class="pre">std::string</span></code> to Ruby and modify it in Ruby, C++ will not see the changes (and vice versa).</p>
-<p>Unlike Ruby, C++ has very little support for encodings. Thus it is a guessing game to correctly translate strings between C++ and Ruby and its up to you to get it right.</p>
-<p>When Rice converts a <code class="docutils literal notranslate"><span class="pre">std::string</span></code> to Ruby it is assumed to have the encoding specified by <code class="docutils literal notranslate"><span class="pre">Encoding.default_external</span></code>. That is likely to be UTF-8 on Windows while on Linux and MacOS it is based on the operating system locale. If no external encoding is specified, the converted string will have an encoding ASCII-8BIT which is Ruby’s way of saying it has no encoding at all. If the encoding is incorrect, then you need to fix it in Ruby by calling <code class="docutils literal notranslate"><span class="pre">String#force_encoding</span></code>.</p>
-<p>In contrast, when Rice converts a Ruby string to a <code class="docutils literal notranslate"><span class="pre">std::string</span></code> it simply passes the underlying <code class="docutils literal notranslate"><span class="pre">char</span></code> buffer to <code class="docutils literal notranslate"><span class="pre">std::string</span></code> for copying. Thus it is once again up to you to make sure the encoding is correctly set in Ruby before passing the string to C++.</p>
-<p>Note that Rice does not support <code class="docutils literal notranslate"><span class="pre">std::wstring</span></code>.</p>
+        <section id="std-reference-wrapper">
+<span id="id1"></span><h1>std::reference_wrapper<a class="headerlink" href="#std-reference-wrapper" title="Permalink to this headline">¶</a></h1>
+<p>Introduced in C++11, <code class="docutils literal notranslate"><span class="pre">std::reference_wrapper</span></code> wraps C++ references in a copyable, assignable object. This allows them to be stored in containers such as std::vector or other types such as std::variant.</p>
+<p>Since Ruby does not have an equivalent type, Rice unwraps <code class="docutils literal notranslate"><span class="pre">std::reference_wrapper</span></code> instances. If the <code class="docutils literal notranslate"><span class="pre">std::reference_wrapper</span></code> points to a Builtin type, then it will be converted to the appropriate Ruby type. It it points to a non Builtin type, then the value will be wrapped by Ruby.</p>
+<p>When passing a Ruby instance to <code class="docutils literal notranslate"><span class="pre">std::reference_wrapper</span></code>, Rice will convert a Ruby type into the appropriate C++ type and store it inside the wrapper. Note this can be dangerous because Rice must maintain the original memory location for the reference to remain valid. For wrapped types this means the reference will remain valid as long as the wrapping Ruby object is valid and not garbage collected. For BuiltIn types, Rice only guarantees the reference to be valid through the lifetime of a method call. Thus if called C++ code stores the reference, and later trys to use it, an exception will happen.</p>
 </section>
 
       </article>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="unordered_map.html">
+          <a class="next-page" href="smart_pointers.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">std::unordered_map</div>
+                <div class="title">Smart Pointers</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="smart_pointers.html">
+          <a class="prev-page" href="pair.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Smart Pointers</div>
+                <div class="title">std::pair</div>
                 
               </div>
             </a>
@@ -201,7 +199,7 @@
               <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
               <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
             |
-            <a class="muted-link" href="../_sources/stl/string.rst.txt"
+            <a class="muted-link" href="../_sources/stl/reference_wrapper.rst.txt"
                rel="nofollow">
               Show Source
             </a>

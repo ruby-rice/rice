@@ -1,3 +1,5 @@
+.. _smart_pointers:
+
 Smart Pointers
 ==============
 Smart pointers are key tool in modern C++ to write memory safe code. Rice provides support for ``std::unique_ptr`` and ``std::shared_ptr``. Rice can also be easily extended to support custom smart pointer types.
@@ -178,7 +180,7 @@ Let's start by telling Rice how to wrap the smart pointer. Here is how that is d
     {
       static VALUE convert(std::unique_ptr<T>& data, bool takeOwnership = true)
       {
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(*data);
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
 
         // Use custom wrapper type 
         using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
@@ -201,7 +203,7 @@ The second step is to tell Rice how to extract the smart pointer from Ruby.
     {
       static std::unique_ptr<T>& convert(VALUE value)
       {
-        Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::rb_type());
+        Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
 
         using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
         Wrapper_T* smartWrapper = dynamic_cast<Wrapper_T*>(wrapper);

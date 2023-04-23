@@ -1,3 +1,5 @@
+.. _std_pair:
+
 std::pair
 -----------
 ``std::pair`` is a simple container that provides C++ code a way of associating two values. ``std::map`` and ``std::unordered_map`` use ``std::pair`` to hold keys and their associated values.

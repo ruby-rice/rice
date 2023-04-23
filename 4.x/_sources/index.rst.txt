@@ -7,7 +7,8 @@ Rice - Ruby Interface for C++ Extensions
 
   introduction
   tutorial
-  advanced
+  bindings
   stl
+  api
   migration
   history

@@ -111,24 +111,35 @@
   <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="advanced.html">Advanced</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="advanced/functions.html">Functions and Methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="advanced/memory_management.html">Memory Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="advanced/types_overview.html">Types Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="advanced/type_conversions.html">Type Conversions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="advanced/type_verification.html">Type Verification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="advanced/inheritance.html">Inheritance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="advanced/cpp_api.html">Ruby C++ API</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="bindings.html">Bindings</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="bindings/methods.html">Functions and Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/overloaded_methods.html">Overloaded Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/iterators.html">Iterators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/memory_management.html">Memory Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/types_overview.html">Types Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/type_conversions.html">Type Conversions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/type_verification.html">Type Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/inheritance.html">Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings/instance_registry.html">Instance Registry</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="stl.html">STL</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="stl/stl.html">STL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="stl/string.html">std::string</a></li>
-<li class="toctree-l2"><a class="reference internal" href="stl/optional.html">std::optional</a></li>
 <li class="toctree-l2"><a class="reference internal" href="stl/complex.html">std::complex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="stl/smart_pointers.html">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stl/map.html">std::map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stl/optional.html">std::optional</a></li>
 <li class="toctree-l2"><a class="reference internal" href="stl/pair.html">std::pair</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stl/reference_wrapper.html">std::reference_wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stl/smart_pointers.html">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stl/string.html">std::string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stl/unordered_map.html">std::unordered_map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stl/variant.html">std::variant</a></li>
 <li class="toctree-l2"><a class="reference internal" href="stl/vector.html">std::vector</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api.html">C++ API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/overview.html">Ruby C++ API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="migration.html">Migrating from 3 to 4</a></li>
@@ -149,13 +160,8 @@
         </label>
         <section id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p>Rice is a C++ 17 header-only library that serves dual purposes. First, it makes it much
-easier to create Ruby bindings for existing C++ libraries. Second, it provides an
-object oriented interface to Ruby’s C API that makes it easy to embed Ruby and write
-Ruby extensions in C++.</p>
-<p>Rice is similar to <a class="reference external" href="https://github.com/boostorg/python">Boost.Python</a> and <a class="reference external" href="https://github.com/pybind/pybind11">pybind11</a> in that it minimizes boilerplate code needed
-to interface with C++. It does this by automatically determining type information allowing
-Ruby object to be converted to C++ and vice versa.</p>
+<p>Rice is a C++ 17 header-only library that serves dual purposes. First, it makes it much easier to create Ruby bindings for existing C++ libraries. Second, it provides an object oriented interface to Ruby’s C API that makes it easy to embed Ruby and write Ruby extensions in C++.</p>
+<p>Rice is similar to <a class="reference external" href="https://github.com/boostorg/python">Boost.Python</a> and <a class="reference external" href="https://github.com/pybind/pybind11">pybind11</a> in that it minimizes boilerplate code needed to interface with C++. It does this by automatically determining type information allowing Ruby object to be converted to C++ and vice versa.</p>
 <p>Rice provides:</p>
 <ul class="simple">
 <li><p>A simple C++-based syntax for wrapping and defining classes</p></li>
@@ -166,11 +172,9 @@ Ruby object to be converted to C++ and vice versa.</p>
 </ul>
 <section id="version-differences-3-x-vs-4-x-and-later">
 <h2>Version Differences 3.x vs 4.x and later<a class="headerlink" href="#version-differences-3-x-vs-4-x-and-later" title="Permalink to this headline">¶</a></h2>
-<p>This documentation and the <code class="docutils literal notranslate"><span class="pre">master</span></code> branch are for Rice 4.x and later, which is the
-header-only version of the library. Use the <code class="docutils literal notranslate"><span class="pre">3.x</span></code> branch for the docs and code for that
-line of releases.</p>
+<p>This documentation and the <code class="docutils literal notranslate"><span class="pre">master</span></code> branch are for Rice 4.x and later, which is the header-only version of the library. Use the <code class="docutils literal notranslate"><span class="pre">3.x</span></code> branch for the docs and code for that line of releases.</p>
 <p>To upgrade a library from Rice 3 to 4, see <a class="reference internal" href="migration.html#migrating"><span class="std std-ref">Migrating from 3 to 4</span></a>.</p>
-<p>The documenation for the 3.x line of Rice is viewable at <a class="reference external" href="https://jasonroelofs.com/rice/3.x">https://jasonroelofs.com/rice/3.x</a>.</p>
+<p>The documentation for the 3.x line of Rice is viewable at <a class="reference external" href="https://jasonroelofs.com/rice/3.x">https://jasonroelofs.com/rice/3.x</a>.</p>
 </section>
 <section id="project-details">
 <h2>Project Details<a class="headerlink" href="#project-details" title="Permalink to this headline">¶</a></h2>
@@ -183,9 +187,7 @@ line of releases.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>gem install rice
 </pre></div>
 </div>
-<p>Rice is header-only library and therefore does not need to be built separately.
-Instead it should be #included in your C++ project. Rice requires C++17 or later
-and is tested on Windows (MSVC and Mingw64), MacOS (Xcode/clang) and Linux (g++).</p>
+<p>Rice is header-only library and therefore does not need to be built separately. Instead it should be #included in your C++ project. Rice requires C++17 or later and is tested on Windows (MSVC and Mingw64), MacOS (Xcode/clang) and Linux (g++).</p>
 </section>
 </section>
 
@@ -216,7 +218,7 @@ and is tested on Windows (MSVC and Mingw64), MacOS (Xcode/clang) and Linux (g++)
         </div>
 
         <div class="related-information">
-              Copyright &#169; 2021, Paul Brannon, Jason Roelofs, Charlie Savage
+              Copyright &#169; 2023, Paul Brannon, Jason Roelofs, Charlie Savage
             |
             Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
               and

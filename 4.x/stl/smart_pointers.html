@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="std::pair" href="pair.html" /><link rel="prev" title="std::complex" href="complex.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="std::string" href="string.html" /><link rel="prev" title="std::reference_wrapper" href="reference_wrapper.html" />
 
     <meta name="generator" content="sphinx-3.5.3, furo 2021.03.20.beta30"/>
         <title>Smart Pointers - Rice documentation</title>
@@ -111,24 +111,35 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../advanced.html">Advanced</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/functions.html">Functions and Methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/memory_management.html">Memory Management</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/types_overview.html">Types Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/type_conversions.html">Type Conversions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/type_verification.html">Type Verification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/inheritance.html">Inheritance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../advanced/cpp_api.html">Ruby C++ API</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../bindings.html">Bindings</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/methods.html">Functions and Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/overloaded_methods.html">Overloaded Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/iterators.html">Iterators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/memory_management.html">Memory Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/types_overview.html">Types Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/type_conversions.html">Type Conversions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/type_verification.html">Type Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/inheritance.html">Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bindings/instance_registry.html">Instance Registry</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../stl.html">STL</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="stl.html">STL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="string.html">std::string</a></li>
-<li class="toctree-l2"><a class="reference internal" href="optional.html">std::optional</a></li>
 <li class="toctree-l2"><a class="reference internal" href="complex.html">std::complex</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="map.html">std::map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optional.html">std::optional</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair.html">std::pair</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference_wrapper.html">std::reference_wrapper</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="string.html">std::string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unordered_map.html">std::unordered_map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variant.html">std::variant</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector.html">std::vector</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">C++ API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/overview.html">Ruby C++ API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../migration.html">Migrating from 3 to 4</a></li>
@@ -148,7 +159,7 @@
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
         <section id="smart-pointers">
-<h1>Smart Pointers<a class="headerlink" href="#smart-pointers" title="Permalink to this headline">¶</a></h1>
+<span id="id1"></span><h1>Smart Pointers<a class="headerlink" href="#smart-pointers" title="Permalink to this headline">¶</a></h1>
 <p>Smart pointers are key tool in modern C++ to write memory safe code. Rice provides support for <code class="docutils literal notranslate"><span class="pre">std::unique_ptr</span></code> and <code class="docutils literal notranslate"><span class="pre">std::shared_ptr</span></code>. Rice can also be easily extended to support custom smart pointer types.</p>
 <section id="std-unique-ptr">
 <h2>std::unique_ptr<a class="headerlink" href="#std-unique-ptr" title="Permalink to this headline">¶</a></h2>
@@ -307,7 +318,7 @@
   <span class="p">{</span>
     <span class="k">static</span> <span class="n">VALUE</span> <span class="n">convert</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&amp;</span> <span class="n">data</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">takeOwnership</span> <span class="o">=</span> <span class="nb">true</span><span class="p">)</span>
     <span class="p">{</span>
-      <span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">VALUE</span><span class="p">,</span> <span class="n">rb_data_type_t</span><span class="o">*&gt;</span> <span class="n">rubyTypeInfo</span> <span class="o">=</span> <span class="n">detail</span><span class="o">::</span><span class="n">TypeRegistry</span><span class="o">::</span><span class="n">figureType</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">);</span>
+      <span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">VALUE</span><span class="p">,</span> <span class="n">rb_data_type_t</span><span class="o">*&gt;</span> <span class="n">rubyTypeInfo</span> <span class="o">=</span> <span class="n">detail</span><span class="o">::</span><span class="n">Registries</span><span class="o">::</span><span class="n">instance</span><span class="p">.</span><span class="n">types</span><span class="p">.</span><span class="n">figureType</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">);</span>
 
       <span class="c1">// Use custom wrapper type</span>
       <span class="k">using</span> <span class="n">Wrapper_T</span> <span class="o">=</span> <span class="n">WrapperSmartPointer</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span><span class="p">;</span>
@@ -327,7 +338,7 @@ Next we pass the pointer to Rice’s TypeRegistry to look up what Ruby class wra
   <span class="p">{</span>
     <span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&amp;</span> <span class="n">convert</span><span class="p">(</span><span class="n">VALUE</span> <span class="n">value</span><span class="p">)</span>
     <span class="p">{</span>
-      <span class="n">Wrapper</span><span class="o">*</span> <span class="n">wrapper</span> <span class="o">=</span> <span class="n">detail</span><span class="o">::</span><span class="n">getWrapper</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;::</span><span class="n">rb_type</span><span class="p">());</span>
+      <span class="n">Wrapper</span><span class="o">*</span> <span class="n">wrapper</span> <span class="o">=</span> <span class="n">detail</span><span class="o">::</span><span class="n">getWrapper</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;::</span><span class="n">ruby_data_type</span><span class="p">());</span>
 
       <span class="k">using</span> <span class="n">Wrapper_T</span> <span class="o">=</span> <span class="n">WrapperSmartPointer</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="p">,</span> <span class="n">T</span><span class="o">&gt;</span><span class="p">;</span>
       <span class="n">Wrapper_T</span><span class="o">*</span> <span class="n">smartWrapper</span> <span class="o">=</span> <span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">Wrapper_T</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">wrapper</span><span class="p">);</span>
@@ -365,30 +376,30 @@ Next we pass the pointer to Rice’s TypeRegistry to look up what Ruby class wra
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="pair.html">
+          <a class="next-page" href="string.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">std::pair</div>
+                <div class="title">std::string</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="complex.html">
+          <a class="prev-page" href="reference_wrapper.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">std::complex</div>
+                <div class="title">std::reference_wrapper</div>
                 
               </div>
             </a>
         </div>
 
         <div class="related-information">
-              Copyright &#169; 2021, Paul Brannon, Jason Roelofs, Charlie Savage
+              Copyright &#169; 2023, Paul Brannon, Jason Roelofs, Charlie Savage
             |
             Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
               and

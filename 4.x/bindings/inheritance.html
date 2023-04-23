@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Ruby C++ API" href="cpp_api.html" /><link rel="prev" title="Type Verification" href="type_verification.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Instance Registry" href="instance_registry.html" /><link rel="prev" title="Type Verification" href="type_verification.html" />
 
     <meta name="generator" content="sphinx-3.5.3, furo 2021.03.20.beta30"/>
         <title>Inheritance - Rice documentation</title>
@@ -111,24 +111,35 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
-<li class="toctree-l1 current has-children"><a class="reference internal" href="../advanced.html">Advanced</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="functions.html">Functions and Methods</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../bindings.html">Bindings</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="methods.html">Functions and Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overloaded_methods.html">Overloaded Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iterators.html">Iterators</a></li>
 <li class="toctree-l2"><a class="reference internal" href="memory_management.html">Memory Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="types_overview.html">Types Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="type_conversions.html">Type Conversions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="type_verification.html">Type Verification</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Inheritance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cpp_api.html">Ruby C++ API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="instance_registry.html">Instance Registry</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../stl.html">STL</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../stl/stl.html">STL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../stl/string.html">std::string</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../stl/optional.html">std::optional</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../stl/complex.html">std::complex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../stl/smart_pointers.html">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/map.html">std::map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/optional.html">std::optional</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../stl/pair.html">std::pair</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/reference_wrapper.html">std::reference_wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/smart_pointers.html">Smart Pointers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/string.html">std::string</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/unordered_map.html">std::unordered_map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stl/variant.html">std::variant</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../stl/vector.html">std::vector</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">C++ API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/overview.html">Ruby C++ API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../migration.html">Migrating from 3 to 4</a></li>
@@ -148,14 +159,8 @@
           <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
         </label>
         <section id="inheritance">
-<h1>Inheritance<a class="headerlink" href="#inheritance" title="Permalink to this headline">¶</a></h1>
-<section id="basic">
-<h2>Basic<a class="headerlink" href="#basic" title="Permalink to this headline">¶</a></h2>
-<p>Inheritance is a tricky problem to solve in extensions. This is because
-wrapper functions for base classes typically don’t know how to accept
-pointers to derived classes. It is possible to write this logic, but
-the code is nontrivial.</p>
-<p>Rice also provides a solution to this problem:</p>
+<span id="id1"></span><h1>Inheritance<a class="headerlink" href="#inheritance" title="Permalink to this headline">¶</a></h1>
+<p>Rice supports creating child classes via the <code class="docutils literal notranslate"><span class="pre">define_class</span></code> method:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Base</span>
 <span class="p">{</span>
 <span class="k">public</span><span class="o">:</span>
@@ -173,27 +178,30 @@ the code is nontrivial.</p>
   <span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">Base</span><span class="o">&gt;</span> <span class="n">rb_cBase</span> <span class="o">=</span>
     <span class="n">define_class</span><span class="o">&lt;</span><span class="n">Base</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Base"</span><span class="p">)</span>
     <span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">"foo"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Base</span><span class="o">::</span><span class="n">foo</span><span class="p">);</span>
+
   <span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">Derived</span><span class="o">&gt;</span> <span class="n">rb_cDerived</span> <span class="o">=</span>
     <span class="n">define_class</span><span class="o">&lt;</span><span class="n">Derived</span><span class="p">,</span> <span class="n">Base</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Derived"</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The second template parameter to define_class indicates that <code class="docutils literal notranslate"><span class="pre">Derived</span></code>
-inherits from <code class="docutils literal notranslate"><span class="pre">Base</span></code>.</p>
+<p>This is done by adding a second template parameter to <code class="docutils literal notranslate"><span class="pre">define_class</span></code> that specifies that <code class="docutils literal notranslate"><span class="pre">Derived</span></code> inherits from <code class="docutils literal notranslate"><span class="pre">Base</span></code>.</p>
 <p>Rice does not support multiple inheritance.</p>
-</section>
-<section id="advanced">
-<h2>Advanced<a class="headerlink" href="#advanced" title="Permalink to this headline">¶</a></h2>
-<p>Polymorphism creates yet another wrinkle in building exceptions around C++ code,
-because now we have to deal with cross-language polymorphism, where C++ can call
-into a Ruby subclass, and a Ruby subclass can <code class="docutils literal notranslate"><span class="pre">super</span></code> back into C++ land. <code class="docutils literal notranslate"><span class="pre">super</span></code>
-calls already work through <code class="docutils literal notranslate"><span class="pre">define_class</span></code>, but making code travel from C++ into Ruby
-via polymorphism is tricker. Rice provides the <code class="docutils literal notranslate"><span class="pre">Rice::Director</span></code> class and the
-<code class="docutils literal notranslate"><span class="pre">define_director</span></code> method to enable this code path.</p>
-<p>Like <code class="docutils literal notranslate"><span class="pre">SWIG_Director</span></code>, <code class="docutils literal notranslate"><span class="pre">Rice::Director</span></code> is a class that is used to build a proxy class
-to properly send execution up or down the object hierarchy for that class. Take
-the following class:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">VirtualBase</span> <span class="p">{</span>
+<section id="directors">
+<h2>Directors<a class="headerlink" href="#directors" title="Permalink to this headline">¶</a></h2>
+<p>Inheritance becomes much more complex if you want to create Ruby classes that inherit from wrapped C++ classes. This introduces several problems:</p>
+<ul class="simple">
+<li><p>Ruby classes should be able to override C++ virtual methods</p></li>
+<li><p>Overriden virtual methods should be able to call <code class="docutils literal notranslate"><span class="pre">super</span></code> and invoke the overriden C++ method</p></li>
+<li><p>C++ code calling the virtual methods should invoke the overriden version in Ruby</p></li>
+</ul>
+<p>Rice supports these use cases through the use of <code class="docutils literal notranslate"><span class="pre">Director</span></code> classes. <code class="docutils literal notranslate"><span class="pre">Directors</span></code> are proxies that can correctly dispatch method invocations up or down a Class hierarchy.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The name Director comes from SWIG - for more information see <a class="reference external" href="https://www.swig.org/Doc4.0/SWIGPlus.html#SWIGPlus_director_classes_introduction">https://www.swig.org/Doc4.0/SWIGPlus.html#SWIGPlus_director_classes_introduction</a>.</p>
+</div>
+<p>Take the following class:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">VirtualBase</span>
+<span class="p">{</span>
   <span class="k">public</span><span class="o">:</span>
     <span class="n">VirtualBase</span><span class="p">();</span>
     <span class="k">virtual</span> <span class="kt">int</span> <span class="n">doWork</span><span class="p">();</span>
@@ -201,31 +209,35 @@ the following class:</p>
 <span class="p">};</span>
 </pre></div>
 </div>
-<p>Due to the abstract nature of this class, we cannot directly wrap it in Rice, as
-any C++ compiler will complain about trying to instantiate a virtual class.
-Even without the pure virtual function, any call to <code class="docutils literal notranslate"><span class="pre">VirtualBase::doWork</span></code> will stop
-at the C++ level and execution will not pass down into any Ruby subclasses.</p>
-<p>To properly wrap both of these methods, use a <code class="docutils literal notranslate"><span class="pre">Rice::Director</span></code> subclass as a proxy
-and use this new proxy class as the type to wrap with <code class="docutils literal notranslate"><span class="pre">define_class</span></code>:</p>
+<p>Due to the abstract nature of this class, we cannot directly wrap it in Rice, as any C++ compiler will complain about trying to instantiate a virtual class. Even without the pure virtual function, any call to <code class="docutils literal notranslate"><span class="pre">VirtualBase::doWork</span></code> will stop at the C++ level and execution will not pass down into any Ruby subclasses.</p>
+<p>To properly wrap both of these methods, use a <code class="docutils literal notranslate"><span class="pre">Rice::Director</span></code> subclass as a proxy and use this new proxy class as the type to wrap with <code class="docutils literal notranslate"><span class="pre">define_class</span></code>:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;rice/rice.hpp&gt;</span><span class="cp"></span>
 
-<span class="k">class</span> <span class="nc">VirtualBaseProxy</span> <span class="o">:</span> <span class="k">public</span> <span class="n">VirtualBase</span><span class="p">,</span> <span class="k">public</span> <span class="n">Rice</span><span class="o">::</span><span class="n">Director</span> <span class="p">{</span>
+<span class="k">class</span> <span class="nc">VirtualBaseProxy</span> <span class="o">:</span> <span class="k">public</span> <span class="n">VirtualBase</span><span class="p">,</span> <span class="k">public</span> <span class="n">Rice</span><span class="o">::</span><span class="n">Director</span>
+<span class="p">{</span>
   <span class="k">public</span><span class="o">:</span>
-    <span class="n">VirtualBaseProxy</span><span class="p">(</span><span class="n">Object</span> <span class="n">self</span><span class="p">)</span> <span class="o">:</span> <span class="n">Rice</span><span class="o">::</span><span class="n">Director</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
+    <span class="n">VirtualBaseProxy</span><span class="p">(</span><span class="n">Object</span> <span class="n">self</span><span class="p">)</span> <span class="o">:</span> <span class="n">Rice</span><span class="o">::</span><span class="n">Director</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
+    <span class="p">{</span> <span class="p">}</span>
 
-    <span class="k">virtual</span> <span class="kt">int</span> <span class="n">doWork</span><span class="p">()</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">From_Ruby</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span> <span class="n">getSelf</span><span class="p">().</span><span class="n">call</span><span class="p">(</span><span class="s">"do_work"</span><span class="p">)</span> <span class="p">);</span>
+    <span class="k">virtual</span> <span class="kt">int</span> <span class="n">doWork</span><span class="p">()</span>
+    <span class="p">{</span>
+      <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">getSelf</span><span class="p">().</span><span class="n">call</span><span class="p">(</span><span class="s">"do_work"</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">From_Ruby</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
     <span class="p">}</span>
 
-    <span class="kt">int</span> <span class="n">default_doWork</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">default_doWork</span><span class="p">()</span>
+    <span class="p">{</span>
       <span class="k">return</span> <span class="n">VirtualBase</span><span class="o">::</span><span class="n">doWork</span><span class="p">();</span>
     <span class="p">}</span>
 
-    <span class="k">virtual</span> <span class="kt">int</span> <span class="n">processWorker</span><span class="p">()</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">From_Ruby</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span> <span class="n">getSelf</span><span class="p">().</span><span class="n">call</span><span class="p">(</span><span class="s">"process_worker"</span><span class="p">)</span> <span class="p">);</span>
+    <span class="k">virtual</span> <span class="kt">int</span> <span class="n">processWorker</span><span class="p">()</span>
+    <span class="p">{</span>
+      <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">getSelf</span><span class="p">().</span><span class="n">call</span><span class="p">(</span><span class="s">"process_worker"</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">From_Ruby</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
     <span class="p">}</span>
 
-    <span class="kt">int</span> <span class="n">default_processWorker</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">default_processWorker</span><span class="p">()</span>
+    <span class="p">{</span>
       <span class="n">raisePureVirtual</span><span class="p">();</span>
     <span class="p">}</span>
 <span class="p">};</span>
@@ -240,35 +252,30 @@ and use this new proxy class as the type to wrap with <code class="docutils lite
   <span class="n">VirtualBaseProxy</span><span class="p">(</span><span class="n">Object</span> <span class="n">self</span><span class="p">)</span> <span class="o">:</span> <span class="n">Rice</span><span class="o">::</span><span class="n">Director</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
 </pre></div>
 </div>
-<p>For <code class="docutils literal notranslate"><span class="pre">Rice::Director</span></code> to work its magic, every instance of this class needs to
-have a handle to its Ruby instance. The constructor
-must take a <code class="docutils literal notranslate"><span class="pre">Rice::Object</span></code> as the first argument and pass it up into
-<code class="docutils literal notranslate"><span class="pre">Rice::Director</span></code>. The code here is the minimum required for a <code class="docutils literal notranslate"><span class="pre">Rice::Director</span></code> proxy.</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">virtual</span> <span class="kt">int</span> <span class="n">doWork</span><span class="p">()</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">From_Ruby</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span> <span class="n">getSelf</span><span class="p">().</span><span class="n">call</span><span class="p">(</span><span class="s">"do_work"</span><span class="p">)</span> <span class="p">);</span>
+<p>For <code class="docutils literal notranslate"><span class="pre">Rice::Director</span></code> to work its magic, every instance of this class needs to have a handle to its Ruby instance. The constructor must take a <code class="docutils literal notranslate"><span class="pre">Rice::Object</span></code> as the first argument and pass it to <code class="docutils literal notranslate"><span class="pre">Rice::Director</span></code>.</p>
+<p>Next we implement <code class="docutils literal notranslate"><span class="pre">doWork</span></code>. The director class overrides its by forwarding the invocation to the Ruby instance.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">virtual</span> <span class="kt">int</span> <span class="n">doWork</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">getSelf</span><span class="p">().</span><span class="n">call</span><span class="p">(</span><span class="s">"do_work"</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">detail</span><span class="o">::</span><span class="n">From_Ruby</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
 <span class="p">}</span>
 
-<span class="kt">int</span> <span class="n">default_doWork</span><span class="p">()</span> <span class="p">{</span>
+<span class="kt">int</span> <span class="n">default_doWork</span><span class="p">()</span>
+<span class="p">{</span>
   <span class="k">return</span> <span class="n">VirtualBase</span><span class="o">::</span><span class="n">doWork</span><span class="p">();</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Here the proxy class implements the virtual methods and provides implementations
-that delegate execution in the correct direction. The actual method calls into Ruby,
-providing all necessary type conversions to and from C++ types. The other method
-is how Ruby calls back into C++ and is the method that must be exposed with
-<code class="docutils literal notranslate"><span class="pre">define_method</span></code>. The <code class="docutils literal notranslate"><span class="pre">default_</span></code> prefix is a naming convention to help keep straight
-which methods perform which function. If Ruby should never call into C++, then the
-<code class="docutils literal notranslate"><span class="pre">default_</span></code> implementation should call <code class="docutils literal notranslate"><span class="pre">raisePureVirtual()</span></code>:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">default_processWorker</span><span class="p">()</span> <span class="p">{</span>
+<p>It director also implements <code class="docutils literal notranslate"><span class="pre">default_doWork</span></code> which enables Ruby to call the overriden virtual C++ method. The <code class="docutils literal notranslate"><span class="pre">default_</span></code> prefix is a naming convention to help keep straight which methods perform which functions.</p>
+<p>If Ruby should never call the C++ method then the <code class="docutils literal notranslate"><span class="pre">default_</span></code> implementation should call <code class="docutils literal notranslate"><span class="pre">raisePureVirtual()</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">default_processWorker</span><span class="p">()</span>
+<span class="p">{</span>
   <span class="n">raisePureVirtual</span><span class="p">();</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The method <code class="docutils literal notranslate"><span class="pre">raisePureVirtual()</span></code> exists to allow wrapping a pure virtual method into Ruby
-(and ensuring compliation is possible) but making sure any users of this extension are
-informed quickly that there’s nothing callable in the C++ side of the library.</p>
-<p>Once the proxy class is built, it’s time to wrap it into Ruby:</p>
+<p>The method <code class="docutils literal notranslate"><span class="pre">raisePureVirtual()</span></code> exists to allow wrapping a pure virtual method into Ruby (and ensuring compilation is possible) while also making sure any users of this extension are informed quickly if there is nothing callable on the C++ side.</p>
+<p>Once the Director class is built, it’s time to wrap it into Ruby:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">extern</span> <span class="s">"C"</span>
 <span class="kt">void</span> <span class="n">Init_virtual</span><span class="p">()</span> <span class="p">{</span>
   <span class="n">define_class</span><span class="o">&lt;</span><span class="n">VirtualBase</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"VirtualBase"</span><span class="p">)</span>
@@ -279,11 +286,10 @@ informed quickly that there’s nothing callable in the C++ side of the library.
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The wrapping is the same as is described earlier in this document. Expose the class
-<code class="docutils literal notranslate"><span class="pre">VirtualBase</span></code>, and register <code class="docutils literal notranslate"><span class="pre">VirtualBaseProxy</span></code> as a director proxy of <code class="docutils literal notranslate"><span class="pre">VirtualBase</span></code> with
-<code class="docutils literal notranslate"><span class="pre">Rice::Data_Type::define_director</span></code>, then <code class="docutils literal notranslate"><span class="pre">define_method</span></code> pointing to the proxy methods as necessary.</p>
-<p>You must use the <code class="docutils literal notranslate"><span class="pre">Rice::Director</span></code> proxy class in the Constructor line, this allows proper
-object construction / destruction of the types in question.</p>
+<p>There are couple of new things in this code.</p>
+<p>First, is the addition of the <code class="docutils literal notranslate"><span class="pre">define_director</span></code> call which takes the <code class="docutils literal notranslate"><span class="pre">VirtualBaseProxy</span></code> as a template parameter.</p>
+<p>Second, the <code class="docutils literal notranslate"><span class="pre">Constructor</span></code> template parameter must also be the <code class="docutils literal notranslate"><span class="pre">VirtualBaseProxy</span></code> to allow proper object construction and destruction of the derived objects.</p>
+<p>Third, the <code class="docutils literal notranslate"><span class="pre">define_method</span></code> calls should point to the <code class="docutils literal notranslate"><span class="pre">default_*</span></code> implementations.</p>
 </section>
 </section>
 
@@ -291,12 +297,12 @@ object construction / destruction of the types in question.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="cpp_api.html">
+          <a class="next-page" href="instance_registry.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Ruby C++ API</div>
+                <div class="title">Instance Registry</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -314,14 +320,14 @@ object construction / destruction of the types in question.</p>
         </div>
 
         <div class="related-information">
-              Copyright &#169; 2021, Paul Brannon, Jason Roelofs, Charlie Savage
+              Copyright &#169; 2023, Paul Brannon, Jason Roelofs, Charlie Savage
             |
             Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
               and
               <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
               <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
             |
-            <a class="muted-link" href="../_sources/advanced/inheritance.rst.txt"
+            <a class="muted-link" href="../_sources/bindings/inheritance.rst.txt"
                rel="nofollow">
               Show Source
             </a>
@@ -342,8 +348,7 @@ object construction / destruction of the types in question.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Inheritance</a><ul>
-<li><a class="reference internal" href="#basic">Basic</a></li>
-<li><a class="reference internal" href="#advanced">Advanced</a></li>
+<li><a class="reference internal" href="#directors">Directors</a></li>
 </ul>
 </li>
 </ul>
