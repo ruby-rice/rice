@@ -17,12 +17,12 @@ Example:
 
 .. code-block:: cpp
 
-  std::vector<std::string> makeStringVector())
+  std::vector<std::string> makeStringVector()
   {
      return std::vector {"one", "two", "three"};
   }
 
-  define_vector<std::vector<std::string>("StringVector");
+  define_vector<std::vector<std::string>>("StringVector");
   define_global_function("make_string_vector", &makeStringVector);
 
 Once you have defined this Ruby class, you can create a new instance like this:

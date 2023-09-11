@@ -1,62 +1,58 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en" data-content_root="./">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Bindings" href="bindings.html" /><link rel="prev" title="Introduction" href="introduction.html" />
 
-    <meta name="generator" content="sphinx-3.5.3, furo 2021.03.20.beta30"/>
+    <!-- Generated with Sphinx 7.2.5 and Furo 2023.09.10 -->
         <title>Tutorial - Rice documentation</title>
-      <link rel="stylesheet" href="_static/styles/furo.css?digest=978e1795dfe158b585dda6a8417f6411828bf3ed">
-    <link rel="stylesheet" href="_static/pygments.css">
-    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="_static/pygments_dark.css">
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=36a5483c" />
+    
     
 
 
 <style>
-  :root {
+  body {
     --color-code-background: #f8f8f8;
   --color-code-foreground: black;
   
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
+  @media not print {
+    body[data-theme="dark"] {
       --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
   
     }
-  }
-
-  /* For allowing end-user-specific overrides */
-  .override-light {
-    --color-code-background: #f8f8f8;
-  --color-code-foreground: black;
-  
-  }
-  .override-dark {
-    --color-code-background: #202020;
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
   
+      }
+    }
   }
-</style><link rel="stylesheet" href="_static/styles/furo-extensions.css?digest=d391b54134226e4196576da3bdb6dddb7e05ba2b"></head>
-  <body dir="">
+</style></head>
+  <body>
     
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
   <symbol id="svg-toc" viewBox="0 0 24 24">
     <title>Contents</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-      stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-      <path stroke="none" d="M0 0h24v24H0z"/>
-      <line x1="4" y1="6" x2="20" y2="6" />
-      <line x1="10" y1="12" x2="20" y2="12" />
-      <line x1="6" y1="18" x2="20" y2="18" />
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
     </svg>
   </symbol>
   <symbol id="svg-menu" viewBox="0 0 24 24">
     <title>Menu</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-      class="feather feather-menu">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
       <line x1="3" y1="12" x2="21" y2="12"></line>
       <line x1="3" y1="6" x2="21" y2="6"></line>
       <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -64,18 +60,57 @@
   </symbol>
   <symbol id="svg-arrow-right" viewBox="0 0 24 24">
     <title>Expand</title>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-      class="feather feather-chevron-right">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
       <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
     </svg>
   </symbol>
 </svg>
 
 <input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
 <input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
-<label class="overlay sidebar-overlay" for="__navigation"></label>
-<label class="overlay toc-overlay" for="__toc"></label>
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
 
 
 
@@ -83,6 +118,7 @@
   <header class="mobile-header">
     <div class="header-left">
       <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
         <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
       </label>
     </div>
@@ -90,7 +126,16 @@
       <a href="index.html"><div class="brand">Rice  documentation</div></a>
     </div>
     <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
       <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
     </div>
@@ -103,15 +148,16 @@
   
   <span class="sidebar-brand-text">Rice  documentation</span>
   
-</a><form class="sidebar-search-container" method="get" action="search.html">
-  <input class="sidebar-search" placeholder=Search name="q">
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
   <input type="hidden" name="area" value="default">
-</form><div class="sidebar-scroll"><div class="sidebar-tree">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Tutorial</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="bindings.html">Bindings</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label for="toctree-checkbox-1"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="bindings.html">Bindings</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Bindings</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="bindings/methods.html">Functions and Methods</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bindings/overloaded_methods.html">Overloaded Methods</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bindings/iterators.html">Iterators</a></li>
@@ -124,7 +170,7 @@
 <li class="toctree-l2"><a class="reference internal" href="bindings/instance_registry.html">Instance Registry</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="stl.html">STL</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label for="toctree-checkbox-2"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="stl.html">STL</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of STL</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="stl/stl.html">STL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="stl/complex.html">std::complex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="stl/map.html">std::map</a></li>
@@ -138,7 +184,7 @@
 <li class="toctree-l2"><a class="reference internal" href="stl/vector.html">std::vector</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="api.html">C++ API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label for="toctree-checkbox-3"><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api.html">C++ API</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of C++ API</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/overview.html">Ruby C++ API</a></li>
 </ul>
 </li>
@@ -148,28 +194,48 @@
 
 </div>
 </div>
+
       </div>
       
     </div>
   </aside>
-  <main class="main">
+  <div class="main">
     <div class="content">
-      <article role="main">
-        <label class="toc-overlay-icon toc-content-icon" for="__toc">
-          <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
-        </label>
-        <section id="tutorial">
-<span id="id1"></span><h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="tutorial">
+<span id="id1"></span><h1>Tutorial<a class="headerlink" href="#tutorial" title="Link to this heading">#</a></h1>
 <section id="getting-started">
-<h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<h2>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading">#</a></h2>
 <p>Writing an extension with Rice is very similar to writing an extension with the C API.</p>
 <p>The first step is to install the Rice gem:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gem install rice
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gem<span class="w"> </span>install<span class="w"> </span>rice
 </pre></div>
 </div>
 <p>Next create an extconf.rb file:</p>
-<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="nb">require</span> <span class="s1">'mkmf-rice'</span>
-<span class="n">create_makefile</span><span class="p">(</span><span class="s1">'test'</span><span class="p">)</span>
+<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="nb">require</span><span class="w"> </span><span class="s1">&#39;mkmf-rice&#39;</span>
+<span class="n">create_makefile</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Note that we use <code class="docutils literal notranslate"><span class="pre">mkmf-rice</span></code> instead of <code class="docutils literal notranslate"><span class="pre">mkmf</span></code>. This will ensure that the extension will be linked with standard C++ library and allows access to the Rice header files.</p>
@@ -178,38 +244,38 @@
 <p>For advanced users - instead of using mkmf-rice you can use your own build system such as CMake. In this case you may prefer to download the Rice header file, <a class="reference external" href="https://github.com/jasonroelofs/rice/blob/master/include/rice/rice.hpp">rice.hpp</a>, from github and directly include it in your source tree.</p>
 </div>
 <p>Next we create our extension and save it to <code class="docutils literal notranslate"><span class="pre">test.cpp</span></code>:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">extern</span> <span class="s">"C"</span>
-<span class="kt">void</span> <span class="n">Init_test</span><span class="p">()</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Init_test</span><span class="p">()</span>
 <span class="p">{</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Note the <code class="docutils literal notranslate"><span class="pre">extern</span> <span class="pre">"C"</span></code> line above. This tells the compiler that the function <code class="docutils literal notranslate"><span class="pre">Init_test</span></code> should have C linkage and calling convention. This turns off name mangling so that the Ruby interpreter will be able to find the function (remember that Ruby is written in C, not C++).</p>
+<p>Note the <code class="docutils literal notranslate"><span class="pre">extern</span> <span class="pre">&quot;C&quot;</span></code> line above. This tells the compiler that the function <code class="docutils literal notranslate"><span class="pre">Init_test</span></code> should have C linkage and calling convention. This turns off name mangling so that the Ruby interpreter will be able to find the function (remember that Ruby is written in C, not C++).</p>
 <p>So far we haven’t put anything into the extension, so it isn’t particularly useful. The next step is to define a class so we can add methods to it.</p>
 </section>
 <section id="defining-classes">
-<h2>Defining Classes<a class="headerlink" href="#defining-classes" title="Permalink to this headline">¶</a></h2>
+<h2>Defining Classes<a class="headerlink" href="#defining-classes" title="Link to this heading">#</a></h2>
 <p>Defining a class in Rice is a single call:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;rice/rice.hpp&gt;</span><span class="cp"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;rice/rice.hpp&gt;</span>
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">Rice</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Rice</span><span class="p">;</span>
 
-<span class="k">extern</span> <span class="s">"C"</span>
-<span class="kt">void</span> <span class="n">Init_test</span><span class="p">()</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Init_test</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="n">Class</span> <span class="n">rb_cTest</span> <span class="o">=</span> <span class="n">define_class</span><span class="p">(</span><span class="s">"Test"</span><span class="p">);</span>
+<span class="w">  </span><span class="n">Class</span><span class="w"> </span><span class="n">rb_cTest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">define_class</span><span class="p">(</span><span class="s">&quot;Test&quot;</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>This will create a class called <code class="docutils literal notranslate"><span class="pre">Test</span></code> that inherits from <code class="docutils literal notranslate"><span class="pre">Object</span></code>. If we wanted to inherit from a different class, we do so with the second parameter:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;rice/rice.hpp&gt;</span><span class="cp"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;rice/rice.hpp&gt;</span>
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">Rice</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Rice</span><span class="p">;</span>
 
-<span class="k">extern</span> <span class="s">"C"</span>
-<span class="kt">void</span> <span class="n">Init_test</span><span class="p">()</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Init_test</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="n">Class</span> <span class="n">rb_cMySocket</span> <span class="o">=</span> <span class="n">define_class</span><span class="p">(</span><span class="s">"MySocket"</span><span class="p">,</span> <span class="n">rb_cIO</span><span class="p">);</span>
+<span class="w">  </span><span class="n">Class</span><span class="w"> </span><span class="n">rb_cMySocket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">define_class</span><span class="p">(</span><span class="s">&quot;MySocket&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">rb_cIO</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -226,56 +292,56 @@
 <p>Also note that we don’t include “ruby.h” directly. Rice has a wrapper for ruby.h that handles some compatibility issues across platforms and Ruby versions. Always include Rice headers before including anything that might include “ruby.h”.</p>
 </section>
 <section id="defining-methods">
-<span id="id2"></span><h2>Defining methods<a class="headerlink" href="#defining-methods" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2>Defining methods<a class="headerlink" href="#defining-methods" title="Link to this heading">#</a></h2>
 <p>Now let’s add a method to our class:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;rice/rice.hpp&gt;</span><span class="cp"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;rice/rice.hpp&gt;</span>
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">Rice</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Rice</span><span class="p">;</span>
 
-<span class="n">Object</span> <span class="nf">test_hello</span><span class="p">(</span><span class="n">Object</span> <span class="cm">/* self */</span><span class="p">)</span>
+<span class="n">Object</span><span class="w"> </span><span class="nf">test_hello</span><span class="p">(</span><span class="n">Object</span><span class="w"> </span><span class="cm">/* self */</span><span class="p">)</span>
 <span class="p">{</span>
-  <span class="n">String</span> <span class="n">str</span><span class="p">(</span><span class="s">"hello, world"</span><span class="p">);</span>
-  <span class="k">return</span> <span class="n">str</span><span class="p">;</span>
+<span class="w">  </span><span class="n">String</span><span class="w"> </span><span class="n">str</span><span class="p">(</span><span class="s">&quot;hello, world&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">str</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="k">extern</span> <span class="s">"C"</span>
-<span class="kt">void</span> <span class="n">Init_test</span><span class="p">()</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Init_test</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="n">Class</span> <span class="n">rb_cTest</span> <span class="o">=</span>
-    <span class="n">define_class</span><span class="p">(</span><span class="s">"Test"</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">"hello"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">test_hello</span><span class="p">);</span>
+<span class="w">  </span><span class="n">Class</span><span class="w"> </span><span class="n">rb_cTest</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="n">define_class</span><span class="p">(</span><span class="s">&quot;Test&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">test_hello</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>Here we add a method <code class="docutils literal notranslate"><span class="pre">Test#hello</span></code> that returns the string “Hello, World”. The method takes self as an implicit parameter, but isn’t used, so we comment it out to prevent a compiler warning.</p>
 <p>We can also add an <code class="docutils literal notranslate"><span class="pre">#initialize</span></code> method to our class:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;rice/rice.hpp&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;rice/stl.hpp&gt;</span><span class="cp"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;rice/rice.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;rice/stl.hpp&gt;</span>
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">Rice</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Rice</span><span class="p">;</span>
 
-<span class="n">Object</span> <span class="nf">test_initialize</span><span class="p">(</span><span class="n">Object</span> <span class="n">self</span><span class="p">)</span>
+<span class="n">Object</span><span class="w"> </span><span class="nf">test_initialize</span><span class="p">(</span><span class="n">Object</span><span class="w"> </span><span class="n">self</span><span class="p">)</span>
 <span class="p">{</span>
-  <span class="n">self</span><span class="p">.</span><span class="n">iv_set</span><span class="p">(</span><span class="s">"@foo"</span><span class="p">,</span> <span class="mi">42</span><span class="p">);</span>
+<span class="w">  </span><span class="n">self</span><span class="p">.</span><span class="n">iv_set</span><span class="p">(</span><span class="s">&quot;@foo&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="p">);</span>
 <span class="p">}</span>
 
-<span class="n">Object</span> <span class="nf">test_hello</span><span class="p">(</span><span class="n">Object</span> <span class="cm">/* self */</span><span class="p">)</span>
+<span class="n">Object</span><span class="w"> </span><span class="nf">test_hello</span><span class="p">(</span><span class="n">Object</span><span class="w"> </span><span class="cm">/* self */</span><span class="p">)</span>
 <span class="p">{</span>
-  <span class="n">String</span> <span class="n">str</span><span class="p">(</span><span class="s">"hello, world"</span><span class="p">);</span>
-  <span class="k">return</span> <span class="n">str</span><span class="p">;</span>
+<span class="w">  </span><span class="n">String</span><span class="w"> </span><span class="n">str</span><span class="p">(</span><span class="s">&quot;hello, world&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">str</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="k">extern</span> <span class="s">"C"</span>
-<span class="kt">void</span> <span class="n">Init_test</span><span class="p">()</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Init_test</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="n">Class</span> <span class="n">rb_cTest</span> <span class="o">=</span>
-    <span class="n">define_class</span><span class="p">(</span><span class="s">"Test"</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">"initialize"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">test_initialize</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">"hello"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">test_hello</span><span class="p">);</span>
+<span class="w">  </span><span class="n">Class</span><span class="w"> </span><span class="n">rb_cTest</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="n">define_class</span><span class="p">(</span><span class="s">&quot;Test&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">&quot;initialize&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">test_initialize</span><span class="p">)</span>
+<span class="w">    </span><span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">test_hello</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">initialize</span></code> method sets an instance variable <code class="docutils literal notranslate"><span class="pre">@foo</span></code> to the value 42. The number is automatically converted to a <code class="docutils literal notranslate"><span class="pre">Fixnum</span></code> before doing the assignment.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">initialize</span></code> method sets an instance variable <code class="docutils literal notranslate"><span class="pre">&#64;foo</span></code> to the value 42. The number is automatically converted to a <code class="docutils literal notranslate"><span class="pre">Fixnum</span></code> before doing the assignment.</p>
 <p>Note that we’re chaining calls on the <code class="docutils literal notranslate"><span class="pre">Class</span></code> object. Most member functions in <code class="docutils literal notranslate"><span class="pre">Module</span></code> and <code class="docutils literal notranslate"><span class="pre">Class</span></code> return a reference to <code class="docutils literal notranslate"><span class="pre">self</span></code>, so we can chain as many calls as we want to define as many methods as we want.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -283,67 +349,67 @@
 </div>
 </section>
 <section id="defining-methods-with-lambdas">
-<h2>Defining methods with lambdas<a class="headerlink" href="#defining-methods-with-lambdas" title="Permalink to this headline">¶</a></h2>
+<h2>Defining methods with lambdas<a class="headerlink" href="#defining-methods-with-lambdas" title="Link to this heading">#</a></h2>
 <p>It is also possible to define_methods using C++ lambdas. Similar to define_method, the lambda takes self as an implicit parameter:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Class</span> <span class="n">rb_cTest</span> <span class="o">=</span>
-  <span class="n">define_class</span><span class="p">(</span><span class="s">"Test"</span><span class="p">)</span>
-  <span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">"hello"</span><span class="p">,</span> <span class="p">[](</span><span class="n">Object</span><span class="o">&amp;</span> <span class="n">object</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="n">test_hello</span>
-  <span class="p">});</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Class</span><span class="w"> </span><span class="n">rb_cTest</span><span class="w"> </span><span class="o">=</span>
+<span class="w">  </span><span class="n">define_class</span><span class="p">(</span><span class="s">&quot;Test&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">[](</span><span class="n">Object</span><span class="o">&amp;</span><span class="w"> </span><span class="n">object</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">test_hello</span>
+<span class="w">  </span><span class="p">});</span>
 </pre></div>
 </div>
 <p>Note that we pass self as a reference since we do not want to copy it!</p>
 </section>
 <section id="defining-functions">
-<h2>Defining functions<a class="headerlink" href="#defining-functions" title="Permalink to this headline">¶</a></h2>
+<h2>Defining functions<a class="headerlink" href="#defining-functions" title="Link to this heading">#</a></h2>
 <p>It is also possible to add methods to a Ruby class using <code class="docutils literal notranslate"><span class="pre">define_function</span></code>. The difference is that no implicit self parameter is passed. Once again, you can use function pointers
 or lambdas:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">some_function</span><span class="p">()</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">some_function</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="c1">// do something</span>
+<span class="w">  </span><span class="c1">// do something</span>
 <span class="p">}</span>
 
-<span class="k">extern</span> <span class="s">"C"</span>
-<span class="kt">void</span> <span class="n">Init_test</span><span class="p">()</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Init_test</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="n">Class</span> <span class="n">rb_cTest</span> <span class="o">=</span>
-    <span class="n">define_class</span><span class="p">(</span><span class="s">"Test"</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">define_function</span><span class="p">(</span><span class="s">"some_function"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">some_function</span><span class="p">);</span>
-    <span class="p">.</span><span class="n">define_function</span><span class="p">(</span><span class="s">"some_function_lambda"</span><span class="p">,</span> <span class="p">[]()</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">some_function</span><span class="p">();</span>
-    <span class="p">});</span>
+<span class="w">  </span><span class="n">Class</span><span class="w"> </span><span class="n">rb_cTest</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="n">define_class</span><span class="p">(</span><span class="s">&quot;Test&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">.</span><span class="n">define_function</span><span class="p">(</span><span class="s">&quot;some_function&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">some_function</span><span class="p">);</span>
+<span class="w">    </span><span class="p">.</span><span class="n">define_function</span><span class="p">(</span><span class="s">&quot;some_function_lambda&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">[]()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="n">some_function</span><span class="p">();</span>
+<span class="w">    </span><span class="p">});</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 </section>
 <section id="wrapping-c-types">
-<h2>Wrapping C++ Types<a class="headerlink" href="#wrapping-c-types" title="Permalink to this headline">¶</a></h2>
+<h2>Wrapping C++ Types<a class="headerlink" href="#wrapping-c-types" title="Link to this heading">#</a></h2>
 <p>It’s useful to be able to define Ruby classes in a C++ style rather than using the Ruby API directly, but the real power Rice is in wrapping already-defined C++ types.</p>
 <p>Let’s assume we have the following C++ class that we want to wrap:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Test</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Test</span>
 <span class="p">{</span>
 <span class="k">public</span><span class="o">:</span>
-  <span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">static_hello</span><span class="p">();</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">static_hello</span><span class="p">();</span>
 <span class="k">public</span><span class="o">:</span>
-  <span class="n">Test</span><span class="p">();</span>
-  <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">hello</span><span class="p">();</span>
+<span class="w">  </span><span class="n">Test</span><span class="p">();</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">hello</span><span class="p">();</span>
 <span class="p">};</span>
 </pre></div>
 </div>
 <p>This is a C++ version of the Ruby class we just created in the previous section. To wrap it:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;rice/rice.hpp&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;rice/stl.hpp&gt;</span><span class="cp"></span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;rice/rice.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;rice/stl.hpp&gt;</span>
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">Rice</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">Rice</span><span class="p">;</span>
 
-<span class="k">extern</span> <span class="s">"C"</span>
-<span class="kt">void</span> <span class="n">Init_test</span><span class="p">()</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Init_test</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span> <span class="n">rb_cTest</span> <span class="o">=</span>
-    <span class="n">define_class</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Test"</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">define_constructor</span><span class="p">(</span><span class="n">Constructor</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="p">())</span>
-    <span class="p">.</span><span class="n">define_function</span><span class="p">(</span><span class="s">"static_hello"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Test</span><span class="o">::</span><span class="n">static_hello</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">"hello"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Test</span><span class="o">::</span><span class="n">hello</span><span class="p">);</span>
+<span class="w">  </span><span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="w"> </span><span class="n">rb_cTest</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="n">define_class</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Test&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">.</span><span class="n">define_constructor</span><span class="p">(</span><span class="n">Constructor</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="p">())</span>
+<span class="w">    </span><span class="p">.</span><span class="n">define_function</span><span class="p">(</span><span class="s">&quot;static_hello&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">Test</span><span class="o">::</span><span class="n">static_hello</span><span class="p">)</span>
+<span class="w">    </span><span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">Test</span><span class="o">::</span><span class="n">hello</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -352,154 +418,154 @@ or lambdas:</p>
 <p>Last, we define a method <code class="docutils literal notranslate"><span class="pre">hello</span></code> that is implemented by a C++ member function. When Ruby calls this function, instead of passing an implicit self parameter, Rice is smart enough to direct the call to the correct C++ Test instance.</p>
 </section>
 <section id="defining-attributes">
-<h2>Defining attributes<a class="headerlink" href="#defining-attributes" title="Permalink to this headline">¶</a></h2>
+<h2>Defining attributes<a class="headerlink" href="#defining-attributes" title="Link to this heading">#</a></h2>
 <p>C++ structures, and sometimes classes, often have public member variables that store data. Rice makes it easy to wrap these member variables via the use of <code class="docutils literal notranslate"><span class="pre">define_attr</span></code>:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nc">MyStruct</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">MyStruct</span>
 <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">readOnly</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">writeOnly</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">readWrite</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">readOnly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">writeOnly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">readWrite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">};</span>
 
-<span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">MyStruct</span><span class="o">&gt;</span> <span class="n">rb_cMyStrut</span> <span class="o">=</span>
-  <span class="n">define_class</span><span class="o">&lt;</span><span class="n">MyStruct</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"MyStruct"</span><span class="p">)</span>
-  <span class="p">.</span><span class="n">define_constructor</span><span class="p">(</span><span class="n">Constructor</span><span class="o">&lt;</span><span class="n">MyStruct</span><span class="o">&gt;</span><span class="p">())</span>
-  <span class="p">.</span><span class="n">define_attr</span><span class="p">(</span><span class="s">"read_only"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">MyStruct</span><span class="o">::</span><span class="n">readOnly</span><span class="p">,</span> <span class="n">Rice</span><span class="o">::</span><span class="n">AttrAccess</span><span class="o">::</span><span class="n">Read</span><span class="p">)</span>
-  <span class="p">.</span><span class="n">define_attr</span><span class="p">(</span><span class="s">"write_only"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">MyStruct</span><span class="o">::</span><span class="n">writeOnly</span><span class="p">,</span> <span class="n">Rice</span><span class="o">::</span><span class="n">AttrAccess</span><span class="o">::</span><span class="n">Write</span><span class="p">)</span>
-  <span class="p">.</span><span class="n">define_attr</span><span class="p">(</span><span class="s">"read_write"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">MyStruct</span><span class="o">::</span><span class="n">readWrite</span><span class="p">);</span>
+<span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">MyStruct</span><span class="o">&gt;</span><span class="w"> </span><span class="n">rb_cMyStrut</span><span class="w"> </span><span class="o">=</span>
+<span class="w">  </span><span class="n">define_class</span><span class="o">&lt;</span><span class="n">MyStruct</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;MyStruct&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="n">define_constructor</span><span class="p">(</span><span class="n">Constructor</span><span class="o">&lt;</span><span class="n">MyStruct</span><span class="o">&gt;</span><span class="p">())</span>
+<span class="w">  </span><span class="p">.</span><span class="n">define_attr</span><span class="p">(</span><span class="s">&quot;read_only&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">MyStruct</span><span class="o">::</span><span class="n">readOnly</span><span class="p">,</span><span class="w"> </span><span class="n">Rice</span><span class="o">::</span><span class="n">AttrAccess</span><span class="o">::</span><span class="n">Read</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="n">define_attr</span><span class="p">(</span><span class="s">&quot;write_only&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">MyStruct</span><span class="o">::</span><span class="n">writeOnly</span><span class="p">,</span><span class="w"> </span><span class="n">Rice</span><span class="o">::</span><span class="n">AttrAccess</span><span class="o">::</span><span class="n">Write</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="n">define_attr</span><span class="p">(</span><span class="s">&quot;read_write&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">MyStruct</span><span class="o">::</span><span class="n">readWrite</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>Notice the use of <code class="docutils literal notranslate"><span class="pre">Rice::AttrAccess::Read</span></code> to define read-only attributes and <code class="docutils literal notranslate"><span class="pre">Rice::AttrAccess::Write</span></code> for write-only attributes. If you do not specify an AttrAccess value then Rice make the attribute readable and writable.</p>
 <p>These attributes can then be accessed in the expected way in Ruby:</p>
-<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="n">my_struct</span> <span class="o">=</span> <span class="no">MyStruct</span><span class="o">.</span><span class="n">new</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">my_struct</span><span class="o">.</span><span class="n">read_only</span>
-<span class="n">my_struct</span><span class="o">.</span><span class="n">write_only</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="n">my_struct</span><span class="o">.</span><span class="n">read_write</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">my_struct</span><span class="o">.</span><span class="n">read_write</span>
+<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="n">my_struct</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">MyStruct</span><span class="o">.</span><span class="n">new</span>
+<span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">my_struct</span><span class="o">.</span><span class="n">read_only</span>
+<span class="n">my_struct</span><span class="o">.</span><span class="n">write_only</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span>
+<span class="n">my_struct</span><span class="o">.</span><span class="n">read_write</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
+<span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">my_struct</span><span class="o">.</span><span class="n">read_write</span>
 </pre></div>
 </div>
 <p>Similarly, you can wrap static members via the use of <code class="docutils literal notranslate"><span class="pre">define_singleton_attr</span></code>:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nc">MyStruct</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">MyStruct</span>
 <span class="p">{</span>
-  <span class="k">static</span> <span class="kt">int</span> <span class="n">readOnly</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="k">static</span> <span class="kt">int</span> <span class="n">writeOnly</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="k">static</span> <span class="kt">int</span> <span class="n">readWrite</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">readOnly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">writeOnly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">readWrite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 <span class="p">};</span>
 
-<span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">MyStruct</span><span class="o">&gt;</span> <span class="n">rb_cMyStrut</span> <span class="o">=</span>
-  <span class="n">define_class</span><span class="o">&lt;</span><span class="n">MyStruct</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"MyStruct"</span><span class="p">)</span>
-  <span class="p">.</span><span class="n">define_constructor</span><span class="p">(</span><span class="n">Constructor</span><span class="o">&lt;</span><span class="n">MyStruct</span><span class="o">&gt;</span><span class="p">())</span>
-  <span class="p">.</span><span class="n">define_singleton_attr</span><span class="p">(</span><span class="s">"read_only"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">MyStruct</span><span class="o">::</span><span class="n">readOnly</span><span class="p">,</span> <span class="n">Rice</span><span class="o">::</span><span class="n">AttrAccess</span><span class="o">::</span><span class="n">Read</span><span class="p">)</span>
-  <span class="p">.</span><span class="n">define_singleton_attr</span><span class="p">(</span><span class="s">"write_only"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">MyStruct</span><span class="o">::</span><span class="n">writeOnly</span><span class="p">,</span> <span class="n">Rice</span><span class="o">::</span><span class="n">AttrAccess</span><span class="o">::</span><span class="n">Write</span><span class="p">)</span>
-  <span class="p">.</span><span class="n">define_singleton_attr</span><span class="p">(</span><span class="s">"read_write"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">MyStruct</span><span class="o">::</span><span class="n">readWrite</span><span class="p">);</span>
+<span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">MyStruct</span><span class="o">&gt;</span><span class="w"> </span><span class="n">rb_cMyStrut</span><span class="w"> </span><span class="o">=</span>
+<span class="w">  </span><span class="n">define_class</span><span class="o">&lt;</span><span class="n">MyStruct</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;MyStruct&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="n">define_constructor</span><span class="p">(</span><span class="n">Constructor</span><span class="o">&lt;</span><span class="n">MyStruct</span><span class="o">&gt;</span><span class="p">())</span>
+<span class="w">  </span><span class="p">.</span><span class="n">define_singleton_attr</span><span class="p">(</span><span class="s">&quot;read_only&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">MyStruct</span><span class="o">::</span><span class="n">readOnly</span><span class="p">,</span><span class="w"> </span><span class="n">Rice</span><span class="o">::</span><span class="n">AttrAccess</span><span class="o">::</span><span class="n">Read</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="n">define_singleton_attr</span><span class="p">(</span><span class="s">&quot;write_only&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">MyStruct</span><span class="o">::</span><span class="n">writeOnly</span><span class="p">,</span><span class="w"> </span><span class="n">Rice</span><span class="o">::</span><span class="n">AttrAccess</span><span class="o">::</span><span class="n">Write</span><span class="p">)</span>
+<span class="w">  </span><span class="p">.</span><span class="n">define_singleton_attr</span><span class="p">(</span><span class="s">&quot;read_write&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">MyStruct</span><span class="o">::</span><span class="n">readWrite</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>These attributes can then be accessed in the expected way in Ruby:</p>
-<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="no">MyStruct</span><span class="o">.</span><span class="n">read_only</span>
-<span class="no">MyStruct</span><span class="o">.</span><span class="n">write_only</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="no">MyStruct</span><span class="o">.</span><span class="n">read_write</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">b</span> <span class="o">=</span> <span class="no">MyStruct</span><span class="o">.</span><span class="n">read_write</span>
+<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">MyStruct</span><span class="o">.</span><span class="n">read_only</span>
+<span class="no">MyStruct</span><span class="o">.</span><span class="n">write_only</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span>
+<span class="no">MyStruct</span><span class="o">.</span><span class="n">read_write</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
+<span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">MyStruct</span><span class="o">.</span><span class="n">read_write</span>
 </pre></div>
 </div>
 </section>
 <section id="type-conversions">
-<h2>Type conversions<a class="headerlink" href="#type-conversions" title="Permalink to this headline">¶</a></h2>
+<h2>Type conversions<a class="headerlink" href="#type-conversions" title="Link to this heading">#</a></h2>
 <p>Rice is smart enough to convert between most Ruby and C++ objects. Let’s look again at our example class:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Test</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Test</span>
 <span class="p">{</span>
 <span class="k">public</span><span class="o">:</span>
-  <span class="n">Test</span><span class="p">();</span>
-  <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">hello</span><span class="p">();</span>
+<span class="w">  </span><span class="n">Test</span><span class="p">();</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">hello</span><span class="p">();</span>
 <span class="p">};</span>
 </pre></div>
 </div>
 <p>When we wrote our class, we never wrote a single line of code to convert
 the <code class="docutils literal notranslate"><span class="pre">std::string</span></code> returned by <code class="docutils literal notranslate"><span class="pre">hello()</span></code> into a Ruby type. Nevertheless, the
 conversion works, and when we write:</p>
-<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="nb">test</span> <span class="o">=</span> <span class="no">Test</span><span class="o">.</span><span class="n">new</span>
-<span class="nb">puts</span> <span class="nb">test</span><span class="o">.</span><span class="n">hello</span>
+<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="nb">test</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Test</span><span class="o">.</span><span class="n">new</span>
+<span class="nb">puts</span><span class="w"> </span><span class="nb">test</span><span class="o">.</span><span class="n">hello</span>
 </pre></div>
 </div>
 <p>We get the expected result.</p>
 <p>Rice includes default specializations for many C++ types. To define your own conversion, please refer to the <a class="reference internal" href="bindings/type_conversions.html"><span class="doc">Type Conversions</span></a> section.</p>
 </section>
 <section id="conversions-for-wrapped-c-types">
-<h2>Conversions for wrapped C++ types<a class="headerlink" href="#conversions-for-wrapped-c-types" title="Permalink to this headline">¶</a></h2>
+<h2>Conversions for wrapped C++ types<a class="headerlink" href="#conversions-for-wrapped-c-types" title="Link to this heading">#</a></h2>
 <p>Take another look at the wrapper we wrote for the <code class="docutils literal notranslate"><span class="pre">Test</span></code> class:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">extern</span> <span class="s">"C"</span>
-<span class="kt">void</span> <span class="n">Init_test</span><span class="p">()</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Init_test</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span> <span class="n">rb_cTest</span> <span class="o">=</span>
-    <span class="n">define_class</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Test"</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">define_constructor</span><span class="p">(</span><span class="n">Constructor</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="p">())</span>
-    <span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">"hello"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Test</span><span class="o">::</span><span class="n">hello</span><span class="p">);</span>
+<span class="w">  </span><span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="w"> </span><span class="n">rb_cTest</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="n">define_class</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Test&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">.</span><span class="n">define_constructor</span><span class="p">(</span><span class="n">Constructor</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="p">())</span>
+<span class="w">    </span><span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">Test</span><span class="o">::</span><span class="n">hello</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>When we called <code class="docutils literal notranslate"><span class="pre">define_class&lt;Test&gt;</span></code>, it created a Class for us and automatically registered the new Class with the type system, so that the calls:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Data_Object</span><span class="o">&lt;</span><span class="n">Foo</span><span class="o">&gt;</span> <span class="n">obj</span><span class="p">(</span><span class="k">new</span> <span class="n">Foo</span><span class="p">);</span>
-<span class="n">Foo</span> <span class="o">*</span> <span class="n">f</span> <span class="o">=</span> <span class="n">detail</span><span class="o">::</span><span class="n">From_Ruby</span><span class="o">&lt;</span><span class="n">Foo</span> <span class="o">*&gt;::</span><span class="n">convert</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
-<span class="n">Foo</span> <span class="k">const</span> <span class="o">*</span> <span class="n">f</span> <span class="o">=</span> <span class="n">detail</span><span class="o">::</span><span class="n">From_Ruby</span><span class="o">&lt;</span><span class="n">Foo</span> <span class="k">const</span> <span class="o">*&gt;::</span><span class="n">convert</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Data_Object</span><span class="o">&lt;</span><span class="n">Foo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">obj</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Foo</span><span class="p">);</span>
+<span class="n">Foo</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">detail</span><span class="o">::</span><span class="n">From_Ruby</span><span class="o">&lt;</span><span class="n">Foo</span><span class="w"> </span><span class="o">*&gt;::</span><span class="n">convert</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
+<span class="n">Foo</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">detail</span><span class="o">::</span><span class="n">From_Ruby</span><span class="o">&lt;</span><span class="n">Foo</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">*&gt;::</span><span class="n">convert</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>works as expected.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">Data_Object</span></code> class is a wrapper for the <code class="docutils literal notranslate"><span class="pre">TypedData_Wrap_Struct</span></code> and the <code class="docutils literal notranslate"><span class="pre">TypedData_Get_Struct</span></code> macros in C extensions. It can be used to wrap or unwrap any class that has been assigned to a <code class="docutils literal notranslate"><span class="pre">Data_Type</span></code>. It inherits from <code class="docutils literal notranslate"><span class="pre">Object</span></code>, so any member functions we can call on an <code class="docutils literal notranslate"><span class="pre">Object</span></code> we can also call on a <code class="docutils literal notranslate"><span class="pre">Data_Object</span></code>:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Object</span> <span class="n">object_id</span> <span class="o">=</span> <span class="n">obj</span><span class="p">.</span><span class="n">call</span><span class="p">(</span><span class="s">"object_id"</span><span class="p">);</span>
-<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">object_id</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Object</span><span class="w"> </span><span class="n">object_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">obj</span><span class="p">.</span><span class="n">call</span><span class="p">(</span><span class="s">&quot;object_id&quot;</span><span class="p">);</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">object_id</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">Data_Object</span></code> class can be used to wrap a newly-created object:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Data_Object</span><span class="o">&lt;</span><span class="n">Foo</span><span class="o">&gt;</span> <span class="n">foo</span><span class="p">(</span><span class="k">new</span> <span class="n">Foo</span><span class="p">);</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Data_Object</span><span class="o">&lt;</span><span class="n">Foo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">foo</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Foo</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>or to unwrap an already-created object:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">VALUE</span> <span class="n">obj</span> <span class="o">=</span> <span class="p">...;</span>
-<span class="n">Data_Object</span><span class="o">&lt;</span><span class="n">Foo</span><span class="o">&gt;</span> <span class="n">foo</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">VALUE</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">...;</span>
+<span class="n">Data_Object</span><span class="o">&lt;</span><span class="n">Foo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">foo</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>A <code class="docutils literal notranslate"><span class="pre">Data_Object</span></code> functions like a smart pointer:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Data_Object</span><span class="o">&lt;</span><span class="n">Foo</span><span class="o">&gt;</span> <span class="n">foo</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">Data_Object</span><span class="o">&lt;</span><span class="n">Foo</span><span class="o">&gt;</span><span class="w"> </span><span class="n">foo</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
 <span class="n">foo</span><span class="o">-&gt;</span><span class="n">foo</span><span class="p">();</span>
-<span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="o">*</span><span class="n">foo</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="o">*</span><span class="n">foo</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>Like a <code class="docutils literal notranslate"><span class="pre">VALUE</span></code> or an <code class="docutils literal notranslate"><span class="pre">Object</span></code>, data stored in a <code class="docutils literal notranslate"><span class="pre">Data_Object</span></code> will be marked by the garbage collector as long as the <code class="docutils literal notranslate"><span class="pre">Data_Object</span></code> is on the stack.</p>
 </section>
 <section id="exceptions">
-<h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading">#</a></h2>
 <p>In general Rice automatically handles exceptions. For example, suppose a member function of our example class could throw an exception:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MyException</span>
-  <span class="o">:</span> <span class="k">public</span> <span class="n">std</span><span class="o">::</span><span class="n">exception</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyException</span>
+<span class="w">  </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">exception</span>
 <span class="p">{</span>
 <span class="p">};</span>
 
-<span class="k">class</span> <span class="nc">Test</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Test</span>
 <span class="p">{</span>
 <span class="k">public</span><span class="o">:</span>
-  <span class="n">Test</span><span class="p">();</span>
-  <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">hello</span><span class="p">();</span>
-  <span class="kt">void</span> <span class="nf">error</span><span class="p">();</span>
+<span class="w">  </span><span class="n">Test</span><span class="p">();</span>
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">hello</span><span class="p">();</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">error</span><span class="p">();</span>
 <span class="p">};</span>
 
-<span class="k">extern</span> <span class="s">"C"</span>
-<span class="kt">void</span> <span class="n">Init_test</span><span class="p">()</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">Init_test</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span> <span class="n">rb_cTest</span> <span class="o">=</span>
-    <span class="n">define_class</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Test"</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">define_constructor</span><span class="p">(</span><span class="n">Constructor</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="p">())</span>
-    <span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">"hello"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Test</span><span class="o">::</span><span class="n">hello</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">"error"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Test</span><span class="o">::</span><span class="n">error</span><span class="p">);</span>
+<span class="w">  </span><span class="n">Data_Type</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="w"> </span><span class="n">rb_cTest</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="n">define_class</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Test&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">.</span><span class="n">define_constructor</span><span class="p">(</span><span class="n">Constructor</span><span class="o">&lt;</span><span class="n">Test</span><span class="o">&gt;</span><span class="p">())</span>
+<span class="w">    </span><span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">Test</span><span class="o">::</span><span class="n">hello</span><span class="p">)</span>
+<span class="w">    </span><span class="p">.</span><span class="n">define_method</span><span class="p">(</span><span class="s">&quot;error&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">Test</span><span class="o">::</span><span class="n">error</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>If we call this function from Ruby, C++ will raise an exception. Rice will automatically catch it and convert it to a Ruby exception:</p>
-<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="nb">test</span> <span class="o">=</span> <span class="no">Test</span><span class="o">.</span><span class="n">new</span>
+<div class="highlight-ruby notranslate"><div class="highlight"><pre><span></span><span class="nb">test</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Test</span><span class="o">.</span><span class="n">new</span>
 <span class="k">begin</span>
-  <span class="nb">test</span><span class="o">.</span><span class="n">error</span><span class="p">()</span>
-<span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
-  <span class="o">..</span>
+<span class="w">  </span><span class="nb">test</span><span class="o">.</span><span class="n">error</span><span class="p">()</span>
+<span class="k">rescue</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
+<span class="w">  </span><span class="o">..</span>
 <span class="k">end</span>
 </pre></div>
 </div>
@@ -507,7 +573,8 @@ conversion works, and when we write:</p>
 </section>
 </section>
 
-      </article>
+        </article>
+      </div>
       <footer>
         
         <div class="related-pages">
@@ -518,10 +585,10 @@ conversion works, and when we write:</p>
                 </div>
                 <div class="title">Bindings</div>
               </div>
-              <svg><use href="#svg-arrow-right"></use></svg>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
           <a class="prev-page" href="introduction.html">
-              <svg><use href="#svg-arrow-right"></use></svg>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
@@ -532,19 +599,19 @@ conversion works, and when we write:</p>
               </div>
             </a>
         </div>
-
-        <div class="related-information">
-              Copyright &#169; 2023, Paul Brannon, Jason Roelofs, Charlie Savage
-            |
-            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
-              and
-              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
-              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
-            |
-            <a class="muted-link" href="_sources/tutorial.rst.txt"
-               rel="nofollow">
-              Show Source
-            </a>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2023, Paul Brannon, Jason Roelofs, Charlie Savage
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
         </div>
         
       </footer>
@@ -555,7 +622,7 @@ conversion works, and when we write:</p>
       <div class="toc-sticky toc-scroll">
         <div class="toc-title-container">
           <span class="toc-title">
-            Contents
+            On this page
           </span>
         </div>
         <div class="toc-tree-container">
@@ -582,11 +649,10 @@ conversion works, and when we write:</p>
       
       
     </aside>
-  </main>
-</div>
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/scripts/main.js?digest=e931d09b2a40c1bb82b542effe772014573baf67"></script></body>
+  </div>
+</div><script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=32e29ea5"></script>
+    </body>
 </html>
