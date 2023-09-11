@@ -17,12 +17,12 @@ Example:
 
 .. code-block:: cpp
 
-  std::map<std::string, int> makeStringIntMap())
+  std::map<std::string, int> makeStringIntMap()
   {
      return std::map {{"one", 1}, {"two", 2}, {"three", 3}};
   }
 
-  define_map<std::map<std::string>("StringIntMap");
+  define_map<std::map<std::string>>("StringIntMap");
   define_global_function("make_string_int_map", &makeStringIntMap);
 
 Once you have defined this Ruby class, you can create a new instance like this:
@@ -45,7 +45,7 @@ For example, assume this C++ code:
   {
   }
 
-  define_map<std::map<std::string, std::int>("StringIntMap");
+  define_map<std::map<std::string, std::int>>("StringIntMap");
   define_global_function("pass_map", &passMap);
 
 One way to call it from Ruby is like this:

@@ -28,4 +28,4 @@ Note manual class names can be defined *after* any auto generated classes. What 
 .. code-block:: ruby
 
     Rice::Std::Pair__basic_string__char_char_traits__char___allocator__char_____double__
-    Object::StringDoubelPair
+    Object::StringDoublePair
