@@ -1,7 +1,6 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
-#include <iostream>
 
 using namespace Rice;
 
@@ -45,33 +44,6 @@ TESTCASE(include_module)
   expected_ancestors.push(Module(rb_cBasicObject));
 #endif
   ASSERT_EQUAL(expected_ancestors, ancestors);
-}
-
-TESTCASE(const_set_get_by_id)
-{
-  Class c(anonymous_class());
-  Object v = detail::to_ruby(42);
-  Class & c2(c.const_set(rb_intern("FOO"), v));
-  ASSERT_EQUAL(&c, &c2);
-  ASSERT_EQUAL(v, c.const_get(rb_intern("FOO")));
-}
-
-TESTCASE(const_set_get_by_identifier)
-{
-  Class c(anonymous_class());
-  Object v = detail::to_ruby(42);
-  Class & c2(c.const_set(Identifier("FOO"), v));
-  ASSERT_EQUAL(&c, &c2);
-  ASSERT_EQUAL(v, c.const_get(Identifier("FOO")));
-}
-
-TESTCASE(const_set_get_by_string)
-{
-  Class c(anonymous_class());
-  Object v = detail::to_ruby(42);
-  Class & c2(c.const_set("FOO", v));
-  ASSERT_EQUAL(&c, &c2);
-  ASSERT_EQUAL(v, c.const_get("FOO"));
 }
 
 namespace
@@ -173,9 +145,10 @@ namespace
 
 TESTCASE(add_handler)
 {
+  register_handler<Silly_Exception>(handle_silly_exception);
+
   Class c(rb_cObject);
-  c.add_handler<Silly_Exception>(handle_silly_exception)
-    .define_function("foo", throw_silly_exception);
+  c.define_function("foo", throw_silly_exception);
 
   Object exc = detail::protect(rb_eval_string, "begin; foo; rescue Exception; $!; end");
   ASSERT_EQUAL(rb_eRuntimeError, CLASS_OF(exc));
@@ -285,18 +258,6 @@ TESTCASE(define_method_default_arguments)
   ASSERT(!defaults_method_one_arg3);
 }
 
-TESTCASE(invalid_comma_operator)
-{
-  Class c = define_class<DefaultArgs>("DefaultArgs")
-    .define_constructor(Constructor<DefaultArgs>());
-
-  ASSERT_EXCEPTION_CHECK(
-    std::runtime_error,
-    c.define_method("with_defaults", &DefaultArgs::defaults_method_one, (Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true)),
-    ASSERT_EQUAL("The Arg class no longer supports the comma operator, please remove the surounding parentheses", ex.what())
-  );
-}
-
 namespace
 {
   int func1 = 0;
@@ -345,26 +306,26 @@ namespace
 
 TESTCASE(value_parameter)
 {
-  define_global_function("value_parameter", &value_parameter, Arg("value").isValue());
+  define_global_function("value_parameter", &value_parameter, Arg("value").setValue());
 
   Module m = define_module("TestingModule");
   
   std::string code = R"($object = Object.new)";
-  Object object = m.instance_eval(code);
+  Object object = m.module_eval(code);
 
   code = R"(value_parameter($object))";
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(someValue, object.value());
 }
 
 TESTCASE(value_return)
 {
-  define_global_function("value_return", &value_return, Return().isValue());
+  define_global_function("value_return", &value_return, Return().setValue());
 
   Module m = define_module("TestingModule");
 
-  VALUE value = m.instance_eval("value_return");
+  VALUE value = m.module_eval("value_return");
   detail::protect(rb_check_type, value, (int)T_ARRAY);
 
   ASSERT_EQUAL(3, Array(value).size());

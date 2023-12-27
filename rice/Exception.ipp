@@ -43,10 +43,9 @@ namespace Rice
   {
     if (this->message_.empty())
     {
-      // Cache the message - this allows the returned pointer to be valid for the
-      // lifetime of this exception instance.
+      // This isn't protected because if it fails then either we could eat the exception
+      // (not good) or crash the program (better)
       VALUE rubyMessage = rb_funcall(this->exception_, rb_intern("message"), 0);
-      //this->message_ = detail::From_Ruby<std::string>::convert(rubyMessage);
       this->message_ = std::string(RSTRING_PTR(rubyMessage), RSTRING_LEN(rubyMessage));
     }
     return this->message_.c_str();

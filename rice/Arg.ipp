@@ -28,24 +28,23 @@ namespace Rice
 
   inline Arg& Arg::keepAlive()
   {
-    this->isKeepAlive = true;
+    this->isKeepAlive_ = true;
     return *this;
   }
 
-  inline Arg& Arg::isValue()
+  inline bool Arg::isKeepAlive() const
+  {
+    return this->isKeepAlive_;
+  }
+
+  inline Arg& Arg::setValue()
   {
     isValue_ = true;
     return *this;
   }
 
-  inline bool Arg::getIsValue()
+  inline bool Arg::isValue() const
   {
     return isValue_;
-  }
-
-  // Function to overload the, operator
-  inline Arg Arg::operator,(const Arg& other)
-  {
-    throw std::runtime_error("The Arg class no longer supports the comma operator, please remove the surounding parentheses");
   }
 } // Rice

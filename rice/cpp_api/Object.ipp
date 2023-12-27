@@ -8,12 +8,6 @@ namespace Rice
   inline const Object False(Qfalse);
   inline const Object Undef(Qundef);
 
-  inline Object::Object(Object&& other)
-  {
-    this->value_ = other.value_;
-    other.value_ = Qnil;
-  }
-
   // Ruby auto detects VALUEs in the stack, so when an Object gets deleted make sure
   // to clean up in case it is on the stack
   inline Object::~Object()
@@ -21,6 +15,14 @@ namespace Rice
     this->value_ = Qnil;
   }
 
+  // Move constructor
+  inline Object::Object(Object&& other)
+  {
+    this->value_ = other.value_;
+    other.value_ = Qnil;
+  }
+
+  // Move assignment
   inline Object& Object::operator=(Object&& other)
   {
     this->value_ = other.value_;
@@ -39,7 +41,7 @@ namespace Rice
        easy to duplicate by setting GC.stress to true and calling a constructor
        that takes multiple values like a std::pair wrapper. */
     std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Arg_Ts>>().convert(args)... };
-    return detail::protect(rb_funcall2, value(), id.id(), (int)values.size(), (const VALUE*)values.data());
+    return detail::protect(rb_funcallv_kw, value(), id.id(), (int)values.size(), (const VALUE*)values.data(), RB_PASS_CALLED_KEYWORDS);
   }
 
   template<typename T>
@@ -56,12 +58,14 @@ namespace Rice
 
   inline bool Object::is_equal(const Object& other) const
   {
-    return detail::protect(rb_equal, this->value_, other.value_);
+    VALUE result = detail::protect(rb_equal, this->value_, other.value_);
+    return RB_TEST(result);
   }
 
   inline bool Object::is_eql(const Object& other) const
   {
-    return detail::protect(rb_eql, this->value_, other.value_);
+    VALUE result = detail::protect(rb_eql, this->value_, other.value_);
+    return RB_TEST(result);
   }
 
   inline void Object::freeze()
@@ -71,18 +75,23 @@ namespace Rice
 
   inline bool Object::is_frozen() const
   {
-    return bool(OBJ_FROZEN(value()));
+    return RB_OBJ_FROZEN(value());
   }
 
   inline int Object::rb_type() const
   {
-    return ::rb_type(*this);
+    return ::rb_type(this->value());
+  }
+
+  inline VALUE Object::object_id() const
+  {
+    return detail::protect(rb_obj_id, this->value());
   }
 
   inline bool Object::is_a(Object klass) const
   {
-    Object result = detail::protect(rb_obj_is_kind_of, this->value(), klass.value());
-    return result.test();
+    VALUE result = detail::protect(rb_obj_is_kind_of, this->value(), klass.value());
+    return RB_TEST(result);
   }
 
   inline bool Object::respond_to(Identifier id) const
@@ -92,8 +101,8 @@ namespace Rice
 
   inline bool Object::is_instance_of(Object klass) const
   {
-    Object result = detail::protect(rb_obj_is_instance_of, this->value(), klass.value());
-    return result.test();
+    VALUE result = detail::protect(rb_obj_is_instance_of, this->value(), klass.value());
+    return RB_TEST(result);
   }
 
   inline Object Object::iv_get(Identifier name) const
@@ -111,9 +120,41 @@ namespace Rice
     value_ = v;
   }
 
+  inline Object Object::const_get(Identifier name) const
+  {
+    return detail::protect(rb_const_get, this->value(), name.id());
+  }
+
+  inline bool Object::const_defined(Identifier name) const
+  {
+    size_t result = detail::protect(rb_const_defined, this->value(), name.id());
+    return bool(result);
+  }
+
+  inline Object Object::const_set(Identifier name, Object value)
+  {
+    detail::protect(rb_const_set, this->value(), name.id(), value.value());
+    return value;
+  }
+
+  inline Object Object::const_set_maybe(Identifier name, Object value)
+  {
+    if (!this->const_defined(name))
+    {
+      this->const_set(name, value);
+    }
+    return value;
+  }
+
+  inline void Object::remove_const(Identifier name)
+  {
+    detail::protect(rb_mod_remove_const, this->value(), name.to_sym());
+  }
+
   inline bool operator==(Object const& lhs, Object const& rhs)
   {
-    return detail::protect(rb_equal, lhs.value(), rhs.value()) == Qtrue;
+    VALUE result = detail::protect(rb_equal, lhs.value(), rhs.value());
+    return result == Qtrue ? true : false;
   }
 
   inline bool operator!=(Object const& lhs, Object const& rhs)

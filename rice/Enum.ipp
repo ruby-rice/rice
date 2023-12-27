@@ -54,21 +54,6 @@ namespace Rice
           // been included by the user
           return String(result.str());
         })
-      .define_method("<=>", [](Enum_T& self, Enum_T& other)
-        {
-          if (self == other)
-          {
-            return 0;
-          }
-          else if (self < other)
-          {
-            return -1;
-          }
-          else
-          {
-            return 1;
-          }
-        })
       .define_method("hash", [](Enum_T& self) ->  Underlying_T
         {
           return (Underlying_T)self;
@@ -82,19 +67,43 @@ namespace Rice
     rb_define_alias(klass, "===", "eql?");
 
     // Add comparable support
-    klass.include_module(rb_mComparable);
+    klass.include_module(rb_mComparable)
+      .define_method("<=>", [](Enum_T& self, Enum_T& other)
+    {
+      if (self == other)
+      {
+        return 0;
+      }
+      else if (self < other)
+      {
+        return -1;
+      }
+      else
+      {
+        return 1;
+      }
+    });
 
-    // Singleton methods
-    klass.define_singleton_method("each", [](VALUE klass)
+    // Add enumerable support
+    klass.include_module(rb_mEnumerable)
+      .define_singleton_method("each", [](VALUE ruby_klass) -> VALUE
         {
+          if (!rb_block_given_p())
+          {
+            return rb_enumeratorize_with_size(ruby_klass, Identifier("each").to_sym(),
+                                      0, nullptr, 0);
+          }
+
           for (auto& pair : valuesToNames_)
           {
             Enum_T enumValue = pair.first;
             VALUE value = detail::To_Ruby<Enum_T>().convert(enumValue);
             detail::protect(rb_yield, value);
           }
-      })
-      .define_singleton_method("from_int", [](VALUE klass, int32_t value)
+
+          return ruby_klass;
+      }, Return().setValue())
+      .define_singleton_method("from_int", [](VALUE ruby_klass, int32_t value) -> Object
       {
           auto iter = Enum<Enum_T>::valuesToNames_.find((Enum_T)value);
           if (iter == Enum<Enum_T>::valuesToNames_.end())
@@ -103,14 +112,14 @@ namespace Rice
           }
 
           std::string name = iter->second;
-          return Class(klass).const_get(name);
+          return Object(ruby_klass).const_get(name);
       });
   }
 
   template<typename Enum_T>
   Enum<Enum_T> define_enum(char const* name, Module module)
   {
-    if (detail::TypeRegistry::isDefined<Enum_T>())
+    if (detail::Registries::instance.types.isDefined<Enum_T>())
     {
       return Enum<Enum_T>();
     }

@@ -1,4 +1,4 @@
-#include "../detail/rice_traits.hpp"
+#include "../traits/function_traits.hpp"
 #include "../detail/from_ruby.hpp"
 #include "../detail/to_ruby.hpp"
 #include "../Data_Type.hpp"
@@ -34,17 +34,17 @@ namespace Rice
       {
         if constexpr (std::is_copy_constructible_v<typename T::first_type> && std::is_copy_constructible_v<typename T::second_type>)
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& pair) -> T
             {
-              return self;
+              return pair;
             });
         }
         else
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& pair) -> T
             {
               throw std::runtime_error("Cannot copy pair with non-copy constructible types");
-              return self;
+              return pair;
             });
         }
       }
@@ -52,45 +52,59 @@ namespace Rice
       void define_access_methods()
       {
         // Access methods
-        klass_.define_method("first", [](T& self) -> typename T::first_type&
+        klass_.define_method("first", [](T& pair) -> typename T::first_type&
           {
-            return self.first;
+            return pair.first;
           })
-        .define_method("second", [](T& self) -> typename T::second_type&
+        .define_method("second", [](T& pair) -> typename T::second_type&
           {
-            return self.second;
+            return pair.second;
           });
       }
 
       void define_modify_methods()
       {
         // Access methods
-        klass_.define_method("first=", [](T& self, typename T::first_type& value) -> typename T::first_type&
+        klass_.define_method("first=", [](T& pair, typename T::first_type& value) -> typename T::first_type&
+        {
+          if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::first_type>>>)
           {
-            self.first = value;
-            return self.first;
-          })
-        .define_method("second=", [](T& self, typename T::second_type& value) -> typename T::second_type&
+            throw std::runtime_error("Cannot set pair.first since it is a constant");
+          }
+          else
           {
-            self.second = value;
-            return self.second;
-          });
+            pair.first = value;
+            return pair.first;
+          }
+        })
+        .define_method("second=", [](T& pair, typename T::second_type& value) -> typename T::second_type&
+        {
+          if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::second_type>>>)
+          {
+            throw std::runtime_error("Cannot set pair.second since it is a constant");
+          }
+          else
+          {
+            pair.second = value;
+            return pair.second;
+          }
+        });
       }
 
       void define_to_s()
       {
         if constexpr (detail::is_ostreamable_v<typename T::first_type> && detail::is_ostreamable_v<typename T::second_type>)
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& pair)
             {
               std::stringstream stream;
-              stream << "[" << self.first << ", " << self.second << "]";
+              stream << "[" << pair.first << ", " << pair.second << "]";
               return stream.str();
             });
         }
         else
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& pair)
             {
               return "[Not printable]";
             });
@@ -105,9 +119,12 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair_under(Object module, std::string name)
   {
-    if (detail::TypeRegistry::isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
-      return Data_Type<T>(Data_Type<T>());
+      // If the pair has been previously seen it will be registered but may
+      // not be associated with the constant Module::<name>
+      module.const_set_maybe(name, Data_Type<T>().klass());
+      return Data_Type<T>();
     }
 
     Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(module, name.c_str());
@@ -118,9 +135,12 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair(std::string name)
   {
-    if (detail::TypeRegistry::isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
-      return Data_Type<T>(Data_Type<T>());
+      // If the pair has been previously seen it will be registered but may
+      // not be associated with the constant Object::<name>
+      Object(rb_cObject).const_set_maybe(name, Data_Type<T>().klass());
+      return Data_Type<T>();
     }
 
     Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
@@ -144,10 +164,10 @@ namespace Rice
     {
       static bool verify()
       {
-        Type<T1>::verify();
-        Type<T2>::verify();
+        detail::verifyType<T1>();
+        detail::verifyType<T2>();
 
-        if (!detail::TypeRegistry::isDefined<std::pair<T1, T2>>())
+        if (!detail::Registries::instance.types.isDefined<std::pair<T1, T2>>())
         {
           define_pair_auto<std::pair<T1, T2>>();
         }

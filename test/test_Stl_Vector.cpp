@@ -1,5 +1,4 @@
 #include <complex>
-#include <memory>
 
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
@@ -31,7 +30,7 @@ namespace
 
 Class makeVectorClass()
 {
-  Class c= define_class<MyClass>("MyClass").
+  Class c = define_class<MyClass>("MyClass").
     define_constructor(Constructor<MyClass>()).
     define_method("stringVector", &MyClass::stringVector);
 
@@ -44,15 +43,15 @@ TESTCASE(StringVector)
 
   Class c = define_vector<std::vector<std::string>>("StringVector");
 
-  Object vec = m.instance_eval("$vector = StringVector.new");
+  Object vec = m.module_eval("$vector = StringVector.new");
   Object result = vec.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
-  m.instance_eval("$vector << 'one' << 'two' << 'two' << 'three'");
+  m.module_eval("$vector << 'one' << 'two' << 'two' << 'three'");
   result = vec.call("size");
   ASSERT_EQUAL(4, detail::From_Ruby<int32_t>().convert(result));
 
-  m.instance_eval("$vector.append('four')");
+  m.module_eval("$vector.append('four')");
   result = vec.call("size");
   ASSERT_EQUAL(5, detail::From_Ruby<int32_t>().convert(result));
 
@@ -69,10 +68,10 @@ TESTCASE(WrongType)
 
   Class c = define_vector<std::vector<std::string>>("StringVector");
 
-  Object vec = m.instance_eval("$vector = StringVector.new");
+  Object vec = m.module_eval("$vector = StringVector.new");
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval("$vector << 1"),
+    m.module_eval("$vector << 1"),
     ASSERT_EQUAL("wrong argument type Integer (expected String)", ex.what()));
 }
 
@@ -261,24 +260,6 @@ TESTCASE(Copy)
   ASSERT_NOT_EQUAL(vec.size(), vecCopy.size());
 }
 
-TESTCASE(Iterate)
-{
-  Module m = define_module("Testing");
-  Class c = define_vector<std::vector<double>>("DoubleVector");
-
-  std::string code = R"(vector = DoubleVector.new
-                        vector << 5.0 << 6.0 << 7.0
-                        updated = vector.map do |value|
-                                    value * 2.0
-                                  end)";
-
-  Array result = m.instance_eval(code);
-  ASSERT_EQUAL(3, result.size());
-  ASSERT_EQUAL(10.0, detail::From_Ruby<double>().convert(result[0].value()));
-  ASSERT_EQUAL(12.0, detail::From_Ruby<double>().convert(result[1].value()));
-  ASSERT_EQUAL(14.0, detail::From_Ruby<double>().convert(result[2].value()));
-}
-
 namespace
 {
   class NotComparable
@@ -308,7 +289,7 @@ TESTCASE(NotComparable)
   ASSERT_EQUAL(Qnil, result.value());
 
   result = vec.call("length");
-  ASSERT_EQUAL(3, detail::From_Ruby<size_t>().convert(result));
+  ASSERT_EQUAL(3u, detail::From_Ruby<size_t>().convert(result));
 
   result = vec.call("include?", NotComparable(2));
   ASSERT_EQUAL(Qfalse, result.value());
@@ -437,13 +418,13 @@ TESTCASE(Printable)
 
 namespace
 {
-  std::vector<std::complex<uint32_t>> returnComplexVector()
+  std::vector<std::complex<double>> returnComplexVector()
   {
-    std::complex<uint32_t> complex1(1, 1);
-    std::complex<uint32_t> complex2(2, 2);
-    std::complex<uint32_t> complex3(3, 3);
+    std::complex<double> complex1(1, 1);
+    std::complex<double> complex2(2, 2);
+    std::complex<double> complex3(3, 3);
 
-    std::vector<std::complex<uint32_t>> result;
+    std::vector<std::complex<double>> result;
     result.push_back(complex1);
     result.push_back(complex2);
     result.push_back(complex3);
@@ -461,15 +442,27 @@ TESTCASE(AutoRegisterReturn)
   define_global_function("return_complex_vector", &returnComplexVector);
 
   Module m = define_module("Testing");
-  Object vec = m.instance_eval("return_complex_vector");
-  ASSERT_EQUAL("Rice::Std::Vector__complex__unsignedInt___allocator__complex__unsignedInt______", vec.class_name().str());
+  Object vec = m.module_eval("return_complex_vector");
+  ASSERT_EQUAL("Rice::Std::Vector__complex__double___allocator__complex__double______", vec.class_name().str());
 
   std::string code = R"(vector = return_complex_vector
                         complex = vector.last
                         complex == Complex(3, 3))";
 
-  Object result = m.instance_eval(code);
+  Object result = m.module_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
+
+  // Now register this same vector
+  define_vector<std::vector<std::complex<double>>>("ComplexVector");
+  code = R"(vector = ComplexVector.new)";
+  result = m.module_eval(code);
+  ASSERT(result.is_instance_of(vec.class_of()));
+
+  // Now register it again in the module
+  define_vector_under<std::vector<std::complex<double>>>(m, "ComplexVector2");
+  code = R"(vector = Testing::ComplexVector2.new)";
+  result = m.module_eval(code);
+  ASSERT(result.is_instance_of(vec.class_of()));
 }
 
 TESTCASE(AutoRegisterParameter)
@@ -482,7 +475,7 @@ TESTCASE(AutoRegisterParameter)
                         pass_complex_vector(vector))";
 
   Module m = define_module("Testing");
-  Object vec = m.instance_eval(code);
+  Object vec = m.module_eval(code);
 
   Object result = vec.call("size");
   ASSERT_EQUAL("Rice::Std::Vector__complex__double___allocator__complex__double______", vec.class_name().str());
@@ -507,7 +500,7 @@ TESTCASE(DefaultValue)
   define_global_function("default_vector", &defaultVector, Arg("strings") = std::vector<std::string> { "one", "two", "three" });
 
   Module m = define_module("Testing");
-  Object result = m.instance_eval("default_vector");
+  Object result = m.module_eval("default_vector");
   std::vector<std::string> actual = detail::From_Ruby<std::vector<std::string>>().convert(result);
 
   std::vector<std::string> expected{ "one", "two", "three" };
@@ -516,6 +509,27 @@ TESTCASE(DefaultValue)
   ASSERT_EQUAL(expected[0], actual[0]);
   ASSERT_EQUAL(expected[1], actual[1]);
   ASSERT_EQUAL(expected[2], actual[2]);
+}
+
+TESTCASE(ToArray)
+{
+  Module m = define_module("Testing");
+  
+  Class c = define_vector<std::vector<std::string>>("StringVector").
+    define_constructor(Constructor<std::vector<std::string>>());
+
+  std::string code = R"(vector = StringVector.new
+                        vector << "abc"
+                        vector << "def"
+                        vector << "ghi"
+                        vector.to_a)";
+
+  Array array = m.module_eval(code);
+  ASSERT_EQUAL(3u, array.size());
+
+  ASSERT_EQUAL("abc", detail::From_Ruby<std::string>().convert(array[0].value()));
+  ASSERT_EQUAL("def", detail::From_Ruby<std::string>().convert(array[1].value()));
+  ASSERT_EQUAL("ghi", detail::From_Ruby<std::string>().convert(array[2].value()));
 }
 
 namespace
@@ -553,7 +567,7 @@ TESTCASE(ArrayToVector)
   Module m = define_module("Testing");
 
   std::string code = "array_to_vector([7, 9, 1_000_000], [49.0, 78.0, 999.0], %w[one two three])";
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(3, ints.size());
   ASSERT_EQUAL(7, ints[0]);
@@ -578,7 +592,7 @@ TESTCASE(ArrayToVectorRefs)
   Module m = define_module("Testing");
 
   std::string code = "array_to_vector_refs([8, 10, 1_000_001], [50.0, 79.0, 1_000.0], %w[eleven twelve thirteen])";
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(3, ints.size());
   ASSERT_EQUAL(8, ints[0]);
@@ -603,7 +617,7 @@ TESTCASE(ArrayToVectorPointers)
   Module m = define_module("Testing");
 
   std::string code = "array_to_vector_pointers([9, 11, 1_000_002], [51.0, 80.0, 1_001.0], %w[fourteen fifteen sixteen])";
-  m.instance_eval(code);
+  m.module_eval(code);
 
   ASSERT_EQUAL(3, ints.size());
   ASSERT_EQUAL(9, ints[0]);
@@ -631,7 +645,7 @@ TESTCASE(ArrayToVectorWrongTypes)
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval(code),
+    m.module_eval(code),
     ASSERT_EQUAL("wrong argument type Float (expected String)", ex.what())
   );
 }
@@ -646,7 +660,152 @@ TESTCASE(ArrayToVectorMixedTypes)
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    m.instance_eval(code),
+    m.module_eval(code),
     ASSERT_EQUAL("no implicit conversion of String into Integer", ex.what())
   );
+}
+
+namespace
+{
+  class Factory
+  {
+  public:
+    std::vector<std::string>* returnPointer()
+    {
+      return &this->instance_;
+    }
+
+    std::vector<std::string>& returnReference()
+    {
+      return this->instance_;
+    }
+
+    std::vector<std::string> returnValue()
+    {
+      return this->instance_;
+    }
+
+  public:
+    static inline std::vector<std::string> instance_{ "one", "two", "three" };
+  };
+
+  std::ostream& operator<<(std::ostream& stream, const std::vector<std::string>& vector)
+  {
+    stream << "Vector";
+    return stream;
+  }
+}
+
+void createFactoryClass()
+{
+  define_class<Factory>("Factory").
+    define_constructor(Constructor<Factory>()).
+    define_method("pointer", &Factory::returnPointer).
+    define_method("reference", &Factory::returnReference).
+    define_method("value", &Factory::returnValue);
+}
+
+TESTCASE(Returns)
+{
+  createFactoryClass();
+  Module m = define_module("TestingModule");
+  Object factory = m.module_eval("Factory.new");
+
+  std::vector<std::string> expected{ "one", "two", "three" };
+
+  Data_Object<std::vector<std::string>> vec1 = factory.call("pointer");
+  ASSERT_EQUAL(expected, *vec1);
+
+  Data_Object<std::vector<std::string>> vec2 = factory.call("reference");
+  ASSERT_EQUAL(expected, *vec2);
+
+  Data_Object<std::vector<std::string>> vec3 = factory.call("value");
+  ASSERT_EQUAL(expected, *vec3);
+}
+
+TESTCASE(Iterate)
+{
+  Module m = define_module("Testing");
+  Class c = define_vector<std::vector<double>>("DoubleVector");
+
+  std::string code = R"(vector = DoubleVector.new
+                        vector << 5.0 << 6.0 << 7.0
+                        updated = vector.map do |value|
+                                    value * 2.0
+                                  end)";
+
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL(10.0, detail::From_Ruby<double>().convert(result[0].value()));
+  ASSERT_EQUAL(12.0, detail::From_Ruby<double>().convert(result[1].value()));
+  ASSERT_EQUAL(14.0, detail::From_Ruby<double>().convert(result[2].value()));
+}
+
+TESTCASE(ToEnumPointer)
+{
+  createFactoryClass();
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(factory = Factory.new
+                        vector = factory.pointer
+                        updated = vector.each.map do |value|
+                                    value + "_updated"
+                                  end)";
+
+  Array result = m.module_eval(code);
+
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL("one_updated", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("two_updated", detail::From_Ruby<std::string>().convert(result[1].value()));
+  ASSERT_EQUAL("three_updated", detail::From_Ruby<std::string>().convert(result[2].value()));
+}
+
+TESTCASE(ToEnumReference)
+{
+  createFactoryClass();
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(factory = Factory.new
+                        vector = factory.reference
+                        updated = vector.each.map do |value|
+                                    value + "_updated"
+                                  end)";
+
+  Array result = m.module_eval(code);
+
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL("one_updated", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("two_updated", detail::From_Ruby<std::string>().convert(result[1].value()));
+  ASSERT_EQUAL("three_updated", detail::From_Ruby<std::string>().convert(result[2].value()));
+}
+
+TESTCASE(ToEnumValue)
+{
+  createFactoryClass();
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(factory = Factory.new
+                        vector = factory.value
+                        updated = vector.each.map do |value|
+                                    value + "_updated"
+                                  end)";
+
+  Array result = m.module_eval(code);
+
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL("one_updated", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("two_updated", detail::From_Ruby<std::string>().convert(result[1].value()));
+  ASSERT_EQUAL("three_updated", detail::From_Ruby<std::string>().convert(result[2].value()));
+}
+
+TESTCASE(ToEnumSize)
+{
+  createFactoryClass();
+  Module m = define_module("TestingModule");
+  Object factory = m.module_eval("Factory.new");
+  Object vector = factory.call("pointer");
+  Object enumerable = vector.call("each");
+  Object result = enumerable.call("size");
+
+  ASSERT_EQUAL(3, detail::From_Ruby<int>().convert(result));
 }

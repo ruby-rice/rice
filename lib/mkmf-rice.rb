@@ -1,6 +1,7 @@
 require 'mkmf'
 
 IS_MSWIN = !RbConfig::CONFIG['host_os'].match(/mswin/).nil?
+IS_MINGW = !RbConfig::CONFIG['host_os'].match(/mingw/).nil?
 IS_DARWIN = !RbConfig::CONFIG['host_os'].match(/darwin/).nil?
 
 # If we are on versions of Ruby before 2.7 then we need to copy in the experimental C++ support
@@ -106,8 +107,10 @@ include MakeMakefile['C++']
 
 # Rice needs c++17.
 if IS_MSWIN
-  $CXXFLAGS += " /std:c++17 /EHsc /permissive-"
-  $CPPFLAGS += " -D_ALLOW_KEYWORD_MACROS"
+  $CXXFLAGS += " /std:c++17 /EHsc /permissive- /bigobj"
+  $CPPFLAGS += " -D_ALLOW_KEYWORD_MACROS -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE"
+elsif IS_MINGW
+  $CXXFLAGS += " -std=c++17 -Wa,-mbig-obj"
 else
   $CXXFLAGS += " -std=c++17"
 end

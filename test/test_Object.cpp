@@ -172,9 +172,72 @@ TESTCASE(call_return_rice_object)
   ASSERT_EQUAL(Object(detail::to_ruby(3)), three);
 }
 
-/*TESTCASE(test_mark)
+TESTCASE(call_with_keywords)
+{
+  Module kernel = Module("Kernel");
+
+
+  Hash keywords;
+  keywords[":exception"] = false;
+  Object result = kernel.call("Integer", "charlie", keywords);
+  ASSERT_EQUAL(Qnil, result.value());
+
+  keywords[":exception"] = true;
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    kernel.call("Integer", "charlie", keywords),
+    ASSERT_EQUAL("invalid value for Integer(): \"charlie\"", ex.what())
+  );
+}
+
+TESTCASE(const_set_get_by_id)
+{
+  Class c(anonymous_class());
+  Object v1 = detail::to_ruby(42);
+  Object v2 = c.const_set(rb_intern("FOO"), v1);
+  ASSERT_EQUAL(v1, v2);
+  ASSERT_EQUAL(v1, c.const_get(rb_intern("FOO")));
+}
+
+TESTCASE(const_set_get_by_identifier)
+{
+  Class c(anonymous_class());
+  Object v1 = detail::to_ruby(42);
+  Object v2 = c.const_set(Identifier("FOO"), v1);
+  ASSERT_EQUAL(v1, v2);
+  ASSERT_EQUAL(v1, c.const_get(Identifier("FOO")));
+}
+
+TESTCASE(const_set_get_by_string)
+{
+  Class c(anonymous_class());
+  Object v1 = detail::to_ruby(42);
+  Object v2 = c.const_set("FOO", v1);
+  ASSERT_EQUAL(v1, v2);
+  ASSERT_EQUAL(v1, c.const_get("FOO"));
+}
+
+TESTCASE(remove_const)
+{
+  Module m(anonymous_module());
+  Object v = detail::to_ruby(42);
+  m.const_set("FOO", v);
+  ASSERT_EQUAL(v, m.const_get("FOO"));
+  m.remove_const("FOO");
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.const_get("FOO"),
+    ASSERT_EQUAL(
+      Object(rb_eNameError),
+      Object(CLASS_OF(ex.value()))
+    )
+  );
+}
+
+TESTCASE(test_mark)
 {
   Object o(INT2NUM(42));
   rb_gc_start();
-  ASSERT_EQUAL(42, detail::From_Ruby<int>::convert(o.value()));
-}*/
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(o.value()));
+}

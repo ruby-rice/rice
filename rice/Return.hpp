@@ -17,18 +17,19 @@ namespace Rice
     bool isOwner();
 
     //! Specifies the returned value is a Ruby value
-    Return& isValue();
+    Return& setValue();
 
     //! Is the returned value a Ruby value?
-    bool getIsValue();
+    bool isValue() const;
 
     //! Tell the returned object to keep alive the receving object
     Return& keepAlive();
 
-  public:
-    bool isKeepAlive = false;
+    //! Is the returned value being kept alive?
+    bool isKeepAlive() const;
 
   private:
+    bool isKeepAlive_ = false;
     bool isOwner_ = false;
     bool isValue_ = false;
   };

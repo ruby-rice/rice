@@ -124,7 +124,7 @@ TESTCASE(TransferOwnership)
                           my_class = nil
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(10, MyClass::constructorCalls);
@@ -147,7 +147,7 @@ TESTCASE(ShareOwnership)
                           my_class.set_flag(i)
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(1, MyClass::constructorCalls);
@@ -168,7 +168,7 @@ TESTCASE(UniquePtrRefParameter)
                         my_class.set_flag(7)
                         extract_flag_unique_ptr_ref(my_class))";
 
-  Object result = m.instance_eval(code);
+  Object result = m.module_eval(code);
 }
 
 TESTCASE(SharedPtrParameter)
@@ -182,7 +182,7 @@ TESTCASE(SharedPtrParameter)
                         my_class.set_flag(7)
                         extract_flag_shared_ptr(my_class))";
  
-  Object result = m.instance_eval(code);
+  Object result = m.module_eval(code);
 }
 
 TESTCASE(SharedPtrRefParameter)
@@ -196,5 +196,5 @@ TESTCASE(SharedPtrRefParameter)
                         my_class.set_flag(7)
                         extract_flag_shared_ptr_ref(my_class))";
 
-  Object result = m.instance_eval(code);
+  Object result = m.module_eval(code);
 }

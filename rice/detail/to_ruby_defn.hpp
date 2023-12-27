@@ -1,7 +1,7 @@
 #ifndef Rice__detail__to_ruby_defn__hpp_
 #define Rice__detail__to_ruby_defn__hpp_
 
-#include "rice_traits.hpp"
+#include "../traits/rice_traits.hpp"
 
 namespace Rice
 {

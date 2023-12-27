@@ -2,7 +2,7 @@
 #define Rice__Array__hpp_
 
 #include "Builtin_Object.hpp"
-#include "detail/ruby.hpp"
+#include "../detail/ruby.hpp"
 #include <iterator>
 
 namespace Rice

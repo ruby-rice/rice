@@ -1,7 +1,7 @@
 #ifndef Rice__Data_Type_defn__hpp_
 #define Rice__Data_Type_defn__hpp_
 
-#include "Class_defn.hpp"
+#include "cpp_api/Class_defn.hpp"
 #include "detail/ruby.hpp"
 #include <set>
 
@@ -38,8 +38,8 @@ namespace Rice
      */
     static Class klass();
 
-    //! Return the Ruby type.
-    static rb_data_type_t* rb_type();
+    //! Return the Ruby data type.
+    static rb_data_type_t* ruby_data_type();
 
     //! Assignment operator which takes a Module
     /*! \param klass must be the class to which this data type is already
@@ -47,11 +47,6 @@ namespace Rice
      *  \return *this
      */
     virtual Data_Type & operator=(Module const & klass);
-
-    //! Define a constructor for the class.
-    template<typename Constructor_T>
-    [[deprecated("Please call define_constructor with Arg parameters")]]
-    Data_Type<T> & define_constructor(Constructor_T constructor, MethodInfo * methodInfo);
 
     /*! Creates a singleton method allocate and an instance method called
      *  initialize which together create a new instance of the class.  The
@@ -118,14 +113,14 @@ namespace Rice
      *  \return *this
      */
 
-    template<typename U = T, typename Iterator_Return_T>
-    Data_Type<T>& define_iterator(Iterator_Return_T(U::* begin)(), Iterator_Return_T(U::* end)(), Identifier name = "each");
+    template<typename Iterator_Func_T>
+    Data_Type<T>& define_iterator(Iterator_Func_T begin, Iterator_Func_T end, std::string name = "each");
 
-    template <typename Attr_T>
-    Data_Type<T>& define_attr(std::string name, Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
+    template <typename Attribute_T>
+    Data_Type<T>& define_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite);
   
-    template <typename Attr_T>
-    Data_Type<T>& define_singleton_attr(std::string name, Attr_T attr, AttrAccess access = AttrAccess::ReadWrite);
+    template <typename Attribute_T>
+    Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite);
 
   #include "cpp_api/shared_methods.hpp"
 
@@ -138,13 +133,16 @@ namespace Rice
      *  \return *this
      */
     template <typename Base_T = void>
-    static Data_Type bind(Module const & klass);
+    static Data_Type bind(const Module& klass);
 
     template<typename T_, typename Base_T_>
     friend Rice::Data_Type<T_> define_class_under(Object module, char const * name);
 
     template<typename T_, typename Base_T_>
     friend Rice::Data_Type<T_> define_class(char const * name);
+
+    template<bool IsMethod, typename Function_T>
+    void wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo);
 
   private:
     template<typename T_>
@@ -153,7 +151,7 @@ namespace Rice
     static inline VALUE klass_ = Qnil;
 
     // Typed Data support
-    static inline rb_data_type_t* rb_type_ = nullptr;
+    static inline rb_data_type_t* rb_data_type_ = nullptr;
 
     typedef std::set<Data_Type<T> *> Instances;
 
@@ -185,7 +183,6 @@ namespace Rice
    */
   template<typename T, typename Base_T = void>
   Data_Type<T> define_class(char const* name);
-
 } // namespace Rice
 
 #include "Data_Type.ipp"

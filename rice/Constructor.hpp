@@ -26,7 +26,7 @@ namespace Rice
     static void construct(VALUE self, Arg_Ts...args)
     {
       T* data = new T(args...);
-      detail::replace<T>(self, Data_Type<T>::rb_type(), data, true);
+      detail::replace<T>(self, Data_Type<T>::ruby_data_type(), data, true);
     }
   };
 
@@ -38,7 +38,7 @@ namespace Rice
       static void construct(Object self, Arg_Ts...args)
       {
         T* data = new T(self, args...);
-        detail::replace<T>(self.value(), Data_Type<T>::rb_type(), data, true);
+        detail::replace<T>(self.value(), Data_Type<T>::ruby_data_type(), data, true);
       }
   };
 }

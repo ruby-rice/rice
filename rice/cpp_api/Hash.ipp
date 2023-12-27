@@ -1,7 +1,7 @@
 #ifndef Rice__Hash__ipp_
 #define Rice__Hash__ipp_
 
-#include "Exception.hpp"
+#include "../Exception.hpp"
 #include "String.hpp"
 #include <algorithm>
 

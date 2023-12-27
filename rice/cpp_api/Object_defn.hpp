@@ -4,9 +4,9 @@
 /*! \file Object.hpp
  */
 
-#include "Identifier.hpp"
-#include "detail/from_ruby_defn.hpp"
-#include "detail/to_ruby_defn.hpp"
+#include "../Identifier.hpp"
+#include "../detail/from_ruby_defn.hpp"
+#include "../detail/to_ruby_defn.hpp"
 
 #include <iosfwd>
 #include <vector>
@@ -111,6 +111,9 @@ namespace Rice
      */
     int rb_type() const;
 
+    //! Return the object's id
+    VALUE object_id() const;
+
     //! Determine whether the object is an instance of a class/module.
     /*! \param klass a class or module.
      *  \return true if the object is an instance of the given
@@ -150,24 +153,20 @@ namespace Rice
      *  a Ruby type if necessary.
      */
     template<typename T>
-    void iv_set(
-      Identifier name,
-      T const& value);
+    void iv_set(Identifier name, T const& value);
 
     //! Get the value of an instance variable.
     /*! \param name the name of the instance variable to get
      *  \return the value of the instance variable
      */
-    Object iv_get(
-      Identifier name) const;
+    Object iv_get(Identifier name) const;
 
     //! Get the value of an instance variable, but don't warn if it is
     //unset.
     /*! \param name the name of the instance variable to get
      *  \return the value of the instance variable
      */
-    Object attr_get(
-      Identifier name) const;
+    Object attr_get(Identifier name) const;
 
     //! Call the Ruby method specified by 'id' on object 'obj'.
     /*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
@@ -197,6 +196,38 @@ namespace Rice
      *  \return the return value of the method call
      */
     Object vcall(Identifier id, Array args);
+
+    //! Get a constant.
+    /*! \param name the name of the constant to get.
+     *  \return the value of the constant.
+     */
+    Object const_get(Identifier name) const;
+
+    //! Determine whether a constant is defined.
+    /*! \param name the name of the constant to check.
+     *  \return true if the constant is defined in this module or false
+     *  otherwise.
+     */
+    bool const_defined(Identifier name) const;
+
+    //! Set a constant.
+    /*! \param name the name of the constant to set.
+      *  \param value the value of the constant.
+      *  \return *this
+      */
+    inline Object const_set(Identifier name, Object value);
+
+    //! Set a constant if it not already set.
+    /*! \param name the name of the constant to set.
+      *  \param value the value of the constant.
+      *  \return *this
+      */
+    inline Object const_set_maybe(Identifier name, Object value);
+
+    //! Remove a constant.
+    /*! \param name the name of the constant to remove.
+     */
+    void remove_const(Identifier name);
 
   protected:
     //! Set the encapsulated value.

@@ -48,7 +48,6 @@ namespace Rice
 
   public:
     static T* from_ruby(VALUE value);
-    static std::optional<T> implicit_from_ruby(VALUE value);
 
   public:
     //! Wrap a C++ object.
@@ -58,12 +57,9 @@ namespace Rice
      *  constructed objects that need to be managed by Ruby's garbage
      *  collector).
      *  \param obj the object to wrap.
+     *  \param isOwner Should the Data_Object take ownership of the object?
      *  \param klass the Ruby class to use for the newly created Ruby
      *  object.
-     *  \param mark_func a function that gets called by the garbage
-     *  collector to mark the object's children.
-     *  \param free_func a function that gets called by the garbage
-     *  collector to free the object.
      */
     Data_Object(T* obj, bool isOwner = false, Class klass = Data_Type<T>::klass());
     Data_Object(T& obj, bool isOwner = false, Class klass = Data_Type<T>::klass());
@@ -73,16 +69,6 @@ namespace Rice
      *  Data_Type<T>::klass as the class of the object.
      *  \param value the Ruby object to unwrap.
      */
-    Data_Object(Object value);
-
-    //! Unwrap a Ruby object.
-    /*! This constructor is analogous to calling Data_Get_Struct.  Will
-     *  throw an exception if the class of the object differs from the
-     *  specified class.
-     *  \param value the Ruby object to unwrap.
-     *  \param klass the expected class of the object.
-     */
-    template<typename U>
     Data_Object(Object value);
 
     T& operator*() const; //!< Return a reference to obj_

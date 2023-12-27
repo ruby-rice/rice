@@ -1,3 +1,5 @@
+.. _std_pair:
+
 std::pair
 -----------
 ``std::pair`` is a simple container that provides C++ code a way of associating two values. ``std::map`` and ``std::unordered_map`` use ``std::pair`` to hold keys and their associated values.
@@ -15,7 +17,7 @@ Example:
      return std::make_pair(key, value);
   }
 
-  define_pair<std::pair<std::string, uint32_t>("StringIntPair");
+  define_pair<std::pair<std::string, uint32_t>>("StringIntPair");
   define_global_function("make_string_int_pair", &makeStringIntPair);
 
 Once you have defined this Ruby class, you can create a new instance like this:

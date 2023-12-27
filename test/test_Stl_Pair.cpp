@@ -41,6 +41,32 @@ TESTCASE(CreatePair)
   ASSERT_EQUAL("A second value", detail::From_Ruby<std::string>().convert(result));
 }
 
+TESTCASE(CreatePairConst)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_pair<std::pair<const std::string, const std::string>>("ConstStringPair");
+  Object pair = c.call("new", "pair1", "pair2");
+
+  Object result = pair.call("first");
+  ASSERT_EQUAL("pair1", detail::From_Ruby<std::string>().convert(result));
+
+  result = pair.call("second");
+  ASSERT_EQUAL("pair2", detail::From_Ruby<std::string>().convert(result));
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    pair.call("first=", "A second value"),
+    ASSERT_EQUAL("Cannot set pair.first since it is a constant", ex.what())
+  );
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    pair.call("second=", "A second value"),
+    ASSERT_EQUAL("Cannot set pair.second since it is a constant", ex.what())
+  );
+}
+
 namespace
 {
   class SomeClass
@@ -63,7 +89,6 @@ namespace
 
 // This test passes everywhere except for Ruby 2.7 on Windows
 // and I don't know why. Throws a "bad any_cast" from MethodData::data
-#ifndef _WIN32
 TESTCASE(AutoRegister)
 {
   Module m = define_module("Testing");
@@ -98,8 +123,19 @@ TESTCASE(AutoRegister)
 
   result = newPair.call("second");
   ASSERT_EQUAL(3.2, detail::From_Ruby<double>().convert(result));
+
+  // Now register the pair again
+  define_pair<std::pair<std::string, double>>("SomePair");
+  std::string code = R"(pair = SomePair.new('string', 2.0))";
+  result = m.module_eval(code);
+  ASSERT(result.is_instance_of(pair.class_of()));
+
+  // And again in the module
+  define_pair_under<std::pair<std::string, double>>(m, "SomePair2");
+  code = R"(pair = Testing::SomePair2.new('string', 3.0))";
+  result = m.module_eval(code);
+  ASSERT(result.is_instance_of(pair.class_of()));
 }
-#endif
 
 namespace
 {

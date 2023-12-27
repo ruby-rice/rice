@@ -13,11 +13,11 @@ namespace
   class SelfClass
   {
   public:
-    static inline uint32_t constructorCalls = 0;
-    static inline uint32_t copyConstructorCalls = 0;
-    static inline uint32_t moveConstructorCalls = 0;
-    static inline uint32_t destructorCalls = 0;
-    static inline uint32_t methodCalls = 0;
+    static inline int constructorCalls = 0;
+    static inline int copyConstructorCalls = 0;
+    static inline int moveConstructorCalls = 0;
+    static inline int destructorCalls = 0;
+    static inline int methodCalls = 0;
 
     static void reset()
     {
@@ -94,7 +94,7 @@ TESTCASE(SelfPointer)
   SelfClass::reset();
 
   Module m = define_module("TestingModule");
-  Object selfClass1 = m.instance_eval("SelfClass.new");
+  Object selfClass1 = m.module_eval("SelfClass.new");
   Object selfClass2 = selfClass1.call("self_pointer");
   ASSERT(selfClass2.is_equal(selfClass1));
 
@@ -113,7 +113,7 @@ TESTCASE(SelfReference)
   SelfClass::reset();
 
   Module m = define_module("TestingModule");
-  Object selfClass1 = m.instance_eval("SelfClass.new");
+  Object selfClass1 = m.module_eval("SelfClass.new");
   Object selfClass2 = selfClass1.call("self_reference");
   ASSERT(selfClass2.is_equal(selfClass1));
 
@@ -132,7 +132,7 @@ TESTCASE(SelfValue)
   SelfClass::reset();
 
   Module m = define_module("TestingModule");
-  Object selfClass1 = m.instance_eval("SelfClass.new");
+  Object selfClass1 = m.module_eval("SelfClass.new");
   Object selfClass2 = selfClass1.call("self_value");
   ASSERT(!selfClass2.is_equal(selfClass1));
 
@@ -151,7 +151,7 @@ TESTCASE(SelfPointerLambda)
   SelfClass::reset();
 
   Module m = define_module("TestingModule");
-  Object selfClass1 = m.instance_eval("SelfClass.new");
+  Object selfClass1 = m.module_eval("SelfClass.new");
   Object selfClass2 = selfClass1.call("self_pointer_lambda");
   ASSERT(selfClass2.is_equal(selfClass1));
 
@@ -162,8 +162,7 @@ TESTCASE(SelfPointerLambda)
   ASSERT_EQUAL(1, SelfClass::constructorCalls);
   ASSERT_EQUAL(0, SelfClass::copyConstructorCalls);
   ASSERT_EQUAL(0, SelfClass::moveConstructorCalls);
-  // TODO: re-enable this. It fails regularly on Ubuntu + Ruby 2.7, and nothing else.
-  // ASSERT_EQUAL(0, SelfClass::destructorCalls);
+  ASSERT_EQUAL(0, SelfClass::destructorCalls);
 }
 
 TESTCASE(SelfReferenceLambda)
@@ -171,7 +170,7 @@ TESTCASE(SelfReferenceLambda)
   SelfClass::reset();
 
   Module m = define_module("TestingModule");
-  Object selfClass1 = m.instance_eval("SelfClass.new");
+  Object selfClass1 = m.module_eval("SelfClass.new");
   Object selfClass2 = selfClass1.call("self_reference_lambda");
   ASSERT(selfClass2.is_equal(selfClass1));
 
@@ -190,7 +189,7 @@ TESTCASE(SelfValueLambda)
   SelfClass::reset();
 
   Module m = define_module("TestingModule");
-  Object selfClass1 = m.instance_eval("SelfClass.new");
+  Object selfClass1 = m.module_eval("SelfClass.new");
   Object selfClass2 = selfClass1.call("self_value_lambda");
   ASSERT(!selfClass2.is_equal(selfClass1));
 

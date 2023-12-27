@@ -1,14 +1,16 @@
 #ifndef Rice__Data_Type__ipp_
 #define Rice__Data_Type__ipp_
 
-#include "detail/method_data.hpp"
+#include "traits/attribute_traits.hpp"
+#include "traits/method_traits.hpp"
+#include "detail/NativeRegistry.hpp"
 #include "detail/NativeAttribute.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "detail/TypeRegistry.hpp"
 #include "detail/Wrapper.hpp"
-#include "detail/Iterator.hpp"
-#include "Class.hpp"
-#include "String.hpp"
+#include "detail/NativeIterator.hpp"
+#include "cpp_api/Class.hpp"
+#include "cpp_api/String.hpp"
 
 #include <stdexcept>
 
@@ -39,7 +41,7 @@ namespace Rice
 
   template<typename T>
   template <typename Base_T>
-  inline Data_Type<T> Data_Type<T>::bind(Module const& klass)
+  inline Data_Type<T> Data_Type<T>::bind(const Module& klass)
   {
     if (is_bound())
     {
@@ -49,21 +51,21 @@ namespace Rice
 
     klass_ = klass;
 
-    rb_type_ = new rb_data_type_t();
-    rb_type_->wrap_struct_name = strdup(Rice::detail::protect(rb_class2name, klass_));
-    rb_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
-    rb_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
-    rb_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
-    rb_type_->data = nullptr;
-    rb_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
+    rb_data_type_ = new rb_data_type_t();
+    rb_data_type_->wrap_struct_name = strdup(Rice::detail::protect(rb_class2name, klass_));
+    rb_data_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
+    rb_data_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
+    rb_data_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
+    rb_data_type_->data = nullptr;
+    rb_data_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
 
     if constexpr (!std::is_void_v<Base_T>)
     {
-      rb_type_->parent = Data_Type<Base_T>::rb_type();
+      rb_data_type_->parent = Data_Type<Base_T>::ruby_data_type();
     }
 
     // Now register with the type registry
-    detail::TypeRegistry::add<T>(klass_, rb_type_);
+    detail::Registries::instance.types.add<T>(klass_, rb_data_type_);
 
     for (typename Instances::iterator it = unbound_instances().begin(),
       end = unbound_instances().end();
@@ -79,7 +81,7 @@ namespace Rice
   template<typename T>
   inline void Data_Type<T>::unbind()
   {
-    detail::TypeRegistry::remove<T>();
+    detail::Registries::instance.types.remove<T>();
 
     if (klass_ != Qnil)
     {
@@ -88,7 +90,7 @@ namespace Rice
 
     // There could be objects floating around using the existing rb_type so 
     // do not delete it. This is of course a memory leak.
-    rb_type_ = nullptr;
+    rb_data_type_ = nullptr;
   }
 
   template<typename T>
@@ -113,10 +115,10 @@ namespace Rice
   }
 
   template<typename T>
-  inline rb_data_type_t* Data_Type<T>::rb_type()
+  inline rb_data_type_t* Data_Type<T>::ruby_data_type()
   {
     check_is_bound();
-    return rb_type_;
+    return rb_data_type_;
   }
 
   template<typename T>
@@ -130,19 +132,6 @@ namespace Rice
   inline Data_Type<T>& Data_Type<T>::operator=(Module const& klass)
   {
     this->bind(klass);
-    return *this;
-  }
-
-  template<typename T>
-  template<typename Constructor_T>
-  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T, MethodInfo* methodInfo)
-  {
-    check_is_bound();
-
-    // Normal constructor pattern with new/initialize
-    detail::protect(rb_define_alloc_func, static_cast<VALUE>(*this), detail::default_allocation_func<T>);
-    this->define_method("initialize", &Constructor_T::construct, methodInfo);
-
     return *this;
   }
 
@@ -165,14 +154,14 @@ namespace Rice
   template<typename Director_T>
   inline Data_Type<T>& Data_Type<T>::define_director()
   {
-    if (!detail::TypeRegistry::isDefined<Director_T>())
+    if (!detail::Registries::instance.types.isDefined<Director_T>())
     {
       Data_Type<Director_T>::bind(*this);
     }
 
     // TODO - hack to fake Ruby into thinking that a Director is
     // the same as the base data type
-    Data_Type<Director_T>::rb_type_ = Data_Type<T>::rb_type_;
+    Data_Type<Director_T>::rb_data_type_ = Data_Type<T>::rb_data_type_;
     return *this;
   }
 
@@ -202,7 +191,7 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class_under(Object module, char const* name)
   {
-    if (detail::TypeRegistry::isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       return Data_Type<T>();
     }
@@ -226,7 +215,7 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class(char const* name)
   {
-    if (detail::TypeRegistry::isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
       return Data_Type<T>();
     }
@@ -247,75 +236,56 @@ namespace Rice
   }
 
   template<typename T>
-  template<typename U, typename Iterator_T>
-  inline Data_Type<T>& Data_Type<T>::define_iterator(Iterator_T(U::* begin)(), Iterator_T(U::* end)(), Identifier name)
+  template<typename Iterator_Func_T>
+  inline Data_Type<T>& Data_Type<T>::define_iterator(Iterator_Func_T begin, Iterator_Func_T end, std::string name)
   {
-    using Iter_T = detail::Iterator<U, Iterator_T>;
-    Iter_T* iterator = new Iter_T(begin, end);
-    detail::MethodData::define_method(Data_Type<T>::klass(), name,
-      (RUBY_METHOD_FUNC)iterator->call, 0, iterator);
+    // Define a NativeIterator to bridge Ruby to C++
+    detail::NativeIterator<T, Iterator_Func_T>::define(Data_Type<T>::klass(), name, begin, end);
+
+    // Include enumerable support
+    this->klass().include_module(rb_mEnumerable);
 
     return *this;
   }
 
   template <typename T>
-  template <typename Attr_T>
-  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attr_T attr, AttrAccess access)
+  template <typename Attribute_T>
+  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attribute_T attribute, AttrAccess access)
   {
-    auto* native = detail::Make_Native_Attribute(attr, access);
-    using Native_T = typename std::remove_pointer_t<decltype(native)>;
+    // Make sure the Attribute type has been previously seen by Rice
+    detail::verifyType<typename detail::attribute_traits<Attribute_T>::attr_type>();
 
-    detail::verifyType<typename Native_T::Native_Return_T>();
-
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
-    {
-      detail::MethodData::define_method( klass_, Identifier(name).id(),
-        RUBY_METHOD_FUNC(&Native_T::get), 0, native);
-    }
-
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
-    {
-      if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
-      {
-        throw std::runtime_error(name + " is readonly");
-      }
-
-      detail::MethodData::define_method( klass_, Identifier(name + "=").id(),
-        RUBY_METHOD_FUNC(&Native_T::set), 1, native);
-    }
+    // Define native attribute
+    detail::NativeAttribute<Attribute_T>::define(klass_, name, std::forward<Attribute_T>(attribute), access);
 
     return *this;
   }
 
   template <typename T>
-  template <typename Attr_T>
-  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attr_T attr, AttrAccess access)
+  template <typename Attribute_T>
+  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access)
   {
-    auto* native = detail::Make_Native_Attribute(attr, access);
-    using Native_T = typename std::remove_pointer_t<decltype(native)>;
+    // Make sure the Attribute type has been previously seen by Rice
+    detail::verifyType<typename detail::attribute_traits<Attribute_T>::attr_type>();
 
-    detail::verifyType<typename Native_T::Native_Return_T>();
-
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
-    {
-      VALUE singleton = detail::protect(rb_singleton_class, this->value());
-      detail::MethodData::define_method(singleton, Identifier(name).id(),
-        RUBY_METHOD_FUNC(&Native_T::get), 0, native);
-    }
-
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
-    {
-      if (std::is_const_v<std::remove_pointer_t<Attr_T>>)
-      {
-        throw std::runtime_error(name  + " is readonly");
-      }
-
-      VALUE singleton = detail::protect(rb_singleton_class, this->value());
-      detail::MethodData::define_method(singleton, Identifier(name + "=").id(),
-        RUBY_METHOD_FUNC(&Native_T::set), 1, native);
-    }
+    // Define native attribute
+    VALUE singleton = detail::protect(rb_singleton_class, this->value());
+    detail::NativeAttribute<Attribute_T>::define(singleton, name, std::forward<Attribute_T>(attribute), access);
 
     return *this;
+  }
+
+  template <typename T>
+  template<bool IsMethod, typename Function_T>
+  inline void Data_Type<T>::wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo)
+  {
+    // Make sure the return type and arguments have been previously seen by Rice
+    using traits = detail::method_traits<Function_T, IsMethod>;
+    detail::verifyType<typename traits::Return_T>();
+    detail::verifyTypes<typename traits::Arg_Ts>();
+
+    // Define a NativeFunction to bridge Ruby to C++
+    detail::NativeFunction<T, Function_T, IsMethod>::define(klass, name, std::forward<Function_T>(function), methodInfo);
   }
 }
 #endif

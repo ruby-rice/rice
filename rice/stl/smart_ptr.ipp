@@ -1,4 +1,5 @@
 #include "../detail/to_ruby.hpp"
+#include "../detail/Registries.hpp"
 
 #include <assert.h>
 #include <memory>
@@ -10,6 +11,12 @@ namespace Rice::detail
   inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::WrapperSmartPointer(SmartPointer_T<Arg_Ts...>& data) 
     : data_(std::move(data))
   {
+  }
+
+  template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
+  inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::~WrapperSmartPointer()
+  {
+    Registries::instance.instances.remove(this->get());
   }
 
   template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
@@ -31,7 +38,7 @@ namespace Rice::detail
   public:
     VALUE convert(std::unique_ptr<T>& data)
     {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(*data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
 
       // Use custom wrapper type 
       using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
@@ -45,7 +52,7 @@ namespace Rice::detail
   public:
     std::unique_ptr<T>& convert(VALUE value)
     {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::rb_type());
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
 
       using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
       Wrapper_T* smartWrapper = dynamic_cast<Wrapper_T*>(wrapper);
@@ -74,7 +81,7 @@ namespace Rice::detail
   public:
     VALUE convert(std::shared_ptr<T>& data)
     {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(*data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
 
       // Use custom wrapper type 
       using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
@@ -88,7 +95,7 @@ namespace Rice::detail
   public:
     std::shared_ptr<T> convert(VALUE value)
     {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::rb_type());
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
 
       using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
       Wrapper_T* smartWrapper = dynamic_cast<Wrapper_T*>(wrapper);
@@ -107,7 +114,7 @@ namespace Rice::detail
   public:
     std::shared_ptr<T>& convert(VALUE value)
     {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::rb_type());
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
 
       using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
       Wrapper_T* smartWrapper = dynamic_cast<Wrapper_T*>(wrapper);

@@ -13,11 +13,11 @@ namespace
   class MyClass
   {
   public:
-    static inline uint32_t constructorCalls = 0;
-    static inline uint32_t copyConstructorCalls = 0;
-    static inline uint32_t moveConstructorCalls = 0;
-    static inline uint32_t destructorCalls = 0;
-    static inline uint32_t methodCalls = 0;
+    static inline int constructorCalls = 0;
+    static inline int copyConstructorCalls = 0;
+    static inline int moveConstructorCalls = 0;
+    static inline int destructorCalls = 0;
+    static inline int methodCalls = 0;
 
     static void reset()
     {
@@ -145,7 +145,7 @@ TESTCASE(TransferPointer)
                           my_class = nil
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(10, MyClass::constructorCalls);
@@ -169,7 +169,7 @@ TESTCASE(KeepPointer)
                           my_class.set_flag(i)
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(1, MyClass::constructorCalls);
@@ -193,7 +193,7 @@ TESTCASE(KeepReference)
                           my_class.set_flag(i)
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(1, MyClass::constructorCalls);
@@ -217,7 +217,7 @@ TESTCASE(CopyReference)
                           my_class.set_flag(i)
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(1, MyClass::constructorCalls);
@@ -227,7 +227,7 @@ TESTCASE(CopyReference)
   ASSERT_EQUAL(0, Factory::instance_->flag);
 }
 
-/*TESTCASE(TransferValue)
+TESTCASE(TransferValue)
 {
   Factory::reset();
   MyClass::reset();
@@ -240,7 +240,7 @@ TESTCASE(CopyReference)
                           my_class.set_flag(i)
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(10, MyClass::constructorCalls);
@@ -263,7 +263,7 @@ TESTCASE(MoveValue)
                           my_class.set_flag(i)
                         end)";
 
-  m.instance_eval(code);
+  m.module_eval(code);
   rb_gc_start();
 
   ASSERT_EQUAL(10, MyClass::constructorCalls);
@@ -272,4 +272,3 @@ TESTCASE(MoveValue)
   ASSERT_EQUAL(30, MyClass::destructorCalls);
   ASSERT(!Factory::instance_);
 }
-*/

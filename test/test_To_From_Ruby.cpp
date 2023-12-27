@@ -322,6 +322,12 @@ TESTCASE(char_const_ptr_to_ruby)
 {
   ASSERT(rb_equal(String("").value(), detail::to_ruby((char const *)"")));
   ASSERT(rb_equal(String("foo").value(), detail::to_ruby((char const *)"foo")));
+  ASSERT(rb_equal(String("foo").value(), detail::to_ruby("foo")));
+}
+
+TESTCASE(char_const_array_to_ruby_symbol)
+{
+  ASSERT(rb_equal(Symbol("foo").value(), detail::to_ruby(":foo")));
 }
 
 TESTCASE(char_const_ptr_from_ruby)

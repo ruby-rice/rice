@@ -13,7 +13,7 @@ namespace Rice
     for (size_t i = this->args_.size(); i < argCount; i++)
     {
       Arg arg("arg_" + std::to_string(i));
-      this->args_.emplace_back(arg);
+      this->addArg(arg);
     }
 
     // TODO - so hacky but update the Arg positions

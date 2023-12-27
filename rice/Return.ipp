@@ -14,20 +14,25 @@ namespace Rice
     return this->isOwner_;
   }
 
-  inline Return& Return::isValue()
+  inline Return& Return::setValue()
   {
     this->isValue_ = true;
     return *this;
   }
 
-  inline bool Return::getIsValue()
+  inline bool Return::isValue() const
   {
     return this->isValue_;
   }
 
   inline Return& Return::keepAlive()
   {
-    this->isKeepAlive = true;
+    this->isKeepAlive_ = true;
     return *this;
+  }
+
+  inline bool Return::isKeepAlive() const
+  {
+    return this->isKeepAlive_;
   }
 }  // Rice

@@ -1,1 +1,0 @@
-# Do nothing - but required to load the Rice gem

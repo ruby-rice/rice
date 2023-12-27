@@ -35,8 +35,6 @@ T* unwrap(VALUE value, rb_data_type_t* rb_type);
 
 Wrapper* getWrapper(VALUE value, rb_data_type_t* rb_type);
 
-void* unwrap(VALUE value);
-
 template <typename T>
 void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner);
 

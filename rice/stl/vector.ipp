@@ -1,11 +1,14 @@
-#include "../detail/rice_traits.hpp"
+#include "../traits/function_traits.hpp"
 #include "../detail/from_ruby.hpp"
 #include "../detail/to_ruby.hpp"
 #include "../Data_Type.hpp"
+#include "../Data_Object.hpp"
 
 #include <sstream>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
+#include <variant>
 
 namespace Rice
 {
@@ -28,8 +31,9 @@ namespace Rice
         this->define_access_methods();
         this->define_comparable_methods();
         this->define_modify_methods();
-        this->define_to_s();
         this->define_enumerable();
+        this->define_to_array();
+        this->define_to_s();
       }
 
     private:
@@ -62,17 +66,17 @@ namespace Rice
       {
         if constexpr (std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& vector) -> T
             {
-              return self;
+              return vector;
             });
         }
         else
         {
-          klass_.define_method("copy", [](T& self) -> T
+          klass_.define_method("copy", [](T& vector) -> T
             {
               throw std::runtime_error("Cannot copy vectors with non-copy constructible types");
-              return self;
+              return vector;
             });
         }
       }
@@ -85,7 +89,7 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("resize", [](const T& self, Size_T newSize)
+          klass_.define_method("resize", [](const T& vector, Size_T newSize)
               {
                 // Do nothing
               });
@@ -109,38 +113,38 @@ namespace Rice
       void define_access_methods()
       {
         // Access methods
-        klass_.define_method("first", [](const T& self) -> std::optional<Value_T>
+        klass_.define_method("first", [](const T& vector) -> std::optional<Value_T>
           {
-            if (self.size() > 0)
+            if (vector.size() > 0)
             {
-              return self.front();
+              return vector.front();
             }
             else
             {
               return std::nullopt;
             }
           })
-          .define_method("last", [](const T& self) -> std::optional<Value_T>
+          .define_method("last", [](const T& vector) -> std::optional<Value_T>
             {
-              if (self.size() > 0)
+              if (vector.size() > 0)
               {
-                return self.back();
+                return vector.back();
               }
               else
               {
                 return std::nullopt;
               }
             })
-            .define_method("[]", [this](const T& self, Difference_T index) -> std::optional<Value_T>
+            .define_method("[]", [this](const T& vector, Difference_T index) -> std::optional<Value_T>
               {
-                index = normalizeIndex(self.size(), index);
-                if (index < 0 || index >= (Difference_T)self.size())
+                index = normalizeIndex(vector.size(), index);
+                if (index < 0 || index >= (Difference_T)vector.size())
                 {
                   return std::nullopt;
                 }
                 else
                 {
-                  return self[index];
+                  return vector[index];
                 }
               });
 
@@ -152,48 +156,48 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<Value_T>)
         {
-          klass_.define_method("delete", [](T& self, Value_T& element) -> std::optional<Value_T>
+          klass_.define_method("delete", [](T& vector, Value_T& element) -> std::optional<Value_T>
             {
-              auto iter = std::find(self.begin(), self.end(), element);
-              if (iter == self.end())
+              auto iter = std::find(vector.begin(), vector.end(), element);
+              if (iter == vector.end())
               {
                 return std::nullopt;
               }
               else
               {
                 Value_T result = *iter;
-                self.erase(iter);
+                vector.erase(iter);
                 return result;
               }
             })
-          .define_method("include?", [](T& self, Value_T& element)
+          .define_method("include?", [](T& vector, Value_T& element)
             {
-              return std::find(self.begin(), self.end(), element) != self.end();
+              return std::find(vector.begin(), vector.end(), element) != vector.end();
             })
-          .define_method("index", [](T& self, Value_T& element) -> std::optional<Difference_T>
+          .define_method("index", [](T& vector, Value_T& element) -> std::optional<Difference_T>
             {
-              auto iter = std::find(self.begin(), self.end(), element);
-              if (iter == self.end())
+              auto iter = std::find(vector.begin(), vector.end(), element);
+              if (iter == vector.end())
               {
                 return std::nullopt;
               }
               else
               {
-                return iter - self.begin();
+                return iter - vector.begin();
               }
             });
         }
         else
         {
-          klass_.define_method("delete", [](T& self, Value_T& element) -> std::optional<Value_T>
+          klass_.define_method("delete", [](T& vector, Value_T& element) -> std::optional<Value_T>
             {
               return std::nullopt;
             })
-          .define_method("include?", [](const T& self, Value_T& element)
+          .define_method("include?", [](const T& vector, Value_T& element)
             {
               return false;
             })
-          .define_method("index", [](const T& self, Value_T& element) -> std::optional<Difference_T>
+          .define_method("index", [](const T& vector, Value_T& element) -> std::optional<Difference_T>
             {
               return std::nullopt;
             });
@@ -203,26 +207,26 @@ namespace Rice
       void define_modify_methods()
       {
         klass_.define_method("clear", &T::clear)
-          .define_method("delete_at", [](T& self, const size_t& pos)
+          .define_method("delete_at", [](T& vector, const size_t& pos)
             {
-              auto iter = self.begin() + pos;
+              auto iter = vector.begin() + pos;
               Value_T result = *iter;
-              self.erase(iter);
+              vector.erase(iter);
               return result;
             })
-          .define_method("insert", [this](T& self, Difference_T index, Value_T& element) -> T&
+          .define_method("insert", [this](T& vector, Difference_T index, Value_T& element) -> T&
             {
-              index = normalizeIndex(self.size(), index, true);
-              auto iter = self.begin() + index;
-              self.insert(iter, element);
-              return self;
+              index = normalizeIndex(vector.size(), index, true);
+              auto iter = vector.begin() + index;
+              vector.insert(iter, element);
+              return vector;
             })
-          .define_method("pop", [](T& self) -> std::optional<Value_T>
+          .define_method("pop", [](T& vector) -> std::optional<Value_T>
             {
-              if (self.size() > 0)
+              if (vector.size() > 0)
               {
-                Value_T result = self.back();
-                self.pop_back();
+                Value_T result = vector.back();
+                vector.pop_back();
                 return result;
               }
               else
@@ -230,16 +234,16 @@ namespace Rice
                 return std::nullopt;
               }
             })
-          .define_method("push", [](T& self, Value_T& element) -> T&
+          .define_method("push", [](T& vector, Value_T& element) -> T&
             {
-              self.push_back(element);
-              return self;
+              vector.push_back(element);
+              return vector;
             })
           .define_method("shrink_to_fit", &T::shrink_to_fit)
-          .define_method("[]=", [this](T& self, Difference_T index, Value_T& element) -> Value_T&
+          .define_method("[]=", [this](T& vector, Difference_T index, Value_T& element) -> Value_T&
             {
-              index = normalizeIndex(self.size(), index, true);
-              self[index] = element;
+              index = normalizeIndex(vector.size(), index, true);
+              vector[index] = element;
               return element;
             });
 
@@ -250,33 +254,40 @@ namespace Rice
       void define_enumerable()
       {
         // Add enumerable support
-        klass_.include_module(rb_mEnumerable)
-          .define_method("each", [](T& self) -> const T&
-            {
-              for (Value_T& item : self)
-              {
-                VALUE element = detail::To_Ruby<Value_T>().convert(item);
-                rb_yield(element);
-              }
-              return self;
-            });
+        klass_.template define_iterator<typename T::iterator(T::*)()>(&T::begin, &T::end);
+      }
+
+      void define_to_array()
+      {
+        // Add enumerable support
+        klass_.define_method("to_a", [](T& vector)
+        {
+          VALUE result = rb_ary_new();
+          std::for_each(vector.begin(), vector.end(), [&result](const Value_T& element)
+          {
+            VALUE value = detail::To_Ruby<Value_T&>().convert(element);
+            rb_ary_push(result, value);
+          });
+
+          return result;
+        }, Return().setValue());
       }
 
       void define_to_s()
       {
         if constexpr (detail::is_ostreamable_v<Value_T>)
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& vector)
             {
-              auto iter = self.begin();
-              auto finish = self.size() > 1000 ? self.begin() + 1000 : self.end();
+              auto iter = vector.begin();
+              auto finish = vector.size() > 1000 ? vector.begin() + 1000 : vector.end();
 
               std::stringstream stream;
               stream << "[";
 
               for (; iter != finish; iter++)
               {
-                if (iter == self.begin())
+                if (iter == vector.begin())
                 {
                   stream << *iter;
                 }
@@ -292,7 +303,7 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& self)
+          klass_.define_method("to_s", [](const T& vector)
             {
               return "[Not printable]";
             });
@@ -307,9 +318,13 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector_under(Object module, std::string name)
   {
-    if (detail::TypeRegistry::isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
-      return Data_Type<T>(Data_Type<T>());
+      // If the vector has been previously seen it will be registered but may
+      // not be associated with the constant Module::<name>
+      module.const_set_maybe(name, Data_Type<T>().klass());
+
+      return Data_Type<T>();
     }
 
     Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(module, name.c_str());
@@ -320,9 +335,13 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector(std::string name)
   {
-    if (detail::TypeRegistry::isDefined<T>())
+    if (detail::Registries::instance.types.isDefined<T>())
     {
-      return Data_Type<T>(Data_Type<T>());
+      // If the vector has been previously seen it will be registered but may
+      // not be associated with the constant Module::<name>
+      Object(rb_cObject).const_set_maybe(name, Data_Type<T>().klass());
+
+      return Data_Type<T>();
     }
 
     Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
@@ -348,7 +367,7 @@ namespace Rice
       {
         Type<T>::verify();
 
-        if (!detail::TypeRegistry::isDefined<std::vector<T>>())
+        if (!detail::Registries::instance.types.isDefined<std::vector<T>>())
         {
           define_vector_auto<std::vector<T>>();
         }
@@ -360,7 +379,7 @@ namespace Rice
     template<typename T>
     std::vector<T> vectorFromArray(VALUE value)
     {
-      size_t length = protect(rb_array_len, value);
+      long length = protect(rb_array_len, value);
       std::vector<T> result(length);
 
       for (long i = 0; i < length; i++)

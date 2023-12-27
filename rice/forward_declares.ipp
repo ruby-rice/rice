@@ -78,5 +78,11 @@ namespace Rice
   {
     return CLASS_OF(value());
   }
+
+  inline Object Module::module_eval(String const& s)
+  {
+    const VALUE argv[] = { s.value() };
+    return detail::protect(rb_mod_module_eval, 1, &argv[0], this->value());
+  }
 }
 #endif // Rice__Forward_Declares__ipp_

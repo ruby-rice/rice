@@ -1,3 +1,5 @@
+.. _stl:
+
 STL
 ===
 
@@ -21,4 +23,9 @@ Yikes!  So the rule of thumb - use generated classes if you do not need to creat
 
 Its easy to manually create class names. The way to do this varies per STL type, but follows a simple naming scheme - ``define_pair``, ``define_vector``, etc. Please refer to the documentation for each supported STL type.
 
-Note manual class names must be defined *before* any ``define_method``, ``define_function`` or ``define_attr`` are called that use either return or take an STL type as function parameter. Otherwise Rice will automatically create the warpper Ruby class before you create it manually.
+Note manual class names can be defined *after* any auto generated classes. What happens is there is still only one class but it is referred to by multiple constants. For example if you call ``define_pair<std::pair<std::string, double>>(StringDoublePair)`` after the pair has been registered, in Ruby you will have two constants pointing to the class:
+
+.. code-block:: ruby
+
+    Rice::Std::Pair__basic_string__char_char_traits__char___allocator__char_____double__
+    Object::StringDoublePair

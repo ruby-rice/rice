@@ -1,6 +1,7 @@
-#include "rice_traits.hpp"
+#include "../traits/rice_traits.hpp"
 
 #include <iosfwd>
+#include <iterator>
 #include <numeric>
 #include <regex>
 #include <sstream>
@@ -32,7 +33,7 @@ namespace Rice::detail
   template<typename Tuple_T, size_t...Is>
   void verifyTypesImpl()
   {
-    (Type<intrinsic_type<typename std::tuple_element<Is, Tuple_T>::type>>::verify(), ...);
+    (verifyType<typename std::tuple_element<Is, Tuple_T>::type>(), ...);
   }
 
   template<typename Tuple_T>

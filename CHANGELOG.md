@@ -1,3 +1,33 @@
+## 4.1
+
+Rice 4.1 builds on the 4.0 release and has a number of improvements that both polish Rice and extend its functionality. However, there are three incompatibilities to know about:
+
+* Exception handlers are now registered globally versus per module. This requires updating code that calls Class#add_handler to use register_handler instead.
+* Rename Arg#isValue to Arg#setValue and then Arg#getIsValue to Arg#isValue
+* Rename Return#isValue to Return#setValue and Return#getIsValue to Return#isValue 
+
+New or improved functionality includes:
+
+* Add support for std::map, std::unordered_map, std::variant, std::monostate and std::reference_wrapper
+* Enable calling of C++ member functions that are defined in ancestor classes
+* Make it easy to wrap C++ iterators like std::vector begin and end
+* Enable creating enumerators for C++ collections like std::vector and std::map
+* Enable calling more Ruby API methods including those with a variable number of parameters such as rb_yield_values
+* Add additional C++ to Ruby exception mappings (for example, std::system_error to SystemCallError)
+* Updated documentation, including new pages for instance tracking, iterators, exceptions and newly supported STL classes
+* Add support for calling Ruby methods with keywords from Rice::Object and its descendants
+* Automatically translate C++ character arrays that start with colons to symbols (ie, ":mysymbol") when sending them to Ruby
+* Add a constructor for Rice::Module that takes a name, to enable code like Module("Kernel")
+* Fix comparison methods in Rice::Object, such as Object#is_equal, to return the correct result
+* Fix various compiler warnings
+* Remove deprecated APIs
+* Remove support for Ruby 2.5 and 2.6 which are officially out of support
+* Add support for building tests with CMake
+* And lots of other fixes and code improvements
+
+Rice also includes experimental support for instance tracking so that Rice maps the same C++ instance to the same Ruby instance each time it is passed to Ruby. See the documentation for more information.
+
+
 ## 4.0
 
 Rice 4.0 is a significant change from 3.0 and has multiple backwards-incompatible

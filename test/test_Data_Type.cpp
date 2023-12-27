@@ -246,6 +246,16 @@ namespace {
   {
   public:
     BaseClass() {}
+
+    bool some_method()
+    {
+      return true;
+    }
+
+    bool another_method()
+    {
+      return true;
+    }
   };
 }
 
@@ -253,15 +263,50 @@ TESTCASE(subclassing)
 {
   Module m = define_module("Testing");
   define_class_under<BaseClass>(m, "BaseClass").
-    define_constructor(Constructor<BaseClass>());
+    define_constructor(Constructor<BaseClass>()).
+    define_method("some_method", &BaseClass::some_method).
+    define_method("another_method", &BaseClass::another_method);
 
-  // Not sure how to make this a true failure case. If the subclassing
-  // doesn't work, Ruby will throw an error:
-  //
-  //    in `new': wrong instance allocation
-  //
-  m.instance_eval("class NewClass < Testing::BaseClass; end;");
-  m.instance_eval("n = NewClass.new");
+    std::string code = R"(class ChildClass < BaseClass
+                            def child_method
+                              false
+                            end
+
+                            def another_method
+                              super
+                            end
+                          end
+
+                          instance = ChildClass.new
+                          instance.some_method
+                          instance.child_method
+                          instance.another_method)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
+}
+
+TESTCASE(subclass_override_initializer)
+{
+  Module m = define_module("Testing");
+  define_class_under<BaseClass>(m, "BaseClass").
+    define_constructor(Constructor<BaseClass>()).
+    define_method("some_method", &BaseClass::some_method);
+
+  std::string code = R"(class ChildClass < BaseClass
+                          def initialize
+                            # Note NO super call so class in incorrectly initialized
+                          end
+                        end
+
+                        instance = ChildClass.new
+                        instance.some_method)";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval(code),
+    ASSERT_EQUAL("Wrapped C++ object is nil. Did you override Testing::ChildClass#initialize and forget to call super?", ex.what())
+  );
 }
 
 namespace {
@@ -277,7 +322,6 @@ namespace {
       with_reference_defaults_str = str;
     }
   };
-
 }
 
 TESTCASE(define_method_works_with_reference_const_default_values)
@@ -318,7 +362,7 @@ TESTCASE(define_singleton_method_returning_reference)
 
   Module m(anonymous_module());
 
-  Object result = m.instance_eval("RefTest.get_reference");
+  Object result = m.module_eval("RefTest.get_reference");
   ASSERT_EQUAL(result, String("foo"));
 }
 
@@ -392,28 +436,80 @@ TESTCASE(not_defined)
   );
 }
 
-
-/**
- * The following test SEGFAULTs right now
- */
-/*
-TESTCASE(no_super_in_constructor_still_works)
+namespace
 {
-  Module m = define_module("TestingModule");
-  Object handler = m.instance_eval("@handler = ListenerHandler.new");
+  class Container
+  {
+  public:
+    size_t capacity()
+    {
+      return this->capacity_;
+    }
 
-  ASSERT_EQUAL(INT2NUM(0), handler.call("listener_count").value());
+    void capacity(size_t value)
+    {
+      this->capacity_ = value;
+    }
 
-  // Because of this, there's a constructor but no super call
-  m.instance_eval("class MyListener < Listener; def initialize; @val = 10; end; end;");
-  m.instance_eval("@handler.add_listener(MyListener.new)");
-
-  ASSERT_EQUAL(INT2NUM(1), handler.call("listener_count").value());
-  ASSERT_EQUAL(INT2NUM(4), handler.call("process").value());
-
-  m.instance_eval("@handler.add_listener(MyListener.new)");
-
-  ASSERT_EQUAL(INT2NUM(2), handler.call("listener_count").value());
-  ASSERT_EQUAL(INT2NUM(8), handler.call("process").value());
+  private:
+    size_t capacity_;
+  };
 }
-*/
+
+TESTCASE(OverloadsWithTemplateParameter)
+{
+  Class c = define_class<Container>("Container")
+    .define_constructor(Constructor<Container>())
+    .define_method<size_t(Container::*)()>("capacity", &Container::capacity)
+    .define_method<void(Container::*)(size_t)>("capacity=", &Container::capacity);
+
+  
+  Module m = define_module("Testing");
+
+  std::string code = R"(container = Container.new
+                        container.capacity = 5
+                        container.capacity)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(OverloadsWithUsing)
+{
+  using Getter_T = size_t(Container::*)();
+  using Setter_T = void(Container::*)(size_t);
+
+  Class c = define_class<Container>("Container")
+    .define_constructor(Constructor<Container>())
+    .define_method("capacity", (Getter_T)&Container::capacity)
+    .define_method("capacity=", (Setter_T)&Container::capacity);
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(container = Container.new
+                        container.capacity = 6
+                        container.capacity)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(OverloadsWithTypedef)
+{
+  typedef size_t(Container::* Getter_T)();
+  typedef void (Container::* Setter_T)(size_t);
+
+  Class c = define_class<Container>("Container")
+    .define_constructor(Constructor<Container>())
+    .define_method("capacity", (Getter_T)&Container::capacity)
+    .define_method("capacity=", (Setter_T)&Container::capacity);
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(container = Container.new
+                        container.capacity = 7
+                        container.capacity)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(7, detail::From_Ruby<int>().convert(result.value()));
+}

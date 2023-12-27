@@ -61,7 +61,7 @@ as a ``convert`` function in a struct, and they need to live in the ``Rice::deta
     };
   }
 
-In addition, they work with Ruby's VALUE type as opposed to Rice's Object type. This switch was made to avoid making extra copies of objects when translating between C++ and Ruby. For more information, please refer to the :doc:`type converstion <advanced/type_conversions>` section.
+In addition, they work with Ruby's VALUE type as opposed to Rice's Object type. This switch was made to avoid making extra copies of objects when translating between C++ and Ruby. For more information, please refer to the :doc:`type conversion <bindings/type_conversions>` section.
 
 
 Functions vs Methods

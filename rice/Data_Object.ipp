@@ -18,26 +18,18 @@ namespace Rice
   template<typename T>
   inline Data_Object<T>::Data_Object(T& data, bool isOwner, Class klass)
   {
-    VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data, isOwner);
+    VALUE value = detail::wrap(klass, Data_Type<T>::ruby_data_type(), data, isOwner);
     this->set_value(value);
   }
 
   template<typename T>
   inline Data_Object<T>::Data_Object(T* data, bool isOwner, Class klass)
   {
-    VALUE value = detail::wrap(klass, Data_Type<T>::rb_type(), data, isOwner);
+    VALUE value = detail::wrap(klass, Data_Type<T>::ruby_data_type(), data, isOwner);
     this->set_value(value);
   }
 
   template<typename T>
-  inline Data_Object<T>::Data_Object(Object value) : Object(value)
-  {
-    Data_Type<T> klass;
-    check_ruby_type(value);
-  }
-
-  template<typename T>
-  template<typename U>
   inline Data_Object<T>::Data_Object(Object value) : Object(value)
   {
     check_ruby_type(value);
@@ -73,7 +65,7 @@ namespace Rice
     }
     else
     {
-      return detail::unwrap<T>(this->value(), Data_Type<T>::rb_type());
+      return detail::unwrap<T>(this->value(), Data_Type<T>::ruby_data_type());
     }
   }
 
@@ -82,7 +74,7 @@ namespace Rice
   {
     if (Data_Type<T>::is_descendant(value))
     {
-      return detail::unwrap<T>(value, Data_Type<T>::rb_type());
+      return detail::unwrap<T>(value, Data_Type<T>::ruby_data_type());
     }
     else
     {
@@ -100,7 +92,17 @@ namespace Rice::detail
     VALUE convert(T& data)
     {
       // Get the ruby typeinfo
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
+
+      // We always take ownership of data passed by value (yes the parameter is T& but the template
+      // matched <typename T> thus we have to tell wrap to copy the reference we are sending to it
+      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
+
+    VALUE convert(const T& data)
+    {
+      // Get the ruby typeinfo
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
 
       // We always take ownership of data passed by value (yes the parameter is T& but the template
       // matched <typename T> thus we have to tell wrap to copy the reference we are sending to it
@@ -122,7 +124,17 @@ namespace Rice::detail
     {
       // Note that T could be a pointer or reference to a base class while data is in fact a
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType<T>(data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
+
+      bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
+    }
+
+    VALUE convert(const T& data)
+    {
+      // Note that T could be a pointer or reference to a base class while data is in fact a
+      // child class. Lookup the correct type so we return an instance of the correct Ruby class
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
 
       bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
       return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
@@ -142,13 +154,29 @@ namespace Rice::detail
     {
     }
 
+    VALUE convert(T* data)
+    {
+      if (data)
+      {
+        // Note that T could be a pointer or reference to a base class while data is in fact a
+        // child class. Lookup the correct type so we return an instance of the correct Ruby class
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
+        bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
+      }
+      else
+      {
+        return Qnil;
+      }
+    }
+
     VALUE convert(const T* data)
     {
       if (data)
       {
         // Note that T could be a pointer or reference to a base class while data is in fact a
         // child class. Lookup the correct type so we return an instance of the correct Ruby class
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::TypeRegistry::figureType(*data);
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
         bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
         return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
       }
@@ -175,6 +203,8 @@ namespace Rice::detail
   template <typename T>
   class From_Ruby
   {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
   public:
     From_Ruby() = default;
 
@@ -182,6 +212,12 @@ namespace Rice::detail
     {
     }
     
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_DATA &&
+        Data_Type<T>::is_descendant(value);
+    }
+
     T convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
@@ -203,11 +239,19 @@ namespace Rice::detail
   template<typename T>
   class From_Ruby<T&>
   {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
   public:
     From_Ruby() = default;
 
     explicit From_Ruby(Arg * arg) : arg_(arg)
     {
+    }
+
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_DATA &&
+        Data_Type<T>::is_descendant(value);
     }
 
     T& convert(VALUE value)
@@ -231,7 +275,15 @@ namespace Rice::detail
   template<typename T>
   class From_Ruby<T*>
   {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_DATA &&
+        Data_Type<T>::is_descendant(value);
+    }
+
     T* convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
@@ -250,6 +302,8 @@ namespace Rice::detail
   template<typename T>
   class From_Ruby<Data_Object<T>>
   {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
   public:
     static Data_Object<T> convert(VALUE value)
     {

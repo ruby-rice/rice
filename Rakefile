@@ -93,7 +93,7 @@ end
 desc "Build the documentation"
 task :doc do
   cd "doc" do
-    sh "make html"
+    sh "make clean html"
   end
 end
 

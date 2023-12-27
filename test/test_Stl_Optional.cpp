@@ -53,7 +53,7 @@ SETUP(Optional)
 TESTCASE(OptionalReturn)
 {
   Module m = define_module("Testing");
-  Object myClass = m.instance_eval("MyClass.new");
+  Object myClass = m.module_eval("MyClass.new");
 
   Object result = myClass.call("optional_return", true);
   ASSERT_EQUAL("Here is a value", detail::From_Ruby<std::string>().convert(result));
@@ -65,7 +65,7 @@ TESTCASE(OptionalReturn)
 TESTCASE(OptionalArgument)
 {
   Module m = define_module("Testing");
-  Object myClass = m.instance_eval("MyClass.new");
+  Object myClass = m.module_eval("MyClass.new");
 
   Object result = myClass.call("optional_argument", 77);
   ASSERT_EQUAL(77, detail::From_Ruby<int32_t>().convert(result));
@@ -77,7 +77,7 @@ TESTCASE(OptionalArgument)
 TESTCASE(OptionalAttribute)
 {
   Module m = define_module("Testing");
-  Object myClass = m.instance_eval("MyClass.new");
+  Object myClass = m.module_eval("MyClass.new");
 
   Object result = myClass.call("optional_attr");
   ASSERT_EQUAL(Qnil, result.value());

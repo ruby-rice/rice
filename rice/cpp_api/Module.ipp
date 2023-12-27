@@ -1,11 +1,10 @@
 #ifndef Rice__Module__ipp_
 #define Rice__Module__ipp_
 
-#include "detail/rice_traits.hpp"
-#include "detail/function_traits.hpp"
-#include "detail/Type.hpp"
-#include "detail/NativeFunction.hpp"
-#include "Exception.hpp"
+#include "../traits/rice_traits.hpp"
+#include "../detail/Type.hpp"
+#include "../detail/NativeFunction.hpp"
+#include "../Exception.hpp"
 
 namespace Rice
 {
@@ -24,119 +23,32 @@ namespace Rice
     }
   }
 
-  template<typename Exception_T, typename Functor_T>
-  inline Module& Module::add_handler(Functor_T functor)
+  //! Construct a Module from an string that references a Module
+  inline Module::Module(std::string name, Object under)
   {
-    // Create a new exception handler and pass ownership of the current handler to it (they
-    // get chained together). Then take ownership of the new handler.
-    this->handler_ = std::make_shared<detail::Functor_Exception_Handler<Exception_T, Functor_T>>(
-      functor, std::move(this->handler_));
+    VALUE result = under.const_get(name);
 
-    return *this;
-  }
-
-  inline std::shared_ptr<detail::Exception_Handler> Module::handler() const
-  {
-    return this->handler_;
-  }
-
-  inline Module& Module::include_module(Module const& inc)
-  {
-    detail::protect(rb_include_module, this->value(), inc.value());
-    return *this;
-  }
-
-  template<typename Function_T, typename...Arg_Ts>
-  inline Module& Module::define_method(Identifier name, Function_T&& func, const Arg_Ts&...args)
-  {
-    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
-    this->wrap_native_method(this->value(), name, std::forward<Function_T>(func), this->handler(), methodInfo);
-    return *this;
-  }
-
-  template<typename Function_T, typename...Arg_Ts>
-  inline Module& Module::define_function(Identifier name, Function_T&& func, const Arg_Ts&...args)
-  {
-    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
-    this->wrap_native_function(this->value(), name, std::forward<Function_T>(func), this->handler(), methodInfo);
-    return *this;
-  }
-
-  template<typename Function_T, typename...Arg_Ts>
-  inline Module& Module::define_singleton_method(Identifier name, Function_T&& func, const Arg_Ts&...args)
-  {
-    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
-    this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Function_T>(func), this->handler(), methodInfo);
-    return *this;
-  }
-
-  template<typename Function_T, typename...Arg_Ts>
-  inline Module& Module::define_singleton_function(Identifier name, Function_T&& func, const Arg_Ts& ...args)
-  {
-    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
-    this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Function_T>(func), this->handler(), methodInfo);
-    return *this;
-  }
-
-  template<typename Function_T, typename...Arg_Ts>
-  inline Module& Module::define_module_function(Identifier name, Function_T&& func, const Arg_Ts& ...args)
-  {
-    if (this->rb_type() != T_MODULE)
+    if (::rb_type(result) != T_MODULE)
     {
-      throw std::runtime_error("can only define module functions for modules");
+      throw Exception(
+        rb_eTypeError,
+        "Expected a Module but got a %s",
+        detail::protect(rb_obj_classname, result)); // TODO: might raise an exception
     }
 
-    define_function(name, std::forward<Function_T>(func), args...);
-    define_singleton_function(name, std::forward<Function_T>(func), args...);
-    return *this;
+    this->set_value(result);
   }
 
-  template<typename Function_T>
-  inline void Module::wrap_native_method(VALUE klass, Identifier name, Function_T&& function,
-    std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo)
+  template<bool IsMethod, typename Function_T>
+  inline void Module::wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo)
   {
-    auto* native = new detail::NativeFunction<Function_T, true>(function, handler, methodInfo);
-    using Native_T = typename std::remove_pointer_t<decltype(native)>;
+    // Make sure the return type and arguments have been previously seen by Rice
+    using traits = detail::method_traits<Function_T, IsMethod>;
+    detail::verifyType<typename traits::Return_T>();
+    detail::verifyTypes<typename traits::Arg_Ts>();
 
-    detail::verifyType<typename Native_T::Return_T>();
-    detail::verifyTypes<typename Native_T::Arg_Ts>();
-
-    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
-  }
-
-  template<typename Function_T>
-  inline void Module::wrap_native_function(VALUE klass, Identifier name, Function_T&& function,
-    std::shared_ptr<detail::Exception_Handler> handler, MethodInfo* methodInfo)
-  {
-    auto* native = new detail::NativeFunction<Function_T, false>(std::forward<Function_T>(function), handler, methodInfo);
-    using Native_T = typename std::remove_pointer_t<decltype(native)>;
-
-    detail::verifyType<typename Native_T::Return_T>();
-    detail::verifyTypes<typename Native_T::Arg_Ts>();
-
-    detail::MethodData::define_method(klass, name.id(), &Native_T::call, -1, native);
-  }
-
-  inline Module& Module::const_set(Identifier name, Object value)
-  {
-    detail::protect(rb_const_set, this->value(), name.id(), value.value());
-    return *this;
-  }
-
-  inline Object Module::const_get(Identifier name) const
-  {
-    return detail::protect(rb_const_get, this->value(), name.id());
-  }
-
-  inline bool Module::const_defined(Identifier name) const
-  {
-    size_t result = detail::protect(rb_const_defined, this->value(), name.id());
-    return bool(result);
-  }
-
-  inline void Module::remove_const(Identifier name)
-  {
-    detail::protect(rb_mod_remove_const, this->value(), name.to_sym());
+    // Define a NativeFunction to bridge Ruby to C++
+    detail::NativeFunction<VALUE, Function_T, IsMethod>::define(klass, name, std::forward<Function_T>(function), methodInfo);
   }
 
   inline Module define_module_under(Object module, char const* name)

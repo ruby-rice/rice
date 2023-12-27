@@ -45,6 +45,11 @@ namespace Rice::detail
     {
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
     std::string convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
@@ -66,6 +71,11 @@ namespace Rice::detail
   class From_Ruby<std::string*>
   {
   public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
     std::string* convert(VALUE value)
     {
       detail::protect(rb_check_type, value, (int)T_STRING);
@@ -85,6 +95,11 @@ namespace Rice::detail
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
+    }
+
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
     }
 
     std::string& convert(VALUE value)

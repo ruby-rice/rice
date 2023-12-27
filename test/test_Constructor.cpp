@@ -3,8 +3,6 @@
 
 #include <rice/rice.hpp>
 
-#include <iostream>
-
 using namespace Rice;
 
 TESTSUITE(Constructor);

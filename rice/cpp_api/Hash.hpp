@@ -3,7 +3,7 @@
 
 #include "Builtin_Object_defn.hpp"
 #include "Array.hpp"
-#include "detail/ruby.hpp"
+#include "../detail/ruby.hpp"
 #include <iterator>
 #include <type_traits>
 

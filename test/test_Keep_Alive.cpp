@@ -16,7 +16,7 @@ namespace
   };
 
   /**
-   * This class will recieve a new Listener instance
+   * This class will receive a new Listener instance
    * from Ruby
    */
   class ListenerContainer
@@ -73,14 +73,14 @@ TESTCASE(test_arg)
     .define_method("listener_count", &ListenerContainer::listenerCount);
 
   Module m = define_module("TestingModule");
-  Object handler = m.instance_eval("@handler = ListenerContainer.new");
+  Object handler = m.module_eval("@handler = ListenerContainer.new");
 
   ASSERT_EQUAL(INT2NUM(0), handler.call("listener_count").value());
 
-  m.instance_eval(R"EOS(class MyListener < Listener
+  m.module_eval(R"EOS(class MyListener < Listener
                         end)EOS");
 
-  m.instance_eval("@handler.add_listener(MyListener.new)");
+  m.module_eval("@handler.add_listener(MyListener.new)");
 
   // Without keep alive, this GC will crash the program because MyListener is no longer in scope
   rb_gc_start();
@@ -90,7 +90,7 @@ TESTCASE(test_arg)
 
   // Without keep alive, this GC will crash the program because MyListener is no longer in scope
   rb_gc_start();
-  m.instance_eval("@handler.add_listener(Listener.new)");
+  m.module_eval("@handler.add_listener(Listener.new)");
 
   ASSERT_EQUAL(INT2NUM(2), handler.call("listener_count").value());
   ASSERT_EQUAL(INT2NUM(8), handler.call("process").value());
@@ -139,7 +139,7 @@ namespace
 
 Object getColumn(Module& m, uint32_t index)
 {
-  Object connection = m.instance_eval("Connection.new");
+  Object connection = m.module_eval("Connection.new");
   return connection.call("getColumn", 3);
 }
 
