@@ -15,9 +15,11 @@ void embed_ruby()
     ruby_init();
     ruby_init_loadpath();
 
+#if RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR >= 3
     // Force the prelude / builtins
     char *opts[] = { "ruby", "-e;" };
     ruby_options(2, opts);
+#endif
 
     initialized__ = true;
   }
