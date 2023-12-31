@@ -176,7 +176,6 @@ TESTCASE(call_with_keywords)
 {
   Module kernel = Module("Kernel");
 
-
   Hash keywords;
   keywords[":exception"] = false;
   Object result = kernel.call("Integer", "charlie", keywords);

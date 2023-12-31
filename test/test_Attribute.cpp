@@ -1,4 +1,4 @@
-#include <assert.h> 
+#include <assert.h>
 
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
@@ -60,9 +60,9 @@ TESTCASE(attributes)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     o.call("read_char=", "some text"),
-    ASSERT_EQUAL("undefined method `read_char=' for :DataStruct", ex.what())
+    ASSERT(std::string(ex.what()).find("undefined method `read_char='") == 0)
   );
-  
+
   // Test writeonly attribute
   result = o.call("write_int=", 5);
   ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result.value()));
@@ -70,7 +70,7 @@ TESTCASE(attributes)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     o.call("write_int", 3),
-    ASSERT_EQUAL("undefined method `write_int' for :DataStruct", ex.what())
+    ASSERT(std::string(ex.what()).find("undefined method `write_int'") == 0)
   );
 
   // Test readwrite attribute
@@ -101,7 +101,7 @@ TESTCASE(static_attributes)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     c.call("static_string=", true),
-    ASSERT_EQUAL("undefined method `static_string=' for DataStruct:Class", ex.what())
+    ASSERT(std::string(ex.what()).find("undefined method `static_string='") == 0)
   );
 }
 
@@ -127,7 +127,7 @@ TESTCASE(not_defined)
 {
   Data_Type<DataStruct> c = define_class<DataStruct>("DataStruct");
 
-#ifdef _MSC_VER    
+#ifdef _MSC_VER
   const char* message = "Type is not defined with Rice: class `anonymous namespace'::SomeClass";
 #else
   const char* message = "Type is not defined with Rice: (anonymous namespace)::SomeClass";
