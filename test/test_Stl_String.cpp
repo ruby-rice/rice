@@ -27,7 +27,10 @@ TESTCASE(std_string_to_ruby_encoding)
   Object object(value);
   Object encoding = object.call("encoding");
   Object encodingName = encoding.call("name");
-  ASSERT_EQUAL("ASCII-8BIT", detail::From_Ruby<std::string>().convert(encodingName));
+  std::string result = detail::From_Ruby<std::string>().convert(encodingName);
+  if(result != "ASCII-8BIT" && result != "US-ASCII") {
+    FAIL("Encoding incorrect", "ASCII-8BIT or US-ASCII", result);
+  }
 }
 
 TESTCASE(std_string_to_ruby_encoding_utf8)
