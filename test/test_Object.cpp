@@ -187,11 +187,11 @@ TESTCASE(call_with_keywords)
   )");
 
   Hash keywords;
-  keywords[Symbol("exception")] = false;
+  keywords[":exception"] = false;
   Object result = m.call_kw("keywords_test", "charlie", keywords);
-  ASSERT_EQUAL("charlie", detail::From_Ruby<std::string>().convert(result.value()));
+  ASSERT_EQUAL("charlie", detail::From_Ruby<const char*>().convert(result.value()));
 
-  keywords[Symbol("exception")] = true;
+  keywords[":exception"] = true;
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
