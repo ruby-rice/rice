@@ -170,7 +170,8 @@ namespace Rice
 
     //! Call the Ruby method specified by 'id' on object 'obj'.
     /*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
-    *  Ruby objects with to_ruby<>.
+    *  Ruby objects with to_ruby<>. To call methods expecting keyword arguments,
+    *  use call_kw.
     *
     *  E.g.:
     *  \code
@@ -187,6 +188,29 @@ namespace Rice
     */
     template<typename ...Arg_Ts>
     Object call(Identifier id, Arg_Ts... args) const;
+
+    //! Call the Ruby method specified by 'id' on object 'obj'.
+    /*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
+    *  Ruby objects with to_ruby<>. The final argument must be a Hash and will be treated
+    *  as keyword arguments to the function.
+    *
+    *  E.g.:
+    *  \code
+    *    Rice::Hash kw;
+    *    kw[":argument"] = String("one")
+    *    Rice::Object obj = x.call_kw("foo", kw);
+    *  \endcode
+    *
+    *  If a return type is specified, the return value will automatically be
+    *  converted to that type as long as 'from_ruby' exists for that type.
+    *
+    *  E.g.:
+    *  \code
+    *    float ret = x.call_kw<float>("foo", kw);
+    *  \endcode
+    */
+    template<typename ...Arg_Ts>
+    Object call_kw(Identifier id, Arg_Ts... args) const;
 
     //! Vectorized call.
     /*! Calls the method identified by id with the list of arguments
