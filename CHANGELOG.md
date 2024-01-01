@@ -1,3 +1,8 @@
+## 4.2
+
+* Support Ruby 3.3.0.
+* Split Object.call to an explicit Object.call_kw for calling methods expecting keyword arguments.
+
 ## 4.1
 
 Rice 4.1 builds on the 4.0 release and has a number of improvements that both polish Rice and extend its functionality. However, there are three incompatibilities to know about:
