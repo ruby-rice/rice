@@ -433,6 +433,11 @@ namespace Rice
         }
       }
 
+      bool is_convertible(VALUE value)
+      {
+        return rb_type(value) == RUBY_T_ARRAY;
+      }
+
     private:
       Arg* arg_ = nullptr;
     };
@@ -480,6 +485,11 @@ namespace Rice
         }
       }
 
+      bool is_convertible(VALUE value)
+      {
+        return rb_type(value) == RUBY_T_ARRAY;
+      }
+
     private:
       Arg* arg_ = nullptr;
       std::vector<T> converted_;
@@ -513,6 +523,11 @@ namespace Rice
               detail::protect(rb_obj_classname, value), "std::vector");
           }
         }
+      }
+
+      bool is_convertible(VALUE value)
+      {
+        return rb_type(value) == RUBY_T_ARRAY;
       }
 
     private:

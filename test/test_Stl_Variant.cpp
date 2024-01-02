@@ -15,6 +15,7 @@ namespace
   using Intrinsic_Variant_T = std::variant<
     std::string,
     std::complex<double>,
+    std::vector<int>,
     double,
     bool,
     int
@@ -41,6 +42,12 @@ namespace
     {
       using namespace std::complex_literals;
       Intrinsic_Variant_T result { 1i };
+      return result;
+    }
+
+    Intrinsic_Variant_T variantVector()
+    {
+      Intrinsic_Variant_T result { std::vector<int>{1, 2, 3} };
       return result;
     }
 
@@ -88,6 +95,7 @@ void makeIntrinsicVariant()
     define_constructor(Constructor<MyClass>()).
     define_method("variant_string", &MyClass::variantString).
     define_method("variant_complex", &MyClass::variantComplex).
+    define_method("variant_vector", &MyClass::variantVector).
     define_method("variant_double", &MyClass::variantDouble).
     define_method("variant_bool_true", &MyClass::variantBoolTrue).
     define_method("variant_bool_false", &MyClass::variantBoolFalse).
@@ -108,6 +116,10 @@ TESTCASE(IntrinsicReturns)
 
   result = myClass.call("variant_complex");
   ASSERT_EQUAL(1i, detail::From_Ruby<std::complex<double>>().convert(result));
+
+  result = myClass.call("variant_vector");
+  std::vector<int> converted = detail::From_Ruby<std::vector<int>>().convert(result);
+  ASSERT_EQUAL(3, converted.size());
 
   result = myClass.call("variant_double");
   ASSERT_EQUAL(3.3, detail::From_Ruby<double>().convert(result));
@@ -138,6 +150,12 @@ TESTCASE(IntrinsicRoundtrip)
                         my_class.roundtrip(Complex(2, 3)))";
   result = m.module_eval(code);
   ASSERT_EQUAL((2.0 + 3i), detail::From_Ruby<std::complex<double>>().convert(result));
+
+  code = R"(my_class = MyClass.new
+                        my_class.roundtrip([1, 2, 3]))";
+  result = m.module_eval(code);
+  std::vector<int> expected = {1, 2, 3};
+  ASSERT_EQUAL(expected, detail::From_Ruby<std::vector<int>>().convert(result));
 
   code = R"(my_class = MyClass.new
             my_class.roundtrip(44.4))";
