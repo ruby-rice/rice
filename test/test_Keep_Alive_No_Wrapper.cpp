@@ -69,11 +69,12 @@ TESTCASE(test_keep_alive_no_wrapper)
   Module m = define_module("TestingModule");
   Object zoo = m.module_eval("@zoo = Zoo.new");
 
-  // get_pets returns an Array (native type) so Return().keepAlive()
+  // get_pets returns an Array (builtin type) so Return().keepAlive()
   // shall result in std::runtime_error
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.module_eval("@zoo.get_pets.each do |pet| puts pet.name; end"),
-    ASSERT_EQUAL("Could not find wrapper for 'Array' return type.", ex.what())
+    ASSERT_EQUAL("Could not find wrapper for 'Array' return type. Did you use keepAlive() on a method that returns a builtin type?",
+                 ex.what())
   );
 }

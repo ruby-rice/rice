@@ -198,7 +198,7 @@ Obviously this code could be rewritten to make sure the database object remains 
   define_class<Database>("Database")
     .define_method("get_column", &Database::getColumn, Return().keepAlive())
 
-Note that Return().keepAlive() will work with wrapped types only. An attempt to use it with native type will result in runtime exception.
+Note that Return().keepAlive() will work with external types only. An attempt to use it with builtin type will result in runtime exception.
 
 C++ Referencing Ruby Objects
 ----------------------------

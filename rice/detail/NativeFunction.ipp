@@ -164,7 +164,7 @@ namespace Rice::detail
     {
       // Call the native method and get the result
       Return_T nativeResult = std::apply(this->function_, nativeArgs);
-      
+
       // Return the result
       return this->toRuby_.convert(nativeResult);
     }
@@ -218,14 +218,15 @@ namespace Rice::detail
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   void NativeFunction<From_Ruby_T, Function_T, IsMethod>::noWrapper(const VALUE klass, const std::string& wrapper)
   {
-    std::string message = std::string("Could not find wrapper for '") + rb_obj_classname(klass) + "' " + wrapper + " type.";
+    std::string message = std::string("Could not find wrapper for '") + rb_obj_classname(klass) + "' " +
+                          wrapper + " type. Did you use keepAlive() on a method that returns a builtin type?";
     throw std::runtime_error(message);
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   void NativeFunction<From_Ruby_T, Function_T, IsMethod>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues)
   {
-    // selfWrapper will be nullptr if this(self) is a native type and not wrapped type
+    // selfWrapper will be nullptr if this(self) is a builtin type and not an external(wrapped) type
     // it is highly unlikely that keepAlive is used in this case but we check anyway
     Wrapper* selfWrapper = getWrapper(self);
 
@@ -250,7 +251,7 @@ namespace Rice::detail
         noWrapper(self, "self");
       }
 
-      // returnWrapper will be nullptr if returnValue is native type and not wrapped type
+      // returnWrapper will be nullptr if returnValue is a buillt-in type and not an external(wrapped) type
       Wrapper* returnWrapper = getWrapper(returnValue);
       if (returnWrapper == nullptr)
       {
