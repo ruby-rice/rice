@@ -4700,7 +4700,8 @@ namespace Rice
 
     //! Call the Ruby method specified by 'id' on object 'obj'.
     /*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
-    *  Ruby objects with to_ruby<>.
+    *  Ruby objects with to_ruby<>. To call methods expecting keyword arguments,
+    *  use call_kw.
     *
     *  E.g.:
     *  \code
@@ -4717,6 +4718,29 @@ namespace Rice
     */
     template<typename ...Arg_Ts>
     Object call(Identifier id, Arg_Ts... args) const;
+
+    //! Call the Ruby method specified by 'id' on object 'obj'.
+    /*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
+    *  Ruby objects with to_ruby<>. The final argument must be a Hash and will be treated
+    *  as keyword arguments to the function.
+    *
+    *  E.g.:
+    *  \code
+    *    Rice::Hash kw;
+    *    kw[":argument"] = String("one")
+    *    Rice::Object obj = x.call_kw("foo", kw);
+    *  \endcode
+    *
+    *  If a return type is specified, the return value will automatically be
+    *  converted to that type as long as 'from_ruby' exists for that type.
+    *
+    *  E.g.:
+    *  \code
+    *    float ret = x.call_kw<float>("foo", kw);
+    *  \endcode
+    */
+    template<typename ...Arg_Ts>
+    Object call_kw(Identifier id, Arg_Ts... args) const;
 
     //! Vectorized call.
     /*! Calls the method identified by id with the list of arguments
@@ -4781,6 +4805,7 @@ namespace Rice
 } // namespace Rice
 
 #endif // Rice__Object_defn__hpp_
+
 // ---------   Object.ipp   ---------
 #ifndef Rice__Object__ipp_
 #define Rice__Object__ipp_
@@ -4825,7 +4850,15 @@ namespace Rice
        easy to duplicate by setting GC.stress to true and calling a constructor
        that takes multiple values like a std::pair wrapper. */
     std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Arg_Ts>>().convert(args)... };
-    return detail::protect(rb_funcallv_kw, value(), id.id(), (int)values.size(), (const VALUE*)values.data(), RB_PASS_CALLED_KEYWORDS);
+    return detail::protect(rb_funcallv, value(), id.id(), (int)values.size(), (const VALUE*)values.data());
+  }
+
+  template<typename ...Arg_Ts>
+  inline Object Object::call_kw(Identifier id, Arg_Ts... args) const
+  {
+    /* IMPORTANT - See call() above */
+    std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Arg_Ts>>().convert(args)... };
+    return detail::protect(rb_funcallv_kw, value(), id.id(), (int)values.size(), (const VALUE*)values.data(), RB_PASS_KEYWORDS);
   }
 
   template<typename T>
@@ -5001,6 +5034,7 @@ namespace Rice::detail
   };
 }
 #endif // Rice__Object__ipp_
+
 
 
 // =========   Builtin_Object.hpp   =========

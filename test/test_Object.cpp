@@ -174,20 +174,29 @@ TESTCASE(call_return_rice_object)
 
 TESTCASE(call_with_keywords)
 {
-  Module kernel = Module("Kernel");
+  Module m(anonymous_module());
 
+  m.module_eval(R"(
+    def self.keywords_test(value, exception:)
+      if exception
+        raise "An exception!"
+      end
+
+      value
+    end
+  )");
 
   Hash keywords;
   keywords[":exception"] = false;
-  Object result = kernel.call("Integer", "charlie", keywords);
-  ASSERT_EQUAL(Qnil, result.value());
+  Object result = m.call_kw("keywords_test", "charlie", keywords);
+  ASSERT_EQUAL("charlie", detail::From_Ruby<const char*>().convert(result.value()));
 
   keywords[":exception"] = true;
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    kernel.call("Integer", "charlie", keywords),
-    ASSERT_EQUAL("invalid value for Integer(): \"charlie\"", ex.what())
+    m.call_kw("keywords_test", "charlie", keywords),
+    ASSERT_EQUAL("An exception!", ex.what())
   );
 }
 

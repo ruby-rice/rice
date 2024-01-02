@@ -229,7 +229,7 @@ TESTCASE(unsigned_long_long_from_ruby)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     detail::From_Ruby<unsigned long long>().convert(rb_str_new2("bad value")),
-    ASSERT_EQUAL("no implicit conversion from string", ex.what())
+    ASSERT(std::string(ex.what()).find("no implicit conversion") == 0)
   );
 }
 

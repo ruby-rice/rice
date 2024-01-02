@@ -236,7 +236,7 @@ void assert_equal(
 
     if constexpr (is_streamable<std::stringstream, T>::value && is_streamable<std::stringstream, U>::value)
     {
-      strm << s_t << " != " << s_u;
+      strm << s_t << " != " << s_u << " (" << u << ") ";
     }
     strm << " at " << file << ":" << line;
     throw Assertion_Failed(strm.str());
@@ -262,6 +262,14 @@ void assert_not_equal(
     throw Assertion_Failed(strm.str());
   }
 }
+
+#define FAIL(message, expect, got) \
+  do \
+  { \
+    std::stringstream strm; \
+    strm << message << " expected: " << (expect) << " got: " << (got); \
+    throw Assertion_Failed(strm.str()); \
+  } while(0)
 
 #define ASSERT_EQUAL(x, y) \
   do \
