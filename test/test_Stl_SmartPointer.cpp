@@ -109,6 +109,11 @@ SETUP(SmartPointer)
   define_global_function("extract_flag_unique_ptr_ref", &extractFlagUniquePtrRef);
   define_global_function("extract_flag_shared_ptr", &extractFlagSharedPtr);
   define_global_function("extract_flag_shared_ptr_ref", &extractFlagSharedPtrRef);
+
+  define_global_function("extract_flag_shared_ptr_with_default", &extractFlagSharedPtr,
+      Arg("myClass") = std::make_shared<MyClass>());
+  define_global_function("extract_flag_shared_ptr_ref_with_default", &extractFlagSharedPtrRef,
+      Arg("myClass") = std::make_shared<MyClass>());
 }
 
 TESTCASE(TransferOwnership)
@@ -169,6 +174,7 @@ TESTCASE(UniquePtrRefParameter)
                         extract_flag_unique_ptr_ref(my_class))";
 
   Object result = m.module_eval(code);
+  ASSERT_EQUAL(7, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(SharedPtrParameter)
@@ -179,10 +185,11 @@ TESTCASE(SharedPtrParameter)
 
   std::string code = R"(factory = Factory.new
                         my_class = factory.share
-                        my_class.set_flag(7)
+                        my_class.set_flag(8)
                         extract_flag_shared_ptr(my_class))";
- 
+
   Object result = m.module_eval(code);
+  ASSERT_EQUAL(8, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(SharedPtrRefParameter)
@@ -193,8 +200,41 @@ TESTCASE(SharedPtrRefParameter)
 
   std::string code = R"(factory = Factory.new
                         my_class = factory.share
-                        my_class.set_flag(7)
+                        my_class.set_flag(9)
                         extract_flag_shared_ptr_ref(my_class))";
 
   Object result = m.module_eval(code);
+  ASSERT_EQUAL(9, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(SharedPtrDefaultParameter)
+{
+  MyClass::reset();
+
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(factory = Factory.new
+                        my_class = factory.share
+                        my_class.set_flag(7)
+                        extract_flag_shared_ptr_with_default())";
+
+  Object result = m.module_eval(code);
+  // The default value kicks in and ignores any previous pointer
+  ASSERT_EQUAL(0, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(SharedPtrRefDefaultParameter)
+{
+  MyClass::reset();
+
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(factory = Factory.new
+                        my_class = factory.share
+                        my_class.set_flag(7)
+                        extract_flag_shared_ptr_ref_with_default())";
+
+  Object result = m.module_eval(code);
+  // The default value kicks in and ignores any previous pointer
+  ASSERT_EQUAL(0, detail::From_Ruby<int>().convert(result));
 }

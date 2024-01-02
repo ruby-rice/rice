@@ -93,8 +93,18 @@ namespace Rice::detail
   class From_Ruby<std::shared_ptr<T>>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg * arg) : arg_(arg)
+    {
+    }
+
     std::shared_ptr<T> convert(VALUE value)
     {
+      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue()) {
+        return this->arg_->template defaultValue<std::shared_ptr<T>>();
+      }
+
       Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
 
       using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
@@ -106,14 +116,27 @@ namespace Rice::detail
       }
       return smartWrapper->data();
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template <typename T>
   class From_Ruby<std::shared_ptr<T>&>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg * arg) : arg_(arg)
+    {
+    }
+
     std::shared_ptr<T>& convert(VALUE value)
     {
+      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue()) {
+        return this->arg_->template defaultValue<std::shared_ptr<T>>();
+      }
+
       Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
 
       using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
@@ -125,6 +148,9 @@ namespace Rice::detail
       }
       return smartWrapper->data();
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>

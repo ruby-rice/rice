@@ -18,3 +18,4 @@ I'd like to thank the following people for their help in making Rice what it is 
 * [Atsushi Tatsuma (yoshoku)](https://github.com/yoshoku) for [#135](https://github.com/jasonroelofs/rice/pull/135)
 * [Andrew Kane (ankane)](https://github.com/ankane) for helping [test Rice 4](https://github.com/jasonroelofs/rice/issues/149).
 * [Maxim Samsonov (maxirmx)](https://github.com/maxirmx) for [#193](https://github.com/jasonroelofs/rice/issues/193) and [#194](https://github.com/jasonroelofs/rice/pull/194)
+* [kvtb](https://github.com/kvtb) for [#191](https://github.com/jasonroelofs/rice/issues/191)
