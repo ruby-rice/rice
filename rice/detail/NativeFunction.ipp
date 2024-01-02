@@ -38,7 +38,7 @@ namespace Rice::detail
   NativeFunction<From_Ruby_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
     : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo)
   {
-   // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
+    // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
     // builtin types NativeArgs will keep a copy of the native value so that it 
     // can be passed by reference or pointer to the native function. For non-builtin types
     // it will just pass the value through.
@@ -164,7 +164,7 @@ namespace Rice::detail
     {
       // Call the native method and get the result
       Return_T nativeResult = std::apply(this->function_, nativeArgs);
-      
+
       // Return the result
       return this->toRuby_.convert(nativeResult);
     }
@@ -216,14 +216,29 @@ namespace Rice::detail
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
+  void NativeFunction<From_Ruby_T, Function_T, IsMethod>::noWrapper(const VALUE klass, const std::string& wrapper)
+  {
+    std::string message = std::string("Could not find wrapper for '") + rb_obj_classname(klass) + "' " +
+                          wrapper + " type. Did you use keepAlive() on a method that returns a builtin type?";
+    throw std::runtime_error(message);
+  }
+
+  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   void NativeFunction<From_Ruby_T, Function_T, IsMethod>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues)
   {
-    // Check function arguments
+    // selfWrapper will be nullptr if this(self) is a builtin type and not an external(wrapped) type
+    // it is highly unlikely that keepAlive is used in this case but we check anyway
     Wrapper* selfWrapper = getWrapper(self);
+
+    // Check function arguments
     for (const Arg& arg : (*this->methodInfo_))
     {
       if (arg.isKeepAlive())
       {
+        if (selfWrapper == nullptr)
+        {
+          noWrapper(self, "self");
+        }
         selfWrapper->addKeepAlive(rubyValues[arg.position]);
       }
     }
@@ -231,7 +246,17 @@ namespace Rice::detail
     // Check return value
     if (this->methodInfo_->returnInfo.isKeepAlive())
     {
+      if (selfWrapper == nullptr)
+      {
+        noWrapper(self, "self");
+      }
+
+      // returnWrapper will be nullptr if returnValue is a buillt-in type and not an external(wrapped) type
       Wrapper* returnWrapper = getWrapper(returnValue);
+      if (returnWrapper == nullptr)
+      {
+        noWrapper(returnValue, "return");
+      }
       returnWrapper->addKeepAlive(self);
     }
   }
