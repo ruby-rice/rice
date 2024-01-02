@@ -2,6 +2,7 @@
 
 * Support Ruby 3.3.0.
 * Split Object.call to an explicit Object.call_kw for calling methods expecting keyword arguments.
+* Previously, if a wrapper used `keepAlive` on an argument or return value that was itself a Rice type, calling said method would segfault. We've now added an explicit exception to be thrown in this case, prevending the segfault and providing guidance on what was wrong and how to fix it. See [#193](https://github.com/jasonroelofs/rice/pull/193) and [#194](https://github.com/jasonroelofs/rice/pull/194)
 
 ## 4.1
 
