@@ -168,6 +168,11 @@ namespace Rice::detail
 
       return std::complex<T>(From_Ruby<T>().convert(real), From_Ruby<T>().convert(imaginary));
     }
+
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_COMPLEX;
+    }
   };
 
   template<typename T>
@@ -183,10 +188,16 @@ namespace Rice::detail
       return this->converted_;
     }
 
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_COMPLEX;
+    }
+
   private:
     std::complex<T> converted_;
   };
 }
+
 
 // =========   optional.hpp   =========
 

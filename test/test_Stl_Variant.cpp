@@ -4,6 +4,7 @@
 #include <rice/stl.hpp>
 
 #include <variant>
+#include <complex>
 
 using namespace Rice;
 
@@ -11,7 +12,13 @@ TESTSUITE(Variant);
 
 namespace
 {
-  using Intrinsic_Variant_T = std::variant<std::string, double, bool, int>;
+  using Intrinsic_Variant_T = std::variant<
+    std::string,
+    std::complex<double>,
+    double,
+    bool,
+    int
+  >;
 
   inline std::ostream& operator<<(std::ostream& stream, Intrinsic_Variant_T const& variant)
   {
@@ -27,6 +34,13 @@ namespace
       // Need to tell compiler this is std::string and not a const char[8]. Because that
       // becomes const char* which sets the boolean field to true. Oops. https://stackoverflow.com/a/44086312
       Intrinsic_Variant_T result { std::string("a string") };
+      return result;
+    }
+
+    Intrinsic_Variant_T variantComplex()
+    {
+      using namespace std::complex_literals;
+      Intrinsic_Variant_T result { 1i };
       return result;
     }
 
@@ -73,6 +87,7 @@ void makeIntrinsicVariant()
   define_class<MyClass>("MyClass").
     define_constructor(Constructor<MyClass>()).
     define_method("variant_string", &MyClass::variantString).
+    define_method("variant_complex", &MyClass::variantComplex).
     define_method("variant_double", &MyClass::variantDouble).
     define_method("variant_bool_true", &MyClass::variantBoolTrue).
     define_method("variant_bool_false", &MyClass::variantBoolFalse).
@@ -83,12 +98,17 @@ void makeIntrinsicVariant()
 
 TESTCASE(IntrinsicReturns)
 {
+  using namespace std::complex_literals;
+
   Module m = define_module("Testing");
   Object myClass = m.module_eval("MyClass.new");
 
   Object result = myClass.call("variant_string");
   ASSERT_EQUAL("a string", detail::From_Ruby<std::string>().convert(result));
-  
+
+  result = myClass.call("variant_complex");
+  ASSERT_EQUAL(1i, detail::From_Ruby<std::complex<double>>().convert(result));
+
   result = myClass.call("variant_double");
   ASSERT_EQUAL(3.3, detail::From_Ruby<double>().convert(result));
 
@@ -104,6 +124,8 @@ TESTCASE(IntrinsicReturns)
 
 TESTCASE(IntrinsicRoundtrip)
 {
+  using namespace std::complex_literals;
+
   Module m = define_module("Testing");
   Object myClass = m.module_eval("MyClass.new");
 
@@ -111,6 +133,11 @@ TESTCASE(IntrinsicRoundtrip)
                         my_class.roundtrip("roundtrip string"))";
   Object result = m.module_eval(code);
   ASSERT_EQUAL("roundtrip string", detail::From_Ruby<std::string>().convert(result));
+
+  code = R"(my_class = MyClass.new
+                        my_class.roundtrip(Complex(2, 3)))";
+  result = m.module_eval(code);
+  ASSERT_EQUAL((2.0 + 3i), detail::From_Ruby<std::complex<double>>().convert(result));
 
   code = R"(my_class = MyClass.new
             my_class.roundtrip(44.4))";
@@ -150,7 +177,7 @@ TESTCASE(VariantAttribute)
   ASSERT_EQUAL(77.7, detail::From_Ruby<double>().convert(result));
   result = myClass.call("variant_attr");
   ASSERT_EQUAL(77.7, detail::From_Ruby<double>().convert(result));
-  
+
   result = myClass.call("variant_attr=", true);
   ASSERT(detail::From_Ruby<bool>().convert(result));
   result = myClass.call("variant_attr");
