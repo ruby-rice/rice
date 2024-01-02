@@ -4053,7 +4053,7 @@ namespace Rice::detail
     Class_T getReceiver(VALUE self);
 
     // Throw an exception when wrapper cannot be extracted
-    [[noreturn]] static void noWrapper(const VALUE klass, const std::string& wrapper);
+    [[noreturn]] void noWrapper(const VALUE klass, const std::string& wrapper);
 
     // Do we need to keep alive any arguments?
     void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues);
@@ -4076,6 +4076,7 @@ namespace Rice::detail
 #include <array>
 #include <algorithm>
 #include <stdexcept>
+#include <sstream>
 
 
 namespace Rice::detail
@@ -4290,9 +4291,17 @@ namespace Rice::detail
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
   void NativeFunction<From_Ruby_T, Function_T, IsMethod>::noWrapper(const VALUE klass, const std::string& wrapper)
   {
-    std::string message = std::string("Could not find wrapper for '") + rb_obj_classname(klass) + "' " +
-                          wrapper + " type. Did you use keepAlive() on a method that returns a builtin type?";
-    throw std::runtime_error(message);
+    std::stringstream message;
+
+    message << "When calling the method `";
+    message << this->method_name_;
+    message << "' we could not find the wrapper for the '";
+    message << rb_obj_classname(klass);
+    message << "' ";
+    message << wrapper;
+    message << " type. You should not use keepAlive() on a Return or Arg that is a builtin Rice type.";
+
+    throw std::runtime_error(message.str());
   }
 
   template<typename From_Ruby_T, typename Function_T, bool IsMethod>
@@ -4323,7 +4332,7 @@ namespace Rice::detail
         noWrapper(self, "self");
       }
 
-      // returnWrapper will be nullptr if returnValue is a buillt-in type and not an external(wrapped) type
+      // returnWrapper will be nullptr if returnValue is a built-in type and not an external(wrapped) type
       Wrapper* returnWrapper = getWrapper(returnValue);
       if (returnWrapper == nullptr)
       {

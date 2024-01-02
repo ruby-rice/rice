@@ -74,7 +74,7 @@ TESTCASE(test_keep_alive_no_wrapper)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.module_eval("@zoo.get_pets.each do |pet| puts pet.name; end"),
-    ASSERT_EQUAL("Could not find wrapper for 'Array' return type. Did you use keepAlive() on a method that returns a builtin type?",
+    ASSERT_EQUAL("When calling the method `get_pets' we could not find the wrapper for the 'Array' return type. You should not use keepAlive() on a Return or Arg that is a builtin Rice type.",
                  ex.what())
   );
 }

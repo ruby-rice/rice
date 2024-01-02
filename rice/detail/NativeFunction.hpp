@@ -96,7 +96,7 @@ namespace Rice::detail
     Class_T getReceiver(VALUE self);
 
     // Throw an exception when wrapper cannot be extracted
-    [[noreturn]] static void noWrapper(const VALUE klass, const std::string& wrapper);
+    [[noreturn]] void noWrapper(const VALUE klass, const std::string& wrapper);
 
     // Do we need to keep alive any arguments?
     void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues);
