@@ -230,7 +230,7 @@ namespace Rice::detail
   class To_Ruby<std::optional<T>>
   {
   public:
-    static VALUE convert(std::optional<T>& data, bool takeOwnership = false)
+    static VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
     {
       if (data.has_value())
       {
@@ -247,7 +247,7 @@ namespace Rice::detail
   class To_Ruby<std::optional<T>&>
   {
   public:
-    static VALUE convert(std::optional<T>& data, bool takeOwnership = false)
+    static VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
     {
       if (data.has_value())
       {
@@ -299,6 +299,7 @@ namespace Rice::detail
   };
 }
 
+
 // =========   reference_wrapper.hpp   =========
 
 
@@ -320,7 +321,7 @@ namespace Rice::detail
   class To_Ruby<std::reference_wrapper<T>>
   {
   public:
-    VALUE convert(std::reference_wrapper<T>& data, bool takeOwnership = false)
+    VALUE convert(const std::reference_wrapper<T>& data, bool takeOwnership = false)
     {
       return To_Ruby<T&>().convert(data.get());
     }
@@ -344,6 +345,7 @@ namespace Rice::detail
     From_Ruby<T&> converter_;
   };
 }
+
 
 // =========   smart_ptr.hpp   =========
 
@@ -551,7 +553,7 @@ namespace Rice::detail
   class To_Ruby<std::monostate>
   {
   public:
-    VALUE convert(std::monostate& _)
+    VALUE convert(const std::monostate& _)
     {
       return Qnil;
     }
@@ -561,7 +563,7 @@ namespace Rice::detail
   class To_Ruby<std::monostate&>
   {
   public:
-    static VALUE convert(std::monostate& data, bool takeOwnership = false)
+    static VALUE convert(const std::monostate& data, bool takeOwnership = false)
     {
       return Qnil;
     }
@@ -601,6 +603,7 @@ namespace Rice::detail
   };
 }
 
+
 // =========   variant.hpp   =========
 
 
@@ -634,13 +637,13 @@ namespace Rice::detail
   public:
 
     template<typename T>
-    static VALUE convertElement(std::variant<Types...>& data, bool takeOwnership)
+    static VALUE convertElement(const std::variant<Types...>& data, bool takeOwnership)
     {
       return To_Ruby<T>().convert(std::get<T>(data));
     }
 
     template<std::size_t... I>
-    static VALUE convertIterator(std::variant<Types...>& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    static VALUE convertIterator(const std::variant<Types...>& data, bool takeOwnership, std::index_sequence<I...>& indices)
     {
       // Create a tuple of the variant types so we can look over the tuple's types
       using Tuple_T = std::tuple<Types...>;
@@ -672,7 +675,7 @@ namespace Rice::detail
       return result;
     }
 
-    static VALUE convert(std::variant<Types...>& data, bool takeOwnership = false)
+    static VALUE convert(const std::variant<Types...>& data, bool takeOwnership = false)
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return convertIterator(data, takeOwnership, indices);
@@ -684,13 +687,13 @@ namespace Rice::detail
   {
   public:
     template<typename T>
-    static VALUE convertElement(std::variant<Types...>& data, bool takeOwnership)
+    static VALUE convertElement(const std::variant<Types...>& data, bool takeOwnership)
     {
       return To_Ruby<T>().convert(std::get<T>(data));
     }
 
     template<std::size_t... I>
-    static VALUE convertIterator(std::variant<Types...>& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    static VALUE convertIterator(const std::variant<Types...>& data, bool takeOwnership, std::index_sequence<I...>& indices)
     {
       // Create a tuple of the variant types so we can look over the tuple's types
       using Tuple_T = std::tuple<Types...>;
@@ -703,7 +706,7 @@ namespace Rice::detail
       return result;
     }
 
-    static VALUE convert(std::variant<Types...>& data, bool takeOwnership = false)
+    static VALUE convert(const std::variant<Types...>& data, bool takeOwnership = false)
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return convertIterator(data, takeOwnership, indices);
@@ -792,6 +795,7 @@ namespace Rice::detail
     }
   };
 }
+
 
 // =========   pair.hpp   =========
 

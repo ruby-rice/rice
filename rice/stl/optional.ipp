@@ -25,7 +25,7 @@ namespace Rice::detail
   class To_Ruby<std::optional<T>>
   {
   public:
-    static VALUE convert(std::optional<T>& data, bool takeOwnership = false)
+    static VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
     {
       if (data.has_value())
       {
@@ -42,7 +42,7 @@ namespace Rice::detail
   class To_Ruby<std::optional<T>&>
   {
   public:
-    static VALUE convert(std::optional<T>& data, bool takeOwnership = false)
+    static VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
     {
       if (data.has_value())
       {

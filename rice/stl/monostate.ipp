@@ -15,7 +15,7 @@ namespace Rice::detail
   class To_Ruby<std::monostate>
   {
   public:
-    VALUE convert(std::monostate& _)
+    VALUE convert(const std::monostate& _)
     {
       return Qnil;
     }
@@ -25,7 +25,7 @@ namespace Rice::detail
   class To_Ruby<std::monostate&>
   {
   public:
-    static VALUE convert(std::monostate& data, bool takeOwnership = false)
+    static VALUE convert(const std::monostate& data, bool takeOwnership = false)
     {
       return Qnil;
     }

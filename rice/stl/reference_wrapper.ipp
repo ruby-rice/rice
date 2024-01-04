@@ -15,7 +15,7 @@ namespace Rice::detail
   class To_Ruby<std::reference_wrapper<T>>
   {
   public:
-    VALUE convert(std::reference_wrapper<T>& data, bool takeOwnership = false)
+    VALUE convert(const std::reference_wrapper<T>& data, bool takeOwnership = false)
     {
       return To_Ruby<T&>().convert(data.get());
     }
