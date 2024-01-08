@@ -1,4 +1,4 @@
-## 4.2
+## Unreleased (4.2)
 
 * Support Ruby 3.3.0.
 * Split Object.call to an explicit Object.call_kw for calling methods expecting keyword arguments.
