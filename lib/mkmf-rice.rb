@@ -126,5 +126,7 @@ end
 if IS_DARWIN
   have_library('c++')
 elsif !IS_MSWIN
-  have_library('stdc++')
+  if !have_library('stdc++fs')
+    have_library('stdc++')
+  end
 end

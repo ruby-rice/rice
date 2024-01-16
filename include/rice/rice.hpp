@@ -1205,8 +1205,17 @@ namespace Rice::detail
 // =========   cpp_protect.hpp   =========
 
 #include <regex>
-#include <filesystem>
 #include <stdexcept>
+
+#if __has_include(<filesystem>)
+  #include <filesystem>
+  namespace fs = std::filesystem;
+#elif __has_include(<experimental/filesystem>)
+  #include <experimental/filesystem>
+  namespace fs = std::experimental::filesystem;
+#else
+  #error "no filesystem include found :'("
+#endif
 
 
 namespace Rice::detail
@@ -1247,7 +1256,7 @@ namespace Rice::detail
       {
         rb_exc_raise(rb_exc_new2(rb_eArgError, ex.what()));
       }
-      catch (std::filesystem::filesystem_error const& ex)
+      catch (fs::filesystem_error const& ex)
       {
         rb_exc_raise(rb_exc_new2(rb_eIOError, ex.what()));
       }
