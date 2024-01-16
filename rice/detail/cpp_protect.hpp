@@ -2,8 +2,18 @@
 #define Rice__detail__cpp_protect__hpp_
 
 #include <regex>
-#include <filesystem>
 #include <stdexcept>
+#include <version>
+
+#ifdef __cpp_lib_filesystem
+  #include <filesystem>
+  namespace fs = std::filesystem;
+#elif __cpp_lib_experimental_filesystem
+  #include <experimental/filesystem>
+  namespace fs = std::experimental::filesystem;
+#else
+    #error "no filesystem support ='("
+#endif
 
 #include "Jump_Tag.hpp"
 #include "../Exception_defn.hpp"
@@ -46,7 +56,7 @@ namespace Rice::detail
       {
         rb_exc_raise(rb_exc_new2(rb_eArgError, ex.what()));
       }
-      catch (std::filesystem::filesystem_error const& ex)
+      catch (fs::filesystem_error const& ex)
       {
         rb_exc_raise(rb_exc_new2(rb_eIOError, ex.what()));
       }
