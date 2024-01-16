@@ -1205,8 +1205,18 @@ namespace Rice::detail
 // =========   cpp_protect.hpp   =========
 
 #include <regex>
-#include <filesystem>
 #include <stdexcept>
+
+// From https://stackoverflow.com/questions/53365538/how-to-determine-whether-to-use-filesystem-or-experimental-filesystem/53366603#53366603
+#ifdef __cpp_lib_filesystem
+    #include <filesystem>
+    namespace fs = std::filesystem;
+#elif __cpp_lib_experimental_filesystem
+    #include <experimental/filesystem>
+    namespace fs = std::experimental::filesystem;
+#else
+    #error "no filesystem support ='("
+#endif
 
 
 namespace Rice::detail
@@ -1247,7 +1257,7 @@ namespace Rice::detail
       {
         rb_exc_raise(rb_exc_new2(rb_eArgError, ex.what()));
       }
-      catch (std::filesystem::filesystem_error const& ex)
+      catch (fs::filesystem_error const& ex)
       {
         rb_exc_raise(rb_exc_new2(rb_eIOError, ex.what()));
       }
