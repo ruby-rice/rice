@@ -229,7 +229,7 @@ If you create classes or structures that reference Ruby objects, you need to imp
   namespace Rice
   {
     template<>
-    ruby_mark<MyClass>(const MyClass* myClass)
+    ruby_mark(const MyClass* myClass)
     {
       rb_gc_mark(myClass->value_);
     }
