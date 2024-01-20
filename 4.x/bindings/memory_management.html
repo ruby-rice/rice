@@ -419,6 +419,7 @@
 <span class="w">  </span><span class="o">.</span><span class="n">define_method</span><span class="p">(</span><span class="s2">&quot;get_column&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="no">Database</span><span class="o">::</span><span class="n">getColumn</span><span class="p">,</span><span class="w"> </span><span class="no">Return</span><span class="p">()</span><span class="o">.</span><span class="n">keepAlive</span><span class="p">())</span>
 </pre></div>
 </div>
+<p>Note that Return().keepAlive() will work with external types only. An attempt to use it with builtin type will result in runtime exception.</p>
 </section>
 <section id="c-referencing-ruby-objects">
 <h2>C++ Referencing Ruby Objects<a class="headerlink" href="#c-referencing-ruby-objects" title="Link to this heading">#</a></h2>
@@ -443,7 +444,7 @@
 <span class="k">namespace</span><span class="w"> </span><span class="nn">Rice</span>
 <span class="p">{</span>
 <span class="w">  </span><span class="k">template</span><span class="o">&lt;&gt;</span>
-<span class="w">  </span><span class="n">ruby_mark</span><span class="o">&lt;</span><span class="n">MyClass</span><span class="o">&gt;</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">MyClass</span><span class="o">*</span><span class="w"> </span><span class="n">myClass</span><span class="p">)</span>
+<span class="w">  </span><span class="n">ruby_mark</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">MyClass</span><span class="o">*</span><span class="w"> </span><span class="n">myClass</span><span class="p">)</span>
 <span class="w">  </span><span class="p">{</span>
 <span class="w">    </span><span class="n">rb_gc_mark</span><span class="p">(</span><span class="n">myClass</span><span class="o">-&gt;</span><span class="n">value_</span><span class="p">);</span>
 <span class="w">  </span><span class="p">}</span>
