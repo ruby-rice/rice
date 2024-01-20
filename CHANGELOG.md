@@ -1,3 +1,7 @@
+## 4.2.1
+
+* Support systems who use `#include <experimental/filesystem>` over `#include<filesystem>`. See [#197](https://github.com/jasonroelofs/rice/issues/197) and [#201](https://github.com/jasonroelofs/rice/pull/201)
+
 ## 4.2
 
 * Support Ruby 3.3.0.
