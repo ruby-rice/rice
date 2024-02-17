@@ -17,8 +17,8 @@ void embed_ruby()
 
 #if RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR >= 3
     // Force the prelude / builtins
-    char *opts[] = { "ruby", "-e;" };
-    ruby_options(2, opts);
+    const char* opts[] = { "ruby", "-e;" };
+    ruby_options(2, (char**)opts);
 #endif
 
     initialized__ = true;
