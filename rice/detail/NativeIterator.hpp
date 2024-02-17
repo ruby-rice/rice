@@ -1,7 +1,7 @@
 #ifndef Rice_NativeIterator__hpp_
 #define Rice_NativeIterator__hpp_
 
-#include "traits/function_traits.hpp"
+#include "../traits/function_traits.hpp"
 
 namespace Rice::detail
 {
