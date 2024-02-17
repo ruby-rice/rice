@@ -11,7 +11,7 @@ namespace Rice::detail
 
   template<typename Return_T, typename Class_T, typename...Arg_Ts>
   struct function_traits<Return_T(Class_T, Arg_Ts...)>
-    {
+  {
     using arg_types = std::tuple<Arg_Ts...>;
 
     static constexpr std::size_t arity = sizeof...(Arg_Ts);
