@@ -68,26 +68,6 @@ namespace Rice::detail
   };
 
   template<>
-  class From_Ruby<std::string*>
-  {
-  public:
-    bool is_convertible(VALUE value)
-    {
-      return rb_type(value) == RUBY_T_STRING;
-    }
-
-    std::string* convert(VALUE value)
-    {
-      detail::protect(rb_check_type, value, (int)T_STRING);
-      this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
-      return &this->converted_;
-    }
-
-  private:
-    std::string converted_;
-  };
-
-  template<>
   class From_Ruby<std::string&>
   {
   public:
@@ -118,6 +98,46 @@ namespace Rice::detail
 
   private:
     Arg* arg_ = nullptr;
+    std::string converted_;
+  };
+
+  template<>
+  class From_Ruby<std::string*>
+  {
+  public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
+    std::string* convert(VALUE value)
+    {
+      detail::protect(rb_check_type, value, (int)T_STRING);
+      this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      return &this->converted_;
+    }
+
+  private:
+    std::string converted_;
+  };
+
+  template<>
+  class From_Ruby<std::string*&>
+  {
+  public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
+    std::string* convert(VALUE value)
+    {
+      detail::protect(rb_check_type, value, (int)T_STRING);
+      this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      return &this->converted_;
+    }
+
+  private:
     std::string converted_;
   };
 }

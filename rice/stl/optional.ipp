@@ -7,7 +7,7 @@ namespace Rice::detail
   {
     constexpr static bool verify()
     {
-      return Type<T>::verify();
+      return Type<intrinsic_type<T>>::verify();
     }
   };
 

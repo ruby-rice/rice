@@ -365,7 +365,7 @@ namespace Rice
     {
       static bool verify()
       {
-        Type<T>::verify();
+        Type<intrinsic_type<T>>::verify();
 
         if (!detail::Registries::instance.types.isDefined<std::vector<T>>())
         {

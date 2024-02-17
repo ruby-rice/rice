@@ -809,3 +809,63 @@ TESTCASE(ToEnumSize)
 
   ASSERT_EQUAL(3, detail::From_Ruby<int>().convert(result));
 }
+
+namespace
+{
+  std::vector<std::string*> vectorOfStringPointers()
+  {
+    std::vector<std::string*> result;
+    std::string* pString = new std::string("Hello");
+    result.push_back(pString);
+    return result;
+  }
+}
+
+TESTCASE(StringPointerVector)
+{
+  define_global_function("vector_of_string_pointers", &vectorOfStringPointers);
+
+  Module m(rb_mKernel);
+  Data_Object<std::vector<std::string*>> vec = m.call("vector_of_string_pointers");
+  ASSERT_EQUAL(1, vec->size());
+
+  std::string expected("Hello");
+  std::string* actual = (*vec)[0];
+  ASSERT_EQUAL(expected, *actual);
+}
+
+namespace
+{
+  class MyClass2
+  {
+  public:
+    MyClass2(std::string name): name(name)
+    {
+    }
+    std::string name;
+  };
+
+  std::vector<MyClass2*> vectorOfMyClass2Pointers()
+  {
+    std::vector<MyClass2*> result;
+    MyClass2* pMyClass = new MyClass2("Hello MyClass2");
+    result.push_back(pMyClass);
+    return result;
+  }
+}
+
+TESTCASE(MyClass2PointerVector)
+{
+  Class c = define_class<MyClass2>("MyClass2").
+    define_constructor(Constructor<MyClass2, std::string>()).
+    define_attr("name", &MyClass2::name, AttrAccess::Read);
+
+  define_global_function("vector_of_myclass2_pointers", &vectorOfMyClass2Pointers);
+
+  Module m(rb_mKernel);
+  Data_Object<std::vector<MyClass2*>> result = m.call("vector_of_myclass2_pointers");
+  ASSERT_EQUAL(1, result->size());
+
+ MyClass2* pMyClass = (*result)[0];
+ ASSERT_EQUAL("Hello MyClass2", pMyClass->name);
+}
