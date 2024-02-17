@@ -11,6 +11,7 @@
 #include "detail/NativeIterator.hpp"
 #include "cpp_api/Class.hpp"
 #include "cpp_api/String.hpp"
+#include "ruby_mark.hpp"
 
 #include <stdexcept>
 
