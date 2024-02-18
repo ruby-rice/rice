@@ -68,7 +68,7 @@ namespace
   public:
     ContainerValues()
     {
-      this->data_ = { {1}, {2}, {3}};
+      this->data_ = { {1}, {2}, {3} };
     }
 
     std::vector<Data>::iterator begin()
@@ -134,26 +134,11 @@ namespace
   };
 }
 
-template <>
-struct detail::To_Ruby<Data>
-{
-  static VALUE convert(const Data& data)
-  {
-    return detail::to_ruby(data.index);
-  }
-};
-
-template <>
-struct detail::To_Ruby<Data*>
-{
-  static VALUE convert(const Data* data)
-  {
-    return detail::to_ruby(data->index);
-  }
-};
-
 TESTCASE(iterator_value)
 {
+  define_class<Data>("Data")
+    .define_constructor(Constructor<Data, uint32_t>());
+
   define_class<ContainerValues>("ContainerValues")
       .define_constructor(Constructor<ContainerValues>())
       .define_iterator(&ContainerValues::begin, &ContainerValues::end);
@@ -161,16 +146,24 @@ TESTCASE(iterator_value)
   ContainerValues* container = new ContainerValues();
   Object wrapper = Data_Object<ContainerValues>(container);
 
-  Array a = wrapper.instance_eval("a = []; each() { |x| a << x }; a");
+  Array a = wrapper.instance_eval("each.to_a");
   ASSERT_EQUAL(3u, a.size());
 
-  ASSERT_EQUAL(Object(detail::to_ruby(1)), a[0]);
-  ASSERT_EQUAL(Object(detail::to_ruby(2)), a[1]);
-  ASSERT_EQUAL(Object(detail::to_ruby(3)), a[2]);
+  Data_Object<Data> wrappedData = a[0];
+  ASSERT_EQUAL(1, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)a[1];
+  ASSERT_EQUAL(2, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)a[2];
+  ASSERT_EQUAL(3, wrappedData->index);
 }
 
 TESTCASE(const_iterator_value)
 {
+  define_class<Data>("Data")
+      .define_constructor(Constructor<Data, uint32_t>());
+    
   define_class<ContainerValues>("ContainerValues")
     .define_constructor(Constructor<ContainerValues>())
     .define_iterator(&ContainerValues::cbegin, &ContainerValues::cend);
@@ -184,16 +177,23 @@ TESTCASE(const_iterator_value)
                         end
                         result)";
 
-  Array result = m.module_eval(code);
+  Array a = m.module_eval(code);
 
-  ASSERT_EQUAL(3u, result.size());
-  ASSERT_EQUAL(Object(detail::to_ruby(1)), result[0]);
-  ASSERT_EQUAL(Object(detail::to_ruby(2)), result[1]);
-  ASSERT_EQUAL(Object(detail::to_ruby(3)), result[2]);
+  Data_Object<Data> wrappedData = a[0];
+  ASSERT_EQUAL(1, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)a[1];
+  ASSERT_EQUAL(2, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)a[2];
+  ASSERT_EQUAL(3, wrappedData->index);
 }
 
 TESTCASE(iterator_pointer)
 {
+  define_class<Data>("Data")
+    .define_constructor(Constructor<Data, uint32_t>());
+    
   define_class<ContainerPointers>("ContainerPointers")
     .define_constructor(Constructor<ContainerPointers>())
     .define_iterator(&ContainerPointers::begin, &ContainerPointers::end);
@@ -210,16 +210,23 @@ TESTCASE(iterator_pointer)
                         end
                         result)";
 
-  Array result = m.module_eval(code);
+  Array a = m.module_eval(code);
 
-  ASSERT_EQUAL(3u, result.size());
-  ASSERT_EQUAL(Object(detail::to_ruby(1)), result[0]);
-  ASSERT_EQUAL(Object(detail::to_ruby(2)), result[1]);
-  ASSERT_EQUAL(Object(detail::to_ruby(3)), result[2]);
+  Data_Object<Data> wrappedData = a[0];
+  ASSERT_EQUAL(1, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)a[1];
+  ASSERT_EQUAL(2, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)a[2];
+  ASSERT_EQUAL(3, wrappedData->index);
 }
 
 TESTCASE(two_iterator_pointer)
 {
+  define_class<Data>("Data")
+    .define_constructor(Constructor<Data, uint32_t>());
+
   define_class<ContainerPointers>("ContainerPointers")
     .define_constructor(Constructor<ContainerPointers>())
     .define_iterator(&ContainerPointers::begin, &ContainerPointers::end)
@@ -240,19 +247,35 @@ TESTCASE(two_iterator_pointer)
                         end
                         result)";
 
-  Array result = m.module_eval(code);
+  Array a = m.module_eval(code);
 
-  ASSERT_EQUAL(6u, result.size());
-  ASSERT_EQUAL(Object(detail::to_ruby(1)), result[0]);
-  ASSERT_EQUAL(Object(detail::to_ruby(2)), result[1]);
-  ASSERT_EQUAL(Object(detail::to_ruby(3)), result[2]);
-  ASSERT_EQUAL(Object(detail::to_ruby(3)), result[3]);
-  ASSERT_EQUAL(Object(detail::to_ruby(2)), result[4]);
-  ASSERT_EQUAL(Object(detail::to_ruby(1)), result[5]);
+  ASSERT_EQUAL(6u, a.size());
+
+  Data_Object<Data> wrappedData = a[0];
+  ASSERT_EQUAL(1, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)a[1];
+  ASSERT_EQUAL(2, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)a[2];
+  ASSERT_EQUAL(3, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)a[3];
+  ASSERT_EQUAL(3, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)a[4];
+  ASSERT_EQUAL(2, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)a[5];
+  ASSERT_EQUAL(1, wrappedData->index);
 }
 
 TESTCASE(map)
 {
+  define_class<Data>("Data")
+    .define_constructor(Constructor<Data, uint32_t>())
+    .define_attr("index", &Data::index, Rice::AttrAccess::Read);
+
   define_class<ContainerPointers>("ContainerPointers")
     .define_constructor(Constructor<ContainerPointers>())
     .define_iterator(&ContainerPointers::begin, &ContainerPointers::end);
@@ -260,31 +283,74 @@ TESTCASE(map)
   Module m = define_module("Testing");
 
   std::string code = R"(container = ContainerPointers.new
-                        container.map do |x|
-                          x * 2
+                        container.map do |data|
+                          data.index * 2
                         end)";
 
-  Array result = m.module_eval(code);
+  Array a = m.module_eval(code);
+  ASSERT_EQUAL(3u, a.size());
 
-  ASSERT_EQUAL(3u, result.size());
-  ASSERT_EQUAL(Object(detail::to_ruby(2)), result[0]);
-  ASSERT_EQUAL(Object(detail::to_ruby(4)), result[1]);
-  ASSERT_EQUAL(Object(detail::to_ruby(6)), result[2]);
+  Object element = a[0];
+  ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(element));
+
+  element = a[1];
+  ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(element));
+
+  element = a[2];
+  ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(element));
 }
 
 TESTCASE(to_enum)
 {
+  define_class<Data>("Data")
+    .define_constructor(Constructor<Data, uint32_t>());
+
+  define_class<ContainerPointers>("ContainerPointers")
+    .define_constructor(Constructor<ContainerPointers>())
+    .define_iterator(&ContainerPointers::begin, &ContainerPointers::end);
+
   Module m = define_module("TestingModule");
 
   std::string code = R"(container = ContainerPointers.new
-                        container.each.map do |x|
-                          x * 2
+                        container.each.map do |data|
+                          data.index * 2
                         end)";
 
-  Array result = m.module_eval(code);
+  Array a = m.module_eval(code);
 
-  ASSERT_EQUAL(3u, result.size());
-  ASSERT_EQUAL(Object(detail::to_ruby(2)), result[0]);
-  ASSERT_EQUAL(Object(detail::to_ruby(4)), result[1]);
-  ASSERT_EQUAL(Object(detail::to_ruby(6)), result[2]);
+  ASSERT_EQUAL(3u, a.size());
+
+  Object element = a[0];
+  ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(element));
+
+  element = a[1];
+  ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(element));
+
+  element = a[2];
+  ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(element));
+}
+
+TESTCASE(IterateNoCopy)
+{
+  define_class<Data>("Data")
+    .define_constructor(Constructor<Data, uint32_t>());
+
+  define_class<ContainerPointers>("ContainerValues")
+    .define_constructor(Constructor<ContainerValues>())
+    .define_iterator(&ContainerPointers::begin, &ContainerPointers::end);
+
+  Module m = define_module("Testing");
+
+  ContainerValues container;
+  Data_Object<ContainerValues> wrapper(container);
+  Array a = wrapper.instance_eval("self.to_a");
+
+  ASSERT_EQUAL(container.data_.size(), a.size());
+
+  for (int i = 0; i < container.data_.size(); i++)
+  {
+    Data& expected = container.data_[i];
+    Data_Object<Data> actual(a[i]);
+    ASSERT_EQUAL(&expected, &(*actual));
+  }
 }

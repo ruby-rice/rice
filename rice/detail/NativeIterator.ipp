@@ -73,7 +73,7 @@ namespace Rice::detail
     // Hack the enumerator object by storing name_ on the enumerator object so
     // the rb_size_function above has access to it
     ID method_id = Identifier(this->method_name_).id();
-    protect(rb_ivar_set, enumerator, rb_intern("rice_method"), method_id  );
+    protect(rb_ivar_set, enumerator, rb_intern("rice_method"), method_id);
 
     return enumerator;
   }
@@ -93,7 +93,7 @@ namespace Rice::detail
 
       for (; it != end; ++it)
       {
-        protect(rb_yield, detail::To_Ruby<Value_T>().convert(*it));
+        protect(rb_yield, detail::To_Ruby<Value_T&>().convert(*it));
       }
 
       return self;
