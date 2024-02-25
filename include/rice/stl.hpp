@@ -72,26 +72,6 @@ namespace Rice::detail
   };
 
   template<>
-  class From_Ruby<std::string*>
-  {
-  public:
-    bool is_convertible(VALUE value)
-    {
-      return rb_type(value) == RUBY_T_STRING;
-    }
-
-    std::string* convert(VALUE value)
-    {
-      detail::protect(rb_check_type, value, (int)T_STRING);
-      this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
-      return &this->converted_;
-    }
-
-  private:
-    std::string converted_;
-  };
-
-  template<>
   class From_Ruby<std::string&>
   {
   public:
@@ -123,6 +103,116 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     std::string converted_;
+  };
+
+  template<>
+  class From_Ruby<std::string*>
+  {
+  public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
+    std::string* convert(VALUE value)
+    {
+      detail::protect(rb_check_type, value, (int)T_STRING);
+      this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      return &this->converted_;
+    }
+
+  private:
+    std::string converted_;
+  };
+
+  template<>
+  class From_Ruby<std::string*&>
+  {
+  public:
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
+    std::string* convert(VALUE value)
+    {
+      detail::protect(rb_check_type, value, (int)T_STRING);
+      this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      return &this->converted_;
+    }
+
+  private:
+    std::string converted_;
+  };
+}
+
+// =========   string_view.hpp   =========
+
+
+// ---------   string_view.ipp   ---------
+#include <string_view>
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<std::string_view>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
+
+  template<>
+  class To_Ruby<std::string_view>
+  {
+  public:
+    VALUE convert(std::string_view const& x)
+    {
+      return detail::protect(rb_external_str_new, x.data(), (long)x.size());
+    }
+  };
+
+  template<>
+  class To_Ruby<std::string_view&>
+  {
+  public:
+    VALUE convert(std::string_view const& x)
+    {
+      return detail::protect(rb_external_str_new, x.data(), (long)x.size());
+    }
+  };
+
+  template<>
+  class From_Ruby<std::string_view>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    bool is_convertible(VALUE value)
+    {
+      return rb_type(value) == RUBY_T_STRING;
+    }
+
+    std::string_view convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<std::string_view>();
+      }
+      else
+      {
+        detail::protect(rb_check_type, value, (int)T_STRING);
+        return std::string_view(RSTRING_PTR(value), RSTRING_LEN(value));
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 }
 
@@ -212,7 +302,7 @@ namespace Rice::detail
   {
     constexpr static bool verify()
     {
-      return Type<T>::verify();
+      return Type<intrinsic_type<T>>::verify();
     }
   };
 
@@ -356,7 +446,7 @@ namespace Rice::detail
   class WrapperSmartPointer : public Wrapper
   {
   public:
-    WrapperSmartPointer(SmartPointer_T<Arg_Ts...>& data);
+    WrapperSmartPointer(SmartPointer_T<Arg_Ts...> data);
     ~WrapperSmartPointer();
     void* get() override;
     SmartPointer_T<Arg_Ts...>& data();
@@ -376,7 +466,7 @@ namespace Rice::detail
 {
   // ---- WrapperSmartPointer ------
   template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
-  inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::WrapperSmartPointer(SmartPointer_T<Arg_Ts...>& data) 
+  inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::WrapperSmartPointer(SmartPointer_T<Arg_Ts...> data) 
     : data_(std::move(data))
   {
   }
@@ -402,6 +492,20 @@ namespace Rice::detail
   // ---- unique_ptr ------
   template <typename T>
   class To_Ruby<std::unique_ptr<T>>
+  {
+  public:
+    VALUE convert(std::unique_ptr<T>& data)
+    {
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
+
+      // Use custom wrapper type 
+      using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
+      return detail::wrap<std::unique_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
+  };
+
+  template <typename T>
+  class To_Ruby<std::unique_ptr<T>&>
   {
   public:
     VALUE convert(std::unique_ptr<T>& data)
@@ -487,6 +591,20 @@ namespace Rice::detail
 
   private:
     Arg* arg_ = nullptr;
+  };
+
+  template <typename T>
+  class To_Ruby<std::shared_ptr<T>&>
+  {
+  public:
+    VALUE convert(std::shared_ptr<T>& data)
+    {
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
+
+      // Use custom wrapper type 
+      using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
+      return detail::wrap<std::shared_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
   };
 
   template <typename T>
@@ -2305,7 +2423,7 @@ namespace Rice
     {
       static bool verify()
       {
-        Type<T>::verify();
+        Type<intrinsic_type<T>>::verify();
 
         if (!detail::Registries::instance.types.isDefined<std::vector<T>>())
         {
