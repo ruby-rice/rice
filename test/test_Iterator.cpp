@@ -144,12 +144,12 @@ TESTCASE(iterator_value)
       .define_iterator(&ContainerValues::begin, &ContainerValues::end);
 
   ContainerValues* container = new ContainerValues();
-  Object wrapper = Data_Object<ContainerValues>(container);
+  Data_Object<ContainerValues> wrapper(container);
 
   Array a = wrapper.instance_eval("each.to_a");
   ASSERT_EQUAL(3u, a.size());
 
-  Data_Object<Data> wrappedData = a[0];
+  Data_Object<Data> wrappedData(a[0]);
   ASSERT_EQUAL(1, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[1];
@@ -179,7 +179,7 @@ TESTCASE(const_iterator_value)
 
   Array a = m.module_eval(code);
 
-  Data_Object<Data> wrappedData = a[0];
+  Data_Object<Data> wrappedData(a[0]);
   ASSERT_EQUAL(1, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[1];
@@ -212,7 +212,7 @@ TESTCASE(iterator_pointer)
 
   Array a = m.module_eval(code);
 
-  Data_Object<Data> wrappedData = a[0];
+  Data_Object<Data> wrappedData(a[0]);
   ASSERT_EQUAL(1, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[1];
@@ -251,7 +251,7 @@ TESTCASE(two_iterator_pointer)
 
   ASSERT_EQUAL(6u, a.size());
 
-  Data_Object<Data> wrappedData = a[0];
+  Data_Object<Data> wrappedData(a[0]);
   ASSERT_EQUAL(1, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[1];
