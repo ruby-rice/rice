@@ -3,7 +3,6 @@ Gemfile.lock
 README.doxygen
 doc/_build
 .vs/
-cmake*
 pkg
 *.log
 .*.swp
