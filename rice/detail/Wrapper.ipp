@@ -99,16 +99,26 @@ namespace Rice::detail
 
     Wrapper* wrapper = nullptr;
 
-    if constexpr (!std::is_void_v<Wrapper_T>)
+    // Is this a pointer but cannot be copied? For example a std::unique_ptr
+    if constexpr (!std::is_void_v<Wrapper_T> && !std::is_copy_constructible_v<Wrapper_T>)
+    {
+      wrapper = new Wrapper_T(std::move(data));
+      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+    }
+    // Is this a pointer or smart pointer like std::shared_ptr
+    else if constexpr (!std::is_void_v<Wrapper_T>)
     {
       wrapper = new Wrapper_T(data);
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
+    // Is this a pointer and it cannot copied? This is for std::unique_ptr
+    // If ruby is the owner than copy the object
     else if (isOwner)
     {
       wrapper = new WrapperValue<T>(data);
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
+    // Ruby is not the owner so just wrap the reference
     else
     {
       wrapper = new WrapperReference<T>(data);

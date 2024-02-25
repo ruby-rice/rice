@@ -74,6 +74,15 @@ namespace
       return instance_;
     }
 
+    std::shared_ptr<MyClass>& share_ref()
+    {
+      if (!instance_)
+      {
+        instance_ = std::make_shared<MyClass>();
+      }
+      return instance_;
+    }
+
   public:
     static inline std::shared_ptr<MyClass> instance_;
   };
@@ -104,7 +113,8 @@ SETUP(SmartPointer)
   define_class<Factory>("Factory").
     define_constructor(Constructor<Factory>()).
     define_method("transfer", &Factory::transfer).
-    define_method("share", &Factory::share);
+    define_method("share", &Factory::share).
+    define_method("share_ref", &Factory::share_ref);
 
   define_global_function("extract_flag_unique_ptr_ref", &extractFlagUniquePtrRef);
   define_global_function("extract_flag_shared_ptr", &extractFlagSharedPtr);
@@ -152,14 +162,47 @@ TESTCASE(ShareOwnership)
                           my_class.set_flag(i)
                         end)";
 
+
+  ASSERT_EQUAL(0, Factory::instance_.use_count());
   m.module_eval(code);
+  
+  ASSERT_EQUAL(11, Factory::instance_.use_count());
   rb_gc_start();
+  ASSERT_EQUAL(1, Factory::instance_.use_count());
 
   ASSERT_EQUAL(1, MyClass::constructorCalls);
   ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
   ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
   ASSERT_EQUAL(0, MyClass::destructorCalls);
   ASSERT_EQUAL(9, Factory::instance_->flag);
+}
+
+
+TESTCASE(ShareOwnership2)
+{
+  MyClass::reset();
+
+  Module m = define_module("TestingModule");
+
+  // Create ruby objects that point to the same instance of MyClass
+  std::string code = R"(factory = Factory.new
+                        10.times do |i|
+                          my_class = factory.share
+                          my_class.set_flag(i)
+                        end)";
+
+  Factory factory;
+  std::shared_ptr<MyClass> myClass = factory.share();
+  ASSERT_EQUAL(2, Factory::instance_.use_count());
+
+  // Call some ruby code
+  Data_Object<Factory> wrapper(factory);
+  ASSERT_EQUAL(2, Factory::instance_.use_count());
+  wrapper.instance_eval("self.share_ref.set_flag(1)");
+
+  ASSERT_EQUAL(3, Factory::instance_.use_count());
+  rb_gc_start();
+  ASSERT_EQUAL(2, Factory::instance_.use_count());
 }
 
 TESTCASE(UniquePtrRefParameter)

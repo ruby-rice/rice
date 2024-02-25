@@ -8,7 +8,7 @@ namespace Rice::detail
 {
   // ---- WrapperSmartPointer ------
   template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
-  inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::WrapperSmartPointer(SmartPointer_T<Arg_Ts...>& data) 
+  inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::WrapperSmartPointer(SmartPointer_T<Arg_Ts...> data) 
     : data_(std::move(data))
   {
   }
@@ -34,6 +34,20 @@ namespace Rice::detail
   // ---- unique_ptr ------
   template <typename T>
   class To_Ruby<std::unique_ptr<T>>
+  {
+  public:
+    VALUE convert(std::unique_ptr<T>& data)
+    {
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
+
+      // Use custom wrapper type 
+      using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
+      return detail::wrap<std::unique_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
+  };
+
+  template <typename T>
+  class To_Ruby<std::unique_ptr<T>&>
   {
   public:
     VALUE convert(std::unique_ptr<T>& data)
@@ -119,6 +133,20 @@ namespace Rice::detail
 
   private:
     Arg* arg_ = nullptr;
+  };
+
+  template <typename T>
+  class To_Ruby<std::shared_ptr<T>&>
+  {
+  public:
+    VALUE convert(std::shared_ptr<T>& data)
+    {
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
+
+      // Use custom wrapper type 
+      using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
+      return detail::wrap<std::shared_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
   };
 
   template <typename T>

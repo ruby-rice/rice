@@ -9,7 +9,7 @@ namespace Rice::detail
   class WrapperSmartPointer : public Wrapper
   {
   public:
-    WrapperSmartPointer(SmartPointer_T<Arg_Ts...>& data);
+    WrapperSmartPointer(SmartPointer_T<Arg_Ts...> data);
     ~WrapperSmartPointer();
     void* get() override;
     SmartPointer_T<Arg_Ts...>& data();
