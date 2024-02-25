@@ -80,7 +80,7 @@ TESTCASE(Empty)
   Module m = define_module("Testing");
 
   Class c = define_unordered_map<std::unordered_map<std::string, std::int32_t>>("IntUnorderedMap");
-  Object unordered_map = c.call("new");
+  Data_Object<std::unordered_map<std::string, std::int32_t>> unordered_map = c.call("new");
 
   Object result = unordered_map.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
@@ -94,7 +94,7 @@ TESTCASE(Include)
   Module m = define_module("Testing");
 
   Class c = define_unordered_map<std::unordered_map<std::string, std::int32_t>>("IntUnorderedMap");
-  Object unordered_map = c.call("new");
+  Data_Object<std::unordered_map<std::string, std::int32_t>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", 1);
   unordered_map.call("[]=", "two", 2);
 
@@ -113,7 +113,7 @@ TESTCASE(Value)
   Module m = define_module("Testing");
 
   Class c = define_unordered_map<std::unordered_map<std::string, std::int32_t>>("IntUnorderedMap");
-  Object unordered_map = c.call("new");
+  Data_Object<std::unordered_map<std::string, std::int32_t>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", 1);
   unordered_map.call("[]=", "two", 2);
 
@@ -129,16 +129,16 @@ TESTCASE(ToString)
   Module m = define_module("Testing");
 
   Class c = define_unordered_map<std::unordered_map<std::string, std::int32_t>>("IntUnorderedMap");
-  Object unordered_map = c.call("new");
+  Data_Object<std::unordered_map<std::string, std::int32_t>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", 1);
   unordered_map.call("[]=", "two", 2);
 
-  Object result = unordered_map.call("to_s");
-  ASSERT_EQUAL("{two => 2, one => 1}", detail::From_Ruby<std::string>().convert(result));
+  ASSERT_EQUAL(1, unordered_map->operator[]("one"));
+  ASSERT_EQUAL(2, unordered_map->operator[]("two"));
 
   unordered_map.call("clear");
 
-  result = unordered_map.call("to_s");
+  Object result = unordered_map.call("to_s");
   ASSERT_EQUAL("{}", detail::From_Ruby<std::string>().convert(result));
 }
 
@@ -147,7 +147,7 @@ TESTCASE(Update)
   Module m = define_module("Testing");
 
   Class c = define_unordered_map<std::unordered_map<std::string, std::string>>("StringUnorderedMap");
-  Object unordered_map = c.call("new");
+  Data_Object<std::unordered_map<std::string, std::string>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", "original 1");
   unordered_map.call("[]=", "two", "original 2");
 
@@ -169,7 +169,7 @@ TESTCASE(Modify)
   Module m = define_module("Testing");
 
   Class c = define_unordered_map<std::unordered_map<std::string, int64_t>>("Int64UnorderedMap");
-  Object unordered_map = c.call("new");
+  Data_Object<std::unordered_map<std::string, std::int64_t>> unordered_map = c.call("new");
 
   Object result = unordered_map.call("[]=", "one", 3232323232);
 
@@ -183,12 +183,12 @@ TESTCASE(Modify)
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 }
 
-TESTCASE(keysAndValues)
+TESTCASE(KeysAndValues)
 {
   Module m = define_module("Testing");
 
   Class c = define_unordered_map<std::unordered_map<std::string, int32_t>>("Int32UnorderedMap");
-  Object unordered_map = c.call("new");
+  Data_Object<std::unordered_map<std::string, std::int32_t>> unordered_map = c.call("new");
 
   unordered_map.call("[]=", "one", 1);
   unordered_map.call("[]=", "two", 2);
@@ -196,19 +196,19 @@ TESTCASE(keysAndValues)
 
   // Keys returns a std::vector
   Data_Object<std::vector<std::string>> keys = unordered_map.call("keys");
-  //std::vector<std::string> expected_keys{ {"one", "three", "two"} };
+  std::sort(keys->begin(), keys->end());
   ASSERT_EQUAL(3u, keys->size());
-  //ASSERT_EQUAL(expected_keys[0], keys->operator[](0));
-  //ASSERT_EQUAL(expected_keys[1], keys->operator[](1));
-  //ASSERT_EQUAL(expected_keys[2], keys->operator[](2));
+  ASSERT_EQUAL("one", keys->operator[](0));
+  ASSERT_EQUAL("three", keys->operator[](1));
+  ASSERT_EQUAL("two", keys->operator[](2));
 
-  // Keys returns a std::vector
+  // Values returns a std::vector
   Data_Object<std::vector<std::int32_t>> values = unordered_map.call("values");
-  //std::vector<std::int32_t> expected_values{ {1, 3, 2} };
+  std::sort(values->begin(), values->end());
   ASSERT_EQUAL(3u, values->size());
-  //ASSERT_EQUAL(expected_values[0], values->operator[](0));
-  //ASSERT_EQUAL(expected_values[1], values->operator[](1));
-  //ASSERT_EQUAL(expected_values[2], values->operator[](2));
+  ASSERT_EQUAL(1, values->operator[](0));
+  ASSERT_EQUAL(2, values->operator[](1));
+  ASSERT_EQUAL(3, values->operator[](2));
 }
 
 TESTCASE(Copy)
@@ -245,15 +245,16 @@ TESTCASE(Iterate)
 
                         result = Hash.new
                         unordered_map.each do |pair|
-                                    result[pair.first] = 2 * pair.second
-                                  end
+                          result[pair.first] = 2 * pair.second
+                        end
                         result)";
 
   Hash result = m.module_eval(code);
   ASSERT_EQUAL(3u, result.size());
 
-  std::string result_string = result.to_s().str();
-  ASSERT_EQUAL(R"({"seven"=>14, "six"=>12, "five"=>10})", result_string);
+  ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(result["five"].value()));
+  ASSERT_EQUAL(12, detail::From_Ruby<int>().convert(result["six"].value()));
+  ASSERT_EQUAL(14, detail::From_Ruby<int>().convert(result["seven"].value()));
 }
 
 TESTCASE(ToEnum)
@@ -268,15 +269,17 @@ TESTCASE(ToEnum)
 
                         result = Hash.new
                         unordered_map.each.each do |pair|
-                                    result[pair.first] = 2 * pair.second
-                                  end
+                          result[pair.first] = 2 * pair.second
+                        end
                         result)";
 
   Hash result = m.module_eval(code);
   ASSERT_EQUAL(3u, result.size());
 
   std::string result_string = result.to_s().str();
-  ASSERT_EQUAL(R"({"seven"=>14, "six"=>12, "five"=>10})", result_string);
+  ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(result["five"].value()));
+  ASSERT_EQUAL(12, detail::From_Ruby<int>().convert(result["six"].value()));
+  ASSERT_EQUAL(14, detail::From_Ruby<int>().convert(result["seven"].value()));
 }
 
 TESTCASE(ToEnumSize)
@@ -321,7 +324,7 @@ TESTCASE(NotComparable)
 
   Class c = define_unordered_map<std::unordered_map<std::string, NotComparable>>("NotComparableUnorderedMap");
 
-  Object unordered_map = c.call("new");
+  Data_Object<std::unordered_map<std::string, NotComparable>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", NotComparable(1));
   unordered_map.call("[]=", "two", NotComparable(2));
   unordered_map.call("[]=", "three", NotComparable(3));
@@ -340,7 +343,7 @@ TESTCASE(NotPrintable)
 
   Class c = define_unordered_map<std::unordered_map<std::string, NotComparable>>("NotComparableUnorderedMap");
 
-  Object unordered_map = c.call("new");
+  Data_Object<std::unordered_map<std::string, NotComparable>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", NotComparable(1));
   unordered_map.call("[]=", "two", NotComparable(2));
   unordered_map.call("[]=", "three", NotComparable(3));
@@ -359,7 +362,7 @@ namespace
     {
     };
 
-    bool operator==(const Comparable& other)
+    bool operator==(const Comparable& other) const
     {
       return this->value_ == other.value_;
     }
@@ -381,7 +384,7 @@ TESTCASE(Comparable)
 
   Class c = define_unordered_map<std::unordered_map<std::string, Comparable>>("ComparableUnorderedMap");
 
-  Object unordered_map = c.call("new");
+  Data_Object<std::unordered_map<std::string, Comparable>> unordered_map = c.call("new");
   
   unordered_map.call("[]=", "one", Comparable(1));
   unordered_map.call("[]=", "two", Comparable(2));
@@ -398,13 +401,14 @@ TESTCASE(Printable)
 
   Class c = define_unordered_map<std::unordered_map<std::string, Comparable>>("ComparableUnorderedMap");
 
-  Object unordered_map = c.call("new");
+  Data_Object<std::unordered_map<std::string, Comparable>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", Comparable(1));
   unordered_map.call("[]=", "two", Comparable(2));
   unordered_map.call("[]=", "three", Comparable(3));
 
-  Object result = unordered_map.call("to_s");
-  ASSERT_EQUAL("{three => Comparable(3), two => Comparable(2), one => Comparable(1)}", detail::From_Ruby<std::string>().convert(result));
+  ASSERT_EQUAL(Comparable(1), unordered_map->operator[]("one"));
+  ASSERT_EQUAL(Comparable(2), unordered_map->operator[]("two"));
+  ASSERT_EQUAL(Comparable(3), unordered_map->operator[]("three"));
 }
 
 namespace
