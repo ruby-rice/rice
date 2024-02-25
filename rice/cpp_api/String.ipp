@@ -20,6 +20,10 @@ namespace Rice
   {
   }
 
+  inline String::String(std::string_view const& s) : Builtin_Object<T_STRING>(detail::protect(rb_str_new, s.data(), (long)s.length()))
+  {
+  }
+
   inline String::String(Identifier id) : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, id.c_str()))
   {
   }

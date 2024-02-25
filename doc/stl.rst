@@ -13,6 +13,7 @@ STL
   stl/reference_wrapper
   stl/smart_pointers
   stl/string
+  stl/string_view
   stl/unordered_map
   stl/variant
   stl/vector

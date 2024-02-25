@@ -2,7 +2,8 @@ Gemfile.lock
 *.bundle
 README.doxygen
 doc/_build
-
+.vs/
+cmake*
 pkg
 *.log
 .*.swp

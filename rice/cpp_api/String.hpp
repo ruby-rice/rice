@@ -38,6 +38,9 @@ namespace Rice
     //! Construct a String from an std::string.
     String(std::string const& s);
 
+    //! Construct a String from an std::string_view.
+    String(std::string_view const& s);
+
     //! Format a string using printf-style formatting.
     template <typename... Arg_Ts>
     static inline String format(char const* fmt, Arg_Ts&&...args);

@@ -54,6 +54,21 @@ TESTCASE(construct_from_std_string)
   ASSERT_EQUAL("foo", RSTRING_PTR(s.value()));
 }
 
+TESTCASE(construct_from_std_string_view)
+{
+  std::string_view foo("foo");
+  String s(foo);
+  ASSERT_EQUAL(T_STRING, rb_type(s));
+  ASSERT_EQUAL("foo", RSTRING_PTR(s.value()));
+
+  {
+    foo = "foo 2";
+    s = foo;
+  }
+  ASSERT_EQUAL(T_STRING, rb_type(s));
+  ASSERT_EQUAL("foo 2", RSTRING_PTR(s.value()));
+}
+
 TESTCASE(format)
 {
   String s(String::format("%s %d", "foo", 42));
