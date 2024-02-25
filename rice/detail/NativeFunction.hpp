@@ -29,12 +29,12 @@ namespace Rice::detail
    *  the types and parameters a method takes. It then uses that information
    *  to perform type conversion Ruby to C++.
    *   
-   *  @tparam From_Ruby_T - The type of C++ class wrapped by Ruby. Note
-   *    this may be different than the Class of Function_T. For example, 
-   *    std::map has a size() method but that is actually implemented on 
-   *    an ancestor class _Tree. Thus From_Ruby_T is std::map but 
-   *    Function_T::Class_T is _Tree. This typename must be specified
-   *    by the calling code.
+   *  @tparam Receiver_T - The type of C++ class wrapped by Ruby. Althought NativeFunction
+   *    can derive the C++ class (Receiver_T), it can differ per member function. For example,
+   *    std::map has a size() method but that is actually implemented on an ancestor class _Tree.
+   *    Thus Receiver_T is std::map but Function_T::Receiver_T is _Tree. This breaks Rice in two ways. 
+   *    First, _Tree is not a registered type. Second, Rice would return a _Tree instance back to
+   *    C++ and not a std::map.
    *  @tparam Function_T - A template that represents the C++ function
    *    to call. This typename is automatically deduced by the compiler.
    *  @tparam IsMethod - A boolean specifying whether the function has
@@ -42,16 +42,16 @@ namespace Rice::detail
    *    calling them methods (self) or functions (no self).
    */
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
+  template<typename Class_T, typename Function_T, bool IsMethod>
   class NativeFunction
   {
   public:
-    using NativeFunction_T = NativeFunction<From_Ruby_T, Function_T, IsMethod>;
+    using NativeFunction_T = NativeFunction<Class_T, Function_T, IsMethod>;
 
     // We remove const to avoid an explosion of To_Ruby specializations and Ruby doesn't
     // have the concept of constants anyways
     using Return_T = remove_cv_recursive_t<typename function_traits<Function_T>::return_type>;
-    using Class_T = typename method_traits<Function_T, IsMethod>::Class_T;
+    using Receiver_T = typename method_traits<Function_T, IsMethod>::Class_T;
     using Arg_Ts = typename method_traits<Function_T, IsMethod>::Arg_Ts;
     using From_Ruby_Args_Ts = typename tuple_map<From_Ruby, Arg_Ts>::type;
 
@@ -93,7 +93,7 @@ namespace Rice::detail
     Arg_Ts getNativeValues(std::vector<VALUE>& values, std::index_sequence<I...>& indices);
 
     // Figure out what self is
-    Class_T getReceiver(VALUE self);
+    Receiver_T getReceiver(VALUE self);
 
     // Throw an exception when wrapper cannot be extracted
     [[noreturn]] void noWrapper(const VALUE klass, const std::string& wrapper);

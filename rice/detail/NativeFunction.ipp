@@ -9,8 +9,8 @@
 
 namespace Rice::detail
 {
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  void NativeFunction<From_Ruby_T, Function_T, IsMethod>::define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  void NativeFunction<Class_T, Function_T, IsMethod>::define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
   {
     // Tell Ruby to invoke the static method call on this class
     detail::protect(rb_define_method, klass, method_name.c_str(), (RUBY_METHOD_FUNC)&NativeFunction_T::call, -1);
@@ -22,8 +22,8 @@ namespace Rice::detail
     detail::Registries::instance.natives.add(klass, Identifier(method_name).id(), native);
   }
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::call(int argc, VALUE* argv, VALUE self)
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::call(int argc, VALUE* argv, VALUE self)
   {
     // Look up the native function based on the Ruby klass and method id
     NativeFunction_T* nativeFunction = detail::Registries::instance.natives.lookup<NativeFunction_T*>();
@@ -35,8 +35,8 @@ namespace Rice::detail
     });
   }
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  NativeFunction<From_Ruby_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  NativeFunction<Class_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
     : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo)
   {
     // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
@@ -49,9 +49,9 @@ namespace Rice::detail
     this->toRuby_ = this->createToRuby();
   }
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
+  template<typename Class_T, typename Function_T, bool IsMethod>
   template<typename T, std::size_t I>
-  From_Ruby<T> NativeFunction<From_Ruby_T, Function_T, IsMethod>::createFromRuby()
+  From_Ruby<T> NativeFunction<Class_T, Function_T, IsMethod>::createFromRuby()
   {
     // Does the From_Ruby instantiation work with Arg?
     if constexpr (std::is_constructible_v<From_Ruby<T>, Arg*>)
@@ -64,8 +64,8 @@ namespace Rice::detail
     }
   }
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  To_Ruby<typename NativeFunction<From_Ruby_T, Function_T, IsMethod>::Return_T> NativeFunction<From_Ruby_T, Function_T, IsMethod>::createToRuby()
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  To_Ruby<typename NativeFunction<Class_T, Function_T, IsMethod>::Return_T> NativeFunction<Class_T, Function_T, IsMethod>::createToRuby()
   {
     // Does the From_Ruby instantiation work with ReturnInfo?
     if constexpr (std::is_constructible_v<To_Ruby<Return_T>, Return*>)
@@ -78,15 +78,15 @@ namespace Rice::detail
     }
   }
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
+  template<typename Class_T, typename Function_T, bool IsMethod>
   template<std::size_t... I>
-  typename NativeFunction<From_Ruby_T, Function_T, IsMethod>::From_Ruby_Args_Ts NativeFunction<From_Ruby_T, Function_T, IsMethod>::createFromRuby(std::index_sequence<I...>& indices)
+  typename NativeFunction<Class_T, Function_T, IsMethod>::From_Ruby_Args_Ts NativeFunction<Class_T, Function_T, IsMethod>::createFromRuby(std::index_sequence<I...>& indices)
   {
     return std::make_tuple(createFromRuby<remove_cv_recursive_t<typename std::tuple_element<I, Arg_Ts>::type>, I>()...);
   }
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  std::vector<VALUE> NativeFunction<From_Ruby_T, Function_T, IsMethod>::getRubyValues(int argc, VALUE* argv)
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  std::vector<VALUE> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(int argc, VALUE* argv)
   {
     // Setup a tuple for the leading rb_scan_args arguments
     std::string scanFormat = this->methodInfo_->formatString();
@@ -110,9 +110,9 @@ namespace Rice::detail
     return rbScanValues;
   }
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
+  template<typename Class_T, typename Function_T, bool IsMethod>
   template<std::size_t... I>
-  typename NativeFunction<From_Ruby_T, Function_T, IsMethod>::Arg_Ts NativeFunction<From_Ruby_T, Function_T, IsMethod>::getNativeValues(std::vector<VALUE>& values,
+  typename NativeFunction<Class_T, Function_T, IsMethod>::Arg_Ts NativeFunction<Class_T, Function_T, IsMethod>::getNativeValues(std::vector<VALUE>& values,
      std::index_sequence<I...>& indices)
   {
     // Convert each Ruby value to its native value by calling the appropriate fromRuby instance.
@@ -121,16 +121,16 @@ namespace Rice::detail
     return std::forward_as_tuple(std::get<I>(this->fromRubys_).convert(values[I])...);
   }
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  typename NativeFunction<From_Ruby_T, Function_T, IsMethod>::Class_T NativeFunction<From_Ruby_T, Function_T, IsMethod>::getReceiver(VALUE self)
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  typename NativeFunction<Class_T, Function_T, IsMethod>::Receiver_T NativeFunction<Class_T, Function_T, IsMethod>::getReceiver(VALUE self)
   {
     // There is no self parameter
-    if constexpr (std::is_same_v<Class_T, std::nullptr_t>)
+    if constexpr (std::is_same_v<Receiver_T, std::nullptr_t>)
     {
       return nullptr;
     }
     // Self parameter is a Ruby VALUE so no conversion is needed
-    else if constexpr (std::is_same_v<Class_T, VALUE>)
+    else if constexpr (std::is_same_v<Receiver_T, VALUE>)
     {
       return self;
     }
@@ -139,22 +139,22 @@ namespace Rice::detail
        is defined on _Tree not map. Rice needs to know the actual type
        that was wrapped so it can correctly extract the C++ object from 
        the Ruby object. */
-    else if constexpr (!std::is_same_v<intrinsic_type<Class_T>, From_Ruby_T> && 
-                        std::is_base_of_v<intrinsic_type<Class_T>, From_Ruby_T>)
+    else if constexpr (!std::is_same_v<intrinsic_type<Receiver_T>, Class_T> && 
+                        std::is_base_of_v<intrinsic_type<Receiver_T>, Class_T>)
     {
-      From_Ruby_T* instance = From_Ruby<From_Ruby_T*>().convert(self);
-      return dynamic_cast<Class_T>(instance);
+      Class_T* instance = From_Ruby<Class_T*>().convert(self);
+      return dynamic_cast<Receiver_T>(instance);
     }
     // Self parameter could be derived from Object or it is an C++ instance and
     // needs to be unwrapped from Ruby
     else
     {
-      return From_Ruby<Class_T>().convert(self);
+      return From_Ruby<Receiver_T>().convert(self);
     }
   }
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::invokeNativeFunction(const Arg_Ts& nativeArgs)
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::invokeNativeFunction(const Arg_Ts& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
@@ -171,10 +171,10 @@ namespace Rice::detail
     }
   }
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::invokeNativeMethod(VALUE self, const Arg_Ts& nativeArgs)
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::invokeNativeMethod(VALUE self, const Arg_Ts& nativeArgs)
   {
-    Class_T receiver = this->getReceiver(self);
+    Receiver_T receiver = this->getReceiver(self);
     auto selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeArgs);
 
     if constexpr (std::is_void_v<Return_T>)
@@ -188,24 +188,24 @@ namespace Rice::detail
 
       // Special handling if the method returns self. If so we do not want
       // to create a new Ruby wrapper object and instead return self.
-      if constexpr (std::is_same_v<intrinsic_type<Return_T>, intrinsic_type<Class_T>>)
+      if constexpr (std::is_same_v<intrinsic_type<Return_T>, intrinsic_type<Receiver_T>>)
       {
-        if constexpr (std::is_pointer_v<Return_T> && std::is_pointer_v<Class_T>)
+        if constexpr (std::is_pointer_v<Return_T> && std::is_pointer_v<Receiver_T>)
         {
           if (nativeResult == receiver)
             return self;
         }
-        else if constexpr (std::is_pointer_v<Return_T> && std::is_reference_v<Class_T>)
+        else if constexpr (std::is_pointer_v<Return_T> && std::is_reference_v<Receiver_T>)
         {
           if (nativeResult == &receiver)
             return self;
         }
-        else if constexpr (std::is_reference_v<Return_T> && std::is_pointer_v<Class_T>)
+        else if constexpr (std::is_reference_v<Return_T> && std::is_pointer_v<Receiver_T>)
         {
           if (&nativeResult == receiver)
             return self;
         }
-        else if constexpr (std::is_reference_v<Return_T> && std::is_reference_v<Class_T>)
+        else if constexpr (std::is_reference_v<Return_T> && std::is_reference_v<Receiver_T>)
         {
           if (&nativeResult == &receiver)
             return self;
@@ -216,8 +216,8 @@ namespace Rice::detail
     }
   }
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  void NativeFunction<From_Ruby_T, Function_T, IsMethod>::noWrapper(const VALUE klass, const std::string& wrapper)
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  void NativeFunction<Class_T, Function_T, IsMethod>::noWrapper(const VALUE klass, const std::string& wrapper)
   {
     std::stringstream message;
 
@@ -232,8 +232,8 @@ namespace Rice::detail
     throw std::runtime_error(message.str());
   }
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  void NativeFunction<From_Ruby_T, Function_T, IsMethod>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues)
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  void NativeFunction<Class_T, Function_T, IsMethod>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues)
   {
     // selfWrapper will be nullptr if this(self) is a builtin type and not an external(wrapped) type
     // it is highly unlikely that keepAlive is used in this case but we check anyway
@@ -270,8 +270,8 @@ namespace Rice::detail
     }
   }
 
-  template<typename From_Ruby_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<From_Ruby_T, Function_T, IsMethod>::operator()(int argc, VALUE* argv, VALUE self)
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::operator()(int argc, VALUE* argv, VALUE self)
   {
     // Get the ruby values
     std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv);
@@ -283,7 +283,7 @@ namespace Rice::detail
 
     // Now call the native method
     VALUE result = Qnil;
-    if constexpr (std::is_same_v<Class_T, std::nullptr_t>)
+    if constexpr (std::is_same_v<Receiver_T, std::nullptr_t>)
     {
       result = this->invokeNativeFunction(nativeValues);
     }
