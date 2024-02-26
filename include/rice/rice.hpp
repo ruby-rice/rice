@@ -3695,7 +3695,7 @@ namespace Rice
     Identifier(char const* s);
 
     //! Construct a new Identifier from a string.
-    Identifier(std::string const string);
+    Identifier(std::string const& string);
 
     //! Return a string representation of the Identifier.
     char const* c_str() const;
@@ -3729,7 +3729,7 @@ namespace Rice
   {
   }
 
-  inline Identifier::Identifier(std::string const s) : id_(rb_intern(s.c_str()))
+  inline Identifier::Identifier(std::string const& s) : id_(rb_intern2(s.c_str(), s.size()))
   {
   }
 
@@ -6273,7 +6273,7 @@ namespace Rice
   }
 
   inline Symbol::Symbol(std::string const& s)
-    : Object(detail::protect(rb_id2sym, detail::protect(rb_intern, s.c_str())))
+    : Object(detail::protect(rb_id2sym, detail::protect(rb_intern2, s.c_str(), s.size())))
   {
   }
 
