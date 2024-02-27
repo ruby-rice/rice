@@ -8,7 +8,7 @@ namespace Rice
   {
   }
 
-  inline Identifier::Identifier(std::string const s) : id_(rb_intern(s.c_str()))
+  inline Identifier::Identifier(std::string const& s) : id_(rb_intern2(s.c_str(), s.size()))
   {
   }
 

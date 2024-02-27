@@ -23,7 +23,7 @@ namespace Rice
     Identifier(char const* s);
 
     //! Construct a new Identifier from a string.
-    Identifier(std::string const string);
+    Identifier(std::string const& string);
 
     //! Return a string representation of the Identifier.
     char const* c_str() const;

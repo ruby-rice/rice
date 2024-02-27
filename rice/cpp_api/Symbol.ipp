@@ -16,7 +16,7 @@ namespace Rice
   }
 
   inline Symbol::Symbol(std::string const& s)
-    : Object(detail::protect(rb_id2sym, detail::protect(rb_intern, s.c_str())))
+    : Object(detail::protect(rb_id2sym, detail::protect(rb_intern2, s.c_str(), s.size())))
   {
   }
 
