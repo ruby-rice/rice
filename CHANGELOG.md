@@ -3,6 +3,7 @@
 * Add support for std::string_view
 * Fix handling of std::shared_ptr that resulted in moving them instead of copying them
 * Fix container iteration so elements are passed by reference and not copied
+* Avoid unnecessary copies when creating Rice::Identifiers and Rice::Symbols
 
 ## 4.2.1
 
