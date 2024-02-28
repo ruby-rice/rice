@@ -20,3 +20,4 @@ I'd like to thank the following people for their help in making Rice what it is 
 * [Maxim Samsonov (maxirmx)](https://github.com/maxirmx) for [#193](https://github.com/jasonroelofs/rice/issues/193) and [#194](https://github.com/jasonroelofs/rice/pull/194)
 * [kvtb](https://github.com/kvtb) for [#191](https://github.com/jasonroelofs/rice/issues/191)
 * [thekendalmiller](https://github.com/thekendalmiller) for [#201](https://github.com/jasonroelofs/rice/pull/201)
+* [froydnj](https://github.com/froydnj) for [#205](https://github.com/jasonroelofs/rice/pull/205)
