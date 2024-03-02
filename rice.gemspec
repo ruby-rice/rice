@@ -74,7 +74,7 @@ Ruby extensions with C++ easier.
     'test/ext/t2/*.*pp'
   ]
 
-  s.required_ruby_version = ">= 2.5"
+  s.required_ruby_version = ">= 3.0"
 
   s.add_development_dependency "bundler"
   s.add_development_dependency "rake"
