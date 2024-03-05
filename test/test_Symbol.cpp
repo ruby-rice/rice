@@ -31,6 +31,13 @@ TESTCASE(construct_from_string)
   ASSERT_EQUAL(ID2SYM(rb_intern("Foo")), symbol.value());
 }
 
+TESTCASE(construct_from_string_view)
+{
+  std::string_view view("Foo");
+  Symbol symbol(view);
+  ASSERT_EQUAL(ID2SYM(rb_intern("Foo")), symbol.value());
+}
+
 TESTCASE(default_construct)
 {
   Symbol symbol;

@@ -33,6 +33,9 @@ namespace Rice
     //! Construct a Symbol from an std::string.
     Symbol(std::string const& s);
 
+    //! Construct a Symbol from an std::string_view.
+    Symbol(std::string_view const& s);
+
     //! Return a string representation of the Symbol.
     char const* c_str() const;
 
