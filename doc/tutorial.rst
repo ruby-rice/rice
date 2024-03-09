@@ -25,7 +25,7 @@ Next create an extconf.rb file:
 Note that we use ``mkmf-rice`` instead of ``mkmf``. This will ensure that the extension will be linked with standard C++ library and allows access to the Rice header files.
 
 .. note::
-  For advanced users - instead of using mkmf-rice you can use your own build system such as CMake. In this case you may prefer to download the Rice header file, `rice.hpp <https://github.com/jasonroelofs/rice/blob/master/include/rice/rice.hpp>`_, from github and directly include it in your source tree.
+  For advanced users - instead of using mkmf-rice you can use your own build system such as CMake. In this case you may prefer to download the Rice header file, `rice.hpp <https://github.com/ruby-rice/rice/blob/master/include/rice/rice.hpp>`_, from github and directly include it in your source tree.
   
 Next we create our extension and save it to ``test.cpp``:
 

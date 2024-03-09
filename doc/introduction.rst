@@ -21,16 +21,16 @@ This documentation and the ``master`` branch are for Rice 4.x and later, which i
 
 To upgrade a library from Rice 3 to 4, see :ref:`Migrating`.
 
-The documentation for the 3.x line of Rice is viewable at https://jasonroelofs.com/rice/3.x.
+The documentation for the 3.x line of Rice is viewable at https://ruby-rice.github.io/3.x.
 
 Project Details
 ---------------
 
-The source is hosted on GitHub: http://github.com/jasonroelofs/rice
+The source is hosted on GitHub: http://github.com/ruby-rice/rice
 
-Bug tracking: http://github.com/jasonroelofs/rice/issues
+Bug tracking: http://github.com/ruby-rice/rice/issues
 
-API documentation: http://jasonroelofs.com/rice
+API documentation: http://ruby-rice.github.io/4.x
 
 Installation
 ------------

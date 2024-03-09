@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Rice'
-copyright = '2023, Paul Brannon, Jason Roelofs, Charlie Savage'
+copyright = '2024, Paul Brannon, Jason Roelofs, Charlie Savage'
 author = 'Paul Brannon, Jason Roelofs, Charlie Savage'
 
 
