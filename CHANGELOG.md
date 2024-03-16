@@ -1,4 +1,9 @@
+## 4.3.1
+
+* Update links and related references to the new repo and docs location: ruby-rice.github.io.
+
 ## 4.3
+
 * Add support for STL containers that contain pointers
 * Add support for std::string_view
 * Fix handling of std::shared_ptr that resulted in moving them instead of copying them
