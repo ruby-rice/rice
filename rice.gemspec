@@ -6,7 +6,7 @@ $spec = Gem::Specification.new do |s|
   s.version = Rice::VERSION
   s.license = "MIT"
   s.summary = 'Ruby Interface for C++ Extensions'
-  s.homepage = 'https://github.com/jasonroelofs/rice'
+  s.homepage = 'https://github.com/ruby-rice/rice'
   s.authors = ['Paul Brannan', 'Jason Roelofs', 'Charlie Savage']
   s.email = ['curlypaul924@gmail.com', 'jasonroelofs@gmail.com', 'cfis@savagexi.com']
 
@@ -17,10 +17,10 @@ Ruby extensions with C++ easier.
   END
 
   s.metadata = {
-    "bug_tracker_uri"   => "https://github.com/jasonroelofs/rice/issues",
-    "changelog_uri"     => "https://github.com/jasonroelofs/rice/blob/master/CHANGELOG.md",
-    "documentation_uri" => "https://jasonroelofs.com/rice",
-    "source_code_uri"   => "https://github.com/jasonroelofs/rice",
+    "bug_tracker_uri"   => "https://github.com/ruby-rice/rice/issues",
+    "changelog_uri"     => "https://github.com/ruby-rice/rice/blob/master/CHANGELOG.md",
+    "documentation_uri" => "https://ruby-rice.github.io",
+    "source_code_uri"   => "https://github.com/ruby-rice/rice",
   }
 
   s.test_files = Dir['test/ruby/*.rb']
