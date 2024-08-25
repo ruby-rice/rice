@@ -6242,6 +6242,9 @@ namespace Rice
     //! Construct a Symbol from an std::string.
     Symbol(std::string const& s);
 
+    //! Construct a Symbol from an std::string_view.
+    Symbol(std::string_view const& s);
+
     //! Return a string representation of the Symbol.
     char const* c_str() const;
 
@@ -6273,7 +6276,12 @@ namespace Rice
   }
 
   inline Symbol::Symbol(std::string const& s)
-    : Object(detail::protect(rb_id2sym, detail::protect(rb_intern2, s.c_str(), s.size())))
+    : Object(detail::protect(rb_id2sym, detail::protect(rb_intern2, s.c_str(), (long)s.length())))
+  {
+  }
+
+  inline Symbol::Symbol(std::string_view const& view)
+    : Object(detail::protect(rb_id2sym, detail::protect(rb_intern2, view.data(), (long)view.length())))
   {
   }
 
