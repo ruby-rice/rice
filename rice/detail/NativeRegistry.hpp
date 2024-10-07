@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <any>
+#include <tuple>
 
 #include "ruby.hpp"
 
@@ -23,9 +24,9 @@ namespace Rice::detail
 
   private:
     size_t key(VALUE klass, ID method_id);
-    std::unordered_map<size_t, std::any> natives_ = {};
+    std::unordered_multimap<size_t, std::tuple<VALUE, ID, std::any>> natives_ = {};
   };
-} 
+}
 #include "NativeRegistry.ipp"
 
 #endif // Rice__detail__NativeRegistry__hpp
