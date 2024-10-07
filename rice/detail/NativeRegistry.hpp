@@ -22,10 +22,10 @@ namespace Rice::detail
     Return_T lookup(VALUE klass, ID method_id);
 
   private:
-    size_t key(VALUE klass, ID method_id);
-    std::unordered_map<size_t, std::any> natives_ = {};
+    std::pair<VALUE, ID> key(VALUE klass, ID method_id);
+    std::map<std::pair<VALUE, ID>, std::any> natives_ = {};
   };
-} 
+}
 #include "NativeRegistry.ipp"
 
 #endif // Rice__detail__NativeRegistry__hpp

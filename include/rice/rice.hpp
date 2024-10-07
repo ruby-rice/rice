@@ -1093,10 +1093,10 @@ namespace Rice::detail
     Return_T lookup(VALUE klass, ID method_id);
 
   private:
-    size_t key(VALUE klass, ID method_id);
-    std::unordered_map<size_t, std::any> natives_ = {};
+    std::pair<VALUE, ID> key(VALUE klass, ID method_id);
+    std::map<std::pair<VALUE, ID>, std::any> natives_ = {};
   };
-} 
+}
 
 // ---------   NativeRegistry.ipp   ---------
 
@@ -1112,15 +1112,14 @@ namespace Rice::detail
 {
   // Effective Java (2nd edition)
   // https://stackoverflow.com/a/2634715
-  inline size_t NativeRegistry::key(VALUE klass, ID id)
+  inline std::pair<VALUE, ID> NativeRegistry::key(VALUE klass, ID id)
   {
     if (rb_type(klass) == T_ICLASS)
     {
       klass = detail::protect(rb_class_of, klass);
     }
 
-    uint32_t prime = 53;
-    return (prime + klass) * prime + id;
+    return std::make_pair(klass, id);
   }
 
   inline void NativeRegistry::add(VALUE klass, ID method_id, std::any callable)
