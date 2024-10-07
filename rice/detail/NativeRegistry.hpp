@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <any>
+#include <tuple>
 
 #include "ruby.hpp"
 
@@ -22,8 +23,8 @@ namespace Rice::detail
     Return_T lookup(VALUE klass, ID method_id);
 
   private:
-    std::pair<VALUE, ID> key(VALUE klass, ID method_id);
-    std::map<std::pair<VALUE, ID>, std::any> natives_ = {};
+    size_t key(VALUE klass, ID method_id);
+    std::unordered_multimap<size_t, std::tuple<VALUE, ID, std::any>> natives_ = {};
   };
 }
 #include "NativeRegistry.ipp"
