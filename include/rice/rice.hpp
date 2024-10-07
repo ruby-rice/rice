@@ -1152,7 +1152,12 @@ namespace Rice::detail
     }
 
     std::any data = iter->second;
-    return std::any_cast<Return_T>(data);
+    auto* ptr = std::any_cast<Return_T>(&data);
+    if (!ptr)
+    {
+      rb_raise(rb_eRuntimeError, "Bad any cast for %s %s", rb_class2name(klass), rb_id2name(method_id));
+    }
+    return *ptr;
   }
 }
 
