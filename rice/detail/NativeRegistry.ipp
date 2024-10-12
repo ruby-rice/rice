@@ -71,7 +71,7 @@ namespace Rice::detail
         auto* ptr = std::any_cast<Return_T>(&d);
         if (!ptr)
         {
-          rb_raise(rb_eRuntimeError, "Unexpected return type for %s %s", rb_class2name(klass), rb_id2name(method_id));
+          rb_raise(rb_eRuntimeError, "Unexpected return type for %s#%s", rb_class2name(klass), rb_id2name(method_id));
         }
         return *ptr;
       }
