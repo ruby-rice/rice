@@ -16,7 +16,7 @@ I'd like to thank the following people for their help in making Rice what it is 
 * [nobu](https://github.com/nobu) for [PR #122](https://github.com/jasonroelofs/rice/pull/122)
 * [Charlie Savage (cfis)](https://github.com/cfis) for multiple improvements and modernizations: [#130](https://github.com/jasonroelofs/rice/pull/130), [#131](https://github.com/jasonroelofs/rice/pull/131), [#133](https://github.com/jasonroelofs/rice/pull/133), [#134](https://github.com/jasonroelofs/rice/pull/134), [#136](https://github.com/jasonroelofs/rice/pull/136), [#137](https://github.com/jasonroelofs/rice/pull/137), [#140](https://github.com/jasonroelofs/rice/pull/140), [#141](https://github.com/jasonroelofs/rice/pull/141) and many others, including the work to make Rice header-only.
 * [Atsushi Tatsuma (yoshoku)](https://github.com/yoshoku) for [#135](https://github.com/jasonroelofs/rice/pull/135)
-* [Andrew Kane (ankane)](https://github.com/ankane) for helping [test Rice 4](https://github.com/jasonroelofs/rice/issues/149).
+* [Andrew Kane (ankane)](https://github.com/ankane) for helping [test Rice 4](https://github.com/jasonroelofs/rice/issues/149), [#208](https://github.com/ruby-rice/rice/pull/208), [#209](https://github.com/ruby-rice/rice/pull/208).
 * [Maxim Samsonov (maxirmx)](https://github.com/maxirmx) for [#193](https://github.com/jasonroelofs/rice/issues/193) and [#194](https://github.com/jasonroelofs/rice/pull/194)
 * [kvtb](https://github.com/kvtb) for [#191](https://github.com/jasonroelofs/rice/issues/191)
 * [thekendalmiller](https://github.com/thekendalmiller) for [#201](https://github.com/jasonroelofs/rice/pull/201)

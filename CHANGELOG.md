@@ -1,3 +1,7 @@
+## 4.3.2
+
+* Improve NativeRegistry to reduce possible hash collisions and weird "bad any cast" errors.
+
 ## 4.3.1
 
 * Update links and related references to the new repo and docs location: ruby-rice.github.io.
