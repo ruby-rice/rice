@@ -1075,7 +1075,6 @@ namespace Rice::detail
 
 #include <unordered_map>
 #include <any>
-#include <tuple>
 
 
 namespace Rice::detail
@@ -1094,8 +1093,7 @@ namespace Rice::detail
     Return_T lookup(VALUE klass, ID method_id);
 
   private:
-    size_t key(VALUE klass, ID method_id);
-    std::unordered_multimap<size_t, std::tuple<VALUE, ID, std::any>> natives_ = {};
+    std::unordered_multimap<ID, std::pair<VALUE, std::any>> natives_ = {};
   };
 }
 
@@ -1111,14 +1109,6 @@ namespace Rice::detail
 
 namespace Rice::detail
 {
-  // Effective Java (2nd edition)
-  // https://stackoverflow.com/a/2634715
-  inline size_t NativeRegistry::key(VALUE klass, ID id)
-  {
-    uint32_t prime = 53;
-    return (prime + klass) * prime + id;
-  }
-
   inline void NativeRegistry::add(VALUE klass, ID method_id, std::any callable)
   {
     if (rb_type(klass) == T_ICLASS)
@@ -1126,19 +1116,19 @@ namespace Rice::detail
       klass = detail::protect(rb_class_of, klass);
     }
 
-    auto range = this->natives_.equal_range(key(klass, method_id));
+    auto range = this->natives_.equal_range(method_id);
     for (auto it = range.first; it != range.second; ++it)
     {
-      const auto [k, m, d] = it->second;
+      const auto [k, d] = it->second;
 
-      if (k == klass && m == method_id)
+      if (k == klass)
       {
-        std::get<2>(it->second) = callable;
+        std::get<1>(it->second) = callable;
         return;
       }
     }
 
-    this->natives_.emplace(std::make_pair(key(klass, method_id), std::make_tuple(klass, method_id, callable)));
+    this->natives_.emplace(std::make_pair(method_id, std::make_pair(klass, callable)));
   }
 
   template <typename Return_T>
@@ -1162,12 +1152,12 @@ namespace Rice::detail
       klass = detail::protect(rb_class_of, klass);
     }
 
-    auto range = this->natives_.equal_range(key(klass, method_id));
+    auto range = this->natives_.equal_range(method_id);
     for (auto it = range.first; it != range.second; ++it)
     {
-      const auto [k, m, d] = it->second;
+      const auto [k, d] = it->second;
 
-      if (k == klass && m == method_id)
+      if (k == klass)
       {
         auto* ptr = std::any_cast<Return_T>(&d);
         if (!ptr)
