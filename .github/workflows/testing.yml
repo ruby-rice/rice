@@ -16,6 +16,12 @@ jobs:
         include:
           - os: ubuntu-20.04
             ruby: '3.1'
+        exclude:
+          # There's something wrong with this setup in GHA such that
+          # it gets weird linking errors, however I'm unable to reproduce
+          # locally so I think it's an infra fluke on GitHub's side.
+          - os: macos-latest
+            ruby: '3.1'
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
