@@ -1,3 +1,7 @@
+## 4.3.3
+
+* Fix complication issue on Ubuntu 20.04 and GCC 9.
+
 ## 4.3.2
 
 * Improve NativeRegistry to reduce possible hash collisions and weird "bad any cast" errors.
