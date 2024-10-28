@@ -1,7 +1,7 @@
 require 'mkmf'
 
-IS_MSWIN = RbConfig::CONFIG['host_os'].match?(/mswin/)
-IS_MINGW = RbConfig::CONFIG['host_os'].match?(/mingw/)
+IS_MSWIN = /mswin/ =~ RUBY_PLATFORM
+IS_MINGW = /mingw/ =~ RUBY_PLATFORM
 IS_DARWIN = RbConfig::CONFIG['host_os'].match?(/darwin/)
 
 # The cpp_command is not overwritten in the experimental mkmf C++ support.
@@ -38,10 +38,6 @@ unless find_header('rice/rice.hpp', path)
   raise("Could not find rice/rice.hpp header")
 end
 
-if IS_DARWIN
-  have_library('c++')
-elsif !IS_MSWIN
-  if !have_library('stdc++fs')
-    have_library('stdc++')
-  end
+if !IS_DARWIN && !IS_MSWIN && !have_library('stdc++fs')
+  have_library('stdc++')
 end

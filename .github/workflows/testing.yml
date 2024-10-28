@@ -16,6 +16,8 @@ jobs:
         include:
           - os: ubuntu-20.04
             ruby: '3.1'
+          - os: macos-13
+            ruby: '3.0'
         exclude:
           # There's something wrong with this setup in GHA such that
           # it gets weird linking errors, however I'm unable to reproduce
