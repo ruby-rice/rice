@@ -1,5 +1,5 @@
 $:.unshift File.expand_path(File.dirname(__FILE__))
-require 'lib/version'
+require 'lib/rice/version'
 
 $spec = Gem::Specification.new do |s|
   s.name = 'rice'
