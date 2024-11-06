@@ -22,7 +22,7 @@ include MakeMakefile['C++']
 
 # Rice needs c++17.
 if IS_MSWIN
-  $CXXFLAGS += " /std:c++17 /EHsc /permissive- /bigobj"
+  $CXXFLAGS += " /std:c++17 /EHs /permissive- /bigobj"
   $CPPFLAGS += " -D_ALLOW_KEYWORD_MACROS -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE"
 elsif IS_MINGW
   $CXXFLAGS += " -std=c++17 -Wa,-mbig-obj"
