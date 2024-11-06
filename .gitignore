@@ -1,38 +1,32 @@
 Gemfile.lock
-*.bundle
-README.doxygen
-doc/_build
-.vs/
-pkg
-*.log
-.*.swp
 
 # Build artifacts
-out
-test/**/Makefile
-sample/**/Makefile
-*.o
-*.so
 *.bundle
-*.in
-test/**/Makefile
-sample/**/Makefile
-README.doxygen
-doc/_build
-
-# Msys / mingw generated files
-mkinstalldirs
 *.def
 *.exe
 *.exp
 *.ilk
+*.in
 *.lib
 *.o
 *.obj
 *.pdb
+pkg
 *.so
+
+*.log
+.*.swp
+doc/_build
+mkinstalldirs
+out
+sample/**/Makefile
+test/**/Makefile
+README.doxygen
 
 # Various IDE folders
 .idea
+.vs
 msvc
 .vscode
+.cmake
+cmake-build-mingw
