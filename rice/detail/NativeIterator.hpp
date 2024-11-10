@@ -2,11 +2,12 @@
 #define Rice_NativeIterator__hpp_
 
 #include "../traits/function_traits.hpp"
+#include "Native.hpp"
 
 namespace Rice::detail
 {
   template<typename T, typename Iterator_Func_T>
-  class NativeIterator
+  class NativeIterator: Native
   {
   public:
     using NativeIterator_T = NativeIterator<T, Iterator_Func_T>;
@@ -18,9 +19,6 @@ namespace Rice::detail
     // Register function with Ruby
     void static define(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end);
 
-    // Static member function that Ruby calls
-    static VALUE call(VALUE self);
-
   public:
     // Disallow creating/copying/moving
     NativeIterator() = delete;
@@ -29,7 +27,8 @@ namespace Rice::detail
     void operator=(const NativeIterator_T&) = delete;
     void operator=(NativeIterator_T&&) = delete;
 
-    VALUE operator()(VALUE self);
+    Resolved matches(int argc, VALUE* argv, VALUE self) override;
+    VALUE operator()(int argc, VALUE* argv, VALUE self) override;
 
   protected:
     NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end);

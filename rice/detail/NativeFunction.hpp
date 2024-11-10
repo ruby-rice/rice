@@ -43,7 +43,7 @@ namespace Rice::detail
    */
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  class NativeFunction
+  class NativeFunction: Native
   {
   public:
     using NativeFunction_T = NativeFunction<Class_T, Function_T, IsMethod>;
@@ -53,13 +53,11 @@ namespace Rice::detail
     using Return_T = remove_cv_recursive_t<typename function_traits<Function_T>::return_type>;
     using Receiver_T = typename method_traits<Function_T, IsMethod>::Class_T;
     using Arg_Ts = typename method_traits<Function_T, IsMethod>::Arg_Ts;
+    static constexpr std::size_t arity = method_traits<Function_T, IsMethod>::arity;
     using From_Ruby_Args_Ts = typename tuple_map<From_Ruby, Arg_Ts>::type;
 
     // Register function with Ruby
     static void define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
-
-    // Static member function that Ruby calls
-    static VALUE call(int argc, VALUE* argv, VALUE self);
 
   public:
     // Disallow creating/copying/moving
@@ -69,8 +67,8 @@ namespace Rice::detail
     void operator=(const NativeFunction_T&) = delete;
     void operator=(NativeFunction_T&&) = delete;
 
-    // Invokes the wrapped function
-    VALUE operator()(int argc, VALUE* argv, VALUE self);
+    Resolved matches(int argc, VALUE* argv, VALUE self) override;
+    VALUE operator()(int argc, VALUE* argv, VALUE self) override;
 
   protected:
     NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
@@ -83,6 +81,7 @@ namespace Rice::detail
     template<std::size_t...I>
     From_Ruby_Args_Ts createFromRuby(std::index_sequence<I...>& indices);
 
+    // Convert C++ value to Ruby
     To_Ruby<Return_T> createToRuby();
       
     // Convert Ruby argv pointer to Ruby values

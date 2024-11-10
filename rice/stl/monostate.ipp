@@ -35,9 +35,9 @@ namespace Rice::detail
   class From_Ruby<std::monostate>
   {
   public:
-    bool is_convertible(VALUE value)
+    Convertible is_convertible(VALUE value)
     {
-      return false;
+      return Convertible::None;
     }
 
     std::monostate convert(VALUE value)
@@ -50,9 +50,9 @@ namespace Rice::detail
   class From_Ruby<std::monostate&>
   {
   public:
-    bool is_convertible(VALUE value)
+    Convertible is_convertible(VALUE value)
     {
-      return false;
+      return Convertible::None;
     }
 
     std::monostate& convert(VALUE value)

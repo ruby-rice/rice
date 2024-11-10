@@ -4,7 +4,8 @@
 #include "traits/attribute_traits.hpp"
 #include "traits/method_traits.hpp"
 #include "detail/NativeRegistry.hpp"
-#include "detail/NativeAttribute.hpp"
+#include "detail/NativeAttributeGet.hpp"
+#include "detail/NativeAttributeSet.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "detail/TypeRegistry.hpp"
 #include "detail/Wrapper.hpp"
@@ -256,8 +257,13 @@ namespace Rice
     // Make sure the Attribute type has been previously seen by Rice
     detail::verifyType<typename detail::attribute_traits<Attribute_T>::attr_type>();
 
-    // Define native attribute
-    detail::NativeAttribute<Attribute_T>::define(klass_, name, std::forward<Attribute_T>(attribute), access);
+    // Define native attribute getter
+    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
+      detail::NativeAttributeGet<Attribute_T>::define(klass_, name, std::forward<Attribute_T>(attribute));
+
+    // Define native attribute setter
+    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
+      detail::NativeAttributeSet<Attribute_T>::define(klass_, name, std::forward<Attribute_T>(attribute));
 
     return *this;
   }
@@ -271,7 +277,14 @@ namespace Rice
 
     // Define native attribute
     VALUE singleton = detail::protect(rb_singleton_class, this->value());
-    detail::NativeAttribute<Attribute_T>::define(singleton, name, std::forward<Attribute_T>(attribute), access);
+
+    // Define native attribute getter
+    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
+      detail::NativeAttributeGet<Attribute_T>::define(singleton, name, std::forward<Attribute_T>(attribute));
+
+    // Define native attribute setter
+    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
+      detail::NativeAttributeSet<Attribute_T>::define(singleton, name, std::forward<Attribute_T>(attribute));
 
     return *this;
   }

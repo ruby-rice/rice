@@ -258,10 +258,16 @@ namespace Rice::detail
     {
     }
     
-    bool is_convertible(VALUE value)
+    Convertible is_convertible(VALUE value)
     {
-      return rb_type(value) == RUBY_T_DATA &&
-        Data_Type<T>::is_descendant(value);
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          break;
+        default:
+          return Convertible::None;
+      }
     }
 
     T convert(VALUE value)
@@ -294,10 +300,16 @@ namespace Rice::detail
     {
     }
 
-    bool is_convertible(VALUE value)
+    Convertible is_convertible(VALUE value)
     {
-      return rb_type(value) == RUBY_T_DATA &&
-        Data_Type<T>::is_descendant(value);
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          break;
+        default:
+          return Convertible::None;
+      }
     }
 
     T& convert(VALUE value)
@@ -324,10 +336,19 @@ namespace Rice::detail
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
   public:
-    bool is_convertible(VALUE value)
+    Convertible is_convertible(VALUE value)
     {
-      return rb_type(value) == RUBY_T_DATA &&
-        Data_Type<T>::is_descendant(value);
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          break;
+        case RUBY_T_NIL:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
     }
 
     T* convert(VALUE value)
@@ -351,10 +372,16 @@ namespace Rice::detail
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
   public:
-    bool is_convertible(VALUE value)
+    Convertible is_convertible(VALUE value)
     {
-      return rb_type(value) == RUBY_T_DATA &&
-             Data_Type<T>::is_descendant(value);
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          break;
+        default:
+          return Convertible::None;
+      }
     }
 
     T* convert(VALUE value)

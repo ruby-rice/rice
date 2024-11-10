@@ -656,6 +656,12 @@ TESTCASE(HashToUnorderedMapWrongTypes)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.module_eval(code),
+    ASSERT_EQUAL(rb_eTypeError, ex.class_of())
+  );
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval(code),
     ASSERT_EQUAL("wrong argument type Float (expected String)", ex.what())
   );
 }

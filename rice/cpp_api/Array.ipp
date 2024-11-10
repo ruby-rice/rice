@@ -249,6 +249,18 @@ namespace Rice::detail
   class From_Ruby<Array>
   {
   public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_ARRAY:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
     Array convert(VALUE value)
     {
       return Array(value);

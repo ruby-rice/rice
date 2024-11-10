@@ -242,6 +242,18 @@ namespace Rice::detail
   class From_Ruby<Hash>
   {
   public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_HASH:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
     Hash convert(VALUE value)
     {
       return Hash(value);

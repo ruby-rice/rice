@@ -25,9 +25,9 @@ namespace Rice::detail
   class From_Ruby<std::reference_wrapper<T>>
   {
   public:
-    bool is_convertible(VALUE value)
+    Convertible is_convertible(VALUE value)
     {
-      return true;
+      return this->converter_.is_convertible(value);
     }
 
     std::reference_wrapper<T> convert(VALUE value)
