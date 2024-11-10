@@ -30,6 +30,18 @@ namespace Rice::detail
   class From_Ruby<std::complex<T>>
   {
   public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_COMPLEX:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
     std::complex<T> convert(VALUE value)
     {
       VALUE real = protect(rb_funcallv, value, rb_intern("real"), 0, (const VALUE*)nullptr);
@@ -37,17 +49,24 @@ namespace Rice::detail
 
       return std::complex<T>(From_Ruby<T>().convert(real), From_Ruby<T>().convert(imaginary));
     }
-
-    bool is_convertible(VALUE value)
-    {
-      return rb_type(value) == RUBY_T_COMPLEX;
-    }
   };
 
   template<typename T>
   class From_Ruby<std::complex<T>&>
   {
   public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_COMPLEX:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
     std::complex<T>& convert(VALUE value)
     {
       VALUE real = protect(rb_funcallv, value, rb_intern("real"), 0, (const VALUE*)nullptr);
@@ -55,11 +74,6 @@ namespace Rice::detail
       this->converted_ = std::complex<T>(From_Ruby<T>().convert(real), From_Ruby<T>().convert(imaginary));
 
       return this->converted_;
-    }
-
-    bool is_convertible(VALUE value)
-    {
-      return rb_type(value) == RUBY_T_COMPLEX;
     }
 
   private:

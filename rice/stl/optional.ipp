@@ -59,6 +59,18 @@ namespace Rice::detail
   class From_Ruby<std::optional<T>>
   {
   public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_NIL:
+          return Convertible::Exact;
+          break;
+        default:
+          return From_Ruby<T>().is_convertible(value);
+      }
+    }
+
     std::optional<T> convert(VALUE value)
     {
       if (value == Qnil)
@@ -76,6 +88,18 @@ namespace Rice::detail
   class From_Ruby<std::optional<T>&>
   {
   public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_NIL:
+          return Convertible::Exact;
+          break;
+        default:
+          return From_Ruby<T>().is_convertible(value);
+      }
+    }
+
     std::optional<T>& convert(VALUE value)
     {
       if (value == Qnil)
@@ -88,7 +112,6 @@ namespace Rice::detail
       }
       return this->converted_;
     }
-    
   private:
     std::optional<T> converted_;
   };

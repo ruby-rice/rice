@@ -51,6 +51,7 @@ add_executable (unittest
 			"test_Module.cpp"
 			"test_Object.cpp"
 			"test_Ownership.cpp"
+			"test_Overloads.cpp"
 			"test_Self.cpp"
 			"test_Stl_Map.cpp"
 			"test_Stl_Optional.cpp"
