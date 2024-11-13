@@ -7,6 +7,11 @@ using namespace Rice;
 
 TESTSUITE(Constructor);
 
+SETUP(Construtor)
+{
+  embed_ruby();
+}
+
 namespace
 {
   class Default_Constructible
@@ -16,11 +21,6 @@ namespace
     {
     }
   };
-}
-
-SETUP(Array)
-{
-  embed_ruby();
 }
 
 TESTCASE(default_constructor)
@@ -124,4 +124,53 @@ TESTCASE(constructor_supports_single_default_argument)
 
   klass.call("new", 6);
   ASSERT_EQUAL(6, withArgX);
+}
+
+namespace
+{
+  class MyClass
+  {
+  public:
+    MyClass()
+    {
+    }
+
+    MyClass(const MyClass& other)
+    {
+    }
+
+    MyClass(MyClass&& other)
+    {
+    }
+  };
+}
+
+TESTCASE(constructor_copy)
+{
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_constructor(Constructor<MyClass, const MyClass&>());
+
+  // Default constructor
+  Object o1 = c.call("new");
+  ASSERT_EQUAL(c, o1.class_of());
+
+  // Copy constructor
+  Object o2 = c.call("new", o1);
+  ASSERT_EQUAL(c, o2.class_of());
+}
+
+TESTCASE(constructor_move)
+{
+  Class c = define_class<MyClass>("MyClass")
+    .define_constructor(Constructor<MyClass>())
+    .define_constructor(Constructor<MyClass, MyClass&&>());
+
+  // Default constructor
+  Object o1 = c.call("new");
+  ASSERT_EQUAL(c, o1.class_of());
+
+  // Move constructor
+  Object o2 = c.call("new", o1);
+  ASSERT_EQUAL(c, o2.class_of());
 }

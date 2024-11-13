@@ -45,6 +45,7 @@ namespace Rice
     static_assert(!std::is_reference_v<T>);
     static_assert(!std::is_const_v<T>);
     static_assert(!std::is_volatile_v<T>);
+    static_assert(!std::is_void_v<T>);
 
   public:
     static T* from_ruby(VALUE value);

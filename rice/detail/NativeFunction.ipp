@@ -196,17 +196,17 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<Class_T, Function_T, IsMethod>::invokeNativeFunction(const Arg_Ts& nativeArgs)
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::invokeNativeFunction(Arg_Ts&& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
-      std::apply(this->function_, nativeArgs);
+      std::apply(this->function_, std::forward<Arg_Ts>(nativeArgs));
       return Qnil;
     }
     else
     {
       // Call the native method and get the result
-      Return_T nativeResult = std::apply(this->function_, nativeArgs);
+      Return_T nativeResult = std::apply(this->function_, std::forward<Arg_Ts>(nativeArgs));
 
       // Return the result
       return this->toRuby_.convert(nativeResult);
@@ -214,19 +214,19 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<Class_T, Function_T, IsMethod>::invokeNativeMethod(VALUE self, const Arg_Ts& nativeArgs)
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::invokeNativeMethod(VALUE self, Arg_Ts&& nativeArgs)
   {
     Receiver_T receiver = this->getReceiver(self);
-    auto selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), nativeArgs);
+    auto selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), std::forward<Arg_Ts>(nativeArgs));
 
     if constexpr (std::is_void_v<Return_T>)
     {
-      std::apply(this->function_, selfAndNativeArgs);
+      std::apply(this->function_, std::forward<decltype(selfAndNativeArgs)>(selfAndNativeArgs));
       return Qnil;
     }
     else
     {
-      Return_T nativeResult = (Return_T)std::apply(this->function_, selfAndNativeArgs);
+      Return_T nativeResult = (Return_T)std::apply(this->function_, std::forward<decltype(selfAndNativeArgs)>(selfAndNativeArgs));
 
       // Special handling if the method returns self. If so we do not want
       // to create a new Ruby wrapper object and instead return self.
@@ -327,11 +327,11 @@ namespace Rice::detail
     VALUE result = Qnil;
     if constexpr (std::is_same_v<Receiver_T, std::nullptr_t>)
     {
-      result = this->invokeNativeFunction(nativeValues);
+      result = this->invokeNativeFunction(std::forward<Arg_Ts>(nativeValues));
     }
     else
     {
-      result = this->invokeNativeMethod(self, nativeValues);
+      result = this->invokeNativeMethod(self, std::forward<Arg_Ts>(nativeValues));
     }
 
     // Check if any function arguments or return values need to have their lifetimes tied to the receiver
