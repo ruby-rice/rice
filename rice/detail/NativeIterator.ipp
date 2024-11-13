@@ -3,6 +3,7 @@
 #include <type_traits>
 
 #include "cpp_protect.hpp"
+#include "from_ruby.hpp"
 #include "NativeRegistry.hpp"
 
 namespace Rice::detail
@@ -10,32 +11,28 @@ namespace Rice::detail
   template <typename T, typename Iterator_Func_T>
   inline void NativeIterator<T, Iterator_Func_T>::define(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end)
   {
-    // Tell Ruby to invoke the static method call on this class
-    detail::protect(rb_define_method, klass, method_name.c_str(), (RUBY_METHOD_FUNC)&NativeIterator_T::call, 0);
+    // Tell Ruby to invoke the resolveIterator static method defined above
+    detail::protect(rb_define_method, klass, method_name.c_str(), (RUBY_METHOD_FUNC)&Native::resolve, -1);
 
-    // Now create a NativeIterator instance and save it to the natives registry keyed on
-    // Ruby klass and method id. There may be multiple NativeIterator instances
-    // because the same C++ method could be mapped to multiple Ruby methods.
-    NativeIterator_T* native = new NativeIterator_T(klass, method_name, begin, end);
-    detail::Registries::instance.natives.add(klass, Identifier(method_name).id(), native);
-  }
+    // Create a NativeIterator instance and save it to the NativeRegistry. There may be multiple
+    // NativeFunction instances for a specific method because C++ supports method overloading.
+    NativeIterator_T* nativeIterator = new NativeIterator_T(klass, method_name, begin, end);
+    std::unique_ptr<Native> native(nativeIterator);
 
-  template<typename T, typename Iterator_Func_T>
-  inline VALUE NativeIterator<T, Iterator_Func_T>::call(VALUE self)
-  {
-    // Look up the native function based on the Ruby klass and method id
-    NativeIterator_T* nativeIterator = detail::Registries::instance.natives.lookup<NativeIterator_T*>();
-
-    return cpp_protect([&]
-    {
-      return nativeIterator->operator()(self);
-    });
+    Identifier identifier(method_name);
+    detail::Registries::instance.natives.add(klass, identifier.id(), native);
   }
 
   template <typename T, typename Iterator_Func_T>
   inline NativeIterator<T, Iterator_Func_T>::NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end) :
     klass_(klass), method_name_(method_name), begin_(begin), end_(end)
   {
+  }
+
+  template<typename T, typename Iterator_Func_T>
+  inline Resolved NativeIterator<T, Iterator_Func_T>::matches(int argc, VALUE* argv, VALUE self)
+  {
+    return Resolved{ Convertible::Exact, 1.0, this };
   }
 
   template<typename T, typename Iterator_Func_T>
@@ -48,12 +45,13 @@ namespace Rice::detail
       return cpp_protect([&]
       {
         // Get the iterator instance
-        using Iter_T = NativeIterator<T, Iterator_Func_T>;
         // Class is easy
         VALUE klass = protect(rb_class_of, recv);
         // Read the method_id from an attribute we added to the enumerator instance
-        ID method_id = protect(rb_ivar_get, eobj, rb_intern("rice_method"));
-        Iter_T* iterator = detail::Registries::instance.natives.lookup<Iter_T*>(klass, method_id);
+        Identifier identifier = protect(rb_ivar_get, eobj, rb_intern("rice_method"));
+
+        const std::vector<std::unique_ptr<Native>>& natives = detail::Registries::instance.natives.lookup(klass, identifier.id());
+        NativeIterator_T* iterator = static_cast<NativeIterator_T*>(natives.back().get());
 
         // Get the wrapped C++ instance
         T* receiver = detail::From_Ruby<T*>().convert(recv);
@@ -67,19 +65,18 @@ namespace Rice::detail
       });
     };
 
-    VALUE method_sym = Identifier(this->method_name_).to_sym();
-    VALUE enumerator = protect(rb_enumeratorize_with_size, self, method_sym, 0, nullptr, rb_size_function);
+    Identifier identifier(this->method_name_);
+    VALUE enumerator = protect(rb_enumeratorize_with_size, self, identifier.to_sym(), 0, nullptr, rb_size_function);
     
     // Hack the enumerator object by storing name_ on the enumerator object so
     // the rb_size_function above has access to it
-    ID method_id = Identifier(this->method_name_).id();
-    protect(rb_ivar_set, enumerator, rb_intern("rice_method"), method_id);
+    protect(rb_ivar_set, enumerator, rb_intern("rice_method"), identifier.id());
 
     return enumerator;
   }
 
   template<typename T, typename Iterator_Func_T>
-  inline VALUE NativeIterator<T, Iterator_Func_T>::operator()(VALUE self)
+  inline VALUE NativeIterator<T, Iterator_Func_T>::operator()(int argc, VALUE* argv, VALUE self)
   {
     if (!protect(rb_block_given_p))
     {

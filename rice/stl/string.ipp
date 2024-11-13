@@ -45,9 +45,16 @@ namespace Rice::detail
     {
     }
 
-    bool is_convertible(VALUE value)
+    Convertible is_convertible(VALUE value)
     {
-      return rb_type(value) == RUBY_T_STRING;
+      switch (rb_type(value))
+      {
+        case RUBY_T_STRING:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
     }
 
     std::string convert(VALUE value)
@@ -77,9 +84,16 @@ namespace Rice::detail
     {
     }
 
-    bool is_convertible(VALUE value)
+    Convertible is_convertible(VALUE value)
     {
-      return rb_type(value) == RUBY_T_STRING;
+      switch (rb_type(value))
+      {
+        case RUBY_T_STRING:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
     }
 
     std::string& convert(VALUE value)
@@ -105,9 +119,16 @@ namespace Rice::detail
   class From_Ruby<std::string*>
   {
   public:
-    bool is_convertible(VALUE value)
+    Convertible is_convertible(VALUE value)
     {
-      return rb_type(value) == RUBY_T_STRING;
+      switch (rb_type(value))
+      {
+        case RUBY_T_STRING:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
     }
 
     std::string* convert(VALUE value)
@@ -125,9 +146,16 @@ namespace Rice::detail
   class From_Ruby<std::string*&>
   {
   public:
-    bool is_convertible(VALUE value)
+    Convertible is_convertible(VALUE value)
     {
-      return rb_type(value) == RUBY_T_STRING;
+      switch (rb_type(value))
+      {
+        case RUBY_T_STRING:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
     }
 
     std::string* convert(VALUE value)

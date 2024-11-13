@@ -64,6 +64,18 @@ namespace Rice::detail
   class From_Ruby<std::unique_ptr<T>&>
   {
   public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
     std::unique_ptr<T>& convert(VALUE value)
     {
       Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
@@ -113,6 +125,18 @@ namespace Rice::detail
     {
     }
 
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
     std::shared_ptr<T> convert(VALUE value)
     {
       if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue()) {
@@ -130,7 +154,6 @@ namespace Rice::detail
       }
       return smartWrapper->data();
     }
-
   private:
     Arg* arg_ = nullptr;
   };
@@ -157,6 +180,18 @@ namespace Rice::detail
 
     explicit From_Ruby(Arg * arg) : arg_(arg)
     {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
     }
 
     std::shared_ptr<T>& convert(VALUE value)

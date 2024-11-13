@@ -218,6 +218,18 @@ namespace Rice::detail
   class From_Ruby<Object>
   {
   public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_OBJECT:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
     Object convert(VALUE value)
     {
       return Object(value);

@@ -20,12 +20,22 @@ namespace Rice
 
   inline Class define_class_under(Object module, char const* name, const Class& superclass)
   {
-    return detail::protect(rb_define_class_under, module.value(), name, superclass.value());
+    VALUE klass = detail::protect(rb_define_class_under, module.value(), name, superclass.value());
+
+    // We MUST reset the instance registry in case the user just redefined a class which resets it
+    detail::Registries::instance.natives.reset(klass);
+
+    return klass;
   }
 
   inline Class define_class(char const* name, const Class& superclass)
   {
-    return detail::protect(rb_define_class, name, superclass.value());
+    VALUE klass = detail::protect(rb_define_class, name, superclass.value());
+
+    // We MUST reset the instance registry in case the user just redefined a class which resets it
+    detail::Registries::instance.natives.reset(klass);
+
+    return klass;
   }
 
   inline Class anonymous_class()

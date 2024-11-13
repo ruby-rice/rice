@@ -401,16 +401,31 @@ namespace Rice
       {
       }
 
+      Convertible is_convertible(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_ARRAY:
+            return Convertible::TypeCast;
+            break;
+          default:
+            return Convertible::None;
+        }
+      }
+
       std::vector<T> convert(VALUE value)
       {
         switch (rb_type(value))
         {
-          case T_DATA:
+          case RUBY_T_DATA:
           {
             // This is a wrapped vector (hopefully!)
             return *Data_Object<std::vector<T>>::from_ruby(value);
           }
-          case T_ARRAY:
+          case RUBY_T_ARRAY:
           {
             // If this an Ruby array and the vector type is copyable
             if constexpr (std::is_default_constructible_v<T>)
@@ -418,7 +433,7 @@ namespace Rice
               return vectorFromArray<T>(value);
             }
           }
-          case T_NIL:
+          case RUBY_T_NIL:
           {
             if (this->arg_ && this->arg_->hasDefaultValue())
             {
@@ -431,11 +446,6 @@ namespace Rice
               detail::protect(rb_obj_classname, value), "std::vector");
           }
         }
-      }
-
-      bool is_convertible(VALUE value)
-      {
-        return rb_type(value) == RUBY_T_ARRAY;
       }
 
     private:
@@ -452,16 +462,31 @@ namespace Rice
       {
       }
 
+      Convertible is_convertible(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_ARRAY:
+            return Convertible::TypeCast;
+            break;
+          default:
+            return Convertible::None;
+        }
+      }
+
       std::vector<T>& convert(VALUE value)
       {
         switch (rb_type(value))
         {
-          case T_DATA:
+          case RUBY_T_DATA:
           {
             // This is a wrapped vector (hopefully!)
             return *Data_Object<std::vector<T>>::from_ruby(value);
           }
-          case T_ARRAY:
+          case RUBY_T_ARRAY:
           {
             // If this an Ruby array and the vector type is copyable
             if constexpr (std::is_default_constructible_v<T>)
@@ -470,7 +495,7 @@ namespace Rice
               return this->converted_;
             }
           }
-          case T_NIL:
+          case RUBY_T_NIL:
           {
             if (this->arg_ && this->arg_->hasDefaultValue())
             {
@@ -485,11 +510,6 @@ namespace Rice
         }
       }
 
-      bool is_convertible(VALUE value)
-      {
-        return rb_type(value) == RUBY_T_ARRAY;
-      }
-
     private:
       Arg* arg_ = nullptr;
       std::vector<T> converted_;
@@ -499,16 +519,34 @@ namespace Rice
     class From_Ruby<std::vector<T>*>
     {
     public:
+      Convertible is_convertible(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_NIL:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_ARRAY:
+            return Convertible::TypeCast;
+            break;
+          default:
+            return Convertible::None;
+        }
+      }
+
       std::vector<T>* convert(VALUE value)
       {
         switch (rb_type(value))
         {
-          case T_DATA:
+          case RUBY_T_DATA:
           {
             // This is a wrapped vector (hopefully!)
             return Data_Object<std::vector<T>>::from_ruby(value);
           }
-          case T_ARRAY:
+          case RUBY_T_ARRAY:
           {
             // If this an Ruby array and the vector type is copyable
             if constexpr (std::is_default_constructible_v<T>)
@@ -523,11 +561,6 @@ namespace Rice
               detail::protect(rb_obj_classname, value), "std::vector");
           }
         }
-      }
-
-      bool is_convertible(VALUE value)
-      {
-        return rb_type(value) == RUBY_T_ARRAY;
       }
 
     private:

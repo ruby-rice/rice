@@ -94,6 +94,18 @@ namespace Rice::detail
   class From_Ruby<String>
   {
   public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_STRING:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
     String convert(VALUE value)
     {
       return String(value);

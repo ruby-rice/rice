@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "cpp_protect.hpp"
+#include "TupleIterator.hpp"
 #include "to_ruby_defn.hpp"
 #include "NativeRegistry.hpp"
 
@@ -12,27 +13,20 @@ namespace Rice::detail
   template<typename Class_T, typename Function_T, bool IsMethod>
   void NativeFunction<Class_T, Function_T, IsMethod>::define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
   {
-    // Tell Ruby to invoke the static method call on this class
-    detail::protect(rb_define_method, klass, method_name.c_str(), (RUBY_METHOD_FUNC)&NativeFunction_T::call, -1);
-
-    // Now create a NativeFunction instance and save it to the natives registry keyed on
-    // Ruby klass and method id. There may be multiple NativeFunction instances
-    // because the same C++ method could be mapped to multiple Ruby methods.
-    NativeFunction_T* native = new NativeFunction_T(klass, method_name, std::forward<Function_T>(function), methodInfo);
-    detail::Registries::instance.natives.add(klass, Identifier(method_name).id(), native);
-  }
-
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<Class_T, Function_T, IsMethod>::call(int argc, VALUE* argv, VALUE self)
-  {
-    // Look up the native function based on the Ruby klass and method id
-    NativeFunction_T* nativeFunction = detail::Registries::instance.natives.lookup<NativeFunction_T*>();
-
-    // Execute the function but make sure to catch any C++ exceptions!
-    return cpp_protect([&]
+    // Have we defined this method yet in Ruby?
+    Identifier identifier(method_name);
+    const std::vector<std::unique_ptr<Native>>& natives = Registries::instance.natives.lookup(klass, identifier.id());
+    if (natives.empty())
     {
-      return nativeFunction->operator()(argc, argv, self);
-    });
+      // Tell Ruby to invoke the static resolved method defined above
+      detail::protect(rb_define_method, klass, method_name.c_str(), (RUBY_METHOD_FUNC)&Native::resolve, -1);
+    }
+
+    // Create a NativeFunction instance and save it to the NativeRegistry. There may be multiple
+    // NativeFunction instances for a specific method because C++ supports method overloading.
+    NativeFunction_T* nativeFunction = new NativeFunction_T(klass, method_name, std::forward<Function_T>(function), methodInfo);
+    std::unique_ptr<Native> native(nativeFunction);
+    detail::Registries::instance.natives.add(klass, identifier.id(), native);
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
@@ -83,6 +77,54 @@ namespace Rice::detail
   typename NativeFunction<Class_T, Function_T, IsMethod>::From_Ruby_Args_Ts NativeFunction<Class_T, Function_T, IsMethod>::createFromRuby(std::index_sequence<I...>& indices)
   {
     return std::make_tuple(createFromRuby<remove_cv_recursive_t<typename std::tuple_element<I, Arg_Ts>::type>, I>()...);
+  }
+
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  Resolved NativeFunction<Class_T, Function_T, IsMethod>::matches(int argc, VALUE* argv, VALUE self)
+  {
+    // Return false if Ruby provided more arguments than the C++ method takes
+    if (argc > arity)
+      return Resolved{ Convertible::None, 0, this };
+
+    Resolved result { Convertible::Exact, 1, this };
+
+    MethodInfo* methodInfo = this->methodInfo_.get();
+    int index = 0;
+
+    // Loop over each FromRuby instance
+    for_each_tuple(this->fromRubys_,
+      [&](auto& fromRuby)
+      {
+        Convertible convertible = Convertible::None;
+
+        Arg& arg = methodInfo->arg(index);
+
+        // Is a VALUE being passed directly to C++ ?
+        if (arg.isValue() && index < argc)
+        {
+          convertible = Convertible::Exact;
+        }
+        // If index is less than argc then check with FromRuby if the VALUE is convertible
+        // to C++.
+        else if (index < argc)
+        {
+          VALUE value = argv[index];
+          convertible = fromRuby.is_convertible(value);
+        }
+        // Last check if a default value has been set
+        else if (arg.hasDefaultValue())
+        {
+          convertible = Convertible::Exact;
+        }
+
+        result.convertible = result.convertible & convertible;
+        if (arity > 0)
+          result.parameterMatch = (double)argc / arity;
+
+        index++;
+      });
+
+    return result;
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>

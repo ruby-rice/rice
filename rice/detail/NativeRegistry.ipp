@@ -1,74 +1,51 @@
-
-// Ruby 2.7 now includes a similarly named macro that uses templates to
-// pick the right overload for the underlying function. That doesn't work
-// for our cases because we are using this method dynamically and get a
-// compilation error otherwise. This removes the macro and lets us fall
-// back to the C-API underneath again.
-#undef rb_define_method_id
-
 #include "RubyFunction.hpp"
+#include "../Identifier.hpp"
 
 namespace Rice::detail
 {
-  inline void NativeRegistry::add(VALUE klass, ID method_id, std::any callable)
+  inline void NativeRegistry::add(VALUE klass, ID methodId, std::unique_ptr<Native>& native)
   {
     if (rb_type(klass) == T_ICLASS)
     {
       klass = detail::protect(rb_class_of, klass);
     }
 
-    auto range = this->natives_.equal_range(method_id);
-    for (auto it = range.first; it != range.second; ++it)
-    {
-      const auto [k, d] = it->second;
+    // Create the key
+    std::pair<VALUE, ID> key = std::make_pair(klass, methodId);
 
-      if (k == klass)
+    // Lookup items for method
+    std::vector<std::unique_ptr<Native>>& natives = this->natives_[key];
+
+    natives.push_back(std::move(native));
+  }
+
+  inline void NativeRegistry::reset(VALUE klass)
+  {
+    for (auto iter = this->natives_.begin(); iter != this->natives_.end();)
+    {
+      // Iter points to a std::pair<std::pair<VALUE, ID>, std::vector<NativeRegistryItem>
+      if (iter->first.first == klass)
       {
-        std::get<1>(it->second) = callable;
-        return;
+        iter = this->natives_.erase(iter);
+      }
+      else
+      {
+        ++iter;
       }
     }
-
-    this->natives_.emplace(std::make_pair(method_id, std::make_pair(klass, callable)));
   }
-
-  template <typename Return_T>
-  inline Return_T NativeRegistry::lookup()
-  {
-    ID method_id;
-    VALUE klass;
-    if (!rb_frame_method_id_and_class(&method_id, &klass))
-    {
-      rb_raise(rb_eRuntimeError, "Cannot get method id and class for function");
-    }
-
-    return this->lookup<Return_T>(klass, method_id);
-  }
-
-  template <typename Return_T>
-  inline Return_T NativeRegistry::lookup(VALUE klass, ID method_id)
+  
+  inline const std::vector<std::unique_ptr<Native>>& NativeRegistry::lookup(VALUE klass, ID methodId)
   {
     if (rb_type(klass) == T_ICLASS)
     {
       klass = detail::protect(rb_class_of, klass);
     }
 
-    auto range = this->natives_.equal_range(method_id);
-    for (auto it = range.first; it != range.second; ++it)
-    {
-      const auto [k, d] = it->second;
+    // Create the key
+    std::pair<VALUE, ID> key = std::make_pair(klass, methodId);
 
-      if (k == klass)
-      {
-        auto* ptr = std::any_cast<Return_T>(&d);
-        if (!ptr)
-        {
-          rb_raise(rb_eRuntimeError, "Unexpected return type for %s#%s", rb_class2name(klass), rb_id2name(method_id));
-        }
-        return *ptr;
-      }
-    }
-
-    rb_raise(rb_eRuntimeError, "Could not find data for klass and method id");
+    // Lookup items for method
+    return this->natives_[key];
   }
 }

@@ -342,16 +342,31 @@ namespace Rice
       {
       }
 
+      Convertible is_convertible(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_HASH:
+            return Convertible::TypeCast;
+            break;
+          default:
+            return Convertible::None;
+        }
+      }
+
       std::map<T, U> convert(VALUE value)
       {
         switch (rb_type(value))
         {
-          case T_DATA:
+          case RUBY_T_DATA:
           {
             // This is a wrapped map (hopefully!)
             return *Data_Object<std::map<T, U>>::from_ruby(value);
           }
-          case T_HASH:
+          case RUBY_T_HASH:
           {
             // If this an Ruby hash and the mapped type is copyable
             if constexpr (std::is_default_constructible_v<U>)
@@ -359,7 +374,7 @@ namespace Rice
               return MapFromHash<T, U>::convert(value);
             }
           }
-          case T_NIL:
+          case RUBY_T_NIL:
           {
             if (this->arg_ && this->arg_->hasDefaultValue())
             {
@@ -388,16 +403,31 @@ namespace Rice
       {
       }
 
+      Convertible is_convertible(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_HASH:
+            return Convertible::TypeCast;
+            break;
+          default:
+            return Convertible::None;
+        }
+      }
+
       std::map<T, U>& convert(VALUE value)
       {
         switch (rb_type(value))
         {
-          case T_DATA:
+          case RUBY_T_DATA:
           {
             // This is a wrapped map (hopefully!)
             return *Data_Object<std::map<T, U>>::from_ruby(value);
           }
-          case T_HASH:
+          case RUBY_T_HASH:
           {
             // If this an Ruby array and the map type is copyable
             if constexpr (std::is_default_constructible_v<std::map<T, U>>)
@@ -406,7 +436,7 @@ namespace Rice
               return this->converted_;
             }
           }
-          case T_NIL:
+          case RUBY_T_NIL:
           {
             if (this->arg_ && this->arg_->hasDefaultValue())
             {
@@ -430,16 +460,34 @@ namespace Rice
     class From_Ruby<std::map<T, U>*>
     {
     public:
+      Convertible is_convertible(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_NIL:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_HASH:
+            return Convertible::TypeCast;
+            break;
+          default:
+            return Convertible::None;
+        }
+      }
+
       std::map<T, U>* convert(VALUE value)
       {
         switch (rb_type(value))
         {
-          case T_DATA:
+          case RUBY_T_DATA:
           {
             // This is a wrapped map (hopefully!)
             return Data_Object<std::map<T, U>>::from_ruby(value);
           }
-          case T_HASH:
+          case RUBY_T_HASH:
           {
             // If this an Ruby array and the map type is copyable
             if constexpr (std::is_default_constructible_v<U>)

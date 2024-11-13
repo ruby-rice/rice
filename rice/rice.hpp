@@ -8,6 +8,9 @@
 #include "traits/method_traits.hpp"
 #include "traits/attribute_traits.hpp"
 
+// Helpers
+#include "detail/TupleIterator.hpp"
+
 // Code for C++ to call Ruby
 #include "Exception_defn.hpp"
 #include "detail/Jump_Tag.hpp"
@@ -15,6 +18,11 @@
 
 // Code for Ruby to call C++
 #include "detail/ExceptionHandler.hpp"
+#include "Arg.hpp"
+#include "Return.hpp"
+#include "detail/from_ruby.hpp"
+#include "detail/to_ruby.hpp"
+#include "detail/Native.hpp"
 #include "detail/Type.hpp"
 #include "detail/TypeRegistry.hpp"
 #include "detail/InstanceRegistry.hpp"
@@ -23,14 +31,12 @@
 #include "detail/Registries.hpp"
 #include "detail/cpp_protect.hpp"
 #include "detail/Wrapper.hpp"
-#include "Return.hpp"
-#include "Arg.hpp"
 #include "detail/MethodInfo.hpp"
-#include "detail/from_ruby.hpp"
-#include "detail/to_ruby.hpp"
 #include "Identifier.hpp"
 #include "Exception.ipp"
-#include "detail/NativeAttribute.hpp"
+#include "detail/Native.ipp"
+#include "detail/NativeAttributeGet.hpp"
+#include "detail/NativeAttributeSet.hpp"
 #include "detail/NativeFunction.hpp"
 #include "detail/NativeIterator.hpp"
 #include "HandlerRegistration.hpp"
