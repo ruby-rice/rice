@@ -59,27 +59,51 @@ TESTCASE(add_handler)
 
 namespace
 {
+  class MyClass
+  {
+  public:
+    MyClass() = default;
+  };
 
-bool some_function()
-{
-  return true;
-}
+  bool some_function()
+  {
+    return true;
+  }
 
-Object some_method(Object o)
-{
-  return o;
-}
+  Object some_method(Object o)
+  {
+    return o;
+  }
 
-int function_int(int i)
-{
-  return i;
-}
+  int function_int(int i)
+  {
+    return i;
+  }
 
-int method_int(Object object, int i)
-{
-  return i;
-}
+  int method_int(Object object, int i)
+  {
+    return i;
+  }
 
+  bool method_lvalue(MyClass& myClass)
+  {
+    return true;
+  }
+
+  bool method_rvalue(MyClass&& myClass)
+  {
+    return true;
+  }
+
+  void method_lvalue_return_void(int a, MyClass& myClass)
+  {
+    // Do nothing
+  }
+
+  void method_rvalue_return_void(int b, MyClass&& myClass)
+  {
+    // Do nothing
+  }
 } // namespace
 
 TESTCASE(define_method)
@@ -515,4 +539,36 @@ TESTCASE(references)
   ASSERT_EQUAL(boolValue, true);
   ASSERT_EQUAL(floatValue, 43.0);
   ASSERT_EQUAL(doubleValue, 44.0);
+}
+
+TESTCASE(lvalue_function)
+{
+  Module m(anonymous_module());
+  Class c = define_class<MyClass>("MyClass").
+            define_constructor(Constructor<MyClass>());
+
+  m.define_module_function("method_lvalue", &method_lvalue);
+  m.define_module_function("method_lvalue_return_void", &method_lvalue_return_void);
+
+  Object result = m.module_eval(R"(o = MyClass.new
+                                           method_lvalue_return_void(1, o)
+                                           method_lvalue(o))");
+
+  ASSERT_EQUAL(Qtrue, result.value());
+}
+
+TESTCASE(rvalue_function)
+{
+  Module m(anonymous_module());
+  Class c = define_class<MyClass>("MyClass").
+            define_constructor(Constructor<MyClass>());
+
+  m.define_module_function("method_rvalue", &method_rvalue);
+  m.define_module_function("method_rvalue_return_void", &method_rvalue_return_void);
+
+  Object result = m.module_eval(R"(o = MyClass.new
+                                       method_rvalue_return_void(1, o)
+                                       method_rvalue(o))");
+
+  ASSERT_EQUAL(Qtrue, result.value());
 }

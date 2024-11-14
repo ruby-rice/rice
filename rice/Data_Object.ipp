@@ -331,6 +331,48 @@ namespace Rice::detail
   };
 
   template<typename T>
+  class From_Ruby<T&&>
+  {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg * arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+      case RUBY_T_DATA:
+        return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+        break;
+      default:
+        return Convertible::None;
+      }
+    }
+
+    T&& convert(VALUE value)
+    {
+      using Intrinsic_T = intrinsic_type<T>;
+
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return std::move(this->arg_->template defaultValue<Intrinsic_T>());
+      }
+      else
+      {
+        return std::move(*Data_Object<Intrinsic_T>::from_ruby(value));
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<typename T>
   class From_Ruby<T*>
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,

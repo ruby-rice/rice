@@ -368,6 +368,57 @@ TESTCASE(define_singleton_method_returning_reference)
 
 namespace
 {
+  class RValue
+  {
+  public:
+    RValue() {}
+
+    RValue(RValue&& other) = default;
+
+    // Move assignment operator.
+    RValue& operator=(RValue&& other) noexcept
+    {
+      return *this;
+    }
+
+    bool takesRValue(RValue&& rvalue)
+    {
+      return true;
+    }
+  };
+}
+
+TESTCASE(rvalue_parameter)
+{
+  Class c = define_class<RValue>("RValue")
+    .define_constructor(Constructor<RValue>())
+    .define_method("takes_r_value", &RValue::takesRValue);
+
+  Module m(anonymous_module());
+  std::string code = R"(rvalue = RValue.new
+                        rvalue.takes_r_value(rvalue))";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
+}
+
+TESTCASE(move_assignment)
+{
+  Class c = define_class<RValue>("RValue")
+    .define_constructor(Constructor<RValue>())
+    .define_method<RValue&(RValue::*)(RValue && other) noexcept>("=", &RValue::operator=);
+
+  Module m(anonymous_module());
+  std::string code = R"(object1 = RValue.new
+                        object2 = RValue.new
+                        object1 = object2)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(c, result.class_of());
+}
+
+namespace
+{
   struct MyStruct
   {
     MyStruct* set(MyStruct* ptr)
