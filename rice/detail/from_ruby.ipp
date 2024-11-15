@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include "../Exception_defn.hpp"
 #include "../Arg.hpp"
+#include "../Identifier.hpp"
 #include "RubyFunction.hpp"
 
 /* This file implements conversions from Ruby to native values fo fundamental types 
@@ -163,6 +164,23 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
           break;
+
+        // This case is for Enums which are defined as Ruby classes. Some C++ apis
+        // will take a int parameter but really what we have is an Enum
+        case RUBY_T_DATA:
+        {
+          static ID id = protect(rb_intern, "to_int"); 
+          if (protect(rb_respond_to, value, id))
+          {
+            return Convertible::TypeCast;
+          }
+          else
+          {
+            return Convertible::None;
+          }
+
+          break;
+        }
         default:
           return Convertible::None;
       }
@@ -176,6 +194,7 @@ namespace Rice::detail
       }
       else
       {
+        // rb_num2long_inline will call to_int for RUBY_T_DATA objects
         return (int)protect(rb_num2long_inline, value);
       }
     }
@@ -1106,7 +1125,7 @@ namespace Rice::detail
       }
     }
   }
-  
+
   template<>
   class From_Ruby<char>
   {
@@ -1262,7 +1281,7 @@ namespace Rice::detail
     }
   };
 
-  // ===========  unsinged char  ============
+  // ===========  unsigned char  ============
   template<>
   class From_Ruby<unsigned char>
   {
@@ -1301,6 +1320,49 @@ namespace Rice::detail
       }
     }
   
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class From_Ruby<unsigned char*>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+      case RUBY_T_STRING:
+        return Convertible::Exact;
+        break;
+        // This is for C++ chars which are converted to Ruby integers
+      case RUBY_T_FIXNUM:
+        return Convertible::TypeCast;
+        break;
+      default:
+        return Convertible::None;
+      }
+    }
+
+    unsigned char* convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        detail::protect(rb_check_type, value, (int)T_STRING);
+        return reinterpret_cast<unsigned char*>(RSTRING_PTR(value));
+      }
+    }
+
   private:
     Arg* arg_ = nullptr;
   };

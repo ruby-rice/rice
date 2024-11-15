@@ -32,34 +32,44 @@ namespace Rice
     // First we need a constructor
     klass.define_constructor(Constructor<Enum_T>());
 
-    // Instance methods
-    klass.define_method("to_s", [](Enum_T& self)
+    // Instance methods. The self parameter is confusing because it is really a Data_Object<Enum_T>.
+    // However, if we make that the type then the From_Ruby code will consider it a 
+    // Data_Type<Data_Object<Enum_T>>>. But in define class above it was actually bound as 
+    // Data_Type<Enum_T>. Thus the static_casts in the methods below.
+    klass.define_method("to_s", [](Enum_T& notSelf)
         {
           // We have to return string because we don't know if std::string support has
           // been included by the user
-          return String(valuesToNames_[self]);
+        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
+        return String(valuesToNames_[*self]);
         })
-      .define_method("to_i", [](Enum_T& self) ->  Underlying_T
+      .define_method("to_int", [](Enum_T& notSelf) ->  Underlying_T
         {
-          return (Underlying_T)self;
+          Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
+          return static_cast<Underlying_T>(*self);
         })
-      .define_method("inspect", [](Enum_T& self)
+      .define_method("inspect", [](Enum_T& notSelf)
         {
+          Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
+
           std::stringstream result;
           VALUE rubyKlass = Enum<Enum_T>::klass().value();
           result << "#<" << detail::protect(rb_class2name, rubyKlass)
-            << "::" << Enum<Enum_T>::valuesToNames_[self] << ">";
+            << "::" << Enum<Enum_T>::valuesToNames_[*self] << ">";
 
           // We have to return string because we don't know if std::string support has
           // been included by the user
           return String(result.str());
         })
-      .define_method("hash", [](Enum_T& self) ->  Underlying_T
+      .define_method("hash", [](Enum_T& notSelf) ->  Underlying_T
         {
-          return (Underlying_T)self;
+          Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
+          return (Underlying_T)*self;
         })
-      .define_method("eql?", [](Enum_T& self, Enum_T& other)
+      .define_method("eql?", [](Enum_T& notSelf, Enum_T& notOther)
         {
+          Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
+          Data_Object<Enum_T> other = static_cast<Data_Object<Enum_T>>(notOther);
           return self == other;
         });
 
