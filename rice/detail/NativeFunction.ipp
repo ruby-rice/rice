@@ -118,11 +118,12 @@ namespace Rice::detail
         }
 
         result.convertible = result.convertible & convertible;
-        if (arity > 0)
-          result.parameterMatch = (double)argc / arity;
 
         index++;
       });
+
+    if (arity > 0)
+      result.parameterMatch = (double)argc / arity;
 
     return result;
   }
