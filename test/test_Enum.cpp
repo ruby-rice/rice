@@ -9,19 +9,15 @@ using namespace Rice;
 
 TESTSUITE(Enum);
 
+SETUP(Enum)
+{
+  embed_ruby();
+}
+
 namespace
 {
   enum Color { RED, BLACK, GREEN };
 
-  Enum<Color> define_color_enum()
-  {
-    static Enum<Color> colors = define_enum<Color>("Color")
-      .define_value("RED", RED)
-      .define_value("BLACK", BLACK)
-      .define_value("GREEN", GREEN);
-    return colors;
-  }
-  
   enum class Season { Spring, Summer, Fall, Winter };
 
   // This is needed to make unittest compile (it uses ostream to report errors)
@@ -30,22 +26,26 @@ namespace
     os << static_cast<std::underlying_type_t<Season>>(season);
     return os;
   }
-
-  Enum<Season> define_season_enum()
-  {
-    static Enum<Season> seasons = define_enum<Season>("Season")
-      .define_value("Spring", Season::Spring)
-      .define_value("Summer", Season::Summer)
-      .define_value("Fall", Season::Fall)
-      .define_value("Winter", Season::Winter);
-
-    return seasons;
-  }
 }
 
-SETUP(Enum)
+Enum<Color> define_color_enum()
 {
-  embed_ruby();
+  static Enum<Color> colors = define_enum<Color>("Color")
+    .define_value("RED", RED)
+    .define_value("BLACK", BLACK)
+    .define_value("GREEN", GREEN);
+  return colors;
+}
+
+Enum<Season> define_season_enum()
+{
+  static Enum<Season> seasons = define_enum<Season>("Season")
+    .define_value("Spring", Season::Spring)
+    .define_value("Summer", Season::Summer)
+    .define_value("Fall", Season::Fall)
+    .define_value("Winter", Season::Winter);
+
+  return seasons;
 }
 
 TESTCASE(copy_construct)
@@ -157,14 +157,14 @@ TESTCASE(to_s)
   ASSERT_EQUAL(String("GREEN"), String(m.module_eval("Color::GREEN.to_s")));
 }
 
-TESTCASE(to_i)
+TESTCASE(to_int)
 {
   Module m = define_module("Testing");
 
   Enum<Color> colorEnum = define_color_enum();
-  ASSERT_EQUAL(detail::to_ruby(int(RED)), m.module_eval("Color::RED.to_i").value());
-  ASSERT_EQUAL(detail::to_ruby(int(BLACK)), m.module_eval("Color::BLACK.to_i").value());
-  ASSERT_EQUAL(detail::to_ruby(int(GREEN)), m.module_eval("Color::GREEN.to_i").value());
+  ASSERT_EQUAL(detail::to_ruby(int(RED)), m.module_eval("Color::RED.to_int").value());
+  ASSERT_EQUAL(detail::to_ruby(int(BLACK)), m.module_eval("Color::BLACK.to_int").value());
+  ASSERT_EQUAL(detail::to_ruby(int(GREEN)), m.module_eval("Color::GREEN.to_int").value());
 }
 
 TESTCASE(inspect)
@@ -283,9 +283,9 @@ TESTCASE(nested_enums)
 
   Module m = define_module("Testing");
 
-  ASSERT_EQUAL(detail::to_ruby(int(0)), m.module_eval("Inner::Props::VALUE1.to_i").value());
-  ASSERT_EQUAL(detail::to_ruby(int(1)), m.module_eval("Inner::Props::VALUE2.to_i").value());
-  ASSERT_EQUAL(detail::to_ruby(int(2)), m.module_eval("Inner::Props::VALUE3.to_i").value());
+  ASSERT_EQUAL(detail::to_ruby(int(0)), m.module_eval("Inner::Props::VALUE1.to_int").value());
+  ASSERT_EQUAL(detail::to_ruby(int(1)), m.module_eval("Inner::Props::VALUE2.to_int").value());
+  ASSERT_EQUAL(detail::to_ruby(int(2)), m.module_eval("Inner::Props::VALUE3.to_int").value());
 }
 
 namespace
@@ -295,9 +295,14 @@ namespace
     return RED;
   }
 
-  bool isMyFavoriteColor(Color aColor)
+  bool isMyFavoriteColor(Color color)
   {
-    return aColor == RED;
+    return color == RED;
+  }
+
+  bool myFavoriteColorAsInt(int color)
+  {
+    return color == RED;
   }
 }
 
@@ -305,9 +310,8 @@ TESTCASE(using_enums)
 {
   Enum<Color> colorEnum = define_color_enum();
   colorEnum.define_singleton_function("my_favorite_color", &myFavoriteColor)
-       .define_singleton_function("is_my_favorite_color", &isMyFavoriteColor)
-       .define_singleton_function("is_my_favorite_color", &isMyFavoriteColor)
-       .define_method("is_my_favorite_color", &isMyFavoriteColor);
+           .define_singleton_function("is_my_favorite_color", &isMyFavoriteColor)
+           .define_method("is_my_favorite_color", &isMyFavoriteColor);
 
   Module m = define_module("Testing");
 
@@ -325,6 +329,46 @@ TESTCASE(using_enums)
 
   result = m.module_eval("Color::BLACK.is_my_favorite_color");
   ASSERT_EQUAL(Qfalse, result.value());
+}
+
+TESTCASE(enum_to_int)
+{
+  Enum<Color> colorEnum = define_color_enum();
+
+  Module m = define_module("Testing");
+  m.define_module_function("my_favorite_color_as_int", &myFavoriteColorAsInt);
+
+  std::string code = R"(my_favorite_color_as_int(Color::RED))";
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  code = R"(my_favorite_color_as_int(Color::GREEN))";
+  result = m.module_eval(code);
+  ASSERT_EQUAL(Qfalse, result.value());
+}
+
+namespace
+{
+  bool isMyFavoriteSeasonAsInt(int season)
+  {
+    return ((Season)season == Season::Summer);
+  }
+}
+
+TESTCASE(enum_class_to_int)
+{
+  define_season_enum();
+
+  Module m = define_module("Testing");
+  m.define_module_function("is_my_favorite_season_as_int", &isMyFavoriteSeasonAsInt);
+
+  std::string code = R"(is_my_favorite_season_as_int(Season::Spring))";
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  code = R"(is_my_favorite_season_as_int(Season::Summer))";
+  result = m.module_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
 }
 
 namespace
