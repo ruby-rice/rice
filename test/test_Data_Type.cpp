@@ -452,6 +452,93 @@ TESTCASE(null_ptrs)
 
 namespace
 {
+  class Helper
+  {
+  public:
+
+    Helper(int value) : value_(value)
+    {
+    }
+
+    int value()
+    {
+      return this->value_;
+    }
+
+  private:
+    int value_;
+  };
+
+  class MyClass2
+  {
+  public:
+    Helper* passThrough(Helper* helper)
+    {
+      return helper;
+    }
+
+    Helper* passThrough(void* helper)
+    {
+      return static_cast<Helper*>(helper);
+    }
+
+    void* returnVoidHelper()
+    {
+      if (!this->helper_)
+        this->helper_ = new Helper(4);
+      
+      return static_cast<void*>(this->helper_);
+    }
+
+    bool checkVoidHelper(void* helper)
+    {
+      return helper == this->helper_;
+    }
+
+  private:
+    Helper* helper_ = nullptr;
+  };
+} // namespace
+
+TESTCASE(pointers)
+{
+  Class voidClass = define_class<void>("Void");
+
+  Class helperClass = define_class<Helper>("Helper")
+    .define_constructor(Constructor<Helper, int>())
+    .define_method("value", &Helper::value);
+
+  Class myClass = define_class<MyClass2>("MyClass2")
+    .define_constructor(Constructor<MyClass2>())
+    .define_method<Helper*(MyClass2::*)(Helper*)>("pass_through", &MyClass2::passThrough)
+    .define_method<Helper*(MyClass2::*)(void*)>("pass_through_void", &MyClass2::passThrough)
+    .define_method<void*(MyClass2::*)()>("return_void_helper", &MyClass2::returnVoidHelper)
+    .define_method<bool(MyClass2::*)(void*)>("check_void_helper", &MyClass2::checkVoidHelper);
+
+  Object helper = helperClass.call("new", 5);
+  Object object = myClass.call("new");
+
+  Object result = object.call("pass_through", nullptr);
+  ASSERT_EQUAL(Qnil, result.value());
+
+  result = object.call("pass_through", helper);
+  Object value = result.call("value");
+  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(value));
+
+  result = object.call("pass_through_void", nullptr);
+  ASSERT_EQUAL(Qnil, result.value());
+
+  result = object.call("pass_through_void", helper);
+  value = result.call("value");
+  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(value));
+
+   helper = object.call("return_void_helper");
+   result = object.call("check_void_helper", helper);
+   ASSERT_EQUAL(Qtrue, result.value());
+}
+
+namespace
+{
   class SomeClass
   {
   };
