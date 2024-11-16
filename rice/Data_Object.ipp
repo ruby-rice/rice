@@ -266,6 +266,52 @@ namespace Rice::detail
     Return* returnInfo_ = nullptr;
   };
 
+  template <typename T>
+  class To_Ruby<T**>
+  {
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    {
+    }
+
+    VALUE convert(T** data)
+    {
+      if (data)
+      {
+        // Note that T could be a pointer or reference to a base class while data is in fact a
+        // child class. Lookup the correct type so we return an instance of the correct Ruby class
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
+        bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
+      }
+      else
+      {
+        return Qnil;
+      }
+    }
+
+    VALUE convert(const T** data)
+    {
+      if (data)
+      {
+        // Note that T could be a pointer or reference to a base class while data is in fact a
+        // child class. Lookup the correct type so we return an instance of the correct Ruby class
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
+        bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
+      }
+      else
+      {
+        return Qnil;
+      }
+    }
+
+  private:
+    Return* returnInfo_ = nullptr;
+  };
+
   template<typename T>
   class To_Ruby<Data_Object<T>>
   {
@@ -467,6 +513,39 @@ namespace Rice::detail
       else
       {
         return Data_Object<Intrinsic_T>::from_ruby(value);
+      }
+    }
+  };
+
+  template<typename T>
+  class From_Ruby<T**>
+  {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+      case RUBY_T_DATA:
+        return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+        break;
+      default:
+        return Convertible::None;
+      }
+    }
+
+    T** convert(VALUE value)
+    {
+      using Intrinsic_T = intrinsic_type<T>;
+
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        return detail::unwrap<Intrinsic_T*>(value, Data_Type<T>::ruby_data_type());
       }
     }
   };
