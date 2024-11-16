@@ -14,6 +14,7 @@ namespace Rice::detail
 
     template <typename T>
     VALUE lookup(T* cppInstance);
+    VALUE lookup(void* cppInstance);
 
     void add(void* cppInstance, VALUE rubyInstance);
     void remove(void* cppInstance);
@@ -23,7 +24,6 @@ namespace Rice::detail
     bool isEnabled = false;
 
   private:
-    VALUE lookup(void* cppInstance);
     std::map<void*, VALUE> objectMap_;
   };
 } // namespace Rice::detail

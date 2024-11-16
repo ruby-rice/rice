@@ -190,6 +190,36 @@ namespace Rice::detail
     Return* returnInfo_ = nullptr;
   };
 
+  template <>
+  class To_Ruby<void*>
+  {
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    {
+    }
+
+    VALUE convert(void* data)
+    {
+      if (data)
+      {
+        // Note that T could be a pointer or reference to a base class while data is in fact a
+        // child class. Lookup the correct type so we return an instance of the correct Ruby class
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(data);
+        bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
+      }
+      else
+      {
+        return Qnil;
+      }
+    }
+
+  private:
+    Return* returnInfo_ = nullptr;
+  };
+
   template <typename T>
   class To_Ruby<T*&>
   {
@@ -450,6 +480,48 @@ namespace Rice::detail
     static Data_Object<T> convert(VALUE value)
     {
       return Data_Object<T>(value);
+    }
+  };
+
+  template<>
+  class From_Ruby<void*>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          // Hope for the best!
+          return Convertible::Exact;
+          break;
+        case RUBY_T_NIL:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
+    void* convert(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+        {
+          // Since C++ is not telling us type information, we need to extract it
+          // from the Ruby object.
+          const rb_data_type_t* rb_type = RTYPEDDATA_TYPE(value);
+          return detail::unwrap<void>(value, (rb_data_type_t*)rb_type);
+          break;
+        }
+        case RUBY_T_NIL:
+          return nullptr;
+          break;
+        default:
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            detail::protect(rb_obj_classname, value), "pointer");
+      }
     }
   };
 }

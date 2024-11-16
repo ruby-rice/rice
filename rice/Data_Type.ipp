@@ -19,7 +19,7 @@
 namespace Rice
 {
   template<typename T>
-  void ruby_mark_internal(detail::Wrapper* wrapper)
+  inline void ruby_mark_internal(detail::Wrapper* wrapper)
   {
     // Tell the wrapper to mark the objects its keeping alive
     wrapper->ruby_mark();
@@ -30,15 +30,21 @@ namespace Rice
   }
 
   template<typename T>
-  void ruby_free_internal(detail::Wrapper* wrapper)
+  inline void ruby_free_internal(detail::Wrapper* wrapper)
   {
     delete wrapper;
   }
 
   template<typename T>
-  size_t ruby_size_internal(const T* data)
+  inline size_t ruby_size_internal(const T* data)
   {
     return sizeof(T);
+  }
+
+  template<>
+  inline size_t ruby_size_internal(const void* data)
+  {
+    return sizeof(void*);
   }
 
   template<typename T>
