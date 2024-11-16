@@ -18,6 +18,13 @@ namespace Rice
     return *this;
   }
 
+  inline const std::string Class::name()
+  {
+    const char* buffer = rb_class2name(this->value());
+    return std::string(buffer);
+  }
+
+
   inline Class define_class_under(Object module, char const* name, const Class& superclass)
   {
     VALUE klass = detail::protect(rb_define_class_under, module.value(), name, superclass.value());

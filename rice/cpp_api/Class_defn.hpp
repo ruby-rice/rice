@@ -1,6 +1,8 @@
 #ifndef Rice__Class_defn__hpp_
 #define Rice__Class_defn__hpp_
 
+#include <string>
+
 #include "Module_defn.hpp"
 
 /*!
@@ -29,6 +31,11 @@ namespace Rice
      *  version of ruby prior to 1.7) and the instance method initialize.
      */
     Class & undef_creation_funcs();
+
+    //! Class name
+    /*! \return std::string.
+     */
+    const std::string name();
 
     #include "shared_methods.hpp"
   };
