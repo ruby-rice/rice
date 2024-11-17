@@ -385,6 +385,49 @@ TESTCASE(Comparable)
   ASSERT_EQUAL(1, detail::From_Ruby<size_t>().convert(result.value()));
 }
 
+namespace
+{
+  class ComparableButNotBool
+  {
+  public:
+    ComparableButNotBool(uint32_t value) : value_(value)
+    {
+    };
+
+    std::string operator==(const ComparableButNotBool& other)
+    {
+      return "not a boolean";
+    }
+
+    uint32_t value_;
+  };
+}
+
+TESTCASE(ComparableButNotBool)
+{
+  define_class<ComparableButNotBool>("IsComparable").
+    define_constructor(Constructor<ComparableButNotBool, uint32_t>());
+
+  Class c = define_vector<std::vector<ComparableButNotBool>>("ComparableVector");
+
+  Object vec = c.call("new");
+  vec.call("push", ComparableButNotBool(1));
+  vec.call("push", ComparableButNotBool(2));
+  vec.call("push", ComparableButNotBool(3));
+
+  Object result = vec.call("delete", ComparableButNotBool(1));
+  ASSERT_EQUAL(Qnil, result.value());
+
+  result = vec.call("length");
+  ASSERT_EQUAL(3u, detail::From_Ruby<size_t>().convert(result));
+
+  result = vec.call("include?", ComparableButNotBool(2));
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = vec.call("index", ComparableButNotBool(3));
+  ASSERT_EQUAL(Qnil, result.value());
+}
+
 TESTCASE(DefaultConstructable)
 {
   define_class<Comparable>("IsComparable").

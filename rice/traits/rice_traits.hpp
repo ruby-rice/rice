@@ -75,7 +75,10 @@ namespace Rice
     struct is_comparable : std::false_type {};
 
     template<typename T>
-    struct is_comparable<T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>> : std::true_type {};
+    struct is_comparable<T, std::void_t<
+      // Does the class implement operator== and does it return a boolean value?
+      decltype(std::declval<T>() == std::declval<T>() && true)
+      >> : std::true_type {};
 
     template<typename T>
     constexpr bool is_comparable_v = is_comparable<T>::value;
