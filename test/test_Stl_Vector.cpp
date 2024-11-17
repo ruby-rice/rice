@@ -405,10 +405,10 @@ namespace
 
 TESTCASE(ComparableButNotBool)
 {
-  define_class<ComparableButNotBool>("IsComparable").
+  define_class<ComparableButNotBool>("IsComparableButNotBool").
     define_constructor(Constructor<ComparableButNotBool, uint32_t>());
 
-  Class c = define_vector<std::vector<ComparableButNotBool>>("ComparableVector");
+  Class c = define_vector<std::vector<ComparableButNotBool>>("ComparableButNotBoolVector");
 
   Object vec = c.call("new");
   vec.call("push", ComparableButNotBool(1));
