@@ -72,9 +72,12 @@ namespace Rice::detail
     {
       Registries::instance.instances.remove(this->get());
 
-      if (this->isOwner_)
+      if constexpr (!std::is_void_v<T>)
       {
-        delete this->data_;
+        if (this->isOwner_)
+        {
+          delete this->data_;
+        }
       }
     }
 
