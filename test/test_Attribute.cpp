@@ -20,6 +20,11 @@ namespace
   {
   };
 
+  class NotAssignable
+  {
+    NotAssignable& operator=(const NotAssignable&) = delete;
+  };
+
   struct DataStruct
   {
     static inline float staticFloat = 1.0;
@@ -29,7 +34,9 @@ namespace
     std::string readWriteString = "Read Write";
     int writeInt = 0;
     const char* readChars = "Read some chars!";
+    const int constInt = 5;
     SomeClass someClass;
+    NotAssignable notAssignable;
 
     std::string inspect()
     {
@@ -80,6 +87,42 @@ TESTCASE(attributes)
 
   result = o.call("read_write_string");
   ASSERT_EQUAL("Set a string", detail::From_Ruby<std::string>().convert(result.value()));
+}
+
+TESTCASE(const_attribute)
+{
+  Class c = define_class<DataStruct>("DataStruct")
+    .define_constructor(Constructor<DataStruct>())
+    .define_attr("const_int", &DataStruct::constInt);
+
+  Data_Object<DataStruct> o = c.call("new");
+  const DataStruct* dataStruct = o.get();
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    o.call("const_int=", 5),
+    ASSERT(std::string(ex.what()).find("undefined method `const_int='") == 0)
+  );
+}
+
+TESTCASE(not_copyable_attribute)
+{
+  Class notAssignableClass = define_class<NotAssignable>("NotAssignable")
+    .define_constructor(Constructor<NotAssignable>());
+    
+  Class c = define_class<DataStruct>("DataStruct")
+    .define_constructor(Constructor<DataStruct>())
+    .define_attr("not_assignable", &DataStruct::notAssignable);
+
+  Data_Object<NotAssignable> notAssignable = notAssignableClass.call("new");
+
+  Data_Object<DataStruct> o = c.call("new");
+  
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    o.call("not_assignable=", notAssignable),
+    ASSERT(std::string(ex.what()).find("undefined method `not_assignable='") == 0)
+  );
 }
 
 TESTCASE(static_attributes)

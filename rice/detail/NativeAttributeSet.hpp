@@ -13,11 +13,10 @@ namespace Rice
     {
     public:
       using NativeAttribute_T = NativeAttributeSet<Attribute_T>;
-
-      using T = typename attribute_traits<Attribute_T>::attr_type;
-      using T_Unqualified = remove_cv_recursive_t<T>;
+      using Attr_T = typename attribute_traits<Attribute_T>::attr_type;
+      using T_Unqualified = remove_cv_recursive_t<Attr_T>;
       using Receiver_T = typename attribute_traits<Attribute_T>::class_type;
-    
+
     public:
       // Register attribute getter/setter with Ruby
       static void define(VALUE klass, std::string name, Attribute_T attribute);

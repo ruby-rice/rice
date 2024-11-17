@@ -267,9 +267,14 @@ namespace Rice
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
       detail::NativeAttributeGet<Attribute_T>::define(klass_, name, std::forward<Attribute_T>(attribute));
 
-    // Define native attribute setter
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
-      detail::NativeAttributeSet<Attribute_T>::define(klass_, name, std::forward<Attribute_T>(attribute));
+    using Attr_T = typename detail::NativeAttributeSet<Attribute_T>::Attr_T;
+    if constexpr (!std::is_const_v<Attr_T> &&
+                  (std::is_fundamental_v<Attr_T> || std::is_assignable_v<Attr_T, Attr_T>))
+        {
+      // Define native attribute setter
+      if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
+        detail::NativeAttributeSet<Attribute_T>::define(klass_, name, std::forward<Attribute_T>(attribute));
+    }
 
     return *this;
   }
