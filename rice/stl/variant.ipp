@@ -60,8 +60,12 @@ namespace Rice::detail
         Code inspired by https://www.foonathan.net/2020/05/fold-tricks/ */
 
       VALUE result = Qnil;
+
+      #pragma GCC diagnostic push
+      #pragma GCC diagnostic ignored "-Wunused-value"
       ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
                (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
+      #pragma GCC diagnostic pop
 
       return result;
     }
@@ -91,8 +95,12 @@ namespace Rice::detail
 
       // See comments above for explanation of this code
       VALUE result = Qnil;
+
+      #pragma GCC diagnostic push
+      #pragma GCC diagnostic ignored "-Wunused-value"
       ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
         (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
+      #pragma GCC diagnostic pop
 
       return result;
     }
