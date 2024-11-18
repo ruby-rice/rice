@@ -90,7 +90,7 @@ namespace Rice::detail
 
       for (; it != end; ++it)
       {
-        protect(rb_yield, detail::To_Ruby<Value_T&>().convert(*it));
+        protect(rb_yield, detail::To_Ruby<To_Ruby_T>().convert(*it));
       }
 
       return self;

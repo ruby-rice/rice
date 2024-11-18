@@ -6,6 +6,7 @@
 #include "MethodInfo.hpp"
 #include "../traits/function_traits.hpp"
 #include "../traits/method_traits.hpp"
+#include "../traits/rice_traits.hpp"
 #include "from_ruby.hpp"
 
 namespace Rice::detail
@@ -50,11 +51,12 @@ namespace Rice::detail
 
     // We remove const to avoid an explosion of To_Ruby specializations and Ruby doesn't
     // have the concept of constants anyways
-    using Return_T = remove_cv_recursive_t<typename function_traits<Function_T>::return_type>;
+    using Return_T = typename function_traits<Function_T>::return_type;
     using Receiver_T = typename method_traits<Function_T, IsMethod>::Class_T;
     using Arg_Ts = typename method_traits<Function_T, IsMethod>::Arg_Ts;
     static constexpr std::size_t arity = method_traits<Function_T, IsMethod>::arity;
     using From_Ruby_Args_Ts = typename tuple_map<From_Ruby, Arg_Ts>::type;
+    using To_Ruby_T = remove_cv_recursive_t<Return_T>;
 
     // Register function with Ruby
     static void define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
@@ -82,7 +84,7 @@ namespace Rice::detail
     From_Ruby_Args_Ts createFromRuby(std::index_sequence<I...>& indices);
 
     // Convert C++ value to Ruby
-    To_Ruby<Return_T> createToRuby();
+    To_Ruby<To_Ruby_T> createToRuby();
       
     // Convert Ruby argv pointer to Ruby values
     std::vector<VALUE> getRubyValues(int argc, VALUE* argv);
@@ -109,7 +111,7 @@ namespace Rice::detail
     std::string method_name_;
     Function_T function_;
     From_Ruby_Args_Ts fromRubys_;
-    To_Ruby<Return_T> toRuby_;
+    To_Ruby<To_Ruby_T> toRuby_;
     std::unique_ptr<MethodInfo> methodInfo_;
   };
 }

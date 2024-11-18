@@ -1,4 +1,5 @@
 #include "../traits/function_traits.hpp"
+#include "../traits/rice_traits.hpp"
 #include "../detail/from_ruby.hpp"
 #include "../detail/to_ruby.hpp"
 #include "../detail/RubyFunction.hpp"
@@ -23,8 +24,10 @@ namespace Rice
       using Key_T = typename T::key_type;
       using Mapped_T = typename T::mapped_type;
       using Value_T = typename T::value_type;
+      using Reference_T = typename T::reference;
       using Size_T = typename T::size_type;
       using Difference_T = typename T::difference_type;
+      using To_Ruby_T = typename detail::remove_cv_recursive_t<Mapped_T>;
 
     public:
       MapHelper(Data_Type<T> klass) : klass_(klass)
@@ -194,10 +197,10 @@ namespace Rice
         klass_.define_method("to_h", [](T& map)
         {
           VALUE result = rb_hash_new();
-          std::for_each(map.begin(), map.end(), [&result](const typename T::reference pair)
+          std::for_each(map.begin(), map.end(), [&result](const Reference_T pair)
           {
             VALUE key = detail::To_Ruby<Key_T&>().convert(pair.first);
-            VALUE value = detail::To_Ruby<Mapped_T&>().convert(pair.second);
+            VALUE value = detail::To_Ruby<To_Ruby_T&>().convert(pair.second);
             rb_hash_aset(result, key, value);
           });
 

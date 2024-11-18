@@ -13,7 +13,9 @@ namespace Rice::detail
     using NativeIterator_T = NativeIterator<T, Iterator_Func_T>;
     using Iterator_T = typename function_traits<Iterator_Func_T>::return_type;
     using Value_T = typename std::iterator_traits<Iterator_T>::value_type;
+    using Reference_T = typename std::iterator_traits<Iterator_T>::reference;
     using Difference_T = typename std::iterator_traits<Iterator_T>::difference_type;
+    using To_Ruby_T = remove_cv_recursive_t<Reference_T>;
 
   public:
     // Register function with Ruby
