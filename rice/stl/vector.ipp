@@ -83,7 +83,11 @@ namespace Rice
 
       void define_constructable_methods()
       {
-        if constexpr (std::is_default_constructible_v<Value_T>)
+        if constexpr (std::is_default_constructible_v<Value_T> && std::is_same_v<Value_T, bool>)
+        {
+          klass_.define_method("resize", static_cast<void (T::*)(const size_t, bool)>(&T::resize));
+        }
+        else if constexpr (std::is_default_constructible_v<Value_T>)
         {
           klass_.define_method("resize", static_cast<void (T::*)(const size_t)>(&T::resize));
         }

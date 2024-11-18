@@ -151,6 +151,27 @@ TESTCASE(Sizing)
 
   result = vec.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
+
+  c = define_vector<std::vector<bool>>("BoolVector");
+  vec = c.call("new");
+
+  vec.call("resize", 10, true);
+  result = vec.call("size");
+  ASSERT_EQUAL(10, detail::From_Ruby<int32_t>().convert(result));
+  result = vec.call("first");
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  vec = c.call("new");
+  vec.call("resize", 10, false);
+  result = vec.call("size");
+  ASSERT_EQUAL(10, detail::From_Ruby<int32_t>().convert(result));
+  result = vec.call("first");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  vec.call("clear");
+
+  result = vec.call("size");
+  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 }
 
 TESTCASE(ToString)
