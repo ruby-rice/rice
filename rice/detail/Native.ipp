@@ -72,6 +72,11 @@ namespace Rice::detail
     {
       native = natives.front().get();
     }
+    else if (natives.size() == 0)
+    {
+      Identifier identifier(methodId);
+      rb_raise(rb_eArgError, "Could not find method call for %s#%s", rb_class2name(klass), identifier.c_str());
+    }
     else
     {
       // Loop over every native to see how well they match the Ruby parameters
