@@ -158,10 +158,15 @@ namespace Rice::detail
   typename NativeFunction<Class_T, Function_T, IsMethod>::Arg_Ts NativeFunction<Class_T, Function_T, IsMethod>::getNativeValues(std::vector<VALUE>& values,
      std::index_sequence<I...>& indices)
   {
-    // Convert each Ruby value to its native value by calling the appropriate fromRuby instance.
-    // Note that for fundamental types From_Ruby<Arg_Ts> will keep a copy of the native value
-    // so it can be passed by reference or pointer to a native function.
-    return std::forward_as_tuple(std::get<I>(this->fromRubys_).convert(values[I])...);
+    /* Convert each Ruby value to its native value by calling the appropriate fromRuby instance.
+      Notes:
+      1. From_Ruby<T> - T does not include const or volatile
+      2. Thus the std::tuple_element_t<I, Arg_Ts> is needed to add back in const and
+         volatile to make C++ compiler happy
+      3. For fundamental types, From_Ruby<Arg_Ts> will keep a copy of the native value
+         so it can be passed by reference or pointer to a native function. */
+    return std::forward_as_tuple((std::tuple_element_t<I, Arg_Ts>)
+                                 (std::get<I>(this->fromRubys_).convert(values[I]))...);
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
