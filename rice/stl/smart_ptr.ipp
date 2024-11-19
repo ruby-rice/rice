@@ -76,7 +76,8 @@ namespace Rice::detail
       }
     }
 
-    std::unique_ptr<T>& convert(VALUE value)
+    template <typename Return_T = std::unique_ptr<T>&>
+    Return_T convert(VALUE value)
     {
       Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
 
@@ -137,7 +138,8 @@ namespace Rice::detail
       }
     }
 
-    std::shared_ptr<T> convert(VALUE value)
+    template <typename Return_T = std::shared_ptr<T>>
+    Return_T convert(VALUE value)
     {
       if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue()) {
         return this->arg_->template defaultValue<std::shared_ptr<T>>();
@@ -194,7 +196,8 @@ namespace Rice::detail
       }
     }
 
-    std::shared_ptr<T>& convert(VALUE value)
+    template <typename Return_T = std::shared_ptr<T>&>
+    Return_T convert(VALUE value)
     {
       if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue()) {
         return this->arg_->template defaultValue<std::shared_ptr<T>>();

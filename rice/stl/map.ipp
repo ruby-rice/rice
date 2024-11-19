@@ -360,7 +360,8 @@ namespace Rice
         }
       }
 
-      std::map<T, U> convert(VALUE value)
+      template <typename Return_T = std::map<T, U>>
+      Return_T convert(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -421,7 +422,8 @@ namespace Rice
         }
       }
 
-      std::map<T, U>& convert(VALUE value)
+      template <typename Return_T = std::map<T, U>&>
+      Return_T convert(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -481,7 +483,8 @@ namespace Rice
         }
       }
 
-      std::map<T, U>* convert(VALUE value)
+      template <typename Return_T = std::map<T, U>*>
+      Return_T convert(VALUE value)
       {
         switch (rb_type(value))
         {

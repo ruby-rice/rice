@@ -254,7 +254,8 @@ namespace Rice::detail
       }
     }
 
-    Hash convert(VALUE value)
+    template <typename Return_T = Hash>
+    Return_T convert(VALUE value)
     {
       return Hash(value);
     }

@@ -346,7 +346,8 @@ namespace Rice::detail
       }
     }
 
-    T convert(VALUE value)
+    template <typename Return_T = T>
+    Return_T convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
 
@@ -388,7 +389,8 @@ namespace Rice::detail
       }
     }
 
-    T& convert(VALUE value)
+    template <typename Return_T = T&>
+    Return_T convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
 
@@ -430,7 +432,8 @@ namespace Rice::detail
       }
     }
 
-    T&& convert(VALUE value)
+    template <typename Return_T = T&&>
+    Return_T convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
 
@@ -469,7 +472,8 @@ namespace Rice::detail
       }
     }
 
-    T* convert(VALUE value)
+    template <typename Return_T = T*>
+    Return_T convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
 
@@ -502,7 +506,8 @@ namespace Rice::detail
       }
     }
 
-    T* convert(VALUE value)
+    template <typename Return_T = T*>
+    Return_T convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
 
@@ -535,7 +540,8 @@ namespace Rice::detail
       }
     }
 
-    T** convert(VALUE value)
+    template <typename Return_T = T**>
+    Return_T convert(VALUE value)
     {
       using Intrinsic_T = intrinsic_type<T>;
 
@@ -582,7 +588,8 @@ namespace Rice::detail
       }
     }
 
-    void* convert(VALUE value)
+    template <typename Return_T = void*>
+    Return_T convert(VALUE value)
     {
       switch (rb_type(value))
       {

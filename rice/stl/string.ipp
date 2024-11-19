@@ -57,7 +57,8 @@ namespace Rice::detail
       }
     }
 
-    std::string convert(VALUE value)
+    template <typename Return_T = std::string>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -96,7 +97,8 @@ namespace Rice::detail
       }
     }
 
-    std::string& convert(VALUE value)
+    template <typename Return_T = std::string&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -131,7 +133,8 @@ namespace Rice::detail
       }
     }
 
-    std::string* convert(VALUE value)
+    template <typename Return_T = std::string*>
+    Return_T convert(VALUE value)
     {
       detail::protect(rb_check_type, value, (int)T_STRING);
       this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
@@ -142,7 +145,7 @@ namespace Rice::detail
     std::string converted_;
   };
 
-  template<>
+  /*template<>
   class From_Ruby<std::string*&>
   {
   public:
@@ -158,7 +161,8 @@ namespace Rice::detail
       }
     }
 
-    std::string* convert(VALUE value)
+    template <typename Return_T = std::string*>
+    Return_T convert(VALUE value)
     {
       detail::protect(rb_check_type, value, (int)T_STRING);
       this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
@@ -167,5 +171,5 @@ namespace Rice::detail
 
   private:
     std::string converted_;
-  };
+  };*/
 }

@@ -57,7 +57,8 @@ namespace Rice::detail
       }
     }
 
-    short convert(VALUE value)
+    template <typename Return_T = short>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -95,7 +96,8 @@ namespace Rice::detail
       }
     }
 
-    short& convert(VALUE value)
+    template <typename Return_T = short&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -129,7 +131,8 @@ namespace Rice::detail
       }
     }
 
-    short* convert(VALUE value)
+    template <typename Return_T = short*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -186,7 +189,8 @@ namespace Rice::detail
       }
     }
 
-    int convert(VALUE value)
+    template <typename Return_T = int>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -225,7 +229,8 @@ namespace Rice::detail
       }
     }
 
-    int& convert(VALUE value)
+    template <typename Return_T = int&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -259,7 +264,8 @@ namespace Rice::detail
       }
     }
 
-    int* convert(VALUE value)
+    template <typename Return_T = int*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -299,7 +305,8 @@ namespace Rice::detail
       }
     }
 
-    long convert(VALUE value)
+    template <typename Return_T = long>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -337,7 +344,8 @@ namespace Rice::detail
       }
     }
 
-    long& convert(VALUE value)
+    template <typename Return_T = long&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -371,7 +379,8 @@ namespace Rice::detail
       }
     }
 
-    long* convert(VALUE value)
+    template <typename Return_T = long*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -414,7 +423,8 @@ namespace Rice::detail
       }
     }
 
-    long long convert(VALUE value)
+    template <typename Return_T = long long>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -455,7 +465,8 @@ namespace Rice::detail
       }
     }
 
-    long long& convert(VALUE value)
+    template <typename Return_T = long long&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -492,7 +503,8 @@ namespace Rice::detail
       }
     }
 
-    long long* convert(VALUE value)
+    template <typename Return_T = long long*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -532,7 +544,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned short convert(VALUE value)
+    template <typename Return_T = unsigned short>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -570,7 +583,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned short& convert(VALUE value)
+    template <typename Return_T = unsigned short&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -604,7 +618,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned short* convert(VALUE value)
+    template <typename Return_T = unsigned short*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -644,7 +659,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned int convert(VALUE value)
+    template <typename Return_T = unsigned int>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -682,7 +698,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned int& convert(VALUE value)
+    template <typename Return_T = unsigned int&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -716,7 +733,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned int* convert(VALUE value)
+    template <typename Return_T = unsigned int*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -756,7 +774,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned long convert(VALUE value)
+    template <typename Return_T = unsigned long>
+    Return_T convert(VALUE value)
     {
       if (this->arg_ && this->arg_->isValue())
       {
@@ -798,7 +817,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned long& convert(VALUE value)
+    template <typename Return_T = unsigned long&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -832,7 +852,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned long* convert(VALUE value)
+    template <typename Return_T = unsigned long*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -872,7 +893,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned long long convert(VALUE value)
+    template <typename Return_T = unsigned long long>
+    Return_T convert(VALUE value)
     {
       if (this->arg_ && this->arg_->isValue())
       {
@@ -914,7 +936,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned long long& convert(VALUE value)
+    template <typename Return_T = unsigned long long&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -948,7 +971,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned long long* convert(VALUE value)
+    template <typename Return_T = unsigned long long*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -994,7 +1018,8 @@ namespace Rice::detail
       }
     }
 
-    bool convert(VALUE value)
+    template <typename Return_T = bool>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -1038,7 +1063,8 @@ namespace Rice::detail
       }
     }
 
-    bool& convert(VALUE value)
+    template <typename Return_T = bool&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -1078,7 +1104,8 @@ namespace Rice::detail
       }
     }
 
-    bool* convert(VALUE value)
+    template <typename Return_T = bool*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -1152,7 +1179,8 @@ namespace Rice::detail
       }
     }
 
-    char convert(VALUE value)
+    template <typename Return_T = char>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -1194,7 +1222,8 @@ namespace Rice::detail
       }
     }
 
-    char& convert(VALUE value)
+    template <typename Return_T = char&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -1232,7 +1261,8 @@ namespace Rice::detail
       }
     }
 
-    char* convert(VALUE value)
+    template <typename Return_T = char*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -1267,7 +1297,8 @@ namespace Rice::detail
       }
     }
 
-    char const* convert(VALUE value)
+    template <typename Return_T = char const*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -1308,7 +1339,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned char convert(VALUE value)
+    template <typename Return_T = unsigned char>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -1350,7 +1382,8 @@ namespace Rice::detail
       }
     }
 
-    unsigned char* convert(VALUE value)
+    template <typename Return_T = unsigned char*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -1394,7 +1427,8 @@ namespace Rice::detail
       }
     }
 
-    signed char convert(VALUE value)
+    template <typename Return_T = signed char>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -1433,7 +1467,8 @@ namespace Rice::detail
       }
     }
 
-    double convert(VALUE value)
+    template <typename Return_T = double>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -1471,7 +1506,8 @@ namespace Rice::detail
       }
     }
 
-    double& convert(VALUE value)
+    template <typename Return_T = double&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -1505,7 +1541,8 @@ namespace Rice::detail
       }
     }
 
-    double* convert(VALUE value)
+    template <typename Return_T = double*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -1549,7 +1586,8 @@ namespace Rice::detail
       }
     }
 
-    float convert(VALUE value)
+    template <typename Return_T = float>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -1591,7 +1629,8 @@ namespace Rice::detail
       }
     }
 
-    float& convert(VALUE value)
+    template <typename Return_T = float&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
@@ -1629,7 +1668,8 @@ namespace Rice::detail
       }
     }
 
-    float* convert(VALUE value)
+    template <typename Return_T = float*>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {

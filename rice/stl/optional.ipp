@@ -71,7 +71,8 @@ namespace Rice::detail
       }
     }
 
-    std::optional<T> convert(VALUE value)
+    template <typename Return_T = std::optional<T>>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {
@@ -100,7 +101,8 @@ namespace Rice::detail
       }
     }
 
-    std::optional<T>& convert(VALUE value)
+    template <typename Return_T = std::optional<T>&>
+    Return_T convert(VALUE value)
     {
       if (value == Qnil)
       {

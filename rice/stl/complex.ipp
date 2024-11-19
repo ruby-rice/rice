@@ -42,7 +42,8 @@ namespace Rice::detail
       }
     }
 
-    std::complex<T> convert(VALUE value)
+    template <typename Return_T = std::complex<T>>
+    Return_T convert(VALUE value)
     {
       VALUE real = protect(rb_funcallv, value, rb_intern("real"), 0, (const VALUE*)nullptr);
       VALUE imaginary = protect(rb_funcallv, value, rb_intern("imaginary"), 0, (const VALUE*)nullptr);
@@ -67,7 +68,8 @@ namespace Rice::detail
       }
     }
 
-    std::complex<T>& convert(VALUE value)
+    template <typename Return_T = std::complex<T>&>
+    Return_T convert(VALUE value)
     {
       VALUE real = protect(rb_funcallv, value, rb_intern("real"), 0, (const VALUE*)nullptr);
       VALUE imaginary = protect(rb_funcallv, value, rb_intern("imaginary"), 0, (const VALUE*)nullptr);

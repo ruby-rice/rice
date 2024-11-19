@@ -428,7 +428,8 @@ namespace Rice
         }
       }
 
-      std::vector<T> convert(VALUE value)
+      template <typename Return_T = std::vector<T>>
+      Return_T convert(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -489,7 +490,8 @@ namespace Rice
         }
       }
 
-      std::vector<T>& convert(VALUE value)
+      template <typename Return_T = std::vector<T>&>
+      Return_T convert(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -549,7 +551,8 @@ namespace Rice
         }
       }
 
-      std::vector<T>* convert(VALUE value)
+      template <typename Return_T = std::vector<T>*>
+      Return_T convert(VALUE value)
       {
         switch (rb_type(value))
         {

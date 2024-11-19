@@ -230,7 +230,8 @@ namespace Rice::detail
       }
     }
 
-    Object convert(VALUE value)
+    template <typename Return_T = Object>
+    Return_T convert(VALUE value)
     {
       return Object(value);
     }

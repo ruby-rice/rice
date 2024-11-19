@@ -40,7 +40,8 @@ namespace Rice::detail
       return Convertible::None;
     }
 
-    std::monostate convert(VALUE value)
+    template <typename Return_T = std::monostate>
+    Return_T convert(VALUE value)
     {
       return std::monostate();
     }
@@ -55,7 +56,8 @@ namespace Rice::detail
       return Convertible::None;
     }
 
-    std::monostate& convert(VALUE value)
+    template <typename Return_T = std::monostate&>
+    Return_T convert(VALUE value)
     {
       return this->converted_;
     }

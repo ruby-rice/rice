@@ -261,7 +261,8 @@ namespace Rice::detail
       }
     }
 
-    Array convert(VALUE value)
+    template <typename Return_T = Array>
+    Return_T convert(VALUE value)
     {
       return Array(value);
     }

@@ -30,7 +30,8 @@ namespace Rice::detail
       return this->converter_.is_convertible(value);
     }
 
-    std::reference_wrapper<T> convert(VALUE value)
+    template <typename Return_T = std::reference_wrapper<T>>
+    Return_T convert(VALUE value)
     {
       return this->converter_.convert(value);
     }

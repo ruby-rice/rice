@@ -165,8 +165,8 @@ namespace Rice::detail
          volatile to make C++ compiler happy
       3. For fundamental types, From_Ruby<Arg_Ts> will keep a copy of the native value
          so it can be passed by reference or pointer to a native function. */
-    return std::forward_as_tuple((std::tuple_element_t<I, Arg_Ts>)
-                                 (std::get<I>(this->fromRubys_).convert(values[I]))...);
+    return std::forward_as_tuple(std::get<I>(this->fromRubys_).template convert<std::tuple_element_t<I, Arg_Ts>>(values[I])...);
+
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>

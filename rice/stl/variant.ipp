@@ -195,7 +195,8 @@ namespace Rice::detail
       rb_raise(rb_eArgError, "Could not find converter for variant");
     }
 
-    std::variant<Types...> convert(VALUE value)
+    template <typename Return_T = std::variant<Types...>>
+    Return_T convert(VALUE value)
     {
       int index = this->figureIndex(value);
       return this->convertInternal(value, index);
@@ -211,7 +212,8 @@ namespace Rice::detail
   class From_Ruby<std::variant<Types...>&> : public From_Ruby<std::variant<Types...>>
   {
   public:
-    std::variant<Types...>& convert(VALUE value)
+    template <typename Return_T = std::variant<Types...>&>
+    Return_T convert(VALUE value)
     {
       int index = this->figureIndex(value);
       this->converted_ = this->convertInternal(value, index);

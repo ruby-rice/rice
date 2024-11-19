@@ -106,7 +106,8 @@ namespace Rice::detail
       }
     }
 
-    String convert(VALUE value)
+    template <typename Return_T = String>
+    Return_T convert(VALUE value)
     {
       return String(value);
     }

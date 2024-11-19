@@ -357,7 +357,8 @@ namespace Rice
         }
       }
 
-      std::unordered_map<T, U> convert(VALUE value)
+      template <typename Return_T = std::unordered_map<T, U>>
+      Return_T convert(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -418,7 +419,8 @@ namespace Rice
         }
       }
 
-      std::unordered_map<T, U>& convert(VALUE value)
+      template <typename Return_T = std::unordered_map<T, U>&>
+      Return_T convert(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -478,7 +480,8 @@ namespace Rice
         }
       }
 
-      std::unordered_map<T, U>* convert(VALUE value)
+      template <typename Return_T = std::unordered_map<T, U>*>
+      Return_T convert(VALUE value)
       {
         switch (rb_type(value))
         {
