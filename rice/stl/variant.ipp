@@ -129,6 +129,36 @@ namespace Rice::detail
       return result;
     }
 
+    // This method search through a variant's types to figure out which one the
+    // currently Ruby value best matches. It then returns the index of the type.
+    int figureIndex(VALUE value)
+    {
+      int i = 0;
+      int index = -1;
+
+      for_each_tuple(this->fromRubys_,
+        [&](auto& fromRuby)
+        {
+          Convertible isConvertible = fromRuby.is_convertible(value);
+          if (isConvertible == Convertible::Exact)
+          {
+            index = i;
+          }
+          else if (isConvertible == Convertible::TypeCast && index == -1)
+          {
+            index = i;
+          }
+          i++;
+        });
+
+      if (index == -1)
+      {
+        rb_raise(rb_eArgError, "Could not find converter for variant");
+      }
+
+      return index;
+    }
+
     /* This method loops over each type in the variant, creates a From_Ruby converter,
        and then check if the converter can work with the provided Rby value (it checks
        the type of the Ruby object to see if it matches the variant type).
@@ -159,29 +189,7 @@ namespace Rice::detail
 
     std::variant<Types...> convert(VALUE value)
     {
-      int i = 0;
-      int index = -1;
-
-      for_each_tuple(this->fromRubys_,
-        [&](auto& fromRuby)
-        {
-          Convertible isConvertible = fromRuby.is_convertible(value);
-          if (isConvertible == Convertible::Exact)
-          {
-            index = i;
-          }
-          else if (isConvertible == Convertible::TypeCast && index == -1)
-          {
-            index = i;
-          }
-          i++;
-        });
-
-      if (index == -1)
-      {
-        rb_raise(rb_eArgError, "Could not find converter for variant");
-      }
-
+      int index = this->figureIndex(value);
       return this->convertInternal(value, index);
     }
 
@@ -192,82 +200,17 @@ namespace Rice::detail
   };
 
   template<typename...Types>
-  class From_Ruby<std::variant<Types...>&>
+  class From_Ruby<std::variant<Types...>&> : public From_Ruby<std::variant<Types...>>
   {
   public:
-    Convertible is_convertible(VALUE value)
+    std::variant<Types...>& convert(VALUE value)
     {
-      Convertible result = Convertible::None;
-
-      for_each_tuple(this->fromRubys_,
-        [&](auto& fromRuby)
-        {
-          result = result | fromRuby.is_convertible(value);
-        });
-
-      return result;
-    }
-
-    /* This method loops over each type in the variant, creates a From_Ruby converter,
-       and then check if the converter can work with the provided Rby value (it checks
-       the type of the Ruby object to see if it matches the variant type).
-       If yes, then the converter runs. If no, then the method recursively calls itself
-       increasing the index.
-
-       We use recursion, with a constexpr, to avoid having to instantiate an instance
-       of the variant to store results from a fold expression like the To_Ruby code
-       does above. That allows us to process variants with non default constructible
-       arguments like std::reference_wrapper. */
-    template <std::size_t I = 0>
-    std::variant<Types...> convertInternal(VALUE value, int index)
-    {
-      // Loop over each possible type in the variant.
-      if constexpr (I < std::variant_size_v<std::variant<Types...>>)
-      {
-        if (I == index)
-        {
-          auto fromRuby = std::get<I>(this->fromRubys_);
-          return fromRuby.convert(value);
-        }
-        else
-        {
-          return convertInternal<I + 1>(value, index);
-        }
-      }
-      rb_raise(rb_eArgError, "Could not find converter for variant");
-    }
-
-    std::variant<Types...> convert(VALUE value)
-    {
-      int i = 0;
-      int index = -1;
-
-      for_each_tuple(this->fromRubys_,
-        [&](auto& fromRuby)
-        {
-          Convertible isConvertible = fromRuby.is_convertible(value);
-          if (isConvertible == Convertible::Exact)
-          {
-            index = i;
-          }
-          else if (isConvertible == Convertible::TypeCast && index == -1)
-          {
-            index = i;
-          }
-          i++;
-        });
-
-      if (index == -1)
-      {
-        rb_raise(rb_eArgError, "Could not find converter for variant");
-      }
-
-      return this->convertInternal(value, index);
+      int index = this->figureIndex(value);
+      this->converted_ = this->convertInternal(value, index);
+      return this->converted_;
     }
 
   private:
-    // Possible converters we could use for this variant
-    using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
-    From_Ruby_Ts fromRubys_;
+    std::variant<Types...> converted_;
   };
 }
