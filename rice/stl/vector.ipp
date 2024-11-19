@@ -17,7 +17,7 @@ namespace Rice
     template<typename T>
     class VectorHelper
     {
-      // We do NOT use Reference_T and instead use Value_T& to avoid the weirdness
+      // We do NOT use Reference_T and instead use Parameter_T to avoid the weirdness
       // of std::vector<bool>. Reference_T is actually a proxy class that we do not
       // want to have to register with Rice nor do we want to pass it around.
       using Value_T = typename T::value_type;
@@ -25,6 +25,8 @@ namespace Rice
       using Difference_T = typename T::difference_type;
       // For To_Ruby_T however we do need to use reference type because this is what
       // will be passed by an interator to To_Ruby#convert
+      using Reference_T = typename T::reference;
+      using Parameter_T = std::conditional_t<std::is_pointer_v<Value_T>, Value_T, Value_T&>;
       using To_Ruby_T = detail::remove_cv_recursive_t<typename T::reference>;
 
     public:
@@ -166,7 +168,7 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<Value_T>)
         {
-          klass_.define_method("delete", [](T& vector, Value_T& element) -> std::optional<Value_T>
+          klass_.define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
             {
               auto iter = std::find(vector.begin(), vector.end(), element);
               if (iter == vector.end())
@@ -180,11 +182,11 @@ namespace Rice
                 return result;
               }
             })
-          .define_method("include?", [](T& vector, Value_T& element)
+          .define_method("include?", [](T& vector, Parameter_T element)
             {
               return std::find(vector.begin(), vector.end(), element) != vector.end();
             })
-          .define_method("index", [](T& vector, Value_T& element) -> std::optional<Difference_T>
+          .define_method("index", [](T& vector, Parameter_T element) -> std::optional<Difference_T>
             {
               auto iter = std::find(vector.begin(), vector.end(), element);
               if (iter == vector.end())
@@ -199,15 +201,15 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("delete", [](T& vector, Value_T& element) -> std::optional<Value_T>
+          klass_.define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
             {
               return std::nullopt;
             })
-          .define_method("include?", [](const T& vector, Value_T& element)
+          .define_method("include?", [](const T& vector, Parameter_T element)
             {
               return false;
             })
-          .define_method("index", [](const T& vector, Value_T& element) -> std::optional<Difference_T>
+          .define_method("index", [](const T& vector, Parameter_T element) -> std::optional<Difference_T>
             {
               return std::nullopt;
             });
@@ -224,7 +226,7 @@ namespace Rice
               vector.erase(iter);
               return result;
             })
-          .define_method("insert", [this](T& vector, Difference_T index, Value_T& element) -> T&
+          .define_method("insert", [this](T& vector, Difference_T index, Parameter_T element) -> T&
             {
               index = normalizeIndex(vector.size(), index, true);
               auto iter = vector.begin() + index;
@@ -244,13 +246,13 @@ namespace Rice
                 return std::nullopt;
               }
             })
-          .define_method("push", [](T& vector, Value_T& element) -> T&
+          .define_method("push", [](T& vector, Parameter_T element) -> T&
             {
               vector.push_back(element);
               return vector;
             })
           .define_method("shrink_to_fit", &T::shrink_to_fit)
-          .define_method("[]=", [this](T& vector, Difference_T index, Value_T& element) -> Value_T&
+          .define_method("[]=", [this](T& vector, Difference_T index, Parameter_T element) -> Parameter_T
             {
               index = normalizeIndex(vector.size(), index, true);
               vector[index] = element;
@@ -273,9 +275,9 @@ namespace Rice
         klass_.define_method("to_a", [](T& vector)
         {
           VALUE result = rb_ary_new();
-          std::for_each(vector.begin(), vector.end(), [&result](const Value_T& element)
+          std::for_each(vector.begin(), vector.end(), [&result](const Reference_T element)
           {
-            VALUE value = detail::To_Ruby<Value_T&>().convert(element);
+            VALUE value = detail::To_Ruby<Parameter_T>().convert(element);
             rb_ary_push(result, value);
           });
 

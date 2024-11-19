@@ -176,7 +176,7 @@ namespace Rice
                 return std::nullopt;
               }
             })
-          .define_method("[]=", [](T& map, Key_T key, Mapped_T value) -> Mapped_T
+          .define_method("[]=", [](T& map, Key_T key, Mapped_T& value) -> Mapped_T
             {
               map[key] = value;
               return value;
