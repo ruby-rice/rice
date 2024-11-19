@@ -552,7 +552,7 @@ namespace Rice
           }
           case RUBY_T_ARRAY:
           {
-            // If this an Ruby array and the vector type is copyable
+            // If this a Ruby array and the vector type is copyable
             if constexpr (std::is_default_constructible_v<T>)
             {
               this->converted_ = vectorFromArray<T>(value);
