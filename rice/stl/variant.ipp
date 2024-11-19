@@ -61,11 +61,15 @@ namespace Rice::detail
 
       VALUE result = Qnil;
 
+      #ifdef __GNUC__
       #pragma GCC diagnostic push
       #pragma GCC diagnostic ignored "-Wunused-value"
+      #endif
       ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
                (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
+      #ifdef __GNUC__
       #pragma GCC diagnostic pop
+      #endif
 
       return result;
     }
@@ -96,11 +100,15 @@ namespace Rice::detail
       // See comments above for explanation of this code
       VALUE result = Qnil;
 
+      #ifdef __GNUC__
       #pragma GCC diagnostic push
       #pragma GCC diagnostic ignored "-Wunused-value"
+      #endif
       ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
         (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
+      #ifdef __GNUC__
       #pragma GCC diagnostic pop
+      #endif
 
       return result;
     }
