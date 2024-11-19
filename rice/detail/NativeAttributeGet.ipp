@@ -45,11 +45,11 @@ namespace Rice::detail
     if constexpr (std::is_member_object_pointer_v<Attribute_T>)
     {
       Receiver_T* nativeSelf = From_Ruby<Receiver_T*>().convert(self);
-      return To_Ruby<T_Unqualified>().convert(nativeSelf->*attribute_);
+      return To_Ruby<To_Ruby_T>().convert(nativeSelf->*attribute_);
     }
     else
     {
-      return To_Ruby<T_Unqualified>().convert(*attribute_);
+      return To_Ruby<To_Ruby_T>().convert(*attribute_);
     }
   }
 } // Rice

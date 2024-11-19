@@ -22,9 +22,9 @@ namespace Rice
       using NativeAttribute_T = NativeAttributeGet<Attribute_T>;
 
       using T = typename attribute_traits<Attribute_T>::attr_type;
-      using T_Unqualified = remove_cv_recursive_t<T>;
       using Receiver_T = typename attribute_traits<Attribute_T>::class_type;
-    
+      using To_Ruby_T = remove_cv_recursive_t<T>;
+
     public:
       // Register attribute getter with Ruby
       static void define(VALUE klass, std::string name, Attribute_T attribute);

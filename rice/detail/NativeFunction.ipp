@@ -59,16 +59,16 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  To_Ruby<typename NativeFunction<Class_T, Function_T, IsMethod>::Return_T> NativeFunction<Class_T, Function_T, IsMethod>::createToRuby()
+  To_Ruby<typename NativeFunction<Class_T, Function_T, IsMethod>::To_Ruby_T> NativeFunction<Class_T, Function_T, IsMethod>::createToRuby()
   {
     // Does the From_Ruby instantiation work with ReturnInfo?
-    if constexpr (std::is_constructible_v<To_Ruby<Return_T>, Return*>)
+    if constexpr (std::is_constructible_v<To_Ruby<To_Ruby_T>, Return*>)
     {
-      return To_Ruby<Return_T>(&this->methodInfo_->returnInfo);
+      return To_Ruby<To_Ruby_T>(&this->methodInfo_->returnInfo);
     }
     else
     {
-      return To_Ruby<Return_T>();
+      return To_Ruby<To_Ruby_T>();
     }
   }
 
@@ -227,7 +227,7 @@ namespace Rice::detail
     }
     else
     {
-      Return_T nativeResult = (Return_T)std::apply(this->function_, std::forward<decltype(selfAndNativeArgs)>(selfAndNativeArgs));
+      Return_T nativeResult = std::apply(this->function_, std::forward<decltype(selfAndNativeArgs)>(selfAndNativeArgs));
 
       // Special handling if the method returns self. If so we do not want
       // to create a new Ruby wrapper object and instead return self.
