@@ -17,9 +17,15 @@ namespace Rice
     template<typename T>
     class VectorHelper
     {
+      // We do NOT use Reference_T and instead use Value_T& to avoid the weirdness
+      // of std::vector<bool>. Reference_T is actually a proxy class that we do not
+      // want to have to register with Rice nor do we want to pass it around.
       using Value_T = typename T::value_type;
       using Size_T = typename T::size_type;
       using Difference_T = typename T::difference_type;
+      // For To_Ruby_T however we do need to use reference type because this is what
+      // will be passed by an interator to To_Ruby#convert
+      using To_Ruby_T = detail::remove_cv_recursive_t<typename T::reference>;
 
     public:
       VectorHelper(Data_Type<T> klass) : klass_(klass)
@@ -569,6 +575,20 @@ namespace Rice
 
     private:
       std::vector<T> converted_;
+    };
+  }
+
+  // Special handling for std::vector<bool>
+  namespace detail
+  {
+    template<>
+    class To_Ruby<std::vector<bool>::reference>
+    {
+    public:
+      VALUE convert(const std::vector<bool>::reference& value)
+      {
+        return value ? Qtrue : Qfalse;
+      }
     };
   }
 }

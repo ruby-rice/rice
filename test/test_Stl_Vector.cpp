@@ -16,7 +16,6 @@ SETUP(Vector)
 
 namespace
 {
-
   class MyClass
   {
   public:
@@ -146,27 +145,6 @@ TESTCASE(Sizing)
 
   Object result = vec.call("size");
   ASSERT_EQUAL(10, detail::From_Ruby<int32_t>().convert(result));
-
-  vec.call("clear");
-
-  result = vec.call("size");
-  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
-
-  c = define_vector<std::vector<bool>>("BoolVector");
-  vec = c.call("new");
-
-  vec.call("resize", 10, true);
-  result = vec.call("size");
-  ASSERT_EQUAL(10, detail::From_Ruby<int32_t>().convert(result));
-  result = vec.call("first");
-  ASSERT_EQUAL(Qtrue, result.value());
-
-  vec = c.call("new");
-  vec.call("resize", 10, false);
-  result = vec.call("size");
-  ASSERT_EQUAL(10, detail::From_Ruby<int32_t>().convert(result));
-  result = vec.call("first");
-  ASSERT_EQUAL(Qfalse, result.value());
 
   vec.call("clear");
 
@@ -932,4 +910,43 @@ TESTCASE(MyClass2PointerVector)
 
  MyClass2* pMyClass = (*result)[0];
  ASSERT_EQUAL("Hello MyClass2", pMyClass->name);
+}
+
+TESTCASE(BoolVector)
+{
+  Class boolVecClass = define_vector<std::vector<bool>>("BoolVector");
+
+  Object vec = boolVecClass.call("new");
+  vec.call("resize", 3, true);
+
+  Object result = vec.call("size");
+  ASSERT_EQUAL(3, detail::From_Ruby<int32_t>().convert(result));
+  result = vec.call("first");
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  Object enumerable = vec.call("each");
+  Object arr = enumerable.call("to_a");
+  Object size = arr.call("size");
+  ASSERT_EQUAL(3, detail::From_Ruby<int32_t>().convert(size));
+
+  result = vec.call("[]", 0);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  result = vec.call("[]=", 1, false);
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  std::string code = R"(array = self.each.to_a
+                        array == [true, false, true])";
+
+  result = vec.instance_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  result = vec.call("delete", 1);
+  ASSERT_EQUAL(Qtrue, result.value());
+  result = vec.call("size");
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
+
+  vec.call("clear");
+  result = vec.call("size");
+  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 }
