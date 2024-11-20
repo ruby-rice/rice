@@ -89,6 +89,9 @@ namespace Rice::detail
     // Convert Ruby argv pointer to Ruby values
     std::vector<VALUE> getRubyValues(int argc, VALUE* argv);
 
+    template<typename Arg_T, int I>
+    Arg_T getNativeValue(std::vector<VALUE>& values);
+
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
     Arg_Ts getNativeValues(std::vector<VALUE>& values, std::index_sequence<I...>& indices);

@@ -154,14 +154,37 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
+  template<typename Arg_T, int I>
+  Arg_T NativeFunction<Class_T, Function_T, IsMethod>::getNativeValue(std::vector<VALUE>& values)
+  {
+    /* In general the compiler will convert T to const T, but that does not work for converting
+       T** to const T** (see see https://isocpp.org/wiki/faq/const-correctness#constptrptr-conversion)
+       which comes up in the OpenCV bindings.
+     
+       An alternative solution is updating From_Ruby#convert to become a templated function that specifies
+       the return type. That works but requires a lot more code changes for this one case and is not 
+       backwards compatible. */
+    if constexpr (is_pointer_pointer_v<Arg_T> && !std::is_convertible_v<remove_cv_recursive_t<Arg_T>, Arg_T>)
+    {
+      return (Arg_T)std::get<I>(this->fromRubys_).convert(values[I]);
+    }
+    else
+    {
+      return std::get<I>(this->fromRubys_).convert(values[I]);
+    }
+  }
+
+  template<typename Class_T, typename Function_T, bool IsMethod>
   template<std::size_t... I>
   typename NativeFunction<Class_T, Function_T, IsMethod>::Arg_Ts NativeFunction<Class_T, Function_T, IsMethod>::getNativeValues(std::vector<VALUE>& values,
      std::index_sequence<I...>& indices)
   {
-    // Convert each Ruby value to its native value by calling the appropriate fromRuby instance.
-    // Note that for fundamental types From_Ruby<Arg_Ts> will keep a copy of the native value
-    // so it can be passed by reference or pointer to a native function.
-    return std::forward_as_tuple(std::get<I>(this->fromRubys_).convert(values[I])...);
+    /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
+       on the arguments (Arg_Ts) required by the C++ function. Arg_T may have const/volatile while
+       the associated From_Ruby<T> template parameter will not. Thus From_Ruby produces non-const values 
+       which we let the compiler convert to const values as needed. This works except for 
+       T** -> const T**, see comment in getNativeValue method. */
+    return std::forward_as_tuple(this->getNativeValue<std::tuple_element_t<I, Arg_Ts>, I>(values)...);
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>

@@ -14,14 +14,6 @@ SETUP(Data_Type)
   embed_ruby();
 }
 
-/**
- * The tests here are for the feature of taking an instance
- * of a Ruby-subclass of a Rice wrapped class and passing
- * that instance back into the Rice wrapper. While that
- * might be confusing, the test code is pretty straight foward
- * to see what we're talking about.
- */
-
 namespace
 {
   class MyClass
@@ -477,6 +469,11 @@ namespace
       return helper;
     }
 
+    const Helper* passThroughConst(const Helper* helper)
+    {
+      return helper;
+    }
+
     Helper* passThrough(void* helper)
     {
       return static_cast<Helper*>(helper);
@@ -511,6 +508,7 @@ TESTCASE(pointers)
   Class myClass = define_class<MyClass2>("MyClass2")
     .define_constructor(Constructor<MyClass2>())
     .define_method<Helper*(MyClass2::*)(Helper*)>("pass_through", &MyClass2::passThrough)
+    .define_method<const Helper*(MyClass2::*)(const Helper*)>("pass_through_const", &MyClass2::passThroughConst)
     .define_method<Helper*(MyClass2::*)(void*)>("pass_through_void", &MyClass2::passThrough)
     .define_method<void*(MyClass2::*)()>("return_void_helper", &MyClass2::returnVoidHelper)
     .define_method<bool(MyClass2::*)(void*)>("check_void_helper", &MyClass2::checkVoidHelper);
@@ -525,6 +523,10 @@ TESTCASE(pointers)
   Object value = result.call("value");
   ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(value));
 
+  result = object.call("pass_through_const", helper);
+  value = result.call("value");
+  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(value));
+
   result = object.call("pass_through_void", nullptr);
   ASSERT_EQUAL(Qnil, result.value());
 
@@ -535,6 +537,83 @@ TESTCASE(pointers)
    helper = object.call("return_void_helper");
    result = object.call("check_void_helper", helper);
    ASSERT_EQUAL(Qtrue, result.value());
+}
+
+namespace
+{
+  class BigObject
+  {
+  public:
+    BigObject(int value): value(value)
+    {
+    }
+
+  public:
+    int value;
+  };
+
+  class Processor
+  {
+  public:
+    BigObject** createBigObjects(size_t size)
+    {
+      BigObject** result = new BigObject*[size];
+
+      for (int i = 0; i < size; ++i)
+      {
+        result[i] = new BigObject(i + 5);
+      }
+      return result;
+    }
+
+    int sumBigObjects(BigObject** bigObjects, size_t size)
+    {
+      int result = 0;
+
+      for (int i = 0; i < size; i++)
+      {
+        result += bigObjects[i]->value;
+      }
+      return result;
+    }
+
+    int sumBigObjectsConst(const BigObject**  bigObjects, size_t size)
+    {
+      int result = 0;
+
+      for (int i = 0; i < size; i++)
+      {
+        result += bigObjects[i]->value;
+      }
+      return result;
+    }
+
+  private:
+    BigObject** bigObjects_ = nullptr;
+  };
+
+}
+
+TESTCASE(pointerToPointer)
+{
+  Class BigObjectClass = define_class<BigObject>("BigObject")
+    .define_attr("value", &BigObject::value);
+
+  Class ProcessorClass = define_class<Processor>("ProcessorClass")
+    .define_constructor(Constructor<Processor>())
+    .define_method("create", &Processor::createBigObjects)
+    .define_method("sum", &Processor::sumBigObjects)
+    .define_method("sum_const", &Processor::sumBigObjectsConst);
+
+  size_t size = 2;
+  Data_Object<Processor> processor = ProcessorClass.call("new");
+  Data_Object<BigObject> bigObjects = processor.call("create", size);
+
+  Object result = processor.call("sum", bigObjects, size);
+  ASSERT_EQUAL(11, detail::From_Ruby<int>().convert(result));
+
+  result = processor.call("sum_const", bigObjects, size);
+  ASSERT_EQUAL(11, detail::From_Ruby<int>().convert(result));
 }
 
 namespace

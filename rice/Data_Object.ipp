@@ -282,7 +282,7 @@ namespace Rice::detail
       {
         // Note that T could be a pointer or reference to a base class while data is in fact a
         // child class. Lookup the correct type so we return an instance of the correct Ruby class
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(**data);
         bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
         return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
       }
