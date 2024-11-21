@@ -14,6 +14,12 @@ SETUP(Enum)
   embed_ruby();
 }
 
+TEARDOWN(Enum)
+{
+  Rice::detail::Registries::instance.types.clearUnverifiedTypes();
+}
+
+
 namespace
 {
   enum Color { RED, BLACK, GREEN };
@@ -404,21 +410,38 @@ namespace
 
 TESTCASE(not_defined)
 {
+  Module m = Module(rb_mKernel);
+
 #ifdef _MSC_VER
-  const char* message = "Type is not defined with Rice: enum `anonymous namespace'::Undefined";
+  const char* message = "The following types are not registered with Rice:\n  enum `anonymous namespace'::Undefined\n";
 #else
-  const char* message = "Type is not defined with Rice: (anonymous namespace)::Undefined";
+  const char* message = "The following types are not registered with Rice:\n  (anonymous namespace)::Undefined\n";
 #endif
+
+  define_global_function("undefined_arg", &undefinedArg);
 
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
-    define_global_function("undefined_arg", &undefinedArg),
+    Rice::detail::Registries::instance.types.validateUnverifiedTypes(),
     ASSERT_EQUAL(message, ex.what())
   );
 
+  define_global_function("undefined_return", &undefinedReturn);
   ASSERT_EXCEPTION_CHECK(
-    std::invalid_argument,
-    define_global_function("undefined_return", &undefinedReturn),
+    Rice::Exception,
+    m.call("undefined_return"),
+    ASSERT_EQUAL(message, ex.what())
+  );
+
+#ifdef _MSC_VER
+  message = "Type is not defined with Rice: enum `anonymous namespace'::Undefined";
+#else
+  message = "Type is not defined with Rice: (anonymous namespace)::Undefined";
+#endif
+
+  ASSERT_EXCEPTION_CHECK(
+    Rice::Exception,
+    m.call("undefined_arg", 1),
     ASSERT_EQUAL(message, ex.what())
   );
 }

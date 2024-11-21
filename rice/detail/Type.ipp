@@ -1,4 +1,5 @@
 #include "../traits/rice_traits.hpp"
+#include "Registries.hpp"
 
 #include <iosfwd>
 #include <iterator>
@@ -15,6 +16,19 @@
 
 namespace Rice::detail
 {
+  template<typename T>
+  bool Type<T>::verify()
+  {
+    if constexpr (std::is_fundamental_v<T>)
+    {
+      return true;
+    }
+    else
+    {
+      return Registries::instance.types.verify<T>();
+    }
+  }
+
   template<>
   struct Type<void>
   {
@@ -87,6 +101,11 @@ namespace Rice::detail
   inline std::string typeName(const std::type_info& typeInfo)
   {
     return demangle(typeInfo.name());
+  }
+
+  inline std::string typeName(const std::type_index& typeIndex)
+  {
+    return demangle(typeIndex.name());
   }
 
   inline std::string makeClassName(const std::type_info& typeInfo)

@@ -29,6 +29,7 @@
 #include "detail/HandlerRegistry.hpp"
 #include "detail/NativeRegistry.hpp"
 #include "detail/Registries.hpp"
+#include "detail/Type.ipp"
 #include "detail/cpp_protect.hpp"
 #include "detail/Wrapper.hpp"
 #include "detail/MethodInfo.hpp"

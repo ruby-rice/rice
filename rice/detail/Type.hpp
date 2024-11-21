@@ -3,6 +3,7 @@
 
 #include <string>
 #include <typeinfo>
+#include <typeindex>
 #include "../traits/rice_traits.hpp"
 
 namespace Rice::detail
@@ -15,6 +16,7 @@ namespace Rice::detail
 
   // Return the name of a type
   std::string typeName(const std::type_info& typeInfo);
+  std::string typeName(const std::type_index& typeIndex);
   std::string makeClassName(const std::type_info& typeInfo);
 
   template<typename T>
@@ -23,7 +25,5 @@ namespace Rice::detail
   template<typename Tuple_T>
   void verifyTypes();
 }
-
-#include "Type.ipp"
 
 #endif // Rice__Type__hpp_

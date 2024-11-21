@@ -6,6 +6,7 @@
 #include <typeindex>
 #include <typeinfo>
 #include <unordered_map>
+#include <set>
 
 #include "ruby.hpp"
 
@@ -31,14 +32,22 @@ namespace Rice::detail
     bool isDefined();
 
     template <typename T>
-    bool verifyDefined();
+    bool verify();
       
     template <typename T>
     std::pair<VALUE, rb_data_type_t*> figureType(const T& object);
 
+    // Validate unverified types and throw an exception if any exist. This is mostly for unit tests.
+    void validateUnverifiedTypes();
+    // Clear unverified types. This is mostly for unit tests
+    void clearUnverifiedTypes();
   private:
     std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
+    void raiseUnverifiedType(const std::string& typeName);
+
     std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};
+    std::set<std::type_index> unverified_{};
+    bool verified_ = true;
   };
 }
 

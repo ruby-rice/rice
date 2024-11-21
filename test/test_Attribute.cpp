@@ -14,6 +14,11 @@ SETUP(Attribute)
   embed_ruby();
 }
 
+TEARDOWN(Attribute)
+{
+  Rice::detail::Registries::instance.types.clearUnverifiedTypes();
+}
+
 namespace
 {
   class SomeClass
@@ -171,20 +176,30 @@ TESTCASE(not_defined)
   Data_Type<DataStruct> c = define_class<DataStruct>("DataStruct");
 
 #ifdef _MSC_VER
-  const char* message = "Type is not defined with Rice: class `anonymous namespace'::SomeClass";
+  const char* message = "The following types are not registered with Rice:\n  class `anonymous namespace'::SomeClass\n";
 #else
-  const char* message = "Type is not defined with Rice: (anonymous namespace)::SomeClass";
+  const char* message = "The following types are not registered with Rice:\n  (anonymous namespace)::SomeClass\n";
 #endif
+
+  c.define_singleton_attr("some_class_static", &DataStruct::someClassStatic);
 
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
-    c.define_singleton_attr("some_class_static", &DataStruct::someClassStatic),
+    Rice::detail::Registries::instance.types.validateUnverifiedTypes(),
     ASSERT_EQUAL(message, ex.what())
   );
 
   ASSERT_EXCEPTION_CHECK(
-    std::invalid_argument,
-    c.define_attr("some_class", &DataStruct::someClass),
+    Rice::Exception,
+    c.call("some_class_static"),
+    ASSERT_EQUAL(message, ex.what())
+  );
+
+  c.define_attr("some_class", &DataStruct::someClass);
+  Object o = c.call("new");
+  ASSERT_EXCEPTION_CHECK(
+    Rice::Exception,
+    o.call("some_class"),
     ASSERT_EQUAL(message, ex.what())
   );
 }
