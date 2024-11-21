@@ -113,6 +113,25 @@ namespace Rice
     {
       using type = std::tuple<T<remove_cv_recursive_t<Arg_Ts>>...>;
     };
+
+    template<class T>
+    struct is_pointer_pointer : std::false_type {};
+
+    template<class T>
+    struct is_pointer_pointer<T**> : std::true_type {};
+
+    template<class T>
+    struct is_pointer_pointer<T** const> : std::true_type {};
+
+    template<class T>
+    struct is_pointer_pointer<T* const * const> : std::true_type {};
+
+    template<class T>
+    struct is_pointer_pointer<const T* const* const> : std::true_type {};
+
+    template<class T>
+    constexpr bool is_pointer_pointer_v = is_pointer_pointer<T>::value;
+
   } // detail
 } // Rice
 
