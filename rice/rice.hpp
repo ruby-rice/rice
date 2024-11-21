@@ -54,7 +54,7 @@
 #include "Address_Registration_Guard.hpp"
 #include "global_function.hpp"
 
-// Code involed in creating custom DataTypes (ie, Ruby classes that wrap C++ classes)
+// Code involved in creating custom DataTypes (ie, Ruby classes that wrap C++ classes)
 #include "ruby_mark.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "Director.hpp"
@@ -63,6 +63,7 @@
 #include "Constructor.hpp"
 #include "Data_Object.hpp"
 #include "Enum.hpp"
+#include "MemoryView.hpp"
 
 // Dependent on Module, Class, Array and String
 #include "forward_declares.ipp"
