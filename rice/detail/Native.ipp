@@ -57,6 +57,7 @@ namespace Rice::detail
        A call from ruby of some_method(1) will exactly match both signatures, but the first one 
        will be chosen because the parameterMatch will be 1.0 for the first overload but 0.5
        for the second. */
+
     Native* native = nullptr;
 
     ID methodId;
@@ -66,55 +67,51 @@ namespace Rice::detail
       rb_raise(rb_eRuntimeError, "Cannot get method id and class for function");
     }
 
-    const std::vector<std::unique_ptr<Native>>& natives = Registries::instance.natives.lookup(klass, methodId);
-
-    if (natives.size() == 1)
+    // Execute the function but make sure to catch any C++ exceptions!
+    return cpp_protect([&]
     {
-      native = natives.front().get();
-    }
-    else if (natives.size() == 0)
-    {
-      Identifier identifier(methodId);
-      rb_raise(rb_eArgError, "Could not find method call for %s#%s", rb_class2name(klass), identifier.c_str());
-    }
-    else
-    {
-      // Loop over every native to see how well they match the Ruby parameters
-      std::vector<Resolved> resolves;
-      std::transform(natives.begin(), natives.end(), 
-        std::back_inserter(resolves), 
-        [&](const std::unique_ptr<Native>& native)
-        {
-          return native->matches(argc, argv, self);
-        });
+      const std::vector<std::unique_ptr<Native>>& natives = Registries::instance.natives.lookup(klass, methodId);
 
-      // Now sort from best to worst
-      std::sort(resolves.begin(), resolves.end(), std::greater{});
-
-      // Get the best one
-      Resolved resolved = resolves.front();
-
-      // Did it match?
-      if (resolved.convertible != Convertible::None)
+      if (natives.size() == 1)
       {
-        native = resolved.native;
+        native = natives.front().get();
+      }
+      else if (natives.size() == 0)
+      {
+        Identifier identifier(methodId);
+        rb_raise(rb_eArgError, "Could not find method call for %s#%s", rb_class2name(klass), identifier.c_str());
       }
       else
       {
-        Identifier identifier(methodId);
-        rb_raise(rb_eArgError, "Could not resolve method call for %s#%s", rb_class2name(klass), identifier.c_str());
+        // Loop over every native to see how well they match the Ruby parameters
+        std::vector<Resolved> resolves;
+        std::transform(natives.begin(), natives.end(), 
+          std::back_inserter(resolves), 
+          [&](const std::unique_ptr<Native>& native)
+          {
+            return native->matches(argc, argv, self);
+          });
+
+        // Now sort from best to worst
+        std::sort(resolves.begin(), resolves.end(), std::greater{});
+
+        // Get the best one
+        Resolved resolved = resolves.front();
+
+        // Did it match?
+        if (resolved.convertible != Convertible::None)
+        {
+          native = resolved.native;
+        }
+        else
+        {
+          Identifier identifier(methodId);
+          rb_raise(rb_eArgError, "Could not resolve method call for %s#%s", rb_class2name(klass), identifier.c_str());
+        }
       }
-    }
 
-    return native->call(argc, argv, self);
-  }
-
-  inline VALUE Native::call( int argc, VALUE* argv, VALUE self)
-  {
-    // Execute the function but make sure to catch any C++ exceptions!
-    return cpp_protect([&]
-      {
-        return this->operator()(argc, argv, self);
-      });
+      // Call the C++ function
+      return (*native)(argc, argv, self);
+    });
   }
 }
