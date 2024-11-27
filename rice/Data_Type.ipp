@@ -3,15 +3,12 @@
 
 #include "traits/attribute_traits.hpp"
 #include "traits/method_traits.hpp"
-#include "detail/NativeRegistry.hpp"
 #include "detail/NativeAttributeGet.hpp"
 #include "detail/NativeAttributeSet.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "detail/TypeRegistry.hpp"
 #include "detail/Wrapper.hpp"
 #include "detail/NativeIterator.hpp"
-#include "cpp_api/Class.hpp"
-#include "cpp_api/String.hpp"
 #include "ruby_mark.hpp"
 
 #include <stdexcept>
@@ -155,6 +152,17 @@ namespace Rice
     // Define an initialize function that will create the C++ object
     this->define_method("initialize", &Constructor_T::construct, args...);
 
+    return *this;
+  }
+
+  template<typename T>
+  template<typename Func_T>
+  Data_Type<T>& Data_Type<T>::define(Func_T func)
+  {
+    // The passed in this pointer is an RValue, so we need to keep it alive by 
+    // assigning it to a const lvalue
+    const Data_Type<T>& dummy = *this;
+    func(*this);
     return *this;
   }
 
