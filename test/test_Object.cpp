@@ -11,6 +11,11 @@ SETUP(Object)
   embed_ruby();
 }
 
+TEARDOWN(Object)
+{
+  rb_gc_start();
+}
+
 TESTCASE(default_construct)
 {
   Object o;

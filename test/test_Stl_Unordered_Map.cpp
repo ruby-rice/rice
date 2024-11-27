@@ -15,6 +15,11 @@ SETUP(UnorderedMap)
   embed_ruby();
 }
 
+TEARDOWN(UnorderedMap)
+{
+  rb_gc_start();
+}
+
 namespace
 {
 

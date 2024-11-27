@@ -289,6 +289,11 @@ SETUP(Variant)
   makeClassVariant();
 }
 
+TEARDOWN(Variant)
+{
+  rb_gc_start();
+}
+
 TESTCASE(ClassReturns)
 {
   Module m = define_module("Testing");

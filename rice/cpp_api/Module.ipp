@@ -63,7 +63,15 @@ namespace Rice
 
   inline Module anonymous_module()
   {
-    return detail::protect(rb_module_new);
+    VALUE klass = detail::protect(rb_module_new);
+    VALUE singleton = detail::protect(rb_singleton_class, klass);
+
+    // Ruby will reuse addresses previously assigned to other modules
+    // that have subsequently been garbage collected
+    detail::Registries::instance.natives.reset(klass);
+    detail::Registries::instance.natives.reset(singleton);
+
+    return klass;
   }
 }
 

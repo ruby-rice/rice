@@ -50,6 +50,11 @@ SETUP(Optional)
   makeOptionalClass();
 }
 
+TEARDOWN(Optional)
+{
+  rb_gc_start();
+}
+
 TESTCASE(OptionalReturn)
 {
   Module m = define_module("Testing");

@@ -11,6 +11,11 @@ SETUP(String)
   embed_ruby();
 }
 
+TEARDOWN(String)
+{
+  rb_gc_start();
+}
+
 TESTCASE(default_construct)
 {
   String s;

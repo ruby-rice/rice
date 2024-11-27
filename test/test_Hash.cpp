@@ -15,6 +15,11 @@ SETUP(Hash)
   embed_ruby();
 }
 
+TEARDOWN(Hash)
+{
+  rb_gc_start();
+}
+
 TESTCASE(default_construct)
 {
   Hash h;

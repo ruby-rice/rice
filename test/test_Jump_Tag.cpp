@@ -9,6 +9,11 @@ SETUP(Jump_Tag)
 {
 }
 
+TEARDOWN(Jump_Tag)
+{
+  rb_gc_start();
+}
+
 TESTCASE(construct)
 {
   Jump_Tag jump_tag(42);

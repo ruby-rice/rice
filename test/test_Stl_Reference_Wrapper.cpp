@@ -61,6 +61,11 @@ SETUP(ReferenceWrapper)
   makeReferenceWrapperClass();
 }
 
+TEARDOWN(ReferenceWrapper)
+{
+  rb_gc_start();
+}
+
 TESTCASE(Return)
 {
   Module m = define_module("Testing");

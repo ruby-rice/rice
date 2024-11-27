@@ -11,6 +11,11 @@ SETUP(Memory_Management)
   embed_ruby();
 }
 
+TEARDOWN(Memory_Management)
+{
+  rb_gc_start();
+}
+
 namespace
 {
   class TestClass {

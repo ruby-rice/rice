@@ -60,6 +60,11 @@ SETUP(Keep_Alive)
   embed_ruby();
 }
 
+TEARDOWN(Keep_Alive)
+{
+  rb_gc_start();
+}
+
 TESTCASE(test_arg)
 {
   define_class<Listener>("Listener")

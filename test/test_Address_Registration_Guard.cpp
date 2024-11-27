@@ -11,6 +11,11 @@ SETUP(Address_Registration_Guard)
   embed_ruby();
 }
 
+TEARDOWN(Address_Registration_Guard)
+{
+  rb_gc_start();
+}
+
 TESTCASE(register_address)
 {
   VALUE v = Qnil;

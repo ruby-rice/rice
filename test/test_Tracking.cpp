@@ -87,6 +87,7 @@ SETUP(Tracking)
 TEARDOWN(Tracking)
 {
   detail::Registries::instance.instances.isEnabled = true;
+  rb_gc_start();
 }
 
 TESTCASE(TransferPointer)

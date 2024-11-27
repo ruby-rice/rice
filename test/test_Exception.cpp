@@ -11,6 +11,11 @@ SETUP(Exception)
   embed_ruby();
 }
 
+TEARDOWN(Exception)
+{
+  rb_gc_start();
+}
+
 TESTCASE(construct_from_exception_object)
 {
   VALUE v = detail::protect(rb_exc_new2, rb_eRuntimeError, "foo");

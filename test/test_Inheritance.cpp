@@ -80,6 +80,11 @@ SETUP(Inheritance)
   Data_Type<PushNotification>::unbind();
 }
 
+TEARDOWN(Inheritance)
+{
+  rb_gc_start();
+}
+
 TESTCASE(return_base_pointer)
 {
   Class rcNotification = define_class<Notification>("Notification");

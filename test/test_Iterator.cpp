@@ -11,6 +11,11 @@ SETUP(Iterator)
   embed_ruby();
 }
 
+TEARDOWN(Iterator)
+{
+  rb_gc_start();
+}
+
 namespace
 {
   class Container

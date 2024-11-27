@@ -15,6 +15,11 @@ SETUP(StlStringView)
   embed_ruby();
 }
 
+TEARDOWN(StlStringView)
+{
+  rb_gc_start();
+}
+
 TESTCASE(std_string_view_to_ruby)
 {
   ASSERT(rb_equal(String("").value(), detail::to_ruby(std::string_view(""))));

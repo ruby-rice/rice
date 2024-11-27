@@ -14,6 +14,11 @@ SETUP(Pair)
   embed_ruby();
 }
 
+TEARDOWN(Pair)
+{
+  rb_gc_start();
+}
+
 TESTCASE(CreatePair)
 {
   Module m = define_module("Testing");

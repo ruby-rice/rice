@@ -11,6 +11,11 @@ SETUP(Class)
   embed_ruby();
 }
 
+TEARDOWN(Class)
+{
+  rb_gc_start();
+}
+
 TESTCASE(construct)
 {
   Class c(rb_cObject);

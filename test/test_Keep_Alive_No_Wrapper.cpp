@@ -56,6 +56,11 @@ SETUP(Keep_Alive_No_Wrapper)
   embed_ruby();
 }
 
+TEARDOWN(Keep_Alive_No_Wrapper)
+{
+  rb_gc_start();
+}
+
 TESTCASE(test_keep_alive_no_wrapper)
 {
   define_class<Animal>("Animal")

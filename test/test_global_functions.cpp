@@ -11,6 +11,11 @@ SETUP(GlobalFunction)
   embed_ruby();
 }
 
+TEARDOWN(GlobalFunctions)
+{
+  rb_gc_start();
+}
+
 namespace {
 
   bool no_args()

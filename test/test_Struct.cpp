@@ -24,6 +24,11 @@ SETUP(Struct)
   embed_ruby();
 }
 
+TEARDOWN(Struct)
+{
+  rb_gc_start();
+}
+
 TESTCASE(default_construct)
 {
   Struct s;

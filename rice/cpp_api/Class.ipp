@@ -24,7 +24,6 @@ namespace Rice
     return std::string(buffer);
   }
 
-
   inline Class define_class_under(Object module, char const* name, const Class& superclass)
   {
     VALUE klass = detail::protect(rb_define_class_under, module.value(), name, superclass.value());
@@ -47,7 +46,15 @@ namespace Rice
 
   inline Class anonymous_class()
   {
-    return detail::protect(rb_class_new, rb_cObject);
+    VALUE klass = detail::protect(rb_class_new, rb_cObject);
+    VALUE singleton = detail::protect(rb_singleton_class, klass);
+
+    // Ruby will reuse addresses previously assigned to other modules
+    // that have subsequently been garbage collected
+    detail::Registries::instance.natives.reset(klass);
+    detail::Registries::instance.natives.reset(singleton);
+
+    return klass;
   }
 }
 

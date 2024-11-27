@@ -11,6 +11,11 @@ SETUP(Symbol)
   embed_ruby();
 }
 
+TEARDOWN(Symbol)
+{
+  rb_gc_start();
+}
+
 TESTCASE(construct_from_symbol)
 {
   VALUE v = ID2SYM(rb_intern("foo"));
