@@ -1319,9 +1319,53 @@ namespace Rice::detail
         return charFromRuby<unsigned char>(value);
       }
     }
-  
+
   private:
     Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class From_Ruby<unsigned char&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+      case RUBY_T_STRING:
+        return Convertible::Exact;
+        break;
+        // This is for C++ chars which are converted to Ruby integers
+      case RUBY_T_FIXNUM:
+        return Convertible::TypeCast;
+        break;
+      default:
+        return Convertible::None;
+      }
+    }
+
+    unsigned char& convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<unsigned char>();
+      }
+      else
+      {
+        this->converted_  = charFromRuby<unsigned char>(value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    unsigned char converted_ = 0;
   };
 
   template<>
