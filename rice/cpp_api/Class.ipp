@@ -18,6 +18,12 @@ namespace Rice
     return *this;
   }
 
+  template<typename ...Arg_Ts>
+  inline Object Class::create(Arg_Ts ...args)
+  {
+    return this->call("new", args...);
+  }
+
   inline const std::string Class::name()
   {
     const char* buffer = rb_class2name(this->value());

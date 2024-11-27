@@ -44,6 +44,20 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
+  To_Ruby<typename NativeFunction<Class_T, Function_T, IsMethod>::To_Ruby_T> NativeFunction<Class_T, Function_T, IsMethod>::createToRuby()
+  {
+    // Does the From_Ruby instantiation work with ReturnInfo?
+    if constexpr (std::is_constructible_v<To_Ruby<To_Ruby_T>, Return*>)
+    {
+      return To_Ruby<To_Ruby_T>(&this->methodInfo_->returnInfo);
+    }
+    else
+    {
+      return To_Ruby<To_Ruby_T>();
+    }
+  }
+
+  template<typename Class_T, typename Function_T, bool IsMethod>
   template<typename T, std::size_t I>
   From_Ruby<T> NativeFunction<Class_T, Function_T, IsMethod>::createFromRuby()
   {
@@ -55,20 +69,6 @@ namespace Rice::detail
     else
     {
       return From_Ruby<T>();
-    }
-  }
-
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  To_Ruby<typename NativeFunction<Class_T, Function_T, IsMethod>::To_Ruby_T> NativeFunction<Class_T, Function_T, IsMethod>::createToRuby()
-  {
-    // Does the From_Ruby instantiation work with ReturnInfo?
-    if constexpr (std::is_constructible_v<To_Ruby<To_Ruby_T>, Return*>)
-    {
-      return To_Ruby<To_Ruby_T>(&this->methodInfo_->returnInfo);
-    }
-    else
-    {
-      return To_Ruby<To_Ruby_T>();
     }
   }
 

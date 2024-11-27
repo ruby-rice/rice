@@ -17,6 +17,8 @@ namespace Rice
     static_assert(std::is_same_v<detail::intrinsic_type<T>, T>);
 
   public:
+    using type = T;
+
     //! Default constructor which does not bind.
     /*! No member functions must be called on this Data_Type except bind,
      *  until the type is bound.
@@ -65,7 +67,28 @@ namespace Rice
      *  \endcode
      */
     template<typename Constructor_T, typename...Arg_Ts>
-    Data_Type<T> & define_constructor(Constructor_T constructor, Arg_Ts const& ...args);
+    Data_Type<T>& define_constructor(Constructor_T constructor, Arg_Ts const& ...args);
+
+    /*! Runs a function that should define this Data_Types methods and attributes.
+     *  This is useful when creating classes from a C++ class template.
+     *
+     *  \param builder A function that addes methods/attributes to this class
+     *
+     *  For example:
+     *  \code
+     *    void builder(Data_Type<Matrix<T, R, C>>& klass)
+     *    {
+     *      klass.define_method...
+     *      return klass;
+     *    }
+     *
+     *    define_class<<Matrix<T, R, C>>>("Matrix")
+     *      .build(&builder);
+     *
+     *  \endcode
+     */
+    template<typename Func_T>
+    Data_Type<T>& define(Func_T func);
 
     //! Register a Director class for this class.
     /*! For any class that uses Rice::Director to enable polymorphism
@@ -133,7 +156,7 @@ namespace Rice
      *  \return *this
      */
     template <typename Base_T = void>
-    static Data_Type bind(const Module& klass);
+    static Data_Type<T> bind(const Module& klass);
 
     template<typename T_, typename Base_T_>
     friend Rice::Data_Type<T_> define_class_under(Object module, char const * name);
@@ -183,7 +206,7 @@ namespace Rice
    */
   template<typename T, typename Base_T = void>
   Data_Type<T> define_class(char const* name);
-} // namespace Rice
+}
 
 #include "Data_Type.ipp"
 
