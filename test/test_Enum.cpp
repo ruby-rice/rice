@@ -17,6 +17,7 @@ SETUP(Enum)
 TEARDOWN(Enum)
 {
   Rice::detail::Registries::instance.types.clearUnverifiedTypes();
+  rb_gc_start();
 }
 
 

@@ -8,6 +8,16 @@ using namespace Rice;
 
 TESTSUITE(Director);
 
+SETUP(Director)
+{
+  embed_ruby();
+}
+
+TEARDOWN(Director)
+{
+  rb_gc_start();
+}
+
 namespace {
   /**
    * Abstract base class
@@ -92,11 +102,6 @@ namespace {
       }
   };
 };
-
-SETUP(Director)
-{
-  embed_ruby();
-}
 
 TESTCASE(exposes_worker_as_instantiatable_class)
 {

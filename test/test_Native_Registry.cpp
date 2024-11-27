@@ -13,6 +13,11 @@ SETUP(NativeRegistry)
   embed_ruby();
 }
 
+TEARDOWN(NativeRegistry)
+{
+  rb_gc_start();
+}
+
 TESTCASE(collisions)
 {
   std::array<Class, 100> classes;

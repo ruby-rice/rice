@@ -48,7 +48,7 @@ SETUP(Data_Object)
   if (!Data_Type<MyDataType>::is_bound())
   {
     Class object(rb_cObject);
-    if(object.const_defined("MyDataType"))
+    if (object.const_defined("MyDataType"))
     {
       object.remove_const("MyDataType");
     }
@@ -56,6 +56,11 @@ SETUP(Data_Object)
     define_class<MyDataType>("MyDataType");
     define_class<Bar>("Bar");
   }
+}
+
+TEARDOWN(Data_Object)
+{
+  rb_gc_start();
 }
 
 TESTCASE(construct_from_pointer)

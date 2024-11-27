@@ -12,6 +12,11 @@ SETUP(Construtor)
   embed_ruby();
 }
 
+TEARDOWN(Constructor)
+{
+  rb_gc_start();
+}
+
 namespace
 {
   class Default_Constructible

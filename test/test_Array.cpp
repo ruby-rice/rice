@@ -24,6 +24,11 @@ SETUP(Array)
   embed_ruby();
 }
 
+TEARDOWN(Array)
+{
+  rb_gc_start();
+}
+
 TESTCASE(default_construct)
 {
   Array a;

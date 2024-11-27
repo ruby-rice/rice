@@ -131,6 +131,11 @@ SETUP(Ownership)
     define_method("keep_reference", &Factory::keepReference);
 }
 
+TEARDOWN(Ownership)
+{
+  rb_gc_start();
+}
+
 TESTCASE(TransferPointer)
 {
   Factory::reset();

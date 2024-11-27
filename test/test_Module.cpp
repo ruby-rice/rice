@@ -13,6 +13,11 @@ SETUP(Module)
   embed_ruby();
 }
 
+TEARDOWN(Module)
+{
+  rb_gc_start();
+}
+
 TESTCASE(FromConstant)
 {
   Module m(rb_mEnumerable);

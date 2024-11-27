@@ -15,6 +15,11 @@ SETUP(Map)
   embed_ruby();
 }
 
+TEARDOWN(Map)
+{
+  rb_gc_start();
+}
+
 namespace
 {
 

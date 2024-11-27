@@ -14,6 +14,11 @@ SETUP(Vector)
   embed_ruby();
 }
 
+TEARDOWN(Vector)
+{
+  rb_gc_start();
+}
+
 namespace
 {
   class MyClass

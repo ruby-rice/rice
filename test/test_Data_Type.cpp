@@ -17,6 +17,7 @@ SETUP(Data_Type)
 TEARDOWN(Data_Type)
 {
   Rice::detail::Registries::instance.types.clearUnverifiedTypes();
+  rb_gc_start();
 }
 
 namespace

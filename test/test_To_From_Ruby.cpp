@@ -14,6 +14,11 @@ SETUP(To_From_Ruby)
   embed_ruby();
 }
 
+TEARDOWN(To_From_Ruby)
+{
+  rb_gc_start();
+}
+
 TESTCASE(object_to_ruby)
 {
   Object o(rb_str_new2("foo"));

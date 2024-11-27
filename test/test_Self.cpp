@@ -89,6 +89,11 @@ SETUP(Self)
       });
 }
 
+TEARDOWN(Self)
+{
+  rb_gc_start();
+}
+
 TESTCASE(SelfPointer)
 {
   SelfClass::reset();

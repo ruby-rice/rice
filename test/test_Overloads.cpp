@@ -12,6 +12,11 @@ SETUP(Overloads)
   embed_ruby();
 }
 
+TEARDOWN(Overloads)
+{
+  rb_gc_start();
+}
+
 namespace
 {
   std::string run()
