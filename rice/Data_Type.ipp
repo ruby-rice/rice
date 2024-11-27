@@ -191,8 +191,8 @@ namespace Rice
   {
     if (!is_bound())
     {
-      std::string message = "Type " + detail::typeName(typeid(T)) + " is not bound";
-      throw std::runtime_error(message.c_str());
+      std::string message = "Type is not defined with Rice: " + detail::typeName(typeid(T));
+      throw std::invalid_argument(message.c_str());
     }
   }
 

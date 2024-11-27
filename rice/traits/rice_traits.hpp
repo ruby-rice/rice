@@ -10,9 +10,10 @@ namespace Rice
 {
   namespace detail
   {
-    // Get the base_type of T - without pointer, reference, const or volatile
+    // Get the base_type of T - without pointer, reference, const or volatile. We call remove_pointer_t twice 
+    // for T**
     template<typename T>
-    using intrinsic_type = typename std::remove_cv_t<std::remove_pointer_t<std::remove_reference_t<T>>>;
+    using intrinsic_type = typename std::remove_cv_t<std::remove_pointer_t<std::remove_pointer_t<std::remove_reference_t<T>>>>;
 
     // Recursively remove const/volatile
     template<typename T>

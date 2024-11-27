@@ -1,4 +1,6 @@
 #include <stdexcept>
+#include <sstream>
+#include <typeindex>
 
 #include "ruby.hpp"
 #include "../traits/rice_traits.hpp"
@@ -45,14 +47,20 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline bool TypeRegistry::verifyDefined()
+  inline bool TypeRegistry::verify()
   {
-    if (!isDefined<T>())
+    if (isDefined<T>())
     {
-      std::string message = "Type is not defined with Rice: " + detail::typeName(typeid(T));
-      throw std::invalid_argument(message);
+      return true;
     }
-    return true;
+    else
+    {
+      const std::type_info& typeInfo = typeid(T);
+      std::type_index key(typeInfo);
+      this->unverified_.insert(key);
+      this->verified_ = false;
+      return false;
+    }
   }
 
   inline std::optional<std::pair<VALUE, rb_data_type_t*>> TypeRegistry::lookup(const std::type_info& typeInfo)
@@ -73,6 +81,11 @@ namespace Rice::detail
   template <typename T>
   inline std::pair<VALUE, rb_data_type_t*> TypeRegistry::figureType(const T& object)
   {
+    if (!this->verified_)
+    {
+      this->validateUnverifiedTypes();
+    }
+
     // First check and see if the actual type of the object is registered
     std::optional<std::pair<VALUE, rb_data_type_t*>> result = lookup(typeid(object));
 
@@ -84,14 +97,61 @@ namespace Rice::detail
     // If not, then we are willing to accept an ancestor class specified by T. This is needed
     // to support Directors. Classes inherited from Directors are never actually registered
     // with Rice - and what we really want it to return the C++ class they inherit from.
-    result = lookup(typeid(T));
+    const std::type_info& typeInfo = typeid(T);
+    result = lookup(typeInfo);
     if (result)
     {
       return result.value();
     }
 
-    // Give up!
-    std::string message = "Type " + typeName(typeid(object)) + " is not registered";
-    throw std::runtime_error(message.c_str());
+    raiseUnverifiedType(detail::typeName(typeInfo));
+    // Make the compiler happy
+    return std::pair<VALUE, rb_data_type_t*>(Qnil, nullptr);
+  }
+
+  inline void TypeRegistry::validateUnverifiedTypes()
+  {
+    // Loop over the unverified types and delete each on that is found in the registry
+    // the registry and raise an exception for the first one that is not
+    for (auto iter = this->unverified_.begin(); iter != this->unverified_.end(); )
+    {
+      const std::type_index& typeIndex = *iter;
+      bool isDefined = this->registry_.find(typeIndex) != this->registry_.end();
+      if (isDefined)
+      {
+        iter = this->unverified_.erase(iter);
+      }
+      else
+      {
+        iter++;
+      }
+    }
+
+    if (this->unverified_.empty())
+    {
+      this->verified_ = true;
+      return;
+    }
+
+    std::stringstream stream;
+    stream << "The following types are not registered with Rice:" << "\n";
+
+    for (const std::type_index& typeIndex : this->unverified_)
+    {
+      stream << "  " << typeName(typeIndex) << "\n";
+    }
+
+    throw std::invalid_argument(stream.str());
+  }
+
+  inline void TypeRegistry::clearUnverifiedTypes()
+  {
+    this->unverified_.clear();
+  }
+
+  inline void TypeRegistry::raiseUnverifiedType(const std::string& typeName)
+  {
+    std::string message = "Type is not registered with Rice: " + typeName;
+    throw std::invalid_argument(message);
   }
 }

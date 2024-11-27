@@ -14,6 +14,11 @@ SETUP(Data_Type)
   embed_ruby();
 }
 
+TEARDOWN(Data_Type)
+{
+  Rice::detail::Registries::instance.types.clearUnverifiedTypes();
+}
+
 namespace
 {
   class MyClass
@@ -618,39 +623,77 @@ TESTCASE(pointerToPointer)
 
 namespace
 {
-  class SomeClass
+  class UnknownClass
   {
   };
 
-  void undefinedArg(SomeClass& someClass)
+  void undefinedArg(UnknownClass unknownClass)
   {
   }
 
-  SomeClass undefinedReturn()
+  void undefinedArg(UnknownClass& unknownClass)
   {
-    return SomeClass();
+  }
+
+  void undefinedArg(UnknownClass* unknownClass)
+  {
+  }
+
+  UnknownClass undefinedReturn()
+  {
+    return UnknownClass();
   }
 }
 
 TESTCASE(not_defined)
 {
+  Module m = Module(rb_mKernel);
+
 #ifdef _MSC_VER
-  const char* message = "Type is not defined with Rice: class `anonymous namespace'::SomeClass";
+  const char* message = "The following types are not registered with Rice:\n  class `anonymous namespace'::UnknownClass\n";
 #else
-  const char* message = "Type is not defined with Rice: (anonymous namespace)::SomeClass";
+  const char* message = "The following types are not registered with Rice:\n  (anonymous namespace)::UnknownClass\n";
 #endif
-    
-    ASSERT_EXCEPTION_CHECK(
-    std::invalid_argument,
-    define_global_function("undefined_arg", &undefinedArg),
+
+  define_global_function("undefined_return", &undefinedReturn);
+  ASSERT_EXCEPTION_CHECK(
+    Rice::Exception,
+    m.call("undefined_return"),
     ASSERT_EQUAL(message, ex.what())
   );
 
+  define_global_function<void(*)(UnknownClass)>("undefined_arg_value", &undefinedArg);
+
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
-    define_global_function("undefined_return", &undefinedReturn),
+    Rice::detail::Registries::instance.types.validateUnverifiedTypes(),
     ASSERT_EQUAL(message, ex.what())
   );
+
+#ifdef _MSC_VER
+  message = "Type is not defined with Rice: class `anonymous namespace'::UnknownClass";
+#else
+  message = "Type is not defined with Rice: (anonymous namespace)::UnknownClass";
+#endif
+
+  ASSERT_EXCEPTION_CHECK(
+    Rice::Exception,
+    m.call("undefined_arg_value", nullptr),
+    ASSERT_EQUAL(message, ex.what())
+  );
+
+  define_global_function<void(*)(UnknownClass)>("undefined_arg_reference", &undefinedArg);
+
+  ASSERT_EXCEPTION_CHECK(
+    Rice::Exception,
+    m.call("undefined_arg_reference", nullptr),
+    ASSERT_EQUAL(message, ex.what())
+  );
+
+  define_global_function<void(*)(UnknownClass*)>("undefined_arg_pointer", &undefinedArg);
+  
+  // This actually works because we pass a nullptr
+  m.call("undefined_arg_pointer", nullptr);
 }
 
 namespace
