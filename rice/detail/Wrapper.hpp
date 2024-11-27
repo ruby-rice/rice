@@ -11,11 +11,16 @@ namespace detail
 class Wrapper
 {
 public:
+  Wrapper(bool isOwner = false);
   virtual ~Wrapper() = default;
   virtual void* get() = 0;
 
   void ruby_mark();
   void addKeepAlive(VALUE value);
+  void setOwner(bool value);
+
+protected:
+  bool isOwner_ = false;
 
 private:
   // We use a vector for speed and memory locality versus a set which does
@@ -31,7 +36,7 @@ template <typename T, typename Wrapper_T = void>
 VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner);
 
 template <typename T>
-T* unwrap(VALUE value, rb_data_type_t* rb_type);
+T* unwrap(VALUE value, rb_data_type_t* rb_type, bool transferOwnership);
 
 Wrapper* getWrapper(VALUE value, rb_data_type_t* rb_type);
 

@@ -3,6 +3,10 @@
 
 namespace Rice::detail
 {
+  inline Wrapper::Wrapper(bool isOwner): isOwner_(isOwner)
+  {
+  }
+
   inline void Wrapper::ruby_mark()
   {
     for (VALUE value : this->keepAlive_)
@@ -14,6 +18,11 @@ namespace Rice::detail
   inline void Wrapper::addKeepAlive(VALUE value)
   {
     this->keepAlive_.push_back(value);
+  }
+
+  inline void Wrapper::setOwner(bool value)
+  {
+    this->isOwner_ = value;
   }
 
   template <typename T>
@@ -64,7 +73,7 @@ namespace Rice::detail
   class WrapperPointer : public Wrapper
   {
   public:
-    WrapperPointer(T* data, bool isOwner) : data_(data), isOwner_(isOwner)
+    WrapperPointer(T* data, bool isOwner) : Wrapper(isOwner), data_(data)
     {
     }
 
@@ -88,7 +97,6 @@ namespace Rice::detail
 
   private:
     T* data_ = nullptr;
-    bool isOwner_ = false;
   };
 
   // ---- Helper Functions -------
@@ -159,9 +167,11 @@ namespace Rice::detail
   };
 
   template <typename T>
-  inline T* unwrap(VALUE value, rb_data_type_t* rb_type)
+  inline T* unwrap(VALUE value, rb_data_type_t* rb_type, bool transferOwnership)
   {
     Wrapper* wrapper = getWrapper(value, rb_type);
+    if (transferOwnership)
+      wrapper->setOwner(false);
 
     if (wrapper == nullptr)
     {
@@ -182,6 +192,19 @@ namespace Rice::detail
     return wrapper;
   }
 
+  inline Wrapper* getWrapper(VALUE value)
+  {
+    // Turn off spurious warning on g++ 12
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
+    return RTYPEDDATA_P(value) ? static_cast<Wrapper*>(RTYPEDDATA_DATA(value)) : nullptr;
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+  }
+
   template <typename T>
   inline void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner)
   {
@@ -197,18 +220,5 @@ namespace Rice::detail
     RTYPEDDATA_DATA(value) = wrapper;
 
     Registries::instance.instances.add(data, value);
-  }
-
-  inline Wrapper* getWrapper(VALUE value)
-  {
-    // Turn off spurious warning on g++ 12
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-#endif
-    return RTYPEDDATA_P(value) ? static_cast<Wrapper*>(RTYPEDDATA_DATA(value)) : nullptr;
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
   }
 } // namespace

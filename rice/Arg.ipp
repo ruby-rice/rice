@@ -47,4 +47,17 @@ namespace Rice
   {
     return isValue_;
   }
+
+  inline Arg& Arg::transferOwnership()
+  {
+    this->isTransfer_ = true;
+    return *this;
+  }
+
+  inline bool Arg::isTransfer()
+  {
+    return this->isTransfer_;
+  }
+
+
 } // Rice
