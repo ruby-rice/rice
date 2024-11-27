@@ -32,6 +32,10 @@ namespace Rice
      */
     Class & undef_creation_funcs();
 
+    // Create a new instance
+    template<typename ...Arg_Ts>
+    Object create(Arg_Ts ...args);
+
     //! Class name
     /*! \return std::string.
      */
