@@ -11,6 +11,11 @@ SETUP(Identifier)
   embed_ruby();
 }
 
+TEARDOWN(Identifier)
+{
+  rb_gc_start();
+}
+
 TESTCASE(construct_from_id)
 {
   ID id = rb_intern("foo");

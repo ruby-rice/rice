@@ -126,6 +126,11 @@ SETUP(SmartPointer)
       Arg("myClass") = std::make_shared<MyClass>());
 }
 
+TEARDOWN(SmartPointer)
+{
+  rb_gc_start();
+}
+
 TESTCASE(TransferOwnership)
 {
   MyClass::reset();

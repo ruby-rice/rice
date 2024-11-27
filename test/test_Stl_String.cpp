@@ -15,6 +15,11 @@ SETUP(StlString)
   embed_ruby();
 }
 
+TEARDOWN(StlString)
+{
+  rb_gc_start();
+}
+
 TESTCASE(std_string_to_ruby)
 {
   ASSERT(rb_equal(String("").value(), detail::to_ruby(std::string(""))));
