@@ -69,7 +69,7 @@ TESTCASE(construct_from_pointer)
   Data_Object<MyDataType> wrapped_foo(myDataType);
   ASSERT_EQUAL(myDataType, wrapped_foo.get());
   ASSERT_EQUAL(Data_Type<MyDataType>::klass(), wrapped_foo.class_of());
-  ASSERT_EQUAL(myDataType, detail::unwrap<MyDataType>(wrapped_foo, Data_Type<MyDataType>::ruby_data_type()));
+  ASSERT_EQUAL(myDataType, detail::unwrap<MyDataType>(wrapped_foo, Data_Type<MyDataType>::ruby_data_type(), false));
 }
 
 TESTCASE(construct_from_ruby_object)
@@ -81,7 +81,7 @@ TESTCASE(construct_from_ruby_object)
   ASSERT_EQUAL(myDataType, data_object_foo.get());
   ASSERT_EQUAL(Data_Type<MyDataType>::klass(), data_object_foo.class_of());
   ASSERT_EQUAL(RTYPEDDATA(wrapped_foo), RTYPEDDATA(data_object_foo.value()));
-  ASSERT_EQUAL(myDataType, detail::unwrap<MyDataType>(wrapped_foo, Data_Type<MyDataType>::ruby_data_type()));
+  ASSERT_EQUAL(myDataType, detail::unwrap<MyDataType>(wrapped_foo, Data_Type<MyDataType>::ruby_data_type(), false));
 }
 
 TESTCASE(construct_from_ruby_object_and_wrong_class)
@@ -110,7 +110,7 @@ TESTCASE(copy_construct)
   ASSERT_EQUAL(myDataType, data_object_foo.get());
   ASSERT_EQUAL(Data_Type<MyDataType>::klass(), data_object_foo.class_of());
   ASSERT_EQUAL(RTYPEDDATA(wrapped_foo), RTYPEDDATA(data_object_foo.value()));
-  ASSERT_EQUAL(myDataType, detail::unwrap<MyDataType>(wrapped_foo, Data_Type<MyDataType>::ruby_data_type()));
+  ASSERT_EQUAL(myDataType, detail::unwrap<MyDataType>(wrapped_foo, Data_Type<MyDataType>::ruby_data_type(), false));
 }
 
 TESTCASE(move_construct)

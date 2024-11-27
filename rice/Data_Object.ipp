@@ -65,16 +65,16 @@ namespace Rice
     }
     else
     {
-      return detail::unwrap<T>(this->value(), Data_Type<T>::ruby_data_type());
+      return detail::unwrap<T>(this->value(), Data_Type<T>::ruby_data_type(), false);
     }
   }
 
   template<typename T>
-  inline T* Data_Object<T>::from_ruby(VALUE value)
+  inline T* Data_Object<T>::from_ruby(VALUE value, bool transferOwnership)
   {
     if (Data_Type<T>::is_descendant(value))
     {
-      return detail::unwrap<T>(value, Data_Type<T>::ruby_data_type());
+      return detail::unwrap<T>(value, Data_Type<T>::ruby_data_type(), transferOwnership);
     }
     else
     {
@@ -356,7 +356,7 @@ namespace Rice::detail
       }
       else
       {
-        return *Data_Object<Intrinsic_T>::from_ruby(value);
+        return *Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isTransfer());
       }
     }
 
@@ -398,7 +398,7 @@ namespace Rice::detail
       }
       else
       {
-        return *Data_Object<Intrinsic_T>::from_ruby(value);
+        return *Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isTransfer());
       }
     }
 
@@ -440,7 +440,7 @@ namespace Rice::detail
       }
       else
       {
-        return std::move(*Data_Object<Intrinsic_T>::from_ruby(value));
+        return std::move(*Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isTransfer()));
       }
     }
 
@@ -454,6 +454,12 @@ namespace Rice::detail
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -479,9 +485,12 @@ namespace Rice::detail
       }
       else
       {
-        return Data_Object<Intrinsic_T>::from_ruby(value);
+        return Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isTransfer());
       }
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -490,6 +499,12 @@ namespace Rice::detail
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -512,9 +527,12 @@ namespace Rice::detail
       }
       else
       {
-        return Data_Object<Intrinsic_T>::from_ruby(value);
+        return Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isTransfer());
       }
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -523,6 +541,12 @@ namespace Rice::detail
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -545,9 +569,12 @@ namespace Rice::detail
       }
       else
       {
-        return detail::unwrap<Intrinsic_T*>(value, Data_Type<T>::ruby_data_type());
+        return detail::unwrap<Intrinsic_T*>(value, Data_Type<T>::ruby_data_type(), false);
       }
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -566,6 +593,12 @@ namespace Rice::detail
   class From_Ruby<void*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -591,7 +624,7 @@ namespace Rice::detail
           // Since C++ is not telling us type information, we need to extract it
           // from the Ruby object.
           const rb_data_type_t* rb_type = RTYPEDDATA_TYPE(value);
-          return detail::unwrap<void>(value, (rb_data_type_t*)rb_type);
+          return detail::unwrap<void>(value, (rb_data_type_t*)rb_type, this->arg_ && this->arg_->isTransfer());
           break;
         }
         case RUBY_T_NIL:
@@ -602,6 +635,8 @@ namespace Rice::detail
             detail::protect(rb_obj_classname, value), "pointer");
       }
     }
+  private:
+    Arg* arg_ = nullptr;
   };
 }
 #endif // Rice__Data_Object__ipp_

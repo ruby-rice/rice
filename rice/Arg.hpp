@@ -67,6 +67,10 @@ namespace Rice
     //! Returns if the argument should be treated as a value
     bool isValue() const;
 
+    //! Specifies C++ will take ownership of this value and Ruby shoudl not fee it
+    Arg& transferOwnership();
+    bool isTransfer();
+
   public:
     const std::string name;
     int32_t position = -1;
@@ -76,6 +80,7 @@ namespace Rice
     std::any defaultValue_;
     bool isValue_ = false;
     bool isKeepAlive_ = false;
+    bool isTransfer_ = false;
   };
 } // Rice
 

@@ -74,7 +74,7 @@ namespace
     }
 
   public:
-    MyClass* transferPointer()
+    MyClass* transferPointerToRuby()
     {
       return new MyClass();
     }
@@ -99,6 +99,11 @@ namespace
       return std::move(MyClass());
     }
 
+    void transferPointerToCpp(MyClass* myClass)
+    {
+      delete myClass;
+    }
+
     MyClass* instance()
     {
       if (!instance_)
@@ -118,6 +123,7 @@ SETUP(Ownership)
   embed_ruby();
 
   define_class<MyClass>("MyClass").
+    define_constructor(Constructor<MyClass>()).
     define_method("process", &MyClass::process).
     define_method("set_flag", &MyClass::setFlag);
 
@@ -125,7 +131,8 @@ SETUP(Ownership)
     define_constructor(Constructor<Factory>()).
     define_method("value", &Factory::value).
     define_method("move_value", &Factory::moveValue).
-    define_method("transfer_pointer", &Factory::transferPointer, Return().takeOwnership()).
+    define_method("transfer_pointer_to_ruby", &Factory::transferPointerToRuby, Return().takeOwnership()).
+    define_method("transfer_pointer_to_cpp", &Factory::transferPointerToCpp, Arg("myClass").transferOwnership()).
     define_method("keep_pointer", &Factory::keepPointer).
     define_method("copy_reference", &Factory::keepReference, Return().takeOwnership()).
     define_method("keep_reference", &Factory::keepReference);
@@ -136,7 +143,7 @@ TEARDOWN(Ownership)
   rb_gc_start();
 }
 
-TESTCASE(TransferPointer)
+TESTCASE(TransferPointerToRuby)
 {
   Factory::reset();
   MyClass::reset();
@@ -145,7 +152,7 @@ TESTCASE(TransferPointer)
 
   std::string code = R"(factory = Factory.new
                         10.times do |i|
-                          my_class = factory.transfer_pointer
+                          my_class = factory.transfer_pointer_to_ruby
                           my_class.set_flag(i)
                           my_class = nil
                         end)";
@@ -158,6 +165,23 @@ TESTCASE(TransferPointer)
   ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
   ASSERT_EQUAL(10, MyClass::destructorCalls);
   ASSERT(!Factory::instance_);
+}
+
+TESTCASE(TransferPointerToCpp)
+{
+  Factory::reset();
+  MyClass::reset();
+
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(myClass = MyClass.new
+                        factory = Factory.new
+                        factory.transfer_pointer_to_cpp(myClass))";
+
+  m.module_eval(code);
+  rb_gc_start();
+
+  ASSERT(true);
 }
 
 TESTCASE(KeepPointer)
