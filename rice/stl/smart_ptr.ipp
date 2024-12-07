@@ -36,12 +36,11 @@ namespace Rice::detail
   class To_Ruby<std::unique_ptr<T>>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
+
     VALUE convert(std::unique_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-
-      // Use custom wrapper type 
-      using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
       return detail::wrap<std::unique_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
   };
@@ -50,13 +49,51 @@ namespace Rice::detail
   class To_Ruby<std::unique_ptr<T>&>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
+
     VALUE convert(std::unique_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-
-      // Use custom wrapper type 
-      using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
       return detail::wrap<std::unique_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
+  };
+
+  template <typename T>
+  class From_Ruby<std::unique_ptr<T>>
+  {
+  public:
+    using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
+
+    Wrapper_T* is_same_smart_ptr(VALUE value)
+    {
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+      return dynamic_cast<Wrapper_T*>(wrapper);
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      if (!is_same_smart_ptr(value))
+        return Convertible::None;
+
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
+    std::unique_ptr<T> convert(VALUE value)
+    {
+      Wrapper_T* smartWrapper = is_same_smart_ptr(value);
+      if (!smartWrapper)
+      {
+        std::string message = "Invalid smart pointer wrapper";
+        throw std::runtime_error(message.c_str());
+      }
+      return std::move(smartWrapper->data());
     }
   };
 
@@ -64,8 +101,19 @@ namespace Rice::detail
   class From_Ruby<std::unique_ptr<T>&>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
+
+    Wrapper_T* is_same_smart_ptr(VALUE value)
+    {
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+      return dynamic_cast<Wrapper_T*>(wrapper);
+    }
+
     Convertible is_convertible(VALUE value)
     {
+      if (!is_same_smart_ptr(value))
+        return Convertible::None;
+
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
@@ -78,10 +126,7 @@ namespace Rice::detail
 
     std::unique_ptr<T>& convert(VALUE value)
     {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-
-      using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
-      Wrapper_T* smartWrapper = dynamic_cast<Wrapper_T*>(wrapper);
+      Wrapper_T* smartWrapper = is_same_smart_ptr(value);
       if (!smartWrapper)
       {
         std::string message = "Invalid smart pointer wrapper";
@@ -105,13 +150,25 @@ namespace Rice::detail
   class To_Ruby<std::shared_ptr<T>>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
+
     VALUE convert(std::shared_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-
-      // Use custom wrapper type 
-      using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
       return detail::wrap<std::shared_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
+  };
+
+  template <>
+  class To_Ruby<std::shared_ptr<void>>
+  {
+  public:
+    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, void>;
+
+    VALUE convert(std::shared_ptr<void>& data)
+    {
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(data.get());
+      return detail::wrap<std::shared_ptr<void>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
   };
 
@@ -119,14 +176,25 @@ namespace Rice::detail
   class From_Ruby<std::shared_ptr<T>>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg * arg) : arg_(arg)
     {
     }
 
+    Wrapper_T* is_same_smart_ptr(VALUE value)
+    {
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+      return dynamic_cast<Wrapper_T*>(wrapper);
+    }
+
     Convertible is_convertible(VALUE value)
     {
+      if (!is_same_smart_ptr(value))
+        return Convertible::None;
+
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
@@ -143,10 +211,7 @@ namespace Rice::detail
         return this->arg_->template defaultValue<std::shared_ptr<T>>();
       }
 
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-
-      using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
-      Wrapper_T* smartWrapper = dynamic_cast<Wrapper_T*>(wrapper);
+      Wrapper_T* smartWrapper = is_same_smart_ptr(value);
       if (!smartWrapper)
       {
         std::string message = "Invalid smart pointer wrapper";
@@ -162,12 +227,11 @@ namespace Rice::detail
   class To_Ruby<std::shared_ptr<T>&>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
+
     VALUE convert(std::shared_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-
-      // Use custom wrapper type 
-      using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
       return detail::wrap<std::shared_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
   };
@@ -176,14 +240,25 @@ namespace Rice::detail
   class From_Ruby<std::shared_ptr<T>&>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg * arg) : arg_(arg)
     {
     }
 
+    Wrapper_T* is_same_smart_ptr(VALUE value)
+    {
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+      return dynamic_cast<Wrapper_T*>(wrapper);
+    }
+
     Convertible is_convertible(VALUE value)
     {
+      if (!is_same_smart_ptr(value))
+        return Convertible::None;
+
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
@@ -200,10 +275,7 @@ namespace Rice::detail
         return this->arg_->template defaultValue<std::shared_ptr<T>>();
       }
 
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-
-      using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
-      Wrapper_T* smartWrapper = dynamic_cast<Wrapper_T*>(wrapper);
+      Wrapper_T* smartWrapper = is_same_smart_ptr(value);
       if (!smartWrapper)
       {
         std::string message = "Invalid smart pointer wrapper";

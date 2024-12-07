@@ -46,6 +46,15 @@ namespace Rice::detail
     return iter != registry_.end();
   }
 
+  // Special case void. See comment for add above.
+  template <>
+  inline bool TypeRegistry::isDefined<void>()
+  {
+    std::type_index key(typeid(void*));
+    auto iter = registry_.find(key);
+    return iter != registry_.end();
+  }
+
   template <typename T>
   inline bool TypeRegistry::verify()
   {
