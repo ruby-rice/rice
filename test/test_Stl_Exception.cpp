@@ -8,14 +8,14 @@
 
 using namespace Rice;
 
-TESTSUITE(Exception);
+TESTSUITE(StlException);
 
 SETUP(Exception)
 {
   embed_ruby();
 }
 
-TEARDOWN(Exception)
+TEARDOWN(StlException)
 {
   rb_gc_start();
 }
@@ -32,7 +32,7 @@ namespace
   };
 }
 
-TESTCASE(Create)
+TESTCASE(StlExceptionCreate)
 {
   Module m = define_module("Testing");
   Class c = define_class<MyException, std::exception>("MyException").
