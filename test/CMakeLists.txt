@@ -66,6 +66,7 @@ add_executable (unittest
 			"test_String.cpp"
 			"test_Struct.cpp"
 			"test_Symbol.cpp"
+			"test_Template.cpp"
 			"test_To_From_Ruby.cpp"
 			"test_Tracking.cpp")
 
