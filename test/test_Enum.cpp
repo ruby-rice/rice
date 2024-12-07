@@ -282,7 +282,7 @@ namespace
 TESTCASE(nested_enums)
 {
   Data_Type<Inner> inner = define_class<Inner>("Inner");
-  define_enum<Inner::Props>("Props", inner)
+  define_enum_under<Inner::Props>("Props", inner)
     .define_value("VALUE1", Inner::VALUE1)
     .define_value("VALUE2", Inner::VALUE2)
     .define_value("VALUE3", Inner::VALUE3);

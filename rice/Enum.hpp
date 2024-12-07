@@ -59,7 +59,10 @@ namespace Rice
   };
 
   template<typename T>
-  Enum<T> define_enum(char const* name, Module module = rb_cObject);
+  Enum<T> define_enum(char const* name);
+
+  template<typename T>
+  Enum<T> define_enum_under(char const* name, Module module );
 } // namespace Rice
 
 #include "Enum.ipp"

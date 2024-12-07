@@ -127,7 +127,13 @@ namespace Rice
   }
 
   template<typename Enum_T>
-  Enum<Enum_T> define_enum(char const* name, Module module)
+  Enum<Enum_T> define_enum(char const* name)
+  {
+    return define_enum_under<Enum_T>(name, rb_cObject);
+  }
+
+  template<typename Enum_T>
+  Enum<Enum_T> define_enum_under(char const* name, Module module)
   {
     if (detail::Registries::instance.types.isDefined<Enum_T>())
     {
