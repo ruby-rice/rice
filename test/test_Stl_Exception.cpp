@@ -10,7 +10,7 @@ using namespace Rice;
 
 TESTSUITE(StlException);
 
-SETUP(Exception)
+SETUP(StlException)
 {
   embed_ruby();
 }
@@ -43,6 +43,12 @@ TESTCASE(StlExceptionCreate)
   Object result = exception.call("hello");
   ASSERT_EQUAL("Hello", detail::From_Ruby<std::string>().convert(result.value()));
 
+#ifdef _MSC_VER
+  std::string expected = "Uknown exception";
+#else
+  std::string expected = "std::exception";
+#endif
+
   result = exception.call("what");
-  ASSERT_EQUAL("Unknown exception", detail::From_Ruby<std::string>().convert(result.value()));
+  ASSERT_EQUAL(expected, detail::From_Ruby<std::string>().convert(result.value()));
 }
