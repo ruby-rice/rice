@@ -2,6 +2,45 @@
 #define Rice__stl__hpp_
 
 
+// =========   exception.hpp   =========
+
+
+// ---------   exception.ipp   ---------
+#include <exception>
+
+// Libraries sometime inherit custom exception objects from std::exception,
+// so define it for Ruby if necessary
+namespace Rice
+{
+  namespace stl
+  {
+    inline Data_Type<std::exception> define_stl_exception()
+    {
+      Module rb_mRice = define_module("Rice");
+      Module rb_mmap = define_module_under(rb_mRice, "Std");
+      Data_Type<std::exception> rb_cStlException = define_class_under<std::exception>(rb_mmap, "Exception");
+      rb_cStlException.
+         define_constructor(Constructor<std::exception>()).
+         define_method("what", &std::exception::what);
+      return rb_cStlException;
+    }
+  }
+}
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<std::exception>
+  {
+    static bool verify()
+    {
+      Rice::stl::define_stl_exception();
+      return true;
+    }
+  };
+}
+
+
 // =========   string.hpp   =========
 
 
@@ -566,12 +605,11 @@ namespace Rice::detail
   class To_Ruby<std::unique_ptr<T>>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
+
     VALUE convert(std::unique_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-
-      // Use custom wrapper type 
-      using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
       return detail::wrap<std::unique_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
   };
@@ -580,13 +618,51 @@ namespace Rice::detail
   class To_Ruby<std::unique_ptr<T>&>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
+
     VALUE convert(std::unique_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-
-      // Use custom wrapper type 
-      using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
       return detail::wrap<std::unique_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
+  };
+
+  template <typename T>
+  class From_Ruby<std::unique_ptr<T>>
+  {
+  public:
+    using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
+
+    Wrapper_T* is_same_smart_ptr(VALUE value)
+    {
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+      return dynamic_cast<Wrapper_T*>(wrapper);
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      if (!is_same_smart_ptr(value))
+        return Convertible::None;
+
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
+    std::unique_ptr<T> convert(VALUE value)
+    {
+      Wrapper_T* smartWrapper = is_same_smart_ptr(value);
+      if (!smartWrapper)
+      {
+        std::string message = "Invalid smart pointer wrapper";
+        throw std::runtime_error(message.c_str());
+      }
+      return std::move(smartWrapper->data());
     }
   };
 
@@ -594,8 +670,19 @@ namespace Rice::detail
   class From_Ruby<std::unique_ptr<T>&>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
+
+    Wrapper_T* is_same_smart_ptr(VALUE value)
+    {
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+      return dynamic_cast<Wrapper_T*>(wrapper);
+    }
+
     Convertible is_convertible(VALUE value)
     {
+      if (!is_same_smart_ptr(value))
+        return Convertible::None;
+
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
@@ -608,10 +695,7 @@ namespace Rice::detail
 
     std::unique_ptr<T>& convert(VALUE value)
     {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-
-      using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
-      Wrapper_T* smartWrapper = dynamic_cast<Wrapper_T*>(wrapper);
+      Wrapper_T* smartWrapper = is_same_smart_ptr(value);
       if (!smartWrapper)
       {
         std::string message = "Invalid smart pointer wrapper";
@@ -635,13 +719,25 @@ namespace Rice::detail
   class To_Ruby<std::shared_ptr<T>>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
+
     VALUE convert(std::shared_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-
-      // Use custom wrapper type 
-      using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
       return detail::wrap<std::shared_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
+  };
+
+  template <>
+  class To_Ruby<std::shared_ptr<void>>
+  {
+  public:
+    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, void>;
+
+    VALUE convert(std::shared_ptr<void>& data)
+    {
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(data.get());
+      return detail::wrap<std::shared_ptr<void>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
   };
 
@@ -649,14 +745,25 @@ namespace Rice::detail
   class From_Ruby<std::shared_ptr<T>>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg * arg) : arg_(arg)
     {
     }
 
+    Wrapper_T* is_same_smart_ptr(VALUE value)
+    {
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+      return dynamic_cast<Wrapper_T*>(wrapper);
+    }
+
     Convertible is_convertible(VALUE value)
     {
+      if (!is_same_smart_ptr(value))
+        return Convertible::None;
+
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
@@ -673,10 +780,7 @@ namespace Rice::detail
         return this->arg_->template defaultValue<std::shared_ptr<T>>();
       }
 
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-
-      using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
-      Wrapper_T* smartWrapper = dynamic_cast<Wrapper_T*>(wrapper);
+      Wrapper_T* smartWrapper = is_same_smart_ptr(value);
       if (!smartWrapper)
       {
         std::string message = "Invalid smart pointer wrapper";
@@ -692,12 +796,11 @@ namespace Rice::detail
   class To_Ruby<std::shared_ptr<T>&>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
+
     VALUE convert(std::shared_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-
-      // Use custom wrapper type 
-      using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
       return detail::wrap<std::shared_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
   };
@@ -706,14 +809,25 @@ namespace Rice::detail
   class From_Ruby<std::shared_ptr<T>&>
   {
   public:
+    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg * arg) : arg_(arg)
     {
     }
 
+    Wrapper_T* is_same_smart_ptr(VALUE value)
+    {
+      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+      return dynamic_cast<Wrapper_T*>(wrapper);
+    }
+
     Convertible is_convertible(VALUE value)
     {
+      if (!is_same_smart_ptr(value))
+        return Convertible::None;
+
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
@@ -730,10 +844,7 @@ namespace Rice::detail
         return this->arg_->template defaultValue<std::shared_ptr<T>>();
       }
 
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-
-      using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
-      Wrapper_T* smartWrapper = dynamic_cast<Wrapper_T*>(wrapper);
+      Wrapper_T* smartWrapper = is_same_smart_ptr(value);
       if (!smartWrapper)
       {
         std::string message = "Invalid smart pointer wrapper";
@@ -829,6 +940,62 @@ namespace Rice::detail
 }
 
 
+// =========   type_index.hpp   =========
+
+
+// ---------   type_index.ipp   ---------
+#include <typeindex>
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<std::type_index>
+  {
+    constexpr static bool verify()
+    {
+      return true;
+    }
+  };
+
+  template<>
+  class To_Ruby<std::type_index>
+  {
+  public:
+    VALUE convert(const std::type_index& _)
+    {
+      throw std::runtime_error("std::type_index support is not yet implemented");
+      return Qnil;
+    }
+  };
+
+  template<>
+  class To_Ruby<std::type_index&>
+  {
+  public:
+    static VALUE convert(const std::type_index& data, bool takeOwnership = false)
+    {
+      throw std::runtime_error("std::type_index support is not yet implemented");
+      return Qnil;
+    }
+  };
+
+  template<>
+  class From_Ruby<std::type_index&>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      return Convertible::None;
+    }
+
+    std::type_index& convert(VALUE value)
+    {
+      throw std::runtime_error("std::type_index support is not yet implemented");
+    }
+  };
+}
+
+
 // =========   variant.hpp   =========
 
 
@@ -894,8 +1061,16 @@ namespace Rice::detail
         Code inspired by https://www.foonathan.net/2020/05/fold-tricks/ */
 
       VALUE result = Qnil;
+
+      #ifdef __GNUC__
+      #pragma GCC diagnostic push
+      #pragma GCC diagnostic ignored "-Wunused-value"
+      #endif
       ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
                (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
+      #ifdef __GNUC__
+      #pragma GCC diagnostic pop
+      #endif
 
       return result;
     }
@@ -925,8 +1100,16 @@ namespace Rice::detail
 
       // See comments above for explanation of this code
       VALUE result = Qnil;
+
+      #ifdef __GNUC__
+      #pragma GCC diagnostic push
+      #pragma GCC diagnostic ignored "-Wunused-value"
+      #endif
       ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
         (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
+      #ifdef __GNUC__
+      #pragma GCC diagnostic pop
+      #endif
 
       return result;
     }
@@ -955,6 +1138,36 @@ namespace Rice::detail
       return result;
     }
 
+    // This method search through a variant's types to figure out which one the
+    // currently Ruby value best matches. It then returns the index of the type.
+    int figureIndex(VALUE value)
+    {
+      int i = 0;
+      int index = -1;
+
+      for_each_tuple(this->fromRubys_,
+        [&](auto& fromRuby)
+        {
+          Convertible isConvertible = fromRuby.is_convertible(value);
+          if (isConvertible == Convertible::Exact)
+          {
+            index = i;
+          }
+          else if (isConvertible == Convertible::TypeCast && index == -1)
+          {
+            index = i;
+          }
+          i++;
+        });
+
+      if (index == -1)
+      {
+        rb_raise(rb_eArgError, "Could not find converter for variant");
+      }
+
+      return index;
+    }
+
     /* This method loops over each type in the variant, creates a From_Ruby converter,
        and then check if the converter can work with the provided Rby value (it checks
        the type of the Ruby object to see if it matches the variant type).
@@ -985,29 +1198,7 @@ namespace Rice::detail
 
     std::variant<Types...> convert(VALUE value)
     {
-      int i = 0;
-      int index = -1;
-
-      for_each_tuple(this->fromRubys_,
-        [&](auto& fromRuby)
-        {
-          Convertible isConvertible = fromRuby.is_convertible(value);
-          if (isConvertible == Convertible::Exact)
-          {
-            index = i;
-          }
-          else if (isConvertible == Convertible::TypeCast && index == -1)
-          {
-            index = i;
-          }
-          i++;
-        });
-
-      if (index == -1)
-      {
-        rb_raise(rb_eArgError, "Could not find converter for variant");
-      }
-
+      int index = this->figureIndex(value);
       return this->convertInternal(value, index);
     }
 
@@ -1018,83 +1209,18 @@ namespace Rice::detail
   };
 
   template<typename...Types>
-  class From_Ruby<std::variant<Types...>&>
+  class From_Ruby<std::variant<Types...>&> : public From_Ruby<std::variant<Types...>>
   {
   public:
-    Convertible is_convertible(VALUE value)
+    std::variant<Types...>& convert(VALUE value)
     {
-      Convertible result = Convertible::None;
-
-      for_each_tuple(this->fromRubys_,
-        [&](auto& fromRuby)
-        {
-          result = result | fromRuby.is_convertible(value);
-        });
-
-      return result;
-    }
-
-    /* This method loops over each type in the variant, creates a From_Ruby converter,
-       and then check if the converter can work with the provided Rby value (it checks
-       the type of the Ruby object to see if it matches the variant type).
-       If yes, then the converter runs. If no, then the method recursively calls itself
-       increasing the index.
-
-       We use recursion, with a constexpr, to avoid having to instantiate an instance
-       of the variant to store results from a fold expression like the To_Ruby code
-       does above. That allows us to process variants with non default constructible
-       arguments like std::reference_wrapper. */
-    template <std::size_t I = 0>
-    std::variant<Types...> convertInternal(VALUE value, int index)
-    {
-      // Loop over each possible type in the variant.
-      if constexpr (I < std::variant_size_v<std::variant<Types...>>)
-      {
-        if (I == index)
-        {
-          auto fromRuby = std::get<I>(this->fromRubys_);
-          return fromRuby.convert(value);
-        }
-        else
-        {
-          return convertInternal<I + 1>(value, index);
-        }
-      }
-      rb_raise(rb_eArgError, "Could not find converter for variant");
-    }
-
-    std::variant<Types...> convert(VALUE value)
-    {
-      int i = 0;
-      int index = -1;
-
-      for_each_tuple(this->fromRubys_,
-        [&](auto& fromRuby)
-        {
-          Convertible isConvertible = fromRuby.is_convertible(value);
-          if (isConvertible == Convertible::Exact)
-          {
-            index = i;
-          }
-          else if (isConvertible == Convertible::TypeCast && index == -1)
-          {
-            index = i;
-          }
-          i++;
-        });
-
-      if (index == -1)
-      {
-        rb_raise(rb_eArgError, "Could not find converter for variant");
-      }
-
-      return this->convertInternal(value, index);
+      int index = this->figureIndex(value);
+      this->converted_ = this->convertInternal(value, index);
+      return this->converted_;
     }
 
   private:
-    // Possible converters we could use for this variant
-    using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
-    From_Ruby_Ts fromRubys_;
+    std::variant<Types...> converted_;
   };
 }
 
@@ -1322,8 +1448,10 @@ namespace Rice
       using Key_T = typename T::key_type;
       using Mapped_T = typename T::mapped_type;
       using Value_T = typename T::value_type;
+      using Reference_T = typename T::reference;
       using Size_T = typename T::size_type;
       using Difference_T = typename T::difference_type;
+      using To_Ruby_T = typename detail::remove_cv_recursive_t<Mapped_T>;
 
     public:
       MapHelper(Data_Type<T> klass) : klass_(klass)
@@ -1472,7 +1600,7 @@ namespace Rice
                 return std::nullopt;
               }
             })
-          .define_method("[]=", [](T& map, Key_T key, Mapped_T value) -> Mapped_T
+          .define_method("[]=", [](T& map, Key_T key, Mapped_T& value) -> Mapped_T
             {
               map[key] = value;
               return value;
@@ -1493,10 +1621,10 @@ namespace Rice
         klass_.define_method("to_h", [](T& map)
         {
           VALUE result = rb_hash_new();
-          std::for_each(map.begin(), map.end(), [&result](const typename T::reference pair)
+          std::for_each(map.begin(), map.end(), [&result](const Reference_T pair)
           {
             VALUE key = detail::To_Ruby<Key_T&>().convert(pair.first);
-            VALUE value = detail::To_Ruby<Mapped_T&>().convert(pair.second);
+            VALUE value = detail::To_Ruby<To_Ruby_T&>().convert(pair.second);
             rb_hash_aset(result, key, value);
           });
 
@@ -1840,8 +1968,10 @@ namespace Rice
       using Key_T = typename T::key_type;
       using Mapped_T = typename T::mapped_type;
       using Value_T = typename T::value_type;
+      using Reference_T = typename T::reference;
       using Size_T = typename T::size_type;
       using Difference_T = typename T::difference_type;
+      using To_Ruby_T = typename detail::remove_cv_recursive_t<Mapped_T>;
 
     public:
       UnorderedMapHelper(Data_Type<T> klass) : klass_(klass)
@@ -1990,7 +2120,7 @@ namespace Rice
                 return std::nullopt;
               }
             })
-          .define_method("[]=", [](T& unordered_map, Key_T key, Mapped_T value) -> Mapped_T
+          .define_method("[]=", [](T& unordered_map, Key_T key, Mapped_T& value) -> Mapped_T
             {
               unordered_map[key] = value;
               return value;
@@ -2011,10 +2141,10 @@ namespace Rice
         klass_.define_method("to_h", [](T& unordered_map)
         {
           VALUE result = rb_hash_new();
-          std::for_each(unordered_map.begin(), unordered_map.end(), [&result](const auto& pair)
+          std::for_each(unordered_map.begin(), unordered_map.end(), [&result](const Reference_T& pair)
           {
-            VALUE key = detail::To_Ruby<Key_T>().convert(pair.first);
-            VALUE value = detail::To_Ruby<Mapped_T>().convert(pair.second);
+            VALUE key = detail::To_Ruby<Key_T&>().convert(pair.first);
+            VALUE value = detail::To_Ruby<To_Ruby_T&>().convert(pair.second);
             rb_hash_aset(result, key, value);
           });
 
@@ -2355,9 +2485,17 @@ namespace Rice
     template<typename T>
     class VectorHelper
     {
+      // We do NOT use Reference_T and instead use Parameter_T to avoid the weirdness
+      // of std::vector<bool>. Reference_T is actually a proxy class that we do not
+      // want to have to register with Rice nor do we want to pass it around.
       using Value_T = typename T::value_type;
       using Size_T = typename T::size_type;
       using Difference_T = typename T::difference_type;
+      // For To_Ruby_T however we do need to use reference type because this is what
+      // will be passed by an interator to To_Ruby#convert
+      using Reference_T = typename T::reference;
+      using Parameter_T = std::conditional_t<std::is_pointer_v<Value_T>, Value_T, Value_T&>;
+      using To_Ruby_T = detail::remove_cv_recursive_t<typename T::reference>;
 
     public:
       VectorHelper(Data_Type<T> klass) : klass_(klass)
@@ -2421,7 +2559,11 @@ namespace Rice
 
       void define_constructable_methods()
       {
-        if constexpr (std::is_default_constructible_v<Value_T>)
+        if constexpr (std::is_default_constructible_v<Value_T> && std::is_same_v<Value_T, bool>)
+        {
+          klass_.define_method("resize", static_cast<void (T::*)(const size_t, bool)>(&T::resize));
+        }
+        else if constexpr (std::is_default_constructible_v<Value_T>)
         {
           klass_.define_method("resize", static_cast<void (T::*)(const size_t)>(&T::resize));
         }
@@ -2494,7 +2636,7 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<Value_T>)
         {
-          klass_.define_method("delete", [](T& vector, Value_T& element) -> std::optional<Value_T>
+          klass_.define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
             {
               auto iter = std::find(vector.begin(), vector.end(), element);
               if (iter == vector.end())
@@ -2508,11 +2650,11 @@ namespace Rice
                 return result;
               }
             })
-          .define_method("include?", [](T& vector, Value_T& element)
+          .define_method("include?", [](T& vector, Parameter_T element)
             {
               return std::find(vector.begin(), vector.end(), element) != vector.end();
             })
-          .define_method("index", [](T& vector, Value_T& element) -> std::optional<Difference_T>
+          .define_method("index", [](T& vector, Parameter_T element) -> std::optional<Difference_T>
             {
               auto iter = std::find(vector.begin(), vector.end(), element);
               if (iter == vector.end())
@@ -2527,15 +2669,15 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("delete", [](T& vector, Value_T& element) -> std::optional<Value_T>
+          klass_.define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
             {
               return std::nullopt;
             })
-          .define_method("include?", [](const T& vector, Value_T& element)
+          .define_method("include?", [](const T& vector, Parameter_T element)
             {
               return false;
             })
-          .define_method("index", [](const T& vector, Value_T& element) -> std::optional<Difference_T>
+          .define_method("index", [](const T& vector, Parameter_T element) -> std::optional<Difference_T>
             {
               return std::nullopt;
             });
@@ -2552,7 +2694,7 @@ namespace Rice
               vector.erase(iter);
               return result;
             })
-          .define_method("insert", [this](T& vector, Difference_T index, Value_T& element) -> T&
+          .define_method("insert", [this](T& vector, Difference_T index, Parameter_T element) -> T&
             {
               index = normalizeIndex(vector.size(), index, true);
               auto iter = vector.begin() + index;
@@ -2572,13 +2714,13 @@ namespace Rice
                 return std::nullopt;
               }
             })
-          .define_method("push", [](T& vector, Value_T& element) -> T&
+          .define_method("push", [](T& vector, Parameter_T element) -> T&
             {
               vector.push_back(element);
               return vector;
             })
           .define_method("shrink_to_fit", &T::shrink_to_fit)
-          .define_method("[]=", [this](T& vector, Difference_T index, Value_T& element) -> Value_T&
+          .define_method("[]=", [this](T& vector, Difference_T index, Parameter_T element) -> Parameter_T
             {
               index = normalizeIndex(vector.size(), index, true);
               vector[index] = element;
@@ -2601,9 +2743,9 @@ namespace Rice
         klass_.define_method("to_a", [](T& vector)
         {
           VALUE result = rb_ary_new();
-          std::for_each(vector.begin(), vector.end(), [&result](const Value_T& element)
+          std::for_each(vector.begin(), vector.end(), [&result](const Reference_T element)
           {
-            VALUE value = detail::To_Ruby<Value_T&>().convert(element);
+            VALUE value = detail::To_Ruby<Parameter_T>().convert(element);
             rb_ary_push(result, value);
           });
 
@@ -2886,7 +3028,7 @@ namespace Rice
           }
           case RUBY_T_ARRAY:
           {
-            // If this an Ruby array and the vector type is copyable
+            // If this a Ruby array and the vector type is copyable
             if constexpr (std::is_default_constructible_v<T>)
             {
               this->converted_ = vectorFromArray<T>(value);
@@ -2903,6 +3045,20 @@ namespace Rice
 
     private:
       std::vector<T> converted_;
+    };
+  }
+
+  // Special handling for std::vector<bool>
+  namespace detail
+  {
+    template<>
+    class To_Ruby<std::vector<bool>::reference>
+    {
+    public:
+      VALUE convert(const std::vector<bool>::reference& value)
+      {
+        return value ? Qtrue : Qfalse;
+      }
     };
   }
 }
