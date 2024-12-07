@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdexcept>
 #include <sstream>
 #include <typeindex>
@@ -150,7 +151,9 @@ namespace Rice::detail
       stream << "  " << typeName(typeIndex) << "\n";
     }
 
-    throw std::invalid_argument(stream.str());
+    // Throwing an error seems a bit harsh, so just print to stderr for now
+    std::cerr << stream.str() << std::flush;
+    //throw std::invalid_argument(stream.str());
   }
 
   inline void TypeRegistry::clearUnverifiedTypes()
