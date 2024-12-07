@@ -220,6 +220,8 @@ namespace Rice
     }
     else
     {
+      // This gives a chance for to auto-register classes such as std::exception
+      detail::verifyType<Base_T>();
       superKlass = Data_Type<Base_T>::klass();
     }
     
