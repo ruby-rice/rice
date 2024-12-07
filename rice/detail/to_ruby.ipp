@@ -11,6 +11,7 @@ namespace Rice
     public:
       VALUE convert(void const*)
       {
+        throw std::runtime_error("Converting from void pointer is not implemented");
         return Qnil;
       }
     };
