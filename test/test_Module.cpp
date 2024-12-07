@@ -577,3 +577,18 @@ TESTCASE(rvalue_function)
 
   ASSERT_EQUAL(Qtrue, result.value());
 }
+
+namespace {
+  namespace Constants {
+#define MY_PI 314
+  }
+}
+
+TESTCASE(constants)
+{
+  Module m = anonymous_module().
+             define_constant("MY_PI", MY_PI);
+
+  Object result = m.module_eval(R"(MY_PI)");
+  ASSERT_EQUAL(314, detail::From_Ruby<int>().convert(result.value()));
+}
