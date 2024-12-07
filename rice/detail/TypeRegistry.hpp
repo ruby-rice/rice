@@ -41,6 +41,12 @@ namespace Rice::detail
     void validateUnverifiedTypes();
     // Clear unverified types. This is mostly for unit tests
     void clearUnverifiedTypes();
+
+  public:
+    // If true an exception will be thrown for unvalidated types. If false then a messages
+    // will be sent to stderr
+    bool isStrict = true;
+
   private:
     std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
     void raiseUnverifiedType(const std::string& typeName);

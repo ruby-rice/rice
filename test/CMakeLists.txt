@@ -53,6 +53,7 @@ add_executable (unittest
 			"test_Ownership.cpp"
 			"test_Overloads.cpp"
 			"test_Self.cpp"
+			"test_Stl_Exception.cpp"
 			"test_Stl_Map.cpp"
 			"test_Stl_Optional.cpp"
 			"test_Stl_Pair.cpp"
@@ -66,6 +67,7 @@ add_executable (unittest
 			"test_String.cpp"
 			"test_Struct.cpp"
 			"test_Symbol.cpp"
+			"test_Template.cpp"
 			"test_To_From_Ruby.cpp"
 			"test_Tracking.cpp")
 

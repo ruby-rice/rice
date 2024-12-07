@@ -216,6 +216,11 @@ namespace Rice::detail
       }
     }
 
+    VALUE convert(const void* data)
+    {
+      return convert((void*)data);
+    }
+
   private:
     Return* returnInfo_ = nullptr;
   };

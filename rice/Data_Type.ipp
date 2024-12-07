@@ -156,12 +156,12 @@ namespace Rice
   }
 
   template<typename T>
-  template<typename Func_T>
-  Data_Type<T>& Data_Type<T>::define(Func_T func)
+  template<typename Function_T>
+  inline Data_Type<T>& Data_Type<T>::define(Function_T func)
   {
-    // The passed in this pointer is an RValue, so we need to keep it alive by 
+    // The passed in this pointer is an RValue, so we need to keep it alive by
     // assigning it to a const lvalue
-    const Data_Type<T>& dummy = *this;
+    const auto& dummy = *this;
     func(*this);
     return *this;
   }
@@ -220,6 +220,8 @@ namespace Rice
     }
     else
     {
+      // This gives a chance for to auto-register classes such as std::exception
+      detail::verifyType<Base_T>();
       superKlass = Data_Type<Base_T>::klass();
     }
     
@@ -243,6 +245,8 @@ namespace Rice
     }
     else
     {
+      // This gives a chance for to auto-register classes such as std::exception
+      detail::verifyType<Base_T>();
       superKlass = Data_Type<Base_T>::klass();
     }
 
