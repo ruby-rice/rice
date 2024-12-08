@@ -1,1 +1,1 @@
-require "version"
+require_relative "rice/version"
