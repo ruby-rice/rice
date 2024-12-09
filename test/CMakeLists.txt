@@ -40,6 +40,7 @@ add_executable (unittest
 			"test_Director.cpp"
 			"test_Enum.cpp"
 			"test_Exception.cpp"
+			"test_From_Ruby.cpp"
 			"test_Hash.cpp"
 			"test_global_functions.cpp"
 			"test_Identifier.cpp"
@@ -53,6 +54,12 @@ add_executable (unittest
 			"test_Ownership.cpp"
 			"test_Overloads.cpp"
 			"test_Self.cpp"
+			"test_String.cpp"
+			"test_Struct.cpp"
+			"test_Symbol.cpp"
+			"test_Template.cpp"
+			"test_To_Ruby.cpp"
+			"test_Tracking.cpp"
 			"test_Stl_Exception.cpp"
 			"test_Stl_Map.cpp"
 			"test_Stl_Optional.cpp"
@@ -63,13 +70,8 @@ add_executable (unittest
 			"test_Stl_String_View.cpp"
 			"test_Stl_Unordered_Map.cpp"
 			"test_Stl_Variant.cpp"
-			"test_Stl_Vector.cpp"
-			"test_String.cpp"
-			"test_Struct.cpp"
-			"test_Symbol.cpp"
-			"test_Template.cpp"
-			"test_To_From_Ruby.cpp"
-			"test_Tracking.cpp")
+			"test_Stl_Vector.cpp")
+
 
 target_include_directories(unittest PRIVATE ..)
 target_include_directories(unittest PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})

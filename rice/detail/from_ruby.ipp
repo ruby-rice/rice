@@ -243,6 +243,9 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_ARRAY:
+          return Convertible::Exact;
+          break;
         default:
           return Convertible::None;
       }
@@ -250,19 +253,29 @@ namespace Rice::detail
 
     int* convert(VALUE value)
     {
-      if (value == Qnil)
+      switch (rb_type(value))
       {
-        return nullptr;
-      }
-      else
-      {
-        this->converted_ = (int)protect(rb_num2long_inline, value);
-        return &this->converted_;
+        case RUBY_T_NIL:
+        {
+          return nullptr;
+        }
+        case RUBY_T_ARRAY:
+        {
+          this->converted_ = Rice::Array(value).toPtr<int>();
+          return this->converted_.get();
+          break;
+        }
+        default:
+        {
+          converted_.reset(new int[1]);
+          converted_[0] = protect(rb_num2dbl, value);
+          return this->converted_.get();
+        }
       }
     }
 
   private:
-    int converted_;
+    std::unique_ptr<int[]> converted_;
   };
 
   // ===========  long  ============
@@ -1216,6 +1229,12 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::TypeCast;
           break;
+        case RUBY_T_ARRAY:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_NIL:
+          return Convertible::Exact;
+          break;
         default:
           return Convertible::None;
       }
@@ -1526,11 +1545,35 @@ namespace Rice::detail
   class From_Ruby<double*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
         case RUBY_T_FLOAT:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_ARRAY:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_NIL:
           return Convertible::Exact;
           break;
         default:
@@ -1540,19 +1583,30 @@ namespace Rice::detail
 
     double* convert(VALUE value)
     {
-      if (value == Qnil)
+      switch (rb_type(value))
       {
-        return nullptr;
-      }
-      else
-      {
-        this->converted_ = protect(rb_num2dbl, value);
-        return &this->converted_;
+        case RUBY_T_NIL:
+        {
+          return nullptr;
+        }
+        case RUBY_T_ARRAY:
+        {
+          this->converted_ = Rice::Array(value).toPtr<double>();
+          return this->converted_.get();
+          break;
+        }
+        default:
+        {
+          converted_.reset(new double[1]);
+          converted_[0] = protect(rb_num2dbl, value);
+          return this->converted_.get();
+        }
       }
     }
 
   private:
-    double converted_;
+    Arg* arg_ = nullptr;
+    std::unique_ptr<double[]> converted_;
   };
 
   // ===========  float  ============
@@ -1646,17 +1700,38 @@ namespace Rice::detail
   class From_Ruby<float*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
-        case RUBY_T_FLOAT:
-          return Convertible::Exact;
-          break;
         case RUBY_T_FIXNUM:
           return Convertible::TypeCast;
         case RUBY_T_BIGNUM:
           return Convertible::TypeCast;
+        case RUBY_T_ARRAY:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_NIL:
+          return Convertible::Exact;
+          break;
         default:
           return Convertible::None;
       }
@@ -1664,19 +1739,30 @@ namespace Rice::detail
 
     float* convert(VALUE value)
     {
-      if (value == Qnil)
+      switch (rb_type(value))
       {
-        return nullptr;
-      }
-      else
-      {
-        this->converted_ = (float)protect(rb_num2dbl, value);
-        return &this->converted_;
+        case RUBY_T_NIL:
+        {
+          return nullptr;
+        }
+        case RUBY_T_ARRAY:
+        {
+          this->converted_ = Rice::Array(value).toPtr<float>();
+          return this->converted_.get();
+          break;
+        }
+        default:
+        {
+          converted_.reset(new float[1]);
+          converted_[0] = protect(rb_num2dbl, value);
+          return this->converted_.get();
+        }
       }
     }
 
   private:
-    float converted_;
+    Arg* arg_ = nullptr;
+    std::unique_ptr<float[]> converted_;
   };
 }
 #endif // Rice__detail__from_ruby__ipp_

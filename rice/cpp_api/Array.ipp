@@ -38,6 +38,24 @@ namespace Rice
     return RARRAY_LEN(this->value());
   }
 
+  template<typename T>
+  std::unique_ptr<T[]> Array::toPtr() const
+  {
+    std::unique_ptr<T[]> result(new T[this->size()]);
+    
+    auto fromRuby = detail::From_Ruby<T>();
+
+    T* current = result.get();
+
+    for (int i = 0; i<this->size(); i++)
+    {
+      *current = fromRuby.convert(this->operator[](i));
+      current++;
+    }
+
+    return std::move(result);
+  }
+
   inline Object Array::operator[](long index) const
   {
     return detail::protect(rb_ary_entry, value(), position_of(index));

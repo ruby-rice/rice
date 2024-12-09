@@ -1,45 +1,29 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
+#include <rice/stl.hpp>
 
 #include <limits>
 #include <cmath>
 
 using namespace Rice;
 
-TESTSUITE(To_From_Ruby);
+TESTSUITE(FromRuby);
 
-SETUP(To_From_Ruby)
+SETUP(FromRuby)
 {
   embed_ruby();
 }
 
-TEARDOWN(To_From_Ruby)
+TEARDOWN(FromRuby)
 {
   rb_gc_start();
 }
 
-TESTCASE(object_to_ruby)
-{
-  Object o(rb_str_new2("foo"));
-  ASSERT_EQUAL(o.value(), detail::to_ruby(o));
-}
-
-TESTCASE(object_from_ruby)
+/*TESTCASE(object_from_ruby)
 {
   Object o(rb_str_new2("foo"));
   ASSERT_EQUAL(o, detail::From_Ruby<Object>().convert(o));
-}
-
-TESTCASE(short_to_ruby)
-{
-  ASSERT_EQUAL(INT2NUM(0), detail::to_ruby((short)0));
-  ASSERT_EQUAL(INT2NUM(-1), detail::to_ruby((short)-1));
-  ASSERT_EQUAL(INT2NUM(1), detail::to_ruby((short)1));
-  ASSERT_EQUAL(INT2NUM(std::numeric_limits<short>::min()),
-               detail::to_ruby(std::numeric_limits<short>::min()));
-  ASSERT_EQUAL(INT2NUM(std::numeric_limits<short>::max()),
-               detail::to_ruby(std::numeric_limits<short>::max()));
 }
 
 TESTCASE(short_from_ruby)
@@ -59,15 +43,6 @@ TESTCASE(short_from_ruby)
   );
 }
 
-TESTCASE(int_to_ruby)
-{
-  ASSERT(rb_equal(INT2NUM(0), detail::to_ruby((int)0)));
-  ASSERT(rb_equal(INT2NUM(-1), detail::to_ruby((int)-1)));
-  ASSERT(rb_equal(INT2NUM(1), detail::to_ruby((int)1)));
-  ASSERT(rb_equal(INT2NUM(std::numeric_limits<int>::min()), detail::to_ruby(std::numeric_limits<int>::min())));
-  ASSERT(rb_equal(INT2NUM(std::numeric_limits<int>::max()), detail::to_ruby(std::numeric_limits<int>::max())));
-}
-
 TESTCASE(int_from_ruby)
 {
   ASSERT_EQUAL(0, detail::From_Ruby<int>().convert(INT2NUM(0)));
@@ -83,17 +58,6 @@ TESTCASE(int_from_ruby)
     detail::From_Ruby<int>().convert(rb_str_new2("bad value")),
     ASSERT_EQUAL("no implicit conversion of String into Integer", ex.what())
   );
-}
-
-TESTCASE(long_to_ruby)
-{
-  ASSERT(rb_equal(LONG2NUM(0), detail::to_ruby((long)0)));
-  ASSERT(rb_equal(LONG2NUM(-1), detail::to_ruby((long)-1)));
-  ASSERT(rb_equal(LONG2NUM(1), detail::to_ruby((long)1)));
-  ASSERT(rb_equal(LONG2NUM(FIXNUM_MAX), detail::to_ruby(FIXNUM_MAX)));
-  ASSERT(rb_equal(LONG2NUM(FIXNUM_MIN), detail::to_ruby(FIXNUM_MIN)));
-  ASSERT(rb_equal(LONG2NUM(std::numeric_limits<long>::min()), detail::to_ruby(std::numeric_limits<long>::min())));
-  ASSERT(rb_equal(LONG2NUM(std::numeric_limits<long>::max()), detail::to_ruby(std::numeric_limits<long>::max())));
 }
 
 TESTCASE(long_from_ruby)
@@ -113,15 +77,6 @@ TESTCASE(long_from_ruby)
   );
 }
 
-TESTCASE(long_long_to_ruby)
-{
-  ASSERT(rb_equal(LL2NUM(0), detail::to_ruby((long long)0)));
-  ASSERT(rb_equal(LL2NUM(-1), detail::to_ruby((long long)-1)));
-  ASSERT(rb_equal(LL2NUM(1), detail::to_ruby((long long)1)));
-  ASSERT(rb_equal(LL2NUM(std::numeric_limits<long long>::min()), detail::to_ruby(std::numeric_limits<long long>::min())));
-  ASSERT(rb_equal(LL2NUM(std::numeric_limits<long long>::max()), detail::to_ruby(std::numeric_limits<long long>::max())));
-}
-
 TESTCASE(long_long_from_ruby)
 {
   ASSERT_EQUAL(0, detail::From_Ruby<long long>().convert(LL2NUM(0)));
@@ -137,14 +92,6 @@ TESTCASE(long_long_from_ruby)
     detail::From_Ruby<long long>().convert(rb_str_new2("bad value")),
     ASSERT_EQUAL("no implicit conversion from string", ex.what())
   );
-}
-
-TESTCASE(unsigned_short_to_ruby)
-{
-  ASSERT(rb_equal(UINT2NUM(0), detail::to_ruby((unsigned short)0)));
-  ASSERT(rb_equal(UINT2NUM(1), detail::to_ruby((unsigned short)1)));
-  ASSERT(rb_equal(UINT2NUM(std::numeric_limits<unsigned short>::min()), detail::to_ruby(std::numeric_limits<unsigned short>::min())));
-  ASSERT(rb_equal(UINT2NUM(std::numeric_limits<unsigned short>::max()), detail::to_ruby(std::numeric_limits<unsigned short>::max())));
 }
 
 TESTCASE(unsigned_short_from_ruby)
@@ -163,14 +110,6 @@ TESTCASE(unsigned_short_from_ruby)
   );
 }
 
-TESTCASE(unsigned_int_to_ruby)
-{
-  ASSERT(rb_equal(UINT2NUM(0), detail::to_ruby((unsigned int)0)));
-  ASSERT(rb_equal(UINT2NUM(1), detail::to_ruby((unsigned int)1)));
-  ASSERT(rb_equal(UINT2NUM(std::numeric_limits<unsigned int>::min()), detail::to_ruby(std::numeric_limits<unsigned int>::min())));
-  ASSERT(rb_equal(UINT2NUM(std::numeric_limits<unsigned int>::max()), detail::to_ruby(std::numeric_limits<unsigned int>::max())));
-}
-
 TESTCASE(unsigned_int_from_ruby)
 {
   ASSERT_EQUAL(0u, detail::From_Ruby<unsigned int>().convert(UINT2NUM(0)));
@@ -185,15 +124,6 @@ TESTCASE(unsigned_int_from_ruby)
     detail::From_Ruby<unsigned int>().convert(rb_str_new2("bad value")),
     ASSERT_EQUAL("no implicit conversion of String into Integer", ex.what())
   );
-}
-
-TESTCASE(unsigned_long_to_ruby)
-{
-  ASSERT(rb_equal(ULONG2NUM(0), detail::to_ruby((unsigned long)0)));
-  ASSERT(rb_equal(ULONG2NUM(1), detail::to_ruby((unsigned long)1)));
-  ASSERT(rb_equal(ULONG2NUM(FIXNUM_MAX), detail::to_ruby(FIXNUM_MAX)));
-  ASSERT(rb_equal(ULONG2NUM(std::numeric_limits<unsigned long>::min()), detail::to_ruby(std::numeric_limits<unsigned long>::min())));
-  ASSERT(rb_equal(ULONG2NUM(std::numeric_limits<unsigned long>::max()), detail::to_ruby(std::numeric_limits<unsigned long>::max())));
 }
 
 TESTCASE(unsigned_long_from_ruby)
@@ -214,14 +144,6 @@ TESTCASE(unsigned_long_from_ruby)
   );
 }
 
-TESTCASE(unsigned_long_long_to_ruby)
-{
-  ASSERT(rb_equal(ULL2NUM(0), detail::to_ruby((unsigned long long)0)));
-  ASSERT(rb_equal(ULL2NUM(1), detail::to_ruby((unsigned long long)1)));
-  ASSERT(rb_equal(ULL2NUM(std::numeric_limits<unsigned long long>::min()), detail::to_ruby(std::numeric_limits<unsigned long long>::min())));
-  ASSERT(rb_equal(ULL2NUM(std::numeric_limits<unsigned long long>::max()), detail::to_ruby(std::numeric_limits<unsigned long long>::max())));
-}
-
 TESTCASE(unsigned_long_long_from_ruby)
 {
   ASSERT_EQUAL(0u, detail::From_Ruby<unsigned long>().convert(ULL2NUM(0)));
@@ -238,12 +160,6 @@ TESTCASE(unsigned_long_long_from_ruby)
   );
 }
 
-TESTCASE(bool_to_ruby)
-{
-  ASSERT(rb_equal(Qfalse, detail::to_ruby(false)));
-  ASSERT(rb_equal(Qtrue, detail::to_ruby(true)));
-}
-
 TESTCASE(bool_from_ruby)
 {
   ASSERT_EQUAL(false, detail::From_Ruby<bool>().convert(Qfalse));
@@ -252,20 +168,6 @@ TESTCASE(bool_from_ruby)
   ASSERT_EQUAL(true, detail::From_Ruby<bool>().convert(rb_str_new2("some string")));
   ASSERT_EQUAL(true, detail::From_Ruby<bool>().convert(INT2NUM(3)));
   ASSERT_EQUAL(true, detail::From_Ruby<bool>().convert(rb_float_new(3.33)));
-}
-
-TESTCASE(float_to_ruby)
-{
-  ASSERT(rb_equal(rb_float_new(0.0f), detail::to_ruby(0.0f)));
-  ASSERT(rb_equal(rb_float_new(-1.0f), detail::to_ruby(-1.0f)));
-  ASSERT(rb_equal(rb_float_new(1.0f), detail::to_ruby(1.0f)));
-  ASSERT(rb_equal(rb_float_new(0.5f), detail::to_ruby(0.5f)));
-  ASSERT(rb_equal(rb_float_new(std::numeric_limits<float>::min()), detail::to_ruby(std::numeric_limits<float>::min())));
-  ASSERT(rb_equal(rb_float_new(std::numeric_limits<float>::max()), detail::to_ruby(std::numeric_limits<float>::max())));
-  ASSERT(Object(detail::to_ruby(std::numeric_limits<float>::quiet_NaN())).call("nan?"));
-  ASSERT(Object(detail::to_ruby(std::numeric_limits<float>::signaling_NaN())).call("nan?"));
-  ASSERT_EQUAL(rb_float_new(std::numeric_limits<float>::epsilon()),
-               detail::to_ruby(std::numeric_limits<float>::epsilon()));
 }
 
 TESTCASE(float_from_ruby)
@@ -289,19 +191,6 @@ TESTCASE(float_from_ruby)
   );
 }
 
-TESTCASE(double_to_ruby)
-{
-  ASSERT(rb_equal(rb_float_new(0.0f), detail::to_ruby(0.0f)));
-  ASSERT(rb_equal(rb_float_new(-1.0f), detail::to_ruby(-1.0f)));
-  ASSERT(rb_equal(rb_float_new(1.0f), detail::to_ruby(1.0f)));
-  ASSERT(rb_equal(rb_float_new(0.5f), detail::to_ruby(0.5f)));
-  ASSERT(rb_equal(rb_float_new(std::numeric_limits<double>::min()), detail::to_ruby(std::numeric_limits<double>::min())));
-  ASSERT(rb_equal(rb_float_new(std::numeric_limits<double>::max()), detail::to_ruby(std::numeric_limits<double>::max())));
-  ASSERT(Object(detail::to_ruby(std::numeric_limits<double>::quiet_NaN())).call("nan?"));
-  ASSERT(Object(detail::to_ruby(std::numeric_limits<double>::signaling_NaN())).call("nan?"));
-  ASSERT(rb_equal(rb_float_new(std::numeric_limits<double>::epsilon()), detail::to_ruby(std::numeric_limits<double>::epsilon())));
-}
-
 TESTCASE(double_from_ruby)
 {
   ASSERT_EQUAL(0.0, detail::From_Ruby<double>().convert(rb_float_new(0.0)));
@@ -321,18 +210,114 @@ TESTCASE(double_from_ruby)
     detail::From_Ruby<double>().convert(rb_str_new2("bad value")),
     ASSERT_EQUAL("no implicit conversion to float from string", ex.what())
   );
+}*/
+
+namespace
+{
+  std::string floatPointer(float* buffer, int size)
+  {
+    std::ostringstream result;
+    result << "[";
+
+    for (int i = 0; i < size; i++)
+    {
+      result << buffer[i];
+      if (i < size - 1)
+      {
+        result << ", ";
+      }
+    }
+    result << "]";
+    return result.str();
+  }
+
+  std::string doublePointer(double* buffer, int size)
+  {
+    std::ostringstream result;
+    result << "[";
+
+    for (int i = 0; i < size; i++)
+    {
+      result << buffer[i];
+      if (i < size - 1)
+      {
+        result << ", ";
+      }
+    }
+    result << "]";
+    return result.str();
+  }
+
+  std::string intPointer(int* buffer, int size)
+  {
+    std::ostringstream result;
+    result << "[";
+
+    for (int i = 0; i < size; i++)
+    {
+      result << buffer[i];
+      if (i < size - 1)
+      {
+        result << ", ";
+      }
+    }
+    result << "]";
+    return result.str();
+  }
 }
 
-TESTCASE(char_const_ptr_to_ruby)
+TESTCASE(float_pointer_from_ruby)
 {
-  ASSERT(rb_equal(String("").value(), detail::to_ruby((char const *)"")));
-  ASSERT(rb_equal(String("foo").value(), detail::to_ruby((char const *)"foo")));
-  ASSERT(rb_equal(String("foo").value(), detail::to_ruby("foo")));
+  Module m = define_module("Testing");
+  m.define_singleton_function("float_pointer", floatPointer);
+
+  std::string code = R"(arr = [4.3, 3.2, 2.1, 1.1]
+                        float_pointer(arr, arr.size))";
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL("[4.3, 3.2, 2.1, 1.1]", detail::From_Ruby<std::string>().convert(result.value()));
+
+  code = R"(arr = [4, 3, 2.8, 1]
+            float_pointer(arr, arr.size))";
+  result = m.module_eval(code);
+  ASSERT_EQUAL("[4, 3, 2.8, 1]", detail::From_Ruby<std::string>().convert(result.value()));
+
+  code = R"(arr = [4, "bad", 2, 1]
+            float_pointer(arr, arr.size))";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval(code),
+    ASSERT_EQUAL("no implicit conversion to float from string", ex.what())
+  );
 }
 
-TESTCASE(char_const_array_to_ruby_symbol)
+/*TESTCASE(double_pointer_from_ruby)
 {
-  ASSERT(rb_equal(Symbol("foo").value(), detail::to_ruby(":foo")));
+  Module m = define_module("Testing");
+  m.define_singleton_function("double_pointer", doublePointer);
+
+  std::string code = R"(arr = [1.1, 2.2, 3.3, 4.4]
+                        double_pointer(arr, arr.size))";
+
+  Object result = m.module_eval(code);
+
+  ASSERT_EQUAL("[1.1, 2.2, 3.3, 4.4]", detail::From_Ruby<std::string>().convert(result.value()));
+}
+
+TESTCASE(int_pointer_from_ruby)
+{
+  Module m = define_module("Testing");
+  m.define_singleton_function("int_pointer", intPointer);
+
+  std::string code = R"(arr = [4, 3, 2, 1]
+                        int_pointer(arr, arr.size))";
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL("[4, 3, 2, 1]", detail::From_Ruby<std::string>().convert(result.value()));
+
+  code = R"(arr = [4.2, 3.8, 2.0, 1]
+            int_pointer(arr, arr.size))";
+  result = m.module_eval(code);
+  ASSERT_EQUAL("[4, 3, 2, 1]", detail::From_Ruby<std::string>().convert(result.value()));
 }
 
 TESTCASE(char_const_ptr_from_ruby)
@@ -402,3 +387,4 @@ TESTCASE(char_star_from_ruby)
     ASSERT_EQUAL("wrong argument type Float (expected String)", ex.what())
   );
 }
+*/

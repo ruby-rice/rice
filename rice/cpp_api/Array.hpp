@@ -2,6 +2,7 @@
 #define Rice__Array__hpp_
 
 #include <iterator>
+#include <memory>
 
 namespace Rice
 {
@@ -56,6 +57,16 @@ namespace Rice
      *  \return the element at the given index.
      */
     Object operator[](long index) const;
+
+    //! Converts a Ruby Array into a C++ array where the elements are
+    //! contiguous. This is similar to a std::vector, but instead a
+    //! std::unique_ptr<T> is returned. This allows the calling code to
+    //! pass ownership to its callers if needed (for exmaple, From_Ruby<T>#convert)
+    //! Note this method is designed convenience, not for speed or efficieny.
+    //! C++ APIs that take large chunks of memory should not be passed Ruby Arrrays.
+    //! \return std::unique_ptr that is owned by the caller.
+    template<typename T>
+    std::unique_ptr<T[]> toPtr() const;
 
   private:
     //! A helper class so array[index]=value can work.
