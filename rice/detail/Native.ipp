@@ -1,7 +1,3 @@
-#include "Native.hpp"
-#include "../Identifier.hpp"
-#include "cpp_protect.hpp"
-#include "Registries.hpp"
 
 namespace Rice::detail
 {

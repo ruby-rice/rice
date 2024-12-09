@@ -1,8 +1,3 @@
-#ifndef Rice__Class__ipp_
-#define Rice__Class__ipp_
-
-#include "../Exception.hpp"
-#include "../Data_Type_defn.hpp"
 
 namespace Rice
 {
@@ -86,4 +81,3 @@ namespace Rice::detail
     }
   };
 }
-#endif // Rice__Class__ipp_

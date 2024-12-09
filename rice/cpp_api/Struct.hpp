@@ -1,10 +1,6 @@
 #ifndef Rice__ruby_struct__hpp_
 #define Rice__ruby_struct__hpp_
 
-#include "Class.hpp"
-#include "Array.hpp"
-#include "Hash.hpp"
-
 namespace Rice
 {
   //! A wrapper for creating Struct classes.
@@ -113,7 +109,5 @@ namespace Rice
   Struct define_struct();
 
 } // namespace Rice
-
-#include "Struct.ipp"
 
 #endif // Rice__ruby_struct__hpp_

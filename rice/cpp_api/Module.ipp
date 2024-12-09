@@ -1,10 +1,3 @@
-#ifndef Rice__Module__ipp_
-#define Rice__Module__ipp_
-
-#include "../traits/rice_traits.hpp"
-#include "../detail/Type.hpp"
-#include "../detail/NativeFunction.hpp"
-#include "../Exception.hpp"
 
 namespace Rice
 {
@@ -114,4 +107,3 @@ namespace Rice::detail
     }
   };
 }
-#endif // Rice__Module__ipp_

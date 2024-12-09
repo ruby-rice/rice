@@ -1,6 +1,3 @@
-#ifndef Rice__Builtin_Object__ipp_
-#define Rice__Builtin_Object__ipp_
-
 #include <algorithm>
 
 namespace Rice
@@ -38,5 +35,3 @@ namespace Rice
     return ROBJECT(this->value());
   }
 } // namespace Rice
-
-#endif // Rice__Builtin_Object__ipp_

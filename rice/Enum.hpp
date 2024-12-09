@@ -1,9 +1,6 @@
 #ifndef Rice__Enum__hpp_
 #define Rice__Enum__hpp_
 
-#include "Data_Type.hpp"
-#include <map>
-
 namespace Rice
 {
   /*!
@@ -64,7 +61,5 @@ namespace Rice
   template<typename T>
   Enum<T> define_enum_under(char const* name, Module module );
 } // namespace Rice
-
-#include "Enum.ipp"
 
 #endif // Rice__Enum__hpp_

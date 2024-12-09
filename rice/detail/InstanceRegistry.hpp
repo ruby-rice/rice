@@ -2,7 +2,6 @@
 #define Rice__detail__InstanceRegistry__hpp_
 
 #include <map>
-#include "ruby.hpp"
 
 namespace Rice::detail
 {
@@ -27,8 +26,6 @@ namespace Rice::detail
     std::map<void*, VALUE> objectMap_;
   };
 } // namespace Rice::detail
-
-#include "InstanceRegistry.ipp"
 
 #endif // Rice__detail__InstanceRegistry__hpp_
 

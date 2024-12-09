@@ -3,9 +3,6 @@
 #include <sstream>
 #include <typeindex>
 
-#include "ruby.hpp"
-#include "../traits/rice_traits.hpp"
-#include "Type.hpp"
 
 namespace Rice::detail
 {

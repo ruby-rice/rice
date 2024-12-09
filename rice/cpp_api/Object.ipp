@@ -1,6 +1,3 @@
-#ifndef Rice__Object__ipp_
-#define Rice__Object__ipp_
-
 namespace Rice
 {
   inline const Object Nil(Qnil);
@@ -236,4 +233,3 @@ namespace Rice::detail
     }
   };
 }
-#endif // Rice__Object__ipp_

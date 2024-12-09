@@ -3,22 +3,11 @@
 
 #include <optional>
 #include <stdexcept>
-#include "../Exception_defn.hpp"
-#include "../Arg.hpp"
-#include "../Identifier.hpp"
-#include "RubyFunction.hpp"
 
 /* This file implements conversions from Ruby to native values fo fundamental types 
    such as bool, int, float, etc. It also includes conversions for chars and strings */
 namespace Rice::detail
 {
-  enum class Convertible: uint8_t
-  {
-    None = 0b000,
-    TypeCast = 0b010,
-    Exact = 0b110,
-  };
-
   inline Convertible operator&(Convertible left, Convertible right)
   {
     return static_cast<Convertible>(static_cast<uint8_t>(left) & static_cast<uint8_t>(right));

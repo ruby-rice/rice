@@ -345,22 +345,20 @@ namespace Rice::detail
 
 // =========   TupleIterator.hpp   =========
 
-
-// ---------   TupleIterator.ipp   ---------
 // See https://www.cppstories.com/2022/tuple-iteration-apply/
 template <typename Tuple_T, typename Function_T>
 void for_each_tuple(Tuple_T&& tuple, Function_T&& callable)
 {
-  std::apply([&callable](auto&& ...args)
-    {
-      (callable(std::forward<decltype(args)>(args)), ...);
-    }, std::forward<Tuple_T>(tuple));
+    std::apply([&callable](auto&& ...args)
+      {
+        (callable(std::forward<decltype(args)>(args)), ...);
+      }, std::forward<Tuple_T>(tuple));
 }
 
 
 // Code for C++ to call Ruby
 
-// =========   Exception_defn.hpp   =========
+// =========   Exception.hpp   =========
 
 #include <stdexcept>
 
@@ -448,7 +446,6 @@ namespace Rice
 
 // =========   RubyFunction.hpp   =========
 
-
 namespace Rice::detail
 {
   /* This is functor class that wraps calls to a Ruby C API method. It is needed because
@@ -476,7 +473,8 @@ namespace Rice::detail
   auto protect(Function_T func, Arg_Ts...args);
 }
 
-// ---------   RubyFunction.ipp   ---------
+
+// =========   RubyFunction.ipp   =========
 
 #include <any>
 
@@ -555,118 +553,995 @@ namespace Rice::detail
     return rubyFunction();
   }
 }
+// Type Conversion declarations
 
-// Code for Ruby to call C++
+// =========   Type.hpp   =========
 
-// =========   ExceptionHandler.hpp   =========
-
-
-// ---------   ExceptionHandler_defn.hpp   ---------
-#ifndef Rice__detail__ExceptionHandler_defn__hpp_
-#define Rice__detail__ExceptionHandler_defn__hpp_
-
-#include <memory>
+#include <string>
+#include <typeinfo>
+#include <typeindex>
 
 namespace Rice::detail
 {
-  /* An abstract class for converting C++ exceptions to ruby exceptions.  It's used
-     like this:
+  template<typename T>
+  struct Type
+  {
+    static bool verify();
+  };
 
-     try
-     {
-     }
-     catch(...)
-     {
-       handler->handle();
-     }
+  // Return the name of a type
+  std::string typeName(const std::type_info& typeInfo);
+  std::string typeName(const std::type_index& typeIndex);
+  std::string makeClassName(const std::type_info& typeInfo);
 
-   If an exception is thrown the handler will pass the exception up the
-   chain, then the last handler in the chain will throw the exception
-   down the chain until a lower handler can handle it, e.g.:
+  template<typename T>
+  void verifyType();
 
-   try
-   {
-     return call_next_ExceptionHandler();
-   }
-   catch(MyException const & ex)
-   {
-     throw Rice::Exception(rb_cMyException, "%s", ex.what());
+  template<typename Tuple_T>
+  void verifyTypes();
+}
+
+
+// =========   to_ruby.hpp   =========
+
+namespace Rice
+{
+  namespace detail
+  {
+    //! Convert a C++ object to Ruby.
+    /*! If x is a pointer, wraps the pointee as a Ruby object.  If x is an
+     *  Object, returns x.
+     *
+     *  If no conversion exists a compile-time error is generated.
+     *
+     *  \param x the object to convert.
+     *  \return a Ruby representation of the C++ object.
+     *
+     *  Example:
+     *  \code
+     *    rb_p(to_ruby(42));
+     *
+     *    Foo * p_foo = new Foo();
+     *    rb_p(to_ruby(p_foo));
+     *  \endcode
+     */
+    template <typename T>
+    class To_Ruby;
+   
+    // Helper template function that let's users avoid having to specify the template type - its deduced
+    template <typename T>
+    VALUE to_ruby(T&& x)
+    {
+      using Unqualified_T = remove_cv_recursive_t<T>;
+      return To_Ruby<Unqualified_T>().convert(std::forward<T>(x));
     }
 
-    Memory management. Handlers are created by the ModuleBase constructor. When the
-    module defines a new Ruby method, metadata  is stored on the Ruby klass including
-    the exception handler. Since the metadata outlives the module, handlers are stored
-    using std::shared_ptr. Thus the Module (or its inherited children) can be destroyed
-    without corrupting the metadata references to the shared exception handler. */
+    // Helper template function that let's users avoid having to specify the template type - its deduced
+    template <typename T>
+    VALUE to_ruby(T* x)
+    {
+      using Unqualified_T = remove_cv_recursive_t<T>;
+      return To_Ruby<Unqualified_T*>().convert(x);
+    }
+  } // detail
+} // Rice
 
-  class ExceptionHandler
+
+// =========   from_ruby.hpp   =========
+
+namespace Rice::detail
+{
+  //! Convert a Ruby object to C++.
+  /*! If the Ruby object can be converted to an immediate value, returns a
+   *  copy of the Ruby object.  If the Ruby object is holding a C++
+   *  object and the type specified is a pointer to that type, returns a
+   *  pointer to that object.
+   *
+   *  Conversions from ruby to a pointer type are automatically generated
+   *  when a type is bound using Data_Type.  If no conversion exists an
+   *  exception is thrown.
+   *
+   *  \param T the C++ type to which to convert.
+   *  \param x the Ruby object to convert.
+   *  \return a C++ representation of the Ruby object.
+   *
+   *  Example:
+   *  \code
+   *    Object x = INT2NUM(42);
+   *    std::cout << From_Ruby<int>::convert(x);
+   *
+   *    Data_Object<Foo> foo(new Foo);
+   *    std::cout << *From_Ruby<Foo *>(foo) << std::endl;
+   *  \endcode
+   */
+
+  template <typename T>
+  class From_Ruby;
+
+  enum class Convertible: uint8_t
   {
-  public:
-    ExceptionHandler() = default;
-    virtual ~ExceptionHandler() = default;
-
-    // Don't allow copying or assignment
-    ExceptionHandler(const ExceptionHandler& other) = delete;
-    ExceptionHandler& operator=(const ExceptionHandler& other) = delete;
-
-    virtual VALUE handle() const = 0;
+      None = 0b000,
+      TypeCast = 0b010,
+      Exact = 0b110,
   };
+}
 
-  // The default exception handler just rethrows the exception.  If there
-  // are other handlers in the chain, they will try to handle the rethrown
-  // exception.
-  class DefaultExceptionHandler : public ExceptionHandler
+
+// C++ API declarations
+
+// =========   Identifier.hpp   =========
+
+#include <string>
+
+namespace Rice
+{
+  class Symbol;
+
+  //! A wrapper for the ID type
+  /*! An ID is ruby's internal representation of a Symbol object.
+   */
+  class Identifier
   {
   public:
-    virtual VALUE handle() const override;
-  };
+    //! Construct a new Identifier from an ID.
+    Identifier(ID id);
 
-  // An exception handler that takes a functor as an argument.  The
-  // functor should throw a Rice::Exception to handle the exception.  If
-  // the functor does not handle the exception, the exception will be
-  // re-thrown.
-  template <typename Exception_T, typename Functor_T>
-  class CustomExceptionHandler : public ExceptionHandler
-  {
-  public:
-    CustomExceptionHandler(Functor_T handler, std::shared_ptr<ExceptionHandler> nextHandler);
-    virtual VALUE handle() const override;
+    //! Construct a new Identifier from a Symbol.
+    Identifier(Symbol const& symbol);
+
+    //! Construct a new Identifier from a c string.
+    Identifier(char const* s);
+
+    //! Construct a new Identifier from a string.
+    Identifier(std::string const& string);
+
+    //! Return a string representation of the Identifier.
+    char const* c_str() const;
+
+    //! Return a string representation of the Identifier.
+    std::string str() const;
+
+    //! Return the underlying ID
+    ID id() const { return id_; }
+
+    //! Return the underlying ID
+    operator ID() const { return id_; }
+
+    //! Return the ID as a Symbol
+    VALUE to_sym() const;
 
   private:
-    Functor_T handler_;
-    std::shared_ptr<ExceptionHandler> nextHandler_;
+    ID id_;
   };
-}
-#endif // Rice__detail__ExceptionHandler_defn__hpp_
-// ---------   ExceptionHandler.ipp   ---------
-namespace Rice::detail
+} // namespace Rice
+
+
+// =========   Identifier.ipp   =========
+namespace Rice
 {
-  inline VALUE Rice::detail::DefaultExceptionHandler::handle() const
-  {
-    throw;
-  }
-
-  template <typename Exception_T, typename Functor_T>
-  inline Rice::detail::CustomExceptionHandler<Exception_T, Functor_T>::
-    CustomExceptionHandler(Functor_T handler, std::shared_ptr<ExceptionHandler> nextHandler)
-    : handler_(handler), nextHandler_(nextHandler)
+  inline Identifier::Identifier(ID id) : id_(id)
   {
   }
 
-  template <typename Exception_T, typename Functor_T>
-  inline VALUE Rice::detail::CustomExceptionHandler<Exception_T, Functor_T>::handle() const
+  inline Identifier::Identifier(char const* s) : id_(rb_intern(s))
   {
-    try
-    {
-      return this->nextHandler_->handle();
-    }
-    catch (Exception_T const& ex)
-    {
-      handler_(ex);
-      throw;
-    }
+  }
+
+  inline Identifier::Identifier(std::string const& s) : id_(rb_intern2(s.c_str(), s.size()))
+  {
+  }
+
+  inline char const* Identifier::c_str() const
+  {
+    return detail::protect(rb_id2name, id_);
+  }
+
+  inline std::string Identifier::str() const
+  {
+    return c_str();
+  }
+
+  inline VALUE Identifier::to_sym() const
+  {
+    return ID2SYM(id_);
   }
 }
+// =========   Object.hpp   =========
+
+/*! \file Object.hpp
+ */
+
+#include <iosfwd>
+
+namespace Rice
+{
+  class Class;
+  class String;
+  class Array;
+
+  //! The base class for all Objects
+  /*! Perhaps the name "Object" is a misnomer, because this class really
+   *  holds an object reference, not an object.
+   */
+  class Object
+  {
+  public:
+    //! Encapsulate an existing ruby object.
+    Object(VALUE value = Qnil) : value_(value) {}
+
+    //! Destructor
+    virtual ~Object();
+
+    // Enable copying
+    Object(const Object& other) = default;
+    Object& operator=(const Object& other) = default;
+
+    // Enable moving
+    Object(Object&& other);
+    Object& operator=(Object&& other);
+
+    //! Returns false if the object is nil or false; returns true
+    //! otherwise.
+    // Having this conversion also prevents accidental conversion to
+    // undesired integral types (e.g. long or int) by making the
+    // conversion ambiguous.
+    bool test() const { return RTEST(value_); }
+
+    //! Returns false if the object is nil or false; returns true
+    //! otherwise.
+    operator bool() const { return test(); }
+
+    //! Returns true if the object is nil, false otherwise.
+    bool is_nil() const { return NIL_P(value_); }
+
+    //! Implicit conversion to VALUE.
+    operator VALUE() const { return value_; }
+
+    //! Explicitly get the encapsulated VALUE.
+    // Returns a const ref so that Address_Registration_Guard can access
+    // the address where the VALUE is stored
+    VALUE const volatile& value() const { return value_; }
+
+    //! Get the class of an object.
+    /*! \return the object's Class.
+     */
+    Class class_of() const;
+
+    //! Compare this object to another object.
+    /*! Gets the result of self <=> other and returns the result.  The
+     *  result will be less than zero if self < other, greater than zero
+     *  if self > other, and equal to zero if self == other.
+     */
+    int compare(Object const& other) const;
+
+    //! Return a string representation of an object.
+    /*! \return the result of calling to_s on the object.  A String is not
+     *  returned, because it is not possible to return an instance of a
+     *  derived class.
+     */
+    String to_s() const;
+
+    //! Return the name of an object's class.
+    String class_name() const;
+
+    //! Inspect the object.
+    /*! \return the result of calling inspect on the object.  A String is
+     *  not returned, because it is not possible to return an instance of
+     *  a derived class.
+     */
+    String inspect() const;
+
+    //! Freeze the object.
+    void freeze();
+
+    //! Determine if the object is frozen.
+    /*! \return true if the object is frozen, false otherwise.
+     */
+    bool is_frozen() const;
+
+    //! Evaluate the given string in the context of the object.
+    /*! This is equivalant to calling obj.instance_eval(s) from inside the
+     *  interpreter.
+     *  \return the result of the expression.
+     */
+    Object instance_eval(String const& s);
+
+    //! Return the type of the underlying C object.
+    /*! This is equivalent to calling rb_type(obj).
+     * \return the type of the underlying C object (e.g. T_DATA, T_ARRAY,
+     * etc.).
+     */
+    int rb_type() const;
+
+    //! Return the object's id
+    VALUE object_id() const;
+
+    //! Determine whether the object is an instance of a class/module.
+    /*! \param klass a class or module.
+     *  \return true if the object is an instance of the given
+     *  class/module or one of its descendants.
+     */
+    bool is_a(Object klass) const;
+
+    //! Determine if the objects responds to a method.
+    /*! \param id the name of the method
+     *  \return true if the objects responds to the method, false
+     *  otherwise.
+     */
+    bool respond_to(Identifier id) const;
+
+    //! Determine whether class is the object's class.
+    /*! \param klass a class.
+     *  \return true if the object is an instance of the given class.
+     */
+    bool is_instance_of(Object klass) const;
+
+    //! Determine whether the Ruby VALUEs wrapped by this
+    //! object are the same object. Maps to Object::equal?
+    /*! \param other a Object.
+     */
+    bool is_equal(const Object& other) const;
+
+    //! Determine whether the Ruby VALUEs wrapped by this
+    //! object are equivalent. Maps to Object::eql?
+    /*! \param other a Object.
+     */
+    bool is_eql(const Object& other) const;
+
+    //! Set an instance variable.
+    /*! \param name the name of the instance variable to set (including
+     *  the leading @ sign)
+     *  \param value the value of the variable, which will be converted to
+     *  a Ruby type if necessary.
+     */
+    template<typename T>
+    void iv_set(Identifier name, T const& value);
+
+    //! Get the value of an instance variable.
+    /*! \param name the name of the instance variable to get
+     *  \return the value of the instance variable
+     */
+    Object iv_get(Identifier name) const;
+
+    //! Get the value of an instance variable, but don't warn if it is
+    //unset.
+    /*! \param name the name of the instance variable to get
+     *  \return the value of the instance variable
+     */
+    Object attr_get(Identifier name) const;
+
+    //! Call the Ruby method specified by 'id' on object 'obj'.
+    /*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
+    *  Ruby objects with to_ruby<>. To call methods expecting keyword arguments,
+    *  use call_kw.
+    *
+    *  E.g.:
+    *  \code
+    *    Rice::Object obj = x.call("foo", "one", 2);
+    *  \endcode
+    *
+    *  If a return type is specified, the return value will automatically be
+    *  converted to that type as long as 'from_ruby' exists for that type.
+    *
+    *  E.g.:
+    *  \code
+    *    float ret = x.call<float>("foo", z, 42);
+    *  \endcode
+    */
+    template<typename ...Arg_Ts>
+    Object call(Identifier id, Arg_Ts... args) const;
+
+    //! Call the Ruby method specified by 'id' on object 'obj'.
+    /*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
+    *  Ruby objects with to_ruby<>. The final argument must be a Hash and will be treated
+    *  as keyword arguments to the function.
+    *
+    *  E.g.:
+    *  \code
+    *    Rice::Hash kw;
+    *    kw[":argument"] = String("one")
+    *    Rice::Object obj = x.call_kw("foo", kw);
+    *  \endcode
+    *
+    *  If a return type is specified, the return value will automatically be
+    *  converted to that type as long as 'from_ruby' exists for that type.
+    *
+    *  E.g.:
+    *  \code
+    *    float ret = x.call_kw<float>("foo", kw);
+    *  \endcode
+    */
+    template<typename ...Arg_Ts>
+    Object call_kw(Identifier id, Arg_Ts... args) const;
+
+    //! Vectorized call.
+    /*! Calls the method identified by id with the list of arguments
+     *  identified by args.
+     *  \param id the name of the method to call
+     *  \param args the arguments to the method
+     *  \return the return value of the method call
+     */
+    Object vcall(Identifier id, Array args);
+
+    //! Get a constant.
+    /*! \param name the name of the constant to get.
+     *  \return the value of the constant.
+     */
+    Object const_get(Identifier name) const;
+
+    //! Determine whether a constant is defined.
+    /*! \param name the name of the constant to check.
+     *  \return true if the constant is defined in this module or false
+     *  otherwise.
+     */
+    bool const_defined(Identifier name) const;
+
+    //! Set a constant.
+    /*! \param name the name of the constant to set.
+      *  \param value the value of the constant.
+      *  \return *this
+      */
+    inline Object const_set(Identifier name, Object value);
+
+    //! Set a constant if it not already set.
+    /*! \param name the name of the constant to set.
+      *  \param value the value of the constant.
+      *  \return *this
+      */
+    inline Object const_set_maybe(Identifier name, Object value);
+
+    //! Remove a constant.
+    /*! \param name the name of the constant to remove.
+     */
+    void remove_const(Identifier name);
+
+  protected:
+    //! Set the encapsulated value.
+    void set_value(VALUE v);
+
+  private:
+    volatile VALUE value_;
+  };
+
+  std::ostream& operator<<(std::ostream& out, Object const& obj);
+
+  bool operator==(Object const& lhs, Object const& rhs);
+  bool operator!=(Object const& lhs, Object const& rhs);
+  bool operator<(Object const& lhs, Object const& rhs);
+  bool operator>(Object const& lhs, Object const& rhs);
+
+  extern Object const Nil;
+  extern Object const True;
+  extern Object const False;
+  extern Object const Undef;
+} // namespace Rice
+
+
+// =========   Builtin_Object.hpp   =========
+
+namespace Rice
+{
+  //! A smartpointer-like wrapper for Ruby builtin objects.
+  /*! A builtin object is one of Ruby's internal types, e.g. RArray or
+   *  RString.  Every builtin type structure has a corresponding integer
+   *  type number (e.g T_ARRAY for RArray or T_STRING for RString).  This
+   *  class is a wrapper for those types of objects, primarily useful as a
+   *  base class for other wrapper classes like Array and Hash.
+   */
+  template<int Builtin_Type>
+  class Builtin_Object
+    : public Object
+  {
+  public:
+    //! Wrap an already allocated Ruby object.
+    /*! Checks to see if the object is an object of type Builtin_Type; a
+     *  C++ exception is thrown if this is not the case.
+     *  \param value the object to be wrapped.
+     */
+    Builtin_Object(Object value);
+
+    RObject& operator*() const; //!< Return a reference to obj_
+    RObject* operator->() const; //!< Return a pointer to obj_
+    RObject* get() const;       //!< Return a pointer to obj_
+  };
+} // namespace Rice
+
+
+// =========   String.hpp   =========
+
+namespace Rice
+{
+  //! A Wraper for the ruby String class.
+  /*! This class provides a C++-style interface to ruby's String class and
+   *  its associated rb_str_* functions.
+   *
+   *  Example:
+   *  \code
+   *    String s(String::format("%s: %d", "foo", 42));
+   *    std::cout << s.length() << std::endl;
+   *  \endcode
+   */
+  class String
+    : public Builtin_Object<T_STRING>
+  {
+  public:
+    //! Construct a new string.
+    String();
+
+    //! Wrap an existing string.
+    String(VALUE v);
+
+    //! Wrap an existing string.
+    String(Object v);
+
+    //! Construct a String from an Identifier.
+    String(Identifier id);
+
+    //! Construct a String from a null-terminated C string.
+    String(char const* s);
+
+    //! Construct a String from an std::string.
+    String(std::string const& s);
+
+    //! Construct a String from an std::string_view.
+    String(std::string_view const& s);
+
+    //! Format a string using printf-style formatting.
+    template <typename... Arg_Ts>
+    static inline String format(char const* fmt, Arg_Ts&&...args);
+
+    //! Get the length of the String.
+    /*! \return the length of the string.
+     */
+    size_t length() const;
+
+    //! Get the character at the given index.
+    /*! \param index the desired index.
+     *  \return the character at the given index.
+     */
+    char operator[](ptrdiff_t index) const;
+
+    //! Return a pointer to the beginning of the underlying C string.
+    char const* c_str() const;
+
+    //! Return a copy of the string as an std::string.
+    std::string str() const;
+
+    //! Create an Identifier from the String.
+    /*! Calls rb_intern to create an ID.
+     *  \return an Identifier holding the ID returned from rb_intern.
+     */
+    Identifier intern() const;
+  };
+} // namespace Rice
+
+
+// =========   Array.hpp   =========
+
+#include <iterator>
+
+namespace Rice
+{
+  //! A wrapper for the ruby Array class.
+  /*! This class provides a C++-style interface to ruby's Array class and
+   *  its associated rb_ary_* functions.
+   *  Example:
+   *  \code
+   *    Array a;
+   *    a.push(String("some string"));
+   *    a.push(42);
+   *  \endcode
+   */
+  class Array
+    : public Builtin_Object<T_ARRAY>
+  {
+  public:
+    //! Construct a new array
+    Array();
+
+    //! Wrap an existing array
+    /*! \param v a ruby object, which must be of type T_ARRAY.
+     */
+    Array(Object v);
+
+    //! Wrap an existing array
+    /*! \param v a ruby object, which must be of type T_ARRAY.
+     */
+    Array(VALUE v);
+
+    //! Construct an array from a sequence.
+    /*! \param begin an iterator to the beginning of the sequence.
+     *  \param end an iterator to the end of the sequence.
+     */
+    template<typename Iter_T>
+    Array(Iter_T begin, Iter_T end);
+
+    //! Construct an Array from a C array.
+    /*! \param a a C array of type T and size n.
+     */
+    template<typename T, long n>
+    Array(T const (&a)[n]);
+
+  public:
+    //! Return the size of the array.
+    long size() const;
+
+    //! Return the element at the given index.
+    /*! \param index The index of the desired element.  The index may be
+     *  negative, to indicate an offset from the end of the array.  If the
+     *  index is out of bounds, this function has undefined behavior.
+     *  \return the element at the given index.
+     */
+    Object operator[](long index) const;
+
+  private:
+    //! A helper class so array[index]=value can work.
+    class Proxy;
+
+  public:
+    //! Return a reference to the element at the given index.
+    /*! \param index The index of the desired element.  The index may be
+     *  negative, to indicate an offset from the end of the array.  If the
+     *  index is out of bounds, this function has undefined behavior.
+     *  \return the element at the given index.
+     */
+    Proxy operator[](long index);
+
+    //! Push an element onto the end of the array
+    /*! \param v an object to push onto the array.
+     *  \return the object which was pushed onto the array.
+     */
+    template<typename T>
+    Object push(T const& obj);
+
+    //! Pop an element from the end of the array
+    /*! \return the object which was popped from the array, or Qnil if
+     *  the array was empty.
+     */
+    Object pop();
+
+    //! Unshift an element onto the beginning of the array
+    /*! \param v an object to unshift onto the array.
+     *  \return the object which was unshifted onto the array.
+     */
+    template<typename T>
+    Object unshift(T const& obj);
+
+    //! Shift an element from the beginning of the array
+    /*! \return the object which was shifted from the array.
+     */
+    Object shift();
+
+  private:
+    template<typename Array_Ptr_T, typename Value_T>
+    class Iterator;
+
+    long position_of(long index) const;
+
+  public:
+    //! An iterator.
+    typedef Iterator<Array*, Proxy> iterator;
+
+    //! A const iterator.
+    typedef Iterator<Array const*, Object> const_iterator;
+
+    //! Return an iterator to the beginning of the array.
+    iterator begin();
+
+    //! Return a const iterator to the beginning of the array.
+    const_iterator begin() const;
+
+    //! Return an iterator to the end of the array.
+    iterator end();
+
+    //! Return a const iterator to the end of the array.
+    const_iterator end() const;
+  };
+
+  //! A helper class so array[index]=value can work.
+  class Array::Proxy
+  {
+  public:
+    //! Construct a new Proxy
+    Proxy(Array array, long index);
+
+    //! Implicit conversion to Object.
+    operator Object() const;
+
+    //! Explicit conversion to VALUE.
+    VALUE value() const;
+
+    //! Assignment operator.
+    template<typename T>
+    Object operator=(T const& value);
+
+  private:
+    Array array_;
+    long index_;
+  };
+
+  //! A helper class for implementing iterators for a Array.
+  // TODO: This really should be a random-access iterator.
+  template<typename Array_Ptr_T, typename Value_T>
+  class Array::Iterator
+  {
+  public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = Value_T;
+    using difference_type = long;
+    using pointer = Object*;
+    using reference = Value_T&;
+
+    Iterator(Array_Ptr_T array, long index);
+
+    template<typename Array_Ptr_T_, typename Value_T_>
+    Iterator(Iterator<Array_Ptr_T_, Value_T_> const& rhs);
+
+    template<typename Array_Ptr_T_, typename Value_T_>
+    Iterator& operator=(Iterator<Array_Ptr_T_, Value_T_> const& rhs);
+
+    Iterator& operator++();
+    Iterator operator++(int);
+    Value_T operator*();
+    Object* operator->();
+
+    template<typename Array_Ptr_T_, typename Value_T_>
+    bool operator==(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
+
+    template<typename Array_Ptr_T_, typename Value_T_>
+    bool operator!=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
+
+    Array_Ptr_T array() const;
+    long index() const;
+
+  private:
+    Array_Ptr_T array_;
+    long index_;
+
+    Object tmp_;
+  };
+} // namespace Rice
+
+
+// =========   Hash.hpp   =========
+
+#include <iterator>
+#include <type_traits>
+
+namespace Rice
+{
+  //! A wrapper for the ruby Hash class.
+  //! This class provides a C++-style interface to ruby's Hash class and
+  //! its associated rb_hash_* functions.
+  //! Example:
+  //! \code
+  //!   Hash h;
+  //!   h[42] = String("foo");
+  //!   h[10] = String("bar");
+  //!   std::cout << String(h[42]) << std::endl;
+  //! \endcode
+  class Hash: public Builtin_Object<T_HASH>
+  {
+  public:
+    //! Construct a new hash.
+    Hash();
+
+    //! Wrap an existing hash.
+    /*! \param v the hash to wrap.
+     */
+    Hash(Object v);
+
+    //! Return the number of elements in the hash.
+    size_t size() const;
+
+  private:
+    //! A helper class so hash[key]=value can work.
+    class Proxy;
+
+  public:
+    //! Get the value for the given key.
+    /*! \param key the key whose value should be retrieved from the hash.
+     *  \return the value associated with the given key.
+     */
+    template<typename Key_T>
+    Proxy const operator[](Key_T const& key) const;
+
+    //! Get the value for the given key.
+    /*! \param key the key whose value should be retrieved from the hash.
+     *  \return the value associated with the given key.
+     */
+    template<typename Key_T>
+    Proxy operator[](Key_T const& key);
+
+    //! Get the value for the given key
+    /*! The returned value is converted to the type given by Value_T.
+     *  \param key the key whose value should be retrieved from the hash.
+     *  \return the value associated with the given key, converted to C++
+     *  type Value_T.
+     */
+    template<typename Value_T, typename Key_T>
+    Value_T get(Key_T const& key);
+
+    //! A helper class for dereferencing iterators
+    class Entry;
+
+    //! A helper class for implementing iterators for a Hash.
+    template<typename Hash_Ptr_T, typename Value_T>
+    class Iterator;
+
+  public:
+    //! An iterator.
+    typedef Iterator<Hash*, Entry> iterator;
+
+    //! A const iterator.
+    typedef Iterator<Hash const*, Entry const> const_iterator;
+
+  public:
+    //! Return an iterator to the beginning of the hash.
+    iterator begin();
+
+    //! Return a const iterator to the beginning of the hash.
+    const_iterator begin() const;
+
+    //! Return an iterator to the end of the hash.
+    iterator end();
+
+    //! Return a const to the end of the hash.
+    const_iterator end() const;
+  };
+
+  //! A helper class so hash[key]=value can work.
+  class Hash::Proxy
+  {
+  public:
+    //! Construct a new Proxy.
+    Proxy(Hash* hash, Object key);
+
+    //! Implicit conversion to Object.
+    operator Object() const;
+
+    //! Explicit conversion to VALUE.
+    VALUE value() const;
+
+    //! Assignment operator.
+    template<typename T>
+    Object operator=(T const& value);
+
+  private:
+    Hash* hash_;
+    Object key_;
+  };
+
+  //! A helper class for dereferencing iterators
+  /*! This class is intended to look similar to an std::pair.
+   */
+  class Hash::Entry
+  {
+  public:
+    //! Construct a new Entry.
+    Entry(Hash* hash, Object key);
+
+    //! Copy constructor.
+    Entry(Entry const& entry);
+
+    Object const key;          //!< The key
+    Object const& first;      //!< An alias for the key
+
+    Proxy value;              //!< The value
+    Proxy& second;           //!< An alias for the value
+
+    Entry& operator=(Entry const& rhs);
+
+    friend bool operator<(Entry const& lhs, Entry const& rhs);
+  };
+
+  bool operator<(Hash::Entry const& lhs, Hash::Entry const& rhs);
+
+  //! A helper class for implementing iterators for a Hash.
+  template<typename Hash_Ptr_T, typename Value_T>
+  class Hash::Iterator
+  {
+  public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = Value_T;
+    using difference_type = long;
+    using pointer = Object*;
+    using reference = Value_T&;
+
+    //! Construct a new Iterator.
+    Iterator(Hash_Ptr_T hash);
+
+    //! Construct a new Iterator with a given start-at index point
+    Iterator(Hash_Ptr_T hash, int start_at);
+
+    //! Construct an Iterator from another Iterator of a different const
+    //! qualification.
+    template<typename Iterator_T>
+    Iterator(Iterator_T const& iterator);
+
+    //! Preincrement operator.
+    Iterator& operator++();
+
+    //! Postincrement operator.
+    Iterator operator++(int);
+
+    //! Dereference operator.
+    Value_T operator*();
+
+    //! Dereference operator.
+    Value_T* operator->();
+
+    //! Equality operator.
+    bool operator==(Iterator const& rhs) const;
+
+    //! Inequality operator.
+    bool operator!=(Iterator const& rhs) const;
+
+    template<typename Hash_Ptr_T_, typename Value_T_>
+    friend class Hash::Iterator;
+
+  protected:
+    Object current_key();
+
+    Array hash_keys();
+
+  private:
+    Hash_Ptr_T hash_;
+    long current_index_;
+    VALUE keys_;
+
+    mutable typename std::remove_const<Value_T>::type tmp_;
+  };
+} // namespace Rice
+
+
+
+// =========   Symbol.hpp   =========
+
+#include <string>
+
+namespace Rice
+{
+  //! A wrapper for ruby's Symbol class.
+  /*! Symbols are internal identifiers in ruby.  They are singletons and
+   *  can be thought of as frozen strings.  They differ from an Identifier
+   *  in that they are in fact real Objects, but they can be converted
+   *  back and forth between Identifier and Symbol.
+   */
+  class Symbol
+    : public Object
+  {
+  public:
+    //! Wrap an existing symbol.
+    Symbol(VALUE v);
+
+    //! Wrap an existing symbol.
+    Symbol(Object v);
+
+    //! Construct a Symbol from an Identifier.
+    Symbol(Identifier id);
+
+    //! Construct a Symbol from a null-terminated C string.
+    Symbol(char const* s = "");
+
+    //! Construct a Symbol from an std::string.
+    Symbol(std::string const& s);
+
+    //! Construct a Symbol from an std::string_view.
+    Symbol(std::string_view const& s);
+
+    //! Return a string representation of the Symbol.
+    char const* c_str() const;
+
+    //! Return a string representation of the Symbol.
+    std::string str() const;
+
+    //! Return the Symbol as an Identifier.
+    Identifier to_id() const;
+  };
+} // namespace Rice
+
+
 
 
 // =========   Arg.hpp   =========
@@ -755,7 +1630,7 @@ namespace Rice
 } // Rice
 
 
-// ---------   Arg.ipp   ---------
+// =========   Arg.ipp   =========
 namespace Rice
 {
   inline Arg::Arg(std::string name) : name(name)
@@ -819,10 +1694,7 @@ namespace Rice
 
 
 } // Rice
-
 // =========   Return.hpp   =========
-
-#include <any>
 
 namespace Rice
 {
@@ -857,7 +1729,7 @@ namespace Rice
 } // Rice
 
 
-// ---------   Return.ipp   ---------
+// =========   Return.ipp   =========
 #include <any>
 #include <string>
 
@@ -897,52 +1769,455 @@ namespace Rice
   }
 }  // Rice
 
+// =========   to_ruby.ipp   =========
 
-// =========   from_ruby.hpp   =========
-
-
-// ---------   from_ruby_defn.hpp   ---------
-#ifndef Rice__detail__from_ruby_defn__hpp_
-#define Rice__detail__from_ruby_defn__hpp_
-
-#include <type_traits>
-
-
-namespace Rice::detail
+namespace Rice
 {
-  //! Convert a Ruby object to C++.
-  /*! If the Ruby object can be converted to an immediate value, returns a
-   *  copy of the Ruby object.  If the Ruby object is holding a C++
-   *  object and the type specified is a pointer to that type, returns a
-   *  pointer to that object.
-   *
-   *  Conversions from ruby to a pointer type are automatically generated
-   *  when a type is bound using Data_Type.  If no conversion exists an
-   *  exception is thrown.
-   *
-   *  \param T the C++ type to which to convert.
-   *  \param x the Ruby object to convert.
-   *  \return a C++ representation of the Ruby object.
-   *
-   *  Example:
-   *  \code
-   *    Object x = INT2NUM(42);
-   *    std::cout << From_Ruby<int>::convert(x);
-   *
-   *    Data_Object<Foo> foo(new Foo);
-   *    std::cout << *From_Ruby<Foo *>(foo) << std::endl;
-   *  \endcode
-   */
+  namespace detail
+  {
+    template<>
+    class To_Ruby<void>
+    {
+    public:
+      VALUE convert(void const*)
+      {
+        throw std::runtime_error("Converting from void pointer is not implemented");
+        return Qnil;
+      }
+    };
 
-  template <typename T>
-  class From_Ruby;
+    template<>
+    class To_Ruby<std::nullptr_t>
+    {
+    public:
+      VALUE convert(std::nullptr_t const)
+      {
+        return Qnil;
+      }
+    };
+
+    template<>
+    class To_Ruby<short>
+    {
+    public:
+      VALUE convert(short const& x)
+      {
+#ifdef rb_int2num_inline
+        return protect(rb_int2num_inline, (int)x);
+#else
+        return RB_INT2NUM(x);
+#endif
+      }
+    };
+
+    template<>
+    class To_Ruby<short&>
+    {
+    public:
+      VALUE convert(short const& x)
+      {
+#ifdef rb_int2num_inline
+        return protect(rb_int2num_inline, (int)x);
+#else
+        return RB_INT2NUM(x);
+#endif
+      }
+    };
+
+    template<>
+    class To_Ruby<int>
+    {
+    public:
+      VALUE convert(int const& x)
+      {
+#ifdef rb_int2num_inline
+        return protect(rb_int2num_inline, (int)x);
+#else
+        return RB_INT2NUM(x);
+#endif
+      }
+    };
+
+    template<>
+    class To_Ruby<int&>
+    {
+    public:
+      VALUE convert(int const& x)
+      {
+#ifdef rb_int2num_inline
+        return protect(rb_int2num_inline, (int)x);
+#else
+        return RB_INT2NUM(x);
+#endif
+      }
+    };
+
+    template<>
+    class To_Ruby<long>
+    {
+    public:
+      VALUE convert(long const& x)
+      {
+        return protect(rb_long2num_inline, x);
+      }
+    };
+
+    template<>
+    class To_Ruby<long&>
+    {
+    public:
+      VALUE convert(long const& x)
+      {
+        return protect(rb_long2num_inline, x);
+      }
+    };
+
+    template<>
+    class To_Ruby<long long>
+    {
+    public:
+      VALUE convert(long long const& x)
+      {
+        return protect(rb_ll2inum, x);
+      }
+    };
+
+    template<>
+    class To_Ruby<long long&>
+    {
+    public:
+      VALUE convert(long long const& x)
+      {
+        return protect(rb_ll2inum, x);
+      }
+    };
+
+    template<>
+    class To_Ruby<unsigned short>
+    {
+    public:
+      VALUE convert(unsigned short const& x)
+      {
+#ifdef rb_int2num_inline
+        return protect(rb_uint2num_inline, (unsigned int)x);
+#else
+        return RB_UINT2NUM(x);
+#endif
+      }
+    };
+
+    template<>
+    class To_Ruby<unsigned short&>
+    {
+    public:
+      VALUE convert(unsigned short const& x)
+      {
+#ifdef rb_int2num_inline
+        return protect(rb_uint2num_inline, (unsigned int)x);
+#else
+        return RB_UINT2NUM(x);
+#endif
+      }
+    };
+
+    template<>
+    class To_Ruby<unsigned int>
+    {
+    public:
+      VALUE convert(unsigned int const& x)
+      {
+#ifdef rb_int2num_inline
+        return protect(rb_uint2num_inline, (unsigned int)x);
+#else
+        return RB_UINT2NUM(x);
+#endif
+      }
+    };
+
+    template<>
+    class To_Ruby<unsigned int&>
+    {
+    public:
+      VALUE convert(unsigned int const& x)
+      {
+#ifdef rb_int2num_inline
+        return protect(rb_uint2num_inline, (unsigned int)x);
+#else
+        return RB_UINT2NUM(x);
+#endif
+      }
+    };
+
+    template<>
+    class To_Ruby<unsigned long>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+      {
+      }
+
+      VALUE convert(unsigned long const& x)
+      {
+        if (this->returnInfo_ && this->returnInfo_->isValue())
+        {
+          return x;
+        }
+        else
+        {
+          return protect(rb_ulong2num_inline, x);
+        }
+      }
+
+    private:
+      Return* returnInfo_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<unsigned long&>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+      {
+      }
+
+      VALUE convert(unsigned long const& x)
+      {
+        if (this->returnInfo_ && this->returnInfo_->isValue())
+        {
+          return x;
+        }
+        else
+        {
+          return protect(rb_ulong2num_inline, x);
+        }
+      }
+
+    private:
+      Return* returnInfo_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<unsigned long long>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+      {
+      }
+
+      VALUE convert(unsigned long long const& x)
+      {
+        if (this->returnInfo_ && this->returnInfo_->isValue())
+        {
+          return x;
+        }
+        else
+        {
+          return protect(rb_ull2inum, (unsigned long long)x);
+        }
+      }
+
+    private:
+      Return* returnInfo_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<unsigned long long&>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+      {
+      }
+
+      VALUE convert(unsigned long long const& x)
+      {
+        if (this->returnInfo_ && this->returnInfo_->isValue())
+        {
+          return x;
+        }
+        else
+        {
+          return protect(rb_ull2inum, (unsigned long long)x);
+        }
+      }
+
+    private:
+      Return* returnInfo_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<float>
+    {
+    public:
+      VALUE convert(float const& x)
+      {
+        return protect(rb_float_new, (double)x);
+      }
+    };
+
+    template<>
+    class To_Ruby<float&>
+    {
+    public:
+      VALUE convert(float const& x)
+      {
+        return protect(rb_float_new, (double)x);
+      }
+    };
+
+    template<>
+    class To_Ruby<double>
+    {
+    public:
+      VALUE convert(double const& x)
+      {
+        return protect(rb_float_new, x);
+      }
+    };
+
+    template<>
+    class To_Ruby<double&>
+    {
+    public:
+      VALUE convert(double const& x)
+      {
+        return protect(rb_float_new, x);
+      }
+    };
+
+    template<>
+    class To_Ruby<bool>
+    {
+    public:
+      VALUE convert(bool const& x)
+      {
+        return x ? Qtrue : Qfalse;
+      }
+    };
+
+    template<>
+    class To_Ruby<bool&>
+    {
+    public:
+      VALUE convert(bool const& x)
+      {
+        return x ? Qtrue : Qfalse;
+      }
+    };
+
+    template<>
+    class To_Ruby<char>
+    {
+    public:
+      VALUE convert(char const& x)
+      {
+        return To_Ruby<int>().convert(x);
+      }
+    };
+
+    template<>
+    class To_Ruby<char&>
+    {
+    public:
+      VALUE convert(char const& x)
+      {
+        return To_Ruby<int>().convert(x);
+      }
+    };
+
+    template<>
+    class To_Ruby<unsigned char>
+    {
+    public:
+      VALUE convert(unsigned char const& x)
+      {
+        return To_Ruby<unsigned int>().convert(x);
+      }
+    };
+
+    template<>
+    class To_Ruby<unsigned char&>
+    {
+    public:
+      VALUE convert(unsigned char const& x)
+      {
+        return To_Ruby<unsigned int>().convert(x);
+      }
+    };
+
+    template<>
+    class To_Ruby<signed char>
+    {
+    public:
+      VALUE convert(signed char const& x)
+      {
+        return To_Ruby<signed int>().convert(x);
+      }
+    };
+
+    template<>
+    class To_Ruby<signed char&>
+    {
+    public:
+      VALUE convert(signed char const& x)
+      {
+        return To_Ruby<signed int>().convert(x);
+      }
+    };
+
+    template<>
+    class To_Ruby<char*>
+    {
+    public:
+      VALUE convert(char const* x)
+      {
+        if (strlen(x) > 0 && x[0] == ':')
+        {
+          size_t symbolLength = strlen(x) - 1;
+          char* symbol = new char[symbolLength];
+          strncpy(symbol, x + 1, symbolLength);
+          ID id = protect(rb_intern2, symbol, (long)symbolLength);
+          delete[] symbol;
+          return protect(rb_id2sym, id);
+        }
+        else
+        {
+          return protect(rb_str_new2, x);
+        }
+      }
+    };
+
+    template<int N>
+    class To_Ruby<char[N]>
+    {
+    public:
+      VALUE convert(char const x[])
+      {
+        if (N > 0 && x[0] == ':')
+        {
+          // N count includes a NULL character at the end of the string
+          constexpr size_t symbolLength = N - 1;
+          char symbol[symbolLength];
+          strncpy(symbol, x + 1, symbolLength);
+          ID id = protect(rb_intern, symbol);
+          return protect(rb_id2sym, id);
+        }
+        else
+        {
+          return protect(rb_str_new2, x);
+        }
+      }
+    };
+  }
 }
-
-#endif // Rice__detail__From_Ruby2_defn__hpp_
-
-// ---------   from_ruby.ipp   ---------
-#ifndef Rice__detail__from_ruby__ipp_
-#define Rice__detail__from_ruby__ipp_
+// =========   from_ruby.ipp   =========
 
 #include <optional>
 #include <stdexcept>
@@ -951,13 +2226,6 @@ namespace Rice::detail
    such as bool, int, float, etc. It also includes conversions for chars and strings */
 namespace Rice::detail
 {
-  enum class Convertible: uint8_t
-  {
-    None = 0b000,
-    TypeCast = 0b010,
-    Exact = 0b110,
-  };
-
   inline Convertible operator&(Convertible left, Convertible right)
   {
     return static_cast<Convertible>(static_cast<uint8_t>(left) & static_cast<uint8_t>(right));
@@ -2629,570 +3897,8 @@ namespace Rice::detail
     float converted_;
   };
 }
-#endif // Rice__detail__from_ruby__ipp_
 
-
-
-// =========   to_ruby.hpp   =========
-
-
-// ---------   to_ruby_defn.hpp   ---------
-#ifndef Rice__detail__to_ruby_defn__hpp_
-#define Rice__detail__to_ruby_defn__hpp_
-
-
-namespace Rice
-{
-  namespace detail
-  {
-    //! Convert a C++ object to Ruby.
-    /*! If x is a pointer, wraps the pointee as a Ruby object.  If x is an
-     *  Object, returns x.
-     *
-     *  If no conversion exists a compile-time error is generated.
-     *
-     *  \param x the object to convert.
-     *  \return a Ruby representation of the C++ object.
-     *
-     *  Example:
-     *  \code
-     *    rb_p(to_ruby(42));
-     *
-     *    Foo * p_foo = new Foo();
-     *    rb_p(to_ruby(p_foo));
-     *  \endcode
-     */
-    template <typename T>
-    class To_Ruby;
-   
-    // Helper template function that let's users avoid having to specify the template type - its deduced
-    template <typename T>
-    VALUE to_ruby(T&& x)
-    {
-      using Unqualified_T = remove_cv_recursive_t<T>;
-      return To_Ruby<Unqualified_T>().convert(std::forward<T>(x));
-    }
-
-    // Helper template function that let's users avoid having to specify the template type - its deduced
-    template <typename T>
-    VALUE to_ruby(T* x)
-    {
-      using Unqualified_T = remove_cv_recursive_t<T>;
-      return To_Ruby<Unqualified_T*>().convert(x);
-    }
-  } // detail
-} // Rice
-
-#endif // Rice__detail__to_ruby_defn__hpp_
-
-// ---------   to_ruby.ipp   ---------
-
-namespace Rice
-{
-  namespace detail
-  {
-    template<>
-    class To_Ruby<void>
-    {
-    public:
-      VALUE convert(void const*)
-      {
-        throw std::runtime_error("Converting from void pointer is not implemented");
-        return Qnil;
-      }
-    };
-
-    template<>
-    class To_Ruby<std::nullptr_t>
-    {
-    public:
-      VALUE convert(std::nullptr_t const)
-      {
-        return Qnil;
-      }
-    };
-
-    template<>
-    class To_Ruby<short>
-    {
-    public:
-      VALUE convert(short const& x)
-      {
-#ifdef rb_int2num_inline
-        return protect(rb_int2num_inline, (int)x);
-#else
-        return RB_INT2NUM(x);
-#endif
-      }
-    };
-
-    template<>
-    class To_Ruby<short&>
-    {
-    public:
-      VALUE convert(short const& x)
-      {
-#ifdef rb_int2num_inline
-        return protect(rb_int2num_inline, (int)x);
-#else
-        return RB_INT2NUM(x);
-#endif
-      }
-    };
-
-    template<>
-    class To_Ruby<int>
-    {
-    public:
-      VALUE convert(int const& x)
-      {
-#ifdef rb_int2num_inline
-        return protect(rb_int2num_inline, (int)x);
-#else
-        return RB_INT2NUM(x);
-#endif
-      }
-    };
-
-    template<>
-    class To_Ruby<int&>
-    {
-    public:
-      VALUE convert(int const& x)
-      {
-#ifdef rb_int2num_inline
-        return protect(rb_int2num_inline, (int)x);
-#else
-        return RB_INT2NUM(x);
-#endif
-      }
-    };
-
-    template<>
-    class To_Ruby<long>
-    {
-    public:
-      VALUE convert(long const& x)
-      {
-        return protect(rb_long2num_inline, x);
-      }
-    };
-
-    template<>
-    class To_Ruby<long&>
-    {
-    public:
-      VALUE convert(long const& x)
-      {
-        return protect(rb_long2num_inline, x);
-      }
-    };
-
-    template<>
-    class To_Ruby<long long>
-    {
-    public:
-      VALUE convert(long long const& x)
-      {
-        return protect(rb_ll2inum, x);
-      }
-    };
-
-    template<>
-    class To_Ruby<long long&>
-    {
-    public:
-      VALUE convert(long long const& x)
-      {
-        return protect(rb_ll2inum, x);
-      }
-    };
-
-    template<>
-    class To_Ruby<unsigned short>
-    {
-    public:
-      VALUE convert(unsigned short const& x)
-      {
-#ifdef rb_int2num_inline
-        return protect(rb_uint2num_inline, (unsigned int)x);
-#else
-        return RB_UINT2NUM(x);
-#endif
-      }
-    };
-
-    template<>
-    class To_Ruby<unsigned short&>
-    {
-    public:
-      VALUE convert(unsigned short const& x)
-      {
-#ifdef rb_int2num_inline
-        return protect(rb_uint2num_inline, (unsigned int)x);
-#else
-        return RB_UINT2NUM(x);
-#endif
-      }
-    };
-
-    template<>
-    class To_Ruby<unsigned int>
-    {
-    public:
-      VALUE convert(unsigned int const& x)
-      {
-#ifdef rb_int2num_inline
-        return protect(rb_uint2num_inline, (unsigned int)x);
-#else
-        return RB_UINT2NUM(x);
-#endif
-      }
-    };
-
-    template<>
-    class To_Ruby<unsigned int&>
-    {
-    public:
-      VALUE convert(unsigned int const& x)
-      {
-#ifdef rb_int2num_inline
-        return protect(rb_uint2num_inline, (unsigned int)x);
-#else
-        return RB_UINT2NUM(x);
-#endif
-      }
-    };
-
-    template<>
-    class To_Ruby<unsigned long>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
-      {
-      }
-
-      VALUE convert(unsigned long const& x)
-      {
-        if (this->returnInfo_ && this->returnInfo_->isValue())
-        {
-          return x;
-        }
-        else
-        {
-          return protect(rb_ulong2num_inline, x);
-        }
-      }
-
-    private:
-      Return* returnInfo_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<unsigned long&>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
-      {
-      }
-
-      VALUE convert(unsigned long const& x)
-      {
-        if (this->returnInfo_ && this->returnInfo_->isValue())
-        {
-          return x;
-        }
-        else
-        {
-          return protect(rb_ulong2num_inline, x);
-        }
-      }
-
-    private:
-      Return* returnInfo_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<unsigned long long>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
-      {
-      }
-
-      VALUE convert(unsigned long long const& x)
-      {
-        if (this->returnInfo_ && this->returnInfo_->isValue())
-        {
-          return x;
-        }
-        else
-        {
-          return protect(rb_ull2inum, (unsigned long long)x);
-        }
-      }
-
-    private:
-      Return* returnInfo_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<unsigned long long&>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
-      {
-      }
-
-      VALUE convert(unsigned long long const& x)
-      {
-        if (this->returnInfo_ && this->returnInfo_->isValue())
-        {
-          return x;
-        }
-        else
-        {
-          return protect(rb_ull2inum, (unsigned long long)x);
-        }
-      }
-
-    private:
-      Return* returnInfo_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<float>
-    {
-    public:
-      VALUE convert(float const& x)
-      {
-        return protect(rb_float_new, (double)x);
-      }
-    };
-
-    template<>
-    class To_Ruby<float&>
-    {
-    public:
-      VALUE convert(float const& x)
-      {
-        return protect(rb_float_new, (double)x);
-      }
-    };
-
-    template<>
-    class To_Ruby<double>
-    {
-    public:
-      VALUE convert(double const& x)
-      {
-        return protect(rb_float_new, x);
-      }
-    };
-
-    template<>
-    class To_Ruby<double&>
-    {
-    public:
-      VALUE convert(double const& x)
-      {
-        return protect(rb_float_new, x);
-      }
-    };
-
-    template<>
-    class To_Ruby<bool>
-    {
-    public:
-      VALUE convert(bool const& x)
-      {
-        return x ? Qtrue : Qfalse;
-      }
-    };
-
-    template<>
-    class To_Ruby<bool&>
-    {
-    public:
-      VALUE convert(bool const& x)
-      {
-        return x ? Qtrue : Qfalse;
-      }
-    };
-
-    template<>
-    class To_Ruby<char>
-    {
-    public:
-      VALUE convert(char const& x)
-      {
-        return To_Ruby<int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<char&>
-    {
-    public:
-      VALUE convert(char const& x)
-      {
-        return To_Ruby<int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<unsigned char>
-    {
-    public:
-      VALUE convert(unsigned char const& x)
-      {
-        return To_Ruby<unsigned int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<unsigned char&>
-    {
-    public:
-      VALUE convert(unsigned char const& x)
-      {
-        return To_Ruby<unsigned int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<signed char>
-    {
-    public:
-      VALUE convert(signed char const& x)
-      {
-        return To_Ruby<signed int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<signed char&>
-    {
-    public:
-      VALUE convert(signed char const& x)
-      {
-        return To_Ruby<signed int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<char*>
-    {
-    public:
-      VALUE convert(char const* x)
-      {
-        if (strlen(x) > 0 && x[0] == ':')
-        {
-          size_t symbolLength = strlen(x) - 1;
-          char* symbol = new char[symbolLength];
-          strncpy(symbol, x + 1, symbolLength);
-          ID id = protect(rb_intern2, symbol, (long)symbolLength);
-          delete[] symbol;
-          return protect(rb_id2sym, id);
-        }
-        else
-        {
-          return protect(rb_str_new2, x);
-        }
-      }
-    };
-
-    template<int N>
-    class To_Ruby<char[N]>
-    {
-    public:
-      VALUE convert(char const x[])
-      {
-        if (N > 0 && x[0] == ':')
-        {
-          // N count includes a NULL character at the end of the string
-          constexpr size_t symbolLength = N - 1;
-          char symbol[symbolLength];
-          strncpy(symbol, x + 1, symbolLength);
-          ID id = protect(rb_intern, symbol);
-          return protect(rb_id2sym, id);
-        }
-        else
-        {
-          return protect(rb_str_new2, x);
-        }
-      }
-    };
-  }
-}
-
-
-// =========   Native.hpp   =========
-
-
-namespace Rice::detail
-{
-  class Native;
-
-  class Resolved
-  {
-  public:
-    inline bool operator<(Resolved other);
-    inline bool operator>(Resolved other);
-
-    Convertible convertible;
-    double parameterMatch;
-    Native* native;
-  };
-
-  class Native
-  {
-  public:
-    static VALUE resolve(int argc, VALUE* argv, VALUE self);
-  public:
-    virtual ~Native() = default;
-    VALUE call(int argc, VALUE* argv, VALUE self);
-
-    virtual Resolved matches(int argc, VALUE* argv, VALUE self) = 0;
-    virtual VALUE operator()(int argc, VALUE* argv, VALUE self) = 0;
-  };
-}
-
-
-// =========   Type.hpp   =========
-
-#include <string>
-#include <typeinfo>
-#include <typeindex>
-
-namespace Rice::detail
-{
-  template<typename T>
-  struct Type
-  {
-    static bool verify();
-  };
-
-  // Return the name of a type
-  std::string typeName(const std::type_info& typeInfo);
-  std::string typeName(const std::type_index& typeIndex);
-  std::string makeClassName(const std::type_info& typeInfo);
-
-  template<typename T>
-  void verifyType();
-
-  template<typename Tuple_T>
-  void verifyTypes();
-}
-
+// Registries
 
 // =========   TypeRegistry.hpp   =========
 
@@ -3252,7 +3958,7 @@ namespace Rice::detail
 }
 
 
-// ---------   TypeRegistry.ipp   ---------
+// =========   TypeRegistry.ipp   =========
 #include <iostream>
 #include <stdexcept>
 #include <sstream>
@@ -3424,7 +4130,6 @@ namespace Rice::detail
     throw std::invalid_argument(message);
   }
 }
-
 // =========   InstanceRegistry.hpp   =========
 
 #include <map>
@@ -3454,7 +4159,8 @@ namespace Rice::detail
 } // namespace Rice::detail
 
 
-// ---------   InstanceRegistry.ipp   ---------
+
+// =========   InstanceRegistry.ipp   =========
 #include <memory>
 
 namespace Rice::detail
@@ -3507,9 +4213,82 @@ namespace Rice::detail
 } // namespace
 
 
+// =========   ExceptionHandler.hpp   =========
+
+#include <memory>
+
+namespace Rice::detail
+{
+  /* An abstract class for converting C++ exceptions to ruby exceptions.  It's used
+     like this:
+
+     try
+     {
+     }
+     catch(...)
+     {
+       handler->handle();
+     }
+
+   If an exception is thrown the handler will pass the exception up the
+   chain, then the last handler in the chain will throw the exception
+   down the chain until a lower handler can handle it, e.g.:
+
+   try
+   {
+     return call_next_ExceptionHandler();
+   }
+   catch(MyException const & ex)
+   {
+     throw Rice::Exception(rb_cMyException, "%s", ex.what());
+    }
+
+    Memory management. Handlers are created by the ModuleBase constructor. When the
+    module defines a new Ruby method, metadata  is stored on the Ruby klass including
+    the exception handler. Since the metadata outlives the module, handlers are stored
+    using std::shared_ptr. Thus the Module (or its inherited children) can be destroyed
+    without corrupting the metadata references to the shared exception handler. */
+
+  class ExceptionHandler
+  {
+  public:
+    ExceptionHandler() = default;
+    virtual ~ExceptionHandler() = default;
+
+    // Don't allow copying or assignment
+    ExceptionHandler(const ExceptionHandler& other) = delete;
+    ExceptionHandler& operator=(const ExceptionHandler& other) = delete;
+
+    virtual VALUE handle() const = 0;
+  };
+
+  // The default exception handler just rethrows the exception.  If there
+  // are other handlers in the chain, they will try to handle the rethrown
+  // exception.
+  class DefaultExceptionHandler : public ExceptionHandler
+  {
+  public:
+    virtual VALUE handle() const override;
+  };
+
+  // An exception handler that takes a functor as an argument.  The
+  // functor should throw a Rice::Exception to handle the exception.  If
+  // the functor does not handle the exception, the exception will be
+  // re-thrown.
+  template <typename Exception_T, typename Functor_T>
+  class CustomExceptionHandler : public ExceptionHandler
+  {
+  public:
+    CustomExceptionHandler(Functor_T handler, std::shared_ptr<ExceptionHandler> nextHandler);
+    virtual VALUE handle() const override;
+
+  private:
+    Functor_T handler_;
+    std::shared_ptr<ExceptionHandler> nextHandler_;
+  };
+}
 
 // =========   HandlerRegistry.hpp   =========
-
 
 namespace Rice::detail
 {
@@ -3554,35 +4333,74 @@ namespace Rice::detail
 } // namespace Rice::detail
 
 
-// ---------   HandlerRegistry.ipp   ---------
-#include <memory>
+
+
+// =========   ExceptionHandler.ipp   =========
+namespace Rice::detail
+{
+  inline VALUE Rice::detail::DefaultExceptionHandler::handle() const
+  {
+    throw;
+  }
+
+  template <typename Exception_T, typename Functor_T>
+  inline Rice::detail::CustomExceptionHandler<Exception_T, Functor_T>::
+    CustomExceptionHandler(Functor_T handler, std::shared_ptr<ExceptionHandler> nextHandler)
+    : handler_(handler), nextHandler_(nextHandler)
+  {
+  }
+
+  template <typename Exception_T, typename Functor_T>
+  inline VALUE Rice::detail::CustomExceptionHandler<Exception_T, Functor_T>::handle() const
+  {
+    try
+    {
+      return this->nextHandler_->handle();
+    }
+    catch (Exception_T const& ex)
+    {
+      handler_(ex);
+      throw;
+    }
+  }
+}
+
+// =========   Native.hpp   =========
 
 namespace Rice::detail
 {
-  template<typename Exception_T, typename Functor_T>
-  inline HandlerRegistry& HandlerRegistry::add(Functor_T functor)
+  class Native;
+
+  class Resolved
   {
-    // Create a new exception handler and pass ownership of the current handler to it (they
-    // get chained together). Then take ownership of the new handler.
-    this->handler_ = std::make_shared<detail::CustomExceptionHandler<Exception_T, Functor_T>>(
-      functor, std::move(this->handler_));
+  public:
+    inline bool operator<(Resolved other);
+    inline bool operator>(Resolved other);
 
-    return *this;
-  }
+    Convertible convertible;
+    double parameterMatch;
+    Native* native;
+  };
 
-  inline std::shared_ptr<detail::ExceptionHandler> HandlerRegistry::handler() const
+  class Native
   {
-    return this->handler_;
-  }
-} // namespace
+  public:
+    static VALUE resolve(int argc, VALUE* argv, VALUE self);
+  public:
+    virtual ~Native() = default;
+    VALUE call(int argc, VALUE* argv, VALUE self);
 
+    virtual Resolved matches(int argc, VALUE* argv, VALUE self) = 0;
+    virtual VALUE operator()(int argc, VALUE* argv, VALUE self) = 0;
+  };
+}
 
 
 // =========   NativeRegistry.hpp   =========
 
 #include <map>
 #include <memory>
-
+#include <utility>
 
 /* The Native Registry tracks C++ instance that are used to invoke C++ methods for Ruby. 
    These objects include instances of the NativeFunction, NativeIterator, NativeAttributeGet
@@ -3615,7 +4433,8 @@ namespace Rice::detail
   };
 }
 
-// ---------   NativeRegistry.ipp   ---------
+
+// =========   NativeRegistry.ipp   =========
 
 namespace Rice::detail
 {
@@ -3666,9 +4485,7 @@ namespace Rice::detail
   }
 }
 
-
 // =========   Registries.hpp   =========
-
 
 namespace Rice::detail
 {
@@ -3686,7 +4503,7 @@ namespace Rice::detail
 }
 
 
-// ---------   Registries.ipp   ---------
+// =========   Registries.ipp   =========
 namespace Rice::detail
 {
   //Initialize static variables here.
@@ -3852,6 +4669,103 @@ namespace Rice::detail
   }
 }
 
+// =========   HandlerRegistry.ipp   =========
+#include <memory>
+
+namespace Rice::detail
+{
+  template<typename Exception_T, typename Functor_T>
+  inline HandlerRegistry& HandlerRegistry::add(Functor_T functor)
+  {
+    // Create a new exception handler and pass ownership of the current handler to it (they
+    // get chained together). Then take ownership of the new handler.
+    this->handler_ = std::make_shared<detail::CustomExceptionHandler<Exception_T, Functor_T>>(
+      functor, std::move(this->handler_));
+
+    return *this;
+  }
+
+  inline std::shared_ptr<detail::ExceptionHandler> HandlerRegistry::handler() const
+  {
+    return this->handler_;
+  }
+} // namespace
+
+// =========   HandlerRegistration.hpp   =========
+
+namespace Rice
+{
+  // Register exception handler
+  template<typename Exception_T, typename Functor_T>
+  detail::HandlerRegistry register_handler(Functor_T functor)
+  {
+    return detail::Registries::instance.handlers.add<Exception_T, Functor_T>(std::forward<Functor_T>(functor));
+  }
+}
+
+// Code for Ruby to call C++
+
+// =========   Exception.ipp   =========
+
+namespace Rice
+{
+  inline Exception::Exception(VALUE exception) : exception_(exception)
+  {
+  }
+
+  template <typename... Arg_Ts>
+  inline Exception::Exception(const Exception& other, char const* fmt, Arg_Ts&&...args)
+    : Exception(other.class_of(), fmt, std::forward<Arg_Ts>(args)...)
+  {
+  }
+
+  template <typename... Arg_Ts>
+  inline Exception::Exception(const VALUE exceptionClass, char const* fmt, Arg_Ts&&...args)
+  {
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
+#endif
+
+    size_t size = std::snprintf(nullptr, 0, fmt, std::forward<Arg_Ts>(args)...);
+    this->message_ = std::string(size, '\0');
+
+    // size+1 avoids truncating the string. Otherwise snprintf writes n - 1 characters
+    // to allow space for null character but we don't need that since std::string
+    // will add a null character internally at n + 1
+    std::snprintf(&this->message_[0], size + 1, fmt, std::forward<Arg_Ts>(args)...);
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
+    // Now create the Ruby exception
+    this->exception_ = detail::protect(rb_exc_new2, exceptionClass, this->message_.c_str());
+  }
+
+  inline char const* Exception::what() const noexcept
+  {
+    if (this->message_.empty())
+    {
+      // This isn't protected because if it fails then either we could eat the exception
+      // (not good) or crash the program (better)
+      VALUE rubyMessage = rb_funcall(this->exception_, rb_intern("message"), 0);
+      this->message_ = std::string(RSTRING_PTR(rubyMessage), RSTRING_LEN(rubyMessage));
+    }
+    return this->message_.c_str();
+  }
+
+  inline VALUE Exception::class_of() const
+  {
+    return detail::protect(rb_class_of, this->exception_);
+  }
+
+  inline VALUE Exception::value() const
+  {
+    return this->exception_;
+  }
+}
+
 // =========   cpp_protect.hpp   =========
 
 #include <regex>
@@ -3953,7 +4867,6 @@ namespace Rice::detail
 
 // =========   Wrapper.hpp   =========
 
-
 namespace Rice
 {
 namespace detail
@@ -4000,7 +4913,8 @@ Wrapper* getWrapper(VALUE value);
 } // namespace Rice
 
 
-// ---------   Wrapper.ipp   ---------
+
+// =========   Wrapper.ipp   =========
 #include <memory>
 
 namespace Rice::detail
@@ -4225,8 +5139,6 @@ namespace Rice::detail
   }
 } // namespace
 
-
-
 // =========   MethodInfo.hpp   =========
 
 #include <vector>
@@ -4266,7 +5178,7 @@ namespace Rice
   };
 }
 
-// ---------   MethodInfo.ipp   ---------
+// =========   MethodInfo.ipp   =========
 #include <sstream>
 
 namespace Rice
@@ -4342,147 +5254,6 @@ namespace Rice
   inline std::vector<Arg>::iterator MethodInfo::end()
   {
     return this->args_.end();
-  }
-}
-
-
-// =========   Identifier.hpp   =========
-
-#include <string>
-
-namespace Rice
-{
-  class Symbol;
-
-  //! A wrapper for the ID type
-  /*! An ID is ruby's internal representation of a Symbol object.
-   */
-  class Identifier
-  {
-  public:
-    //! Construct a new Identifier from an ID.
-    Identifier(ID id);
-
-    //! Construct a new Identifier from a Symbol.
-    Identifier(Symbol const& symbol);
-
-    //! Construct a new Identifier from a c string.
-    Identifier(char const* s);
-
-    //! Construct a new Identifier from a string.
-    Identifier(std::string const& string);
-
-    //! Return a string representation of the Identifier.
-    char const* c_str() const;
-
-    //! Return a string representation of the Identifier.
-    std::string str() const;
-
-    //! Return the underlying ID
-    ID id() const { return id_; }
-
-    //! Return the underlying ID
-    operator ID() const { return id_; }
-
-    //! Return the ID as a Symbol
-    VALUE to_sym() const;
-
-  private:
-    ID id_;
-  };
-} // namespace Rice
-
-
-// ---------   Identifier.ipp   ---------
-namespace Rice
-{
-  inline Identifier::Identifier(ID id) : id_(id)
-  {
-  }
-
-  inline Identifier::Identifier(char const* s) : id_(rb_intern(s))
-  {
-  }
-
-  inline Identifier::Identifier(std::string const& s) : id_(rb_intern2(s.c_str(), s.size()))
-  {
-  }
-
-  inline char const* Identifier::c_str() const
-  {
-    return detail::protect(rb_id2name, id_);
-  }
-
-  inline std::string Identifier::str() const
-  {
-    return c_str();
-  }
-
-  inline VALUE Identifier::to_sym() const
-  {
-    return ID2SYM(id_);
-  }
-}
-
-// =========   Exception.ipp   =========
-
-
-namespace Rice
-{
-  inline Exception::Exception(VALUE exception) : exception_(exception)
-  {
-  }
-
-  template <typename... Arg_Ts>
-  inline Exception::Exception(const Exception& other, char const* fmt, Arg_Ts&&...args)
-    : Exception(other.class_of(), fmt, std::forward<Arg_Ts>(args)...)
-  {
-  }
-
-  template <typename... Arg_Ts>
-  inline Exception::Exception(const VALUE exceptionClass, char const* fmt, Arg_Ts&&...args)
-  {
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-security"
-#endif
-
-    size_t size = std::snprintf(nullptr, 0, fmt, std::forward<Arg_Ts>(args)...);
-    this->message_ = std::string(size, '\0');
-
-    // size+1 avoids truncating the string. Otherwise snprintf writes n - 1 characters
-    // to allow space for null character but we don't need that since std::string
-    // will add a null character internally at n + 1
-    std::snprintf(&this->message_[0], size + 1, fmt, std::forward<Arg_Ts>(args)...);
-
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-
-    // Now create the Ruby exception
-    this->exception_ = detail::protect(rb_exc_new2, exceptionClass, this->message_.c_str());
-  }
-
-  inline char const* Exception::what() const noexcept
-  {
-    if (this->message_.empty())
-    {
-      // This isn't protected because if it fails then either we could eat the exception
-      // (not good) or crash the program (better)
-      VALUE rubyMessage = rb_funcall(this->exception_, rb_intern("message"), 0);
-      this->message_ = std::string(RSTRING_PTR(rubyMessage), RSTRING_LEN(rubyMessage));
-    }
-    return this->message_.c_str();
-  }
-
-  inline VALUE Exception::class_of() const
-  {
-    return detail::protect(rb_class_of, this->exception_);
-  }
-
-  inline VALUE Exception::value() const
-  {
-    return this->exception_;
   }
 }
 
@@ -4590,8 +5361,17 @@ namespace Rice::detail
         }
         else
         {
+          // Special case == to make the RubyMine debugger work, it liks calling == with a Module as
+          // the other argument, thus breaking if C++ operator== is implemented.
           Identifier identifier(methodId);
-          rb_raise(rb_eArgError, "Could not resolve method call for %s#%s", rb_class2name(klass), identifier.c_str());
+          if (identifier.str() == "==")
+          {
+            return detail::protect(rb_call_super, argc, argv);
+          }
+          else
+          {
+            rb_raise(rb_eArgError, "Could not resolve method call for %s#%s", rb_class2name(klass), identifier.c_str());
+          }
         }
       }
 
@@ -4602,7 +5382,6 @@ namespace Rice::detail
 }
 
 // =========   NativeAttributeGet.hpp   =========
-
 
 namespace Rice
 {
@@ -4652,7 +5431,7 @@ namespace Rice
 } // Rice
 
 
-// ---------   NativeAttributeGet.ipp   ---------
+// =========   NativeAttributeGet.ipp   =========
 #include <array>
 #include <algorithm>
 
@@ -4705,9 +5484,7 @@ namespace Rice::detail
   }
 } // Rice
 
-
 // =========   NativeAttributeSet.hpp   =========
-
 
 namespace Rice
 {
@@ -4749,7 +5526,7 @@ namespace Rice
 } // Rice
 
 
-// ---------   NativeAttributeSet.ipp   ---------
+// =========   NativeAttributeSet.ipp   =========
 #include <array>
 #include <algorithm>
 
@@ -4833,9 +5610,7 @@ namespace Rice::detail
   }
 } // Rice
 
-
 // =========   NativeFunction.hpp   =========
-
 
 namespace Rice::detail
 {
@@ -4947,7 +5722,8 @@ namespace Rice::detail
   };
 }
 
-// ---------   NativeFunction.ipp   ---------
+
+// =========   NativeFunction.ipp   =========
 #include <array>
 #include <algorithm>
 #include <stdexcept>
@@ -5311,11 +6087,7 @@ namespace Rice::detail
   }
 }
 
-
 // =========   NativeIterator.hpp   =========
-#ifndef Rice_NativeIterator__hpp_
-#define Rice_NativeIterator__hpp_
-
 
 namespace Rice::detail
 {
@@ -5359,7 +6131,8 @@ namespace Rice::detail
   };
 }
 
-// ---------   NativeIterator.ipp   ---------
+
+// =========   NativeIterator.ipp   =========
 #include <iterator>
 #include <functional>
 #include <type_traits>
@@ -5456,305 +6229,9 @@ namespace Rice::detail
     }
   }
 }
-#endif // Rice_NativeIterator__hpp_
-// =========   HandlerRegistration.hpp   =========
+// C++ API definitions
 
-
-namespace Rice
-{
-  // Register exception handler
-  template<typename Exception_T, typename Functor_T>
-  detail::HandlerRegistry register_handler(Functor_T functor)
-  {
-    return detail::Registries::instance.handlers.add<Exception_T, Functor_T>(std::forward<Functor_T>(functor));
-  }
-}
-
-// C++ classes for using the Ruby API
-
-// =========   Object.hpp   =========
-
-
-// ---------   Object_defn.hpp   ---------
-#ifndef Rice__Object_defn__hpp_
-#define Rice__Object_defn__hpp_
-
-/*! \file Object.hpp
- */
-
-
-#include <iosfwd>
-#include <vector>
-
-namespace Rice
-{
-  class Class;
-  class String;
-  class Array;
-
-  //! The base class for all Objects
-  /*! Perhaps the name "Object" is a misnomer, because this class really
-   *  holds an object reference, not an object.
-   */
-  class Object
-  {
-  public:
-    //! Encapsulate an existing ruby object.
-    Object(VALUE value = Qnil) : value_(value) {}
-
-    //! Destructor
-    virtual ~Object();
-
-    // Enable copying
-    Object(const Object& other) = default;
-    Object& operator=(const Object& other) = default;
-
-    // Enable moving
-    Object(Object&& other);
-    Object& operator=(Object&& other);
-
-    //! Returns false if the object is nil or false; returns true
-    //! otherwise.
-    // Having this conversion also prevents accidental conversion to
-    // undesired integral types (e.g. long or int) by making the
-    // conversion ambiguous.
-    bool test() const { return RTEST(value_); }
-
-    //! Returns false if the object is nil or false; returns true
-    //! otherwise.
-    operator bool() const { return test(); }
-
-    //! Returns true if the object is nil, false otherwise.
-    bool is_nil() const { return NIL_P(value_); }
-
-    //! Implicit conversion to VALUE.
-    operator VALUE() const { return value_; }
-
-    //! Explicitly get the encapsulated VALUE.
-    // Returns a const ref so that Address_Registration_Guard can access
-    // the address where the VALUE is stored
-    VALUE const volatile& value() const { return value_; }
-
-    //! Get the class of an object.
-    /*! \return the object's Class.
-     */
-    Class class_of() const;
-
-    //! Compare this object to another object.
-    /*! Gets the result of self <=> other and returns the result.  The
-     *  result will be less than zero if self < other, greater than zero
-     *  if self > other, and equal to zero if self == other.
-     */
-    int compare(Object const& other) const;
-
-    //! Return a string representation of an object.
-    /*! \return the result of calling to_s on the object.  A String is not
-     *  returned, because it is not possible to return an instance of a
-     *  derived class.
-     */
-    String to_s() const;
-
-    //! Return the name of an object's class.
-    String class_name() const;
-
-    //! Inspect the object.
-    /*! \return the result of calling inspect on the object.  A String is
-     *  not returned, because it is not possible to return an instance of
-     *  a derived class.
-     */
-    String inspect() const;
-
-    //! Freeze the object.
-    void freeze();
-
-    //! Determine if the object is frozen.
-    /*! \return true if the object is frozen, false otherwise.
-     */
-    bool is_frozen() const;
-
-    //! Evaluate the given string in the context of the object.
-    /*! This is equivalant to calling obj.instance_eval(s) from inside the
-     *  interpreter.
-     *  \return the result of the expression.
-     */
-    Object instance_eval(String const& s);
-
-    //! Return the type of the underlying C object.
-    /*! This is equivalent to calling rb_type(obj).
-     * \return the type of the underlying C object (e.g. T_DATA, T_ARRAY,
-     * etc.).
-     */
-    int rb_type() const;
-
-    //! Return the object's id
-    VALUE object_id() const;
-
-    //! Determine whether the object is an instance of a class/module.
-    /*! \param klass a class or module.
-     *  \return true if the object is an instance of the given
-     *  class/module or one of its descendants.
-     */
-    bool is_a(Object klass) const;
-
-    //! Determine if the objects responds to a method.
-    /*! \param id the name of the method
-     *  \return true if the objects responds to the method, false
-     *  otherwise.
-     */
-    bool respond_to(Identifier id) const;
-
-    //! Determine whether class is the object's class.
-    /*! \param klass a class.
-     *  \return true if the object is an instance of the given class.
-     */
-    bool is_instance_of(Object klass) const;
-
-    //! Determine whether the Ruby VALUEs wrapped by this
-    //! object are the same object. Maps to Object::equal?
-    /*! \param other a Object.
-     */
-    bool is_equal(const Object& other) const;
-
-    //! Determine whether the Ruby VALUEs wrapped by this
-    //! object are equivalent. Maps to Object::eql?
-    /*! \param other a Object.
-     */
-    bool is_eql(const Object& other) const;
-
-    //! Set an instance variable.
-    /*! \param name the name of the instance variable to set (including
-     *  the leading @ sign)
-     *  \param value the value of the variable, which will be converted to
-     *  a Ruby type if necessary.
-     */
-    template<typename T>
-    void iv_set(Identifier name, T const& value);
-
-    //! Get the value of an instance variable.
-    /*! \param name the name of the instance variable to get
-     *  \return the value of the instance variable
-     */
-    Object iv_get(Identifier name) const;
-
-    //! Get the value of an instance variable, but don't warn if it is
-    //unset.
-    /*! \param name the name of the instance variable to get
-     *  \return the value of the instance variable
-     */
-    Object attr_get(Identifier name) const;
-
-    //! Call the Ruby method specified by 'id' on object 'obj'.
-    /*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
-    *  Ruby objects with to_ruby<>. To call methods expecting keyword arguments,
-    *  use call_kw.
-    *
-    *  E.g.:
-    *  \code
-    *    Rice::Object obj = x.call("foo", "one", 2);
-    *  \endcode
-    *
-    *  If a return type is specified, the return value will automatically be
-    *  converted to that type as long as 'from_ruby' exists for that type.
-    *
-    *  E.g.:
-    *  \code
-    *    float ret = x.call<float>("foo", z, 42);
-    *  \endcode
-    */
-    template<typename ...Arg_Ts>
-    Object call(Identifier id, Arg_Ts... args) const;
-
-    //! Call the Ruby method specified by 'id' on object 'obj'.
-    /*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
-    *  Ruby objects with to_ruby<>. The final argument must be a Hash and will be treated
-    *  as keyword arguments to the function.
-    *
-    *  E.g.:
-    *  \code
-    *    Rice::Hash kw;
-    *    kw[":argument"] = String("one")
-    *    Rice::Object obj = x.call_kw("foo", kw);
-    *  \endcode
-    *
-    *  If a return type is specified, the return value will automatically be
-    *  converted to that type as long as 'from_ruby' exists for that type.
-    *
-    *  E.g.:
-    *  \code
-    *    float ret = x.call_kw<float>("foo", kw);
-    *  \endcode
-    */
-    template<typename ...Arg_Ts>
-    Object call_kw(Identifier id, Arg_Ts... args) const;
-
-    //! Vectorized call.
-    /*! Calls the method identified by id with the list of arguments
-     *  identified by args.
-     *  \param id the name of the method to call
-     *  \param args the arguments to the method
-     *  \return the return value of the method call
-     */
-    Object vcall(Identifier id, Array args);
-
-    //! Get a constant.
-    /*! \param name the name of the constant to get.
-     *  \return the value of the constant.
-     */
-    Object const_get(Identifier name) const;
-
-    //! Determine whether a constant is defined.
-    /*! \param name the name of the constant to check.
-     *  \return true if the constant is defined in this module or false
-     *  otherwise.
-     */
-    bool const_defined(Identifier name) const;
-
-    //! Set a constant.
-    /*! \param name the name of the constant to set.
-      *  \param value the value of the constant.
-      *  \return *this
-      */
-    inline Object const_set(Identifier name, Object value);
-
-    //! Set a constant if it not already set.
-    /*! \param name the name of the constant to set.
-      *  \param value the value of the constant.
-      *  \return *this
-      */
-    inline Object const_set_maybe(Identifier name, Object value);
-
-    //! Remove a constant.
-    /*! \param name the name of the constant to remove.
-     */
-    void remove_const(Identifier name);
-
-  protected:
-    //! Set the encapsulated value.
-    void set_value(VALUE v);
-
-  private:
-    volatile VALUE value_;
-  };
-
-  std::ostream& operator<<(std::ostream& out, Object const& obj);
-
-  bool operator==(Object const& lhs, Object const& rhs);
-  bool operator!=(Object const& lhs, Object const& rhs);
-  bool operator<(Object const& lhs, Object const& rhs);
-  bool operator>(Object const& lhs, Object const& rhs);
-
-  extern Object const Nil;
-  extern Object const True;
-  extern Object const False;
-  extern Object const Undef;
-} // namespace Rice
-
-#endif // Rice__Object_defn__hpp_
-
-// ---------   Object.ipp   ---------
-#ifndef Rice__Object__ipp_
-#define Rice__Object__ipp_
-
+// =========   Object.ipp   =========
 namespace Rice
 {
   inline const Object Nil(Qnil);
@@ -5990,50 +6467,8 @@ namespace Rice::detail
     }
   };
 }
-#endif // Rice__Object__ipp_
 
-
-
-// =========   Builtin_Object.hpp   =========
-
-
-// ---------   Builtin_Object_defn.hpp   ---------
-#ifndef Rice__Builtin_Object_defn__hpp_
-#define Rice__Builtin_Object_defn__hpp_
-
-
-namespace Rice
-{
-  //! A smartpointer-like wrapper for Ruby builtin objects.
-  /*! A builtin object is one of Ruby's internal types, e.g. RArray or
-   *  RString.  Every builtin type structure has a corresponding integer
-   *  type number (e.g T_ARRAY for RArray or T_STRING for RString).  This
-   *  class is a wrapper for those types of objects, primarily useful as a
-   *  base class for other wrapper classes like Array and Hash.
-   */
-  template<int Builtin_Type>
-  class Builtin_Object
-    : public Object
-  {
-  public:
-    //! Wrap an already allocated Ruby object.
-    /*! Checks to see if the object is an object of type Builtin_Type; a
-     *  C++ exception is thrown if this is not the case.
-     *  \param value the object to be wrapped.
-     */
-    Builtin_Object(Object value);
-
-    RObject& operator*() const; //!< Return a reference to obj_
-    RObject* operator->() const; //!< Return a pointer to obj_
-    RObject* get() const;       //!< Return a pointer to obj_
-  };
-} // namespace Rice
-
-#endif // Rice__Builtin_Object_defn__hpp_
-// ---------   Builtin_Object.ipp   ---------
-#ifndef Rice__Builtin_Object__ipp_
-#define Rice__Builtin_Object__ipp_
-
+// =========   Builtin_Object.ipp   =========
 #include <algorithm>
 
 namespace Rice
@@ -6072,79 +6507,7 @@ namespace Rice
   }
 } // namespace Rice
 
-#endif // Rice__Builtin_Object__ipp_
-
-// =========   String.hpp   =========
-
-
-namespace Rice
-{
-  //! A Wraper for the ruby String class.
-  /*! This class provides a C++-style interface to ruby's String class and
-   *  its associated rb_str_* functions.
-   *
-   *  Example:
-   *  \code
-   *    String s(String::format("%s: %d", "foo", 42));
-   *    std::cout << s.length() << std::endl;
-   *  \endcode
-   */
-  class String
-    : public Builtin_Object<T_STRING>
-  {
-  public:
-    //! Construct a new string.
-    String();
-
-    //! Wrap an existing string.
-    String(VALUE v);
-
-    //! Wrap an existing string.
-    String(Object v);
-
-    //! Construct a String from an Identifier.
-    String(Identifier id);
-
-    //! Construct a String from a null-terminated C string.
-    String(char const* s);
-
-    //! Construct a String from an std::string.
-    String(std::string const& s);
-
-    //! Construct a String from an std::string_view.
-    String(std::string_view const& s);
-
-    //! Format a string using printf-style formatting.
-    template <typename... Arg_Ts>
-    static inline String format(char const* fmt, Arg_Ts&&...args);
-
-    //! Get the length of the String.
-    /*! \return the length of the string.
-     */
-    size_t length() const;
-
-    //! Get the character at the given index.
-    /*! \param index the desired index.
-     *  \return the character at the given index.
-     */
-    char operator[](ptrdiff_t index) const;
-
-    //! Return a pointer to the beginning of the underlying C string.
-    char const* c_str() const;
-
-    //! Return a copy of the string as an std::string.
-    std::string str() const;
-
-    //! Create an Identifier from the String.
-    /*! Calls rb_intern to create an ID.
-     *  \return an Identifier holding the ID returned from rb_intern.
-     */
-    Identifier intern() const;
-  };
-} // namespace Rice
-
-
-// ---------   String.ipp   ---------
+// =========   String.ipp   =========
 namespace Rice
 {
   inline String::String() : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, ""))
@@ -6259,197 +6622,7 @@ namespace Rice::detail
     }
   };
 }
-
-// =========   Array.hpp   =========
-
-#include <iterator>
-
-namespace Rice
-{
-  //! A wrapper for the ruby Array class.
-  /*! This class provides a C++-style interface to ruby's Array class and
-   *  its associated rb_ary_* functions.
-   *  Example:
-   *  \code
-   *    Array a;
-   *    a.push(String("some string"));
-   *    a.push(42);
-   *  \endcode
-   */
-  class Array
-    : public Builtin_Object<T_ARRAY>
-  {
-  public:
-    //! Construct a new array
-    Array();
-
-    //! Wrap an existing array
-    /*! \param v a ruby object, which must be of type T_ARRAY.
-     */
-    Array(Object v);
-
-    //! Wrap an existing array
-    /*! \param v a ruby object, which must be of type T_ARRAY.
-     */
-    Array(VALUE v);
-
-    //! Construct an array from a sequence.
-    /*! \param begin an iterator to the beginning of the sequence.
-     *  \param end an iterator to the end of the sequence.
-     */
-    template<typename Iter_T>
-    Array(Iter_T begin, Iter_T end);
-
-    //! Construct an Array from a C array.
-    /*! \param a a C array of type T and size n.
-     */
-    template<typename T, long n>
-    Array(T const (&a)[n]);
-
-  public:
-    //! Return the size of the array.
-    long size() const;
-
-    //! Return the element at the given index.
-    /*! \param index The index of the desired element.  The index may be
-     *  negative, to indicate an offset from the end of the array.  If the
-     *  index is out of bounds, this function has undefined behavior.
-     *  \return the element at the given index.
-     */
-    Object operator[](long index) const;
-
-  private:
-    //! A helper class so array[index]=value can work.
-    class Proxy;
-
-  public:
-    //! Return a reference to the element at the given index.
-    /*! \param index The index of the desired element.  The index may be
-     *  negative, to indicate an offset from the end of the array.  If the
-     *  index is out of bounds, this function has undefined behavior.
-     *  \return the element at the given index.
-     */
-    Proxy operator[](long index);
-
-    //! Push an element onto the end of the array
-    /*! \param v an object to push onto the array.
-     *  \return the object which was pushed onto the array.
-     */
-    template<typename T>
-    Object push(T const& obj);
-
-    //! Pop an element from the end of the array
-    /*! \return the object which was popped from the array, or Qnil if
-     *  the array was empty.
-     */
-    Object pop();
-
-    //! Unshift an element onto the beginning of the array
-    /*! \param v an object to unshift onto the array.
-     *  \return the object which was unshifted onto the array.
-     */
-    template<typename T>
-    Object unshift(T const& obj);
-
-    //! Shift an element from the beginning of the array
-    /*! \return the object which was shifted from the array.
-     */
-    Object shift();
-
-  private:
-    template<typename Array_Ptr_T, typename Value_T>
-    class Iterator;
-
-    long position_of(long index) const;
-
-  public:
-    //! An iterator.
-    typedef Iterator<Array*, Proxy> iterator;
-
-    //! A const iterator.
-    typedef Iterator<Array const*, Object> const_iterator;
-
-    //! Return an iterator to the beginning of the array.
-    iterator begin();
-
-    //! Return a const iterator to the beginning of the array.
-    const_iterator begin() const;
-
-    //! Return an iterator to the end of the array.
-    iterator end();
-
-    //! Return a const iterator to the end of the array.
-    const_iterator end() const;
-  };
-
-  //! A helper class so array[index]=value can work.
-  class Array::Proxy
-  {
-  public:
-    //! Construct a new Proxy
-    Proxy(Array array, long index);
-
-    //! Implicit conversion to Object.
-    operator Object() const;
-
-    //! Explicit conversion to VALUE.
-    VALUE value() const;
-
-    //! Assignment operator.
-    template<typename T>
-    Object operator=(T const& value);
-
-  private:
-    Array array_;
-    long index_;
-  };
-
-  //! A helper class for implementing iterators for a Array.
-  // TODO: This really should be a random-access iterator.
-  template<typename Array_Ptr_T, typename Value_T>
-  class Array::Iterator
-  {
-  public:
-    using iterator_category = std::forward_iterator_tag;
-    using value_type = Value_T;
-    using difference_type = long;
-    using pointer = Object*;
-    using reference = Value_T&;
-
-    Iterator(Array_Ptr_T array, long index);
-
-    template<typename Array_Ptr_T_, typename Value_T_>
-    Iterator(Iterator<Array_Ptr_T_, Value_T_> const& rhs);
-
-    template<typename Array_Ptr_T_, typename Value_T_>
-    Iterator& operator=(Iterator<Array_Ptr_T_, Value_T_> const& rhs);
-
-    Iterator& operator++();
-    Iterator operator++(int);
-    Value_T operator*();
-    Object* operator->();
-
-    template<typename Array_Ptr_T_, typename Value_T_>
-    bool operator==(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
-
-    template<typename Array_Ptr_T_, typename Value_T_>
-    bool operator!=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
-
-    Array_Ptr_T array() const;
-    long index() const;
-
-  private:
-    Array_Ptr_T array_;
-    long index_;
-
-    Object tmp_;
-  };
-} // namespace Rice
-
-
-// ---------   Array.ipp   ---------
-#ifndef Rice__Array__ipp_
-#define Rice__Array__ipp_
+// =========   Array.ipp   =========
 
 namespace Rice
 {
@@ -6717,204 +6890,8 @@ namespace Rice::detail
     }
   };
 }
-#endif // Rice__Array__ipp_
 
-// =========   Hash.hpp   =========
-
-#include <iterator>
-#include <type_traits>
-
-namespace Rice
-{
-  //! A wrapper for the ruby Hash class.
-  //! This class provides a C++-style interface to ruby's Hash class and
-  //! its associated rb_hash_* functions.
-  //! Example:
-  //! \code
-  //!   Hash h;
-  //!   h[42] = String("foo");
-  //!   h[10] = String("bar");
-  //!   std::cout << String(h[42]) << std::endl;
-  //! \endcode
-  class Hash: public Builtin_Object<T_HASH>
-  {
-  public:
-    //! Construct a new hash.
-    Hash();
-
-    //! Wrap an existing hash.
-    /*! \param v the hash to wrap.
-     */
-    Hash(Object v);
-
-    //! Return the number of elements in the hash.
-    size_t size() const;
-
-  private:
-    //! A helper class so hash[key]=value can work.
-    class Proxy;
-
-  public:
-    //! Get the value for the given key.
-    /*! \param key the key whose value should be retrieved from the hash.
-     *  \return the value associated with the given key.
-     */
-    template<typename Key_T>
-    Proxy const operator[](Key_T const& key) const;
-
-    //! Get the value for the given key.
-    /*! \param key the key whose value should be retrieved from the hash.
-     *  \return the value associated with the given key.
-     */
-    template<typename Key_T>
-    Proxy operator[](Key_T const& key);
-
-    //! Get the value for the given key
-    /*! The returned value is converted to the type given by Value_T.
-     *  \param key the key whose value should be retrieved from the hash.
-     *  \return the value associated with the given key, converted to C++
-     *  type Value_T.
-     */
-    template<typename Value_T, typename Key_T>
-    Value_T get(Key_T const& key);
-
-    //! A helper class for dereferencing iterators
-    class Entry;
-
-    //! A helper class for implementing iterators for a Hash.
-    template<typename Hash_Ptr_T, typename Value_T>
-    class Iterator;
-
-  public:
-    //! An iterator.
-    typedef Iterator<Hash*, Entry> iterator;
-
-    //! A const iterator.
-    typedef Iterator<Hash const*, Entry const> const_iterator;
-
-  public:
-    //! Return an iterator to the beginning of the hash.
-    iterator begin();
-
-    //! Return a const iterator to the beginning of the hash.
-    const_iterator begin() const;
-
-    //! Return an iterator to the end of the hash.
-    iterator end();
-
-    //! Return a const to the end of the hash.
-    const_iterator end() const;
-  };
-
-  //! A helper class so hash[key]=value can work.
-  class Hash::Proxy
-  {
-  public:
-    //! Construct a new Proxy.
-    Proxy(Hash* hash, Object key);
-
-    //! Implicit conversion to Object.
-    operator Object() const;
-
-    //! Explicit conversion to VALUE.
-    VALUE value() const;
-
-    //! Assignment operator.
-    template<typename T>
-    Object operator=(T const& value);
-
-  private:
-    Hash* hash_;
-    Object key_;
-  };
-
-  //! A helper class for dereferencing iterators
-  /*! This class is intended to look similar to an std::pair.
-   */
-  class Hash::Entry
-  {
-  public:
-    //! Construct a new Entry.
-    Entry(Hash* hash, Object key);
-
-    //! Copy constructor.
-    Entry(Entry const& entry);
-
-    Object const key;          //!< The key
-    Object const& first;      //!< An alias for the key
-
-    Proxy value;              //!< The value
-    Proxy& second;           //!< An alias for the value
-
-    Entry& operator=(Entry const& rhs);
-
-    friend bool operator<(Entry const& lhs, Entry const& rhs);
-  };
-
-  bool operator<(Hash::Entry const& lhs, Hash::Entry const& rhs);
-
-  //! A helper class for implementing iterators for a Hash.
-  template<typename Hash_Ptr_T, typename Value_T>
-  class Hash::Iterator
-  {
-  public:
-    using iterator_category = std::input_iterator_tag;
-    using value_type = Value_T;
-    using difference_type = long;
-    using pointer = Object*;
-    using reference = Value_T&;
-
-    //! Construct a new Iterator.
-    Iterator(Hash_Ptr_T hash);
-
-    //! Construct a new Iterator with a given start-at index point
-    Iterator(Hash_Ptr_T hash, int start_at);
-
-    //! Construct an Iterator from another Iterator of a different const
-    //! qualification.
-    template<typename Iterator_T>
-    Iterator(Iterator_T const& iterator);
-
-    //! Preincrement operator.
-    Iterator& operator++();
-
-    //! Postincrement operator.
-    Iterator operator++(int);
-
-    //! Dereference operator.
-    Value_T operator*();
-
-    //! Dereference operator.
-    Value_T* operator->();
-
-    //! Equality operator.
-    bool operator==(Iterator const& rhs) const;
-
-    //! Inequality operator.
-    bool operator!=(Iterator const& rhs) const;
-
-    template<typename Hash_Ptr_T_, typename Value_T_>
-    friend class Hash::Iterator;
-
-  protected:
-    Object current_key();
-
-    Array hash_keys();
-
-  private:
-    Hash_Ptr_T hash_;
-    long current_index_;
-    VALUE keys_;
-
-    mutable typename std::remove_const<Value_T>::type tmp_;
-  };
-} // namespace Rice
-
-
-// ---------   Hash.ipp   ---------
-#ifndef Rice__Hash__ipp_
-#define Rice__Hash__ipp_
-
+// =========   Hash.ipp   =========
 #include <algorithm>
 
 namespace Rice
@@ -7173,56 +7150,7 @@ namespace Rice::detail
   };
 }
 
-#endif // Rice__Hash__ipp_
-
-
-// =========   Symbol.hpp   =========
-
-#include <string>
-
-namespace Rice
-{
-  //! A wrapper for ruby's Symbol class.
-  /*! Symbols are internal identifiers in ruby.  They are singletons and
-   *  can be thought of as frozen strings.  They differ from an Identifier
-   *  in that they are in fact real Objects, but they can be converted
-   *  back and forth between Identifier and Symbol.
-   */
-  class Symbol
-    : public Object
-  {
-  public:
-    //! Wrap an existing symbol.
-    Symbol(VALUE v);
-
-    //! Wrap an existing symbol.
-    Symbol(Object v);
-
-    //! Construct a Symbol from an Identifier.
-    Symbol(Identifier id);
-
-    //! Construct a Symbol from a null-terminated C string.
-    Symbol(char const* s = "");
-
-    //! Construct a Symbol from an std::string.
-    Symbol(std::string const& s);
-
-    //! Construct a Symbol from an std::string_view.
-    Symbol(std::string_view const& s);
-
-    //! Return a string representation of the Symbol.
-    char const* c_str() const;
-
-    //! Return a string representation of the Symbol.
-    std::string str() const;
-
-    //! Return the Symbol as an Identifier.
-    Identifier to_id() const;
-  };
-} // namespace Rice
-
-
-// ---------   Symbol.ipp   ---------
+// =========   Symbol.ipp   =========
 namespace Rice
 {
   inline Symbol::Symbol(VALUE value) : Object(value)
@@ -7295,6 +7223,21 @@ namespace Rice::detail
   class From_Ruby<Symbol>
   {
   public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_SYMBOL:
+          return Convertible::Exact;
+          break;
+      case RUBY_T_STRING:
+          return Convertible::TypeCast;
+          break;
+        default:
+          return Convertible::None;
+        }
+    }
+
     Symbol convert(VALUE value)
     {
       return Symbol(value);
@@ -7303,14 +7246,7 @@ namespace Rice::detail
 }
 
 
-
 // =========   Module.hpp   =========
-
-
-// ---------   Module_defn.hpp   ---------
-#ifndef Rice__Module_defn__hpp_
-#define Rice__Module_defn__hpp_
-
 
 namespace Rice
 {
@@ -7489,7 +7425,6 @@ inline auto& define_module_function(std::string name, Function_T&& func, const A
   define_singleton_function(name, std::forward<Function_T>(func), args...);
   return *this;
 }
-
   protected:
     template<bool IsMethod, typename Function_T>
     void wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo);
@@ -7511,11 +7446,8 @@ inline auto& define_module_function(std::string name, Function_T&& func, const A
    */
   Module anonymous_module();
 }
-#endif // Rice__Module_defn__hpp_
-// ---------   Module.ipp   ---------
-#ifndef Rice__Module__ipp_
-#define Rice__Module__ipp_
 
+// =========   Module.ipp   =========
 
 namespace Rice
 {
@@ -7625,18 +7557,10 @@ namespace Rice::detail
     }
   };
 }
-#endif // Rice__Module__ipp_
-
 
 // =========   Class.hpp   =========
 
-
-// ---------   Class_defn.hpp   ---------
-#ifndef Rice__Class_defn__hpp_
-#define Rice__Class_defn__hpp_
-
 #include <string>
-
 
 /*!
  *  \example inheritance/animals.cpp
@@ -7824,11 +7748,8 @@ inline auto& define_module_function(std::string name, Function_T&& func, const A
   Class anonymous_class();
 } // namespace Rice
 
-#endif // Rice__Class_defn__hpp_
-// ---------   Class.ipp   ---------
-#ifndef Rice__Class__ipp_
-#define Rice__Class__ipp_
 
+// =========   Class.ipp   =========
 
 namespace Rice
 {
@@ -7912,10 +7833,8 @@ namespace Rice::detail
     }
   };
 }
-#endif // Rice__Class__ipp_
 
 // =========   Struct.hpp   =========
-
 
 namespace Rice
 {
@@ -8027,7 +7946,7 @@ namespace Rice
 } // namespace Rice
 
 
-// ---------   Struct.ipp   ---------
+// =========   Struct.ipp   =========
 
 namespace Rice
 {
@@ -8123,12 +8042,6 @@ namespace Rice::detail
 
 // =========   Address_Registration_Guard.hpp   =========
 
-
-// ---------   Address_Registration_Guard_defn.hpp   ---------
-#ifndef Rice__Address_Registration_Guard_defn__hpp_
-#define Rice__Address_Registration_Guard_defn__hpp_
-
-
 namespace Rice
 {
   //! A guard to register a given address with the GC.
@@ -8201,8 +8114,8 @@ namespace Rice
   };
 } // namespace Rice
 
-#endif // Rice__Address_Registration_Guard_defn__hpp_
-// ---------   Address_Registration_Guard.ipp   ---------
+
+// =========   Address_Registration_Guard.ipp   =========
 namespace Rice
 {
   inline Address_Registration_Guard::Address_Registration_Guard(VALUE* address) : address_(address)
@@ -8283,9 +8196,7 @@ namespace Rice
     enabled = false;
   }
 } // Rice
-
 // =========   global_function.hpp   =========
-
 
 namespace Rice
 {
@@ -8305,19 +8216,16 @@ namespace Rice
 } // Rice
 
 
-// ---------   global_function.ipp   ---------
+// =========   global_function.ipp   =========
 
 template<typename Function_T, typename...Arg_Ts>
 void Rice::define_global_function(char const * name, Function_T&& func, Arg_Ts const& ...args)
 {
   Module(rb_mKernel).define_module_function(name, std::forward<Function_T>(func), args...);
 }
-
 // Code involved in creating custom DataTypes (ie, Ruby classes that wrap C++ classes)
 
 // =========   ruby_mark.hpp   =========
-#ifndef ruby_mark__hpp
-#define ruby_mark__hpp
 
 //! Default function to call to mark a data object.
 /*! This function can be specialized for a particular type to override
@@ -8330,7 +8238,7 @@ namespace Rice
   {
   }
 }
-#endif // ruby_mark__hpp
+
 
 // =========   default_allocation_func.hpp   =========
 
@@ -8344,7 +8252,6 @@ namespace Rice::detail
 }
 
 // =========   Director.hpp   =========
-
 
 namespace Rice
 {
@@ -8385,11 +8292,6 @@ namespace Rice
 }
 
 // =========   Data_Type.hpp   =========
-
-
-// ---------   Data_Type_defn.hpp   ---------
-#ifndef Rice__Data_Type_defn__hpp_
-#define Rice__Data_Type_defn__hpp_
 
 #include <set>
 
@@ -8533,7 +8435,7 @@ namespace Rice
     template <typename Attribute_T>
     Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite);
 
-  // Include these methods to call methods from Module but return
+    // Include these methods to call methods from Module but return
 // an instance of the current classes. This is an alternative to
 // using CRTP.
 
@@ -8660,7 +8562,6 @@ inline auto& define_module_function(std::string name, Function_T&& func, const A
   define_singleton_function(name, std::forward<Function_T>(func), args...);
   return *this;
 }
-
   protected:
     //! Bind a Data_Type to a VALUE.
     /*! Throws an exception if the Data_Type is already bound to a
@@ -8723,11 +8624,7 @@ inline auto& define_module_function(std::string name, Function_T&& func, const A
 }
 
 
-#endif // Rice__Data_Type_defn__hpp_
-// ---------   Data_Type.ipp   ---------
-#ifndef Rice__Data_Type__ipp_
-#define Rice__Data_Type__ipp_
-
+// =========   Data_Type.ipp   =========
 
 #include <stdexcept>
 
@@ -9043,10 +8940,8 @@ namespace Rice
     detail::NativeFunction<T, Function_T, IsMethod>::define(klass, name, std::forward<Function_T>(function), methodInfo);
   }
 }
-#endif
 
 // =========   default_allocation_func.ipp   =========
-
 namespace Rice::detail
 {
   template<typename T>
@@ -9058,7 +8953,6 @@ namespace Rice::detail
   }
 }
 // =========   Constructor.hpp   =========
-
 
 namespace Rice
 {
@@ -9100,14 +8994,6 @@ namespace Rice
 }
 
 // =========   Data_Object.hpp   =========
-
-
-// ---------   Data_Object_defn.hpp   ---------
-#ifndef Rice__Data_Object_defn__hpp_
-#define Rice__Data_Object_defn__hpp_
-
-#include <optional>
-
 
 /*! \file
  *  \brief Provides a helper class for wrapping and unwrapping C++
@@ -9183,13 +9069,8 @@ namespace Rice
   };
 } // namespace Rice
 
-#endif // Rice__Data_Object_defn__hpp_
 
-
-// ---------   Data_Object.ipp   ---------
-#ifndef Rice__Data_Object__ipp_
-#define Rice__Data_Object__ipp_
-
+// =========   Data_Object.ipp   =========
 
 #include <algorithm>
 
@@ -9776,6 +9657,18 @@ namespace Rice::detail
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
   public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          break;
+        default:
+          return Convertible::None;
+        }
+    }
+
     static Data_Object<T> convert(VALUE value)
     {
       return Data_Object<T>(value);
@@ -9832,12 +9725,8 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 }
-#endif // Rice__Data_Object__ipp_
-
 
 // =========   Enum.hpp   =========
-
-#include <map>
 
 namespace Rice
 {
@@ -9901,7 +9790,7 @@ namespace Rice
 } // namespace Rice
 
 
-// ---------   Enum.ipp   ---------
+// =========   Enum.ipp   =========
 
 #include <stdexcept>
 
@@ -10044,15 +9933,7 @@ namespace Rice
     return Enum<Enum_T>(name, module);
   }
 }
-
 // =========   MemoryView.hpp   =========
-
-
-// ---------   MemoryView_defn.hpp   ---------
-#ifndef Rice__MemoryView_defn__hpp_
-#define Rice__MemoryView_defn__hpp_
-
-#include <stdexcept>
 
 namespace Rice
 {
@@ -10061,11 +9942,8 @@ namespace Rice
   };
 }
 
-#endif // Rice__MemoryView_defn__hpp_
-// ---------   MemoryView.ipp   ---------
-#ifndef Rice__MemoryView__ipp_
-#define Rice__MemoryView__ipp_
 
+// =========   MemoryView.ipp   =========
 namespace Rice
 {
 }
@@ -10109,7 +9987,6 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 }
-#endif // Rice__MemoryView__ipp_
 
 // Dependent on Module, Class, Array and String
 
