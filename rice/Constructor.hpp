@@ -1,9 +1,6 @@
 #ifndef Rice__Constructor__hpp_
 #define Rice__Constructor__hpp_
 
-#include "detail/Wrapper.hpp"
-#include "cpp_api/Object_defn.hpp"
-
 namespace Rice
 {
   //! Define a Type's Constructor and it's arguments.

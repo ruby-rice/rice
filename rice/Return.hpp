@@ -1,8 +1,6 @@
 #ifndef Rice__Return__hpp_
 #define Rice__Return__hpp_
 
-#include <any>
-
 namespace Rice
 {
   //! Helper for defining Return argument of a method
@@ -34,7 +32,5 @@ namespace Rice
     bool isValue_ = false;
   };
 } // Rice
-
-#include "Return.ipp"
 
 #endif // Rice__Return__hpp_

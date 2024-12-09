@@ -1,5 +1,5 @@
-#ifndef ruby_mark__hpp
-#define ruby_mark__hpp
+#ifndef Rice__ruby_mark__hpp_
+#define Rice__ruby_mark__hpp_
 
 //! Default function to call to mark a data object.
 /*! This function can be specialized for a particular type to override
@@ -12,4 +12,5 @@ namespace Rice
   {
   }
 }
-#endif // ruby_mark__hpp
+#endif // Rice__ruby_mark__hpp_
+

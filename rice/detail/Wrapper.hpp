@@ -1,8 +1,6 @@
 #ifndef Rice__detail__Wrapper__hpp_
 #define Rice__detail__Wrapper__hpp_
 
-#include "ruby.hpp"
-
 namespace Rice
 {
 namespace detail
@@ -47,8 +45,6 @@ Wrapper* getWrapper(VALUE value);
 
 } // namespace detail
 } // namespace Rice
-
-#include "Wrapper.ipp"
 
 #endif // Rice__detail__Wrapper__hpp_
 

@@ -8,7 +8,6 @@
 #include <unordered_map>
 #include <set>
 
-#include "ruby.hpp"
 
 /* The type registry keeps track of all C++ types wrapped by Rice. When a native function returns 
    an instance of a class/struct we look up its type to verity that it has been registered. 
@@ -56,7 +55,5 @@ namespace Rice::detail
     bool verified_ = true;
   };
 }
-
-#include "TypeRegistry.ipp"
 
 #endif // Rice__TypeRegistry__hpp_

@@ -1,8 +1,6 @@
 #ifndef Rice__detail__HandlerRegistry__hpp_
 #define Rice__detail__HandlerRegistry__hpp_
 
-#include "ExceptionHandler.hpp"
-
 namespace Rice::detail
 {
   class HandlerRegistry
@@ -44,8 +42,6 @@ namespace Rice::detail
 
   };
 } // namespace Rice::detail
-
-#include "HandlerRegistry.ipp"
 
 #endif // Rice__detail__HandlerRegistry__hpp_
 

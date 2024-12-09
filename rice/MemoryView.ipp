@@ -1,6 +1,3 @@
-#ifndef Rice__MemoryView__ipp_
-#define Rice__MemoryView__ipp_
-
 namespace Rice
 {
 }
@@ -44,4 +41,3 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 }
-#endif // Rice__MemoryView__ipp_

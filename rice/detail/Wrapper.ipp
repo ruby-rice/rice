@@ -1,5 +1,4 @@
 #include <memory>
-#include "InstanceRegistry.hpp"
 
 namespace Rice::detail
 {

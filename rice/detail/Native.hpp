@@ -1,8 +1,6 @@
 #ifndef Rice__detail__Native__hpp_
 #define Rice__detail__Native__hpp_
 
-#include "from_ruby.hpp"
-
 namespace Rice::detail
 {
   class Native;

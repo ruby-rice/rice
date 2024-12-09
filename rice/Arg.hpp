@@ -84,6 +84,4 @@ namespace Rice
   };
 } // Rice
 
-#include "Arg.ipp"
-
 #endif // Rice__Arg__hpp_

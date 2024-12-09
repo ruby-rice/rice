@@ -1,5 +1,3 @@
-#include "../Data_Object.hpp"
-
 namespace Rice::detail
 {
   template<typename T>

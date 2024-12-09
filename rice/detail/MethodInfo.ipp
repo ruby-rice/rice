@@ -1,5 +1,4 @@
 #include <sstream>
-#include "from_ruby_defn.hpp"
 
 namespace Rice
 {

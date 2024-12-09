@@ -1,5 +1,3 @@
-#include "RubyFunction.hpp"
-#include "../Identifier.hpp"
 
 namespace Rice::detail
 {

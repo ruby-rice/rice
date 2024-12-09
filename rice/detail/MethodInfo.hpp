@@ -2,8 +2,6 @@
 #define Rice__MethodInfo__hpp_
 
 #include <vector>
-#include "../Arg.hpp"
-#include "../Return.hpp"
 
 namespace Rice
 {
@@ -39,6 +37,4 @@ namespace Rice
     std::vector<Arg> args_;
   };
 }
-#include "MethodInfo.ipp"
-
 #endif // Rice__MethodInfo__hpp_

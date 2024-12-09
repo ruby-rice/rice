@@ -1,9 +1,6 @@
 #ifndef Rice__detail__Native_Attribute_Get__hpp_
 #define Rice__detail__Native_Attribute_Get__hpp_
 
-#include "Native.hpp"
-#include "../traits/attribute_traits.hpp"
-
 namespace Rice
 {
   enum class AttrAccess
@@ -50,7 +47,5 @@ namespace Rice
     };
   } // detail
 } // Rice
-
-#include "NativeAttributeGet.ipp"
 
 #endif // Rice__detail__Native_Attribute_Get__hpp_

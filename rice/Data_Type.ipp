@@ -1,15 +1,3 @@
-#ifndef Rice__Data_Type__ipp_
-#define Rice__Data_Type__ipp_
-
-#include "traits/attribute_traits.hpp"
-#include "traits/method_traits.hpp"
-#include "detail/NativeAttributeGet.hpp"
-#include "detail/NativeAttributeSet.hpp"
-#include "detail/default_allocation_func.hpp"
-#include "detail/TypeRegistry.hpp"
-#include "detail/Wrapper.hpp"
-#include "detail/NativeIterator.hpp"
-#include "ruby_mark.hpp"
 
 #include <stdexcept>
 
@@ -325,4 +313,3 @@ namespace Rice
     detail::NativeFunction<T, Function_T, IsMethod>::define(klass, name, std::forward<Function_T>(function), methodInfo);
   }
 }
-#endif

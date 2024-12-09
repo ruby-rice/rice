@@ -2,7 +2,6 @@
 #define Rice__detail__method_traits__hpp_
 
 #include <tuple>
-#include "function_traits.hpp"
 
 namespace Rice::detail
 {

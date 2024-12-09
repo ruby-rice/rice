@@ -1,7 +1,3 @@
-#ifndef Rice__Exception__ipp_
-#define Rice__Exception__ipp_
-
-#include "detail/from_ruby.hpp"
 
 namespace Rice
 {
@@ -61,4 +57,3 @@ namespace Rice
     return this->exception_;
   }
 }
-#endif // Rice__Exception__ipp_

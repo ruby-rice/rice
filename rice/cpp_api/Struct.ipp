@@ -1,4 +1,3 @@
-#include "Symbol.hpp"
 
 namespace Rice
 {

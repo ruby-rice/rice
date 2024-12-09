@@ -4,7 +4,6 @@
 #include <string>
 #include <typeinfo>
 #include <typeindex>
-#include "../traits/rice_traits.hpp"
 
 namespace Rice::detail
 {

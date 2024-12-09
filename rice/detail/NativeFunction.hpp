@@ -1,14 +1,6 @@
 #ifndef Rice__detail__Native_Function__hpp_
 #define Rice__detail__Native_Function__hpp_
 
-#include "ruby.hpp"
-#include "ExceptionHandler_defn.hpp"
-#include "MethodInfo.hpp"
-#include "../traits/function_traits.hpp"
-#include "../traits/method_traits.hpp"
-#include "../traits/rice_traits.hpp"
-#include "from_ruby.hpp"
-
 namespace Rice::detail
 {
   //! The NativeFunction class calls C++ functions/methods/lambdas on behalf of Ruby
@@ -118,6 +110,5 @@ namespace Rice::detail
     std::unique_ptr<MethodInfo> methodInfo_;
   };
 }
-#include "NativeFunction.ipp"
 
 #endif // Rice__detail__Native_Function__hpp_
