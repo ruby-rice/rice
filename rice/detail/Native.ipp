@@ -105,8 +105,17 @@ namespace Rice::detail
         }
         else
         {
+          // Special case == to make the RubyMine debugger work, it liks calling == with a Module as
+          // the other argument, thus breaking if C++ operator== is implemented.
           Identifier identifier(methodId);
-          rb_raise(rb_eArgError, "Could not resolve method call for %s#%s", rb_class2name(klass), identifier.c_str());
+          if (identifier.str() == "==")
+          {
+            return detail::protect(rb_call_super, argc, argv);
+          }
+          else
+          {
+            rb_raise(rb_eArgError, "Could not resolve method call for %s#%s", rb_class2name(klass), identifier.c_str());
+          }
         }
       }
 
