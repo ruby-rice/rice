@@ -70,6 +70,21 @@ namespace Rice::detail
   class From_Ruby<Symbol>
   {
   public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_SYMBOL:
+          return Convertible::Exact;
+          break;
+      case RUBY_T_STRING:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+        }
+    }
+
     Symbol convert(VALUE value)
     {
       return Symbol(value);
