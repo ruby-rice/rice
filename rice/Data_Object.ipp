@@ -588,6 +588,18 @@ namespace Rice::detail
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
   public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          break;
+        default:
+          return Convertible::None;
+        }
+    }
+
     static Data_Object<T> convert(VALUE value)
     {
       return Data_Object<T>(value);
