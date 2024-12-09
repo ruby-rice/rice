@@ -78,7 +78,7 @@ namespace Rice::detail
           return Convertible::Exact;
           break;
       case RUBY_T_STRING:
-          return Convertible::Exact;
+          return Convertible::TypeCast;
           break;
         default:
           return Convertible::None;
