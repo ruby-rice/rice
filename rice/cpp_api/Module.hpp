@@ -47,10 +47,6 @@ namespace Rice
      */
     Object module_eval(String const& s);
 
-    //! Define a constant
-    template<typename Constant_T>
-    Module& define_constant(std::string name, Constant_T value);
-
     #include "shared_methods.hpp"
   protected:
     template<bool IsMethod, typename Function_T>

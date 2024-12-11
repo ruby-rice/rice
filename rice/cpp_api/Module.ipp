@@ -44,14 +44,6 @@ namespace Rice
     detail::NativeFunction<VALUE, Function_T, IsMethod>::define(klass, name, std::forward<Function_T>(function), methodInfo);
   }
 
-  template<typename Constant_T>
-  inline Module& Module::define_constant(std::string name, Constant_T value)
-  {
-    using Base_T = detail::remove_cv_recursive_t<Constant_T>;
-    detail::protect(rb_define_const, this->value(), name.c_str(), detail::To_Ruby<Base_T>().convert(value));
-    return *this;
-  }
-
   inline Module define_module_under(Object module, char const* name)
   {
     return detail::protect(rb_define_module_under, module.value(), name);

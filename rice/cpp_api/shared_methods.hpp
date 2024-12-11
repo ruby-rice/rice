@@ -125,3 +125,12 @@ inline auto& define_module_function(std::string name, Function_T&& func, const A
   define_singleton_function(name, std::forward<Function_T>(func), args...);
   return *this;
 }
+
+//! Define a constant
+template<typename Constant_T>
+inline auto& define_constant(std::string name, Constant_T value)
+{
+  using Base_T = detail::remove_cv_recursive_t<Constant_T>;
+  detail::protect(rb_define_const, this->value(), name.c_str(), detail::To_Ruby<Base_T>().convert(value));
+  return *this;
+}
