@@ -1,9 +1,6 @@
 #ifndef Rice__Hash__hpp_
 #define Rice__Hash__hpp_
 
-#include "Builtin_Object_defn.hpp"
-#include "Array.hpp"
-#include "../detail/ruby.hpp"
 #include <iterator>
 #include <type_traits>
 
@@ -192,8 +189,6 @@ namespace Rice
     mutable typename std::remove_const<Value_T>::type tmp_;
   };
 } // namespace Rice
-
-#include "Hash.ipp"
 
 #endif // Rice__Hash__hpp_
 

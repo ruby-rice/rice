@@ -3,8 +3,7 @@
 
 #include <map>
 #include <memory>
-
-#include "Native.hpp"
+#include <utility>
 
 /* The Native Registry tracks C++ instance that are used to invoke C++ methods for Ruby. 
    These objects include instances of the NativeFunction, NativeIterator, NativeAttributeGet
@@ -36,6 +35,5 @@ namespace Rice::detail
     std::map<std::pair<VALUE, ID>, std::vector<std::unique_ptr<Native>>> natives_ = {};
   };
 }
-#include "NativeRegistry.ipp"
 
 #endif // Rice__detail__NativeRegistry__hpp

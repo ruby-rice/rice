@@ -1,8 +1,5 @@
-#ifndef Rice_NativeIterator__hpp_
-#define Rice_NativeIterator__hpp_
-
-#include "../traits/function_traits.hpp"
-#include "Native.hpp"
+#ifndef Rice__NativeIterator__hpp_
+#define Rice__NativeIterator__hpp_
 
 namespace Rice::detail
 {
@@ -45,6 +42,5 @@ namespace Rice::detail
     Iterator_Func_T end_;
   };
 }
-#include "NativeIterator.ipp"
 
-#endif // Rice_NativeIterator__hpp_
+#endif // Rice__NativeIterator__hpp_

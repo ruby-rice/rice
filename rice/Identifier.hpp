@@ -45,6 +45,4 @@ namespace Rice
   };
 } // namespace Rice
 
-#include "Identifier.ipp"
-
 #endif // Rice__Identifier__hpp_

@@ -1,5 +1,3 @@
-#include "RubyFunction.hpp"
-#include "../Return.hpp"
 
 namespace Rice
 {

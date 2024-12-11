@@ -1,9 +1,6 @@
 #ifndef Rice__String__hpp_
 #define Rice__String__hpp_
 
-#include "../Identifier.hpp"
-#include "Builtin_Object_defn.hpp"
-
 namespace Rice
 {
   //! A Wraper for the ruby String class.
@@ -69,7 +66,5 @@ namespace Rice
     Identifier intern() const;
   };
 } // namespace Rice
-
-#include "String.ipp"
 
 #endif // Rice__String__hpp_

@@ -1,8 +1,6 @@
 #ifndef Rice__detail__ruby_function__hpp_
 #define Rice__detail__ruby_function__hpp_
 
-#include "ruby.hpp"
-
 namespace Rice::detail
 {
   /* This is functor class that wraps calls to a Ruby C API method. It is needed because
@@ -29,6 +27,5 @@ namespace Rice::detail
   template<typename Function_T, typename ...Arg_Ts>
   auto protect(Function_T func, Arg_Ts...args);
 }
-#include "RubyFunction.ipp"
 
 #endif // Rice__detail__ruby_function__hpp_

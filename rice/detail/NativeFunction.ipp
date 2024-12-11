@@ -3,10 +3,6 @@
 #include <stdexcept>
 #include <sstream>
 
-#include "cpp_protect.hpp"
-#include "TupleIterator.hpp"
-#include "to_ruby_defn.hpp"
-#include "NativeRegistry.hpp"
 
 namespace Rice::detail
 {

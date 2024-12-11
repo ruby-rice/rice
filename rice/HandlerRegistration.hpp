@@ -1,8 +1,6 @@
 #ifndef Rice__HandlerRegistration__hpp_
 #define Rice__HandlerRegistration__hpp_
 
-#include "detail/HandlerRegistry.hpp"
-
 namespace Rice
 {
   // Register exception handler

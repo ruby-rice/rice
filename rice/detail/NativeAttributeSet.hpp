@@ -1,9 +1,6 @@
 #ifndef Rice__detail__Native_Attribute_Set__hpp_
 #define Rice__detail__Native_Attribute_Set__hpp_
 
-#include "Native.hpp"
-#include "../traits/attribute_traits.hpp"
-
 namespace Rice
 {
   namespace detail
@@ -42,7 +39,5 @@ namespace Rice
     };
   } // detail
 } // Rice
-
-#include "NativeAttributeSet.ipp"
 
 #endif // Rice__detail__Native_Attribute_Set__hpp_

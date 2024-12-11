@@ -1,7 +1,3 @@
-#ifndef Rice__Data_Object__ipp_
-#define Rice__Data_Object__ipp_
-
-#include "Data_Type_defn.hpp"
 
 #include <algorithm>
 
@@ -656,4 +652,3 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 }
-#endif // Rice__Data_Object__ipp_

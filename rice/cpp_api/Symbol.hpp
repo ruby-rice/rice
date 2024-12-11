@@ -1,9 +1,6 @@
 #ifndef Rice__Symbol__hpp_
 #define Rice__Symbol__hpp_
 
-#include "../Identifier.hpp"
-#include "Object_defn.hpp"
-#include "../detail/ruby.hpp"
 #include <string>
 
 namespace Rice
@@ -46,8 +43,6 @@ namespace Rice
     Identifier to_id() const;
   };
 } // namespace Rice
-
-#include "Symbol.ipp"
 
 #endif // Rice__Symbol__hpp_
 

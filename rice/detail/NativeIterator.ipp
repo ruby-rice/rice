@@ -2,9 +2,6 @@
 #include <functional>
 #include <type_traits>
 
-#include "cpp_protect.hpp"
-#include "from_ruby.hpp"
-#include "NativeRegistry.hpp"
 
 namespace Rice::detail
 {

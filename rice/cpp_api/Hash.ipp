@@ -1,8 +1,3 @@
-#ifndef Rice__Hash__ipp_
-#define Rice__Hash__ipp_
-
-#include "../Exception.hpp"
-#include "String.hpp"
 #include <algorithm>
 
 namespace Rice
@@ -260,5 +255,3 @@ namespace Rice::detail
     }
   };
 }
-
-#endif // Rice__Hash__ipp_

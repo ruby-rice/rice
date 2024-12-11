@@ -1,8 +1,6 @@
 #ifndef Rice__Array__hpp_
 #define Rice__Array__hpp_
 
-#include "Builtin_Object.hpp"
-#include "../detail/ruby.hpp"
 #include <iterator>
 
 namespace Rice
@@ -186,7 +184,5 @@ namespace Rice
     Object tmp_;
   };
 } // namespace Rice
-
-#include "Array.ipp"
 
 #endif // Rice__Array__hpp_
