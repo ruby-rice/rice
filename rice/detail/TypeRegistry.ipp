@@ -65,7 +65,6 @@ namespace Rice::detail
       const std::type_info& typeInfo = typeid(T);
       std::type_index key(typeInfo);
       this->unverified_.insert(key);
-      this->verified_ = false;
       return false;
     }
   }
@@ -88,11 +87,6 @@ namespace Rice::detail
   template <typename T>
   inline std::pair<VALUE, rb_data_type_t*> TypeRegistry::figureType(const T& object)
   {
-    if (!this->verified_)
-    {
-      this->validateUnverifiedTypes();
-    }
-
     // First check and see if the actual type of the object is registered
     std::optional<std::pair<VALUE, rb_data_type_t*>> result = lookup(typeid(object));
 
@@ -116,7 +110,7 @@ namespace Rice::detail
     return std::pair<VALUE, rb_data_type_t*>(Qnil, nullptr);
   }
 
-  inline void TypeRegistry::validateUnverifiedTypes()
+  inline void TypeRegistry::validateTypes()
   {
     // Loop over the unverified types and delete each on that is found in the registry
     // the registry and raise an exception for the first one that is not
@@ -136,7 +130,6 @@ namespace Rice::detail
 
     if (this->unverified_.empty())
     {
-      this->verified_ = true;
       return;
     }
 
@@ -148,14 +141,7 @@ namespace Rice::detail
       stream << "  " << typeName(typeIndex) << "\n";
     }
 
-    if (this->isStrict)
-    {
-      throw std::invalid_argument(stream.str());
-    }
-    else
-    {
-      std::cerr << stream.str() << std::flush;
-    }
+    throw std::invalid_argument(stream.str());
   }
 
   inline void TypeRegistry::clearUnverifiedTypes()

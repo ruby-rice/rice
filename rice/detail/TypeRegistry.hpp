@@ -36,15 +36,11 @@ namespace Rice::detail
     template <typename T>
     std::pair<VALUE, rb_data_type_t*> figureType(const T& object);
 
-    // Validate unverified types and throw an exception if any exist. This is mostly for unit tests.
-    void validateUnverifiedTypes();
+    // Validate types and throw if any types are unverified
+    void validateTypes();
+
     // Clear unverified types. This is mostly for unit tests
     void clearUnverifiedTypes();
-
-  public:
-    // If true an exception will be thrown for unvalidated types. If false then a messages
-    // will be sent to stderr
-    bool isStrict = true;
 
   private:
     std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
@@ -52,7 +48,6 @@ namespace Rice::detail
 
     std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};
     std::set<std::type_index> unverified_{};
-    bool verified_ = true;
   };
 }
 

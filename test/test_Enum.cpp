@@ -423,9 +423,15 @@ TESTCASE(not_defined)
 
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
-    Rice::detail::Registries::instance.types.validateUnverifiedTypes(),
+    Rice::detail::Registries::instance.types.validateTypes(),
     ASSERT_EQUAL(message, ex.what())
   );
+
+#ifdef _MSC_VER
+  message = "Type is not registered with Rice: enum `anonymous namespace'::Undefined";
+#else
+  message = "Type is not registered with Rice: (anonymous namespace)::Undefined";
+#endif
 
   define_global_function("undefined_return", &undefinedReturn);
   ASSERT_EXCEPTION_CHECK(
