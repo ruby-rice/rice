@@ -22,7 +22,6 @@ TEARDOWN(Map)
 
 namespace
 {
-
   class MyClass
   {
   public:

@@ -98,7 +98,7 @@ namespace Rice::detail
     VALUE convert(const T& data)
     {
       // Get the ruby typeinfo
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
 
       // We always take ownership of data passed by value (yes the parameter is T& but the template
       // matched <typename T> thus we have to tell wrap to copy the reference we are sending to it
