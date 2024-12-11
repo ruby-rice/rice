@@ -18,12 +18,12 @@ inline auto& include_module(Module const& inc)
  *  or lambda. The easiest case is a member function where the Ruby
  *  method maps one-to-one to the C++ method. In the case of a
  *  plain function or lambda, the first argument must be SELF - ie,
- *  the current object. If it is specified as a VALUE, then
- *  the current Ruby object is passed. If it is specified as a C++ class,
+ *  the current object. If the type of the first argument is VALUE, then
+ *  the current Ruby object is passed. If the type is a C++ class,
  *  then the C++ object is passed. If you don't want to include the
  *  SELF argument see define_function.
- *  Rice will automatically convert method method from Ruby to C++ and
- *  then convert the return value from C++ to Ruby.
+ *  Rice will automatically convert method parameters from Ruby to C++ and
+ *  convert the return value from C++ to Ruby.
  *  \param name the name of the method
  *  \param func the implementation of the function, either a function
  *  pointer or a member function pointer.
