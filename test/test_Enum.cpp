@@ -411,7 +411,7 @@ namespace
 
 TESTCASE(not_defined)
 {
-  Module m = Module(rb_mKernel);
+  Module m = define_module("TestingEnumNotDefined");
 
 #ifdef _MSC_VER
   const char* message = "The following types are not registered with Rice:\n  enum `anonymous namespace'::Undefined\n";
@@ -419,7 +419,7 @@ TESTCASE(not_defined)
   const char* message = "The following types are not registered with Rice:\n  (anonymous namespace)::Undefined\n";
 #endif
 
-  define_global_function("undefined_arg", &undefinedArg);
+  m.define_module_function("undefined_arg", &undefinedArg);
 
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
@@ -433,7 +433,7 @@ TESTCASE(not_defined)
   message = "Type is not registered with Rice: (anonymous namespace)::Undefined";
 #endif
 
-  define_global_function("undefined_return", &undefinedReturn);
+  m.define_module_function("undefined_return", &undefinedReturn);
   ASSERT_EXCEPTION_CHECK(
     Rice::Exception,
     m.call("undefined_return"),
