@@ -129,8 +129,8 @@ namespace Rice
   }
 
   template<typename T>
-  template<typename Constructor_T, typename...Arg_Ts>
-  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T constructor, Arg_Ts const& ...args)
+  template<typename Constructor_T, typename...Rice_Arg_Ts>
+  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T constructor, Rice_Arg_Ts const& ...args)
   {
     check_is_bound();
 
