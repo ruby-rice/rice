@@ -41,6 +41,12 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_BIGNUM:
+          return Convertible::TypeCast;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
+          break;
         default:
           return Convertible::None;
       }
@@ -79,6 +85,12 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_BIGNUM:
+          return Convertible::TypeCast;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
+          break;
         default:
           return Convertible::None;
       }
@@ -112,6 +124,12 @@ namespace Rice::detail
       {
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
+          break;
+        case RUBY_T_BIGNUM:
+          return Convertible::TypeCast;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
           break;
         default:
           return Convertible::None;
@@ -152,6 +170,12 @@ namespace Rice::detail
       {
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
+          break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
           break;
 
         // This case is for Enums which are defined as Ruby classes. Some C++ apis
@@ -209,6 +233,12 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
+          break;
         default:
           return Convertible::None;
       }
@@ -243,6 +273,12 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
+          break;
         case RUBY_T_ARRAY:
           return Convertible::Exact;
           break;
@@ -268,7 +304,7 @@ namespace Rice::detail
         default:
         {
           converted_.reset(new int[1]);
-          converted_[0] = protect(rb_num2dbl, value);
+          converted_[0] = protect(NUM2INT, value);
           return this->converted_.get();
         }
       }
@@ -295,6 +331,12 @@ namespace Rice::detail
       {
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
+          break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
           break;
         default:
           return Convertible::None;
@@ -334,6 +376,12 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
+          break;
         default:
           return Convertible::None;
       }
@@ -367,6 +415,12 @@ namespace Rice::detail
       {
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
+          break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
           break;
         default:
           return Convertible::None;
@@ -411,6 +465,9 @@ namespace Rice::detail
         case RUBY_T_BIGNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
+          break;
         default:
           return Convertible::None;
       }
@@ -452,6 +509,9 @@ namespace Rice::detail
         case RUBY_T_BIGNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
+          break;
         default:
           return Convertible::None;
       }
@@ -488,6 +548,9 @@ namespace Rice::detail
           break;
         case RUBY_T_BIGNUM:
           return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
           break;
         default:
           return Convertible::None;
@@ -529,6 +592,12 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_BIGNUM:
+          return Convertible::TypeCast;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
+          break;
         default:
           return Convertible::None;
       }
@@ -567,6 +636,12 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_BIGNUM:
+          return Convertible::TypeCast;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
+          break;
         default:
           return Convertible::None;
       }
@@ -600,6 +675,12 @@ namespace Rice::detail
       {
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
+          break;
+        case RUBY_T_BIGNUM:
+          return Convertible::TypeCast;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
           break;
         default:
           return Convertible::None;
@@ -641,6 +722,12 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
+          break;
         default:
           return Convertible::None;
       }
@@ -679,6 +766,12 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
+          break;
         default:
           return Convertible::None;
       }
@@ -712,6 +805,12 @@ namespace Rice::detail
       {
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
+          break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
           break;
         default:
           return Convertible::None;
@@ -752,6 +851,12 @@ namespace Rice::detail
       {
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
+          break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
           break;
         default:
           return Convertible::None;
@@ -795,6 +900,12 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
+          break;
         default:
           return Convertible::None;
       }
@@ -828,6 +939,12 @@ namespace Rice::detail
       {
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
+          break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
           break;
         default:
           return Convertible::None;
@@ -868,6 +985,12 @@ namespace Rice::detail
       {
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
+          break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
           break;
         default:
           return Convertible::None;
@@ -911,6 +1034,12 @@ namespace Rice::detail
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
           break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
+          break;
         default:
           return Convertible::None;
       }
@@ -944,6 +1073,12 @@ namespace Rice::detail
       {
         case RUBY_T_FIXNUM:
           return Convertible::Exact;
+          break;
+        case RUBY_T_BIGNUM:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_FLOAT:
+          return Convertible::TypeCast;
           break;
         default:
           return Convertible::None;
@@ -991,6 +1126,9 @@ namespace Rice::detail
         case RUBY_T_NIL:
           return Convertible::TypeCast;
           break;
+        case RUBY_T_FIXNUM:
+          return Convertible::TypeCast;
+          break;
         default:
           return Convertible::None;
       }
@@ -1035,6 +1173,9 @@ namespace Rice::detail
       case RUBY_T_NIL:
         return Convertible::TypeCast;
         break;
+      case RUBY_T_FIXNUM:
+        return Convertible::TypeCast;
+        break;
       default:
         return Convertible::None;
       }
@@ -1073,6 +1214,9 @@ namespace Rice::detail
         return Convertible::Exact;
         break;
       case RUBY_T_NIL:
+        return Convertible::TypeCast;
+        break;
+      case RUBY_T_FIXNUM:
         return Convertible::TypeCast;
         break;
       default:
@@ -1480,6 +1624,13 @@ namespace Rice::detail
         case RUBY_T_FLOAT:
           return Convertible::Exact;
           break;
+        case RUBY_T_FIXNUM:
+          return Convertible::TypeCast;
+          break;
+        case RUBY_T_BIGNUM:
+          return Convertible::TypeCast;
+          break;
+
         default:
           return Convertible::None;
       }
@@ -1517,6 +1668,12 @@ namespace Rice::detail
       {
         case RUBY_T_FLOAT:
           return Convertible::Exact;
+          break;
+        case RUBY_T_FIXNUM:
+          return Convertible::TypeCast;
+          break;
+        case RUBY_T_BIGNUM:
+          return Convertible::TypeCast;
           break;
         default:
           return Convertible::None;
@@ -1569,6 +1726,12 @@ namespace Rice::detail
       {
         case RUBY_T_FLOAT:
           return Convertible::Exact;
+          break;
+        case RUBY_T_FIXNUM:
+          return Convertible::TypeCast;
+          break;
+        case RUBY_T_BIGNUM:
+          return Convertible::TypeCast;
           break;
         case RUBY_T_ARRAY:
           return Convertible::Exact;
@@ -1722,6 +1885,9 @@ namespace Rice::detail
     {
       switch (rb_type(value))
       {
+        case RUBY_T_FLOAT:
+          return Convertible::Exact;
+          break;
         case RUBY_T_FIXNUM:
           return Convertible::TypeCast;
         case RUBY_T_BIGNUM:
