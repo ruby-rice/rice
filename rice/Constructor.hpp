@@ -11,7 +11,7 @@ namespace Rice
       \endcode
   *
   *  The first template type must be the type being wrapped.
-  *  Afterwards any extra types must match the appropriate constructor
+  *  Then any additional types must match the appropriate constructor
   *  to be used in C++ when constructing the object.
   *
   *  For more information, see Rice::Data_Type::define_constructor.
