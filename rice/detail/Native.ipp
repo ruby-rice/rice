@@ -114,7 +114,10 @@ namespace Rice::detail
           }
           else
           {
-            rb_raise(rb_eArgError, "Could not resolve method call for %s#%s", rb_class2name(klass), identifier.c_str());
+            std::ostringstream message;
+            message << "Could not resolve method call for %s#%s" << "\n"
+                    << "  %d overload(s) were evaluated based on the types of Ruby parameters provided.";
+            rb_raise(rb_eArgError, message.str().c_str(), rb_class2name(klass), identifier.c_str(), natives.size());
           }
         }
       }

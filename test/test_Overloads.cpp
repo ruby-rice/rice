@@ -149,6 +149,10 @@ namespace
 
 Class createMyClass()
 {
+  using Data_Type_T = Data_Type<MyClass>;
+  if (Data_Type_T::is_bound())
+    detail::Registries::instance.natives.reset(Data_Type_T::klass());
+
   Class c = define_class<MyClass>("MyClass")
     .define_constructor(Constructor<MyClass>())
     .define_method<std::string(MyClass::*)()>("run", &MyClass::run)
@@ -213,6 +217,21 @@ TESTCASE(method_two_parameters)
 
   result = m.module_eval(code);
   ASSERT_EQUAL("run<float,int>", result.str());
+}
+
+TESTCASE(invalid_parameters)
+{
+  Module m = define_module("Testing");
+  Class c = createMyClass();
+
+  std::string code = R"(my_class = MyClass.new
+                        my_class.run("abc", "def"))";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    Rice::String result = m.module_eval(code),
+    ASSERT_EQUAL("Could not resolve method call for MyClass#run\n  6 overload(s) were evaluated based on the types of Ruby parameters provided.", 
+                 ex.what()));
 }
 
 namespace
