@@ -137,8 +137,26 @@ namespace Rice
     // Define a Ruby allocator which creates the Ruby object
     detail::protect(rb_define_alloc_func, static_cast<VALUE>(*this), detail::default_allocation_func<T>);
 
-    // Define an initialize function that will create the C++ object
-    this->define_method("initialize", &Constructor_T::construct, args...);
+    // We can't do anything with move constructors so blow up
+    static_assert(!Constructor_T::isMoveConstrutor(), "Rice does not support move constructors");
+
+    // If this is a copy constructor then use it to support Ruby's Object#dup and Object#clone methods.
+    // Otherwise if a user calls #dup or #clone an error will occur because the newly cloned Ruby
+    // object will have a NULL ptr because the C++ object is never copied. This also prevents having
+    // very unlike Ruby code of:
+    // 
+    //    my_object_copy = MyObject.new(my_ojbect_original).
+
+    if constexpr (Constructor_T::isCopyConstrutor())
+    {
+      // Define initialize_copy that will copy the C++ object
+      this->define_method("initialize_copy", &Constructor_T::initialize_copy, args...);
+    }
+    else
+    {
+      // Define an initialize function that will create the C++ object
+      this->define_method("initialize", &Constructor_T::initialize, args...);
+    }
 
     return *this;
   }

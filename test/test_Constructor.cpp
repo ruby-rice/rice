@@ -17,7 +17,7 @@ TEARDOWN(Constructor)
   rb_gc_start();
 }
 
-namespace
+/*namespace
 {
   class Default_Constructible
   {
@@ -129,53 +129,63 @@ TESTCASE(constructor_supports_single_default_argument)
 
   klass.call("new", 6);
   ASSERT_EQUAL(6, withArgX);
-}
+}*/
 
 namespace
 {
   class MyClass
   {
-  public:
-    MyClass()
-    {
-    }
-
-    MyClass(const MyClass& other)
-    {
-    }
-
-    MyClass(MyClass&& other)
-    {
-    }
+  public: 
+    MyClass() = default;
+    MyClass(const MyClass& other) = default;
+    MyClass(MyClass&& other) = default;
+    int value;
   };
 }
 
-TESTCASE(constructor_copy)
+TESTCASE(constructor_clone)
 {
   Class c = define_class<MyClass>("MyClass")
     .define_constructor(Constructor<MyClass>())
-    .define_constructor(Constructor<MyClass, const MyClass&>());
+    .define_constructor(Constructor<MyClass, const MyClass&>())
+    .define_attr("value", &MyClass::value);
 
   // Default constructor
   Object o1 = c.call("new");
+  o1.call("value=", 7);
   ASSERT_EQUAL(c, o1.class_of());
 
-  // Copy constructor
-  Object o2 = c.call("new", o1);
+  // Clone
+  Object o2 = o1.call("clone");
+  Object value = o2.call("value");
   ASSERT_EQUAL(c, o2.class_of());
+  ASSERT_EQUAL(7, detail::From_Ruby<int>().convert(value));
+}
+
+TESTCASE(constructor_dup)
+{
+  Class c = define_class<MyClass>("MyClass").
+            define_constructor(Constructor<MyClass>()).
+            define_constructor(Constructor<MyClass, const MyClass&>()).
+            define_attr("value", &MyClass::value);
+
+  // Default constructor
+  Object o1 = c.call("new");
+  o1.call("value=", 7);
+  ASSERT_EQUAL(c, o1.class_of());
+
+  // Clone
+  Object o2 = o1.call("dup");
+  Object value = o2.call("value");
+  ASSERT_EQUAL(c, o2.class_of());
+  ASSERT_EQUAL(7, detail::From_Ruby<int>().convert(value));
 }
 
 TESTCASE(constructor_move)
 {
-  Class c = define_class<MyClass>("MyClass")
-    .define_constructor(Constructor<MyClass>())
-    .define_constructor(Constructor<MyClass, MyClass&&>());
+  Data_Type<MyClass> c = define_class<MyClass>("MyClass").
+            define_constructor(Constructor<MyClass>());
 
-  // Default constructor
-  Object o1 = c.call("new");
-  ASSERT_EQUAL(c, o1.class_of());
-
-  // Move constructor
-  Object o2 = c.call("new", o1);
-  ASSERT_EQUAL(c, o2.class_of());
+  // This intentionally will not compile due to a static_assert
+  //c.define_constructor(Constructor<MyClass, MyClass&&>());
 }

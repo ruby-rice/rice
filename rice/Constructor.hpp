@@ -10,33 +10,13 @@ namespace Rice
           .define_constructor(Constructor<Test>());
       \endcode
   *
-  *  The first template type must be the type being wrapped.
-  *  Then any additional types must match the appropriate constructor
-  *  to be used in C++ when constructing the object.
+  *  The first template argument must be the type being wrapped.
+  *  Additional arguments must be the types of the parameters sent
+  *  to the constructor.
   *
   *  For more information, see Rice::Data_Type::define_constructor.
   */
   template<typename T, typename...Arg_Ts>
-  class Constructor
-  {
-  public:
-    static void construct(VALUE self, Arg_Ts...args)
-    {
-      T* data = new T(args...);
-      detail::replace<T>(self, Data_Type<T>::ruby_data_type(), data, true);
-    }
-  };
-
-  //! Special-case Constructor used when defining Directors.
-  template<typename T, typename...Arg_Ts>
-  class Constructor<T, Object, Arg_Ts...>
-  {
-    public:
-      static void construct(Object self, Arg_Ts...args)
-      {
-        T* data = new T(self, args...);
-        detail::replace<T>(self.value(), Data_Type<T>::ruby_data_type(), data, true);
-      }
-  };
+  class Constructor;
 }
 #endif // Rice__Constructor__hpp_

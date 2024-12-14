@@ -105,6 +105,7 @@
 #include "Data_Type.ipp"
 #include "detail/default_allocation_func.ipp"
 #include "Constructor.hpp"
+#include "Constructor.ipp"
 #include "Data_Object.hpp"
 #include "Data_Object.ipp"
 #include "Enum.hpp"
