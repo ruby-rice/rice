@@ -26,17 +26,17 @@ namespace Rice::detail
   class FromRubyFundamental
   {
   public:
-    using RubyType = RubyType<T>;
+    using RubyType_T = RubyType<T>;
 
     static Convertible is_convertible(VALUE value)
     {
       ruby_value_type valueType = rb_type(value);
 
-      if (valueType == RubyType::valueType)
+      if (valueType == RubyType_T::valueType)
       {
         return Convertible::Exact;
       }
-      else if (RubyType::castableTypes.find(valueType) != RubyType::castableTypes.end())
+      else if (RubyType_T::castableTypes.find(valueType) != RubyType_T::castableTypes.end())
       {
         return Convertible::TypeCast;
       }
@@ -48,7 +48,7 @@ namespace Rice::detail
 
     static T convert(VALUE value)
     {
-      return protect(RubyType::fromRuby, value);
+      return protect(RubyType_T::fromRuby, value);
     }
   };
 
