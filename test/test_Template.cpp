@@ -152,7 +152,7 @@ TESTCASE(duplicate_template)
   String name = C1.name();
   ASSERT_EQUAL("MatrixFirst", name.str());
 
-  Class aClass1 = Object(rb_cObject).instance_eval("MatrixFirst");
+  Object aClass1 = Object(rb_cObject).instance_eval("MatrixFirst");
   bool result = aClass1.is_equal(C1);
   ASSERT(result);
 
@@ -163,7 +163,7 @@ TESTCASE(duplicate_template)
   name = C2.name();
   ASSERT_EQUAL("MatrixFirst", name.str());
 
-  Class aClass2 = Object(rb_cObject).instance_eval("MatrixSecond");
+  Object aClass2 = Object(rb_cObject).instance_eval("MatrixSecond");
   result = aClass2.is_equal(C2);
   ASSERT(result);
 

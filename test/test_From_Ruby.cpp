@@ -100,9 +100,9 @@ TESTCASE(char_pointer)
   char* result = fromRuby.convert(Qnil);
   ASSERT_EQUAL(expected, result);
 
-  expected = "my string";
-  result = fromRuby.convert(rb_str_new2(expected));
-  ASSERT_EQUAL(*expected, *result);
+  const char* expected2 = "my string";
+  result = fromRuby.convert(rb_str_new2(expected2));
+  ASSERT_EQUAL(*expected2, *result);
 
   std::string code = R"(arr = [0, 127, 128, 255, 256, -128, -129, -255])";
   Array array = m.instance_eval(code);
