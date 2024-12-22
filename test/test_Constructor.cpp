@@ -17,7 +17,7 @@ TEARDOWN(Constructor)
   rb_gc_start();
 }
 
-/*namespace
+namespace
 {
   class Default_Constructible
   {
@@ -35,7 +35,6 @@ TESTCASE(default_constructor)
   Object o = rb_cDefault_Constructible.call("new");
   ASSERT_EQUAL(rb_cDefault_Constructible, o.class_of());
 }
-
 
 namespace
 {
@@ -129,7 +128,7 @@ TESTCASE(constructor_supports_single_default_argument)
 
   klass.call("new", 6);
   ASSERT_EQUAL(6, withArgX);
-}*/
+}
 
 namespace
 {
