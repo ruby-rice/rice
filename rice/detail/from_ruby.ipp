@@ -1,6 +1,4 @@
-#ifndef Rice__detail__from_ruby__ipp_
-#define Rice__detail__from_ruby__ipp_
-
+#include <limits>
 #include <optional>
 #include <stdexcept>
 
@@ -23,1083 +21,109 @@ namespace Rice::detail
     return static_cast<uint8_t>(left) < static_cast<uint8_t>(right);
   }
 
-  // ===========  short  ============
-  template<>
-  class From_Ruby<short>
+  // ===========  Helpers  ============
+  template<typename T>
+  class FromRubyFundamental
   {
   public:
-    From_Ruby() = default;
+    using RubyType = RubyType<T>;
 
-    explicit From_Ruby(Arg* arg) : arg_(arg)
+    static Convertible is_convertible(VALUE value)
     {
-    }
+      ruby_value_type valueType = rb_type(value);
 
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
+      if (valueType == RubyType::valueType)
       {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::TypeCast;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
+        return Convertible::Exact;
       }
-    }
-
-    short convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      else if (RubyType::castableTypes.find(valueType) != RubyType::castableTypes.end())
       {
-        return this->arg_->defaultValue<short>();
+        return Convertible::TypeCast;
       }
       else
       {
-        return protect(rb_num2short_inline, value);
+        return Convertible::None;
       }
     }
-  
-  private:
-    Arg* arg_ = nullptr;
+
+    static T convert(VALUE value)
+    {
+      return protect(RubyType::fromRuby, value);
+    }
   };
 
-  template<>
-  class From_Ruby<short&>
+  template<typename T>
+  class FromRubyFundamental<T*>
   {
   public:
-    From_Ruby() = default;
+    using RubyType_T = RubyType<T>;
 
-    explicit From_Ruby(Arg* arg) : arg_(arg)
+    static Convertible is_convertible(VALUE value)
     {
-    }
+      ruby_value_type valueType = rb_type(value);
 
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
+      if (valueType == RubyType_T::valueType)
       {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::TypeCast;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
+        return Convertible::Exact;
       }
-    }
-
-    short& convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      else if (RubyType_T::castableTypes.find(valueType) != RubyType_T::castableTypes.end())
       {
-        return this->arg_->defaultValue<short>();
+        return Convertible::TypeCast;
+      }
+      else if (valueType == RUBY_T_ARRAY)
+      {
+        return Convertible::Exact;
+      }
+      else if (valueType == RUBY_T_STRING)
+      {
+        return Convertible::Exact;
       }
       else
       {
-        this->converted_ = protect(rb_num2short_inline, value);
-        return this->converted_;
+        return Convertible::None;
       }
     }
 
-  private:
-    Arg* arg_ = nullptr;
-    short converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<short*>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
+    static std::unique_ptr<T[]> convert(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::TypeCast;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    short* convert(VALUE value)
-    {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-      else
-      {
-        this->converted_ = protect(rb_num2short_inline, value);
-        return &this->converted_;
-      }
-    }
-
-  private:
-    short converted_ = 0;
-  };
-
-  // ===========  int  ============
-  template<>
-  class From_Ruby<int>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-
-        // This case is for Enums which are defined as Ruby classes. Some C++ apis
-        // will take a int parameter but really what we have is an Enum
-        case RUBY_T_DATA:
-        {
-          static ID id = protect(rb_intern, "to_int"); 
-          if (protect(rb_respond_to, value, id))
-          {
-            return Convertible::TypeCast;
-          }
-          else
-          {
-            return Convertible::None;
-          }
-
-          break;
-        }
-        default:
-          return Convertible::None;
-      }
-    }
-
-    int convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<int>();
-      }
-      else
-      {
-        // rb_num2long_inline will call to_int for RUBY_T_DATA objects
-        return (int)protect(rb_num2long_inline, value);
-      }
-    }
-  
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<>
-  class From_Ruby<int&>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    int& convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<int>();
-      }
-      else
-      {
-        this->converted_ = (int)protect(rb_num2long_inline, value);
-        return this->converted_;
-      }
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-    int converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<int*>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        case RUBY_T_ARRAY:
-          return Convertible::Exact;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    int* convert(VALUE value)
-    {
-      switch (rb_type(value))
+      ruby_value_type valueType = rb_type(value);
+      switch (valueType)
       {
         case RUBY_T_NIL:
         {
           return nullptr;
+          break;
         }
         case RUBY_T_ARRAY:
         {
-          this->converted_ = Rice::Array(value).toPtr<int>();
-          return this->converted_.get();
+          return Array(value).pack<T>();
           break;
+        }
+        case RUBY_T_STRING:
+        {
+          long size = RSTRING_LEN(value);
+          // Put in null character
+          std::unique_ptr<T[]> dest = std::make_unique<T[]>(size + 1);
+          dest.get()[size] = 0;
+          memcpy(dest.get(), RSTRING_PTR(value), size);
+
+          return std::move(dest);
+          break;
+        }
+        case RubyType_T::valueType:
+        {
+          std::unique_ptr<T[]> dest = std::make_unique<T[]>(1);
+          *(dest.get()) = protect(RubyType_T::fromRuby, value);
+          return std::move(dest);
         }
         default:
         {
-          converted_.reset(new int[1]);
-          converted_[0] = protect(NUM2INT, value);
-          return this->converted_.get();
+          std::string typeName = detail::typeName(typeid(T));
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+            detail::protect(rb_obj_classname, value), typeName.c_str());
         }
       }
     }
-
-  private:
-    std::unique_ptr<int[]> converted_;
-  };
-
-  // ===========  long  ============
-  template<>
-  class From_Ruby<long>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    long convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<long>();
-      }
-      else
-      {
-        return protect(rb_num2long_inline, value);
-      }
-    }
-  
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<>
-  class From_Ruby<long&>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    long& convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<long>();
-      }
-      else
-      {
-        this->converted_ = protect(rb_num2long_inline, value);
-        return this->converted_;
-      }
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-    long converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<long*>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    long* convert(VALUE value)
-    {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-      else
-      {
-        this->converted_ = protect(rb_num2long_inline, value);
-        return &this->converted_;
-      }
-    }
-
-  private:
-    long converted_ = 0;
-  };
-
-  // ===========  long long  ============
-  template<>
-  class From_Ruby<long long>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    long long convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<long long>();
-      }
-      else
-      {
-        return protect(rb_num2ll_inline, value);
-      }
-    }
-  
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<>
-  class From_Ruby<long long&>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    long long& convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<long long>();
-      }
-      else
-      {
-        this->converted_ = protect(rb_num2ll_inline, value);
-        return this->converted_;
-      }
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-    long long converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<long long*>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    long long* convert(VALUE value)
-    {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-      else
-      {
-        this->converted_ = protect(rb_num2ll_inline, value);
-        return &this->converted_;
-      }
-    }
-
-  private:
-    long long converted_ = 0;
-  };
-
-  // ===========  unsigned short  ============
-  template<>
-  class From_Ruby<unsigned short>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::TypeCast;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    unsigned short convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<unsigned short>();
-      }
-      else
-      {
-        return protect(rb_num2ushort, value);
-      }
-    }
-  
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<>
-  class From_Ruby<unsigned short&>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::TypeCast;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    unsigned short& convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<unsigned short>();
-      }
-      else
-      {
-        this->converted_ = protect(rb_num2ushort, value);
-        return this->converted_;
-      }
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-    unsigned short converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<unsigned short*>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::TypeCast;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    unsigned short* convert(VALUE value)
-    {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-      else
-      {
-        this->converted_ = protect(rb_num2ushort, value);
-        return &this->converted_;
-      }
-    }
-
-  private:
-    unsigned short converted_ = 0;
-  };
-
-  // ===========  unsigned int  ============
-  template<>
-  class From_Ruby<unsigned int>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    unsigned int convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<unsigned int>();
-      }
-      else
-      {
-        return (unsigned int)protect(rb_num2ulong_inline, value);
-      }
-    }
-  
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<>
-  class From_Ruby<unsigned int&>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    unsigned int& convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<unsigned int>();
-      }
-      else
-      {
-        this->converted_ = (unsigned int)protect(rb_num2ulong_inline, value);
-        return this->converted_;
-      }
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-    unsigned int converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<unsigned int*>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    unsigned int* convert(VALUE value)
-    {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-      else
-      {
-        this->converted_ = (unsigned int)protect(rb_num2ulong_inline, value);
-        return &this->converted_;
-      }
-    }
-
-  private:
-    unsigned int converted_ = 0;
-  };
-
-  // ===========  unsigned long  ============
-  template<>
-  class From_Ruby<unsigned long>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    unsigned long convert(VALUE value)
-    {
-      if (this->arg_ && this->arg_->isValue())
-      {
-        return (unsigned long)value;
-      }
-      else if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<unsigned long>();
-      }
-      else
-      {
-        return protect(rb_num2ulong_inline, value);
-      }
-    }
-  
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<>
-  class From_Ruby<unsigned long&>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    unsigned long& convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<unsigned long>();
-      }
-      else
-      {
-        this->converted_ = protect(rb_num2ulong_inline, value);
-        return this->converted_;
-      }
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-    unsigned long converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<unsigned long*>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    unsigned long* convert(VALUE value)
-    {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-      else
-      {
-        this->converted_ = protect(rb_num2ulong_inline, value);
-        return &this->converted_;
-      }
-    }
-
-  private:
-    unsigned long converted_ = 0;
-  };
-
-  // ===========  unsigned long long  ============
-  template<>
-  class From_Ruby<unsigned long long>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    unsigned long long convert(VALUE value)
-    {
-      if (this->arg_ && this->arg_->isValue())
-      {
-        return value;
-      }
-      else if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<unsigned long long>();
-      }
-      else
-      {
-        return protect(rb_num2ull, value);
-      }
-    }
-  
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<>
-  class From_Ruby<unsigned long long&>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    unsigned long long& convert(VALUE value)
-    {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<unsigned long long>();
-      }
-      else
-      {
-        this->converted_ = protect(rb_num2ull, value);
-        return this->converted_;
-      }
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-    unsigned long long converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<unsigned long long*>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FIXNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FLOAT:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    unsigned long long* convert(VALUE value)
-    {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-      else
-      {
-        this->converted_ = protect(rb_num2ull, value);
-        return &this->converted_;
-      }
-    }
-
-  private:
-    unsigned long long converted_ = 0;
   };
 
   // ===========  bool  ============
@@ -1115,23 +139,7 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_TRUE:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FALSE:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_NIL:
-          return Convertible::TypeCast;
-          break;
-        case RUBY_T_FIXNUM:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
+      return FromRubyFundamental<bool>::is_convertible(value);
     }
 
     bool convert(VALUE value)
@@ -1142,10 +150,10 @@ namespace Rice::detail
       }
       else
       {
-        return RTEST(value);
+        return FromRubyFundamental<bool>::convert(value);
       }
     }
-  
+
   private:
     Arg* arg_ = nullptr;
   };
@@ -1162,23 +170,7 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-      case RUBY_T_TRUE:
-        return Convertible::Exact;
-        break;
-      case RUBY_T_FALSE:
-        return Convertible::Exact;
-        break;
-      case RUBY_T_NIL:
-        return Convertible::TypeCast;
-        break;
-      case RUBY_T_FIXNUM:
-        return Convertible::TypeCast;
-        break;
-      default:
-        return Convertible::None;
-      }
+      return FromRubyFundamental<bool>::is_convertible(value);
     }
 
     bool& convert(VALUE value)
@@ -1189,7 +181,7 @@ namespace Rice::detail
       }
       else
       {
-        this->converted_ = RTEST(value);
+        this->converted_ = FromRubyFundamental<bool>::convert(value);
         return this->converted_;
       }
     }
@@ -1205,73 +197,20 @@ namespace Rice::detail
   public:
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-      case RUBY_T_TRUE:
-        return Convertible::Exact;
-        break;
-      case RUBY_T_FALSE:
-        return Convertible::Exact;
-        break;
-      case RUBY_T_NIL:
-        return Convertible::TypeCast;
-        break;
-      case RUBY_T_FIXNUM:
-        return Convertible::TypeCast;
-        break;
-      default:
-        return Convertible::None;
-      }
+      return FromRubyFundamental<bool>::is_convertible(value);
     }
 
     bool* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-      else
-      {
-        this->converted_ = RTEST(value);
-        return &this->converted_;
-      }
+      this->converted_ = FromRubyFundamental<bool*>::convert(value);
+      return this->converted_.get();
     }
 
   private:
-    bool converted_ = false;
+    std::unique_ptr<bool[]> converted_;
   };
 
   // ===========  char  ============
-  template<typename T>
-  inline T charFromRuby(VALUE value)
-  {
-    switch (rb_type(value))
-    {
-      case T_STRING:
-      {
-        if (RSTRING_LEN(value) == 1)
-        {
-          return RSTRING_PTR(value)[0];
-        }
-        else
-        {
-          throw std::invalid_argument("from_ruby<char>: string must have length 1");
-        }
-        break;
-      }
-      case T_FIXNUM:
-      {
-        return From_Ruby<long>().convert(value) & 0xff;
-        break;
-      }
-      default:
-      {
-        throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
-          detail::protect(rb_obj_classname, value), "char type");
-      }
-    }
-  }
-
   template<>
   class From_Ruby<char>
   {
@@ -1284,18 +223,7 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_STRING:
-          return Convertible::Exact;
-          break;
-          // This is for C++ chars which are converted to Ruby integers
-        case RUBY_T_FIXNUM:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
+      return FromRubyFundamental<char>::is_convertible(value);
     }
 
     char convert(VALUE value)
@@ -1306,10 +234,10 @@ namespace Rice::detail
       }
       else
       {
-        return charFromRuby<char>(value);
+        return FromRubyFundamental<char>::convert(value);
       }
     }
-  
+
   private:
     Arg* arg_ = nullptr;
   };
@@ -1326,18 +254,7 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_STRING:
-          return Convertible::Exact;
-          break;
-        // This is for C++ chars which are converted to Ruby integers
-        case RUBY_T_FIXNUM:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
+      return FromRubyFundamental<char>::is_convertible(value);
     }
 
     char& convert(VALUE value)
@@ -1348,7 +265,7 @@ namespace Rice::detail
       }
       else
       {
-        this->converted_ = charFromRuby<char>(value);
+        this->converted_ = FromRubyFundamental<char>::convert(value);
         return this->converted_;
       }
     }
@@ -1364,73 +281,36 @@ namespace Rice::detail
   public:
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_STRING:
-          return Convertible::Exact;
-          break;
-          // This is for C++ chars which are converted to Ruby integers
-        case RUBY_T_FIXNUM:
-          return Convertible::TypeCast;
-          break;
-        case RUBY_T_ARRAY:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_NIL:
-          return Convertible::Exact;
-          break;
-        default:
-          return Convertible::None;
-      }
+      return FromRubyFundamental<char*>::is_convertible(value);
     }
 
     char* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-      else
-      {
-        detail::protect(rb_check_type, value, (int)T_STRING);
-        return RSTRING_PTR(value);
-      }
+      this->converted_ = FromRubyFundamental<char*>::convert(value);
+      return this->converted_.get();
     }
+
+  private:
+    std::unique_ptr<char[]> converted_;
   };
-  
-  // This is mostly for testing. NativeFunction removes const before calling From_Ruby
+    
   template<>
-  class From_Ruby<char const*>
+  class From_Ruby<const char*>
   {
   public:
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_STRING:
-          return Convertible::Exact;
-          break;
-          // This is for C++ chars which are converted to Ruby integers
-        case RUBY_T_FIXNUM:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
+      return FromRubyFundamental<char*>::is_convertible(value);
     }
 
-    char const* convert(VALUE value)
+    char* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-      else
-      {
-        detail::protect(rb_check_type, value, (int)T_STRING);
-        return RSTRING_PTR(value);
-      }
+      this->converted_ = FromRubyFundamental<char*>::convert(value);
+      return this->converted_.get();
     }
+
+  private:
+    std::unique_ptr<char[]> converted_;
   };
 
   // ===========  unsigned char  ============
@@ -1446,18 +326,7 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_STRING:
-          return Convertible::Exact;
-          break;
-          // This is for C++ chars which are converted to Ruby integers
-        case RUBY_T_FIXNUM:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
+      return FromRubyFundamental<unsigned char>::is_convertible(value);
     }
 
     unsigned char convert(VALUE value)
@@ -1468,7 +337,7 @@ namespace Rice::detail
       }
       else
       {
-        return charFromRuby<unsigned char>(value);
+        return FromRubyFundamental<unsigned char>::convert(value);
       }
     }
 
@@ -1488,18 +357,7 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-      case RUBY_T_STRING:
-        return Convertible::Exact;
-        break;
-        // This is for C++ chars which are converted to Ruby integers
-      case RUBY_T_FIXNUM:
-        return Convertible::TypeCast;
-        break;
-      default:
-        return Convertible::None;
-      }
+      return FromRubyFundamental<unsigned char>::is_convertible(value);
     }
 
     unsigned char& convert(VALUE value)
@@ -1510,7 +368,7 @@ namespace Rice::detail
       }
       else
       {
-        this->converted_  = charFromRuby<unsigned char>(value);
+        this->converted_ = FromRubyFundamental<unsigned char>::convert(value);
         return this->converted_;
       }
     }
@@ -1532,34 +390,17 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-      case RUBY_T_STRING:
-        return Convertible::Exact;
-        break;
-        // This is for C++ chars which are converted to Ruby integers
-      case RUBY_T_FIXNUM:
-        return Convertible::TypeCast;
-        break;
-      default:
-        return Convertible::None;
-      }
+      return FromRubyFundamental<unsigned char*>::is_convertible(value);
     }
 
     unsigned char* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-      else
-      {
-        detail::protect(rb_check_type, value, (int)T_STRING);
-        return reinterpret_cast<unsigned char*>(RSTRING_PTR(value));
-      }
+      this->converted_ = FromRubyFundamental<unsigned char*>::convert(value);
+      return this->converted_.get();
     }
 
   private:
+    std::unique_ptr<unsigned char[]> converted_;
     Arg* arg_ = nullptr;
   };
 
@@ -1576,18 +417,7 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_STRING:
-          return Convertible::Exact;
-          break;
-          // This is for C++ chars which are converted to Ruby integers
-        case RUBY_T_FIXNUM:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
+      return FromRubyFundamental<signed char>::is_convertible(value);
     }
 
     signed char convert(VALUE value)
@@ -1598,12 +428,31 @@ namespace Rice::detail
       }
       else
       {
-        return charFromRuby<signed char>(value);
+        return FromRubyFundamental<signed char>::convert(value);
       }
     }
-  
+
   private:
     Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class From_Ruby<signed char*>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<signed char*>::is_convertible(value);
+    }
+
+    signed char* convert(VALUE value)
+    {
+      this->converted_ = FromRubyFundamental<signed char*>::convert(value);
+      return this->converted_.get();
+    }
+
+  private:
+    std::unique_ptr<signed char[]> converted_;
   };
 
   // ===========  double  ============
@@ -1619,21 +468,7 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FLOAT:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FIXNUM:
-          return Convertible::TypeCast;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::TypeCast;
-          break;
-
-        default:
-          return Convertible::None;
-      }
+      return FromRubyFundamental<double>::is_convertible(value);
     }
 
     double convert(VALUE value)
@@ -1644,10 +479,10 @@ namespace Rice::detail
       }
       else
       {
-        return protect(rb_num2dbl, value);
+        return FromRubyFundamental<double>::convert(value);
       }
     }
-  
+
   private:
     Arg* arg_ = nullptr;
   };
@@ -1664,20 +499,7 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FLOAT:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FIXNUM:
-          return Convertible::TypeCast;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::TypeCast;
-          break;
-        default:
-          return Convertible::None;
-      }
+      return FromRubyFundamental<double>::is_convertible(value);
     }
 
     double& convert(VALUE value)
@@ -1688,7 +510,7 @@ namespace Rice::detail
       }
       else
       {
-        this->converted_ = protect(rb_num2dbl, value);
+        this->converted_ = FromRubyFundamental<double>::convert(value);
         return this->converted_;
       }
     }
@@ -1722,49 +544,13 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FLOAT:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FIXNUM:
-          return Convertible::TypeCast;
-          break;
-        case RUBY_T_BIGNUM:
-          return Convertible::TypeCast;
-          break;
-        case RUBY_T_ARRAY:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_NIL:
-          return Convertible::Exact;
-          break;
-        default:
-          return Convertible::None;
-      }
+      return FromRubyFundamental<double*>::is_convertible(value);
     }
 
     double* convert(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_NIL:
-        {
-          return nullptr;
-        }
-        case RUBY_T_ARRAY:
-        {
-          this->converted_ = Rice::Array(value).toPtr<double>();
-          return this->converted_.get();
-          break;
-        }
-        default:
-        {
-          converted_.reset(new double[1]);
-          converted_[0] = protect(rb_num2dbl, value);
-          return this->converted_.get();
-        }
-      }
+      this->converted_ = FromRubyFundamental<double*>::convert(value);
+      return this->converted_.get();
     }
 
   private:
@@ -1785,18 +571,7 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FLOAT:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FIXNUM:
-          return Convertible::TypeCast;
-        case RUBY_T_BIGNUM:
-          return Convertible::TypeCast;
-        default:
-          return Convertible::None;
-      }
+      return FromRubyFundamental<float>::is_convertible(value);
     }
 
     float convert(VALUE value)
@@ -1807,10 +582,10 @@ namespace Rice::detail
       }
       else
       {
-        return (float)protect(rb_num2dbl, value);
+        return FromRubyFundamental<float>::convert(value);
       }
     }
-  
+
   private:
     Arg* arg_ = nullptr;
   };
@@ -1827,18 +602,7 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FLOAT:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FIXNUM:
-          return Convertible::TypeCast;
-        case RUBY_T_BIGNUM:
-          return Convertible::TypeCast;
-        default:
-          return Convertible::None;
-      }
+      return FromRubyFundamental<float>::is_convertible(value);
     }
 
     float& convert(VALUE value)
@@ -1849,7 +613,7 @@ namespace Rice::detail
       }
       else
       {
-        this->converted_ = (float)protect(rb_num2dbl, value);
+        this->converted_ = FromRubyFundamental<float>::convert(value);
         return this->converted_;
       }
     }
@@ -1883,52 +647,718 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_FLOAT:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_FIXNUM:
-          return Convertible::TypeCast;
-        case RUBY_T_BIGNUM:
-          return Convertible::TypeCast;
-        case RUBY_T_ARRAY:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_NIL:
-          return Convertible::Exact;
-          break;
-        default:
-          return Convertible::None;
-      }
+      return FromRubyFundamental<float*>::is_convertible(value);
     }
 
     float* convert(VALUE value)
     {
-      switch (rb_type(value))
-      {
-        case RUBY_T_NIL:
-        {
-          return nullptr;
-        }
-        case RUBY_T_ARRAY:
-        {
-          this->converted_ = Rice::Array(value).toPtr<float>();
-          return this->converted_.get();
-          break;
-        }
-        default:
-        {
-          converted_.reset(new float[1]);
-          converted_[0] = protect(rb_num2dbl, value);
-          return this->converted_.get();
-        }
-      }
+      this->converted_ = FromRubyFundamental<float*>::convert(value);
+      return this->converted_.get();
     }
 
   private:
     Arg* arg_ = nullptr;
     std::unique_ptr<float[]> converted_;
   };
+
+  // ===========  int  ============
+  template<>
+  class From_Ruby<int>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<int>::is_convertible(value);
+
+/*        // This case is for Enums which are defined as Ruby classes. Some C++ apis
+        // will take a int parameter but really what we have is an Enum
+        case RUBY_T_DATA:
+        {
+          static ID id = protect(rb_intern, "to_int"); 
+          if (protect(rb_respond_to, value, id))
+          {
+            return Convertible::TypeCast;
+          }
+          else
+          {
+            return Convertible::None;
+          }*/
+    }
+
+    int convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<int>();
+      }
+      else
+      {
+        return FromRubyFundamental<int>::convert(value);
+      }
+    }
+  
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class From_Ruby<int&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<int>::is_convertible(value);
+    }
+
+    int& convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<int>();
+      }
+      else
+      {
+        this->converted_ = FromRubyFundamental<int>::convert(value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    int converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<int*>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<int*>::is_convertible(value);
+    }
+
+    int* convert(VALUE value)
+    {
+      this->converted_ = FromRubyFundamental<int*>::convert(value);
+      return this->converted_.get();
+    }
+
+  private:
+    std::unique_ptr<int[]> converted_;
+  };
+
+  // ===========  unsigned int  ============
+  template<>
+  class From_Ruby<unsigned int>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned int>::is_convertible(value);
+    }
+
+    unsigned int convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<unsigned int>();
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned int>::convert(value);
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class From_Ruby<unsigned int&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned int>::is_convertible(value);
+    }
+
+    unsigned int& convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<unsigned int>();
+      }
+      else
+      {
+        this->converted_ = FromRubyFundamental<unsigned int>::convert(value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    unsigned int converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<unsigned int*>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned int*>::is_convertible(value);
+    }
+
+    unsigned int* convert(VALUE value)
+    {
+      this->converted_ = FromRubyFundamental<unsigned int*>::convert(value);
+      return this->converted_.get();
+    }
+
+  private:
+    std::unique_ptr<unsigned int[]> converted_;;
+  };
+
+  // ===========  long  ============
+  template<>
+  class From_Ruby<long>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<long>::is_convertible(value);
+    }
+
+    long convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<long>();
+      }
+      else
+      {
+        return FromRubyFundamental<long>::convert(value);
+      }
+    }
+  
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class From_Ruby<long&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<long>::is_convertible(value);
+    }
+
+    long& convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<long>();
+      }
+      else
+      {
+        this->converted_ = FromRubyFundamental<long>::convert(value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    long converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<long*>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<long*>::is_convertible(value);
+    }
+
+    long* convert(VALUE value)
+    {
+      this->converted_ = FromRubyFundamental<long*>::convert(value);
+      return this->converted_.get();
+    }
+
+  private:
+    std::unique_ptr<long[]> converted_;
+  };
+
+  // ===========  unsigned long  ============
+  template<>
+  class From_Ruby<unsigned long>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned long>::is_convertible(value);
+    }
+
+    unsigned long convert(VALUE value)
+    {
+      if (this->arg_ && this->arg_->isValue())
+      {
+        return (unsigned long)value;
+      }
+      else if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<unsigned long>();
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned long>::convert(value);
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class From_Ruby<unsigned long&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned long>::is_convertible(value);
+    }
+
+    unsigned long& convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<unsigned long>();
+      }
+      else
+      {
+        this->converted_ = FromRubyFundamental<unsigned long>::convert(value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    unsigned long converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<unsigned long*>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned long*>::is_convertible(value);
+    }
+
+    unsigned long* convert(VALUE value)
+    {
+      this->converted_ = FromRubyFundamental<unsigned long*>::convert(value);
+      return this->converted_.get();
+    }
+
+  private:
+    std::unique_ptr<unsigned long[]> converted_;
+  };
+
+  // ===========  unsigned long long  ============
+  template<>
+  class From_Ruby<unsigned long long>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned long long>::is_convertible(value);
+    }
+
+    unsigned long long convert(VALUE value)
+    {
+      if (this->arg_ && this->arg_->isValue())
+      {
+        return value;
+      }
+      else if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<unsigned long long>();
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned long long>::convert(value);
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class From_Ruby<unsigned long long&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned long long>::is_convertible(value);
+    }
+
+    unsigned long long& convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<unsigned long long>();
+      }
+      else
+      {
+        this->converted_ = FromRubyFundamental<unsigned long long>::convert(value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    unsigned long long converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<unsigned long long*>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned long long*>::is_convertible(value);
+    }
+
+    unsigned long long* convert(VALUE value)
+    {
+      if (value == Qnil)
+      {
+        return nullptr;
+      }
+      else
+      {
+        this->converted_ = FromRubyFundamental<unsigned long long*>::convert(value);
+        return this->converted_.get();
+      }
+    }
+
+  private:
+    std::unique_ptr<unsigned long long[]> converted_;
+  };
+
+// ===========  long long  ============
+  template<>
+  class From_Ruby<long long>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<long long>::is_convertible(value);
+    }
+
+    long long convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<long long>();
+      }
+      else
+      {
+        return FromRubyFundamental<long long>::convert(value);
+      }
+    }
+  
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class From_Ruby<long long&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<long long>::is_convertible(value);
+    }
+
+    long long& convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<long long>();
+      }
+      else
+      {
+        this->converted_ = FromRubyFundamental<long long>::convert(value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    long long converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<long long*>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<long long*>::is_convertible(value);
+    }
+
+    long long* convert(VALUE value)
+    {
+      this->converted_ = FromRubyFundamental<long long*>::convert(value);
+      return this->converted_.get();
+    }
+
+  private:
+    std::unique_ptr<long long[]> converted_;
+  };
+
+  // ===========  short  ============
+  template<>
+  class From_Ruby<short>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<short>::is_convertible(value);
+    }
+
+    short convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<short>();
+      }
+      else
+      {
+        return FromRubyFundamental<short>::convert(value);
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class From_Ruby<short&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<short>::is_convertible(value);
+    }
+
+    short& convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<short>();
+      }
+      else
+      {
+        this->converted_ = FromRubyFundamental<short>::convert(value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    short converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<short*>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<short*>::is_convertible(value);
+    }
+
+    short* convert(VALUE value)
+    {
+      this->converted_ = FromRubyFundamental<short*>::convert(value);
+      return this->converted_.get();
+    }
+
+  private:
+    std::unique_ptr<short[]> converted_;
+  };
+
+  // ===========  unsigned short  ============
+  template<>
+  class From_Ruby<unsigned short>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned short>::is_convertible(value);
+    }
+
+    unsigned short convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<unsigned short>();
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned short>::convert(value);
+      }
+    }
+  
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class From_Ruby<unsigned short&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned short>::is_convertible(value);
+    }
+
+    unsigned short& convert(VALUE value)
+    {
+      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->defaultValue<unsigned short>();
+      }
+      else
+      {
+        this->converted_ = FromRubyFundamental<unsigned short>::convert(value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    unsigned short converted_ = 0;
+  };
+
+  template<>
+  class From_Ruby<unsigned short*>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned short*>::is_convertible(value);
+    }
+
+    unsigned short* convert(VALUE value)
+    {
+      this->converted_ = FromRubyFundamental<unsigned short*>::convert(value);
+      return this->converted_.get();
+    }
+
+  private:
+    std::unique_ptr<unsigned short[]> converted_;
+  };
 }
-#endif // Rice__detail__from_ruby__ipp_

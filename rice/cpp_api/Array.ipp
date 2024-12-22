@@ -39,20 +39,12 @@ namespace Rice
   }
 
   template<typename T>
-  std::unique_ptr<T[]> Array::toPtr() const
+  std::unique_ptr<T[]> Array::pack()
   {
-    std::unique_ptr<T[]> result(new T[this->size()]);
-    
-    auto fromRuby = detail::From_Ruby<T>();
-
-    T* current = result.get();
-
-    for (int i = 0; i<this->size(); i++)
-    {
-      *current = fromRuby.convert(this->operator[](i));
-      current++;
-    }
-
+    String string = this->call("pack", detail::RubyType<T>::packTemplate);
+    VALUE value = string.value();
+    std::unique_ptr<T[]> result = std::make_unique<T[]>(this->size());
+    memcpy(result.get(), RSTRING_PTR(value), RSTRING_LEN(value));
     return std::move(result);
   }
 
