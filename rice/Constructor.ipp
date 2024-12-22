@@ -6,7 +6,7 @@ namespace Rice
   public:
     static constexpr std::size_t arity = sizeof...(Arg_Ts);
 
-    static constexpr bool isCopyConstrutor()
+    static constexpr bool isCopyConstructor()
     {
       if constexpr (arity == 1)
       {
@@ -22,7 +22,7 @@ namespace Rice
       }
     }
 
-    static constexpr bool isMoveConstrutor()
+    static constexpr bool isMoveConstructor()
     {
       if constexpr (arity == 1)
       {
@@ -59,12 +59,12 @@ namespace Rice
   class Constructor<T, Object, Arg_Ts...>
   {
     public:
-      static constexpr bool isCopyConstrutor()
+      static constexpr bool isCopyConstructor()
       {
         return false;
       }
 
-      static constexpr bool isMoveConstrutor()
+      static constexpr bool isMoveConstructor()
       {
         return false;
       }

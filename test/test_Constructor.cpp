@@ -7,7 +7,7 @@ using namespace Rice;
 
 TESTSUITE(Constructor);
 
-SETUP(Construtor)
+SETUP(Constructor)
 {
   embed_ruby();
 }
