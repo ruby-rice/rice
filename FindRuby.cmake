@@ -17,8 +17,7 @@ standard syntax, e.g.
   # OR
   find_package(Ruby 3.2)
 
-Virtual environments such as RVM are handled as well, by passing
-the argument ``Ruby_FIND_VIRTUALENV``
+Virtual environments, such as RVM or RBENV, are supported.
 
 Result Variables
 ^^^^^^^^^^^^^^^^
@@ -67,36 +66,34 @@ Hints
 .. versionadded:: 3.18
 
 ``Ruby_FIND_VIRTUALENV``
-  This variable defines the handling of virtual environments managed by
-  ``rvm``. It is meaningful only when a virtual environment
-  is active (i.e. the ``rvm`` script has been evaluated or at least the
-  ``MY_RUBY_HOME`` environment variable is set).
-  The ``Ruby_FIND_VIRTUALENV`` variable can be set to empty or
-  one of the following:
+  This variable defines the handling of virtual environments. Currently ``rvm` and
+  ``rbenv`` are supported. ``rvm`` support requires that the ``MY_RUBY_HOME`` environment
+  variable is set while ``rbenv`` support requires that rbenv is installed at
+  "~/.rbenv/bin" or the ``RBENV_ROOT`` environment variable is set.
 
-  * ``FIRST``: The virtual environment is used before any other standard
-    paths to look-up for the interpreter. This is the default.
-  * ``ONLY``: Only the virtual environment is used to look-up for the
-    interpreter.
-  * ``STANDARD``: The virtual environment is not used to look-up for the
-    interpreter (assuming it isn't still in the PATH...)
+  It can be left empty or be set to one of the following values:
+
+  * ``FIRST``: Virtual Ruby environments are searched for first, then the system Ruby installation.
+               This is the default.
+  * ``ONLY``: Only virtual environments are searched
+  * ``STANDARD``: Only the system Ruby installation is searched.
 
 #]=======================================================================]
 
 # Backwards compatibility
 # Define camel case versions of input variables
 foreach(UPPER
-        RUBY_EXECUTABLE
-        RUBY_LIBRARY
-        RUBY_INCLUDE_DIR
-        RUBY_CONFIG_INCLUDE_DIR
-        )
-  if (DEFINED ${UPPER})
-    string(REPLACE "RUBY_" "Ruby_" Camel ${UPPER})
-    if (NOT DEFINED ${Camel})
-      set(${Camel} ${${UPPER}})
+    RUBY_EXECUTABLE
+    RUBY_LIBRARY
+    RUBY_INCLUDE_DIR
+    RUBY_CONFIG_INCLUDE_DIR
+    )
+    if (DEFINED ${UPPER})
+      string(REPLACE "RUBY_" "Ruby_" Camel ${UPPER})
+        if (NOT DEFINED ${Camel})
+            set(${Camel} ${${UPPER}})
+        endif()
     endif()
-  endif()
 endforeach()
 
 #   Ruby_ARCHDIR=`$RUBY -r rbconfig -e 'printf("%s",Config::CONFIG@<:@"archdir"@:>@)'`
@@ -111,16 +108,6 @@ endforeach()
 # Determine the list of possible names of the ruby executable depending
 # on which version of ruby is required
 set(_Ruby_POSSIBLE_EXECUTABLE_NAMES ruby)
-
-# If not specified, allow everything as far back as 1.8.0
-if(NOT DEFINED Ruby_FIND_VERSION_MAJOR)
-  set(Ruby_FIND_VERSION "1.8.0")
-  set(Ruby_FIND_VERSION_MAJOR 1)
-  set(Ruby_FIND_VERSION_MINOR 8)
-  set(Ruby_FIND_VERSION_PATCH 0)
-endif()
-
-set(Ruby_FIND_VERSION_SHORT_NODOT "${Ruby_FIND_VERSION_MAJOR}${Ruby_FIND_VERSION_MINOR}")
 
 # Set name of possible executables, ignoring the minor
 # Eg:
@@ -146,107 +133,163 @@ elseif (NOT DEFINED Ruby_FIND_VIRTUALENV)
   set (Ruby_FIND_VIRTUALENV "FIRST")
 endif()
 
-function (_RUBY_VALIDATE_INTERPRETER)
-  if (NOT Ruby_EXECUTABLE)
+function (_RUBY_VALIDATE_INTERPRETER path)
+  if (NOT path)
+    message(DEBUG "Ruby path not specified")
     return()
   endif()
 
-  cmake_parse_arguments (PARSE_ARGV 0 _RVI "EXACT;CHECK_EXISTS" "" "")
-  if (_RVI_UNPARSED_ARGUMENTS)
-    set (expected_version ${_RVI_UNPARSED_ARGUMENTS})
-  else()
-    unset (expected_version)
-  endif()
-
-  if (_RVI_CHECK_EXISTS AND NOT EXISTS "${Ruby_EXECUTABLE}")
-    # interpreter does not exist anymore
-    set (_Ruby_Interpreter_REASON_FAILURE "Cannot find the interpreter \"${Ruby_EXECUTABLE}\"")
-    set_property (CACHE Ruby_EXECUTABLE PROPERTY VALUE "Ruby_EXECUTABLE-NOTFOUND")
+  if (NOT EXISTS "${path}")
+    message(DEBUG "Ruby not found. Path: \"${path}\"")
     return()
   endif()
 
   # Check the version it returns
   # executable found must have a specific version
-  execute_process (COMMAND "${Ruby_EXECUTABLE}" -e "puts RUBY_VERSION"
+  execute_process (COMMAND "${path}" -e "puts RUBY_VERSION"
                    RESULT_VARIABLE result
                    OUTPUT_VARIABLE version
                    ERROR_QUIET
                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-  if (result OR (_RVI_EXACT AND NOT version VERSION_EQUAL expected_version) OR (version VERSION_LESS expected_version))
-    # interpreter not usable or has wrong major version
-    if (result)
-      set (_Ruby_Interpreter_REASON_FAILURE "Cannot use the interpreter \"${Ruby_EXECUTABLE}\"")
-    else()
-      set (_Ruby_Interpreter_REASON_FAILURE "Wrong major version for the interpreter \"${Ruby_EXECUTABLE}\"")
-    endif()
-    set_property (CACHE Ruby_EXECUTABLE PROPERTY VALUE "Ruby_EXECUTABLE-NOTFOUND")
+
+  if (result)
+    set (_Ruby_Interpreter_REASON_FAILURE "Cannot use the interpreter \"${path}\"")
     return()
   endif()
+
+  if (Ruby_FIND_VERSION)
+    if (Ruby_FIND_VERSION_EXACT AND NOT version VERSION_EQUAL Ruby_FIND_VERSION)
+      message(DEBUG "Incorrect Ruby found. Requested: ${Ruby_FIND_VERSION}. Found: ${version}. Path: \"${path}\"")
+      return()
+    elseif (version VERSION_LESS Ruby_FIND_VERSION)
+      message(DEBUG "Ruby version is too old. Minimum: ${Ruby_FIND_VERSION}. Found: ${version}. Path: \"${path}\"")
+      return()
+    endif()
+  endif()
+
+  unset (_Ruby_Interpreter_REASON_FAILURE)
+  set(Ruby_EXECUTABLE "${path}" CACHE INTERNAL "Ruby Executable")
 endfunction()
 
 function(_RUBY_CONFIG_VAR RBVAR OUTVAR)
   execute_process(COMMAND ${Ruby_EXECUTABLE} -r rbconfig -e "print RbConfig::CONFIG['${RBVAR}']"
-                  RESULT_VARIABLE _Ruby_SUCCESS
-                  OUTPUT_VARIABLE _Ruby_OUTPUT
-                  ERROR_QUIET)
+    RESULT_VARIABLE _Ruby_SUCCESS
+    OUTPUT_VARIABLE _Ruby_OUTPUT
+    ERROR_QUIET)
   if(_Ruby_SUCCESS OR _Ruby_OUTPUT STREQUAL "")
     execute_process(COMMAND ${Ruby_EXECUTABLE} -r rbconfig -e "print Config::CONFIG['${RBVAR}']"
-                    RESULT_VARIABLE _Ruby_SUCCESS
-                    OUTPUT_VARIABLE _Ruby_OUTPUT
-                    ERROR_QUIET)
+      RESULT_VARIABLE _Ruby_SUCCESS
+      OUTPUT_VARIABLE _Ruby_OUTPUT
+      ERROR_QUIET)
   endif()
   set(${OUTVAR} "${_Ruby_OUTPUT}" PARENT_SCOPE)
 endfunction()
 
-####  Check RMV virtual environment ###
+function(_RUBY_CLEAR_VARS)
+  unset(Ruby_EXECUTABLE CACHE)
+  unset(Ruby_LIBRARY CACHE)
+  unset(Ruby_VERSION PARENT_SCOPE)
+  unset(Ruby_ENV CACHE)
+
+  unset(Ruby_VERSION_MAJOR CACHE)
+  unset(Ruby_VERSION_MINOR CACHE)
+  unset(Ruby_VERSION_PATCH CACHE)
+  unset(Ruby_ARCH_DIR CACHE)
+  unset(Ruby_HDR_DIR CACHE)
+  unset(Ruby_ARCHHDR_DIR CACHE)
+  unset(Ruby_INCLUDE_DIR CACHE)
+  unset(Ruby_CONFIG_INCLUDE_DIR CACHE)
+  unset(_Ruby_POSSIBLE_LIB_DIR CACHE)
+  unset(Ruby_RUBY_LIB_DIR CACHE)
+  unset(Ruby_SITEARCH_DIR CACHE)
+  unset(Ruby_SITELIB_DIR CACHE)
+  unset(Ruby_HAS_VENDOR_RUBY CACHE)
+  unset(Ruby_VENDORARCH_DIR CACHE)
+  unset(Ruby_VENDORLIB_DIR CACHE)
+endfunction()
+
+####  Check RVM virtual environment ###
 function (_RUBY_CHECK_RVM)
   if (NOT DEFINED ENV{MY_RUBY_HOME})
     return()
   endif()
 
-  find_program (Ruby_EXECUTABLE
+  find_program (path
                 NAMES ${_Ruby_POSSIBLE_EXECUTABLE_NAMES}
                 NAMES_PER_DIR
                 PATHS ENV MY_RUBY_HOME
                 PATH_SUFFIXES bin Scripts
+                NO_CACHE
                 NO_CMAKE_PATH
                 NO_CMAKE_ENVIRONMENT_PATH
                 NO_SYSTEM_ENVIRONMENT_PATH
                 NO_CMAKE_SYSTEM_PATH)
 
-  _RUBY_VALIDATE_INTERPRETER (${Ruby_FIND_VERSION}})
+  _RUBY_VALIDATE_INTERPRETER("${path}")
 
   if(Ruby_EXECUTABLE)
     set(Ruby_ENV "RVM" CACHE INTERNAL "Ruby environment")
   endif()
 endfunction()
 
+####  Check RBENV virtual environment ###
+function (_RUBY_CHECK_RBENV)
+  if (DEFINED ENV{RBENV_ROOT})
+    execute_process (COMMAND "$ENV{RBENV_ROOT}/bin/rbenv" "which" "ruby"
+                     RESULT_VARIABLE result
+                     OUTPUT_VARIABLE path
+                     ERROR_QUIET
+                     OUTPUT_STRIP_TRAILING_WHITESPACE)
+  else()
+    # Check user home directory - the default installation location
+    execute_process (COMMAND "$ENV{HOME}/.rbenv/bin/rbenv" "which" "ruby"
+                     RESULT_VARIABLE result
+                     OUTPUT_VARIABLE path
+                     ERROR_QUIET
+                     OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
+
+  _RUBY_VALIDATE_INTERPRETER("${path}")
+
+  if(Ruby_EXECUTABLE)
+    set(Ruby_ENV "RBENV" CACHE INTERNAL "Ruby environment")
+  endif()
+endfunction()
+
 ####  Check system installed Ruby ###
 function (_RUBY_CHECK_SYSTEM)
-  find_program (Ruby_EXECUTABLE
+  find_program (path
                 NAMES ${_Ruby_POSSIBLE_EXECUTABLE_NAMES}
-                NAMES_PER_DIR)
+                NAMES_PER_DIR
+                NO_CACHE)
 
-  _RUBY_VALIDATE_INTERPRETER (${Ruby_FIND_VERSION})
+  _RUBY_VALIDATE_INTERPRETER("${path}")
 
   if(Ruby_EXECUTABLE)
     set(Ruby_ENV "Standard" CACHE INTERNAL "Ruby environment")
   endif()
 endfunction()
 
-# Find Ruby! First check virtual environments
+# Find Ruby! First clear out any cached values
+_RUBY_CLEAR_VARS()
 if(Ruby_FIND_VIRTUALENV MATCHES "^(FIRST|ONLY)$")
+  # First check for RVM virtual environments
+  _RUBY_CHECK_RVM()
+
+  # Second check for RBENV virtual environments
   if(NOT Ruby_EXECUTABLE)
-    _RUBY_CHECK_RVM()
+    _RUBY_CLEAR_VARS()
+    _RUBY_CHECK_RBENV()
   endif()
 endif()
 
-# If we did not find a virtual environment then look for a system installed Ruby
+# Third check for system installed Ruby
 if(NOT ${Ruby_FIND_VIRTUALENV} STREQUAL "ONLY" AND NOT Ruby_EXECUTABLE)
+  _RUBY_CLEAR_VARS()
   _RUBY_CHECK_SYSTEM()
 endif()
 
-if(Ruby_EXECUTABLE AND NOT Ruby_VERSION_MAJOR)
+if(Ruby_EXECUTABLE)
   # query the ruby version
   _RUBY_CONFIG_VAR("MAJOR" Ruby_VERSION_MAJOR)
   _RUBY_CONFIG_VAR("MINOR" Ruby_VERSION_MINOR)
@@ -266,14 +309,13 @@ if(Ruby_EXECUTABLE AND NOT Ruby_VERSION_MAJOR)
 
   # vendor_ruby available ?
   execute_process(COMMAND ${Ruby_EXECUTABLE} -r vendor-specific -e "print 'true'"
-                  OUTPUT_VARIABLE Ruby_HAS_VENDOR_RUBY  ERROR_QUIET)
+    OUTPUT_VARIABLE Ruby_HAS_VENDOR_RUBY  ERROR_QUIET)
 
   if(Ruby_HAS_VENDOR_RUBY)
     _RUBY_CONFIG_VAR("vendorlibdir" Ruby_VENDORLIB_DIR)
     _RUBY_CONFIG_VAR("vendorarchdir" Ruby_VENDORARCH_DIR)
   endif()
 
-  # save the results in the cache so we don't have to run ruby the next time again
   set(Ruby_VERSION_MAJOR    ${Ruby_VERSION_MAJOR}    CACHE PATH "The Ruby major version" FORCE)
   set(Ruby_VERSION_MINOR    ${Ruby_VERSION_MINOR}    CACHE PATH "The Ruby minor version" FORCE)
   set(Ruby_VERSION_PATCH    ${Ruby_VERSION_PATCH}    CACHE PATH "The Ruby patch version" FORCE)
@@ -289,21 +331,21 @@ if(Ruby_EXECUTABLE AND NOT Ruby_VERSION_MAJOR)
   set(Ruby_VENDORLIB_DIR    ${Ruby_VENDORLIB_DIR}    CACHE PATH "The Ruby vendor lib dir" FORCE)
 
   mark_as_advanced(
-      Ruby_ARCH_DIR
-      Ruby_ARCH
-      Ruby_HDR_DIR
-      Ruby_ARCHHDR_DIR
-      _Ruby_POSSIBLE_LIB_DIR
-      Ruby_RUBY_LIB_DIR
-      Ruby_SITEARCH_DIR
-      Ruby_SITELIB_DIR
-      Ruby_HAS_VENDOR_RUBY
-      Ruby_VENDORARCH_DIR
-      Ruby_VENDORLIB_DIR
-      Ruby_VERSION_MAJOR
-      Ruby_VERSION_MINOR
-      Ruby_VERSION_PATCH
-      )
+    Ruby_ARCH_DIR
+    Ruby_ARCH
+    Ruby_HDR_DIR
+    Ruby_ARCHHDR_DIR
+    _Ruby_POSSIBLE_LIB_DIR
+    Ruby_RUBY_LIB_DIR
+    Ruby_SITEARCH_DIR
+    Ruby_SITELIB_DIR
+    Ruby_HAS_VENDOR_RUBY
+    Ruby_VENDORARCH_DIR
+    Ruby_VENDORLIB_DIR
+    Ruby_VERSION_MAJOR
+    Ruby_VERSION_MINOR
+    Ruby_VERSION_PATCH
+    )
 endif()
 
 # In case Ruby_EXECUTABLE could not be executed (e.g. cross compiling)
@@ -330,6 +372,10 @@ if(Ruby_EXECUTABLE AND NOT Ruby_VERSION_MAJOR)
   endif()
 endif()
 
+if(NOT Ruby_EXECUTABLE)
+  set(Ruby_EXECUTABLE "Ruby_EXECUTABLE-NOTFOUND" CACHE INTERNAL "Ruby Executable")
+endif()
+
 if(Ruby_VERSION_MAJOR)
   set(Ruby_VERSION "${Ruby_VERSION_MAJOR}.${Ruby_VERSION_MINOR}.${Ruby_VERSION_PATCH}")
   set(_Ruby_VERSION_SHORT "${Ruby_VERSION_MAJOR}.${Ruby_VERSION_MINOR}")
@@ -341,28 +387,27 @@ endif()
 # FIXME: Currently we require both the interpreter and development components to be found
 # in order to use either.  See issue #20474.
 find_path(Ruby_INCLUDE_DIR
-          NAMES ruby.h
-          HINTS
-          ${Ruby_HDR_DIR}
-          ${Ruby_ARCH_DIR}
-          /usr/lib/ruby/${_Ruby_VERSION_SHORT}/i586-linux-gnu/
-          )
+  NAMES ruby.h
+  HINTS
+    ${Ruby_HDR_DIR}
+    ${Ruby_ARCH_DIR}
+    /usr/lib/ruby/${_Ruby_VERSION_SHORT}/i586-linux-gnu/
+)
 
 set(Ruby_INCLUDE_DIRS ${Ruby_INCLUDE_DIR})
 
 # if ruby > 1.8 is required or if ruby > 1.8 was found, search for the config.h dir
 if( Ruby_FIND_VERSION VERSION_GREATER_EQUAL "1.9"  OR  Ruby_VERSION VERSION_GREATER_EQUAL "1.9"  OR  Ruby_HDR_DIR)
   find_path(Ruby_CONFIG_INCLUDE_DIR
-            NAMES ruby/config.h  config.h
-            HINTS
-            ${Ruby_HDR_DIR}/${Ruby_ARCH}
-            ${Ruby_ARCH_DIR}
-            ${Ruby_ARCHHDR_DIR}
-            )
+    NAMES ruby/config.h  config.h
+    HINTS
+      ${Ruby_HDR_DIR}/${Ruby_ARCH}
+      ${Ruby_ARCH_DIR}
+      ${Ruby_ARCHHDR_DIR}
+  )
 
   set(Ruby_INCLUDE_DIRS ${Ruby_INCLUDE_DIRS} ${Ruby_CONFIG_INCLUDE_DIR} )
 endif()
-
 
 # Determine the list of possible names for the ruby library
 set(_Ruby_POSSIBLE_LIB_NAMES ruby ruby-static ruby${_Ruby_VERSION_SHORT} ruby${_Ruby_VERSION_SHORT_NODOT} ruby${_Ruby_NODOT_VERSION} ruby-${_Ruby_VERSION_SHORT} ruby-${Ruby_VERSION})
@@ -387,8 +432,8 @@ if(WIN32)
     foreach(_Ruby_VERSION_SUFFIX ${_Ruby_POSSIBLE_VERSION_SUFFICES})
       foreach(_Ruby_ARCH_PREFIX ${_Ruby_POSSIBLE_ARCH_PREFIXS})
         list(APPEND _Ruby_POSSIBLE_LIB_NAMES
-             "${_Ruby_ARCH_PREFIX}${_Ruby_MSVC_RUNTIME}-ruby${_Ruby_VERSION_SUFFIX}"
-             "${_Ruby_ARCH_PREFIX}${_Ruby_MSVC_RUNTIME}-ruby${_Ruby_VERSION_SUFFIX}-static")
+                   "${_Ruby_ARCH_PREFIX}${_Ruby_MSVC_RUNTIME}-ruby${_Ruby_VERSION_SUFFIX}"
+                   "${_Ruby_ARCH_PREFIX}${_Ruby_MSVC_RUNTIME}-ruby${_Ruby_VERSION_SUFFIX}-static")
       endforeach()
     endforeach()
   endforeach()
@@ -420,18 +465,18 @@ endif()
 
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Ruby  REQUIRED_VARS  ${_Ruby_REQUIRED_VARS}
-                                  VERSION_VAR Ruby_VERSION )
+                                        VERSION_VAR Ruby_VERSION )
 
 if(Ruby_FOUND)
   set(Ruby_LIBRARIES ${Ruby_LIBRARY})
 endif()
 
 mark_as_advanced(
-    Ruby_EXECUTABLE
-    Ruby_LIBRARY
-    Ruby_INCLUDE_DIR
-    Ruby_CONFIG_INCLUDE_DIR
-    )
+  Ruby_EXECUTABLE
+  Ruby_LIBRARY
+  Ruby_INCLUDE_DIR
+  Ruby_CONFIG_INCLUDE_DIR
+  )
 
 # Set some variables for compatibility with previous version of this file (no need to provide a CamelCase version of that...)
 set(RUBY_POSSIBLE_LIB_PATH ${_Ruby_POSSIBLE_LIB_DIR})
@@ -441,26 +486,26 @@ set(RUBY_INCLUDE_PATH ${Ruby_INCLUDE_DIRS})
 # Backwards compatibility
 # Define upper case versions of output variables
 foreach(Camel
-        Ruby_EXECUTABLE
-        Ruby_INCLUDE_DIRS
-        Ruby_LIBRARY
-        Ruby_VERSION
-        Ruby_VERSION_MAJOR
-        Ruby_VERSION_MINOR
-        Ruby_VERSION_PATCH
+    Ruby_EXECUTABLE
+    Ruby_INCLUDE_DIRS
+    Ruby_LIBRARY
+    Ruby_VERSION
+    Ruby_VERSION_MAJOR
+    Ruby_VERSION_MINOR
+    Ruby_VERSION_PATCH
 
-        Ruby_ARCH_DIR
-        Ruby_ARCH
-        Ruby_HDR_DIR
-        Ruby_ARCHHDR_DIR
-        Ruby_RUBY_LIB_DIR
-        Ruby_SITEARCH_DIR
-        Ruby_SITELIB_DIR
-        Ruby_HAS_VENDOR_RUBY
-        Ruby_VENDORARCH_DIR
-        Ruby_VENDORLIB_DIR
+    Ruby_ARCH_DIR
+    Ruby_ARCH
+    Ruby_HDR_DIR
+    Ruby_ARCHHDR_DIR
+    Ruby_RUBY_LIB_DIR
+    Ruby_SITEARCH_DIR
+    Ruby_SITELIB_DIR
+    Ruby_HAS_VENDOR_RUBY
+    Ruby_VENDORARCH_DIR
+    Ruby_VENDORLIB_DIR
 
-        )
-  string(TOUPPER ${Camel} UPPER)
-  set(${UPPER} ${${Camel}})
+    )
+    string(TOUPPER ${Camel} UPPER)
+    set(${UPPER} ${${Camel}})
 endforeach()
