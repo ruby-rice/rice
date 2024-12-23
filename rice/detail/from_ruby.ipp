@@ -96,7 +96,8 @@ namespace Rice::detail
         }
         case RUBY_T_ARRAY:
         {
-          return Array(value).pack<T>();
+          Array array(value);
+          return array.pack<T>();
           break;
         }
         case RUBY_T_STRING:
