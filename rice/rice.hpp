@@ -17,11 +17,6 @@
 #include "detail/RubyFunction.hpp"
 #include "detail/RubyFunction.ipp"
 
-// Type Conversion declarations
-#include "detail/Type.hpp"
-#include "detail/to_ruby.hpp"
-#include "detail/from_ruby.hpp"
-
 // C++ API declarations
 #include "Identifier.hpp"
 #include "Identifier.ipp"
@@ -31,6 +26,13 @@
 #include "cpp_api/Array.hpp"
 #include "cpp_api/Hash.hpp"
 #include "cpp_api/Symbol.hpp"
+
+// Type Conversion declarations
+#include "detail/Type.hpp"
+#include "detail/RubyType.hpp"
+#include "detail/RubyType.ipp"
+#include "detail/to_ruby.hpp"
+#include "detail/from_ruby.hpp"
 
 #include "Arg.hpp"
 #include "Arg.ipp"
@@ -105,6 +107,7 @@
 #include "Data_Type.ipp"
 #include "detail/default_allocation_func.ipp"
 #include "Constructor.hpp"
+#include "Constructor.ipp"
 #include "Data_Object.hpp"
 #include "Data_Object.ipp"
 #include "Enum.hpp"

@@ -108,6 +108,59 @@ TESTCASE(methods_with_member_pointers)
   ASSERT_EQUAL("multiple_args(81, 1, 7.000000, a string, a char)", detail::From_Ruby<std::string>().convert(result.value()));
 }
 
+namespace
+{
+  class MyClassOriginal
+  {
+
+  };
+
+  namespace InnerNamespace
+  {
+    class MyClassOriginal
+    {
+    };
+  }
+}
+
+TESTCASE(define_class_twice)
+{
+  Module module(rb_cObject);
+
+  Class c1 = define_class<MyClassOriginal>("MyClassOriginal");
+  bool result = module.const_defined("MyClassOriginal");
+  ASSERT(result);
+  String name = c1.name();
+  ASSERT_EQUAL("MyClassOriginal", name.str());
+
+  Class c2 = define_class<MyClassOriginal>("MyClassDuplicate");
+  result = c2.is_equal(c1);
+  ASSERT(result);
+
+  result = module.const_defined("MyClassDuplicate");
+  name = c2.name();
+  ASSERT_EQUAL("MyClassOriginal", name.str());
+}
+
+TESTCASE(define_class_twice_under)
+{
+  Module inner = define_module("InnerNamespace");
+
+  Class c1 = define_class_under<InnerNamespace::MyClassOriginal>(inner, "MyClassOriginal");
+  bool result = inner.const_defined("MyClassOriginal");
+  ASSERT(result);
+  String name = c1.name();
+  ASSERT_EQUAL("InnerNamespace::MyClassOriginal", name.str());
+
+  Class c2 = define_class_under<InnerNamespace::MyClassOriginal>(inner, "MyClassDuplicate");
+  result = c2.is_equal(c1);
+  ASSERT(result);
+
+  result = inner.const_defined("MyClassDuplicate");
+  name = c2.name();
+  ASSERT_EQUAL("InnerNamespace::MyClassOriginal", name.str());
+}
+
 TESTCASE(incorrect_number_of_args)
 {
   Class c =
@@ -648,7 +701,7 @@ namespace
 
 TESTCASE(not_defined)
 {
-  Module m = Module(rb_mKernel);
+  Module m = define_module("TestingDataTypeNotDefined");
 
 #ifdef _MSC_VER
   const char* message = "The following types are not registered with Rice:\n  class `anonymous namespace'::UnknownClass\n";
@@ -656,18 +709,23 @@ TESTCASE(not_defined)
   const char* message = "The following types are not registered with Rice:\n  (anonymous namespace)::UnknownClass\n";
 #endif
 
-  define_global_function("undefined_return", &undefinedReturn);
-  ASSERT_EXCEPTION_CHECK(
-    Rice::Exception,
-    m.call("undefined_return"),
-    ASSERT_EQUAL(message, ex.what())
-  );
-
-  define_global_function<void(*)(UnknownClass)>("undefined_arg_value", &undefinedArg);
+  m.define_module_function("undefined_return", &undefinedReturn);
 
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
-    Rice::detail::Registries::instance.types.validateUnverifiedTypes(),
+    Rice::detail::Registries::instance.types.validateTypes(),
+    ASSERT_EQUAL(message, ex.what())
+  );
+
+#ifdef _MSC_VER
+  message = "Type is not registered with Rice: class `anonymous namespace'::UnknownClass";
+#else
+  message = "Type is not registered with Rice: (anonymous namespace)::UnknownClass";
+#endif
+
+  ASSERT_EXCEPTION_CHECK(
+    Rice::Exception,
+    m.call("undefined_return"),
     ASSERT_EQUAL(message, ex.what())
   );
 
@@ -677,13 +735,15 @@ TESTCASE(not_defined)
   message = "Type is not defined with Rice: (anonymous namespace)::UnknownClass";
 #endif
 
+  m.define_module_function<void(*)(UnknownClass)>("undefined_arg_value", &undefinedArg);
+
   ASSERT_EXCEPTION_CHECK(
     Rice::Exception,
     m.call("undefined_arg_value", nullptr),
     ASSERT_EQUAL(message, ex.what())
   );
 
-  define_global_function<void(*)(UnknownClass)>("undefined_arg_reference", &undefinedArg);
+  m.define_module_function<void(*)(UnknownClass)>("undefined_arg_reference", &undefinedArg);
 
   ASSERT_EXCEPTION_CHECK(
     Rice::Exception,
@@ -691,7 +751,7 @@ TESTCASE(not_defined)
     ASSERT_EQUAL(message, ex.what())
   );
 
-  define_global_function<void(*)(UnknownClass*)>("undefined_arg_pointer", &undefinedArg);
+  m.define_module_function<void(*)(UnknownClass*)>("undefined_arg_pointer", &undefinedArg);
   
   // This actually works because we pass a nullptr
   m.call("undefined_arg_pointer", nullptr);

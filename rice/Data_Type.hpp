@@ -64,8 +64,8 @@ namespace Rice
      *      .define_constructor(Constructor<Foo>());
      *  \endcode
      */
-    template<typename Constructor_T, typename...Arg_Ts>
-    Data_Type<T>& define_constructor(Constructor_T constructor, Arg_Ts const& ...args);
+    template<typename Constructor_T, typename...Rice_Arg_Ts>
+    Data_Type<T>& define_constructor(Constructor_T constructor, Rice_Arg_Ts const& ...args);
 
     /*! Runs a function that should define this Data_Types methods and attributes.
      *  This is useful when creating classes from a C++ class template.

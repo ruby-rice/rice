@@ -202,9 +202,17 @@ namespace Rice::detail
        that was wrapped so it can correctly extract the C++ object from 
        the Ruby object. */
     else if constexpr (!std::is_same_v<intrinsic_type<Receiver_T>, Class_T> && 
-                        std::is_base_of_v<intrinsic_type<Receiver_T>, Class_T>)
+                        std::is_base_of_v<intrinsic_type<Receiver_T>, Class_T> &&
+                        std::is_pointer_v<Receiver_T>)
     {
       Class_T* instance = From_Ruby<Class_T*>().convert(self);
+      return dynamic_cast<Receiver_T>(instance);
+    }
+    else if constexpr (!std::is_same_v<intrinsic_type<Receiver_T>, Class_T> &&
+                        std::is_base_of_v<intrinsic_type<Receiver_T>, Class_T> &&
+                        std::is_reference_v<Receiver_T>)
+    {
+      Class_T& instance = From_Ruby<Class_T&>().convert(self);
       return dynamic_cast<Receiver_T>(instance);
     }
     // Self parameter could be derived from Object or it is an C++ instance and

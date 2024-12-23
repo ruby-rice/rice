@@ -66,6 +66,10 @@ namespace Rice::detail
     // Execute the function but make sure to catch any C++ exceptions!
     return cpp_protect([&]
     {
+      Identifier id(methodId);
+      std::string methodName = id.str();
+      std::string className = rb_class2name(klass);
+
       const std::vector<std::unique_ptr<Native>>& natives = Registries::instance.natives.lookup(klass, methodId);
 
       if (natives.size() == 1)
@@ -110,7 +114,10 @@ namespace Rice::detail
           }
           else
           {
-            rb_raise(rb_eArgError, "Could not resolve method call for %s#%s", rb_class2name(klass), identifier.c_str());
+            std::ostringstream message;
+            message << "Could not resolve method call for %s#%s" << "\n"
+                    << "  %d overload(s) were evaluated based on the types of Ruby parameters provided.";
+            rb_raise(rb_eArgError, message.str().c_str(), rb_class2name(klass), identifier.c_str(), natives.size());
           }
         }
       }

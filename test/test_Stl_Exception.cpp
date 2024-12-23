@@ -44,7 +44,7 @@ TESTCASE(StlExceptionCreate)
   ASSERT_EQUAL("Hello", detail::From_Ruby<std::string>().convert(result.value()));
 
 #ifdef _MSC_VER
-  std::string expected = "Uknown exception";
+  std::string expected = "Unknown exception";
 #else
   std::string expected = "std::exception";
 #endif

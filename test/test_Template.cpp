@@ -96,13 +96,24 @@ namespace
   class Matrix
   {
   public:
-    Matrix()
+    int rows() const
     {
+      return Rows;
     }
 
     int cols() const
     {
       return Columns;
+    }
+  };
+
+  template<typename T, int N>
+  class Scalar : public Matrix<T, N, 1>
+  {
+  public:
+    int size() const
+    {
+      return N;
     }
   };
 }
@@ -111,7 +122,15 @@ template<typename Data_Type_T, typename T, int Rows, int Columns>
 void Matrix_builder(Data_Type_T& klass)
 {
   klass.define_constructor(Constructor<Matrix<T, Rows, Columns>>())
+    .define_method("rows", &Matrix<T, Rows, Columns>::rows)
     .define_method("cols", &Matrix<T, Rows, Columns>::cols);
+}
+
+template<typename Data_Type_T, typename T, int N>
+void Scalar_builder(Data_Type_T& klass)
+{
+  klass.define_constructor(Constructor<Scalar<T, N>>())
+    .define_method("size", &Scalar<T, N>::size);
 }
 
 TESTCASE(matrix)
@@ -123,4 +142,51 @@ TESTCASE(matrix)
 
   Object result = o.instance_eval("cols");
   ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(duplicate_template)
+{
+  Class C1 = define_class<Matrix<float, 6, 4>>("MatrixFirst").
+    define(&Matrix_builder<Data_Type<Matrix<float, 6, 4>>, float, 6, 4>);
+
+  String name = C1.name();
+  ASSERT_EQUAL("MatrixFirst", name.str());
+
+  Object aClass1 = Object(rb_cObject).instance_eval("MatrixFirst");
+  bool result = aClass1.is_equal(C1);
+  ASSERT(result);
+
+  Class C2 = define_class<Matrix<float, 6, 4>>("MatrixSecond").
+    define(&Matrix_builder<Data_Type<Matrix<float, 6, 4>>, float, 6, 4>);
+
+  // The first definition name is the one that wins!
+  name = C2.name();
+  ASSERT_EQUAL("MatrixFirst", name.str());
+
+  Object aClass2 = Object(rb_cObject).instance_eval("MatrixSecond");
+  result = aClass2.is_equal(C2);
+  ASSERT(result);
+
+  result = C1.is_equal(C2);
+  ASSERT(result);
+}
+
+TESTCASE(template_inheritance)
+{
+  Class MatrixClass = define_class<Matrix<float, 5, 1>>("Matrixf51").
+    define(&Matrix_builder<Data_Type<Matrix<float, 5, 1>>, float, 5, 1>);
+
+  Class ScalarClass = define_class<Scalar<float, 5>, Matrix<float, 5, 1>>("Scalarf5").
+    define(&Scalar_builder<Data_Type<Scalar<float, 5>>, float, 5>);
+
+  Object o = ScalarClass.create();
+
+  Object result = o.instance_eval("size");
+  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result.value()));
+
+  result = o.instance_eval("rows");
+  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result.value()));
+
+  result = o.instance_eval("cols");
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result.value()));
 }

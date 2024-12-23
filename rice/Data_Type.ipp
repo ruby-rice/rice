@@ -129,16 +129,34 @@ namespace Rice
   }
 
   template<typename T>
-  template<typename Constructor_T, typename...Arg_Ts>
-  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T constructor, Arg_Ts const& ...args)
+  template<typename Constructor_T, typename...Rice_Arg_Ts>
+  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T constructor, Rice_Arg_Ts const& ...args)
   {
     check_is_bound();
 
     // Define a Ruby allocator which creates the Ruby object
     detail::protect(rb_define_alloc_func, static_cast<VALUE>(*this), detail::default_allocation_func<T>);
 
-    // Define an initialize function that will create the C++ object
-    this->define_method("initialize", &Constructor_T::construct, args...);
+    // We can't do anything with move constructors so blow up
+    static_assert(!Constructor_T::isMoveConstructor(), "Rice does not support move constructors");
+
+    // If this is a copy constructor then use it to support Ruby's Object#dup and Object#clone methods.
+    // Otherwise if a user calls #dup or #clone an error will occur because the newly cloned Ruby
+    // object will have a NULL ptr because the C++ object is never copied. This also prevents having
+    // very unlike Ruby code of:
+    // 
+    //    my_object_copy = MyObject.new(my_ojbect_original).
+
+    if constexpr (Constructor_T::isCopyConstructor())
+    {
+      // Define initialize_copy that will copy the C++ object
+      this->define_method("initialize_copy", &Constructor_T::initialize_copy, args...);
+    }
+    else
+    {
+      // Define an initialize function that will create the C++ object
+      this->define_method("initialize", &Constructor_T::initialize, args...);
+    }
 
     return *this;
   }
@@ -195,8 +213,15 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class_under(Object module, char const* name)
   {
+    // Is the class already defined?
     if (detail::Registries::instance.types.isDefined<T>())
     {
+      Data_Type<T> result = Data_Type<T>();
+      // If this redefinition is a different name then create a new constant
+      if (result.name().c_str() != name)
+      {
+        detail::protect(rb_define_const, module, name, result.klass());
+      }
       return Data_Type<T>();
     }
     
@@ -221,8 +246,15 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class(char const* name)
   {
+    // Is the class already defined?
     if (detail::Registries::instance.types.isDefined<T>())
     {
+      Data_Type<T> result = Data_Type<T>();
+      // If this redefinition is a different name then create a new constant
+      if (result.name().c_str() != name)
+      {
+        detail::protect(rb_define_const, rb_cObject, name, result.klass());
+      }
       return Data_Type<T>();
     }
 
