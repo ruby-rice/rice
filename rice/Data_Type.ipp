@@ -60,12 +60,11 @@ namespace Rice
     // Now register with the type registry
     detail::Registries::instance.types.add<T>(klass_, rb_data_type_);
 
-    for (typename Instances::iterator it = unbound_instances().begin(),
-      end = unbound_instances().end();
-      it != end;
-      unbound_instances().erase(it++))
-    {
-      (*it)->set_value(klass);
+    auto iter = Data_Type<T>::unbound_instances_.begin();
+    while (iter != Data_Type<T>::unbound_instances_.end())
+    { 
+      (*iter)->set_value(klass);
+      iter = Data_Type<T>::unbound_instances_.erase(iter);
     }
 
     return Data_Type<T>();
@@ -91,7 +90,7 @@ namespace Rice
   {
     if (!is_bound())
     {
-      unbound_instances().insert(this);
+      this->unbound_instances_.insert(this);
     }
   }
 
@@ -99,12 +98,6 @@ namespace Rice
   inline Data_Type<T>::Data_Type(Module const& klass) : Class(klass)
   {
     this->bind(klass);
-  }
-
-  template<typename T>
-  inline Data_Type<T>::~Data_Type()
-  {
-    unbound_instances().erase(this);
   }
 
   template<typename T>

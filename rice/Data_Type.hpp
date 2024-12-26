@@ -30,9 +30,6 @@ namespace Rice
      */
     Data_Type(Module const & v);
 
-    //! Destructor.
-    virtual ~Data_Type();
- 
     //! Return the Ruby class.
     /*! \return the ruby class to which the type is bound.
      */
@@ -173,13 +170,9 @@ namespace Rice
     // Typed Data support
     static inline rb_data_type_t* rb_data_type_ = nullptr;
 
-    typedef std::set<Data_Type<T> *> Instances;
-
-    static Instances & unbound_instances()
-    {
-      static Instances unbound_instances;
-      return unbound_instances;
-    }
+    // Track unbound instances (ie, declared variables of type Data_Type<T>
+    // before define_class is called)
+    static inline std::set<Data_Type<T>*>unbound_instances_;
   };
 
   //! Define a new data class in the namespace given by module.
