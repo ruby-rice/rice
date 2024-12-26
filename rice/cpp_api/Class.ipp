@@ -19,7 +19,7 @@ namespace Rice
     return this->call("new", args...);
   }
 
-  inline const std::string Class::name()
+  inline const std::string Class::name() const
   {
     const char* buffer = rb_class2name(this->value());
     return std::string(buffer);
