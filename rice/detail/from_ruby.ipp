@@ -675,21 +675,18 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<int>::is_convertible(value);
+      Convertible result = FromRubyFundamental<int>::is_convertible(value);
 
-/*        // This case is for Enums which are defined as Ruby classes. Some C++ apis
-        // will take a int parameter but really what we have is an Enum
-        case RUBY_T_DATA:
+      // Is this an enum? If so we want to support converting it to an integer
+      if (result == Convertible::None && rb_type(value) == RUBY_T_DATA)
+      {
+        static ID id = protect(rb_intern, "to_int");
+        if (protect(rb_respond_to, value, id))
         {
-          static ID id = protect(rb_intern, "to_int"); 
-          if (protect(rb_respond_to, value, id))
-          {
-            return Convertible::TypeCast;
-          }
-          else
-          {
-            return Convertible::None;
-          }*/
+          result = Convertible::TypeCast;
+        }
+      }
+      return result;
     }
 
     int convert(VALUE value)
