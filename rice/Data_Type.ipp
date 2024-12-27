@@ -203,6 +203,26 @@ namespace Rice
     }
   }
 
+  template<typename T>
+  Rice::Data_Type<T> define_class_under(Object module, char const* name, Class superKlass)
+  {
+    // Is the class already defined?
+    if (detail::Registries::instance.types.isDefined<T>())
+    {
+      Data_Type<T> result = Data_Type<T>();
+      // If this redefinition is a different name then create a new constant
+      if (result.name().c_str() != name)
+      {
+        detail::protect(rb_define_const, module, name, result.klass());
+      }
+      return Data_Type<T>();
+    }
+
+    Class c = define_class_under(module, name, superKlass);
+    c.undef_creation_funcs();
+    return Data_Type<T>::template bind(c);
+  }
+
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class_under(Object module, char const* name)
   {
