@@ -130,37 +130,6 @@ TESTCASE(module_function)
   );
 }
 
-namespace
-{
-  class Silly_Exception
-    : public std::exception
-  {
-  };
-
-  void handle_silly_exception(Silly_Exception const & ex)
-  {
-    throw Exception(rb_eRuntimeError, "SILLY");
-  }
-
-  void throw_silly_exception()
-  {
-    throw Silly_Exception();
-  }
-}
-
-TESTCASE(add_handler)
-{
-  register_handler<Silly_Exception>(handle_silly_exception);
-
-  Class c(rb_cObject);
-  c.define_function("foo", throw_silly_exception);
-
-  Object exc = detail::protect(rb_eval_string, "begin; foo; rescue Exception; $!; end");
-  ASSERT_EQUAL(rb_eRuntimeError, CLASS_OF(exc));
-  Exception ex(exc);
-  ASSERT_EQUAL("SILLY", ex.what());
-}
-
 TESTCASE(define_class)
 {
   Class object(rb_cObject);

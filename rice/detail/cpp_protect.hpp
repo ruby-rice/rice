@@ -28,7 +28,8 @@ namespace Rice::detail
     {
       try
       {
-        detail::Registries::instance.handlers.handler()->handle();
+        std::function<void()> handler = detail::Registries::instance.handlers.handler();
+        handler();
       }
       catch (::Rice::Exception const& ex)
       {

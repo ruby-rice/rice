@@ -48,10 +48,10 @@
 #include "detail/InstanceRegistry.hpp"
 #include "detail/InstanceRegistry.ipp"
 
-#include "detail/ExceptionHandler.hpp"
+#include "detail/DefaultHandler.hpp"
+#include "detail/DefaultHandler.ipp"
 #include "detail/HandlerRegistry.hpp"
-
-#include "detail/ExceptionHandler.ipp"
+#include "detail/HandlerRegistry.ipp"
 
 #include "detail/Native.hpp"
 #include "detail/NativeRegistry.hpp"
@@ -60,8 +60,6 @@
 #include "detail/Registries.ipp"
 
 #include "detail/Type.ipp"
-#include "detail/HandlerRegistry.ipp"
-#include "HandlerRegistration.hpp"
 
 // Code for Ruby to call C++
 #include "Exception.ipp"
