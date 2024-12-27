@@ -76,7 +76,10 @@ namespace Rice::detail
       }
       else if (valueType == RUBY_T_STRING)
       {
-        return Convertible::Exact;
+        if (RB_ENCODING_IS_ASCII8BIT(value))
+          return Convertible::Exact;
+        else
+          return Convertible::None;
       }
       else
       {
@@ -1619,16 +1622,27 @@ namespace Rice::detail
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
+        {
           return Convertible::Exact;
           break;
+        }
         case RUBY_T_STRING:
-          return Convertible::Exact;
+        {
+          if (RB_ENCODING_IS_ASCII8BIT(value))
+            return Convertible::Exact;
+          else
+            return Convertible::None;
           break;
+        }
         case RUBY_T_NIL:
+        {
           return Convertible::Exact;
           break;
+        }
         default:
+        {
           return Convertible::None;
+        }
       }
     }
 
