@@ -45,8 +45,8 @@ TESTCASE(StlExceptionCreate)
       }
       catch (const MyException& exception)
       {
-        Data_Object<MyException> wrapped(exception);
-        rb_exc_raise(wrapped.value());
+        Data_Object<MyException> wrapper(exception, true);
+        rb_exc_raise(wrapper.value());
       }
     };
   detail::Registries::instance.handlers.set(handler);

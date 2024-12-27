@@ -77,7 +77,7 @@ namespace
       }
       catch (const CustomException& exception)
       {
-        Data_Object<CustomException> wrapper(exception);
+        Data_Object<CustomException> wrapper(exception, true);
         rb_exc_raise(wrapper);
       }
     }
