@@ -31,6 +31,7 @@
 #include "detail/Type.hpp"
 #include "detail/RubyType.hpp"
 #include "detail/RubyType.ipp"
+#include "detail/Wrapper.hpp"
 #include "detail/to_ruby.hpp"
 #include "detail/from_ruby.hpp"
 
@@ -65,7 +66,6 @@
 // Code for Ruby to call C++
 #include "Exception.ipp"
 #include "detail/cpp_protect.hpp"
-#include "detail/Wrapper.hpp"
 #include "detail/Wrapper.ipp"
 #include "detail/MethodInfo.hpp"
 #include "detail/MethodInfo.ipp"

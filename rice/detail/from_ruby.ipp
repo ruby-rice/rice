@@ -1599,4 +1599,69 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     std::unique_ptr<unsigned short[]> converted_;
   };
+
+  template<>
+  class From_Ruby<void*>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+      if (this->arg_->isTransfer())
+      {
+        throw Exception(rb_eTypeError, "Cannot transfer ownership of string data to C++ void pointer");
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_STRING:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_NIL:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
+    void* convert(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+        {
+          // Since C++ is not telling us type information, we need to extract it
+          // from the Ruby object.
+          const rb_data_type_t* rb_type = RTYPEDDATA_TYPE(value);
+          return detail::unwrap<void>(value, (rb_data_type_t*)rb_type, this->arg_ && this->arg_->isTransfer());
+          break;
+        }
+        case RUBY_T_STRING:
+        {
+          // String must be formatted in a way the receiver understands! This likely means it was created
+          // by Array.pack. Once the underlying string goes away the passed in data becomes invalid!
+          return (void*)RSTRING_PTR(value);
+          break;
+        }
+        case RUBY_T_NIL:
+        {
+          return nullptr;
+          break;
+        }
+        default:
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            detail::protect(rb_obj_classname, value), "pointer");
+      }
+    }
+  private:
+    Arg* arg_ = nullptr;
+  };
 }
