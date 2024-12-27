@@ -196,6 +196,24 @@ namespace Rice::detail
   class From_Ruby<bool*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<bool>::is_convertible(value);
@@ -208,6 +226,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::unique_ptr<bool[]> converted_;
   };
 
@@ -280,6 +299,24 @@ namespace Rice::detail
   class From_Ruby<char*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<char*>::is_convertible(value);
@@ -292,6 +329,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::unique_ptr<char[]> converted_;
   };
     
@@ -299,6 +337,24 @@ namespace Rice::detail
   class From_Ruby<const char*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<char*>::is_convertible(value);
@@ -311,6 +367,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::unique_ptr<char[]> converted_;
   };
 
@@ -389,6 +446,18 @@ namespace Rice::detail
     {
     }
 
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned char*>::is_convertible(value);
@@ -401,8 +470,8 @@ namespace Rice::detail
     }
 
   private:
-    std::unique_ptr<unsigned char[]> converted_;
     Arg* arg_ = nullptr;
+    std::unique_ptr<unsigned char[]> converted_;
   };
 
   // ===========  signed char  ============
@@ -441,6 +510,24 @@ namespace Rice::detail
   class From_Ruby<signed char*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<signed char*>::is_convertible(value);
@@ -453,6 +540,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::unique_ptr<signed char[]> converted_;
   };
 
@@ -531,6 +619,10 @@ namespace Rice::detail
     {
     }
 
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
     ~From_Ruby()
     {
       if (this->arg_ && this->arg_->isTransfer())
@@ -538,10 +630,6 @@ namespace Rice::detail
         this->converted_.release();
       }
     }
-
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
 
     Convertible is_convertible(VALUE value)
     {
@@ -634,6 +722,10 @@ namespace Rice::detail
     {
     }
 
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
     ~From_Ruby()
     {
       if (this->arg_ && this->arg_->isTransfer())
@@ -641,10 +733,6 @@ namespace Rice::detail
         this->converted_.release();
       }
     }
-
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
 
     Convertible is_convertible(VALUE value)
     {
@@ -742,6 +830,24 @@ namespace Rice::detail
   class From_Ruby<int*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<int*>::is_convertible(value);
@@ -754,6 +860,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::unique_ptr<int[]> converted_;
   };
 
@@ -826,6 +933,24 @@ namespace Rice::detail
   class From_Ruby<unsigned int*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned int*>::is_convertible(value);
@@ -838,6 +963,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::unique_ptr<unsigned int[]> converted_;;
   };
 
@@ -910,6 +1036,24 @@ namespace Rice::detail
   class From_Ruby<long*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<long*>::is_convertible(value);
@@ -922,6 +1066,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::unique_ptr<long[]> converted_;
   };
 
@@ -998,6 +1143,24 @@ namespace Rice::detail
   class From_Ruby<unsigned long*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned long*>::is_convertible(value);
@@ -1010,6 +1173,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::unique_ptr<unsigned long[]> converted_;
   };
 
@@ -1086,6 +1250,24 @@ namespace Rice::detail
   class From_Ruby<unsigned long long*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned long long*>::is_convertible(value);
@@ -1105,6 +1287,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::unique_ptr<unsigned long long[]> converted_;
   };
 
@@ -1177,6 +1360,24 @@ namespace Rice::detail
   class From_Ruby<long long*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<long long*>::is_convertible(value);
@@ -1189,6 +1390,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::unique_ptr<long long[]> converted_;
   };
 
@@ -1261,6 +1463,24 @@ namespace Rice::detail
   class From_Ruby<short*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<short*>::is_convertible(value);
@@ -1273,6 +1493,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::unique_ptr<short[]> converted_;
   };
 
@@ -1345,6 +1566,24 @@ namespace Rice::detail
   class From_Ruby<unsigned short*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isTransfer())
+      {
+        this->converted_.release();
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned short*>::is_convertible(value);
@@ -1357,6 +1596,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::unique_ptr<unsigned short[]> converted_;
   };
 }
