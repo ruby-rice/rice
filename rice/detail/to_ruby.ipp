@@ -404,20 +404,24 @@ namespace Rice
     class To_Ruby<char*>
     {
     public:
-      VALUE convert(char const* x)
+      VALUE convert(char const* buffer)
       {
-        if (strlen(x) > 0 && x[0] == ':')
+        if (!buffer)
         {
-          size_t symbolLength = strlen(x) - 1;
+          return Qnil;
+        }
+        else if (strlen(buffer) > 0 && buffer[0] == ':')
+        {
+          size_t symbolLength = strlen(buffer) - 1;
           char* symbol = new char[symbolLength];
-          strncpy(symbol, x + 1, symbolLength);
+          strncpy(symbol, buffer + 1, symbolLength);
           ID id = protect(rb_intern2, symbol, (long)symbolLength);
           delete[] symbol;
           return protect(rb_id2sym, id);
         }
         else
         {
-          return protect(rb_str_new2, x);
+          return protect(rb_str_new2, buffer);
         }
       }
     };

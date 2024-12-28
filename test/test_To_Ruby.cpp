@@ -131,6 +131,14 @@ TESTCASE(double_to_ruby)
   ASSERT(rb_equal(rb_float_new(std::numeric_limits<double>::epsilon()), detail::to_ruby(std::numeric_limits<double>::epsilon())));
 }
 
+TESTCASE(char_ptr_to_ruby)
+{
+  detail::To_Ruby<char*> toRuby;
+  ASSERT(rb_equal(String("").value(), toRuby.convert("")));
+  ASSERT(rb_equal(String("A string").value(), toRuby.convert("A string")));
+  ASSERT(rb_equal(Qnil, toRuby.convert(nullptr)));
+}
+
 TESTCASE(char_const_ptr_to_ruby)
 {
   ASSERT(rb_equal(String("").value(), detail::to_ruby((char const *)"")));
