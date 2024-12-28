@@ -7,6 +7,10 @@ namespace Rice
   {
   }
 
+  inline Array::Array(long capacity) : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new_capa, capacity))
+  {
+  }
+
   inline Array::Array(Object v) : Builtin_Object<T_ARRAY>(v)
   {
   }
