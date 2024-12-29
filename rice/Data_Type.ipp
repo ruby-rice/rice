@@ -60,12 +60,11 @@ namespace Rice
     // Now register with the type registry
     detail::Registries::instance.types.add<T>(klass_, rb_data_type_);
 
-    for (typename Instances::iterator it = unbound_instances().begin(),
-      end = unbound_instances().end();
-      it != end;
-      unbound_instances().erase(it++))
-    {
-      (*it)->set_value(klass);
+    auto iter = Data_Type<T>::unbound_instances_.begin();
+    while (iter != Data_Type<T>::unbound_instances_.end())
+    { 
+      (*iter)->set_value(klass);
+      iter = Data_Type<T>::unbound_instances_.erase(iter);
     }
 
     return Data_Type<T>();
@@ -91,7 +90,7 @@ namespace Rice
   {
     if (!is_bound())
     {
-      unbound_instances().insert(this);
+      this->unbound_instances_.insert(this);
     }
   }
 
@@ -99,12 +98,6 @@ namespace Rice
   inline Data_Type<T>::Data_Type(Module const& klass) : Class(klass)
   {
     this->bind(klass);
-  }
-
-  template<typename T>
-  inline Data_Type<T>::~Data_Type()
-  {
-    unbound_instances().erase(this);
   }
 
   template<typename T>
@@ -208,6 +201,26 @@ namespace Rice
       std::string message = "Type is not defined with Rice: " + detail::typeName(typeid(T));
       throw std::invalid_argument(message.c_str());
     }
+  }
+
+  template<typename T>
+  Rice::Data_Type<T> define_class_under(Object module, char const* name, Class superKlass)
+  {
+    // Is the class already defined?
+    if (detail::Registries::instance.types.isDefined<T>())
+    {
+      Data_Type<T> result = Data_Type<T>();
+      // If this redefinition is a different name then create a new constant
+      if (result.name().c_str() != name)
+      {
+        detail::protect(rb_define_const, module, name, result.klass());
+      }
+      return Data_Type<T>();
+    }
+
+    Class c = define_class_under(module, name, superKlass);
+    c.undef_creation_funcs();
+    return Data_Type<T>::template bind(c);
   }
 
   template<typename T, typename Base_T>

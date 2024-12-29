@@ -37,7 +37,7 @@ namespace Rice
     //! Class name
     /*! \return std::string.
      */
-    const std::string name();
+    const std::string name() const;
 
     #include "shared_methods.hpp"
   };

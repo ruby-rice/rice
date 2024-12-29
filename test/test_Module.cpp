@@ -32,38 +32,6 @@ TESTCASE(FromName)
 
 namespace
 {
-
-class Quite_Silly_Exception
-  : public std::exception
-{
-};
-
-void handle_silly_exception(Quite_Silly_Exception const & ex)
-{
-  throw Exception(rb_eRuntimeError, "SILLY");
-}
-
-void throw_silly_exception(Object self)
-{
-  throw Quite_Silly_Exception();
-}
-
-} // namespace
-
-TESTCASE(add_handler)
-{
-  register_handler<Quite_Silly_Exception>(handle_silly_exception);
-
-  Module m(anonymous_module());
-  m.define_singleton_method("foo", throw_silly_exception);
-  Object exc = m.module_eval("begin; foo; rescue Exception; $!; end");
-  ASSERT_EQUAL(rb_eRuntimeError, CLASS_OF(exc));
-  Exception ex(exc);
-  ASSERT_EQUAL(String("SILLY"), String(ex.what()));
-}
-
-namespace
-{
   class MyClass
   {
   public:

@@ -40,6 +40,12 @@ namespace
     result << "]";
     return result.str();
   }
+
+  template<typename T>
+  std::string voidToString(void* buffer, int size)
+  {
+    return toString<T>((T*)buffer, size/sizeof(T));
+  }
 }
 
 TESTCASE(bool)
@@ -521,3 +527,16 @@ TESTCASE(unsigned_short)
     ASSERT_EQUAL("no implicit conversion of String into Integer", ex.what())
   );
 }
+
+TESTCASE(void_pointer_array)
+{
+  Module m = define_module("Testing");
+  m.define_singleton_function("void_pointer", &voidToString<int>);
+
+  std::string code = R"(arr = [4, 3, 2, 1]
+                        buffer = arr.pack("i*")
+                        void_pointer(buffer, buffer.size))";
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL("[4, 3, 2, 1]", detail::From_Ruby<std::string>().convert(result.value()));
+}
+

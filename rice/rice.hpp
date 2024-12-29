@@ -31,6 +31,7 @@
 #include "detail/Type.hpp"
 #include "detail/RubyType.hpp"
 #include "detail/RubyType.ipp"
+#include "detail/Wrapper.hpp"
 #include "detail/to_ruby.hpp"
 #include "detail/from_ruby.hpp"
 
@@ -47,10 +48,10 @@
 #include "detail/InstanceRegistry.hpp"
 #include "detail/InstanceRegistry.ipp"
 
-#include "detail/ExceptionHandler.hpp"
+#include "detail/DefaultHandler.hpp"
+#include "detail/DefaultHandler.ipp"
 #include "detail/HandlerRegistry.hpp"
-
-#include "detail/ExceptionHandler.ipp"
+#include "detail/HandlerRegistry.ipp"
 
 #include "detail/Native.hpp"
 #include "detail/NativeRegistry.hpp"
@@ -59,13 +60,10 @@
 #include "detail/Registries.ipp"
 
 #include "detail/Type.ipp"
-#include "detail/HandlerRegistry.ipp"
-#include "HandlerRegistration.hpp"
 
 // Code for Ruby to call C++
 #include "Exception.ipp"
 #include "detail/cpp_protect.hpp"
-#include "detail/Wrapper.hpp"
 #include "detail/Wrapper.ipp"
 #include "detail/MethodInfo.hpp"
 #include "detail/MethodInfo.ipp"

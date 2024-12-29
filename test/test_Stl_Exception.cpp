@@ -24,31 +24,42 @@ namespace
 {
   class MyException: public std::exception
   {
-  public:
-    std::string hello()
-    {
-      return "Hello";
-    }
   };
+
+  void raiseMyException()
+  {
+    throw MyException();
+  }
+
 }
 
 TESTCASE(StlExceptionCreate)
 {
+  Class MyExceptionKlass = define_class<MyException, std::exception>("MyException");
+
+  auto handler = [MyExceptionKlass]()
+    {
+      try
+      {
+        throw;
+      }
+      catch (const MyException& exception)
+      {
+        Data_Object<MyException> wrapper(exception, true);
+        rb_exc_raise(wrapper.value());
+      }
+    };
+  detail::Registries::instance.handlers.set(handler);
+
   Module m = define_module("Testing");
-  Class c = define_class<MyException, std::exception>("MyException").
-            define_constructor(Constructor<MyException>()).
-            define_method("hello", &MyException::hello);
+  m.define_singleton_function("raise_my_exception", &raiseMyException);
 
-  Object exception = c.create();
-  Object result = exception.call("hello");
-  ASSERT_EQUAL("Hello", detail::From_Ruby<std::string>().convert(result.value()));
+  std::string code = R"(begin
+                          raise_my_exception
+                        rescue MyException => exception
+                          $!
+                        end)";
 
-#ifdef _MSC_VER
-  std::string expected = "Unknown exception";
-#else
-  std::string expected = "std::exception";
-#endif
-
-  result = exception.call("what");
-  ASSERT_EQUAL(expected, detail::From_Ruby<std::string>().convert(result.value()));
+  Object object = m.instance_eval(code);
+  ASSERT_EQUAL(MyExceptionKlass.value(), object.class_of().value());
 }

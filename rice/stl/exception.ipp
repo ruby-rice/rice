@@ -6,15 +6,15 @@ namespace Rice
 {
   namespace stl
   {
-    inline Data_Type<std::exception> define_stl_exception()
+    inline Class rb_cStlException;
+
+    inline void define_stl_exception()
     {
       Module rb_mRice = define_module("Rice");
-      Module rb_mmap = define_module_under(rb_mRice, "Std");
-      Data_Type<std::exception> rb_cStlException = define_class_under<std::exception>(rb_mmap, "Exception");
-      rb_cStlException.
-         define_constructor(Constructor<std::exception>()).
-         define_method("what", &std::exception::what);
-      return rb_cStlException;
+      Module rb_mStd = define_module_under(rb_mRice, "Std");
+      rb_cStlException = define_class_under<std::exception>(rb_mStd, "Exception", rb_eStandardError).
+                         define_constructor(Constructor<std::exception>()).
+                         define_method("message", &std::exception::what);
     }
   }
 }

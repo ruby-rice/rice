@@ -29,10 +29,16 @@ TEARDOWN(Array)
   rb_gc_start();
 }
 
-TESTCASE(default_construct)
+TESTCASE(construct_default)
 {
   Array a;
   ASSERT_EQUAL(T_ARRAY, rb_type(a));
+  ASSERT_EQUAL(0, RARRAY_LEN(a.value()));
+}
+
+TESTCASE(construct_capacity)
+{
+  Array a((long)10);
   ASSERT_EQUAL(0, RARRAY_LEN(a.value()));
 }
 

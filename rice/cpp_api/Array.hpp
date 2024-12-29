@@ -23,6 +23,9 @@ namespace Rice
     //! Construct a new array
     Array();
 
+    //! Construct a new array with specified size
+    Array(long capacity);
+
     //! Wrap an existing array
     /*! \param v a ruby object, which must be of type T_ARRAY.
      */
