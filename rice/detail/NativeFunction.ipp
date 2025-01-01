@@ -118,7 +118,7 @@ namespace Rice::detail
         index++;
       });
 
-    if (arity > 0)
+    if constexpr (arity > 0)
       result.parameterMatch = (double)argc / arity;
 
     return result;
