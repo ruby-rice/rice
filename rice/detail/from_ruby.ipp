@@ -48,7 +48,7 @@ namespace Rice::detail
 
     static T convert(VALUE value)
     {
-      return protect(RubyType_T::fromRuby, value);
+      return (T)protect(RubyType_T::fromRuby, value);
     }
   };
 
@@ -117,7 +117,7 @@ namespace Rice::detail
         case RubyType_T::valueType:
         {
           std::unique_ptr<T[]> dest = std::make_unique<T[]>(1);
-          *(dest.get()) = protect(RubyType_T::fromRuby, value);
+          *(dest.get()) = (T)protect(RubyType_T::fromRuby, value);
           return std::move(dest);
         }
         default:
