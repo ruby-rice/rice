@@ -12,19 +12,19 @@ namespace Rice
   {
   }
 
-  inline String::String(char const* s) : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, s))
+  inline String::String(char const* s) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new_cstr, s))
   {
   }
 
-  inline String::String(std::string const& s) : Builtin_Object<T_STRING>(detail::protect(rb_str_new, s.data(), (long)s.length()))
+  inline String::String(std::string const& s) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new, s.data(), (long)s.length()))
   {
   }
 
-  inline String::String(std::string_view const& s) : Builtin_Object<T_STRING>(detail::protect(rb_str_new, s.data(), (long)s.length()))
+  inline String::String(std::string_view const& s) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new, s.data(), (long)s.length()))
   {
   }
 
-  inline String::String(Identifier id) : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, id.c_str()))
+  inline String::String(Identifier id) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new_cstr, id.c_str()))
   {
   }
 
