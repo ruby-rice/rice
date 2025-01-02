@@ -31,6 +31,9 @@ namespace Rice::detail
     bool isDefined();
 
     template <typename T>
+    std::pair<VALUE, rb_data_type_t*> getType();
+
+    template <typename T>
     bool verify();
       
     template <typename T>

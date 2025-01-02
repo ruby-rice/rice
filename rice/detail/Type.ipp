@@ -1,10 +1,4 @@
-
-#include <iosfwd>
-#include <iterator>
-#include <numeric>
-#include <regex>
-#include <sstream>
-#include <tuple>
+﻿
 
 #ifdef __GNUC__
 #include <cxxabi.h>
@@ -106,13 +100,71 @@ namespace Rice::detail
     return demangle(typeIndex.name());
   }
 
-  inline std::string makeClassName(const std::type_info& typeInfo)
+  // Find text inside of < > taking into account nested groups.
+  // 
+  // Example:
+  //  
+  //   std::vector<std::vector<int>, std::allocator<std::vector, std::allocator<int>>>
+  inline std::string findGroup(std::string& string, size_t offset)
   {
-    std::string base = demangle(typeInfo.name());
+    int depth = 0;
+
+    auto begin = string.begin() + offset;
+    auto start = begin;
+    for (auto iter = begin; iter != string.end(); iter++)
+    {
+      if (*iter == '<')
+      {
+        if (depth == 0)
+        {
+          start = iter;
+        }
+        depth++;
+      }
+      else if (*iter == '>')
+      {
+        depth--;
+        if (depth == 0)
+        {
+          // Add + 1 to include current ">" character
+          return string.substr(offset + (start - begin), 1 + (iter - start));
+        }
+        else if (depth < 0)
+        {
+          throw std::runtime_error("Unbalanced Group");
+        }
+      }
+    }
+    throw std::runtime_error("Unbalanced Group");
+  }
+
+  inline void replaceAll(std::string& string, std::regex regex, std::string replacement)
+  {
+    std::smatch match;
+    while (std::regex_search(string, match, regex))
+    {
+      string = std::regex_replace(string, regex, replacement);
+    }
+  }
+
+  inline void removeGroup(std::string& string, std::regex regex)
+  {
+    std::smatch match;
+    while (std::regex_search(string, match, regex))
+    {
+      std::string group = findGroup(string, match.position());
+      group = match.str() + group;
+      string.erase(match.position(), group.length());
+    }
+  }
+
+  inline std::string makeClassName(const std::string& typeInfoName)
+  {
+    std::string base = typeInfoName;
 
     // Remove class keyword
     auto classRegex = std::regex("class +");
-    base = std::regex_replace(base, classRegex, "");
+    base = std::regex_replace(typeInfoName, classRegex, "");
 
     // Remove struct keyword
     auto structRegex = std::regex("struct +");
@@ -122,35 +174,78 @@ namespace Rice::detail
     auto stdClangRegex = std::regex("std::__[^:]+::");
     base = std::regex_replace(base, stdClangRegex, "");
       
+    // Replace basic_string with string
+    auto basicStringRegex = std::regex(R"(basic_string)");
+    replaceAll(base, basicStringRegex, "string");
+
+    // Remove allocators
+    std::regex allocatorRegex(R"(,\s*std::allocator)");
+    removeGroup(base, allocatorRegex);
+
+    // Remove char_traits
+    std::regex charTraitsRegex(R"(,\s*std::char_traits)");
+    removeGroup(base, charTraitsRegex);
+
+    // Remove less (std::map)
+    std::regex lessRegex(R"(,\s*std::less)");
+    removeGroup(base, lessRegex);
+
+    // Remove hash (std::unordered_map)
+    std::regex hashRegex(R"(,\s*std::hash)");
+    removeGroup(base, hashRegex);
+
+    // Remove equal_to (std::unordered_map)
+    std::regex equalRegex(R"(,\s*std::equal_to)");
+    removeGroup(base, equalRegex);
+
+    // Remove spaces before pointers
+    auto ptrRegex = std::regex(R"(\s+\*)");
+    base = std::regex_replace(base, ptrRegex, "*");
+
+    // Remove __ptr64
+    std::regex ptr64Regex(R"(\s*__ptr64\s*)");
+    base = std::regex_replace(base, ptr64Regex, "");
+
     // Remove std::
     auto stdRegex = std::regex("std::");
     base = std::regex_replace(base, stdRegex, "");
 
-    // Replace > > 
-    auto trailingAngleBracketSpaceRegex = std::regex(" >");
-    base = std::regex_replace(base, trailingAngleBracketSpaceRegex, ">");
+    // Replace :: and capitalize the next letter
+    std::regex namespaceRegex(R"(::(\w))");
+    std::smatch namespaceMatch;
+    while (std::regex_search(base, namespaceMatch, namespaceRegex))
+    {
+      std::string replacement = namespaceMatch[1];
+      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
+      base.replace(namespaceMatch.position(), namespaceMatch.length(), replacement);
+    }
 
-    // Replace < and >
-    auto angleBracketRegex = std::regex("<|>");
-    base = std::regex_replace(base, angleBracketRegex, "__");
+    // Replace " >" with ">"
+    auto trailingAngleBracketSpaceRegex = std::regex(R"(\s+>)");
+    replaceAll(base, trailingAngleBracketSpaceRegex, ">");
 
-    // Replace ,
-    auto commaRegex = std::regex(", *");
-    base = std::regex_replace(base, commaRegex, "_");
+    // Replace spaces with unicode U+2008 (Punctuation Space)
+    auto spaceRegex = std::regex(R"(\s+)");
+    replaceAll(base, spaceRegex, "\u2008");
 
-    // Now create a vector of strings split on whitespace
-    std::istringstream stream(base);
-    std::vector<std::string> words{ std::istream_iterator<std::string>{stream},
-                                    std::istream_iterator<std::string>{} };
+    // Replace < with unicode U+227A (Precedes)
+    auto lessThanRegex = std::regex("<");
+    //replaceAll(base, lessThanRegex, u8"≺");
+    replaceAll(base, lessThanRegex, "\u227A");
 
-    std::string result = std::accumulate(words.begin(), words.end(), std::string(),
-      [](const std::string& memo, const std::string& word) -> std::string
-      {
-        std::string capitalized = word;
-        capitalized[0] = toupper(capitalized[0]);
-        return memo + capitalized;
-      });
+    // Replace > with unicode U+227B (Succeeds)
+    auto greaterThanRegex = std::regex(">");
+    //replaceAll(base, greaterThanRegex, u8"≻");
+    replaceAll(base, greaterThanRegex, "\u227B");
 
-    return result;
+    // Replace , with Unicode Character (U+066C) - Arabic thousands separator
+    auto commaRegex = std::regex(R"(,\s*)");
+    //replaceAll(base, greaterThanRegex, u8"٬");
+    replaceAll(base, commaRegex, "\u066C");
+
+    // Capitalize first letter
+    base[0] = std::toupper(base[0]);
+
+    return base;
   }
 }
