@@ -4,12 +4,14 @@ namespace Rice
   {
   }
 
-  inline Identifier::Identifier(char const* s) : id_(rb_intern(s))
+  inline Identifier::Identifier(char const* name, Encoding encoding)
   {
+    this->id_ = detail::protect(rb_intern3, name, (long)strlen(name), encoding);
   }
 
-  inline Identifier::Identifier(std::string const& s) : id_(rb_intern2(s.c_str(), (long)s.size()))
+  inline Identifier::Identifier(const std::string& name, Encoding encoding)
   {
+    this->id_ = detail::protect(rb_intern3, name.c_str(), (long)name.size(), encoding);
   }
 
   inline char const* Identifier::c_str() const
