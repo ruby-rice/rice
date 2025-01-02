@@ -9,7 +9,7 @@ namespace Rice
   Data_Type<U> define_unordered_map(std::string name);
 
   template<typename U>
-  Data_Type<U> define_unordered_map_under(Object module, std::string name);
+  Data_Type<U> define_unordered_map_under(Object parent, std::string name);
 }
 
 #include "unordered_map.ipp"

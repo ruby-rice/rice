@@ -1,4 +1,4 @@
-#include <complex>
+﻿#include <complex>
 #include <memory>
 
 #include "unittest.hpp"
@@ -437,7 +437,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object map = m.module_eval("return_complex_map");
-  ASSERT_EQUAL("Rice::Std::Map__basic_string__char_char_traits__char___allocator__char_____complex__double___less__basic_string__char_char_traits__char___allocator__char_______allocator__pair__basic_string__char_char_traits__char___allocator__char____Const_complex__double________",
+  ASSERT_EQUAL(u8"Rice::Std::Map≺string≺char≻٬complex≺double≻≻",
                map.class_name().str());
 
   std::string code = R"(map = return_complex_map
@@ -464,16 +464,16 @@ TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_complex_map", &passComplexMap);
 
-  std::string code = R"(map = Rice::Std::Map__basic_string__char_char_traits__char___allocator__char_____complex__double___less__basic_string__char_char_traits__char___allocator__char_______allocator__pair__basic_string__char_char_traits__char___allocator__char____Const_complex__double________.new
-                        map["four"] = Complex(4.0, 4.0)
-                        map["five"] = Complex(5.0, 5.0)
-                        pass_complex_map(map))";
+  std::string code = u8R"(map = Rice::Std::Map≺string≺char≻٬complex≺double≻≻.new
+                          map["four"] = Complex(4.0, 4.0)
+                          map["five"] = Complex(5.0, 5.0)
+                          pass_complex_map(map))";
 
   Module m = define_module("Testing");
   Object map = m.module_eval(code);
 
   Object result = map.call("size");
-  ASSERT_EQUAL("Rice::Std::Map__basic_string__char_char_traits__char___allocator__char_____complex__double___less__basic_string__char_char_traits__char___allocator__char_______allocator__pair__basic_string__char_char_traits__char___allocator__char____Const_complex__double________",
+  ASSERT_EQUAL(u8"Rice::Std::Map≺string≺char≻٬complex≺double≻≻",
                map.class_name().str());
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 

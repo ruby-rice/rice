@@ -18,6 +18,7 @@
 #include "detail/RubyFunction.ipp"
 
 // C++ API declarations
+#include "detail/Type.hpp"
 #include "cpp_api/Encoding.hpp"
 #include "cpp_api/Identifier.hpp"
 #include "cpp_api/Identifier.ipp"
@@ -29,7 +30,6 @@
 #include "cpp_api/Symbol.hpp"
 
 // Type Conversion declarations
-#include "detail/Type.hpp"
 #include "detail/RubyType.hpp"
 #include "detail/RubyType.ipp"
 #include "detail/Wrapper.hpp"

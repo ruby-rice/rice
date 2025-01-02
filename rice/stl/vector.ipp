@@ -328,18 +328,19 @@ namespace Rice
   } // namespace
 
   template<typename T>
-  Data_Type<T> define_vector_under(Object module, std::string name)
+  Data_Type<T> define_vector_under(Object parent, std::string name)
   {
     if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the vector has been previously seen it will be registered but may
       // not be associated with the constant Module::<name>
-      module.const_set_maybe(name, Data_Type<T>().klass());
+      parent.const_set_maybe(name, Data_Type<T>().klass());
 
       return Data_Type<T>();
     }
 
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(module, name.c_str());
+    Identifier id(name);
+    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(parent, id, rb_cObject);
     stl::VectorHelper helper(result);
     return result;
   }
@@ -364,7 +365,8 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector_auto()
   {
-    std::string klassName = detail::makeClassName(typeid(T));
+    std::string name = detail::typeName(typeid(T));
+    std::string klassName = detail::makeClassName(name);
     Module rb_mRice = define_module("Rice");
     Module rb_mVector = define_module_under(rb_mRice, "Std");
     return define_vector_under<T>(rb_mVector, klassName);

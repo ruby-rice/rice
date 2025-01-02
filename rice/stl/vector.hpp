@@ -9,7 +9,7 @@ namespace Rice
   Data_Type<T> define_vector(std::string name);
 
   template<typename T>
-  Data_Type<T> define_vector_under(Object module, std::string name);
+  Data_Type<T> define_vector_under(Object parent, std::string name);
 }
 
 #include "vector.ipp"

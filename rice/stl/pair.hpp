@@ -9,7 +9,7 @@ namespace Rice
   Data_Type<T> define_pair(std::string name);
 
   template<typename T>
-  Data_Type<T> define_pair_under(Object module, std::string name);
+  Data_Type<T> define_pair_under(Object parent, std::string name);
 }
 
 #include "pair.ipp"

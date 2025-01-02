@@ -1,4 +1,4 @@
-#include <complex>
+﻿#include <complex>
 #include <memory>
 
 #include "unittest.hpp"
@@ -443,7 +443,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object unordered_map = m.module_eval("return_complex_unordered_map");
-  ASSERT_EQUAL("Rice::Std::Unordered_map__basic_string__char_char_traits__char___allocator__char_____complex__double___hash__basic_string__char_char_traits__char___allocator__char_______equal_to__basic_string__char_char_traits__char___allocator__char_______allocator__pair__basic_string__char_char_traits__char___allocator__char____Const_complex__double________",
+  ASSERT_EQUAL(u8"Rice::Std::Unordered_map≺string≺char≻٬complex≺double≻≻",
                unordered_map.class_name().str());
 
   std::string code = R"(unordered_map = return_complex_unordered_map
@@ -470,16 +470,16 @@ TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_complex_unordered_map", &passComplexUnorderedMap);
 
-  std::string code = R"(unordered_map = Rice::Std::Unordered_map__basic_string__char_char_traits__char___allocator__char_____complex__double___hash__basic_string__char_char_traits__char___allocator__char_______equal_to__basic_string__char_char_traits__char___allocator__char_______allocator__pair__basic_string__char_char_traits__char___allocator__char____Const_complex__double________.new
-                        unordered_map["four"] = Complex(4.0, 4.0)
-                        unordered_map["five"] = Complex(5.0, 5.0)
-                        pass_complex_unordered_map(unordered_map))";
+  std::string code = u8R"(unordered_map = Rice::Std::Unordered_map≺string≺char≻٬complex≺double≻≻.new
+                          unordered_map["four"] = Complex(4.0, 4.0)
+                          unordered_map["five"] = Complex(5.0, 5.0)
+                          pass_complex_unordered_map(unordered_map))";
 
   Module m = define_module("Testing");
   Object unordered_map = m.module_eval(code);
 
   Object result = unordered_map.call("size");
-  ASSERT_EQUAL("Rice::Std::Unordered_map__basic_string__char_char_traits__char___allocator__char_____complex__double___hash__basic_string__char_char_traits__char___allocator__char_______equal_to__basic_string__char_char_traits__char___allocator__char_______allocator__pair__basic_string__char_char_traits__char___allocator__char____Const_complex__double________",
+  ASSERT_EQUAL(u8"Rice::Std::Unordered_map≺string≺char≻٬complex≺double≻≻",
                unordered_map.class_name().str());
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
