@@ -48,7 +48,8 @@ namespace Rice
    *  \param superclass the base class to use.
    *  \return the new class.
    */
-  Class define_class_under(Object module, char const * name, const Class& superclass = rb_cObject);
+  Class define_class_under(Object parent, char const * name, const Class& superclass = rb_cObject);
+  Class define_class_under(Object parent, Identifier id, const Class& superclass);
 
   //! Define a new class in the default namespace.
   /*! \param name the name of the class.

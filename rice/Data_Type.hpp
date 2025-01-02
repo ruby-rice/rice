@@ -114,6 +114,7 @@ namespace Rice
      */
     static bool is_bound();
     static void check_is_bound();
+    static bool is_defined(Object parent, const std::string& name);
 
     // This is only for testing - DO NOT USE!!!
     static void unbind();
@@ -152,11 +153,11 @@ namespace Rice
     template <typename Base_T = void>
     static Data_Type<T> bind(const Module& klass);
 
-    template<typename T_>
-    friend Rice::Data_Type<T_> define_class_under(Object module, char const* name, Class superKlass);
+    template<typename T_, typename Base_T>
+    friend Rice::Data_Type<T_> define_class_under(Object parent, Identifier id, Class superKlass);
 
     template<typename T_, typename Base_T>
-    friend Rice::Data_Type<T_> define_class_under(Object module, char const * name);
+    friend Rice::Data_Type<T_> define_class_under(Object parent, char const * name);
 
     template<typename T_, typename Base_T>
     friend Rice::Data_Type<T_> define_class(char const * name);
@@ -179,17 +180,6 @@ namespace Rice
   };
 
   //! Define a new data class in the namespace given by module.
-  /*! By default the class will inherit from Ruby's rb_cObject. This
-   *  can be overriden via the Base_T template parameter. Note that
-   *  Base_T must already have been registered.
-   *  \param T the C++ type of the wrapped class.
-   *  \param module the the Module in which to define the class.
-   *  \return the new class.
-   */
-  template<typename T, typename Base_T = void>
-  Data_Type<T> define_class_under(Object module, char const* name);
-
-  //! Define a new data class in the namespace given by module.
   /*! This override allows you to specify a Ruby class as the base class versus a 
    *  wrapped C++ class. This functionality is rarely needed - but is essential for
    *  creating new custom Exception classes where the Ruby superclass should be
@@ -200,8 +190,19 @@ namespace Rice
    *  \param superKlass the Ruby super class.
    *  \return the new class.
    */
-  template<typename T>
-  Data_Type<T> define_class_under(Object module, char const* name, Class superKlass);
+  template<typename T, typename Base_T = void>
+  Data_Type<T> define_class_under(Object parent, Identifier id, Class superKlass = rb_cObject);
+
+  //! Define a new data class in the namespace given by module.
+  /*! By default the class will inherit from Ruby's rb_cObject. This
+   *  can be overriden via the Base_T template parameter. Note that
+   *  Base_T must already have been registered.
+   *  \param T the C++ type of the wrapped class.
+   *  \param module the the Module in which to define the class.
+   *  \return the new class.
+   */
+  template<typename T, typename Base_T = void>
+  Data_Type<T> define_class_under(Object parent, char const* name);
 
   //! Define a new data class in the default namespace.
   /*! By default the class will inherit from Ruby's rb_cObject. This
