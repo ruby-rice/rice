@@ -20,10 +20,10 @@ namespace Rice
     Identifier(Symbol const& symbol);
 
     //! Construct a new Identifier from a c string.
-    Identifier(char const* s);
+    Identifier(char const* s, Encoding encoding = Encoding::utf8());
 
     //! Construct a new Identifier from a string.
-    Identifier(std::string const& string);
+    Identifier(std::string const& string, Encoding encoding = Encoding::utf8());
 
     //! Return a string representation of the Identifier.
     char const* c_str() const;

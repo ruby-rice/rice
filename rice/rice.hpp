@@ -18,8 +18,9 @@
 #include "detail/RubyFunction.ipp"
 
 // C++ API declarations
-#include "Identifier.hpp"
-#include "Identifier.ipp"
+#include "cpp_api/Encoding.hpp"
+#include "cpp_api/Identifier.hpp"
+#include "cpp_api/Identifier.ipp"
 #include "cpp_api/Object.hpp"
 #include "cpp_api/Builtin_Object.hpp"
 #include "cpp_api/String.hpp"
@@ -78,6 +79,7 @@
 #include "detail/NativeIterator.ipp"
 
 // C++ API definitions
+#include "cpp_api/Encoding.ipp"
 #include "cpp_api/Object.ipp"
 #include "cpp_api/Builtin_Object.ipp"
 #include "cpp_api/String.ipp"
