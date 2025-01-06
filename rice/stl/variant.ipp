@@ -152,7 +152,7 @@ namespace Rice::detail
           {
             index = i;
           }
-          else if (isConvertible == Convertible::TypeCast && index == -1)
+          else if (isConvertible == Convertible::Cast && index == -1)
           {
             index = i;
           }

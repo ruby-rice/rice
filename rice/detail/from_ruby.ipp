@@ -32,13 +32,17 @@ namespace Rice::detail
     {
       ruby_value_type valueType = rb_type(value);
 
-      if (valueType == RubyType_T::valueType)
+      if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end())
       {
         return Convertible::Exact;
       }
-      else if (RubyType_T::castableTypes.find(valueType) != RubyType_T::castableTypes.end())
+      else if (RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end())
       {
-        return Convertible::TypeCast;
+        return Convertible::Cast;
+      }
+      else if (RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
+      {
+        return Convertible::Narrowable;
       }
       else
       {
@@ -62,13 +66,17 @@ namespace Rice::detail
     {
       ruby_value_type valueType = rb_type(value);
 
-      if (valueType == RubyType_T::valueType)
+      if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end())
       {
         return Convertible::Exact;
       }
-      else if (RubyType_T::castableTypes.find(valueType) != RubyType_T::castableTypes.end())
+      else if (RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end())
       {
-        return Convertible::TypeCast;
+        return Convertible::Cast;
+      }
+      else if (RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
+      {
+        return Convertible::Narrowable;
       }
       else if (valueType == RUBY_T_ARRAY)
       {
@@ -114,17 +122,22 @@ namespace Rice::detail
           return std::move(dest);
           break;
         }
-        case RubyType_T::valueType:
-        {
-          std::unique_ptr<T[]> dest = std::make_unique<T[]>(1);
-          *(dest.get()) = (T)protect(RubyType_T::fromRuby, value);
-          return std::move(dest);
-        }
         default:
         {
-          std::string typeName = detail::typeName(typeid(T));
-          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
-            detail::protect(rb_obj_classname, value), typeName.c_str());
+          if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end() ||
+              RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end() ||
+              RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
+          {
+            std::unique_ptr<T[]> dest = std::make_unique<T[]>(1);
+            *(dest.get()) = (T)protect(RubyType_T::fromRuby, value);
+            return std::move(dest);
+          }
+          else
+          {
+            std::string typeName = detail::typeName(typeid(T));
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+              detail::protect(rb_obj_classname, value), typeName.c_str());
+          }
         }
       }
     }
@@ -774,7 +787,7 @@ namespace Rice::detail
         static ID id = protect(rb_intern, "to_int");
         if (protect(rb_respond_to, value, id))
         {
-          result = Convertible::TypeCast;
+          result = Convertible::Cast;
         }
       }
       return result;

@@ -12,8 +12,21 @@ SETUP(Overloads)
   embed_ruby();
 }
 
+namespace
+{
+  class MyClass;
+  class MyClass2;
+  class MyClass3;
+}
+
 TEARDOWN(Overloads)
 {
+  Data_Type<MyClass>::unbind();
+  Data_Type<MyClass2>::unbind();
+  Data_Type<MyClass3>::unbind();
+  Rice::detail::Registries::instance.types.remove<MyClass>();
+  Rice::detail::Registries::instance.types.remove<MyClass2>();
+  Rice::detail::Registries::instance.types.remove<MyClass3>();
   rb_gc_start();
 }
 
@@ -339,4 +352,151 @@ TESTCASE(constructor_two_parameters)
   result = m.module_eval(code);
   constructor = result.call("constructor");
   ASSERT_EQUAL("constructor<float,int>", constructor.str());
+}
+
+namespace
+{
+  class MyClass3
+  {
+  public:
+    std::string run(char* value)
+    {
+      return "run<char*>";
+    }
+
+    std::string run(unsigned char* value)
+    {
+      return "run<unsinged char*>";
+    }
+
+    std::string run(short value)
+    {
+      return "run<short>";
+    }
+
+    std::string run(int value)
+    {
+      return "run<int>";
+    }
+
+    std::string run(float value)
+    {
+      return "run<float>";
+    }
+
+    std::string run(double value)
+    {
+      return "run<double>";
+    }
+
+    std::string run(long value)
+    {
+      return "run<long>";
+    }
+
+    std::string run(long long value)
+    {
+      return "run<long long>";
+    }
+  };
+} // namespace
+
+
+TESTCASE(int_conversion_1)
+{
+  Class c = define_class<MyClass3>("MyClass3").
+    define_constructor(Constructor<MyClass3>()).
+    define_method<std::string(MyClass3::*)(char*)>("run", &MyClass3::run).
+    define_method<std::string(MyClass3::*)(unsigned char*)>("run", &MyClass3::run).
+    define_method<std::string(MyClass3::*)(short)>("run", &MyClass3::run).
+    define_method<std::string(MyClass3::*)(long)>("run", &MyClass3::run).
+    define_method<std::string(MyClass3::*)(long long)>("run", &MyClass3::run);
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(my_class = MyClass3.new
+                        value = 1
+                        my_class.run(value))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<long>", result.str());
+
+  code = R"(my_class = MyClass3.new
+            value = 2**32
+            my_class.run(value))";
+  result = m.module_eval(code);
+  ASSERT_EQUAL("run<long long>", result.str());
+}
+
+TESTCASE(int_conversion_2)
+{
+  Class c = define_class<MyClass3>("MyClass3").
+    define_constructor(Constructor<MyClass3>()).
+    define_method<std::string(MyClass3::*)(short)>("run", &MyClass3::run).
+    define_method<std::string(MyClass3::*)(float)>("run", &MyClass3::run);
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(my_class = MyClass3.new
+                        value = 1
+                        my_class.run(value))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<float>", result.str());
+
+  code = R"(my_class = MyClass3.new
+            value = 2**32
+            my_class.run(value))";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    result = m.module_eval(code),
+    ASSERT_EQUAL("Could not resolve method call for MyClass3#run\n  2 overload(s) were evaluated based on the types of Ruby parameters provided.",
+    ex.what()));
+}
+
+TESTCASE(int_conversion_3)
+{
+  Class c = define_class<MyClass3>("MyClass3").
+    define_constructor(Constructor<MyClass3>()).
+    define_method<std::string(MyClass3::*)(short)>("run", &MyClass3::run).
+    define_method<std::string(MyClass3::*)(double)>("run", &MyClass3::run);
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(my_class = MyClass3.new
+                        value = 1
+                        my_class.run(value))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<double>", result.str());
+
+  code = R"(my_class = MyClass3.new
+            value = 2**32
+            my_class.run(value))";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL("run<double>", result.str());
+}
+
+TESTCASE(int_conversion_4)
+{
+  Class c = define_class<MyClass3>("MyClass3").
+    define_constructor(Constructor<MyClass3>()).
+    define_method<std::string(MyClass3::*)(short)>("run", &MyClass3::run);
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(my_class = MyClass3.new
+                        value = 1
+                        my_class.run(value))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<short>", result.str());
+
+  code = R"(my_class = MyClass3.new
+            value = 2**32
+            my_class.run(value))";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    result = m.module_eval(code),
+    ASSERT_EQUAL("bignum too big to convert into `long'",
+      ex.what()));
 }

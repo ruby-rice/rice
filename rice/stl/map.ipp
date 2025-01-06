@@ -354,7 +354,7 @@ namespace Rice
             return Convertible::Exact;
             break;
           case RUBY_T_HASH:
-            return Convertible::TypeCast;
+            return Convertible::Cast;
             break;
           default:
             return Convertible::None;
@@ -415,7 +415,7 @@ namespace Rice
             return Convertible::Exact;
             break;
           case RUBY_T_HASH:
-            return Convertible::TypeCast;
+            return Convertible::Cast;
             break;
           default:
             return Convertible::None;
@@ -475,7 +475,7 @@ namespace Rice
             return Convertible::Exact;
             break;
           case RUBY_T_HASH:
-            return Convertible::TypeCast;
+            return Convertible::Cast;
             break;
           default:
             return Convertible::None;
