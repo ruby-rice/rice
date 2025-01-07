@@ -1,4 +1,3 @@
-
 #include <stdexcept>
 
 namespace Rice
@@ -45,7 +44,7 @@ namespace Rice
     klass_ = klass;
 
     rb_data_type_ = new rb_data_type_t();
-    rb_data_type_->wrap_struct_name = strdup(Rice::detail::protect(rb_class2name, klass_));
+    rb_data_type_->wrap_struct_name = _strdup(Rice::detail::protect(rb_class2name, klass_));
     rb_data_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
     rb_data_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
     rb_data_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);

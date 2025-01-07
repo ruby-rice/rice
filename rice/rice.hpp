@@ -25,9 +25,9 @@
 #include "cpp_api/Object.hpp"
 #include "cpp_api/Builtin_Object.hpp"
 #include "cpp_api/String.hpp"
+#include "cpp_api/Symbol.hpp"
 #include "cpp_api/Array.hpp"
 #include "cpp_api/Hash.hpp"
-#include "cpp_api/Symbol.hpp"
 
 // Type Conversion declarations
 #include "detail/RubyType.hpp"
