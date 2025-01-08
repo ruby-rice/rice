@@ -2,9 +2,6 @@
 #define Rice__Type__hpp_
 
 #include <regex>
-#include <string>
-#include <typeinfo>
-#include <typeindex>
 
 namespace Rice::detail
 {

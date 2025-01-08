@@ -1,6 +1,10 @@
 #ifndef Rice__hpp_
 #define Rice__hpp_
 
+#include <typeinfo>
+#include <typeindex>
+#include <string>
+
 // Traits
 #include "detail/ruby.hpp"
 #include "traits/rice_traits.hpp"
