@@ -96,6 +96,21 @@ namespace Rice
     }
   }
 
+  template<typename T>
+  std::vector<T> Array::to_vector()
+  {
+    long size = this->size();
+    std::vector<T> result(size);
+
+    for (long i = 0; i < size; i++)
+    {
+      VALUE element = detail::protect(rb_ary_entry, this->value(), i);
+      result[i] = detail::From_Ruby<T>().convert(element);
+    }
+
+    return result;
+  }
+
   inline Array::Proxy::Proxy(Array array, long index)
     : array_(array)
     , index_(index)

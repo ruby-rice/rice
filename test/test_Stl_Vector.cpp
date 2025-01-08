@@ -140,6 +140,42 @@ TESTCASE(Indexing)
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 }
 
+TESTCASE(Slice)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_vector<std::vector<std::int32_t>>("IntVector");
+  Object vec = c.call("new");
+  vec.call("push", 7);
+  vec.call("push", 8);
+  vec.call("push", 9);
+  vec.call("push", 10);
+  vec.call("push", 11);
+  vec.call("push", 12);
+
+  Array result = vec.call("[]", 3, 1);
+  std::vector<std::int32_t> slice = result.to_vector<int32_t>();
+  ASSERT_EQUAL(1, slice.size());
+  ASSERT_EQUAL(10, slice[0]);
+
+  result = vec.call("[]", 3, 2);
+  slice = result.to_vector<int32_t>();
+  ASSERT_EQUAL(2, slice.size());
+  ASSERT_EQUAL(10, slice[0]);
+  ASSERT_EQUAL(11, slice[1]);
+
+  result = vec.call("[]", 4, 10);
+  slice = result.to_vector<int32_t>();
+  ASSERT_EQUAL(2, slice.size());
+  ASSERT_EQUAL(11, slice[0]);
+  ASSERT_EQUAL(12, slice[1]);
+
+  result = vec.call("[]", -1, 2);
+  slice = result.to_vector<int32_t>();
+  ASSERT_EQUAL(1, slice.size());
+  ASSERT_EQUAL(12, slice[0]);
+}
+
 TESTCASE(Sizing)
 {
   Module m = define_module("Testing");
