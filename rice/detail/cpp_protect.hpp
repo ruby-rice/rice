@@ -60,11 +60,11 @@ namespace Rice::detail
       }
       catch (std::length_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRuntimeError, ex.what()));
+        rb_exc_raise(rb_exc_new2(rb_eIndexError, ex.what()));
       }
       catch (std::out_of_range const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRangeError, ex.what()));
+        rb_exc_raise(rb_exc_new2(rb_eIndexError, ex.what()));
       }
       catch (std::overflow_error const& ex)
       {
