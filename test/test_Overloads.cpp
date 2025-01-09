@@ -359,6 +359,16 @@ namespace
   class MyClass3
   {
   public:
+    std::string run(char value)
+    {
+      return "run<char>";
+    }
+
+    std::string run(unsigned char value)
+    {
+      return "run<unsigned char>";
+    }
+
     std::string run(char* value)
     {
       return "run<char*>";
@@ -366,7 +376,7 @@ namespace
 
     std::string run(unsigned char* value)
     {
-      return "run<unsinged char*>";
+      return "run<unsigned char*>";
     }
 
     std::string run(short value)
@@ -499,4 +509,20 @@ TESTCASE(int_conversion_4)
     result = m.module_eval(code),
     ASSERT_EQUAL("bignum too big to convert into `long'",
       ex.what()));
+}
+
+TESTCASE(int_conversion_5)
+{
+  Class c = define_class<MyClass3>("MyClass3").
+    define_constructor(Constructor<MyClass3>()).
+    define_method<std::string(MyClass3::*)(unsigned char)>("run", &MyClass3::run).
+    define_method<std::string(MyClass3::*)(unsigned char*)>("run", &MyClass3::run);
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(my_class = MyClass3.new
+                        value = "54"
+                        my_class.run(value))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<unsigned char*>", result.str());
 }
