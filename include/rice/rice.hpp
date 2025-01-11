@@ -1,6 +1,10 @@
 #ifndef Rice__hpp_
 #define Rice__hpp_
 
+#include <typeinfo>
+#include <typeindex>
+#include <string>
+
 // Traits
 
 // =========   ruby.hpp   =========
@@ -60,7 +64,6 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 // =========   rice_traits.hpp   =========
 
 #include <ostream>
-#include <string>
 #include <type_traits>
 #include <vector>
 
@@ -573,9 +576,65 @@ namespace Rice::detail
 }
 // C++ API declarations
 
-// =========   Identifier.hpp   =========
+// =========   Type.hpp   =========
 
-#include <string>
+#include <regex>
+
+namespace Rice::detail
+{
+  template<typename T>
+  struct Type
+  {
+    static bool verify();
+  };
+
+  // Return the name of a type
+  std::string typeName(const std::type_info& typeInfo);
+  std::string typeName(const std::type_index& typeIndex);
+  std::string makeClassName(const std::string& typeInfoName);
+  std::string findGroup(std::string& string, size_t start = 0);
+  void replaceAll(std::string& string, std::regex regex, std::string replacement);
+
+  template<typename T>
+  void verifyType();
+
+  template<typename Tuple_T>
+  void verifyTypes();
+}
+
+
+// =========   Encoding.hpp   =========
+
+namespace Rice
+{
+  //! A wrapper for a Ruby encoding
+  class Encoding
+  {
+  public:
+    static Encoding utf8();
+
+    //! Wrap an existing encoding.
+    Encoding(rb_encoding* encoding);
+
+    //! Implicit conversion to VALUE.
+    operator rb_encoding* () const
+    {
+      return this->encoding_;
+    }
+
+    operator VALUE () const
+    {
+      return detail::protect(rb_enc_from_encoding, this->encoding_);
+    }
+
+  private:
+    rb_encoding* encoding_;
+  };
+} // namespace Rice
+
+
+
+// =========   Identifier.hpp   =========
 
 namespace Rice
 {
@@ -594,10 +653,10 @@ namespace Rice
     Identifier(Symbol const& symbol);
 
     //! Construct a new Identifier from a c string.
-    Identifier(char const* s);
+    Identifier(char const* s, Encoding encoding = Encoding::utf8());
 
     //! Construct a new Identifier from a string.
-    Identifier(std::string const& string);
+    Identifier(std::string const& string, Encoding encoding = Encoding::utf8());
 
     //! Return a string representation of the Identifier.
     char const* c_str() const;
@@ -627,12 +686,14 @@ namespace Rice
   {
   }
 
-  inline Identifier::Identifier(char const* s) : id_(rb_intern(s))
+  inline Identifier::Identifier(char const* name, Encoding encoding)
   {
+    this->id_ = detail::protect(rb_intern3, name, (long)strlen(name), encoding);
   }
 
-  inline Identifier::Identifier(std::string const& s) : id_(rb_intern2(s.c_str(), s.size()))
+  inline Identifier::Identifier(const std::string& name, Encoding encoding)
   {
+    this->id_ = detail::protect(rb_intern3, name.c_str(), (long)name.size(), encoding);
   }
 
   inline char const* Identifier::c_str() const
@@ -1020,6 +1081,51 @@ namespace Rice
 } // namespace Rice
 
 
+// =========   Symbol.hpp   =========
+
+namespace Rice
+{
+  //! A wrapper for ruby's Symbol class.
+  /*! Symbols are internal identifiers in ruby.  They are singletons and
+   *  can be thought of as frozen strings.  They differ from an Identifier
+   *  in that they are in fact real Objects, but they can be converted
+   *  back and forth between Identifier and Symbol.
+   */
+  class Symbol
+    : public Object
+  {
+  public:
+    //! Wrap an existing symbol.
+    Symbol(VALUE v);
+
+    //! Wrap an existing symbol.
+    Symbol(Object v);
+
+    //! Construct a Symbol from an Identifier.
+    Symbol(Identifier id);
+
+    //! Construct a Symbol from a null-terminated C string.
+    Symbol(char const* s = "");
+
+    //! Construct a Symbol from an std::string.
+    Symbol(std::string const& s);
+
+    //! Construct a Symbol from an std::string_view.
+    Symbol(std::string_view const& s);
+
+    //! Return a string representation of the Symbol.
+    char const* c_str() const;
+
+    //! Return a string representation of the Symbol.
+    std::string str() const;
+
+    //! Return the Symbol as an Identifier.
+    Identifier to_id() const;
+  };
+} // namespace Rice
+
+
+
 // =========   Array.hpp   =========
 
 #include <iterator>
@@ -1154,6 +1260,10 @@ namespace Rice
 
     //! Return a const iterator to the end of the array.
     const_iterator end() const;
+
+    //! Return the content of the array as a std::vector
+    template<typename T>
+    std::vector<T> to_vector();
   };
 
   //! A helper class so array[index]=value can work.
@@ -1163,7 +1273,7 @@ namespace Rice
     //! Construct a new Proxy
     Proxy(Array array, long index);
 
-    //! Implicit conversion to Object.
+    //! Implicit conversions
     operator Object() const;
 
     //! Explicit conversion to VALUE.
@@ -1414,81 +1524,7 @@ namespace Rice
 
 
 
-// =========   Symbol.hpp   =========
-
-#include <string>
-
-namespace Rice
-{
-  //! A wrapper for ruby's Symbol class.
-  /*! Symbols are internal identifiers in ruby.  They are singletons and
-   *  can be thought of as frozen strings.  They differ from an Identifier
-   *  in that they are in fact real Objects, but they can be converted
-   *  back and forth between Identifier and Symbol.
-   */
-  class Symbol
-    : public Object
-  {
-  public:
-    //! Wrap an existing symbol.
-    Symbol(VALUE v);
-
-    //! Wrap an existing symbol.
-    Symbol(Object v);
-
-    //! Construct a Symbol from an Identifier.
-    Symbol(Identifier id);
-
-    //! Construct a Symbol from a null-terminated C string.
-    Symbol(char const* s = "");
-
-    //! Construct a Symbol from an std::string.
-    Symbol(std::string const& s);
-
-    //! Construct a Symbol from an std::string_view.
-    Symbol(std::string_view const& s);
-
-    //! Return a string representation of the Symbol.
-    char const* c_str() const;
-
-    //! Return a string representation of the Symbol.
-    std::string str() const;
-
-    //! Return the Symbol as an Identifier.
-    Identifier to_id() const;
-  };
-} // namespace Rice
-
-
-
 // Type Conversion declarations
-
-// =========   Type.hpp   =========
-
-#include <string>
-#include <typeinfo>
-#include <typeindex>
-
-namespace Rice::detail
-{
-  template<typename T>
-  struct Type
-  {
-    static bool verify();
-  };
-
-  // Return the name of a type
-  std::string typeName(const std::type_info& typeInfo);
-  std::string typeName(const std::type_index& typeIndex);
-  std::string makeClassName(const std::type_info& typeInfo);
-
-  template<typename T>
-  void verifyType();
-
-  template<typename Tuple_T>
-  void verifyTypes();
-}
-
 
 // =========   RubyType.hpp   =========
 
@@ -1518,8 +1554,9 @@ namespace Rice::detail
     using FromRuby_T = bool(*)(VALUE);
 
     static inline FromRuby_T fromRuby = RB_TEST;
-    static inline constexpr ruby_value_type valueType = RUBY_T_TRUE;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_NIL, RUBY_T_FALSE };
+    static inline std::set<ruby_value_type> Exact = { RUBY_T_TRUE, RUBY_T_FALSE };
+    static inline std::set<ruby_value_type> Castable = { RUBY_T_NIL };
+    static inline std::set<ruby_value_type> Narrowable = {  };
     static inline std::string packTemplate = "not supported";
   };
 
@@ -1530,8 +1567,9 @@ namespace Rice::detail
     using FromRuby_T = char(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2char_inline;
-    static inline constexpr ruby_value_type valueType = RUBY_T_FIXNUM;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_STRING };
+    static inline std::set<ruby_value_type> Exact = { };
+    static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
+    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = CHAR_MIN < 0 ? "c*" : "C*";
   };
 
@@ -1543,8 +1581,9 @@ namespace Rice::detail
     using FromRuby_T = char(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2char_inline;
-    static inline constexpr ruby_value_type valueType = RUBY_T_FIXNUM;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_STRING };
+    static inline std::set<ruby_value_type> Exact = { };
+    static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
+    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "c*";
   };
 
@@ -1556,105 +1595,10 @@ namespace Rice::detail
     using FromRuby_T = char(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2char_inline;
-    static inline constexpr ruby_value_type valueType = RUBY_T_FIXNUM;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_STRING };
+    static inline std::set<ruby_value_type> Exact = { };
+    static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
+    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "C*";
-  };
-
-  template<>
-  class RubyType<double>
-  {
-  public:
-    using FromRuby_T = double(*)(VALUE);
-
-    static inline FromRuby_T fromRuby = rb_num2dbl;
-    static inline constexpr ruby_value_type valueType = RUBY_T_FLOAT;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_FIXNUM, RUBY_T_BIGNUM };
-    static inline std::string packTemplate = "d*";
-  };
-
-  template<>
-  class RubyType<float>
-  {
-  public:
-    using FromRuby_T = double(*)(VALUE);
-
-    static inline FromRuby_T fromRuby = rb_num2dbl;
-    static inline constexpr ruby_value_type valueType = RUBY_T_FLOAT;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_FIXNUM, RUBY_T_BIGNUM };
-    static inline std::string packTemplate = "f*";
-  };
-
-  template<>
-  class RubyType<int>
-  {
-  public:
-    using FromRuby_T = int(*)(VALUE);
-
-    static inline FromRuby_T fromRuby = rb_num2int_inline;
-    static const ruby_value_type valueType = RUBY_T_FIXNUM;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_BIGNUM, RUBY_T_FLOAT };
-    static inline std::string packTemplate = "i*";
-  };
-
-  template<>
-  class RubyType<unsigned int>
-  {
-  public:
-    using FromRuby_T = unsigned int(*)(VALUE);
-
-    static inline FromRuby_T fromRuby = RB_NUM2UINT;
-    static inline constexpr ruby_value_type valueType = RUBY_T_FIXNUM;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_BIGNUM, RUBY_T_FLOAT };
-    static inline std::string packTemplate = "I*";
-  };
-
-  template<>
-  class RubyType<long>
-  {
-  public:
-    using FromRuby_T = long(*)(VALUE);
-
-    static inline FromRuby_T fromRuby = rb_num2long_inline;
-    static inline constexpr ruby_value_type valueType = RUBY_T_FIXNUM;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_BIGNUM, RUBY_T_FLOAT };
-    static inline std::string packTemplate = "l_*";
-  };
-
-  template<>
-  class RubyType<unsigned long>
-  {
-  public:
-    using FromRuby_T = unsigned long(*)(VALUE);
-
-    static inline FromRuby_T fromRuby = rb_num2ulong_inline;
-    static inline constexpr ruby_value_type valueType = RUBY_T_FIXNUM;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_BIGNUM, RUBY_T_FLOAT };
-    static inline std::string packTemplate = "L_*";
-  };
-
-  template<>
-  class RubyType<long long>
-  {
-  public:
-    using FromRuby_T = long long(*)(VALUE);
-
-    static inline FromRuby_T fromRuby = rb_num2ll_inline;
-    static inline constexpr ruby_value_type valueType = RUBY_T_FIXNUM;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_BIGNUM, RUBY_T_FLOAT };
-    static inline std::string packTemplate = "q_*";
-  };
-
-  template<>
-  class RubyType<unsigned long long>
-  {
-  public:
-    using FromRuby_T = unsigned long long(*)(VALUE);
-
-    static inline FromRuby_T fromRuby = RB_NUM2ULL;
-    static inline constexpr ruby_value_type valueType = RUBY_T_FIXNUM;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_BIGNUM, RUBY_T_FLOAT };
-    static inline std::string packTemplate = "Q_*";
   };
 
   template<>
@@ -1664,8 +1608,9 @@ namespace Rice::detail
     using FromRuby_T = short(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2short_inline;
-    static inline constexpr ruby_value_type valueType = RUBY_T_FIXNUM;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_BIGNUM, RUBY_T_FLOAT };
+    static inline std::set<ruby_value_type> Exact = { };
+    static inline std::set<ruby_value_type> Castable = { };
+    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "s*";
   };
 
@@ -1676,12 +1621,117 @@ namespace Rice::detail
     using FromRuby_T = unsigned short(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2ushort;
-    static inline constexpr ruby_value_type valueType = RUBY_T_FIXNUM;
-    static inline std::set<ruby_value_type> castableTypes = { RUBY_T_BIGNUM, RUBY_T_FLOAT };
+    static inline std::set<ruby_value_type> Exact = { };
+    static inline std::set<ruby_value_type> Castable = { };
+    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "S*";
   };
-}
 
+  template<>
+  class RubyType<int>
+  {
+  public:
+    using FromRuby_T = int(*)(VALUE);
+
+    static inline FromRuby_T fromRuby = rb_num2int_inline;
+    static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM };
+    static inline std::set<ruby_value_type> Castable = { };
+    static inline std::set<ruby_value_type> Narrowable = { };
+    static inline std::string packTemplate = "i*";
+  };
+
+  template<>
+  class RubyType<unsigned int>
+  {
+  public:
+    using FromRuby_T = unsigned int(*)(VALUE);
+
+    static inline FromRuby_T fromRuby = RB_NUM2UINT;
+    static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM };
+    static inline std::set<ruby_value_type> Castable = { };
+    static inline std::set<ruby_value_type> Narrowable = { };
+    static inline std::string packTemplate = "I*";
+  };
+
+  template<>
+  class RubyType<long>
+  {
+  public:
+    using FromRuby_T = long(*)(VALUE);
+
+    static inline FromRuby_T fromRuby = rb_num2long_inline;
+    static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM };
+    static inline std::set<ruby_value_type> Castable = { };
+    static inline std::set<ruby_value_type> Narrowable = { };
+    static inline std::string packTemplate = "l_*";
+  };
+
+  template<>
+  class RubyType<unsigned long>
+  {
+  public:
+    using FromRuby_T = unsigned long(*)(VALUE);
+
+    static inline FromRuby_T fromRuby = rb_num2ulong_inline;
+    static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM  };
+    static inline std::set<ruby_value_type> Castable = { };
+    static inline std::set<ruby_value_type> Narrowable = { };
+    static inline std::string packTemplate = "L_*";
+  };
+
+  template<>
+  class RubyType<long long>
+  {
+  public:
+    using FromRuby_T = long long(*)(VALUE);
+
+    static inline FromRuby_T fromRuby = rb_num2ll_inline;
+    static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM, RUBY_T_BIGNUM };
+    static inline std::set<ruby_value_type> Castable = { };
+    static inline std::set<ruby_value_type> Narrowable = { };
+    static inline std::string packTemplate = "q_*";
+  };
+
+  template<>
+  class RubyType<unsigned long long>
+  {
+  public:
+    using FromRuby_T = unsigned long long(*)(VALUE);
+
+    static inline FromRuby_T fromRuby = RB_NUM2ULL;
+    static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM, RUBY_T_BIGNUM };
+    static inline std::set<ruby_value_type> Castable = { };
+    static inline std::set<ruby_value_type> Narrowable = { };
+    static inline std::string packTemplate = "Q_*";
+  };
+
+
+  template<>
+  class RubyType<float>
+  {
+  public:
+    using FromRuby_T = double(*)(VALUE);
+
+    static inline FromRuby_T fromRuby = rb_num2dbl;
+    static inline std::set<ruby_value_type> Exact = { };
+    static inline std::set<ruby_value_type> Castable = { RUBY_T_FIXNUM };
+    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FLOAT };
+    static inline std::string packTemplate = "f*";
+  };
+
+  template<>
+  class RubyType<double>
+  {
+  public:
+    using FromRuby_T = double(*)(VALUE);
+
+    static inline FromRuby_T fromRuby = rb_num2dbl;
+    static inline std::set<ruby_value_type> Exact = { RUBY_T_FLOAT };
+    static inline std::set<ruby_value_type> Castable = { RUBY_T_FIXNUM, RUBY_T_BIGNUM };
+    static inline std::set<ruby_value_type> Narrowable = { };
+    static inline std::string packTemplate = "d*";
+  };
+}
 // =========   Wrapper.hpp   =========
 
 namespace Rice
@@ -1809,9 +1859,10 @@ namespace Rice::detail
 
   enum class Convertible: uint8_t
   {
-      None = 0b000,
-      TypeCast = 0b010,
-      Exact = 0b110,
+      None =   0b000,
+      Narrowable = 0b001,
+      Cast =   0b011,
+      Exact =  0b111,
   };
 }
 
@@ -2004,7 +2055,6 @@ namespace Rice
 
 // =========   Return.ipp   =========
 #include <any>
-#include <string>
 
 namespace Rice
 {
@@ -2052,7 +2102,7 @@ namespace Rice
     class To_Ruby<void>
     {
     public:
-      VALUE convert(void const*)
+      VALUE convert(const void*)
       {
         throw std::runtime_error("Converting from void pointer is not implemented");
         return Qnil;
@@ -2073,12 +2123,12 @@ namespace Rice
     class To_Ruby<short>
     {
     public:
-      VALUE convert(short const& x)
+      VALUE convert(const short& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_int2num_inline, (int)x);
+        return protect(rb_int2num_inline, (int)native);
 #else
-        return RB_INT2NUM(x);
+        return RB_INT2NUM(native);
 #endif
       }
     };
@@ -2087,12 +2137,12 @@ namespace Rice
     class To_Ruby<short&>
     {
     public:
-      VALUE convert(short const& x)
+      VALUE convert(const short& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_int2num_inline, (int)x);
+        return protect(rb_int2num_inline, (int)native);
 #else
-        return RB_INT2NUM(x);
+        return RB_INT2NUM(native);
 #endif
       }
     };
@@ -2101,12 +2151,21 @@ namespace Rice
     class To_Ruby<int>
     {
     public:
-      VALUE convert(int const& x)
+      VALUE convert(const int& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_int2num_inline, (int)x);
+        return protect(rb_int2num_inline, (int)native);
 #else
-        return RB_INT2NUM(x);
+        return RB_INT2NUM(native);
+#endif
+      }
+
+      VALUE convert(const volatile int& native)
+      {
+#ifdef rb_int2num_inline
+        return protect(rb_int2num_inline, (int)native);
+#else
+        return RB_INT2NUM(native);
 #endif
       }
     };
@@ -2115,12 +2174,12 @@ namespace Rice
     class To_Ruby<int&>
     {
     public:
-      VALUE convert(int const& x)
+      VALUE convert(const int& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_int2num_inline, (int)x);
+        return protect(rb_int2num_inline, (int)native);
 #else
-        return RB_INT2NUM(x);
+        return RB_INT2NUM(native);
 #endif
       }
     };
@@ -2129,9 +2188,9 @@ namespace Rice
     class To_Ruby<long>
     {
     public:
-      VALUE convert(long const& x)
+      VALUE convert(const long& native)
       {
-        return protect(rb_long2num_inline, x);
+        return protect(rb_long2num_inline, native);
       }
     };
 
@@ -2139,9 +2198,9 @@ namespace Rice
     class To_Ruby<long&>
     {
     public:
-      VALUE convert(long const& x)
+      VALUE convert(const long& native)
       {
-        return protect(rb_long2num_inline, x);
+        return protect(rb_long2num_inline, native);
       }
     };
 
@@ -2149,9 +2208,9 @@ namespace Rice
     class To_Ruby<long long>
     {
     public:
-      VALUE convert(long long const& x)
+      VALUE convert(const long long& native)
       {
-        return protect(rb_ll2inum, x);
+        return protect(rb_ll2inum, native);
       }
     };
 
@@ -2159,9 +2218,9 @@ namespace Rice
     class To_Ruby<long long&>
     {
     public:
-      VALUE convert(long long const& x)
+      VALUE convert(const long long& native)
       {
-        return protect(rb_ll2inum, x);
+        return protect(rb_ll2inum, native);
       }
     };
 
@@ -2169,12 +2228,12 @@ namespace Rice
     class To_Ruby<unsigned short>
     {
     public:
-      VALUE convert(unsigned short const& x)
+      VALUE convert(const unsigned short& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_uint2num_inline, (unsigned int)x);
+        return protect(rb_uint2num_inline, (unsigned int)native);
 #else
-        return RB_UINT2NUM(x);
+        return RB_UINT2NUM(native);
 #endif
       }
     };
@@ -2183,12 +2242,12 @@ namespace Rice
     class To_Ruby<unsigned short&>
     {
     public:
-      VALUE convert(unsigned short const& x)
+      VALUE convert(const unsigned short& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_uint2num_inline, (unsigned int)x);
+        return protect(rb_uint2num_inline, (unsigned int)native);
 #else
-        return RB_UINT2NUM(x);
+        return RB_UINT2NUM(native);
 #endif
       }
     };
@@ -2197,12 +2256,12 @@ namespace Rice
     class To_Ruby<unsigned int>
     {
     public:
-      VALUE convert(unsigned int const& x)
+      VALUE convert(const unsigned int& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_uint2num_inline, (unsigned int)x);
+        return protect(rb_uint2num_inline, (unsigned int)native);
 #else
-        return RB_UINT2NUM(x);
+        return RB_UINT2NUM(native);
 #endif
       }
     };
@@ -2211,12 +2270,12 @@ namespace Rice
     class To_Ruby<unsigned int&>
     {
     public:
-      VALUE convert(unsigned int const& x)
+      VALUE convert(const unsigned int& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_uint2num_inline, (unsigned int)x);
+        return protect(rb_uint2num_inline, (unsigned int)native);
 #else
-        return RB_UINT2NUM(x);
+        return RB_UINT2NUM(native);
 #endif
       }
     };
@@ -2231,15 +2290,15 @@ namespace Rice
       {
       }
 
-      VALUE convert(unsigned long const& x)
+      VALUE convert(const unsigned long& native)
       {
         if (this->returnInfo_ && this->returnInfo_->isValue())
         {
-          return x;
+          return native;
         }
         else
         {
-          return protect(rb_ulong2num_inline, x);
+          return protect(rb_ulong2num_inline, native);
         }
       }
 
@@ -2257,15 +2316,15 @@ namespace Rice
       {
       }
 
-      VALUE convert(unsigned long const& x)
+      VALUE convert(const unsigned long& native)
       {
         if (this->returnInfo_ && this->returnInfo_->isValue())
         {
-          return x;
+          return native;
         }
         else
         {
-          return protect(rb_ulong2num_inline, x);
+          return protect(rb_ulong2num_inline, native);
         }
       }
 
@@ -2283,18 +2342,29 @@ namespace Rice
       {
       }
 
-      VALUE convert(unsigned long long const& x)
+      VALUE convert(const unsigned long long& native)
       {
         if (this->returnInfo_ && this->returnInfo_->isValue())
         {
-          return x;
+          return native;
         }
         else
         {
-          return protect(rb_ull2inum, (unsigned long long)x);
+          return protect(rb_ull2inum, (unsigned long long)native);
         }
       }
 
+      VALUE convert(const volatile unsigned long long& native)
+      {
+        if (this->returnInfo_ && this->returnInfo_->isValue())
+        {
+          return native;
+        }
+        else
+        {
+          return protect(rb_ull2inum, (unsigned long long)native);
+        }
+      }
     private:
       Return* returnInfo_ = nullptr;
     };
@@ -2309,15 +2379,15 @@ namespace Rice
       {
       }
 
-      VALUE convert(unsigned long long const& x)
+      VALUE convert(const unsigned long long& native)
       {
         if (this->returnInfo_ && this->returnInfo_->isValue())
         {
-          return x;
+          return native;
         }
         else
         {
-          return protect(rb_ull2inum, (unsigned long long)x);
+          return protect(rb_ull2inum, (unsigned long long)native);
         }
       }
 
@@ -2329,9 +2399,9 @@ namespace Rice
     class To_Ruby<float>
     {
     public:
-      VALUE convert(float const& x)
+      VALUE convert(const float& native)
       {
-        return protect(rb_float_new, (double)x);
+        return protect(rb_float_new, (double)native);
       }
     };
 
@@ -2339,9 +2409,9 @@ namespace Rice
     class To_Ruby<float&>
     {
     public:
-      VALUE convert(float const& x)
+      VALUE convert(const float& native)
       {
-        return protect(rb_float_new, (double)x);
+        return protect(rb_float_new, (double)native);
       }
     };
 
@@ -2349,9 +2419,9 @@ namespace Rice
     class To_Ruby<double>
     {
     public:
-      VALUE convert(double const& x)
+      VALUE convert(const double& native)
       {
-        return protect(rb_float_new, x);
+        return protect(rb_float_new, native);
       }
     };
 
@@ -2359,9 +2429,9 @@ namespace Rice
     class To_Ruby<double&>
     {
     public:
-      VALUE convert(double const& x)
+      VALUE convert(const double& native)
       {
-        return protect(rb_float_new, x);
+        return protect(rb_float_new, native);
       }
     };
 
@@ -2369,9 +2439,9 @@ namespace Rice
     class To_Ruby<bool>
     {
     public:
-      VALUE convert(bool const& x)
+      VALUE convert(const bool& native)
       {
-        return x ? Qtrue : Qfalse;
+        return native ? Qtrue : Qfalse;
       }
     };
 
@@ -2379,9 +2449,9 @@ namespace Rice
     class To_Ruby<bool&>
     {
     public:
-      VALUE convert(bool const& x)
+      VALUE convert(const bool& native)
       {
-        return x ? Qtrue : Qfalse;
+        return native ? Qtrue : Qfalse;
       }
     };
 
@@ -2389,9 +2459,9 @@ namespace Rice
     class To_Ruby<char>
     {
     public:
-      VALUE convert(char const& x)
+      VALUE convert(const char& native)
       {
-        return To_Ruby<int>().convert(x);
+        return To_Ruby<int>().convert(native);
       }
     };
 
@@ -2399,49 +2469,9 @@ namespace Rice
     class To_Ruby<char&>
     {
     public:
-      VALUE convert(char const& x)
+      VALUE convert(const char& native)
       {
-        return To_Ruby<int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<unsigned char>
-    {
-    public:
-      VALUE convert(unsigned char const& x)
-      {
-        return To_Ruby<unsigned int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<unsigned char&>
-    {
-    public:
-      VALUE convert(unsigned char const& x)
-      {
-        return To_Ruby<unsigned int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<signed char>
-    {
-    public:
-      VALUE convert(signed char const& x)
-      {
-        return To_Ruby<signed int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<signed char&>
-    {
-    public:
-      VALUE convert(signed char const& x)
-      {
-        return To_Ruby<signed int>().convert(x);
+        return To_Ruby<int>().convert(native);
       }
     };
 
@@ -2449,7 +2479,13 @@ namespace Rice
     class To_Ruby<char*>
     {
     public:
-      VALUE convert(char const* buffer)
+      To_Ruby() = default;
+
+      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+      {
+      }
+
+      VALUE convert(const char* buffer)
       {
         if (!buffer)
         {
@@ -2464,32 +2500,85 @@ namespace Rice
           delete[] symbol;
           return protect(rb_id2sym, id);
         }
+        else if (this->returnInfo_ && this->returnInfo_->isOwner())
+        {
+          // This copies the buffer but does not free it. So Ruby is not really
+          // taking ownership of it. But there isn't a Ruby API for creating a string
+          // from an existing buffer and later freeing it.
+          return protect(rb_usascii_str_new_cstr, buffer);
+        }
         else
         {
-          return protect(rb_str_new2, buffer);
+          // Does NOT copy the passed in buffer and does NOT free it when the string is GCed
+          long size = (long)strlen(buffer);
+          return protect(rb_usascii_str_new_static, buffer, size);
         }
       }
+
+    private:
+      Return* returnInfo_ = nullptr;
     };
 
     template<int N>
     class To_Ruby<char[N]>
     {
     public:
-      VALUE convert(char const x[])
+      VALUE convert(const char buffer[])
       {
-        if (N > 0 && x[0] == ':')
+        if (N > 0 && buffer[0] == ':')
         {
           // N count includes a NULL character at the end of the string
           constexpr size_t symbolLength = N - 1;
           char symbol[symbolLength];
-          strncpy(symbol, x + 1, symbolLength);
+          strncpy(symbol, buffer + 1, symbolLength);
           ID id = protect(rb_intern, symbol);
           return protect(rb_id2sym, id);
         }
         else
         {
-          return protect(rb_str_new2, x);
+          long size = (long)strlen(buffer);
+          return protect(rb_usascii_str_new_static, buffer, size);
         }
+      }
+    };
+
+    template<>
+    class To_Ruby<unsigned char>
+    {
+    public:
+      VALUE convert(const unsigned char& native)
+      {
+        return To_Ruby<unsigned int>().convert(native);
+      }
+    };
+
+    template<>
+    class To_Ruby<unsigned char&>
+    {
+    public:
+      VALUE convert(const unsigned char& native)
+      {
+        return To_Ruby<unsigned int>().convert(native);
+      }
+    };
+
+    template<>
+    class To_Ruby<signed char>
+    {
+    public:
+      VALUE convert(const signed char& native)
+      {
+        return To_Ruby<signed int>().convert(native);
+      }
+    };
+
+    template<>
+    class To_Ruby<signed char&>
+    {
+    public:
+      VALUE convert(const signed char& native)
+      {
+        return To_Ruby<signed int>().convert(native);
       }
     };
   }
@@ -2529,13 +2618,17 @@ namespace Rice::detail
     {
       ruby_value_type valueType = rb_type(value);
 
-      if (valueType == RubyType_T::valueType)
+      if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end())
       {
         return Convertible::Exact;
       }
-      else if (RubyType_T::castableTypes.find(valueType) != RubyType_T::castableTypes.end())
+      else if (RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end())
       {
-        return Convertible::TypeCast;
+        return Convertible::Cast;
+      }
+      else if (RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
+      {
+        return Convertible::Narrowable;
       }
       else
       {
@@ -2545,7 +2638,7 @@ namespace Rice::detail
 
     static T convert(VALUE value)
     {
-      return protect(RubyType_T::fromRuby, value);
+      return (T)protect(RubyType_T::fromRuby, value);
     }
   };
 
@@ -2559,13 +2652,9 @@ namespace Rice::detail
     {
       ruby_value_type valueType = rb_type(value);
 
-      if (valueType == RubyType_T::valueType)
+      if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end())
       {
         return Convertible::Exact;
-      }
-      else if (RubyType_T::castableTypes.find(valueType) != RubyType_T::castableTypes.end())
-      {
-        return Convertible::TypeCast;
       }
       else if (valueType == RUBY_T_ARRAY)
       {
@@ -2573,15 +2662,12 @@ namespace Rice::detail
       }
       else if (valueType == RUBY_T_STRING)
       {
-        if (RB_ENCODING_IS_ASCII8BIT(value))
-          return Convertible::Exact;
-        else
-          return Convertible::None;
+        // Maybe we should check for ascii8bit encoding?
+        //if (RB_ENCODING_IS_ASCII8BIT(value))
+        return Convertible::Exact;
       }
-      else
-      {
-        return Convertible::None;
-      }
+
+      return Convertible::None;
     }
 
     static std::unique_ptr<T[]> convert(VALUE value)
@@ -2611,17 +2697,22 @@ namespace Rice::detail
           return std::move(dest);
           break;
         }
-        case RubyType_T::valueType:
-        {
-          std::unique_ptr<T[]> dest = std::make_unique<T[]>(1);
-          *(dest.get()) = protect(RubyType_T::fromRuby, value);
-          return std::move(dest);
-        }
         default:
         {
-          std::string typeName = detail::typeName(typeid(T));
-          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
-            detail::protect(rb_obj_classname, value), typeName.c_str());
+          if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end() ||
+              RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end() ||
+              RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
+          {
+            std::unique_ptr<T[]> dest = std::make_unique<T[]>(1);
+            *(dest.get()) = (T)protect(RubyType_T::fromRuby, value);
+            return std::move(dest);
+          }
+          else
+          {
+            std::string typeName = detail::typeName(typeid(T));
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+              detail::protect(rb_obj_classname, value), typeName.c_str());
+          }
         }
       }
     }
@@ -3271,7 +3362,7 @@ namespace Rice::detail
         static ID id = protect(rb_intern, "to_int");
         if (protect(rb_respond_to, value, id))
         {
-          result = Convertible::TypeCast;
+          result = Convertible::Cast;
         }
       }
       return result;
@@ -4181,11 +4272,9 @@ namespace Rice::detail
 // =========   TypeRegistry.hpp   =========
 
 #include <optional>
-#include <string>
-#include <typeindex>
-#include <typeinfo>
 #include <unordered_map>
 #include <set>
+#include <regex>
 
 
 /* The type registry keeps track of all C++ types wrapped by Rice. When a native function returns 
@@ -4208,6 +4297,9 @@ namespace Rice::detail
 
     template <typename T>
     bool isDefined();
+
+    template <typename T>
+    std::pair<VALUE, rb_data_type_t*> getType();
 
     template <typename T>
     bool verify();
@@ -4276,6 +4368,23 @@ namespace Rice::detail
     std::type_index key(typeid(T));
     auto iter = registry_.find(key);
     return iter != registry_.end();
+  }
+
+  template <typename T>
+  std::pair<VALUE, rb_data_type_t*> TypeRegistry::getType()
+  {
+    std::type_index key(typeid(T));
+    auto iter = registry_.find(key);
+    if (iter != registry_.end())
+    {
+      return iter->second;
+    }
+    else
+    {
+      this->raiseUnverifiedType(typeid(T).name());
+      // Make compiler happy
+      return std::make_pair(Qnil, nullptr);
+    }
   }
 
   // Special case void. See comment for add above.
@@ -4677,14 +4786,6 @@ namespace Rice::detail
 
 
 // =========   Type.ipp   =========
-
-#include <iosfwd>
-#include <iterator>
-#include <numeric>
-#include <regex>
-#include <sstream>
-#include <tuple>
-
 #ifdef __GNUC__
 #include <cxxabi.h>
 #include <cstdlib>
@@ -4785,13 +4886,71 @@ namespace Rice::detail
     return demangle(typeIndex.name());
   }
 
-  inline std::string makeClassName(const std::type_info& typeInfo)
+  // Find text inside of < > taking into account nested groups.
+  // 
+  // Example:
+  //  
+  //   std::vector<std::vector<int>, std::allocator<std::vector, std::allocator<int>>>
+  inline std::string findGroup(std::string& string, size_t offset)
   {
-    std::string base = demangle(typeInfo.name());
+    int depth = 0;
+
+    auto begin = string.begin() + offset;
+    auto start = begin;
+    for (auto iter = begin; iter != string.end(); iter++)
+    {
+      if (*iter == '<')
+      {
+        if (depth == 0)
+        {
+          start = iter;
+        }
+        depth++;
+      }
+      else if (*iter == '>')
+      {
+        depth--;
+        if (depth == 0)
+        {
+          // Add + 1 to include current ">" character
+          return string.substr(offset + (start - begin), 1 + (iter - start));
+        }
+        else if (depth < 0)
+        {
+          throw std::runtime_error("Unbalanced Group");
+        }
+      }
+    }
+    throw std::runtime_error("Unbalanced Group");
+  }
+
+  inline void replaceAll(std::string& string, std::regex regex, std::string replacement)
+  {
+    std::smatch match;
+    while (std::regex_search(string, match, regex))
+    {
+      string = std::regex_replace(string, regex, replacement);
+    }
+  }
+
+  inline void removeGroup(std::string& string, std::regex regex)
+  {
+    std::smatch match;
+    while (std::regex_search(string, match, regex))
+    {
+      std::string group = findGroup(string, match.position());
+      group = match.str() + group;
+      string.erase(match.position(), group.length());
+    }
+  }
+
+  inline std::string makeClassName(const std::string& typeInfoName)
+  {
+    std::string base = typeInfoName;
 
     // Remove class keyword
     auto classRegex = std::regex("class +");
-    base = std::regex_replace(base, classRegex, "");
+    base = std::regex_replace(typeInfoName, classRegex, "");
 
     // Remove struct keyword
     auto structRegex = std::regex("struct +");
@@ -4801,36 +4960,79 @@ namespace Rice::detail
     auto stdClangRegex = std::regex("std::__[^:]+::");
     base = std::regex_replace(base, stdClangRegex, "");
       
+    // Replace basic_string with string
+    auto basicStringRegex = std::regex(R"(basic_string)");
+    replaceAll(base, basicStringRegex, "string");
+
+    // Remove allocators
+    std::regex allocatorRegex(R"(,\s*std::allocator)");
+    removeGroup(base, allocatorRegex);
+
+    // Remove char_traits
+    std::regex charTraitsRegex(R"(,\s*std::char_traits)");
+    removeGroup(base, charTraitsRegex);
+
+    // Remove less (std::map)
+    std::regex lessRegex(R"(,\s*std::less)");
+    removeGroup(base, lessRegex);
+
+    // Remove hash (std::unordered_map)
+    std::regex hashRegex(R"(,\s*std::hash)");
+    removeGroup(base, hashRegex);
+
+    // Remove equal_to (std::unordered_map)
+    std::regex equalRegex(R"(,\s*std::equal_to)");
+    removeGroup(base, equalRegex);
+
+    // Remove spaces before pointers
+    auto ptrRegex = std::regex(R"(\s+\*)");
+    base = std::regex_replace(base, ptrRegex, "*");
+
+    // Remove __ptr64
+    std::regex ptr64Regex(R"(\s*__ptr64\s*)");
+    base = std::regex_replace(base, ptr64Regex, "");
+
     // Remove std::
     auto stdRegex = std::regex("std::");
     base = std::regex_replace(base, stdRegex, "");
 
-    // Replace > > 
-    auto trailingAngleBracketSpaceRegex = std::regex(" >");
-    base = std::regex_replace(base, trailingAngleBracketSpaceRegex, ">");
+    // Replace :: and capitalize the next letter
+    std::regex namespaceRegex(R"(::(\w))");
+    std::smatch namespaceMatch;
+    while (std::regex_search(base, namespaceMatch, namespaceRegex))
+    {
+      std::string replacement = namespaceMatch[1];
+      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
+      base.replace(namespaceMatch.position(), namespaceMatch.length(), replacement);
+    }
 
-    // Replace < and >
-    auto angleBracketRegex = std::regex("<|>");
-    base = std::regex_replace(base, angleBracketRegex, "__");
+    // Replace " >" with ">"
+    auto trailingAngleBracketSpaceRegex = std::regex(R"(\s+>)");
+    replaceAll(base, trailingAngleBracketSpaceRegex, ">");
 
-    // Replace ,
-    auto commaRegex = std::regex(", *");
-    base = std::regex_replace(base, commaRegex, "_");
+    // Replace spaces with unicode U+2008 (Punctuation Space)
+    auto spaceRegex = std::regex(R"(\s+)");
+    replaceAll(base, spaceRegex, "\u2008");
 
-    // Now create a vector of strings split on whitespace
-    std::istringstream stream(base);
-    std::vector<std::string> words{ std::istream_iterator<std::string>{stream},
-                                    std::istream_iterator<std::string>{} };
+    // Replace < with unicode U+227A (Precedes)
+    auto lessThanRegex = std::regex("<");
+    //replaceAll(base, lessThanRegex, u8"≺");
+    replaceAll(base, lessThanRegex, "\u227A");
 
-    std::string result = std::accumulate(words.begin(), words.end(), std::string(),
-      [](const std::string& memo, const std::string& word) -> std::string
-      {
-        std::string capitalized = word;
-        capitalized[0] = toupper(capitalized[0]);
-        return memo + capitalized;
-      });
+    // Replace > with unicode U+227B (Succeeds)
+    auto greaterThanRegex = std::regex(">");
+    //replaceAll(base, greaterThanRegex, u8"≻");
+    replaceAll(base, greaterThanRegex, "\u227B");
 
-    return result;
+    // Replace , with Unicode Character (U+066C) - Arabic thousands separator
+    auto commaRegex = std::regex(R"(,\s*)");
+    //replaceAll(base, greaterThanRegex, u8"٬");
+    replaceAll(base, commaRegex, "\u066C");
+
+    // Capitalize first letter
+    base[0] = std::toupper(base[0]);
+
+    return base;
   }
 }
 
@@ -4853,10 +5055,10 @@ namespace Rice
   template <typename... Arg_Ts>
   inline Exception::Exception(const VALUE exceptionClass, char const* fmt, Arg_Ts&&...args)
   {
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-security"
-#endif
+    #if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wformat-security"
+    #endif
 
     size_t size = std::snprintf(nullptr, 0, fmt, std::forward<Arg_Ts>(args)...);
     this->message_ = std::string(size, '\0');
@@ -4866,9 +5068,9 @@ namespace Rice
     // will add a null character internally at n + 1
     std::snprintf(&this->message_[0], size + 1, fmt, std::forward<Arg_Ts>(args)...);
 
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+    #if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic pop
+    #endif
 
     // Now create the Ruby exception
     this->exception_ = detail::protect(rb_exc_new2, exceptionClass, this->message_.c_str());
@@ -4958,11 +5160,11 @@ namespace Rice::detail
       }
       catch (std::length_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRuntimeError, ex.what()));
+        rb_exc_raise(rb_exc_new2(rb_eIndexError, ex.what()));
       }
       catch (std::out_of_range const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRangeError, ex.what()));
+        rb_exc_raise(rb_exc_new2(rb_eIndexError, ex.what()));
       }
       catch (std::overflow_error const& ex)
       {
@@ -5121,12 +5323,20 @@ namespace Rice::detail
       wrapper = new Wrapper_T(data);
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
-    // Is this a pointer and it cannot copied? This is for std::unique_ptr
-    // If ruby is the owner than copy the object
+    // If ruby is the owner than copy the object if possible
     else if (isOwner)
     {
-      wrapper = new WrapperValue<T>(data);
-      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      if constexpr (std::is_copy_constructible_v<T> || std::is_move_constructible_v<T>)
+      {
+        wrapper = new WrapperValue<T>(data);
+        result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      }
+      else
+      {
+        std::string message = "Ruby was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: " +
+          typeName(typeid(T));
+        throw std::runtime_error(message);
+      }
     }
     // Ruby is not the owner so just wrap the reference
     else
@@ -5194,14 +5404,16 @@ namespace Rice::detail
   inline Wrapper* getWrapper(VALUE value)
   {
     // Turn off spurious warning on g++ 12
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-#endif
+    #if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Warray-bounds"
+    #endif
+
     return RTYPEDDATA_P(value) ? static_cast<Wrapper*>(RTYPEDDATA_DATA(value)) : nullptr;
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+    
+    #if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic pop
+    #endif
   }
 
   template <typename T>
@@ -5934,7 +6146,7 @@ namespace Rice::detail
         index++;
       });
 
-    if (arity > 0)
+    if constexpr (arity > 0)
       result.parameterMatch = (double)argc / arity;
 
     return result;
@@ -6235,7 +6447,6 @@ namespace Rice::detail
 #include <functional>
 #include <type_traits>
 
-
 namespace Rice::detail
 {
   template <typename T, typename Iterator_Func_T>
@@ -6329,6 +6540,66 @@ namespace Rice::detail
 }
 // C++ API definitions
 
+// =========   Encoding.ipp   =========
+namespace Rice
+{
+  inline Encoding Encoding::utf8()
+  {
+    return Encoding(rb_utf8_encoding());
+  }
+
+  inline Encoding::Encoding(rb_encoding* encoding) : encoding_(encoding)
+  {
+  }
+}
+
+/*namespace Rice::detail
+{
+  template<>
+  struct Type<Encoding>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
+  
+  template<>
+  class To_Ruby<Encoding>
+  {
+  public:
+    VALUE convert(const Encoding& encoding)
+    {
+    //  return x.value();
+    }
+  };
+
+  template<>
+  class From_Ruby<Encoding>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_SYMBOL:
+          return Convertible::Exact;
+          break;
+      case RUBY_T_STRING:
+          return Convertible::Cast;
+          break;
+        default:
+          return Convertible::None;
+        }
+    }
+
+    Encoding convert(VALUE value)
+    {
+     // return Symbol(value);
+    }
+  };
+}
+*/
 // =========   Object.ipp   =========
 namespace Rice
 {
@@ -6620,19 +6891,19 @@ namespace Rice
   {
   }
 
-  inline String::String(char const* s) : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, s))
+  inline String::String(char const* s) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new_cstr, s))
   {
   }
 
-  inline String::String(std::string const& s) : Builtin_Object<T_STRING>(detail::protect(rb_str_new, s.data(), (long)s.length()))
+  inline String::String(std::string const& s) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new, s.data(), (long)s.length()))
   {
   }
 
-  inline String::String(std::string_view const& s) : Builtin_Object<T_STRING>(detail::protect(rb_str_new, s.data(), (long)s.length()))
+  inline String::String(std::string_view const& s) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new, s.data(), (long)s.length()))
   {
   }
 
-  inline String::String(Identifier id) : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, id.c_str()))
+  inline String::String(Identifier id) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new_cstr, id.c_str()))
   {
   }
 
@@ -6817,20 +7088,35 @@ namespace Rice
     }
   }
 
+  template<typename T>
+  std::vector<T> Array::to_vector()
+  {
+    long size = this->size();
+    std::vector<T> result(size);
+
+    for (long i = 0; i < size; i++)
+    {
+      VALUE element = detail::protect(rb_ary_entry, this->value(), i);
+      result[i] = detail::From_Ruby<T>().convert(element);
+    }
+
+    return result;
+  }
+
   inline Array::Proxy::Proxy(Array array, long index)
     : array_(array)
     , index_(index)
   {
   }
 
-  inline Array::Proxy::operator Object() const
+  inline VALUE Array::Proxy::value() const
   {
     return detail::protect(rb_ary_entry, array_.value(), index_);
   }
 
-  inline VALUE Array::Proxy::value() const
+  inline Array::Proxy::operator Object() const
   {
-    return detail::protect(rb_ary_entry, array_.value(), index_);
+    return Object(this->value());
   }
 
   template<typename T>
@@ -7343,7 +7629,7 @@ namespace Rice::detail
           return Convertible::Exact;
           break;
       case RUBY_T_STRING:
-          return Convertible::TypeCast;
+          return Convertible::Cast;
           break;
         default:
           return Convertible::None;
@@ -7669,8 +7955,6 @@ namespace Rice::detail
 
 // =========   Class.hpp   =========
 
-#include <string>
-
 /*!
  *  \example inheritance/animals.cpp
  *  \example callbacks/sample_callbacks.cpp
@@ -7851,7 +8135,8 @@ inline auto& define_constant(std::string name, Constant_T value)
    *  \param superclass the base class to use.
    *  \return the new class.
    */
-  Class define_class_under(Object module, char const * name, const Class& superclass = rb_cObject);
+  Class define_class_under(Object parent, char const * name, const Class& superclass = rb_cObject);
+  Class define_class_under(Object parent, Identifier id, const Class& superclass);
 
   //! Define a new class in the default namespace.
   /*! \param name the name of the class.
@@ -7895,14 +8180,20 @@ namespace Rice
     return std::string(buffer);
   }
 
-  inline Class define_class_under(Object module, char const* name, const Class& superclass)
+  inline Class define_class_under(Object parent, Identifier id, const Class& superclass)
   {
-    VALUE klass = detail::protect(rb_define_class_under, module.value(), name, superclass.value());
+    VALUE klass = detail::protect(rb_define_class_id_under, parent.value(), id, superclass.value());
 
     // We MUST reset the instance registry in case the user just redefined a class which resets it
     detail::Registries::instance.natives.reset(klass);
 
     return klass;
+  }
+
+  inline Class define_class_under(Object parent, char const* name, const Class& superclass)
+  {
+    Identifier id(name);
+    return define_class_under(parent, id, superclass);
   }
 
   inline Class define_class(char const* name, const Class& superclass)
@@ -8524,6 +8815,7 @@ namespace Rice
      */
     static bool is_bound();
     static void check_is_bound();
+    static bool is_defined(Object parent, const std::string& name);
 
     // This is only for testing - DO NOT USE!!!
     static void unbind();
@@ -8697,14 +8989,14 @@ inline auto& define_constant(std::string name, Constant_T value)
     template <typename Base_T = void>
     static Data_Type<T> bind(const Module& klass);
 
-    template<typename T>
-    friend Rice::Data_Type<T> define_class_under(Object module, char const* name, Class superKlass);
+    template<typename T_, typename Base_T>
+    friend Rice::Data_Type<T_> define_class_under(Object parent, Identifier id, Class superKlass);
 
-    template<typename T, typename Base_T>
-    friend Rice::Data_Type<T> define_class_under(Object module, char const * name);
+    template<typename T_, typename Base_T>
+    friend Rice::Data_Type<T_> define_class_under(Object parent, char const * name);
 
-    template<typename T, typename Base_T>
-    friend Rice::Data_Type<T> define_class(char const * name);
+    template<typename T_, typename Base_T>
+    friend Rice::Data_Type<T_> define_class(char const * name);
 
     template<bool IsMethod, typename Function_T>
     void wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo);
@@ -8724,17 +9016,6 @@ inline auto& define_constant(std::string name, Constant_T value)
   };
 
   //! Define a new data class in the namespace given by module.
-  /*! By default the class will inherit from Ruby's rb_cObject. This
-   *  can be overriden via the Base_T template parameter. Note that
-   *  Base_T must already have been registered.
-   *  \param T the C++ type of the wrapped class.
-   *  \param module the the Module in which to define the class.
-   *  \return the new class.
-   */
-  template<typename T, typename Base_T = void>
-  Data_Type<T> define_class_under(Object module, char const* name);
-
-  //! Define a new data class in the namespace given by module.
   /*! This override allows you to specify a Ruby class as the base class versus a 
    *  wrapped C++ class. This functionality is rarely needed - but is essential for
    *  creating new custom Exception classes where the Ruby superclass should be
@@ -8745,8 +9026,19 @@ inline auto& define_constant(std::string name, Constant_T value)
    *  \param superKlass the Ruby super class.
    *  \return the new class.
    */
-  template<typename T>
-  Data_Type<T> define_class_under(Object module, char const* name, Class superKlass);
+  template<typename T, typename Base_T = void>
+  Data_Type<T> define_class_under(Object parent, Identifier id, Class superKlass = rb_cObject);
+
+  //! Define a new data class in the namespace given by module.
+  /*! By default the class will inherit from Ruby's rb_cObject. This
+   *  can be overriden via the Base_T template parameter. Note that
+   *  Base_T must already have been registered.
+   *  \param T the C++ type of the wrapped class.
+   *  \param module the the Module in which to define the class.
+   *  \return the new class.
+   */
+  template<typename T, typename Base_T = void>
+  Data_Type<T> define_class_under(Object parent, char const* name);
 
   //! Define a new data class in the default namespace.
   /*! By default the class will inherit from Ruby's rb_cObject. This
@@ -8762,7 +9054,6 @@ inline auto& define_constant(std::string name, Constant_T value)
 
 
 // =========   Data_Type.ipp   =========
-
 #include <stdexcept>
 
 namespace Rice
@@ -8809,7 +9100,7 @@ namespace Rice
     klass_ = klass;
 
     rb_data_type_ = new rb_data_type_t();
-    rb_data_type_->wrap_struct_name = strdup(Rice::detail::protect(rb_class2name, klass_));
+    rb_data_type_->wrap_struct_name = _strdup(Rice::detail::protect(rb_class2name, klass_));
     rb_data_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
     rb_data_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
     rb_data_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
@@ -8968,88 +9259,78 @@ namespace Rice
   }
 
   template<typename T>
-  Rice::Data_Type<T> define_class_under(Object module, char const* name, Class superKlass)
+  inline bool Data_Type<T>::is_defined(Object parent, const std::string& name)
   {
     // Is the class already defined?
     if (detail::Registries::instance.types.isDefined<T>())
     {
       Data_Type<T> result = Data_Type<T>();
-      // If this redefinition is a different name then create a new constant
-      if (result.name().c_str() != name)
-      {
-        detail::protect(rb_define_const, module, name, result.klass());
-      }
-      return Data_Type<T>();
-    }
 
-    Class c = define_class_under(module, name, superKlass);
-    c.undef_creation_funcs();
-    return Data_Type<T>::template bind(c);
+      // If this redefinition is a different name then create a new constant
+      if (result.name() != name)
+      {
+        detail::protect(rb_define_const, parent, name.c_str(), result.klass());
+      }
+
+      return true;
+    }
+    return false;
   }
-
-  template<typename T, typename Base_T>
-  inline Data_Type<T> define_class_under(Object module, char const* name)
+  
+  template<typename Base_T>
+  inline Class get_superklass()
   {
-    // Is the class already defined?
-    if (detail::Registries::instance.types.isDefined<T>())
-    {
-      Data_Type<T> result = Data_Type<T>();
-      // If this redefinition is a different name then create a new constant
-      if (result.name().c_str() != name)
-      {
-        detail::protect(rb_define_const, module, name, result.klass());
-      }
-      return Data_Type<T>();
-    }
-    
-    Class superKlass;
+    Class result;
 
     if constexpr (std::is_void_v<Base_T>)
     {
-      superKlass = rb_cObject;
+      result = rb_cObject;
     }
     else
     {
       // This gives a chance for to auto-register classes such as std::exception
       detail::verifyType<Base_T>();
-      superKlass = Data_Type<Base_T>::klass();
+      result = Data_Type<Base_T>::klass();
     }
-    
-    Class c = define_class_under(module, name, superKlass);
-    c.undef_creation_funcs();
-    return Data_Type<T>::template bind<Base_T>(c);
+
+    return result;
   }
 
+  template<typename T, typename Base_T>
+  inline Data_Type<T> define_class_under(Object parent, Identifier id, Class superKlass)
+  {
+    if (Rice::Data_Type<T>::is_defined(parent, id.str()))
+    {
+      return Data_Type<T>();
+    }
+
+    Class klass = define_class_under(parent, id, superKlass);
+    klass.undef_creation_funcs();
+    return Data_Type<T>::template bind<Base_T>(klass);
+  }
+
+  template<typename T, typename Base_T>
+  inline Data_Type<T> define_class_under(Object parent, char const* name)
+  {
+    Identifier id(name);
+    Class superKlass = get_superklass<Base_T>();
+    return define_class_under<T, Base_T>(parent, id, superKlass);
+  }
+  
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class(char const* name)
   {
-    // Is the class already defined?
-    if (detail::Registries::instance.types.isDefined<T>())
+    std::string klassName(name);
+
+    if (Rice::Data_Type<T>::is_defined(rb_cObject, klassName))
     {
-      Data_Type<T> result = Data_Type<T>();
-      // If this redefinition is a different name then create a new constant
-      if (result.name().c_str() != name)
-      {
-        detail::protect(rb_define_const, rb_cObject, name, result.klass());
-      }
       return Data_Type<T>();
     }
 
-    Class superKlass;
-    if constexpr (std::is_void_v<Base_T>)
-    {
-      superKlass = rb_cObject;
-    }
-    else
-    {
-      // This gives a chance for to auto-register classes such as std::exception
-      detail::verifyType<Base_T>();
-      superKlass = Data_Type<Base_T>::klass();
-    }
-
-    Class c = define_class(name, superKlass);
-    c.undef_creation_funcs();
-    return Data_Type<T>::template bind<Base_T>(c);
+    Class superKlass = get_superklass<Base_T>();
+    Class klass = define_class(name, superKlass);
+    klass.undef_creation_funcs();
+    return Data_Type<T>::template bind<Base_T>(klass);
   }
 
   template<typename T>

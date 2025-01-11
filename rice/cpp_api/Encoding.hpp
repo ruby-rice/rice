@@ -1,8 +1,6 @@
 #ifndef Rice__Encoding__hpp_
 #define Rice__Encoding__hpp_
 
-#include <string>
-
 namespace Rice
 {
   //! A wrapper for a Ruby encoding

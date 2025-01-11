@@ -2,7 +2,6 @@
 #define Rice__detail__traits__hpp_
 
 #include <ostream>
-#include <string>
 #include <type_traits>
 #include <vector>
 

@@ -1,8 +1,6 @@
 #ifndef Rice__Symbol__hpp_
 #define Rice__Symbol__hpp_
 
-#include <string>
-
 namespace Rice
 {
   //! A wrapper for ruby's Symbol class.

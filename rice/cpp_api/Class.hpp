@@ -1,8 +1,6 @@
 #ifndef Rice__Class__hpp_
 #define Rice__Class__hpp_
 
-#include <string>
-
 /*!
  *  \example inheritance/animals.cpp
  *  \example callbacks/sample_callbacks.cpp
