@@ -15,20 +15,17 @@ namespace Rice::stl
 
 // Libraries sometime inherit custom exception objects from std::exception,
 // so define it for Ruby if necessary
-namespace Rice
+namespace Rice::stl
 {
-  namespace stl
-  {
-    inline Class rb_cStlException;
+  inline Class rb_cStlException;
 
-    inline void define_stl_exception()
-    {
-      Module rb_mRice = define_module("Rice");
-      Module rb_mStd = define_module_under(rb_mRice, "Std");
-      rb_cStlException = define_class_under<std::exception>(rb_mStd, "Exception", rb_eStandardError).
-                         define_constructor(Constructor<std::exception>()).
-                         define_method("message", &std::exception::what);
-    }
+  inline void define_stl_exception()
+  {
+    Module rb_mRice = define_module("Rice");
+    Module rb_mStd = define_module_under(rb_mRice, "Std");
+    rb_cStlException = define_class_under<std::exception>(rb_mStd, "Exception", rb_eStandardError).
+                        define_constructor(Constructor<std::exception>()).
+                        define_method("message", &std::exception::what);
   }
 }
 
@@ -949,9 +946,9 @@ namespace Rice::detail
 // ---------   type_index.ipp   ---------
 #include <typeindex>
 
-namespace Rice::detail
+namespace Rice::Stl
 {
-  Data_Type<std::type_index> define_type_index()
+  inline Data_Type<std::type_index> define_type_index()
   {
     Module rb_mRice = define_module("Rice");
     Module rb_mStd = define_module_under(rb_mRice, "Std");
@@ -961,7 +958,10 @@ namespace Rice::detail
       define_method("hash_code", &std::type_index::hash_code).
       define_method("name", &std::type_index::name);
   }
+}
 
+namespace Rice::detail
+{
   template<>
   struct Type<std::type_index>
   {
@@ -969,7 +969,7 @@ namespace Rice::detail
     {
       if (!detail::Registries::instance.types.isDefined<std::type_index>())
       {
-        define_type_index();
+        Stl::define_type_index();
       }
 
       return true;
@@ -982,28 +982,31 @@ namespace Rice::detail
 
 
 // ---------   type_info.ipp   ---------
-#include <typeindex>
+#include <typeinfo>
 
-namespace Rice::detail
+namespace Rice::Stl
 {
-  Data_Type<std::type_info> define_type_info()
+  inline Data_Type<std::type_info> define_type_info()
   {
     Module rb_mRice = define_module("Rice");
     Module rb_mStd = define_module_under(rb_mRice, "Std");
 
     return define_class_under<std::type_info>(rb_mStd, "TypeInfo").
-           define_method("hash_code", &std::type_info::hash_code).
-           define_method("name", &std::type_info::name);
+      define_method("hash_code", &std::type_info::hash_code).
+      define_method("name", &std::type_info::name);
   }
+}
 
+namespace Rice::detail
+{
   template<>
   struct Type<std::type_info>
   {
-    static bool verify()
+    static inline bool verify()
     {
       if (!detail::Registries::instance.types.isDefined<std::type_info>())
       {
-        define_type_info();
+        Stl::define_type_info();
       }
 
       return true;
