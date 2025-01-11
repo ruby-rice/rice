@@ -2,49 +2,28 @@
 
 namespace Rice::detail
 {
+  Data_Type<std::type_index> define_type_index()
+  {
+    Module rb_mRice = define_module("Rice");
+    Module rb_mStd = define_module_under(rb_mRice, "Std");
+
+    return define_class_under<std::type_index>(rb_mStd, "TypeIndex").
+      define_constructor(Constructor<std::type_index, const std::type_info&>()).
+      define_method("hash_code", &std::type_index::hash_code).
+      define_method("name", &std::type_index::name);
+  }
+
   template<>
   struct Type<std::type_index>
   {
-    constexpr static bool verify()
+    static bool verify()
     {
+      if (!detail::Registries::instance.types.isDefined<std::type_index>())
+      {
+        define_type_index();
+      }
+
       return true;
-    }
-  };
-
-  template<>
-  class To_Ruby<std::type_index>
-  {
-  public:
-    VALUE convert(const std::type_index& _)
-    {
-      throw std::runtime_error("std::type_index support is not yet implemented");
-      return Qnil;
-    }
-  };
-
-  template<>
-  class To_Ruby<std::type_index&>
-  {
-  public:
-    static VALUE convert(const std::type_index& data, bool takeOwnership = false)
-    {
-      throw std::runtime_error("std::type_index support is not yet implemented");
-      return Qnil;
-    }
-  };
-
-  template<>
-  class From_Ruby<std::type_index&>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
-    {
-      return Convertible::None;
-    }
-
-    std::type_index& convert(VALUE value)
-    {
-      throw std::runtime_error("std::type_index support is not yet implemented");
     }
   };
 }

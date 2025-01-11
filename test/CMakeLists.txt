@@ -68,6 +68,7 @@ add_executable (unittest
 			"test_Stl_SmartPointer.cpp"
 			"test_Stl_String.cpp"
 			"test_Stl_String_View.cpp"
+			"test_Stl_Type.cpp"
 			"test_Type.cpp"
 			"test_Stl_Unordered_Map.cpp"
 			"test_Stl_Variant.cpp"
