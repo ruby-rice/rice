@@ -1,8 +1,8 @@
 #include <typeindex>
 
-namespace Rice::detail
+namespace Rice::Stl
 {
-  Data_Type<std::type_index> define_type_index()
+  inline Data_Type<std::type_index> define_type_index()
   {
     Module rb_mRice = define_module("Rice");
     Module rb_mStd = define_module_under(rb_mRice, "Std");
@@ -12,7 +12,10 @@ namespace Rice::detail
       define_method("hash_code", &std::type_index::hash_code).
       define_method("name", &std::type_index::name);
   }
+}
 
+namespace Rice::detail
+{
   template<>
   struct Type<std::type_index>
   {
@@ -20,7 +23,7 @@ namespace Rice::detail
     {
       if (!detail::Registries::instance.types.isDefined<std::type_index>())
       {
-        define_type_index();
+        Stl::define_type_index();
       }
 
       return true;
