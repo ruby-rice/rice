@@ -1,6 +1,4 @@
 #include "../traits/function_traits.hpp"
-#include "../detail/from_ruby.hpp"
-#include "../detail/to_ruby.hpp"
 #include "../Data_Type.hpp"
 
 #include <sstream>
