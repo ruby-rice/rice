@@ -64,6 +64,15 @@ namespace Rice
         return RB_INT2NUM(native);
 #endif
       }
+
+      VALUE convert(const volatile int& native)
+      {
+#ifdef rb_int2num_inline
+        return protect(rb_int2num_inline, (int)native);
+#else
+        return RB_INT2NUM(native);
+#endif
+      }
     };
 
     template<>
@@ -250,6 +259,17 @@ namespace Rice
         }
       }
 
+      VALUE convert(const volatile unsigned long long& native)
+      {
+        if (this->returnInfo_ && this->returnInfo_->isValue())
+        {
+          return native;
+        }
+        else
+        {
+          return protect(rb_ull2inum, (unsigned long long)native);
+        }
+      }
     private:
       Return* returnInfo_ = nullptr;
     };
