@@ -321,12 +321,17 @@ TESTCASE(NotCopyable)
     .define_attr("value", &MyClassNotCopyable::value);
 
   MyClassNotCopyable instance;
-  
-  // Trying to take ownserhip should fail
+
+#ifdef _MSC_VER
+  const char* expected = "Ruby was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: class `anonymous namespace'::MyClassNotCopyable";
+#else
+  const char* expected = "Ruby was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: (anonymous namespace)::MyClassNotCopyable";
+#endif
+
+  // Trying to take ownership should fail
   ASSERT_EXCEPTION_CHECK(
     std::runtime_error,
     Data_Object<MyClassNotCopyable>(instance, true),
-    ASSERT_EQUAL("Ruby was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: class `anonymous namespace'::MyClassNotCopyable",
-                 ex.what())
+    ASSERT_EQUAL(expected, ex.what())
   );
 }

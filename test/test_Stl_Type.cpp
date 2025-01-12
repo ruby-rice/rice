@@ -45,8 +45,14 @@ TESTCASE(TypeInfoName)
                         type_info = get_type_info(5)
                         type_info.name)";
 
+#ifdef _MSC_VER
+  const char* expected = "int"
+#else
+  const char* expected = "i";
+#endif
+
   String result = m.module_eval(code);
-  ASSERT_EQUAL("int", result.c_str());
+  ASSERT_EQUAL(expected, result.c_str());
 }
 
 TESTCASE(TypeInfoHash)
@@ -73,8 +79,14 @@ TESTCASE(TypeInfoParameter)
                         type_info = get_type_info(5)
                         get_type_info_name(type_info))";
 
+#ifdef _MSC_VER
+  const char* expected = "int"
+#else
+  const char* expected = "i";
+#endif
+
   String result = m.module_eval(code);
-  ASSERT_EQUAL("int", result.c_str());
+  ASSERT_EQUAL(expected, result.c_str());
 }
 
 TESTCASE(TypeIndexCreate)
@@ -87,8 +99,14 @@ TESTCASE(TypeIndexCreate)
                         type_info = get_type_info(5)
                         Rice::Std::TypeIndex.new(type_info))";
 
+#ifdef _MSC_VER
+  const char* expected = "int"
+#else
+  const char* expected = "i";
+#endif
+
   Data_Object<std::type_index> result = m.module_eval(code);
-  ASSERT_EQUAL("int", result->name());
+  ASSERT_EQUAL(expected, result->name());
 }
 
 TESTCASE(TypeIndexName)
@@ -102,8 +120,14 @@ TESTCASE(TypeIndexName)
                         type_index = get_type_index(type_info)
                         type_index.name)";
 
+#ifdef _MSC_VER
+  const char* expected = "int"
+#else
+  const char* expected = "i";
+#endif
+
   String result = m.module_eval(code);
-  ASSERT_EQUAL("int", result.str());
+  ASSERT_EQUAL(expected, result.str());
 }
 
 TESTCASE(TypeIndexHash)
