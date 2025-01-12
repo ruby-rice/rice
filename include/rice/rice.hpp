@@ -4996,23 +4996,30 @@ namespace Rice::detail
     auto stdRegex = std::regex("std::");
     base = std::regex_replace(base, stdRegex, "");
 
-    // Replace :: and capitalize the next letter
-    std::regex namespaceRegex(R"(::(\w))");
-    std::smatch namespaceMatch;
-    while (std::regex_search(base, namespaceMatch, namespaceRegex))
-    {
-      std::string replacement = namespaceMatch[1];
-      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
-      base.replace(namespaceMatch.position(), namespaceMatch.length(), replacement);
-    }
-
     // Replace " >" with ">"
     auto trailingAngleBracketSpaceRegex = std::regex(R"(\s+>)");
     replaceAll(base, trailingAngleBracketSpaceRegex, ">");
 
-    // Replace spaces with unicode U+2008 (Punctuation Space)
+    // One space after a comma (MSVC has no spaces, GCC one space)
+    auto commaSpaceRegex = std::regex(R"(,(\S))");
+    replaceAll(base, commaSpaceRegex, ", $1");
+
+    // Capitalize first letter
+    base[0] = std::toupper(base[0]);
+
+    // Replace :: or _ and capitalize the next letter
+    std::regex namespaceRegex(R"((_|::)(\w))");
+    std::smatch namespaceMatch;
+    while (std::regex_search(base, namespaceMatch, namespaceRegex))
+    {
+      std::string replacement = namespaceMatch[2];
+      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
+      base.replace(namespaceMatch.position(), namespaceMatch.length(), replacement);
+    }
+
+    // Replace spaces with unicode U+u00A0 (Non breaking Space)
     auto spaceRegex = std::regex(R"(\s+)");
-    replaceAll(base, spaceRegex, "\u2008");
+    replaceAll(base, spaceRegex, "\u00A0");
 
     // Replace < with unicode U+227A (Precedes)
     auto lessThanRegex = std::regex("<");
@@ -5024,13 +5031,9 @@ namespace Rice::detail
     //replaceAll(base, greaterThanRegex, u8"≻");
     replaceAll(base, greaterThanRegex, "\u227B");
 
-    // Replace , with Unicode Character (U+066C) - Arabic thousands separator
+    // Replace , with Unicode Character (U+066C) - Single Low-9 Quotation Mark
     auto commaRegex = std::regex(R"(,\s*)");
-    //replaceAll(base, greaterThanRegex, u8"٬");
-    replaceAll(base, commaRegex, "\u066C");
-
-    // Capitalize first letter
-    base[0] = std::toupper(base[0]);
+    replaceAll(base, commaRegex, "\u201A");
 
     return base;
   }
@@ -9100,7 +9103,7 @@ namespace Rice
     klass_ = klass;
 
     rb_data_type_ = new rb_data_type_t();
-    rb_data_type_->wrap_struct_name = _strdup(Rice::detail::protect(rb_class2name, klass_));
+    rb_data_type_->wrap_struct_name = strdup(Rice::detail::protect(rb_class2name, klass_));
     rb_data_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
     rb_data_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
     rb_data_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);

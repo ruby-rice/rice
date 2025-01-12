@@ -1414,8 +1414,8 @@ namespace Rice
     std::string name = detail::typeName(typeid(T));
     std::string klassName = detail::makeClassName(name);
     Module rb_mRice = define_module("Rice");
-    Module rb_mpair = define_module_under(rb_mRice, "Std");
-    return define_pair_under<T>(rb_mpair, klassName);
+    Module rb_mStd = define_module_under(rb_mRice, "Std");
+    return define_pair_under<T>(rb_mStd, klassName);
   }
    
   namespace detail
@@ -1732,8 +1732,8 @@ namespace Rice
     std::string name = detail::typeName(typeid(T));
     std::string klassName = detail::makeClassName(name);
     Module rb_mRice = define_module("Rice");
-    Module rb_mmap = define_module_under(rb_mRice, "Std");
-    return define_map_under<T>(rb_mmap, klassName);
+    Module rb_mStd = define_module_under(rb_mRice, "Std");
+    return define_map_under<T>(rb_mStd, klassName);
   }
    
   namespace detail
@@ -2253,8 +2253,8 @@ namespace Rice
     std::string name = detail::typeName(typeid(T));
     std::string klassName = detail::makeClassName(name);
     Module rb_mRice = define_module("Rice");
-    Module rb_munordered_map = define_module_under(rb_mRice, "Std");
-    return define_unordered_map_under<T>(rb_munordered_map, klassName);
+    Module rb_mStd = define_module_under(rb_mRice, "Std");
+    return define_unordered_map_under<T>(rb_mStd, klassName);
   }
    
   namespace detail
@@ -2892,8 +2892,8 @@ namespace Rice
     std::string name = detail::typeName(typeid(T));
     std::string klassName = detail::makeClassName(name);
     Module rb_mRice = define_module("Rice");
-    Module rb_mVector = define_module_under(rb_mRice, "Std");
-    return define_vector_under<T>(rb_mVector, klassName);
+    Module rb_mStd = define_module_under(rb_mRice, "Std");
+    return define_vector_under<T>(rb_mStd, klassName);
   }
    
   namespace detail
