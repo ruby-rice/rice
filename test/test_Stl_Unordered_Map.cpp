@@ -443,7 +443,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object unordered_map = m.module_eval("return_complex_unordered_map");
-  ASSERT_EQUAL(u8"Rice::Std::Unordered_map≺string≺char≻٬complex≺double≻≻",
+  ASSERT_EQUAL(u8"Rice::Std::Unordered_map≺string≺char≻‚ complex≺double≻≻",
                unordered_map.class_name().str());
 
   std::string code = R"(unordered_map = return_complex_unordered_map
@@ -470,7 +470,7 @@ TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_complex_unordered_map", &passComplexUnorderedMap);
 
-  std::string code = u8R"(unordered_map = Rice::Std::Unordered_map≺string≺char≻٬complex≺double≻≻.new
+  std::string code = u8R"(unordered_map = Rice::Std::Unordered_map≺string≺char≻‚ complex≺double≻≻.new
                           unordered_map["four"] = Complex(4.0, 4.0)
                           unordered_map["five"] = Complex(5.0, 5.0)
                           pass_complex_unordered_map(unordered_map))";
@@ -479,7 +479,7 @@ TESTCASE(AutoRegisterParameter)
   Object unordered_map = m.module_eval(code);
 
   Object result = unordered_map.call("size");
-  ASSERT_EQUAL(u8"Rice::Std::Unordered_map≺string≺char≻٬complex≺double≻≻",
+  ASSERT_EQUAL(u8"Rice::Std::Unordered_map≺string≺char≻‚ complex≺double≻≻",
                unordered_map.class_name().str());
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 

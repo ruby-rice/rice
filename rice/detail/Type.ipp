@@ -200,6 +200,10 @@ namespace Rice::detail
     auto ptrRegex = std::regex(R"(\s+\*)");
     base = std::regex_replace(base, ptrRegex, "*");
 
+    // One space after a comma
+    auto commaSpaceRegex = std::regex(R"(,\s{2,})");
+    replaceAll(base, commaSpaceRegex, ", ");
+
     // Remove __ptr64
     std::regex ptr64Regex(R"(\s*__ptr64\s*)");
     base = std::regex_replace(base, ptr64Regex, "");
@@ -222,9 +226,9 @@ namespace Rice::detail
     auto trailingAngleBracketSpaceRegex = std::regex(R"(\s+>)");
     replaceAll(base, trailingAngleBracketSpaceRegex, ">");
 
-    // Replace spaces with unicode U+2008 (Punctuation Space)
+    // Replace spaces with unicode U+u00A0 (Non breaking Space)
     auto spaceRegex = std::regex(R"(\s+)");
-    replaceAll(base, spaceRegex, "\u2008");
+    replaceAll(base, spaceRegex, "\u00A0");
 
     // Replace < with unicode U+227A (Precedes)
     auto lessThanRegex = std::regex("<");
@@ -236,10 +240,9 @@ namespace Rice::detail
     //replaceAll(base, greaterThanRegex, u8"≻");
     replaceAll(base, greaterThanRegex, "\u227B");
 
-    // Replace , with Unicode Character (U+066C) - Arabic thousands separator
+    // Replace , with Unicode Character (U+066C) - Single Low-9 Quotation Mark
     auto commaRegex = std::regex(R"(,\s*)");
-    //replaceAll(base, greaterThanRegex, u8"٬");
-    replaceAll(base, commaRegex, "\u066C");
+    replaceAll(base, commaRegex, "\u201A");
 
     // Capitalize first letter
     base[0] = std::toupper(base[0]);

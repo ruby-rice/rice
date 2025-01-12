@@ -431,10 +431,17 @@ TESTCASE(int_conversion_1)
   ASSERT_EQUAL("run<long>", result.str());
 
   code = R"(my_class = MyClass3.new
-            value = 2**32
+            value = 2**60
             my_class.run(value))";
   result = m.module_eval(code);
-  ASSERT_EQUAL("run<long long>", result.str());
+
+#ifdef _MSC_VER
+  const char* expected = "run<long long>";
+#else
+  const char* expected = "run<long>";
+#endif
+
+  ASSERT_EQUAL(expected, result.str());
 }
 
 TESTCASE(int_conversion_2)
@@ -453,7 +460,7 @@ TESTCASE(int_conversion_2)
   ASSERT_EQUAL("run<float>", result.str());
 
   code = R"(my_class = MyClass3.new
-            value = 2**32
+            value = 2**64
             my_class.run(value))";
 
   ASSERT_EXCEPTION_CHECK(
@@ -501,13 +508,13 @@ TESTCASE(int_conversion_4)
   ASSERT_EQUAL("run<short>", result.str());
 
   code = R"(my_class = MyClass3.new
-            value = 2**32
+            value = 2**42
             my_class.run(value))";
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("bignum too big to convert into `long'",
+    ASSERT_EQUAL("integer 4398046511104 too big to convert to `short'",
       ex.what()));
 }
 

@@ -63,15 +63,15 @@ TESTCASE(MakeClassName)
 
   typeName = detail::typeName(typeid(Outer::Inner::Vec2));
   className = detail::makeClassName(typeName);
-  ASSERT_EQUAL(u8"Vector≺unsigned char*≻", className.c_str());
+  ASSERT_EQUAL(u8"Vector≺unsigned char*≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::Map1));
   className = detail::makeClassName(typeName);
-  ASSERT_EQUAL(u8"Map≺string≺char≻٬vector≺complex≺float≻≻≻", className.c_str());
+  ASSERT_EQUAL(u8"Map≺string≺char≻‚ vector≺complex≺float≻≻≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::UnorderedMap1));
   className = detail::makeClassName(typeName);
-  ASSERT_EQUAL(u8"Unordered_map≺string≺char≻٬complex≺float≻≻", className.c_str());
+  ASSERT_EQUAL(u8"Unordered_map≺string≺char≻‚ complex≺float≻≻", className.c_str());
 }
 
 TESTCASE(MakeRubyClass)

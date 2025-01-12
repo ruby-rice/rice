@@ -107,7 +107,7 @@ TESTCASE(AutoRegister)
 
   Object pair = someClass.call("pair");
   String name = pair.class_name();
-  ASSERT_EQUAL(u8"Rice::Std::Pair≺string≺char≻٬double≻", detail::From_Ruby<std::string>().convert(name));
+  ASSERT_EQUAL(u8"Rice::Std::Pair≺string≺char≻‚ double≻", detail::From_Ruby<std::string>().convert(name));
 
   Class pairKlass1 = pair.class_of();
   Class pairKlass2 = Data_Type<std::pair<std::string, double>>::klass();
