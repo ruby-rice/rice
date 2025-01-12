@@ -60,7 +60,7 @@ add_executable (unittest
 			"test_Template.cpp"
 			"test_To_Ruby.cpp"
 			"test_Tracking.cpp"
-  		"test_Type.cpp"
+			"test_Type.cpp"
 			"test_Stl_Exception.cpp"
 			"test_Stl_Map.cpp"
 			"test_Stl_Optional.cpp"
