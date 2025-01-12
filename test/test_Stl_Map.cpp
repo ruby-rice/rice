@@ -433,8 +433,6 @@ namespace
 
 TESTCASE(AutoRegisterReturn)
 {
-  SetConsoleOutputCP(CP_UTF8);
-
   define_global_function("return_complex_map", &returnComplexMap);
 
   Module m = define_module("Testing");

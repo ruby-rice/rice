@@ -550,11 +550,6 @@ TESTCASE(AutoRegisterReturn)
 
 TESTCASE(AutoRegisterParameter)
 {
-#ifdef _WIN32
-  // Set console code page to UTF-8 so console known how to interpret string data
-  SetConsoleOutputCP(CP_UTF8);
-#endif
-
   define_global_function("pass_complex_vector", &passComplexVector);
 
   std::string code = u8R"(vector = Rice::Std::Vector≺complex≺double≻≻.new

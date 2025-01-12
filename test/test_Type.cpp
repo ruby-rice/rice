@@ -22,11 +22,6 @@ namespace Outer
 
 SETUP(Type)
 {
-#ifdef _WIN32
-  // Set console code page to UTF-8 so console known how to interpret string data
-  SetConsoleOutputCP(CP_UTF8);
-#endif
-
   embed_ruby();
 }
 
