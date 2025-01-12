@@ -200,10 +200,6 @@ namespace Rice::detail
     auto ptrRegex = std::regex(R"(\s+\*)");
     base = std::regex_replace(base, ptrRegex, "*");
 
-    // One space after a comma
-    auto commaSpaceRegex = std::regex(R"(,\s{2,})");
-    replaceAll(base, commaSpaceRegex, ", ");
-
     // Remove __ptr64
     std::regex ptr64Regex(R"(\s*__ptr64\s*)");
     base = std::regex_replace(base, ptr64Regex, "");
@@ -212,19 +208,26 @@ namespace Rice::detail
     auto stdRegex = std::regex("std::");
     base = std::regex_replace(base, stdRegex, "");
 
-    // Replace :: and capitalize the next letter
-    std::regex namespaceRegex(R"(::(\w))");
-    std::smatch namespaceMatch;
-    while (std::regex_search(base, namespaceMatch, namespaceRegex))
-    {
-      std::string replacement = namespaceMatch[1];
-      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
-      base.replace(namespaceMatch.position(), namespaceMatch.length(), replacement);
-    }
-
     // Replace " >" with ">"
     auto trailingAngleBracketSpaceRegex = std::regex(R"(\s+>)");
     replaceAll(base, trailingAngleBracketSpaceRegex, ">");
+
+    // One space after a comma (MSVC has no spaces, GCC one space)
+    auto commaSpaceRegex = std::regex(R"(,(\S))");
+    replaceAll(base, commaSpaceRegex, ", $1");
+
+    // Capitalize first letter
+    base[0] = std::toupper(base[0]);
+
+    // Replace :: or _ and capitalize the next letter
+    std::regex namespaceRegex(R"((_|::)(\w))");
+    std::smatch namespaceMatch;
+    while (std::regex_search(base, namespaceMatch, namespaceRegex))
+    {
+      std::string replacement = namespaceMatch[2];
+      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
+      base.replace(namespaceMatch.position(), namespaceMatch.length(), replacement);
+    }
 
     // Replace spaces with unicode U+u00A0 (Non breaking Space)
     auto spaceRegex = std::regex(R"(\s+)");
@@ -243,9 +246,6 @@ namespace Rice::detail
     // Replace , with Unicode Character (U+066C) - Single Low-9 Quotation Mark
     auto commaRegex = std::regex(R"(,\s*)");
     replaceAll(base, commaRegex, "\u201A");
-
-    // Capitalize first letter
-    base[0] = std::toupper(base[0]);
 
     return base;
   }

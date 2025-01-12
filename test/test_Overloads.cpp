@@ -511,11 +511,16 @@ TESTCASE(int_conversion_4)
             value = 2**42
             my_class.run(value))";
 
+#ifdef _MSC_VER
+  const char* expected = "bignum too big to convert into `long'";
+#else
+  const char* expected = "integer 4398046511104 too big to convert to `short'";
+#endif
+
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("integer 4398046511104 too big to convert to `short'",
-      ex.what()));
+    ASSERT_EQUAL(expected, ex.what()));
 }
 
 TESTCASE(int_conversion_5)

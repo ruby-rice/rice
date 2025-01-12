@@ -71,7 +71,7 @@ TESTCASE(MakeClassName)
 
   typeName = detail::typeName(typeid(Outer::Inner::UnorderedMap1));
   className = detail::makeClassName(typeName);
-  ASSERT_EQUAL(u8"Unordered_map≺string≺char≻‚ complex≺float≻≻", className.c_str());
+  ASSERT_EQUAL(u8"UnorderedMap≺string≺char≻‚ complex≺float≻≻", className.c_str());
 }
 
 TESTCASE(MakeRubyClass)

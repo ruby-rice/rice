@@ -46,7 +46,7 @@ TESTCASE(TypeInfoName)
                         type_info.name)";
 
 #ifdef _MSC_VER
-  const char* expected = "int"
+  const char* expected = "int";
 #else
   const char* expected = "i";
 #endif
@@ -80,7 +80,7 @@ TESTCASE(TypeInfoParameter)
                         get_type_info_name(type_info))";
 
 #ifdef _MSC_VER
-  const char* expected = "int"
+  const char* expected = "int";
 #else
   const char* expected = "i";
 #endif
@@ -100,7 +100,7 @@ TESTCASE(TypeIndexCreate)
                         Rice::Std::TypeIndex.new(type_info))";
 
 #ifdef _MSC_VER
-  const char* expected = "int"
+  const char* expected = "int";
 #else
   const char* expected = "i";
 #endif
@@ -121,7 +121,7 @@ TESTCASE(TypeIndexName)
                         type_index.name)";
 
 #ifdef _MSC_VER
-  const char* expected = "int"
+  const char* expected = "int";
 #else
   const char* expected = "i";
 #endif
