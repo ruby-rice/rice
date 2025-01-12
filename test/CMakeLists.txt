@@ -60,6 +60,7 @@ add_executable (unittest
 			"test_Template.cpp"
 			"test_To_Ruby.cpp"
 			"test_Tracking.cpp"
+  		"test_Type.cpp"
 			"test_Stl_Exception.cpp"
 			"test_Stl_Map.cpp"
 			"test_Stl_Optional.cpp"
@@ -69,7 +70,6 @@ add_executable (unittest
 			"test_Stl_String.cpp"
 			"test_Stl_String_View.cpp"
 			"test_Stl_Type.cpp"
-			"test_Type.cpp"
 			"test_Stl_Unordered_Map.cpp"
 			"test_Stl_Variant.cpp"
 			"test_Stl_Vector.cpp")
