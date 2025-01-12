@@ -281,8 +281,8 @@ namespace Rice
     std::string name = detail::typeName(typeid(T));
     std::string klassName = detail::makeClassName(name);
     Module rb_mRice = define_module("Rice");
-    Module rb_munordered_map = define_module_under(rb_mRice, "Std");
-    return define_unordered_map_under<T>(rb_munordered_map, klassName);
+    Module rb_mStd = define_module_under(rb_mRice, "Std");
+    return define_unordered_map_under<T>(rb_mStd, klassName);
   }
    
   namespace detail
