@@ -131,4 +131,7 @@
 // Dependent on Module, Class, Array and String
 #include "forward_declares.ipp"
 
+// For now include libc support - maybe should be separate header file someday
+#include "libc/file.hpp"
+
 #endif // Rice__hpp_

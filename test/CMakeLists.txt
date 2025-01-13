@@ -40,6 +40,7 @@ add_executable (unittest
 			"test_Director.cpp"
 			"test_Enum.cpp"
 			"test_Exception.cpp"
+			"test_File.cpp"
 			"test_From_Ruby.cpp"
 			"test_Hash.cpp"
 			"test_global_functions.cpp"
