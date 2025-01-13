@@ -1,6 +1,6 @@
 #include <typeindex>
 
-namespace Rice::Stl
+namespace Rice::stl
 {
   inline Data_Type<std::type_index> define_type_index()
   {
@@ -23,7 +23,7 @@ namespace Rice::detail
     {
       if (!detail::Registries::instance.types.isDefined<std::type_index>())
       {
-        Stl::define_type_index();
+        stl::define_type_index();
       }
 
       return true;
