@@ -10,6 +10,11 @@
 #include <typeinfo>
 #include <typeindex>
 
+#ifdef _MSC_VER
+  // Prevent _strdup deprecated message on MSVC
+  #define strdup _strdup 
+#endif
+
 // Traits
 #include "traits/rice_traits.hpp"
 #include "traits/function_traits.hpp"
