@@ -16,7 +16,7 @@ TEARDOWN(Exception)
   rb_gc_start();
 }
 
-/*TESTCASE(construct_from_exception_object)
+TESTCASE(construct_from_exception_object)
 {
   VALUE v = detail::protect(rb_exc_new2, rb_eRuntimeError, "foo");
   Exception ex(v);
@@ -48,7 +48,7 @@ TESTCASE(what)
   const char* foo = "foo";
   Exception ex(rb_eRuntimeError, "%s", "foo");
   ASSERT_EQUAL(foo, ex.what());
-}*/
+}
 
 namespace
 {
