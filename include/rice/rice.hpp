@@ -1,11 +1,7 @@
 #ifndef Rice__hpp_
 #define Rice__hpp_
 
-#include <typeinfo>
-#include <typeindex>
-#include <string>
-
-// Traits
+// Ruby
 
 // =========   ruby.hpp   =========
 
@@ -60,6 +56,14 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 
 
 
+
+// C++ headers -h has to come after Ruby on MacOS for reasons I do not understand
+#include <cstdio>
+#include <string>
+#include <typeinfo>
+#include <typeindex>
+
+// Traits
 
 // =========   rice_traits.hpp   =========
 
@@ -4960,28 +4964,32 @@ namespace Rice::detail
     auto stdClangRegex = std::regex("std::__[^:]+::");
     base = std::regex_replace(base, stdClangRegex, "");
       
+    // Remove std::
+    auto stdRegex = std::regex("std::");
+    base = std::regex_replace(base, stdRegex, "");
+
     // Replace basic_string with string
     auto basicStringRegex = std::regex(R"(basic_string)");
     replaceAll(base, basicStringRegex, "string");
-
+      
     // Remove allocators
-    std::regex allocatorRegex(R"(,\s*std::allocator)");
+    std::regex allocatorRegex(R"(,\s*allocator)");
     removeGroup(base, allocatorRegex);
 
     // Remove char_traits
-    std::regex charTraitsRegex(R"(,\s*std::char_traits)");
+    std::regex charTraitsRegex(R"(,\s*char_traits)");
     removeGroup(base, charTraitsRegex);
 
     // Remove less (std::map)
-    std::regex lessRegex(R"(,\s*std::less)");
+    std::regex lessRegex(R"(,\s*less)");
     removeGroup(base, lessRegex);
 
     // Remove hash (std::unordered_map)
-    std::regex hashRegex(R"(,\s*std::hash)");
+    std::regex hashRegex(R"(,\s*hash)");
     removeGroup(base, hashRegex);
 
     // Remove equal_to (std::unordered_map)
-    std::regex equalRegex(R"(,\s*std::equal_to)");
+    std::regex equalRegex(R"(,\s*equal_to)");
     removeGroup(base, equalRegex);
 
     // Remove spaces before pointers
@@ -4991,10 +4999,6 @@ namespace Rice::detail
     // Remove __ptr64
     std::regex ptr64Regex(R"(\s*__ptr64\s*)");
     base = std::regex_replace(base, ptr64Regex, "");
-
-    // Remove std::
-    auto stdRegex = std::regex("std::");
-    base = std::regex_replace(base, stdRegex, "");
 
     // Replace " >" with ">"
     auto trailingAngleBracketSpaceRegex = std::regex(R"(\s+>)");
@@ -6916,7 +6920,7 @@ namespace Rice
     size_t size = std::snprintf(nullptr, 0, fmt, std::forward<Arg_Ts>(args)...);
     std::string temp(size, '\0');
 
-    // size+1 avoids trunctaing the string. Otherwise snprintf writes n - 1 characters
+    // size+1 avoids truncating the string. Otherwise snprintf writes n - 1 characters
     // to allow space for null character but we don't need that since std::string
     // will add a null character internally at n + 1
     std::snprintf(&temp[0], size + 1, fmt, std::forward<Arg_Ts>(args)...);
