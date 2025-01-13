@@ -1,4 +1,3 @@
-
 #include <stdexcept>
 
 namespace Rice
@@ -204,88 +203,78 @@ namespace Rice
   }
 
   template<typename T>
-  Rice::Data_Type<T> define_class_under(Object module, char const* name, Class superKlass)
+  inline bool Data_Type<T>::is_defined(Object parent, const std::string& name)
   {
     // Is the class already defined?
     if (detail::Registries::instance.types.isDefined<T>())
     {
       Data_Type<T> result = Data_Type<T>();
-      // If this redefinition is a different name then create a new constant
-      if (result.name().c_str() != name)
-      {
-        detail::protect(rb_define_const, module, name, result.klass());
-      }
-      return Data_Type<T>();
-    }
 
-    Class c = define_class_under(module, name, superKlass);
-    c.undef_creation_funcs();
-    return Data_Type<T>::template bind(c);
+      // If this redefinition is a different name then create a new constant
+      if (result.name() != name)
+      {
+        detail::protect(rb_define_const, parent, name.c_str(), result.klass());
+      }
+
+      return true;
+    }
+    return false;
   }
-
-  template<typename T, typename Base_T>
-  inline Data_Type<T> define_class_under(Object module, char const* name)
+  
+  template<typename Base_T>
+  inline Class get_superklass()
   {
-    // Is the class already defined?
-    if (detail::Registries::instance.types.isDefined<T>())
-    {
-      Data_Type<T> result = Data_Type<T>();
-      // If this redefinition is a different name then create a new constant
-      if (result.name().c_str() != name)
-      {
-        detail::protect(rb_define_const, module, name, result.klass());
-      }
-      return Data_Type<T>();
-    }
-    
-    Class superKlass;
+    Class result;
 
     if constexpr (std::is_void_v<Base_T>)
     {
-      superKlass = rb_cObject;
+      result = rb_cObject;
     }
     else
     {
       // This gives a chance for to auto-register classes such as std::exception
       detail::verifyType<Base_T>();
-      superKlass = Data_Type<Base_T>::klass();
+      result = Data_Type<Base_T>::klass();
     }
-    
-    Class c = define_class_under(module, name, superKlass);
-    c.undef_creation_funcs();
-    return Data_Type<T>::template bind<Base_T>(c);
+
+    return result;
   }
 
+  template<typename T, typename Base_T>
+  inline Data_Type<T> define_class_under(Object parent, Identifier id, Class superKlass)
+  {
+    if (Rice::Data_Type<T>::is_defined(parent, id.str()))
+    {
+      return Data_Type<T>();
+    }
+
+    Class klass = define_class_under(parent, id, superKlass);
+    klass.undef_creation_funcs();
+    return Data_Type<T>::template bind<Base_T>(klass);
+  }
+
+  template<typename T, typename Base_T>
+  inline Data_Type<T> define_class_under(Object parent, char const* name)
+  {
+    Identifier id(name);
+    Class superKlass = get_superklass<Base_T>();
+    return define_class_under<T, Base_T>(parent, id, superKlass);
+  }
+  
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class(char const* name)
   {
-    // Is the class already defined?
-    if (detail::Registries::instance.types.isDefined<T>())
+    std::string klassName(name);
+
+    if (Rice::Data_Type<T>::is_defined(rb_cObject, klassName))
     {
-      Data_Type<T> result = Data_Type<T>();
-      // If this redefinition is a different name then create a new constant
-      if (result.name().c_str() != name)
-      {
-        detail::protect(rb_define_const, rb_cObject, name, result.klass());
-      }
       return Data_Type<T>();
     }
 
-    Class superKlass;
-    if constexpr (std::is_void_v<Base_T>)
-    {
-      superKlass = rb_cObject;
-    }
-    else
-    {
-      // This gives a chance for to auto-register classes such as std::exception
-      detail::verifyType<Base_T>();
-      superKlass = Data_Type<Base_T>::klass();
-    }
-
-    Class c = define_class(name, superKlass);
-    c.undef_creation_funcs();
-    return Data_Type<T>::template bind<Base_T>(c);
+    Class superKlass = get_superklass<Base_T>();
+    Class klass = define_class(name, superKlass);
+    klass.undef_creation_funcs();
+    return Data_Type<T>::template bind<Base_T>(klass);
   }
 
   template<typename T>

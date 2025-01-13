@@ -44,6 +44,23 @@ namespace Rice::detail
     return iter != registry_.end();
   }
 
+  template <typename T>
+  std::pair<VALUE, rb_data_type_t*> TypeRegistry::getType()
+  {
+    std::type_index key(typeid(T));
+    auto iter = registry_.find(key);
+    if (iter != registry_.end())
+    {
+      return iter->second;
+    }
+    else
+    {
+      this->raiseUnverifiedType(typeid(T).name());
+      // Make compiler happy
+      return std::make_pair(Qnil, nullptr);
+    }
+  }
+
   // Special case void. See comment for add above.
   template <>
   inline bool TypeRegistry::isDefined<void>()

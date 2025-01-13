@@ -1,8 +1,16 @@
 #ifndef Rice__hpp_
 #define Rice__hpp_
 
-// Traits
+// Ruby
 #include "detail/ruby.hpp"
+
+// C++ headers -h has to come after Ruby on MacOS for reasons I do not understand
+#include <cstdio>
+#include <string>
+#include <typeinfo>
+#include <typeindex>
+
+// Traits
 #include "traits/rice_traits.hpp"
 #include "traits/function_traits.hpp"
 #include "traits/method_traits.hpp"
@@ -18,18 +26,18 @@
 #include "detail/RubyFunction.ipp"
 
 // C++ API declarations
+#include "detail/Type.hpp"
 #include "cpp_api/Encoding.hpp"
 #include "cpp_api/Identifier.hpp"
 #include "cpp_api/Identifier.ipp"
 #include "cpp_api/Object.hpp"
 #include "cpp_api/Builtin_Object.hpp"
 #include "cpp_api/String.hpp"
+#include "cpp_api/Symbol.hpp"
 #include "cpp_api/Array.hpp"
 #include "cpp_api/Hash.hpp"
-#include "cpp_api/Symbol.hpp"
 
 // Type Conversion declarations
-#include "detail/Type.hpp"
 #include "detail/RubyType.hpp"
 #include "detail/RubyType.ipp"
 #include "detail/Wrapper.hpp"

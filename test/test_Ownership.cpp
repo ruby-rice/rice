@@ -301,3 +301,37 @@ TESTCASE(MoveValue)
   ASSERT_EQUAL(30, MyClass::destructorCalls);
   ASSERT(!Factory::instance_);
 }
+
+namespace
+{
+  class MyClassNotCopyable
+  {
+  public:
+    MyClassNotCopyable() = default;
+    MyClassNotCopyable(const MyClassNotCopyable& other) = delete;
+    MyClassNotCopyable(MyClassNotCopyable&& other) = delete;
+    int value;
+  };
+}
+
+TESTCASE(NotCopyable)
+{
+  Class c = define_class<MyClassNotCopyable>("MyClassNotCopyable")
+    .define_constructor(Constructor<MyClassNotCopyable>())
+    .define_attr("value", &MyClassNotCopyable::value);
+
+  MyClassNotCopyable instance;
+
+#ifdef _MSC_VER
+  const char* expected = "Ruby was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: class `anonymous namespace'::MyClassNotCopyable";
+#else
+  const char* expected = "Ruby was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: (anonymous namespace)::MyClassNotCopyable";
+#endif
+
+  // Trying to take ownership should fail
+  ASSERT_EXCEPTION_CHECK(
+    std::runtime_error,
+    Data_Object<MyClassNotCopyable>(instance, true),
+    ASSERT_EQUAL(expected, ex.what())
+  );
+}

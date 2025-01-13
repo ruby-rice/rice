@@ -19,7 +19,7 @@
         },
         {
             "name": "x64-debug",
-            "displayName": "x64 Debug",
+            "displayName": "MSVC++ Debug",
             "inherits": "windows-base",
             "architecture": {
                 "value": "x64",
@@ -54,6 +54,21 @@
           "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
             "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"
           }
+        }
+      },
+      {
+        "name": "x64_debug_clang",
+        "displayName": "Clang Debug",
+        "description": "Target Windows (64-bit) with the Visual Studio development environment. (Debug)",
+        "inherits": "windows-base",
+        "architecture": {
+          "value": "x64",
+          "strategy": "external"
+        },
+        "cacheVariables": {
+          "CMAKE_BUILD_TYPE": "Debug",
+          "CMAKE_C_COMPILER": "clang.exe",
+          "CMAKE_CXX_COMPILER": "clang.exe"
         }
       }
     ]

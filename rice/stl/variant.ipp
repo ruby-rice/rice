@@ -61,13 +61,15 @@ namespace Rice::detail
 
       VALUE result = Qnil;
 
-      #ifdef __GNUC__
+      #if defined(__GNUC__) || defined(__clang__)
       #pragma GCC diagnostic push
       #pragma GCC diagnostic ignored "-Wunused-value"
       #endif
+
       ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
                (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
-      #ifdef __GNUC__
+      
+      #if defined(__GNUC__) || defined(__clang__)
       #pragma GCC diagnostic pop
       #endif
 
@@ -100,13 +102,15 @@ namespace Rice::detail
       // See comments above for explanation of this code
       VALUE result = Qnil;
 
-      #ifdef __GNUC__
+      #if defined(__GNUC__) || defined(__clang__)
       #pragma GCC diagnostic push
       #pragma GCC diagnostic ignored "-Wunused-value"
       #endif
+
       ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
         (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
-      #ifdef __GNUC__
+
+      #if defined(__GNUC__) || defined(__clang__)
       #pragma GCC diagnostic pop
       #endif
 
@@ -152,7 +156,7 @@ namespace Rice::detail
           {
             index = i;
           }
-          else if (isConvertible == Convertible::TypeCast && index == -1)
+          else if (isConvertible == Convertible::Cast && index == -1)
           {
             index = i;
           }

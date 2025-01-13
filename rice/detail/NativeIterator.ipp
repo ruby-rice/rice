@@ -2,7 +2,6 @@
 #include <functional>
 #include <type_traits>
 
-
 namespace Rice::detail
 {
   template <typename T, typename Iterator_Func_T>

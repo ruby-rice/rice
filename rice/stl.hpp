@@ -10,6 +10,7 @@
 #include "stl/smart_ptr.hpp"
 #include "stl/monostate.hpp"
 #include "stl/type_index.hpp"
+#include "stl/type_info.hpp"
 #include "stl/variant.hpp"
 #include "stl/pair.hpp"
 #include "stl/map.hpp"

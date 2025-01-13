@@ -244,17 +244,17 @@ namespace Rice
   } // namespace
 
   template<typename T>
-  Data_Type<T> define_unordered_map_under(Object module, std::string name)
+  Data_Type<T> define_unordered_map_under(Object parent, std::string name)
   {
     if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the unordered_map has been previously seen it will be registered but may
       // not be associated with the constant Module::<name>
-      module.const_set_maybe(name, Data_Type<T>().klass());
+      parent.const_set_maybe(name, Data_Type<T>().klass());
       return Data_Type<T>();
     }
 
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(module, name.c_str());
+    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(parent, name.c_str());
     stl::UnorderedMapHelper helper(result);
     return result;
   }
@@ -278,10 +278,11 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_unordered_map_auto()
   {
-    std::string klassName = detail::makeClassName(typeid(T));
+    std::string name = detail::typeName(typeid(T));
+    std::string klassName = detail::makeClassName(name);
     Module rb_mRice = define_module("Rice");
-    Module rb_munordered_map = define_module_under(rb_mRice, "Std");
-    return define_unordered_map_under<T>(rb_munordered_map, klassName);
+    Module rb_mStd = define_module_under(rb_mRice, "Std");
+    return define_unordered_map_under<T>(rb_mStd, klassName);
   }
    
   namespace detail
@@ -350,7 +351,7 @@ namespace Rice
             return Convertible::Exact;
             break;
           case RUBY_T_HASH:
-            return Convertible::TypeCast;
+            return Convertible::Cast;
             break;
           default:
             return Convertible::None;
@@ -411,7 +412,7 @@ namespace Rice
             return Convertible::Exact;
             break;
           case RUBY_T_HASH:
-            return Convertible::TypeCast;
+            return Convertible::Cast;
             break;
           default:
             return Convertible::None;
@@ -471,7 +472,7 @@ namespace Rice
             return Convertible::Exact;
             break;
           case RUBY_T_HASH:
-            return Convertible::TypeCast;
+            return Convertible::Cast;
             break;
           default:
             return Convertible::None;

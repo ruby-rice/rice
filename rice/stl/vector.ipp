@@ -126,41 +126,71 @@ namespace Rice
       {
         // Access methods
         klass_.define_method("first", [](const T& vector) -> std::optional<Value_T>
+        {
+          if (vector.size() > 0)
+          {
+            return vector.front();
+          }
+          else
+          {
+            return std::nullopt;
+          }
+        })
+        .define_method("last", [](const T& vector) -> std::optional<Value_T>
           {
             if (vector.size() > 0)
             {
-              return vector.front();
+              return vector.back();
             }
             else
             {
               return std::nullopt;
             }
           })
-          .define_method("last", [](const T& vector) -> std::optional<Value_T>
+        .define_method("[]", [this](const T& vector, Difference_T index) -> std::optional<Value_T>
+          {
+            index = normalizeIndex(vector.size(), index);
+            if (index < 0 || index >= (Difference_T)vector.size())
             {
-              if (vector.size() > 0)
+              return std::nullopt;
+            }
+            else
+            {
+              return vector[index];
+            }
+          })
+        .define_method("[]", [this](const T& vector, Difference_T start, Difference_T length) -> VALUE
+          {
+            start = normalizeIndex(vector.size(), start);
+            if (start < 0 || start >= (Difference_T)vector.size())
+            {
+              return rb_ary_new();
+            }
+            else
+            {
+              auto begin = vector.begin() + start;
+
+              // Ruby does not throw an exception when the length is too long
+              if (start + length > vector.size())
               {
-                return vector.back();
+                length = vector.size() - start;
               }
-              else
+
+              auto finish = vector.begin() + start + length;
+              T slice(begin, finish);
+
+              VALUE result = rb_ary_new();
+              std::for_each(slice.begin(), slice.end(), [&result](const Reference_T element)
               {
-                return std::nullopt;
-              }
-            })
-            .define_method("[]", [this](const T& vector, Difference_T index) -> std::optional<Value_T>
-              {
-                index = normalizeIndex(vector.size(), index);
-                if (index < 0 || index >= (Difference_T)vector.size())
-                {
-                  return std::nullopt;
-                }
-                else
-                {
-                  return vector[index];
-                }
+                VALUE value = detail::To_Ruby<Parameter_T>().convert(element);
+                rb_ary_push(result, value);
               });
 
-            rb_define_alias(klass_, "at", "[]");
+              return result;
+            }
+          }, Return().setValue());
+
+          rb_define_alias(klass_, "at", "[]");
       }
 
       // Methods that require Value_T to support operator==
@@ -328,18 +358,19 @@ namespace Rice
   } // namespace
 
   template<typename T>
-  Data_Type<T> define_vector_under(Object module, std::string name)
+  Data_Type<T> define_vector_under(Object parent, std::string name)
   {
     if (detail::Registries::instance.types.isDefined<T>())
     {
       // If the vector has been previously seen it will be registered but may
       // not be associated with the constant Module::<name>
-      module.const_set_maybe(name, Data_Type<T>().klass());
+      parent.const_set_maybe(name, Data_Type<T>().klass());
 
       return Data_Type<T>();
     }
 
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(module, name.c_str());
+    Identifier id(name);
+    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(parent, id, rb_cObject);
     stl::VectorHelper helper(result);
     return result;
   }
@@ -364,10 +395,11 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector_auto()
   {
-    std::string klassName = detail::makeClassName(typeid(T));
+    std::string name = detail::typeName(typeid(T));
+    std::string klassName = detail::makeClassName(name);
     Module rb_mRice = define_module("Rice");
-    Module rb_mVector = define_module_under(rb_mRice, "Std");
-    return define_vector_under<T>(rb_mVector, klassName);
+    Module rb_mStd = define_module_under(rb_mRice, "Std");
+    return define_vector_under<T>(rb_mStd, klassName);
   }
    
   namespace detail
@@ -388,20 +420,6 @@ namespace Rice
       }
     };
 
-    template<typename T>
-    std::vector<T> vectorFromArray(VALUE value)
-    {
-      long length = protect(rb_array_len, value);
-      std::vector<T> result(length);
-
-      for (long i = 0; i < length; i++)
-      {
-        VALUE element = protect(rb_ary_entry, value, i);
-        result[i] = From_Ruby<T>().convert(element);
-      }
-
-      return result;
-    }
 
     template<typename T>
     class From_Ruby<std::vector<T>>
@@ -421,7 +439,7 @@ namespace Rice
             return Convertible::Exact;
             break;
           case RUBY_T_ARRAY:
-            return Convertible::TypeCast;
+            return Convertible::Cast;
             break;
           default:
             return Convertible::None;
@@ -442,7 +460,7 @@ namespace Rice
             // If this an Ruby array and the vector type is copyable
             if constexpr (std::is_default_constructible_v<T>)
             {
-              return vectorFromArray<T>(value);
+              return Array(value).to_vector<T>();
             }
           }
           case RUBY_T_NIL:
@@ -482,7 +500,7 @@ namespace Rice
             return Convertible::Exact;
             break;
           case RUBY_T_ARRAY:
-            return Convertible::TypeCast;
+            return Convertible::Cast;
             break;
           default:
             return Convertible::None;
@@ -503,7 +521,7 @@ namespace Rice
             // If this an Ruby array and the vector type is copyable
             if constexpr (std::is_default_constructible_v<T>)
             {
-              this->converted_ = vectorFromArray<T>(value);
+              this->converted_ = Array(value).to_vector<T>();
               return this->converted_;
             }
           }
@@ -542,7 +560,7 @@ namespace Rice
             return Convertible::Exact;
             break;
           case RUBY_T_ARRAY:
-            return Convertible::TypeCast;
+            return Convertible::Cast;
             break;
           default:
             return Convertible::None;
@@ -563,7 +581,7 @@ namespace Rice
             // If this a Ruby array and the vector type is copyable
             if constexpr (std::is_default_constructible_v<T>)
             {
-              this->converted_ = vectorFromArray<T>(value);
+              this->converted_ = Array(value).to_vector<T>();
               return &this->converted_;
             }
           }

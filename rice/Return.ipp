@@ -1,5 +1,4 @@
 #include <any>
-#include <string>
 
 namespace Rice
 {

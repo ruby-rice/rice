@@ -1,8 +1,6 @@
 #ifndef Rice__Identifier__hpp_
 #define Rice__Identifier__hpp_
 
-#include <string>
-
 namespace Rice
 {
   class Symbol;

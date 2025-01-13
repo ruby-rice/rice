@@ -34,7 +34,7 @@ namespace Rice
     size_t size = std::snprintf(nullptr, 0, fmt, std::forward<Arg_Ts>(args)...);
     std::string temp(size, '\0');
 
-    // size+1 avoids trunctaing the string. Otherwise snprintf writes n - 1 characters
+    // size+1 avoids truncating the string. Otherwise snprintf writes n - 1 characters
     // to allow space for null character but we don't need that since std::string
     // will add a null character internally at n + 1
     std::snprintf(&temp[0], size + 1, fmt, std::forward<Arg_Ts>(args)...);

@@ -7,7 +7,7 @@ namespace Rice
     class To_Ruby<void>
     {
     public:
-      VALUE convert(void const*)
+      VALUE convert(const void*)
       {
         throw std::runtime_error("Converting from void pointer is not implemented");
         return Qnil;
@@ -28,12 +28,12 @@ namespace Rice
     class To_Ruby<short>
     {
     public:
-      VALUE convert(short const& x)
+      VALUE convert(const short& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_int2num_inline, (int)x);
+        return protect(rb_int2num_inline, (int)native);
 #else
-        return RB_INT2NUM(x);
+        return RB_INT2NUM(native);
 #endif
       }
     };
@@ -42,12 +42,12 @@ namespace Rice
     class To_Ruby<short&>
     {
     public:
-      VALUE convert(short const& x)
+      VALUE convert(const short& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_int2num_inline, (int)x);
+        return protect(rb_int2num_inline, (int)native);
 #else
-        return RB_INT2NUM(x);
+        return RB_INT2NUM(native);
 #endif
       }
     };
@@ -56,12 +56,21 @@ namespace Rice
     class To_Ruby<int>
     {
     public:
-      VALUE convert(int const& x)
+      VALUE convert(const int& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_int2num_inline, (int)x);
+        return protect(rb_int2num_inline, (int)native);
 #else
-        return RB_INT2NUM(x);
+        return RB_INT2NUM(native);
+#endif
+      }
+
+      VALUE convert(const volatile int& native)
+      {
+#ifdef rb_int2num_inline
+        return protect(rb_int2num_inline, (int)native);
+#else
+        return RB_INT2NUM(native);
 #endif
       }
     };
@@ -70,12 +79,12 @@ namespace Rice
     class To_Ruby<int&>
     {
     public:
-      VALUE convert(int const& x)
+      VALUE convert(const int& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_int2num_inline, (int)x);
+        return protect(rb_int2num_inline, (int)native);
 #else
-        return RB_INT2NUM(x);
+        return RB_INT2NUM(native);
 #endif
       }
     };
@@ -84,9 +93,9 @@ namespace Rice
     class To_Ruby<long>
     {
     public:
-      VALUE convert(long const& x)
+      VALUE convert(const long& native)
       {
-        return protect(rb_long2num_inline, x);
+        return protect(rb_long2num_inline, native);
       }
     };
 
@@ -94,9 +103,9 @@ namespace Rice
     class To_Ruby<long&>
     {
     public:
-      VALUE convert(long const& x)
+      VALUE convert(const long& native)
       {
-        return protect(rb_long2num_inline, x);
+        return protect(rb_long2num_inline, native);
       }
     };
 
@@ -104,9 +113,9 @@ namespace Rice
     class To_Ruby<long long>
     {
     public:
-      VALUE convert(long long const& x)
+      VALUE convert(const long long& native)
       {
-        return protect(rb_ll2inum, x);
+        return protect(rb_ll2inum, native);
       }
     };
 
@@ -114,9 +123,9 @@ namespace Rice
     class To_Ruby<long long&>
     {
     public:
-      VALUE convert(long long const& x)
+      VALUE convert(const long long& native)
       {
-        return protect(rb_ll2inum, x);
+        return protect(rb_ll2inum, native);
       }
     };
 
@@ -124,12 +133,12 @@ namespace Rice
     class To_Ruby<unsigned short>
     {
     public:
-      VALUE convert(unsigned short const& x)
+      VALUE convert(const unsigned short& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_uint2num_inline, (unsigned int)x);
+        return protect(rb_uint2num_inline, (unsigned int)native);
 #else
-        return RB_UINT2NUM(x);
+        return RB_UINT2NUM(native);
 #endif
       }
     };
@@ -138,12 +147,12 @@ namespace Rice
     class To_Ruby<unsigned short&>
     {
     public:
-      VALUE convert(unsigned short const& x)
+      VALUE convert(const unsigned short& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_uint2num_inline, (unsigned int)x);
+        return protect(rb_uint2num_inline, (unsigned int)native);
 #else
-        return RB_UINT2NUM(x);
+        return RB_UINT2NUM(native);
 #endif
       }
     };
@@ -152,12 +161,12 @@ namespace Rice
     class To_Ruby<unsigned int>
     {
     public:
-      VALUE convert(unsigned int const& x)
+      VALUE convert(const unsigned int& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_uint2num_inline, (unsigned int)x);
+        return protect(rb_uint2num_inline, (unsigned int)native);
 #else
-        return RB_UINT2NUM(x);
+        return RB_UINT2NUM(native);
 #endif
       }
     };
@@ -166,12 +175,12 @@ namespace Rice
     class To_Ruby<unsigned int&>
     {
     public:
-      VALUE convert(unsigned int const& x)
+      VALUE convert(const unsigned int& native)
       {
 #ifdef rb_int2num_inline
-        return protect(rb_uint2num_inline, (unsigned int)x);
+        return protect(rb_uint2num_inline, (unsigned int)native);
 #else
-        return RB_UINT2NUM(x);
+        return RB_UINT2NUM(native);
 #endif
       }
     };
@@ -186,15 +195,15 @@ namespace Rice
       {
       }
 
-      VALUE convert(unsigned long const& x)
+      VALUE convert(const unsigned long& native)
       {
         if (this->returnInfo_ && this->returnInfo_->isValue())
         {
-          return x;
+          return native;
         }
         else
         {
-          return protect(rb_ulong2num_inline, x);
+          return protect(rb_ulong2num_inline, native);
         }
       }
 
@@ -212,15 +221,15 @@ namespace Rice
       {
       }
 
-      VALUE convert(unsigned long const& x)
+      VALUE convert(const unsigned long& native)
       {
         if (this->returnInfo_ && this->returnInfo_->isValue())
         {
-          return x;
+          return native;
         }
         else
         {
-          return protect(rb_ulong2num_inline, x);
+          return protect(rb_ulong2num_inline, native);
         }
       }
 
@@ -238,18 +247,29 @@ namespace Rice
       {
       }
 
-      VALUE convert(unsigned long long const& x)
+      VALUE convert(const unsigned long long& native)
       {
         if (this->returnInfo_ && this->returnInfo_->isValue())
         {
-          return x;
+          return native;
         }
         else
         {
-          return protect(rb_ull2inum, (unsigned long long)x);
+          return protect(rb_ull2inum, (unsigned long long)native);
         }
       }
 
+      VALUE convert(const volatile unsigned long long& native)
+      {
+        if (this->returnInfo_ && this->returnInfo_->isValue())
+        {
+          return native;
+        }
+        else
+        {
+          return protect(rb_ull2inum, (unsigned long long)native);
+        }
+      }
     private:
       Return* returnInfo_ = nullptr;
     };
@@ -264,15 +284,15 @@ namespace Rice
       {
       }
 
-      VALUE convert(unsigned long long const& x)
+      VALUE convert(const unsigned long long& native)
       {
         if (this->returnInfo_ && this->returnInfo_->isValue())
         {
-          return x;
+          return native;
         }
         else
         {
-          return protect(rb_ull2inum, (unsigned long long)x);
+          return protect(rb_ull2inum, (unsigned long long)native);
         }
       }
 
@@ -284,9 +304,9 @@ namespace Rice
     class To_Ruby<float>
     {
     public:
-      VALUE convert(float const& x)
+      VALUE convert(const float& native)
       {
-        return protect(rb_float_new, (double)x);
+        return protect(rb_float_new, (double)native);
       }
     };
 
@@ -294,9 +314,9 @@ namespace Rice
     class To_Ruby<float&>
     {
     public:
-      VALUE convert(float const& x)
+      VALUE convert(const float& native)
       {
-        return protect(rb_float_new, (double)x);
+        return protect(rb_float_new, (double)native);
       }
     };
 
@@ -304,9 +324,9 @@ namespace Rice
     class To_Ruby<double>
     {
     public:
-      VALUE convert(double const& x)
+      VALUE convert(const double& native)
       {
-        return protect(rb_float_new, x);
+        return protect(rb_float_new, native);
       }
     };
 
@@ -314,9 +334,9 @@ namespace Rice
     class To_Ruby<double&>
     {
     public:
-      VALUE convert(double const& x)
+      VALUE convert(const double& native)
       {
-        return protect(rb_float_new, x);
+        return protect(rb_float_new, native);
       }
     };
 
@@ -324,9 +344,9 @@ namespace Rice
     class To_Ruby<bool>
     {
     public:
-      VALUE convert(bool const& x)
+      VALUE convert(const bool& native)
       {
-        return x ? Qtrue : Qfalse;
+        return native ? Qtrue : Qfalse;
       }
     };
 
@@ -334,9 +354,9 @@ namespace Rice
     class To_Ruby<bool&>
     {
     public:
-      VALUE convert(bool const& x)
+      VALUE convert(const bool& native)
       {
-        return x ? Qtrue : Qfalse;
+        return native ? Qtrue : Qfalse;
       }
     };
 
@@ -344,9 +364,9 @@ namespace Rice
     class To_Ruby<char>
     {
     public:
-      VALUE convert(char const& x)
+      VALUE convert(const char& native)
       {
-        return To_Ruby<int>().convert(x);
+        return To_Ruby<int>().convert(native);
       }
     };
 
@@ -354,49 +374,9 @@ namespace Rice
     class To_Ruby<char&>
     {
     public:
-      VALUE convert(char const& x)
+      VALUE convert(const char& native)
       {
-        return To_Ruby<int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<unsigned char>
-    {
-    public:
-      VALUE convert(unsigned char const& x)
-      {
-        return To_Ruby<unsigned int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<unsigned char&>
-    {
-    public:
-      VALUE convert(unsigned char const& x)
-      {
-        return To_Ruby<unsigned int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<signed char>
-    {
-    public:
-      VALUE convert(signed char const& x)
-      {
-        return To_Ruby<signed int>().convert(x);
-      }
-    };
-
-    template<>
-    class To_Ruby<signed char&>
-    {
-    public:
-      VALUE convert(signed char const& x)
-      {
-        return To_Ruby<signed int>().convert(x);
+        return To_Ruby<int>().convert(native);
       }
     };
 
@@ -404,7 +384,13 @@ namespace Rice
     class To_Ruby<char*>
     {
     public:
-      VALUE convert(char const* buffer)
+      To_Ruby() = default;
+
+      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+      {
+      }
+
+      VALUE convert(const char* buffer)
       {
         if (!buffer)
         {
@@ -419,32 +405,85 @@ namespace Rice
           delete[] symbol;
           return protect(rb_id2sym, id);
         }
+        else if (this->returnInfo_ && this->returnInfo_->isOwner())
+        {
+          // This copies the buffer but does not free it. So Ruby is not really
+          // taking ownership of it. But there isn't a Ruby API for creating a string
+          // from an existing buffer and later freeing it.
+          return protect(rb_usascii_str_new_cstr, buffer);
+        }
         else
         {
-          return protect(rb_str_new2, buffer);
+          // Does NOT copy the passed in buffer and does NOT free it when the string is GCed
+          long size = (long)strlen(buffer);
+          return protect(rb_usascii_str_new_static, buffer, size);
         }
       }
+
+    private:
+      Return* returnInfo_ = nullptr;
     };
 
     template<int N>
     class To_Ruby<char[N]>
     {
     public:
-      VALUE convert(char const x[])
+      VALUE convert(const char buffer[])
       {
-        if (N > 0 && x[0] == ':')
+        if (N > 0 && buffer[0] == ':')
         {
           // N count includes a NULL character at the end of the string
           constexpr size_t symbolLength = N - 1;
           char symbol[symbolLength];
-          strncpy(symbol, x + 1, symbolLength);
+          strncpy(symbol, buffer + 1, symbolLength);
           ID id = protect(rb_intern, symbol);
           return protect(rb_id2sym, id);
         }
         else
         {
-          return protect(rb_str_new2, x);
+          long size = (long)strlen(buffer);
+          return protect(rb_usascii_str_new_static, buffer, size);
         }
+      }
+    };
+
+    template<>
+    class To_Ruby<unsigned char>
+    {
+    public:
+      VALUE convert(const unsigned char& native)
+      {
+        return To_Ruby<unsigned int>().convert(native);
+      }
+    };
+
+    template<>
+    class To_Ruby<unsigned char&>
+    {
+    public:
+      VALUE convert(const unsigned char& native)
+      {
+        return To_Ruby<unsigned int>().convert(native);
+      }
+    };
+
+    template<>
+    class To_Ruby<signed char>
+    {
+    public:
+      VALUE convert(const signed char& native)
+      {
+        return To_Ruby<signed int>().convert(native);
+      }
+    };
+
+    template<>
+    class To_Ruby<signed char&>
+    {
+    public:
+      VALUE convert(const signed char& native)
+      {
+        return To_Ruby<signed int>().convert(native);
       }
     };
   }

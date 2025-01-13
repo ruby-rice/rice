@@ -25,14 +25,20 @@ namespace Rice
     return std::string(buffer);
   }
 
-  inline Class define_class_under(Object module, char const* name, const Class& superclass)
+  inline Class define_class_under(Object parent, Identifier id, const Class& superclass)
   {
-    VALUE klass = detail::protect(rb_define_class_under, module.value(), name, superclass.value());
+    VALUE klass = detail::protect(rb_define_class_id_under, parent.value(), id, superclass.value());
 
     // We MUST reset the instance registry in case the user just redefined a class which resets it
     detail::Registries::instance.natives.reset(klass);
 
     return klass;
+  }
+
+  inline Class define_class_under(Object parent, char const* name, const Class& superclass)
+  {
+    Identifier id(name);
+    return define_class_under(parent, id, superclass);
   }
 
   inline Class define_class(char const* name, const Class& superclass)

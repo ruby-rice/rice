@@ -176,7 +176,7 @@ TESTCASE(module_base_pointer_method_call)
   Module m = define_module("Testing");
 
   Object message = m.module_eval(R"EOS(notification = Inheritance::EmailNotification.new
-                                         notification.message)EOS");
+                                       notification.message)EOS");
   ASSERT_EQUAL("Email", detail::From_Ruby<std::string>().convert(message));
 
   message = m.module_eval(R"EOS(notification = Inheritance::PushNotification.new

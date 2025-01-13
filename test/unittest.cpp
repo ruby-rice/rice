@@ -3,6 +3,10 @@
 #include <map>
 #include "unittest.hpp"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 size_t assertions;
 
 namespace
@@ -98,6 +102,10 @@ char* findOption(char** begin, char** end, const std::string& option)
 
 int main(int argc, char** argv)
 {
+#ifdef _WIN32
+  SetConsoleOutputCP(CP_UTF8);
+#endif
+
   std::vector<Test_Suite> suites;
 
   char* moduleName = findOption(argv, argv + argc, "--suite");

@@ -121,12 +121,20 @@ namespace Rice::detail
       wrapper = new Wrapper_T(data);
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
-    // Is this a pointer and it cannot copied? This is for std::unique_ptr
-    // If ruby is the owner than copy the object
+    // If ruby is the owner than copy the object if possible
     else if (isOwner)
     {
-      wrapper = new WrapperValue<T>(data);
-      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      if constexpr (std::is_copy_constructible_v<T> || std::is_move_constructible_v<T>)
+      {
+        wrapper = new WrapperValue<T>(data);
+        result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      }
+      else
+      {
+        std::string message = "Ruby was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: " +
+          typeName(typeid(T));
+        throw std::runtime_error(message);
+      }
     }
     // Ruby is not the owner so just wrap the reference
     else
@@ -194,14 +202,16 @@ namespace Rice::detail
   inline Wrapper* getWrapper(VALUE value)
   {
     // Turn off spurious warning on g++ 12
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-#endif
+    #if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Warray-bounds"
+    #endif
+
     return RTYPEDDATA_P(value) ? static_cast<Wrapper*>(RTYPEDDATA_DATA(value)) : nullptr;
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+    
+    #if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic pop
+    #endif
   }
 
   template <typename T>

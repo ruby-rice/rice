@@ -2,11 +2,9 @@
 #define Rice__TypeRegistry__hpp_
 
 #include <optional>
-#include <string>
-#include <typeindex>
-#include <typeinfo>
 #include <unordered_map>
 #include <set>
+#include <regex>
 
 
 /* The type registry keeps track of all C++ types wrapped by Rice. When a native function returns 
@@ -29,6 +27,9 @@ namespace Rice::detail
 
     template <typename T>
     bool isDefined();
+
+    template <typename T>
+    std::pair<VALUE, rb_data_type_t*> getType();
 
     template <typename T>
     bool verify();

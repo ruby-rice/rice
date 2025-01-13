@@ -133,6 +133,10 @@ namespace Rice
 
     //! Return a const iterator to the end of the array.
     const_iterator end() const;
+
+    //! Return the content of the array as a std::vector
+    template<typename T>
+    std::vector<T> to_vector();
   };
 
   //! A helper class so array[index]=value can work.
@@ -142,7 +146,7 @@ namespace Rice
     //! Construct a new Proxy
     Proxy(Array array, long index);
 
-    //! Implicit conversion to Object.
+    //! Implicit conversions
     operator Object() const;
 
     //! Explicit conversion to VALUE.
