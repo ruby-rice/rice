@@ -435,7 +435,7 @@ TESTCASE(int_conversion_1)
             my_class.run(value))";
   result = m.module_eval(code);
 
-#ifdef _MSC_VER
+#ifdef _WIN32
   const char* expected = "run<long long>";
 #else
   const char* expected = "run<long>";
@@ -511,7 +511,7 @@ TESTCASE(int_conversion_4)
             value = 2**42
             my_class.run(value))";
 
-#ifdef _MSC_VER
+#ifdef _WIN32
   const char* expected = "bignum too big to convert into `long'";
 #else
   const char* expected = "integer 4398046511104 too big to convert to `short'";
