@@ -67,7 +67,7 @@ namespace Rice
     //! Returns if the argument should be treated as a value
     bool isValue() const;
 
-    //! Specifies C++ will take ownership of this value and Ruby shoudl not fee it
+    //! Specifies C++ will take ownership of this value and Ruby should not free it
     Arg& transferOwnership();
     bool isTransfer();
 
