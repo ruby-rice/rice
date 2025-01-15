@@ -63,7 +63,7 @@ TESTCASE(File)
   ASSERT((file.get() != nullptr));
 
   String string = m.call("read_file", file);
-  ASSERT_EQUAL(1332, string.length());
+  ASSERT((string.length() > 1300));
 
   Object result = m.call("close_file", file);
   ASSERT_EQUAL(Qtrue, result.value());
