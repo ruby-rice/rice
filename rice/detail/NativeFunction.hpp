@@ -53,6 +53,8 @@ namespace Rice::detail
     // Register function with Ruby
     static void define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
 
+    // Proc entry
+    static VALUE procEntry(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
   public:
     // Disallow creating/copying/moving
     NativeFunction() = delete;
@@ -61,11 +63,12 @@ namespace Rice::detail
     void operator=(const NativeFunction_T&) = delete;
     void operator=(NativeFunction_T&&) = delete;
 
-    Resolved matches(int argc, VALUE* argv, VALUE self) override;
-    VALUE operator()(int argc, VALUE* argv, VALUE self) override;
+    Resolved matches(int argc, const VALUE* argv, VALUE self) override;
+    VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
 
-  protected:
+    NativeFunction(Function_T function);
     NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
+  protected:
 
   private:
     template<typename T, std::size_t I>
@@ -79,7 +82,7 @@ namespace Rice::detail
     To_Ruby<To_Ruby_T> createToRuby();
       
     // Convert Ruby argv pointer to Ruby values
-    std::vector<VALUE> getRubyValues(int argc, VALUE* argv);
+    std::vector<VALUE> getRubyValues(int argc, const VALUE* argv);
 
     template<typename Arg_T, int I>
     Arg_T getNativeValue(std::vector<VALUE>& values);

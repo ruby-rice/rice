@@ -55,6 +55,8 @@
 #include "Return.ipp"
 #include "detail/to_ruby.ipp"
 #include "detail/from_ruby.ipp"
+#include "detail/Proc.hpp"
+#include "detail/Proc.ipp"
 
 // Registries
 #include "detail/TypeRegistry.hpp"
@@ -90,6 +92,8 @@
 #include "detail/NativeFunction.ipp"
 #include "detail/NativeIterator.hpp"
 #include "detail/NativeIterator.ipp"
+#include "detail/NativeCallback.hpp"
+#include "detail/NativeCallback.ipp"
 
 // C++ API definitions
 #include "cpp_api/Encoding.ipp"

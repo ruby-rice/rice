@@ -1,0 +1,67 @@
+namespace Rice::detail
+{
+  // Note Return_T(Arg_Ts...) is intentional versus Return_T(*)(Arg_Ts...). That is
+  // because the Type machinery strips all pointers/references/const/val etc to avoid
+  // having an explosion of Type definitions
+  template<typename Return_T, typename ...Arg_Ts>
+  struct Type<Return_T(Arg_Ts...)>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
+
+  // Wraps a C++ function as a Ruby proc
+  template<typename Return_T, typename ...Arg_Ts>
+  class To_Ruby<Return_T(*)(Arg_Ts...)>
+  {
+  public:
+    using Proc_T = Return_T(*)(Arg_Ts...);
+
+    VALUE convert(Proc_T proc)
+    {
+      using NativeFunction_T = NativeFunction<std::void_t, Proc_T, false>;
+      // TODO - this is a memory leak - we never free this pointer
+      auto native = new NativeFunction_T(proc);
+      VALUE result = rb_proc_new(NativeFunction_T::procEntry, (VALUE)native);
+      return result;
+    }
+  };
+
+  // Makes a Ruby proc callable as C callback
+  template<typename Return_T, typename ...Arg_Ts>
+  class From_Ruby<Return_T(*)(Arg_Ts...)>
+  {
+  public:
+    using Callback_T = Return_T(*)(Arg_Ts...);
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      if (protect(rb_obj_is_proc, value) == Qtrue || protect(rb_proc_lambda_p, value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return Convertible::None;
+      }
+    }
+
+    Callback_T convert(VALUE value)
+    {
+      using Callback_T = detail::NativeCallback<Return_T, Arg_Ts...>;
+      Callback_T::proc_ = value;
+      return Callback_T::call;
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+}
