@@ -104,6 +104,6 @@ TESTCASE(StlExceptionPtr)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.call("handle_exception_ptr", exception),
-    ASSERT_EQUAL("invalid string position", ex.what())
+    ASSERT_EQUAL(rb_eIndexError, ex.class_of())
   );
 }
