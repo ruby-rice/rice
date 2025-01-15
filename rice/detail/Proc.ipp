@@ -21,7 +21,7 @@ namespace Rice::detail
 
     VALUE convert(Proc_T proc)
     {
-      using NativeFunction_T = NativeFunction<std::void_t, Proc_T, false>;
+      using NativeFunction_T = NativeFunction<void, Proc_T, false>;
       // TODO - this is a memory leak - we never free this pointer
       auto native = new NativeFunction_T(proc);
       VALUE result = rb_proc_new(NativeFunction_T::procEntry, (VALUE)native);
