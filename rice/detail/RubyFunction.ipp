@@ -12,8 +12,7 @@ namespace Rice::detail
   template<typename Function_T, typename...Arg_Ts>
   inline typename RubyFunction<Function_T, Arg_Ts...>::Return_T RubyFunction<Function_T, Arg_Ts...>::operator()()
   {
-    const int TAG_RAISE = 0x6; // From Ruby header files
-    int state = 0;
+    JumpException::ruby_tag_type state = JumpException::RUBY_TAG_NONE;
 
     // Setup a thread local variable to capture the result of the Ruby function call.
     // We use thread_local because the lambda has to be captureless so it can
@@ -43,10 +42,10 @@ namespace Rice::detail
     };
 
     // Now call rb_protect which will invoke the callback lambda above
-    rb_protect(callback, (VALUE)this, &state);
+    rb_protect(callback, (VALUE)this, &(int)state);
 
     // Did anything go wrong?
-    if (state == 0)
+    if (state == JumpException::RUBY_TAG_NONE)
     {
       if constexpr (!std::is_same_v<Return_T, void>)
       {
@@ -56,14 +55,14 @@ namespace Rice::detail
     else
     {
       VALUE err = rb_errinfo();
-      if (state == TAG_RAISE && RB_TEST(err))
+      if (state == JumpException::RUBY_TAG_RAISE && RB_TEST(err))
       {
         rb_set_errinfo(Qnil);
         throw Rice::Exception(err);
       }
       else
       {
-        throw Jump_Tag(state);
+        throw Rice::JumpException(state);
       }
     }
   }

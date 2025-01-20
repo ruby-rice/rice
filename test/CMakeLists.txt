@@ -38,7 +38,7 @@ add_executable(unittest
                "test_Identifier.cpp"
                "test_Inheritance.cpp"
                "test_Iterator.cpp"
-               "test_Jump_Tag.cpp"
+               "test_JumpException.cpp"
                "test_Keep_Alive.cpp"
                "test_Memory_Management.cpp"
                "test_Module.cpp"

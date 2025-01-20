@@ -35,7 +35,7 @@ namespace Rice::detail
       {
         rb_exc_raise(ex.value());
       }
-      catch (::Rice::Jump_Tag const& ex)
+      catch (::Rice::JumpException const& ex)
       {
         rb_jump_tag(ex.tag);
       }

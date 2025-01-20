@@ -26,7 +26,8 @@
 
 // Code for C++ to call Ruby
 #include "Exception.hpp"
-#include "detail/Jump_Tag.hpp"
+#include "JumpException.hpp"
+#include "JumpException.ipp"
 #include "detail/RubyFunction.hpp"
 #include "detail/RubyFunction.ipp"
 
@@ -91,8 +92,10 @@
 #include "detail/NativeFunction.ipp"
 #include "detail/NativeIterator.hpp"
 #include "detail/NativeIterator.ipp"
-#include "detail/NativeCallback.hpp"
-#include "detail/NativeCallback.ipp"
+#include "detail/NativeCallbackFFI.hpp"
+#include "detail/NativeCallbackFFI.ipp"
+#include "detail/NativeCallbackSimple.hpp"
+#include "detail/NativeCallbackSimple.ipp"
 #include "detail/Proc.ipp"
 
 // C++ API definitions
