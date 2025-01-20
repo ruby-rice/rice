@@ -57,7 +57,7 @@ namespace Rice::detail
 #ifdef HAVE_LIBFFI
     Callback_T convert(VALUE value)
     {
-      using NativeCallback_T = NativeCallback_T<Return_T, Arg_Ts...>;
+      using NativeCallback_T = NativeCallbackFFI<Return_T, Arg_Ts...>;
       NativeCallback_T* nativeCallback = new NativeCallback_T(value);
       return nativeCallback->callback();
     }

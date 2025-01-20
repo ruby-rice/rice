@@ -41,3 +41,9 @@ end
 if !IS_DARWIN && !IS_MSWIN && !have_library('stdc++fs')
   have_library('stdc++')
 end
+
+# Check for libffi to support C style callacks
+if have_library("ffi")
+  $CPPFLAGS += " -DHAVE_LIBFFI"
+end
+
