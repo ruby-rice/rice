@@ -54,12 +54,21 @@ namespace Rice::detail
       }
     }
 
+#ifdef HAVE_LIBFFI
     Callback_T convert(VALUE value)
     {
-      using Callback_T = detail::NativeCallback<Return_T, Arg_Ts...>;
-      Callback_T::proc_ = value;
-      return Callback_T::call;
+      using NativeCallback_T = NativeCallback_T<Return_T, Arg_Ts...>;
+      NativeCallback_T* nativeCallback = new NativeCallback_T(value);
+      return nativeCallback->callback();
     }
+#else
+    Callback_T convert(VALUE value)
+    {
+      using NativeCallback_T = NativeCallbackSimple<Return_T, Arg_Ts...>;
+      NativeCallback_T::proc = value;
+      return &NativeCallback_T::callback;
+    }
+#endif
 
   private:
     Arg* arg_ = nullptr;
