@@ -21,6 +21,7 @@ else (GCC)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og")
 endif ()
 
+
 # Include sub-directories.
 add_subdirectory("ext/t1")
 add_subdirectory("ext/t2")
@@ -29,6 +30,16 @@ add_subdirectory("ext/t2")
 add_executable(unittest
                "unittest.cpp"
                "embed_ruby.cpp"
+               "test_Address_Registration_Guard.cpp"
+               "test_Array.cpp"
+               "test_Attribute.cpp"
+               "test_Builtin_Object.cpp"
+               "test_Callback.cpp"
+               "test_Class.cpp"
+               "test_Constructor.cpp"
+               "test_Data_Object.cpp"
+               "test_Data_Type.cpp"
+               "test_Director.cpp"
                "test_Enum.cpp"
                "test_Exception.cpp"
                "test_File.cpp"
@@ -40,11 +51,13 @@ add_executable(unittest
                "test_Iterator.cpp"
                "test_JumpException.cpp"
                "test_Keep_Alive.cpp"
+               "test_Keep_Alive_No_Wrapper.cpp"
                "test_Memory_Management.cpp"
                "test_Module.cpp"
+               "test_Native_Registry.cpp"
                "test_Object.cpp"
-               "test_Ownership.cpp"
                "test_Overloads.cpp"
+               "test_Ownership.cpp"
                "test_Proc.cpp"
                "test_Self.cpp"
                "test_String.cpp"
@@ -66,7 +79,6 @@ add_executable(unittest
                "test_Stl_Unordered_Map.cpp"
                "test_Stl_Variant.cpp"
                "test_Stl_Vector.cpp")
-
 
 target_include_directories(unittest PRIVATE ..)
 target_include_directories(unittest PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})
