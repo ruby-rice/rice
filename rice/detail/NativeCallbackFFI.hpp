@@ -14,8 +14,10 @@ namespace Rice::detail
     using Callback_T = Return_T(Arg_Ts...);
     using Tuple_T = std::tuple<Arg_Ts...>;
     static void ffiCallback(ffi_cif* cif, void* ret, void* args[], void* instance);
+    static VALUE finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
   public:
     NativeCallbackFFI(VALUE proc);
+    ~NativeCallbackFFI();
     NativeCallbackFFI(const NativeCallbackFFI&) = delete;
     NativeCallbackFFI(NativeCallbackFFI&&) = delete;
     void operator=(const NativeCallbackFFI&) = delete;

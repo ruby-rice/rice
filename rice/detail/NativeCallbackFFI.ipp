@@ -87,6 +87,21 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename ...Arg_Ts>
+  NativeCallbackFFI<Return_T, Arg_Ts...>::~NativeCallbackFFI()
+  {
+    this->proc_ = Qnil;
+  }
+
+  template<typename Return_T, typename ...Arg_Ts>
+  VALUE NativeCallbackFFI<Return_T, Arg_Ts...>::finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
+  {
+    using NativeCallback_T = NativeCallbackFFI<Return_T, Arg_Ts...>;
+    NativeCallback_T* nativeCallback = (NativeCallback_T*)callback_arg;
+    delete nativeCallback;
+    return Qnil;
+  }
+
+  template<typename Return_T, typename ...Arg_Ts>
   NativeCallbackFFI<Return_T, Arg_Ts...>::NativeCallbackFFI(VALUE proc) : proc_(proc)
   {
     if (cif_.bytes == 0)
