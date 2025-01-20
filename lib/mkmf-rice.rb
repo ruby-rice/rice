@@ -22,7 +22,7 @@ include MakeMakefile['C++']
 
 # Rice needs c++17.
 if IS_MSWIN
-  $CXXFLAGS += " /std:c++17 /EHs /permissive- /bigobj"
+  $CXXFLAGS += " /std:c++17 /EHs /permissive- /bigobj /utf-8"
   $CPPFLAGS += " -D_ALLOW_KEYWORD_MACROS -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE"
 elsif IS_MINGW
   $CXXFLAGS += " -std=c++17 -Wa,-mbig-obj"
@@ -32,7 +32,7 @@ end
 
 # Rice needs to include its header. Let's setup the include path
 # to make this easy
-path = File.expand_path(File.join(__dir__, '../include'))
+path = File.expand_path(File.join(__dir__, '..'))
 
 unless find_header('rice/rice.hpp', path)
   raise("Could not find rice/rice.hpp header")
