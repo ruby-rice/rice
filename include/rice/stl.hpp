@@ -43,6 +43,41 @@ namespace Rice::detail
 }
 
 
+// =========   exception_ptr.hpp   =========
+
+
+// ---------   exception_ptr.ipp   ---------
+#include <functional>
+
+namespace Rice::stl
+{
+  inline Data_Type<std::exception_ptr> define_exception_ptr()
+  {
+    Module rb_mRice = define_module("Rice");
+    Module rb_mStd = define_module_under(rb_mRice, "Std");
+
+    return define_class_under<std::exception_ptr>(rb_mStd, "ExceptionPtr");
+  }
+}
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<std::exception_ptr>
+  {
+    static bool verify()
+    {
+      if (!detail::Registries::instance.types.isDefined<std::exception_ptr>())
+      {
+        stl::define_exception_ptr();
+      }
+
+      return true;
+    }
+  };
+}
+
+
 // =========   string.hpp   =========
 
 
@@ -946,7 +981,7 @@ namespace Rice::detail
 // ---------   type_index.ipp   ---------
 #include <typeindex>
 
-namespace Rice::Stl
+namespace Rice::stl
 {
   inline Data_Type<std::type_index> define_type_index()
   {
@@ -969,7 +1004,7 @@ namespace Rice::detail
     {
       if (!detail::Registries::instance.types.isDefined<std::type_index>())
       {
-        Stl::define_type_index();
+        stl::define_type_index();
       }
 
       return true;
@@ -984,7 +1019,7 @@ namespace Rice::detail
 // ---------   type_info.ipp   ---------
 #include <typeinfo>
 
-namespace Rice::Stl
+namespace Rice::stl
 {
   inline Data_Type<std::type_info> define_type_info()
   {
@@ -1006,7 +1041,7 @@ namespace Rice::detail
     {
       if (!detail::Registries::instance.types.isDefined<std::type_info>())
       {
-        Stl::define_type_info();
+        stl::define_type_info();
       }
 
       return true;
