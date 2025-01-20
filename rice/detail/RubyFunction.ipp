@@ -12,8 +12,6 @@ namespace Rice::detail
   template<typename Function_T, typename...Arg_Ts>
   inline typename RubyFunction<Function_T, Arg_Ts...>::Return_T RubyFunction<Function_T, Arg_Ts...>::operator()()
   {
-    JumpException::ruby_tag_type state = JumpException::RUBY_TAG_NONE;
-
     // Setup a thread local variable to capture the result of the Ruby function call.
     // We use thread_local because the lambda has to be captureless so it can
     // be converted to a function pointer callable by C.
@@ -42,7 +40,8 @@ namespace Rice::detail
     };
 
     // Now call rb_protect which will invoke the callback lambda above
-    rb_protect(callback, (VALUE)this, &(int)state);
+    int state = (int)JumpException::RUBY_TAG_NONE;
+    rb_protect(callback, (VALUE)this, &state);
 
     // Did anything go wrong?
     if (state == JumpException::RUBY_TAG_NONE)
@@ -62,7 +61,7 @@ namespace Rice::detail
       }
       else
       {
-        throw Rice::JumpException(state);
+        throw Rice::JumpException((Rice::JumpException::ruby_tag_type)state);
       }
     }
   }
