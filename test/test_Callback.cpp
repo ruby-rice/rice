@@ -18,7 +18,7 @@ TEARDOWN(Callback)
 {
   rb_gc_start();
 }
-/*
+
 namespace
 {
   using Callback_T = char*(*)(int, double, bool, char*);
@@ -115,7 +115,7 @@ TESTCASE(FunctionArg)
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(16, detail::From_Ruby<int>().convert(result));
-}*/
+}
 
 namespace
 {
@@ -142,26 +142,20 @@ TESTCASE(MultipleCallbacks)
     define_module_function<char*(*)(int)>("trigger_callback", triggerCallback);
 
   std::string code = R"(proc1 = Proc.new do 
-                                  STDOUT << 11111111111111 << "\n"  
-                                  return "Proc 1"
+                                  "Proc 1"
                                 end
 
                         proc2 = Proc.new do 
-                                  STDOUT << 22222222 << "\n"  
-                                  return "Proc 2"
+                                  "Proc 2"
                                 end
 
-                        #proc1 = lambda {"L1"}
-                        #proc2 = lambda {"L2"}
                         register_callback(proc1, proc2))";
 
   m.module_eval(code);
 
-  std::cout << "aaaaaaaaaaaaa\n";
   String result = m.call("trigger_callback", 0);
-  ASSERT_EQUAL("L1", result.c_str());
+  ASSERT_EQUAL("Proc 1", result.c_str());
 
-  std::cout << "bbbbbbbbbbbbbb\n";
   result = m.call("trigger_callback", 1);
-  ASSERT_EQUAL("L2", result.c_str());
+  ASSERT_EQUAL("Proc 2", result.c_str());
 }
