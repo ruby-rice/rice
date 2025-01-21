@@ -135,6 +135,7 @@ namespace
   }
 }
 
+#ifdef HAVE_LIBFFI
 TESTCASE(MultipleCallbacks)
 {
   Module m = define_module("TestingModuleMultipleCallbacks");
@@ -159,3 +160,4 @@ TESTCASE(MultipleCallbacks)
   result = m.call("trigger_callback", 1);
   ASSERT_EQUAL("Proc 2", result.c_str());
 }
+#endif
