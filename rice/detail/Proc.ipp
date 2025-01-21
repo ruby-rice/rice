@@ -59,10 +59,6 @@ namespace Rice::detail
     {
       using NativeCallback_T = NativeCallbackFFI<Return_T, Arg_Ts...>;
       NativeCallback_T* nativeCallback = new NativeCallback_T(value);
-
-      VALUE finalizer = rb_proc_new(NativeCallback_T::finalizerCallback, (VALUE)nativeCallback);
-      rb_define_finalizer(value, finalizer);
-
       return nativeCallback->callback();
     }
 #else

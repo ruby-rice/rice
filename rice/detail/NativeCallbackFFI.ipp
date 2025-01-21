@@ -104,13 +104,19 @@ namespace Rice::detail
   template<typename Return_T, typename ...Arg_Ts>
   NativeCallbackFFI<Return_T, Arg_Ts...>::NativeCallbackFFI(VALUE proc) : proc_(proc)
   {
+    // First setup desccription of callback
     if (cif_.bytes == 0)
     {
       ffi_prep_cif(&cif_, FFI_DEFAULT_ABI, sizeof...(Arg_Ts), &ffi_type_pointer, args_.data());
     }
 
+    // Create FFI closure
     this->closure_ = (ffi_closure *)ffi_closure_alloc(sizeof(ffi_closure), (void**)(&this->callback_));
     ffi_status status = ffi_prep_closure_loc(this->closure_, &cif_, ffiCallback, (void*)this, nullptr);
+
+    // Tie the lifetime of this C++ instance to the lifetime of the Ruby proc object
+    VALUE finalizer = rb_proc_new(finalizerCallback, (VALUE)this);
+    rb_define_finalizer(this->proc_, finalizer);
   }
 
   template<typename Return_T, typename ...Arg_Ts>
