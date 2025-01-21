@@ -40,6 +40,7 @@ namespace Rice::detail
   template<typename Return_T, typename ...Arg_Ts>
   struct function_traits<Return_T(*)(Arg_Ts...)> : public function_traits<Return_T(std::nullptr_t, Arg_Ts...)>
   {
+    using Function_T = Return_T(*)(Arg_Ts...);
   };
   
   // C functions passed by pointer that take one or more defined parameter than a variable 

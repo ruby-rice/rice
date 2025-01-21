@@ -24,8 +24,8 @@ namespace Rice::detail
     virtual ~Native() = default;
     VALUE call(int argc, VALUE* argv, VALUE self);
 
-    virtual Resolved matches(int argc, VALUE* argv, VALUE self) = 0;
-    virtual VALUE operator()(int argc, VALUE* argv, VALUE self) = 0;
+    virtual Resolved matches(int argc, const VALUE* argv, VALUE self) = 0;
+    virtual VALUE operator()(int argc, const VALUE* argv, VALUE self) = 0;
   };
 }
 

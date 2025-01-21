@@ -10,6 +10,11 @@
 #include <typeinfo>
 #include <typeindex>
 
+#ifdef _MSC_VER
+  // Prevent _strdup deprecated message on MSVC
+  #define strdup _strdup 
+#endif
+
 // Traits
 #include "traits/rice_traits.hpp"
 #include "traits/function_traits.hpp"
@@ -21,7 +26,8 @@
 
 // Code for C++ to call Ruby
 #include "Exception.hpp"
-#include "detail/Jump_Tag.hpp"
+#include "JumpException.hpp"
+#include "JumpException.ipp"
 #include "detail/RubyFunction.hpp"
 #include "detail/RubyFunction.ipp"
 
@@ -50,6 +56,7 @@
 #include "Return.ipp"
 #include "detail/to_ruby.ipp"
 #include "detail/from_ruby.ipp"
+#include "detail/Proc.hpp"
 
 // Registries
 #include "detail/TypeRegistry.hpp"
@@ -85,6 +92,11 @@
 #include "detail/NativeFunction.ipp"
 #include "detail/NativeIterator.hpp"
 #include "detail/NativeIterator.ipp"
+#include "detail/NativeCallbackFFI.hpp"
+#include "detail/NativeCallbackFFI.ipp"
+#include "detail/NativeCallbackSimple.hpp"
+#include "detail/NativeCallbackSimple.ipp"
+#include "detail/Proc.ipp"
 
 // C++ API definitions
 #include "cpp_api/Encoding.ipp"
@@ -125,5 +137,8 @@
 
 // Dependent on Module, Class, Array and String
 #include "forward_declares.ipp"
+
+// For now include libc support - maybe should be separate header file someday
+#include "libc/file.hpp"
 
 #endif // Rice__hpp_

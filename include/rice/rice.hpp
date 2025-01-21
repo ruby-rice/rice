@@ -63,6 +63,11 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 #include <typeinfo>
 #include <typeindex>
 
+#ifdef _MSC_VER
+  // Prevent _strdup deprecated message on MSVC
+  #define strdup _strdup 
+#endif
+
 // Traits
 
 // =========   rice_traits.hpp   =========
@@ -243,6 +248,7 @@ namespace Rice::detail
   template<typename Return_T, typename ...Arg_Ts>
   struct function_traits<Return_T(*)(Arg_Ts...)> : public function_traits<Return_T(std::nullptr_t, Arg_Ts...)>
   {
+    using Function_T = Return_T(*)(Arg_Ts...);
   };
   
   // C functions passed by pointer that take one or more defined parameter than a variable 
@@ -449,7 +455,7 @@ namespace Rice
 } // namespace Rice
 
 
-// =========   Jump_Tag.hpp   =========
+// =========   JumpException.hpp   =========
 
 namespace Rice
 {
@@ -458,16 +464,89 @@ namespace Rice
    *  a Jump_Tag, then later passed to rb_jump_tag() when there is no more
    *  C++ code to pass over.
    */
-  struct Jump_Tag
+  class JumpException : public std::exception
   {
-    //! Construct a Jump_Tag with tag t.
-    Jump_Tag(int t) : tag(t) {}
+  public:
+    // Copied from vm_core.h
+    enum ruby_tag_type {
+      RUBY_TAG_NONE = 0x0,
+      RUBY_TAG_RETURN = 0x1,
+      RUBY_TAG_BREAK = 0x2,
+      RUBY_TAG_NEXT = 0x3,
+      RUBY_TAG_RETRY = 0x4,
+      RUBY_TAG_REDO = 0x5,
+      RUBY_TAG_RAISE = 0x6,
+      RUBY_TAG_THROW = 0x7,
+      RUBY_TAG_FATAL = 0x8,
+      RUBY_TAG_MASK = 0xf
+    };
 
+  public:
+    JumpException(ruby_tag_type tag);
+    virtual const char* what() const noexcept override;
+
+  public:
     //! The tag being held.
-    int tag;
+    ruby_tag_type tag;
+
+  private:
+    void createMessage();
+
+  private:
+    std::string message_;
   };
 } // namespace Rice
 
+
+// =========   JumpException.ipp   =========
+namespace Rice
+{
+  inline JumpException::JumpException(ruby_tag_type tag) : tag(tag)
+  {
+    this->createMessage();
+  }
+
+  inline const char* JumpException::what() const noexcept
+  {
+    return this->message_.c_str();
+  }
+
+  inline void JumpException::createMessage()
+  {
+    switch (this->tag)
+    {
+      case RUBY_TAG_NONE:
+        this->message_ = "No error";
+        break;
+      case RUBY_TAG_RETURN:
+        this->message_ = "Unexpected return";
+        break;
+      case RUBY_TAG_NEXT:
+        this->message_ = "Unexpected next";
+        break;
+      case RUBY_TAG_BREAK:
+        this->message_ = "Unexpected break";
+        break;
+      case RUBY_TAG_REDO:
+        this->message_ = "Unexpected redo";
+        break;
+      case RUBY_TAG_RETRY:
+        this->message_ = "Retry outside of rescue clause";
+        break;
+      case RUBY_TAG_THROW:
+        this->message_ = "Unexpected throw";
+      case RUBY_TAG_RAISE:
+        this->message_ = "Ruby exception was thrown";
+        break;
+      case RUBY_TAG_FATAL:
+        this->message_ = "Fatal error";
+        break;
+      case RUBY_TAG_MASK:
+        this->message_ = "Mask error";
+        break;
+    }
+  }
+} // namespace Rice
 
 // =========   RubyFunction.hpp   =========
 
@@ -514,9 +593,6 @@ namespace Rice::detail
   template<typename Function_T, typename...Arg_Ts>
   inline typename RubyFunction<Function_T, Arg_Ts...>::Return_T RubyFunction<Function_T, Arg_Ts...>::operator()()
   {
-    const int TAG_RAISE = 0x6; // From Ruby header files
-    int state = 0;
-
     // Setup a thread local variable to capture the result of the Ruby function call.
     // We use thread_local because the lambda has to be captureless so it can
     // be converted to a function pointer callable by C.
@@ -545,10 +621,11 @@ namespace Rice::detail
     };
 
     // Now call rb_protect which will invoke the callback lambda above
+    int state = (int)JumpException::RUBY_TAG_NONE;
     rb_protect(callback, (VALUE)this, &state);
 
     // Did anything go wrong?
-    if (state == 0)
+    if (state == JumpException::RUBY_TAG_NONE)
     {
       if constexpr (!std::is_same_v<Return_T, void>)
       {
@@ -558,14 +635,14 @@ namespace Rice::detail
     else
     {
       VALUE err = rb_errinfo();
-      if (state == TAG_RAISE && RB_TEST(err))
+      if (state == JumpException::RUBY_TAG_RAISE && RB_TEST(err))
       {
         rb_set_errinfo(Qnil);
         throw Rice::Exception(err);
       }
       else
       {
-        throw Jump_Tag(state);
+        throw Rice::JumpException((Rice::JumpException::ruby_tag_type)state);
       }
     }
   }
@@ -1940,7 +2017,7 @@ namespace Rice
     //! Returns if the argument should be treated as a value
     bool isValue() const;
 
-    //! Specifies C++ will take ownership of this value and Ruby shoudl not fee it
+    //! Specifies C++ will take ownership of this value and Ruby should not free it
     Arg& transferOwnership();
     bool isTransfer();
 
@@ -4271,6 +4348,9 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 }
+// =========   Proc.hpp   =========
+
+
 // Registries
 
 // =========   TypeRegistry.hpp   =========
@@ -4668,8 +4748,8 @@ namespace Rice::detail
     virtual ~Native() = default;
     VALUE call(int argc, VALUE* argv, VALUE self);
 
-    virtual Resolved matches(int argc, VALUE* argv, VALUE self) = 0;
-    virtual VALUE operator()(int argc, VALUE* argv, VALUE self) = 0;
+    virtual Resolved matches(int argc, const VALUE* argv, VALUE self) = 0;
+    virtual VALUE operator()(int argc, const VALUE* argv, VALUE self) = 0;
   };
 }
 
@@ -5142,7 +5222,7 @@ namespace Rice::detail
       {
         rb_exc_raise(ex.value());
       }
-      catch (::Rice::Jump_Tag const& ex)
+      catch (::Rice::JumpException const& ex)
       {
         rb_jump_tag(ex.tag);
       }
@@ -5725,8 +5805,8 @@ namespace Rice
       void operator=(const NativeAttribute_T&) = delete;
       void operator=(NativeAttribute_T&&) = delete;
 
-      Resolved matches(int argc, VALUE* argv, VALUE self) override;
-      VALUE operator()(int argc, VALUE* argv, VALUE self) override;
+      Resolved matches(int argc, const VALUE* argv, VALUE self) override;
+      VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
 
     protected:
       NativeAttributeGet(VALUE klass, std::string name, Attribute_T attr);
@@ -5764,7 +5844,7 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline Resolved NativeAttributeGet<Attribute_T>::matches(int argc, VALUE* argv, VALUE self)
+  inline Resolved NativeAttributeGet<Attribute_T>::matches(int argc, const VALUE* argv, VALUE self)
   {
     if (argc == 0)
       return Resolved { Convertible::Exact, 1, this };
@@ -5779,7 +5859,7 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline VALUE NativeAttributeGet<Attribute_T>::operator()(int argc, VALUE* argv, VALUE self)
+  inline VALUE NativeAttributeGet<Attribute_T>::operator()(int argc, const VALUE* argv, VALUE self)
   {
     if constexpr (std::is_member_object_pointer_v<Attribute_T>)
     {
@@ -5820,8 +5900,8 @@ namespace Rice
       void operator=(const NativeAttribute_T&) = delete;
       void operator=(NativeAttribute_T&&) = delete;
 
-      Resolved matches(int argc, VALUE* argv, VALUE self) override;
-      VALUE operator()(int argc, VALUE* argv, VALUE self) override;
+      Resolved matches(int argc, const VALUE* argv, VALUE self) override;
+      VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
 
     protected:
       NativeAttributeSet(VALUE klass, std::string name, Attribute_T attr);
@@ -5869,7 +5949,7 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline Resolved NativeAttributeSet<Attribute_T>::matches(int argc, VALUE* argv, VALUE self)
+  inline Resolved NativeAttributeSet<Attribute_T>::matches(int argc, const VALUE* argv, VALUE self)
   {
     if (argc == 1)
       return Resolved{ Convertible::Exact, 1, this };
@@ -5878,7 +5958,7 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline VALUE NativeAttributeSet<Attribute_T>::operator()(int argc, VALUE* argv, VALUE self)
+  inline VALUE NativeAttributeSet<Attribute_T>::operator()(int argc, const VALUE* argv, VALUE self)
   {
     if constexpr (std::is_fundamental_v<intrinsic_type<Attr_T>> && std::is_pointer_v<Attr_T>)
     {
@@ -5973,6 +6053,8 @@ namespace Rice::detail
     // Register function with Ruby
     static void define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
 
+    // Proc entry
+    static VALUE procEntry(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
   public:
     // Disallow creating/copying/moving
     NativeFunction() = delete;
@@ -5981,11 +6063,12 @@ namespace Rice::detail
     void operator=(const NativeFunction_T&) = delete;
     void operator=(NativeFunction_T&&) = delete;
 
-    Resolved matches(int argc, VALUE* argv, VALUE self) override;
-    VALUE operator()(int argc, VALUE* argv, VALUE self) override;
+    Resolved matches(int argc, const VALUE* argv, VALUE self) override;
+    VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
 
-  protected:
+    NativeFunction(Function_T function);
     NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
+  protected:
 
   private:
     template<typename T, std::size_t I>
@@ -5999,7 +6082,7 @@ namespace Rice::detail
     To_Ruby<To_Ruby_T> createToRuby();
       
     // Convert Ruby argv pointer to Ruby values
-    std::vector<VALUE> getRubyValues(int argc, VALUE* argv);
+    std::vector<VALUE> getRubyValues(int argc, const VALUE* argv);
 
     template<typename Arg_T, int I>
     Arg_T getNativeValue(std::vector<VALUE>& values);
@@ -6060,6 +6143,14 @@ namespace Rice::detail
     detail::Registries::instance.natives.add(klass, identifier.id(), native);
   }
 
+  // Ruby calls this method when invoking a proc that was defined as a C++ function
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::procEntry(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
+  {
+    NativeFunction_T* native = (NativeFunction_T*)callback_arg;
+    return (*native)(argc, argv, Qnil);
+  }
+
   template<typename Class_T, typename Function_T, bool IsMethod>
   NativeFunction<Class_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
     : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo)
@@ -6072,6 +6163,12 @@ namespace Rice::detail
     this->fromRubys_ = this->createFromRuby(indices);
 
     this->toRuby_ = this->createToRuby();
+  }
+
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  NativeFunction<Class_T, Function_T, IsMethod>::NativeFunction(Function_T function)
+    : NativeFunction(Qnil, "", function, new MethodInfo(arity))
+  {
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
@@ -6111,7 +6208,7 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  Resolved NativeFunction<Class_T, Function_T, IsMethod>::matches(int argc, VALUE* argv, VALUE self)
+  Resolved NativeFunction<Class_T, Function_T, IsMethod>::matches(int argc, const VALUE* argv, VALUE self)
   {
     // Return false if Ruby provided more arguments than the C++ method takes
     if (argc > arity)
@@ -6160,11 +6257,22 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  std::vector<VALUE> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(int argc, VALUE* argv)
+  std::vector<VALUE> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(int argc, const VALUE* argv)
   {
+    // Block handling. If we find a block and there is a missing argument error, then we assume the
+    // block is being used as a callback for C/C++. The easiest thing to do is keep the format string the 
+    // same but convert the block to a proc and add it to argv.
+    std::vector<VALUE> argvCopy(argv, argv + argc);
+    if (rb_block_given_p() && argc < arity)
+    {
+      argc++;
+      VALUE proc = rb_block_proc();
+      argvCopy.push_back(proc);
+    }
+
     // Setup a tuple for the leading rb_scan_args arguments
     std::string scanFormat = this->methodInfo_->formatString();
-    std::tuple<int, VALUE*, const char*> rbScanArgs = std::forward_as_tuple(argc, argv, scanFormat.c_str());
+    std::tuple<int, VALUE*, const char*> rbScanArgs = std::forward_as_tuple(argc, argvCopy.data(), scanFormat.c_str());
 
     // Create a vector to store the VALUEs that will be returned by rb_scan_args
     std::vector<VALUE> rbScanValues(std::tuple_size_v<Arg_Ts>, Qnil);
@@ -6340,6 +6448,10 @@ namespace Rice::detail
   template<typename Class_T, typename Function_T, bool IsMethod>
   void NativeFunction<Class_T, Function_T, IsMethod>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues)
   {
+    // Self will be Qnil for wrapped procs
+    if (self == Qnil)
+      return;
+
     // selfWrapper will be nullptr if this(self) is a builtin type and not an external(wrapped) type
     // it is highly unlikely that keepAlive is used in this case but we check anyway
     Wrapper* selfWrapper = getWrapper(self);
@@ -6376,7 +6488,7 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<Class_T, Function_T, IsMethod>::operator()(int argc, VALUE* argv, VALUE self)
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::operator()(int argc, const VALUE* argv, VALUE self)
   {
     // Get the ruby values
     std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv);
@@ -6431,8 +6543,8 @@ namespace Rice::detail
     void operator=(const NativeIterator_T&) = delete;
     void operator=(NativeIterator_T&&) = delete;
 
-    Resolved matches(int argc, VALUE* argv, VALUE self) override;
-    VALUE operator()(int argc, VALUE* argv, VALUE self) override;
+    Resolved matches(int argc, const VALUE* argv, VALUE self) override;
+    VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
 
   protected:
     NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end);
@@ -6478,7 +6590,7 @@ namespace Rice::detail
   }
 
   template<typename T, typename Iterator_Func_T>
-  inline Resolved NativeIterator<T, Iterator_Func_T>::matches(int argc, VALUE* argv, VALUE self)
+  inline Resolved NativeIterator<T, Iterator_Func_T>::matches(int argc, const VALUE* argv, VALUE self)
   {
     return Resolved{ Convertible::Exact, 1.0, this };
   }
@@ -6524,7 +6636,7 @@ namespace Rice::detail
   }
 
   template<typename T, typename Iterator_Func_T>
-  inline VALUE NativeIterator<T, Iterator_Func_T>::operator()(int argc, VALUE* argv, VALUE self)
+  inline VALUE NativeIterator<T, Iterator_Func_T>::operator()(int argc, const VALUE* argv, VALUE self)
   {
     if (!protect(rb_block_given_p))
     {
@@ -6545,6 +6657,286 @@ namespace Rice::detail
     }
   }
 }
+// =========   NativeCallbackFFI.hpp   =========
+
+#ifdef HAVE_LIBFFI
+
+#include <ffi.h>
+
+namespace Rice::detail
+{
+  template<typename Return_T, typename ...Arg_Ts>
+  class NativeCallbackFFI
+  {
+  public:
+    using Callback_T = Return_T(Arg_Ts...);
+    using Tuple_T = std::tuple<Arg_Ts...>;
+    static void ffiCallback(ffi_cif* cif, void* ret, void* args[], void* instance);
+  public:
+    NativeCallbackFFI(VALUE proc);
+    NativeCallbackFFI(const NativeCallbackFFI&) = delete;
+    NativeCallbackFFI(NativeCallbackFFI&&) = delete;
+    void operator=(const NativeCallbackFFI&) = delete;
+    void operator=(NativeCallbackFFI&&) = delete;
+
+    Return_T operator()(Arg_Ts...args);
+    Callback_T* callback();
+
+  private:
+    template <typename Arg_T>
+    static ffi_type* ffiType();
+
+    template<std::size_t... I>
+    static Tuple_T convertArgsToTuple(void* args[], std::index_sequence<I...>& indices);
+
+    static inline std::array<ffi_type*, sizeof...(Arg_Ts)> args_ = { ffiType<Arg_Ts>()... };
+    static inline ffi_cif cif_;
+    static inline ffi_closure* closure_ = nullptr;
+    static inline Callback_T* callback_ = nullptr;
+ 
+  private:
+    VALUE proc_;
+  };
+}
+#endif // HAVE_LIBFFI
+
+
+// =========   NativeCallbackFFI.ipp   =========
+#ifdef HAVE_LIBFFI
+#include <ffi.h>
+
+namespace Rice::detail
+{
+  template<typename Return_T, typename ...Arg_Ts>
+  template<typename Arg_T>
+  ffi_type* NativeCallbackFFI<Return_T, Arg_Ts...>::ffiType()
+  {
+    std::map<std::type_index, ffi_type*> nativeToFfiMapping = { 
+      {std::type_index(typeid(bool)),               &ffi_type_uint8},
+      {std::type_index(typeid(bool)),               &ffi_type_uint8},
+      {std::type_index(typeid(char)),               &ffi_type_schar},
+      {std::type_index(typeid(unsigned char)),      &ffi_type_uchar},
+      {std::type_index(typeid(signed char)),        &ffi_type_schar},
+      {std::type_index(typeid(uint8_t)),            &ffi_type_uint8},
+      {std::type_index(typeid(unsigned short)),     &ffi_type_uint8},
+      {std::type_index(typeid(int8_t)),             &ffi_type_sint8},
+      {std::type_index(typeid(short)),              &ffi_type_sint8},
+      {std::type_index(typeid(uint16_t)),           &ffi_type_uint16},
+      {std::type_index(typeid(int16_t)),            &ffi_type_sint16},
+      {std::type_index(typeid(uint32_t)),           &ffi_type_uint32},
+      {std::type_index(typeid(unsigned int)),       &ffi_type_uint32},
+      {std::type_index(typeid(signed int)),         &ffi_type_uint32},
+      {std::type_index(typeid(int32_t)),            &ffi_type_sint32},
+      {std::type_index(typeid(uint64_t)),           &ffi_type_uint64},
+      {std::type_index(typeid(unsigned long long)), &ffi_type_uint64},
+      {std::type_index(typeid(int64_t)),            &ffi_type_sint64},
+      {std::type_index(typeid(signed long long)),   &ffi_type_sint64},
+      {std::type_index(typeid(float)),              &ffi_type_float},
+      {std::type_index(typeid(double)),             &ffi_type_double},
+      {std::type_index(typeid(void)),               &ffi_type_pointer},
+      {std::type_index(typeid(long double)),        &ffi_type_longdouble}
+    };
+
+    if (sizeof(long) == 32)
+    {
+      nativeToFfiMapping[std::type_index(typeid(unsigned long))] = &ffi_type_uint32;
+      nativeToFfiMapping[std::type_index(typeid(long))] = &ffi_type_sint32;
+    }
+    else if (sizeof(long) == 64)
+    {
+      nativeToFfiMapping[std::type_index(typeid(unsigned long))] = &ffi_type_uint64;
+      nativeToFfiMapping[std::type_index(typeid(long))] = &ffi_type_sint64;
+    }
+    
+    if (std::is_pointer_v<Arg_T>)
+    {
+      return &ffi_type_pointer;
+    }
+    else
+    {
+      const std::type_index& key = std::type_index(typeid(Arg_T));
+      return nativeToFfiMapping[key];
+    }
+  }
+
+  template<typename Return_T, typename ...Arg_Ts>
+  template<std::size_t... I>
+  typename NativeCallbackFFI<Return_T, Arg_Ts...>::Tuple_T NativeCallbackFFI<Return_T, Arg_Ts...>::convertArgsToTuple(void* args[], std::index_sequence<I...>& indices)
+  {
+    /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
+       on the arguments (Arg_Ts) required by the C++ function. Arg_T may have const/volatile while
+       the associated From_Ruby<T> template parameter will not. Thus From_Ruby produces non-const values
+       which we let the compiler convert to const values as needed. This works except for
+       T** -> const T**, see comment in getNativeValue method. */
+    return std::forward_as_tuple(*(std::tuple_element_t<I, Tuple_T>*)(args[I])...);
+  }
+
+  template<typename Return_T, typename ...Arg_Ts>
+  void NativeCallbackFFI<Return_T, Arg_Ts...>::ffiCallback(ffi_cif* cif, void* ret, void* args[], void* instance)
+  {
+    using Self_T = NativeCallbackFFI<Return_T, Arg_Ts...>;
+    Self_T* self = (Self_T*)instance;
+
+    auto indices = std::make_index_sequence<sizeof...(Arg_Ts)>{};
+
+    if constexpr (sizeof...(Arg_Ts) == 0)
+    {
+      *(Return_T*)ret = self->operator()();
+    }
+    else
+    {
+      std::tuple<Arg_Ts...> tuple = convertArgsToTuple(args, indices);
+      *(Return_T*)ret = std::apply(*self, tuple);
+    }
+  }
+
+  template<typename Return_T, typename ...Arg_Ts>
+  NativeCallbackFFI<Return_T, Arg_Ts...>::NativeCallbackFFI(VALUE proc) : proc_(proc)
+  {
+    if (cif_.bytes == 0)
+    {
+      ffi_prep_cif(&cif_, FFI_DEFAULT_ABI, sizeof...(Arg_Ts), &ffi_type_pointer, args_.data());
+    }
+
+    this->closure_ = (ffi_closure *)ffi_closure_alloc(sizeof(ffi_closure), (void**)(&this->callback_));
+    ffi_status status = ffi_prep_closure_loc(this->closure_, &cif_, ffiCallback, (void*)this, nullptr);
+  }
+
+  template<typename Return_T, typename ...Arg_Ts>
+  typename NativeCallbackFFI<Return_T, Arg_Ts...>::Callback_T* NativeCallbackFFI<Return_T, Arg_Ts...>::callback()
+  {
+    return (Callback_T*)this->callback_;
+  }
+
+  template<typename Return_T, typename ...Arg_Ts>
+  Return_T NativeCallbackFFI<Return_T, Arg_Ts...>::operator()(Arg_Ts...args)
+  {
+    static Identifier id("call");
+    std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Arg_Ts>>().convert(args)... };
+    VALUE result = detail::protect(rb_funcallv, this->proc_, id.id(), (int)values.size(), (const VALUE*)values.data());
+    
+    if constexpr (!std::is_void_v<Return_T>)
+    {
+      static From_Ruby<Return_T> fromRuby;
+      return fromRuby.convert(result);
+    }
+  }
+}
+#endif // HAVE_LIBFFI
+// =========   NativeCallbackSimple.hpp   =========
+
+namespace Rice::detail
+{
+  template<typename Return_T, typename ...Arg_Ts>
+  class NativeCallbackSimple
+  {
+  public:
+    static Return_T callback(Arg_Ts...args);
+    static inline VALUE proc = Qnil;
+
+  public:
+    NativeCallbackSimple()  = delete;
+    NativeCallbackSimple(const NativeCallbackSimple&) = delete;
+    NativeCallbackSimple(NativeCallbackSimple&&) = delete;
+    void operator=(const NativeCallbackSimple&) = delete;
+    void operator=(NativeCallbackSimple&&) = delete;
+  };
+}
+
+// =========   NativeCallbackSimple.ipp   =========
+namespace Rice::detail
+{
+  template<typename Return_T, typename ...Arg_Ts>
+  Return_T NativeCallbackSimple<Return_T, Arg_Ts...>::callback(Arg_Ts...args)
+  {
+    static Identifier id("call");
+    std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Arg_Ts>>().convert(args)... };
+    VALUE result = detail::protect(rb_funcallv, proc, id.id(), (int)sizeof...(Arg_Ts), values.data());
+    if constexpr (!std::is_void_v<Return_T>)
+    {
+      static From_Ruby<Return_T> fromRuby;
+      return fromRuby.convert(result);
+    }
+  }
+}
+// =========   Proc.ipp   =========
+namespace Rice::detail
+{
+  // Note Return_T(Arg_Ts...) is intentional versus Return_T(*)(Arg_Ts...). That is
+  // because the Type machinery strips all pointers/references/const/val etc to avoid
+  // having an explosion of Type definitions
+  template<typename Return_T, typename ...Arg_Ts>
+  struct Type<Return_T(Arg_Ts...)>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
+
+  // Wraps a C++ function as a Ruby proc
+  template<typename Return_T, typename ...Arg_Ts>
+  class To_Ruby<Return_T(*)(Arg_Ts...)>
+  {
+  public:
+    using Proc_T = Return_T(*)(Arg_Ts...);
+
+    VALUE convert(Proc_T proc)
+    {
+      using NativeFunction_T = NativeFunction<void, Proc_T, false>;
+      // TODO - this is a memory leak - we never free this pointer
+      auto native = new NativeFunction_T(proc);
+      VALUE result = rb_proc_new(NativeFunction_T::procEntry, (VALUE)native);
+      return result;
+    }
+  };
+
+  // Makes a Ruby proc callable as C callback
+  template<typename Return_T, typename ...Arg_Ts>
+  class From_Ruby<Return_T(*)(Arg_Ts...)>
+  {
+  public:
+    using Callback_T = Return_T(*)(Arg_Ts...);
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      if (protect(rb_obj_is_proc, value) == Qtrue || protect(rb_proc_lambda_p, value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return Convertible::None;
+      }
+    }
+
+#ifdef HAVE_LIBFFI
+    Callback_T convert(VALUE value)
+    {
+      using NativeCallback_T = NativeCallbackFFI<Return_T, Arg_Ts...>;
+      NativeCallback_T* nativeCallback = new NativeCallback_T(value);
+      return nativeCallback->callback();
+    }
+#else
+    Callback_T convert(VALUE value)
+    {
+      using NativeCallback_T = NativeCallbackSimple<Return_T, Arg_Ts...>;
+      NativeCallback_T::proc = value;
+      return &NativeCallback_T::callback;
+    }
+#endif
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+}
+
 // C++ API definitions
 
 // =========   Encoding.ipp   =========
@@ -10564,5 +10956,50 @@ namespace Rice
     return detail::protect(rb_mod_module_eval, 1, &argv[0], this->value());
   }
 }
+
+// For now include libc support - maybe should be separate header file someday
+
+// =========   file.hpp   =========
+
+namespace Rice::libc
+{
+  extern Class rb_cLibcFile;
+}
+
+
+// ---------   file.ipp   ---------
+#include <exception>
+
+// Libraries sometime inherit custom exception objects from std::exception,
+// so define it for Ruby if necessary
+namespace Rice::libc
+{
+  inline Class rb_cLibcFile;
+
+  inline void define_libc_file()
+  {
+    Module rb_mRice = define_module("Rice");
+    Module rb_mLibc = define_module_under(rb_mRice, "libc");
+    rb_cLibcFile = define_class_under<FILE>(rb_mLibc, "File");
+  }
+}
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<FILE>
+  {
+    static bool verify()
+    {
+      if (!detail::Registries::instance.types.isDefined<FILE>())
+      {
+        libc::define_libc_file();
+      }
+
+      return true;
+    }
+  };
+}
+
 
 #endif // Rice__hpp_

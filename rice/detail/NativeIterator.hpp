@@ -26,8 +26,8 @@ namespace Rice::detail
     void operator=(const NativeIterator_T&) = delete;
     void operator=(NativeIterator_T&&) = delete;
 
-    Resolved matches(int argc, VALUE* argv, VALUE self) override;
-    VALUE operator()(int argc, VALUE* argv, VALUE self) override;
+    Resolved matches(int argc, const VALUE* argv, VALUE self) override;
+    VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
 
   protected:
     NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end);

@@ -1,6 +1,6 @@
 #include <typeinfo>
 
-namespace Rice::Stl
+namespace Rice::stl
 {
   inline Data_Type<std::type_info> define_type_info()
   {
@@ -22,7 +22,7 @@ namespace Rice::detail
     {
       if (!detail::Registries::instance.types.isDefined<std::type_info>())
       {
-        Stl::define_type_info();
+        stl::define_type_info();
       }
 
       return true;

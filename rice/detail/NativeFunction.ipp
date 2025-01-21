@@ -25,6 +25,14 @@ namespace Rice::detail
     detail::Registries::instance.natives.add(klass, identifier.id(), native);
   }
 
+  // Ruby calls this method when invoking a proc that was defined as a C++ function
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::procEntry(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
+  {
+    NativeFunction_T* native = (NativeFunction_T*)callback_arg;
+    return (*native)(argc, argv, Qnil);
+  }
+
   template<typename Class_T, typename Function_T, bool IsMethod>
   NativeFunction<Class_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
     : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo)
@@ -37,6 +45,12 @@ namespace Rice::detail
     this->fromRubys_ = this->createFromRuby(indices);
 
     this->toRuby_ = this->createToRuby();
+  }
+
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  NativeFunction<Class_T, Function_T, IsMethod>::NativeFunction(Function_T function)
+    : NativeFunction(Qnil, "", function, new MethodInfo(arity))
+  {
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
@@ -76,7 +90,7 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  Resolved NativeFunction<Class_T, Function_T, IsMethod>::matches(int argc, VALUE* argv, VALUE self)
+  Resolved NativeFunction<Class_T, Function_T, IsMethod>::matches(int argc, const VALUE* argv, VALUE self)
   {
     // Return false if Ruby provided more arguments than the C++ method takes
     if (argc > arity)
@@ -125,11 +139,22 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  std::vector<VALUE> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(int argc, VALUE* argv)
+  std::vector<VALUE> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(int argc, const VALUE* argv)
   {
+    // Block handling. If we find a block and there is a missing argument error, then we assume the
+    // block is being used as a callback for C/C++. The easiest thing to do is keep the format string the 
+    // same but convert the block to a proc and add it to argv.
+    std::vector<VALUE> argvCopy(argv, argv + argc);
+    if (rb_block_given_p() && argc < arity)
+    {
+      argc++;
+      VALUE proc = rb_block_proc();
+      argvCopy.push_back(proc);
+    }
+
     // Setup a tuple for the leading rb_scan_args arguments
     std::string scanFormat = this->methodInfo_->formatString();
-    std::tuple<int, VALUE*, const char*> rbScanArgs = std::forward_as_tuple(argc, argv, scanFormat.c_str());
+    std::tuple<int, VALUE*, const char*> rbScanArgs = std::forward_as_tuple(argc, argvCopy.data(), scanFormat.c_str());
 
     // Create a vector to store the VALUEs that will be returned by rb_scan_args
     std::vector<VALUE> rbScanValues(std::tuple_size_v<Arg_Ts>, Qnil);
@@ -305,6 +330,10 @@ namespace Rice::detail
   template<typename Class_T, typename Function_T, bool IsMethod>
   void NativeFunction<Class_T, Function_T, IsMethod>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues)
   {
+    // Self will be Qnil for wrapped procs
+    if (self == Qnil)
+      return;
+
     // selfWrapper will be nullptr if this(self) is a builtin type and not an external(wrapped) type
     // it is highly unlikely that keepAlive is used in this case but we check anyway
     Wrapper* selfWrapper = getWrapper(self);
@@ -341,7 +370,7 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<Class_T, Function_T, IsMethod>::operator()(int argc, VALUE* argv, VALUE self)
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::operator()(int argc, const VALUE* argv, VALUE self)
   {
     // Get the ruby values
     std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv);

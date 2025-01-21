@@ -41,7 +41,7 @@ Class makeMapClass()
 
   return c;
 }
-/*
+
 TESTCASE(StringMap)
 {
   Module m = define_module("Testing");
@@ -409,7 +409,7 @@ TESTCASE(Printable)
   Object result = map.call("to_s");
   ASSERT_EQUAL("{one => Comparable(1), three => Comparable(3), two => Comparable(2)}", detail::From_Ruby<std::string>().convert(result));
 }
-*/
+
 namespace
 {
   std::map<std::string, std::complex<double>> returnComplexMap()

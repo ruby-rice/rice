@@ -2,6 +2,7 @@
 #define Rice__stl__hpp_
 
 #include "stl/exception.hpp"
+#include "stl/exception_ptr.hpp"
 #include "stl/string.hpp"
 #include "stl/string_view.hpp"
 #include "stl/complex.hpp"

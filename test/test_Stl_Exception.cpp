@@ -63,3 +63,47 @@ TESTCASE(StlExceptionCreate)
   Object object = m.instance_eval(code);
   ASSERT_EQUAL(MyExceptionKlass.value(), object.class_of().value());
 }
+
+namespace
+{
+  std::exception_ptr createExceptionPtr()
+  {
+    std::exception_ptr eptr;
+
+    try
+    {
+      [[maybe_unused]]
+      char ch = std::string().at(1); // this generates a std::out_of_range
+    }
+    catch (...)
+    {
+      eptr = std::current_exception(); // capture
+    }
+
+    return eptr;
+  }
+
+  void handleExceptionPtr(std::exception_ptr eptr)
+  {
+    std::rethrow_exception(eptr);
+  }
+}
+
+TESTCASE(StlExceptionPtr)
+{
+  Module m = define_module("TestingModule");
+  m.define_module_function("create_exception_ptr", createExceptionPtr).
+    define_module_function("handle_exception_ptr", handleExceptionPtr);
+
+  Data_Object<std::exception_ptr> exception = m.call("create_exception_ptr");
+  VALUE value = exception.value();
+  std::exception_ptr* ptr = exception.get();
+  ASSERT((value != Qnil));
+  ASSERT((ptr != nullptr));
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.call("handle_exception_ptr", exception),
+    ASSERT_EQUAL(rb_eIndexError, ex.class_of())
+  );
+}

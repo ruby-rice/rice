@@ -16,7 +16,7 @@ TEARDOWN(Jump_Tag)
 
 TESTCASE(construct)
 {
-  Jump_Tag jump_tag(42);
-  ASSERT_EQUAL(42, jump_tag.tag);
+  JumpException exception(JumpException::RUBY_TAG_RETURN);
+  ASSERT_EQUAL(JumpException::RUBY_TAG_RETURN, exception.tag);
 }
 

@@ -34,8 +34,8 @@ namespace Rice
       void operator=(const NativeAttribute_T&) = delete;
       void operator=(NativeAttribute_T&&) = delete;
 
-      Resolved matches(int argc, VALUE* argv, VALUE self) override;
-      VALUE operator()(int argc, VALUE* argv, VALUE self) override;
+      Resolved matches(int argc, const VALUE* argv, VALUE self) override;
+      VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
 
     protected:
       NativeAttributeGet(VALUE klass, std::string name, Attribute_T attr);
