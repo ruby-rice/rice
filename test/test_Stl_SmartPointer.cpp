@@ -172,11 +172,11 @@ SETUP(SmartPointer)
     define_method("take_ownership", &Sink::takeOwnership).
     define_method("share_ownership", &Sink::shareOwnership).
     define_method<int(Sink::*)(std::unique_ptr<MyClass>&, MyClass*)>("update_pointer", &Sink::updatePointer, 
-      Arg("ptr"), Arg("myClass").transferOwnership()).
+      Arg("ptr"), Arg("myClass").takeOwnership()).
     define_method<int(Sink::*)(std::shared_ptr<MyClass>&, MyClass*)>("update_pointer", &Sink::updatePointer,
-      Arg("ptr"), Arg("myClass").transferOwnership()).
+      Arg("ptr"), Arg("myClass").takeOwnership()).
     define_method("make_void_shared", &Sink::makeVoidShared,
-      Arg("myClass").transferOwnership()).
+      Arg("myClass").takeOwnership()).
     define_method<int(Sink::*)(std::shared_ptr<void>&)>("handle_void", &Sink::handleVoid);
 
   // Needed for shared_ptr<void>
@@ -200,7 +200,7 @@ TEARDOWN(SmartPointer)
 #endif
 }
 
-TESTCASE(TransferOwnership)
+TESTCASE(takeOwnership)
 {
   MyClass::reset();
   Factory::reset();

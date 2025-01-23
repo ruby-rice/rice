@@ -8,6 +8,8 @@ namespace Rice
   class MethodInfo
   {
   public:
+    MethodInfo() = default;
+
     template <typename...Arg_Ts>
     MethodInfo(size_t argCount, const Arg_Ts&...args);
 
@@ -22,7 +24,7 @@ namespace Rice
       */
     void addArg(const Arg& arg);
 
-    Arg& arg(size_t pos);
+    Arg* arg(size_t pos);
 
     // Iterator support
     std::vector<Arg>::iterator begin();

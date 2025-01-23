@@ -5,31 +5,15 @@ namespace Rice
 {
   //! Helper for defining Return argument of a method
 
-  class Return
+  class Return: public Arg
   {
   public:
-    //! Specifies Ruby should take ownership of the returned value
-    Return& takeOwnership();
+    Return();
+    Return& keepAlive() override;
+    Return& setValue() override;
+    Return& setOpaque() override;
+    Return& takeOwnership() override;
 
-    //! Does Ruby own the returned value?
-    bool isOwner();
-
-    //! Specifies the returned value is a Ruby value
-    Return& setValue();
-
-    //! Is the returned value a Ruby value?
-    bool isValue() const;
-
-    //! Tell the returned object to keep alive the receving object
-    Return& keepAlive();
-
-    //! Is the returned value being kept alive?
-    bool isKeepAlive() const;
-
-  private:
-    bool isKeepAlive_ = false;
-    bool isOwner_ = false;
-    bool isValue_ = false;
   };
 } // Rice
 

@@ -174,10 +174,10 @@ namespace Rice::detail
   };
 
   template <typename T>
-  inline T* unwrap(VALUE value, rb_data_type_t* rb_type, bool transferOwnership)
+  inline T* unwrap(VALUE value, rb_data_type_t* rb_type, bool takeOwnership)
   {
     Wrapper* wrapper = getWrapper(value, rb_type);
-    if (transferOwnership)
+    if (takeOwnership)
       wrapper->setOwner(false);
 
     if (wrapper == nullptr)

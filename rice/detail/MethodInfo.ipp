@@ -25,13 +25,13 @@ namespace Rice
   template <typename Arg_T>
   inline void MethodInfo::processArg(const Arg_T& arg)
   {
-    if constexpr (std::is_same_v<Arg_T, Arg>)
+    if constexpr (std::is_same_v<Arg_T, Return>)
     {
-      this->addArg(arg);
+      this->returnInfo = arg;
     }
     else
     {
-      this->returnInfo = arg;
+      this->addArg(arg);
     }
   }
 
@@ -60,9 +60,16 @@ namespace Rice
     return std::to_string(required) + std::to_string(optional);
   }
 
-  inline Arg& MethodInfo::arg(size_t pos)
+  inline Arg* MethodInfo::arg(size_t pos)
   {
-    return args_[pos];
+    if (pos < this->args_.size())
+    {
+      return &this->args_[pos];
+    }
+    else
+    {
+      return nullptr;
+    }
   }
 
   inline std::vector<Arg>::iterator MethodInfo::begin()

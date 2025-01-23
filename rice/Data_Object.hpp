@@ -42,7 +42,7 @@ namespace Rice
     static_assert(!std::is_void_v<T>);
 
   public:
-    static T* from_ruby(VALUE value, bool transferOwnership = false);
+    static T* from_ruby(VALUE value, bool takeOwnership = false);
 
   public:
     //! Wrap a C++ object.

@@ -2,36 +2,31 @@
 
 namespace Rice
 {
-  inline Return& Return::takeOwnership()
+  inline Return::Return(): Arg("Return")
   {
-    this->isOwner_ = true;
-    return *this;
-  }
-
-  inline bool Return::isOwner()
-  {
-    return this->isOwner_;
-  }
-
-  inline Return& Return::setValue()
-  {
-    this->isValue_ = true;
-    return *this;
-  }
-
-  inline bool Return::isValue() const
-  {
-    return this->isValue_;
   }
 
   inline Return& Return::keepAlive()
   {
-    this->isKeepAlive_ = true;
+    Arg::keepAlive();
     return *this;
   }
 
-  inline bool Return::isKeepAlive() const
+  inline Return& Return::setValue()
   {
-    return this->isKeepAlive_;
+    Arg::setValue();
+    return *this;
+  }
+
+  inline Return& Return::setOpaque()
+  {
+    Arg::setOpaque();
+    return *this;
+  }
+
+  inline Return& Return::takeOwnership()
+  {
+    Arg::takeOwnership();
+    return *this;
   }
 }  // Rice

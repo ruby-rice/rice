@@ -35,6 +35,9 @@ namespace Rice
      */
     Arg(std::string name);
 
+    // Make Arg polymorphic so dynamic_cast works
+    virtual ~Arg() = default;
+
     //! Set the default value for this Arg
     /*! Set the default value for this argument.
      *  If this isn't called on this Arg, then this
@@ -56,23 +59,30 @@ namespace Rice
 
     //! Tell the receiving object to keep this argument alive
     //! until the receiving object is freed.
-    Arg& keepAlive();
+    virtual Arg& keepAlive();
     
     //! Returns if the argument should be kept alive
     bool isKeepAlive() const;
 
     //! Specifies if the argument should be treated as a value
-    Arg& setValue();
+    virtual Arg& setValue();
 
     //! Returns if the argument should be treated as a value
     bool isValue() const;
 
+    //! Specifies if the argument is opaque and Rice should not convert it from Ruby to C++ or vice versa.
+    //! This is useful for callbacks and user provided data paramameters.
+    virtual Arg& setOpaque();
+
+    //! Returns if the argument should be treated as a value
+    bool isOpaque() const;
+
     //! Specifies C++ will take ownership of this value and Ruby should not free it
-    Arg& transferOwnership();
-    bool isTransfer();
+    virtual Arg& takeOwnership();
+    bool isOwner();
 
   public:
-    const std::string name;
+    std::string name;
     int32_t position = -1;
 
   private:
@@ -80,7 +90,8 @@ namespace Rice
     std::any defaultValue_;
     bool isValue_ = false;
     bool isKeepAlive_ = false;
-    bool isTransfer_ = false;
+    bool isOwner_ = false;
+    bool isOpaque_ = false;
   };
 } // Rice
 

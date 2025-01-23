@@ -24,7 +24,7 @@ namespace
   using Callback_T = char*(*)(int, double, bool, char*);
   Callback_T globalCallback;
 
-  void registerCallback(char*(*callback)(int, double, bool, char*))
+  void registerCallback(Callback_T callback)
   {
     globalCallback = callback;
   }
@@ -41,7 +41,7 @@ namespace
 
 TESTCASE(LambdaCallBack)
 {
-  Module m = define_module("TestingModuleLambda");
+  Module m = define_module("TestingLambda");
   m.define_module_function("register_callback", registerCallback).
     define_module_function("trigger_callback", triggerCallback);
 
@@ -63,7 +63,7 @@ TESTCASE(LambdaCallBack)
 
 TESTCASE(BlockCallBack)
 {
-  Module m = define_module("TestingModuleBlock");
+  Module m = define_module("TestingBlock");
   m.define_module_function("register_callback", registerCallback).
     define_module_function("trigger_callback", triggerCallback);
 
@@ -80,7 +80,7 @@ TESTCASE(BlockCallBack)
 
 TESTCASE(ProcCallBack)
 {
-  Module m = define_module("TestingModuleBlock");
+  Module m = define_module("TestingProc");
   m.define_module_function("register_callback", registerCallback).
     define_module_function("trigger_callback", triggerCallback);
 
@@ -96,6 +96,24 @@ TESTCASE(ProcCallBack)
   ASSERT_EQUAL("8 - 4.4 - true - Hello proc", result.c_str());
 }
 
+TESTCASE(MethodCallBack)
+{
+  Module m = define_module("TestingMethod");
+  m.define_module_function("register_callback", registerCallback).
+    define_module_function("trigger_callback", triggerCallback);
+
+  std::string code = R"(def self.callback(an_int, a_double, a_bool, a_string)
+                          values = [an_int, a_double, a_bool, a_string]
+                          values.map {|value| value.to_s}.join(" - ")
+                        end
+                        register_callback(method(:callback).to_proc))";
+
+  m.module_eval(code);
+
+  String result = m.call("trigger_callback", 11.1, 22.9, true, "Hello method");
+  ASSERT_EQUAL("11 - 22.9 - true - Hello method", result.c_str());
+}
+
 namespace
 {
   int functionArg(int i, int(*f)(int))
@@ -106,7 +124,7 @@ namespace
 
 TESTCASE(FunctionArg)
 {
-  Module m = define_module("TestingModuleFunctionArg");
+  Module m = define_module("TestingFunctionArg");
   m.define_module_function("function_arg", functionArg);
 
   std::string code = R"(function_arg(4) do |i|
@@ -138,7 +156,7 @@ namespace
 #ifdef HAVE_LIBFFI
 TESTCASE(MultipleCallbacks)
 {
-  Module m = define_module("TestingModuleMultipleCallbacks");
+  Module m = define_module("TestingMultipleCallbacks");
   m.define_module_function<void(*)(Callback_T2, Callback_T2)>("register_callback", registerCallback).
     define_module_function<char*(*)(int)>("trigger_callback", triggerCallback);
 
@@ -161,3 +179,53 @@ TESTCASE(MultipleCallbacks)
   ASSERT_EQUAL("Proc 2", result.c_str());
 }
 #endif
+
+namespace
+{
+  using Callback_T3 = char*(*)(void* userData);
+  Callback_T3 globalCallback3;
+  void* globalUserData = nullptr;
+
+  void registerCallback3(Callback_T3 callback, void* userData)
+  {
+    globalCallback3 = callback;
+    globalUserData = userData;
+  }
+
+  char* triggerCallback3()
+  {
+    if (globalCallback3)
+    {
+      return globalCallback3(globalUserData);
+    }
+    throw std::runtime_error("Callback has not been registered");
+  }
+}
+
+TESTCASE(UserData)
+{
+  Module m = define_module("TestingUserData");
+  m.define_module_function("register_callback", registerCallback3, Arg("callback"), Arg("user_data").setOpaque()).
+    define_module_function("trigger_callback", triggerCallback3);
+
+  define_callback<Callback_T3>(Arg("user_data").setOpaque());
+
+  std::string code = R"(class UserDataClass
+                        end
+
+                        user_data_1 = UserDataClass.new
+
+                        callback = Proc.new do |user_data_2|
+                                     unless user_data_1.equal?(user_data_2)
+                                       raise("Unexpected user data object")
+                                     end
+                                     user_data_2.class.name
+                                   end
+
+                        register_callback(callback, user_data_1))";
+
+  m.module_eval(code);
+
+  String result = m.call("trigger_callback");
+  ASSERT_EQUAL("TestingUserData::UserDataClass", result.c_str());
+}

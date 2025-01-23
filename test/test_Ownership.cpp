@@ -132,7 +132,7 @@ SETUP(Ownership)
     define_method("value", &Factory::value).
     define_method("move_value", &Factory::moveValue).
     define_method("transfer_pointer_to_ruby", &Factory::transferPointerToRuby, Return().takeOwnership()).
-    define_method("transfer_pointer_to_cpp", &Factory::transferPointerToCpp, Arg("myClass").transferOwnership()).
+    define_method("transfer_pointer_to_cpp", &Factory::transferPointerToCpp, Arg("myClass").takeOwnership()).
     define_method("keep_pointer", &Factory::keepPointer).
     define_method("copy_reference", &Factory::keepReference, Return().takeOwnership()).
     define_method("keep_reference", &Factory::keepReference);
