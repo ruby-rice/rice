@@ -22,9 +22,13 @@ namespace Rice::detail
     VALUE convert(Proc_T proc)
     {
       using NativeFunction_T = NativeFunction<void, Proc_T, false>;
-      // TODO - this is a memory leak - we never free this pointer
       auto native = new NativeFunction_T(proc);
       VALUE result = rb_proc_new(NativeFunction_T::procEntry, (VALUE)native);
+
+      // Tie the lifetime of the NativeCallback C++ instance to the lifetime of the Ruby proc object
+      VALUE finalizer = rb_proc_new(NativeFunction_T::finalizerCallback, (VALUE)native);
+      rb_define_finalizer(result, finalizer);
+
       return result;
     }
   };
@@ -57,14 +61,19 @@ namespace Rice::detail
 #ifdef HAVE_LIBFFI
     Callback_T convert(VALUE value)
     {
-      using NativeCallback_T = NativeCallbackFFI<Return_T, Arg_Ts...>;
+      using NativeCallback_T = NativeCallbackFFI<Return_T(*)(Arg_Ts...)>;
       NativeCallback_T* nativeCallback = new NativeCallback_T(value);
+
+      // Tie the lifetime of the NativeCallback C++ instance to the lifetime of the Ruby proc object
+      VALUE finalizer = rb_proc_new(NativeCallback_T::finalizerCallback, (VALUE)nativeCallback);
+      rb_define_finalizer(value, finalizer);
+
       return nativeCallback->callback();
     }
 #else
     Callback_T convert(VALUE value)
     {
-      using NativeCallback_T = NativeCallbackSimple<Return_T, Arg_Ts...>;
+      using NativeCallback_T = NativeCallbackSimple<Return_T(*)(Arg_Ts...)>;
       NativeCallback_T::proc = value;
       return &NativeCallback_T::callback;
     }

@@ -48,15 +48,26 @@ namespace Rice
     return isValue_;
   }
 
-  inline Arg& Arg::transferOwnership()
+  inline Arg& Arg::setOpaque()
   {
-    this->isTransfer_ = true;
+    isOpaque_ = true;
     return *this;
   }
 
-  inline bool Arg::isTransfer()
+  inline bool Arg::isOpaque() const
   {
-    return this->isTransfer_;
+    return isOpaque_;
+  }
+
+  inline Arg& Arg::takeOwnership()
+  {
+    this->isOwner_ = true;
+    return *this;
+  }
+
+  inline bool Arg::isOwner()
+  {
+    return this->isOwner_;
   }
 
 

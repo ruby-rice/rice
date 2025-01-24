@@ -55,6 +55,7 @@ namespace Rice::detail
 
     // Proc entry
     static VALUE procEntry(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
+    static VALUE finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
   public:
     // Disallow creating/copying/moving
     NativeFunction() = delete;

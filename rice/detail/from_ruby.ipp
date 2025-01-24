@@ -213,7 +213,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -316,7 +316,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -354,7 +354,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -457,7 +457,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -527,7 +527,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -630,7 +630,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -733,7 +733,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -847,7 +847,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -950,7 +950,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -1053,7 +1053,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -1160,7 +1160,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -1267,7 +1267,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -1377,7 +1377,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -1480,7 +1480,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -1583,7 +1583,7 @@ namespace Rice::detail
 
     ~From_Ruby()
     {
-      if (this->arg_ && this->arg_->isTransfer())
+      if (this->arg_ && this->arg_->isOwner())
       {
         this->converted_.release();
       }
@@ -1613,7 +1613,7 @@ namespace Rice::detail
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
-      if (this->arg_->isTransfer())
+      if (this->arg_->isOwner())
       {
         throw Exception(rb_eTypeError, "Cannot transfer ownership of string data to C++ void pointer");
       }
@@ -1621,6 +1621,11 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
+      if (this->arg_ && this->arg_->isOpaque())
+      {
+        return Convertible::Exact;
+      }
+
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
@@ -1650,6 +1655,11 @@ namespace Rice::detail
 
     void* convert(VALUE value)
     {
+      if (this->arg_ && this->arg_->isOpaque())
+      {
+        return (void*)value;
+      }
+
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
@@ -1657,7 +1667,7 @@ namespace Rice::detail
           // Since C++ is not telling us type information, we need to extract it
           // from the Ruby object.
           const rb_data_type_t* rb_type = RTYPEDDATA_TYPE(value);
-          return detail::unwrap<void>(value, (rb_data_type_t*)rb_type, this->arg_ && this->arg_->isTransfer());
+          return detail::unwrap<void>(value, (rb_data_type_t*)rb_type, this->arg_ && this->arg_->isOwner());
           break;
         }
         case RUBY_T_STRING:
@@ -1673,8 +1683,10 @@ namespace Rice::detail
           break;
         }
         default:
+        {
           throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
             detail::protect(rb_obj_classname, value), "pointer");
+        }
       }
     }
   private:

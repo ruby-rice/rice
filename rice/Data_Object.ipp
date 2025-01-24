@@ -73,11 +73,11 @@ namespace Rice
   }
 
   template<typename T>
-  inline T* Data_Object<T>::from_ruby(VALUE value, bool transferOwnership)
+  inline T* Data_Object<T>::from_ruby(VALUE value, bool takeOwnership)
   {
     if (Data_Type<T>::is_descendant(value))
     {
-      return detail::unwrap<T>(value, Data_Type<T>::ruby_data_type(), transferOwnership);
+      return detail::unwrap<T>(value, Data_Type<T>::ruby_data_type(), takeOwnership);
     }
     else
     {
@@ -187,41 +187,6 @@ namespace Rice::detail
       {
         return Qnil;
       }
-    }
-
-  private:
-    Return* returnInfo_ = nullptr;
-  };
-
-  template <>
-  class To_Ruby<void*>
-  {
-  public:
-    To_Ruby() = default;
-
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
-    {
-    }
-
-    VALUE convert(void* data)
-    {
-      if (data)
-      {
-        // Note that T could be a pointer or reference to a base class while data is in fact a
-        // child class. Lookup the correct type so we return an instance of the correct Ruby class
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(data);
-        bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
-        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
-      }
-      else
-      {
-        return Qnil;
-      }
-    }
-
-    VALUE convert(const void* data)
-    {
-      return convert((void*)data);
     }
 
   private:
@@ -364,7 +329,7 @@ namespace Rice::detail
       }
       else
       {
-        return *Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isTransfer());
+        return *Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
       }
     }
 
@@ -406,7 +371,7 @@ namespace Rice::detail
       }
       else
       {
-        return *Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isTransfer());
+        return *Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
       }
     }
 
@@ -448,7 +413,7 @@ namespace Rice::detail
       }
       else
       {
-        return std::move(*Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isTransfer()));
+        return std::move(*Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner()));
       }
     }
 
@@ -493,7 +458,7 @@ namespace Rice::detail
       }
       else
       {
-        return Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isTransfer());
+        return Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
       }
     }
 
@@ -535,7 +500,7 @@ namespace Rice::detail
       }
       else
       {
-        return Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isTransfer());
+        return Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
       }
     }
 

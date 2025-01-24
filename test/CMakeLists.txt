@@ -81,6 +81,7 @@ add_executable(unittest
                "test_Stl_Vector.cpp")
 
 target_include_directories(unittest PRIVATE ..)
+#target_compile_definitions(unittest PRIVATE -DHAVE_LIBFFI)
 target_include_directories(unittest PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})
 target_include_directories(unittest PRIVATE ${PROJECT_SOURCE_DIR})
-target_link_libraries(unittest ${Ruby_LIBRARY})
+target_link_libraries(unittest ${Ruby_LIBRARY} ffi)

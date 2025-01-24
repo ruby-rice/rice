@@ -5,7 +5,7 @@ namespace Rice::detail
 {
   template<typename Return_T, typename ...Arg_Ts>
   template<typename Arg_T>
-  ffi_type* NativeCallbackFFI<Return_T, Arg_Ts...>::ffiType()
+  ffi_type* NativeCallbackFFI<Return_T(*)(Arg_Ts...)>::ffiType()
   {
     std::map<std::type_index, ffi_type*> nativeToFfiMapping = { 
       {std::type_index(typeid(bool)),               &ffi_type_uint8},
@@ -57,7 +57,7 @@ namespace Rice::detail
 
   template<typename Return_T, typename ...Arg_Ts>
   template<std::size_t... I>
-  typename NativeCallbackFFI<Return_T, Arg_Ts...>::Tuple_T NativeCallbackFFI<Return_T, Arg_Ts...>::convertArgsToTuple(void* args[], std::index_sequence<I...>& indices)
+  typename NativeCallbackFFI<Return_T(*)(Arg_Ts...)>::Tuple_T NativeCallbackFFI<Return_T(*)(Arg_Ts...)>::convertArgsToTuple(void* args[], std::index_sequence<I...>& indices)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
        on the arguments (Arg_Ts) required by the C++ function. Arg_T may have const/volatile while
@@ -68,9 +68,9 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename ...Arg_Ts>
-  void NativeCallbackFFI<Return_T, Arg_Ts...>::ffiCallback(ffi_cif* cif, void* ret, void* args[], void* instance)
+  void NativeCallbackFFI<Return_T(*)(Arg_Ts...)>::ffiCallback(ffi_cif* cif, void* ret, void* args[], void* instance)
   {
-    using Self_T = NativeCallbackFFI<Return_T, Arg_Ts...>;
+    using Self_T = NativeCallbackFFI<Return_T(*)(Arg_Ts...)>;
     Self_T* self = (Self_T*)instance;
 
     auto indices = std::make_index_sequence<sizeof...(Arg_Ts)>{};
@@ -87,22 +87,28 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename ...Arg_Ts>
-  NativeCallbackFFI<Return_T, Arg_Ts...>::~NativeCallbackFFI()
+  void NativeCallbackFFI<Return_T(*)(Arg_Ts...)>::setMethodInfo(MethodInfo* methodInfo)
+  {
+    methodInfo_.reset(methodInfo);
+  }
+
+  template<typename Return_T, typename ...Arg_Ts>
+  NativeCallbackFFI<Return_T(*)(Arg_Ts...)>::~NativeCallbackFFI()
   {
     this->proc_ = Qnil;
   }
 
   template<typename Return_T, typename ...Arg_Ts>
-  VALUE NativeCallbackFFI<Return_T, Arg_Ts...>::finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
+  VALUE NativeCallbackFFI<Return_T(*)(Arg_Ts...)>::finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
   {
-    using NativeCallback_T = NativeCallbackFFI<Return_T, Arg_Ts...>;
+    using NativeCallback_T = NativeCallbackFFI<Return_T(*)(Arg_Ts...)>;
     NativeCallback_T* nativeCallback = (NativeCallback_T*)callback_arg;
     delete nativeCallback;
     return Qnil;
   }
 
   template<typename Return_T, typename ...Arg_Ts>
-  NativeCallbackFFI<Return_T, Arg_Ts...>::NativeCallbackFFI(VALUE proc) : proc_(proc)
+  NativeCallbackFFI<Return_T(*)(Arg_Ts...)>::NativeCallbackFFI(VALUE proc) : proc_(proc)
   {
     // First setup desccription of callback
     if (cif_.bytes == 0)
@@ -113,30 +119,33 @@ namespace Rice::detail
     // Create FFI closure
     this->closure_ = (ffi_closure *)ffi_closure_alloc(sizeof(ffi_closure), (void**)(&this->callback_));
     ffi_status status = ffi_prep_closure_loc(this->closure_, &cif_, ffiCallback, (void*)this, nullptr);
-
-    // Tie the lifetime of this C++ instance to the lifetime of the Ruby proc object
-    VALUE finalizer = rb_proc_new(finalizerCallback, (VALUE)this);
-    rb_define_finalizer(this->proc_, finalizer);
   }
 
   template<typename Return_T, typename ...Arg_Ts>
-  typename NativeCallbackFFI<Return_T, Arg_Ts...>::Callback_T* NativeCallbackFFI<Return_T, Arg_Ts...>::callback()
+  typename NativeCallbackFFI<Return_T(*)(Arg_Ts...)>::Callback_T* NativeCallbackFFI<Return_T(*)(Arg_Ts...)>::callback()
   {
     return (Callback_T*)this->callback_;
   }
 
   template<typename Return_T, typename ...Arg_Ts>
-  Return_T NativeCallbackFFI<Return_T, Arg_Ts...>::operator()(Arg_Ts...args)
+  template<std::size_t... I>
+  Return_T NativeCallbackFFI<Return_T(*)(Arg_Ts...)>::callRuby(std::index_sequence<I...>& indices, Arg_Ts...args)
   {
     static Identifier id("call");
-    std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Arg_Ts>>().convert(args)... };
-    VALUE result = detail::protect(rb_funcallv, this->proc_, id.id(), (int)values.size(), (const VALUE*)values.data());
-    
+    std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Arg_Ts>>(methodInfo_->arg(I)).convert(args)... };
+    VALUE result = detail::protect(rb_funcallv, this->proc_, id.id(), (int)sizeof...(Arg_Ts), values.data());
     if constexpr (!std::is_void_v<Return_T>)
     {
-      static From_Ruby<Return_T> fromRuby;
+      static From_Ruby<Return_T> fromRuby(dynamic_cast<Arg*>(&methodInfo_->returnInfo));
       return fromRuby.convert(result);
     }
+  }
+
+  template<typename Return_T, typename ...Arg_Ts>
+  Return_T NativeCallbackFFI<Return_T(*)(Arg_Ts...)>::operator()(Arg_Ts...args)
+  {
+    auto indices = std::make_index_sequence<sizeof...(Arg_Ts)>{};
+    return NativeCallbackFFI<Return_T(*)(Arg_Ts...)>::callRuby(indices, args...);
   }
 }
 #endif // HAVE_LIBFFI

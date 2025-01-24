@@ -38,7 +38,7 @@ inline auto& define_method(std::string name, Function_T&& func, const Arg_Ts&...
   return *this;
 }
 
-//! Define an instance function.
+//! Define a function.
 /*! The function implementation is a plain function or a static
  *  member function.
  *  Rice will automatically convert method method from Ruby to C++ and

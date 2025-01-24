@@ -7,14 +7,19 @@
 
 namespace Rice::detail
 {
+  template<typename Callback_T>
+  class NativeCallbackFFI;
+
   template<typename Return_T, typename ...Arg_Ts>
-  class NativeCallbackFFI
+  class NativeCallbackFFI<Return_T(*)(Arg_Ts...)>
   {
   public:
     using Callback_T = Return_T(Arg_Ts...);
     using Tuple_T = std::tuple<Arg_Ts...>;
     static void ffiCallback(ffi_cif* cif, void* ret, void* args[], void* instance);
     static VALUE finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
+    static void setMethodInfo(MethodInfo* methodInfo);
+
   public:
     NativeCallbackFFI(VALUE proc);
     ~NativeCallbackFFI();
@@ -37,7 +42,10 @@ namespace Rice::detail
     static inline ffi_cif cif_;
     static inline ffi_closure* closure_ = nullptr;
     static inline Callback_T* callback_ = nullptr;
- 
+    static inline std::unique_ptr<MethodInfo> methodInfo_ = std::make_unique<MethodInfo>();
+
+    template<std::size_t... I>
+    Return_T callRuby(std::index_sequence<I...>& indices, Arg_Ts...args);
   private:
     VALUE proc_;
   };

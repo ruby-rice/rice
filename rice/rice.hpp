@@ -49,7 +49,17 @@
 #include "detail/Wrapper.hpp"
 #include "detail/to_ruby.hpp"
 #include "detail/from_ruby.hpp"
+#include "detail/Native.hpp"
 
+// Registries
+#include "detail/TypeRegistry.hpp"
+#include "detail/InstanceRegistry.hpp"
+#include "detail/DefaultHandler.hpp"
+#include "detail/HandlerRegistry.hpp"
+#include "detail/NativeRegistry.hpp"
+#include "detail/Registries.hpp"
+
+// To / From Ruby
 #include "Arg.hpp"
 #include "Arg.ipp"
 #include "Return.hpp"
@@ -59,20 +69,11 @@
 #include "detail/Proc.hpp"
 
 // Registries
-#include "detail/TypeRegistry.hpp"
 #include "detail/TypeRegistry.ipp"
-#include "detail/InstanceRegistry.hpp"
 #include "detail/InstanceRegistry.ipp"
-
-#include "detail/DefaultHandler.hpp"
 #include "detail/DefaultHandler.ipp"
-#include "detail/HandlerRegistry.hpp"
 #include "detail/HandlerRegistry.ipp"
-
-#include "detail/Native.hpp"
-#include "detail/NativeRegistry.hpp"
 #include "detail/NativeRegistry.ipp"
-#include "detail/Registries.hpp"
 #include "detail/Registries.ipp"
 
 #include "detail/Type.ipp"
@@ -128,6 +129,8 @@
 #include "detail/default_allocation_func.ipp"
 #include "Constructor.hpp"
 #include "Constructor.ipp"
+#include "Callback.hpp"
+#include "Callback.ipp"
 #include "Data_Object.hpp"
 #include "Data_Object.ipp"
 #include "Enum.hpp"

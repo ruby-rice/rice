@@ -33,6 +33,17 @@ namespace Rice::detail
     return (*native)(argc, argv, Qnil);
   }
 
+  // Ruby calls this method if an instance f a NativeFunction is owned by a Ruby proc. That happens when C++
+  // returns a function back to Ruby
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
+  {
+    NativeFunction_T* native = (NativeFunction_T*)callback_arg;
+    delete native;
+    return Qnil;
+  }
+
+
   template<typename Class_T, typename Function_T, bool IsMethod>
   NativeFunction<Class_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
     : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo)
@@ -74,7 +85,7 @@ namespace Rice::detail
     // Does the From_Ruby instantiation work with Arg?
     if constexpr (std::is_constructible_v<From_Ruby<T>, Arg*>)
     {
-      return From_Ruby<T>(&this->methodInfo_->arg(I));
+      return From_Ruby<T>(this->methodInfo_->arg(I));
     }
     else
     {
@@ -107,10 +118,10 @@ namespace Rice::detail
       {
         Convertible convertible = Convertible::None;
 
-        Arg& arg = methodInfo->arg(index);
+        Arg* arg = methodInfo->arg(index);
 
         // Is a VALUE being passed directly to C++ ?
-        if (arg.isValue() && index < argc)
+        if (arg->isValue() && index < argc)
         {
           convertible = Convertible::Exact;
         }
@@ -122,7 +133,7 @@ namespace Rice::detail
           convertible = fromRuby.is_convertible(value);
         }
         // Last check if a default value has been set
-        else if (arg.hasDefaultValue())
+        else if (arg->hasDefaultValue())
         {
           convertible = Convertible::Exact;
         }

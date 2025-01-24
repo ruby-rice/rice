@@ -34,7 +34,7 @@ template <typename T, typename Wrapper_T = void>
 VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner);
 
 template <typename T>
-T* unwrap(VALUE value, rb_data_type_t* rb_type, bool transferOwnership);
+T* unwrap(VALUE value, rb_data_type_t* rb_type, bool takeOwnership);
 
 Wrapper* getWrapper(VALUE value, rb_data_type_t* rb_type);
 
