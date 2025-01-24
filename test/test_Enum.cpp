@@ -154,6 +154,44 @@ TESTCASE(each_seasons)
   ASSERT_EQUAL(Season::Winter, *enum_3);
 }
 
+TESTCASE(bitset_operators)
+{
+  Module m = define_module("TestingBitsetOperators");
+
+  Enum<Season> rb_cSeason = define_season_enum();
+
+  std::string code = R"(Season::Summer & Season::Winter)";
+  Object value = m.module_eval(code);
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(value));
+
+  code = R"(Season::Summer | Season::Fall)";
+  value = m.module_eval(code);
+  ASSERT_EQUAL(3, detail::From_Ruby<int>().convert(value));
+
+  code = R"(Season::Summer ^ Season::Winter)";
+  value = m.module_eval(code);
+  ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(value));
+
+  code = R"(~Season::Winter)";
+  value = m.module_eval(code);
+  ASSERT_EQUAL(-4, detail::From_Ruby<int>().convert(value));
+}
+
+TESTCASE(shift_operators)
+{
+  Module m = define_module("TestingShiftOperators");
+
+  Enum<Season> rb_cSeason = define_season_enum();
+
+  std::string code = R"(Season::Winter << 1)";
+  Object value = m.module_eval(code);
+  ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(value));
+
+  code = R"(Season::Winter >> 1)";
+  value = m.module_eval(code);
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(value));
+}
+
 TESTCASE(to_s)
 {
   Module m = define_module("Testing");

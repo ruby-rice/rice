@@ -34,62 +34,63 @@ namespace Rice
     // Data_Type<Data_Object<Enum_T>>>. But in define class above it was actually bound as 
     // Data_Type<Enum_T>. Thus the static_casts in the methods below.
     klass.define_method("to_s", [](Enum_T& notSelf)
-        {
-          // We have to return string because we don't know if std::string support has
-          // been included by the user
+      {
+        // We have to return string because we don't know if std::string support has
+        // been included by the user
         Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
         return String(valuesToNames_[*self]);
-        })
+      })
       .define_method("to_int", [](Enum_T& notSelf) ->  Underlying_T
-        {
-          Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
-          return static_cast<Underlying_T>(*self);
-        })
+      {
+        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
+        return static_cast<Underlying_T>(*self);
+      })
       .define_method("inspect", [](Enum_T& notSelf)
-        {
-          Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
+      {
+        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
 
-          std::stringstream result;
-          VALUE rubyKlass = Enum<Enum_T>::klass().value();
-          result << "#<" << detail::protect(rb_class2name, rubyKlass)
-            << "::" << Enum<Enum_T>::valuesToNames_[*self] << ">";
+        std::stringstream result;
+        VALUE rubyKlass = Enum<Enum_T>::klass().value();
+        result << "#<" << detail::protect(rb_class2name, rubyKlass)
+          << "::" << Enum<Enum_T>::valuesToNames_[*self] << ">";
 
-          // We have to return string because we don't know if std::string support has
-          // been included by the user
-          return String(result.str());
-        })
+        // We have to return string because we don't know if std::string support has
+        // been included by the user
+        return String(result.str());
+      })
       .define_method("hash", [](Enum_T& notSelf) ->  Underlying_T
-        {
-          Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
-          return (Underlying_T)*self;
-        })
+      {
+        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
+        return (Underlying_T)*self;
+      })
       .define_method("eql?", [](Enum_T& notSelf, Enum_T& notOther)
-        {
-          Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
-          Data_Object<Enum_T> other = static_cast<Data_Object<Enum_T>>(notOther);
-          return self == other;
-        });
+      {
+        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
+        Data_Object<Enum_T> other = static_cast<Data_Object<Enum_T>>(notOther);
+        return self == other;
+    });
 
     // Add aliases
     rb_define_alias(klass, "===", "eql?");
+    rb_define_alias(klass, "to_i", "to_int");
 
     // Add comparable support
     klass.include_module(rb_mComparable)
       .define_method("<=>", [](Enum_T& self, Enum_T& other)
-    {
-      if (self == other)
       {
-        return 0;
-      }
-      else if (self < other)
-      {
-        return -1;
-      }
-      else
-      {
-        return 1;
-      }
-    });
+        if (self == other)
+        {
+          return 0;
+        }
+        else if (self < other)
+        {
+          return -1;
+        }
+        else
+        {
+          return 1;
+        }
+      });
 
     // Add enumerable support
     klass.include_module(rb_mEnumerable)
@@ -98,7 +99,7 @@ namespace Rice
           if (!rb_block_given_p())
           {
             return rb_enumeratorize_with_size(ruby_klass, Identifier("each").to_sym(),
-                                      0, nullptr, 0);
+              0, nullptr, 0);
           }
 
           for (auto& pair : valuesToNames_)
@@ -109,17 +110,47 @@ namespace Rice
           }
 
           return ruby_klass;
-      }, Return().setValue())
-      .define_singleton_method("from_int", [](VALUE ruby_klass, int32_t value) -> Object
-      {
-          auto iter = Enum<Enum_T>::valuesToNames_.find((Enum_T)value);
-          if (iter == Enum<Enum_T>::valuesToNames_.end())
-          {
-            throw std::runtime_error("Unknown enum value: " + std::to_string(value));
-          }
+        }, Return().setValue());
 
-          std::string name = iter->second;
-          return Object(ruby_klass).const_get(name);
+    // Add bitwise operators
+    klass.define_method("&", [](Enum_T& self, Enum_T& other) -> Underlying_T
+      {
+        return (Underlying_T)self & (Underlying_T)other;
+      })
+      .define_method("|", [](Enum_T& self, Enum_T& other) -> Underlying_T
+      {
+        return (Underlying_T)self | (Underlying_T)other;
+      })
+      .define_method("^", [](Enum_T& self, Enum_T& other) -> Underlying_T
+      {
+        return (Underlying_T)self ^ (Underlying_T)other;
+      })
+      .define_method("~", [](Enum_T& self) -> Underlying_T
+      {
+        return ~(Underlying_T)self;
+      });
+
+    // Add shift operators
+    klass.define_method("<<", [](Enum_T& self, int shift) -> Underlying_T
+      {
+        return (Underlying_T)self << shift;
+      })
+      .define_method(">>", [](Enum_T& self, int shift) -> Underlying_T
+      {
+        return (Underlying_T)self >> shift;
+      });
+
+    // Add conversions from int
+    klass.define_singleton_method("from_int", [](VALUE ruby_klass, int32_t value) -> Object
+      {
+        auto iter = Enum<Enum_T>::valuesToNames_.find((Enum_T)value);
+        if (iter == Enum<Enum_T>::valuesToNames_.end())
+        {
+          throw std::runtime_error("Unknown enum value: " + std::to_string(value));
+        }
+
+        std::string name = iter->second;
+        return Object(ruby_klass).const_get(name);
       });
   }
 
