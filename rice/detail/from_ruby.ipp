@@ -103,7 +103,7 @@ namespace Rice::detail
         case RUBY_T_STRING:
         {
           long size = RSTRING_LEN(value);
-          // Put in null character
+          // Add null character to end
           std::unique_ptr<T[]> dest = std::make_unique<T[]>(size + 1);
           dest.get()[size] = 0;
           memcpy(dest.get(), RSTRING_PTR(value), size);
