@@ -177,14 +177,18 @@ TESTCASE(method_int_passed_no_args)
 {
   Module m(anonymous_module());
   m.define_method("foo", method_int);
+
   ASSERT_EXCEPTION_CHECK(
       Exception,
       m.module_eval("o = Object.new; o.extend(self); o.foo"),
-      ASSERT_EQUAL(
-          Object(rb_eArgError),
-          Object(CLASS_OF(ex.value()))
-          )
+      ASSERT_EQUAL(Object(rb_eArgError), Object(CLASS_OF(ex.value())))
       );
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval("o = Object.new; o.extend(self); o.foo"),
+    ASSERT_EQUAL("wrong number of arguments (given 0, expected 1)", ex.what())
+  );
 }
 
 TESTCASE(define_singleton_method_int_foo)
@@ -260,22 +264,28 @@ TESTCASE(default_arguments_still_throws_argument_error)
   m.define_function("foo", &defaults_method_one, Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true);
 
   ASSERT_EXCEPTION_CHECK(
-      Exception,
-      m.module_eval("o = Object.new; o.extend(self); o.foo()"),
-      ASSERT_EQUAL(
-          Object(rb_eArgError),
-          Object(CLASS_OF(ex.value()))
-          )
-      );
+    Exception,
+    m.module_eval("o = Object.new; o.extend(self); o.foo()"),
+    ASSERT_EQUAL(Object(rb_eArgError), Object(CLASS_OF(ex.value())))
+  );
 
   ASSERT_EXCEPTION_CHECK(
-      Exception,
-      m.module_eval("o = Object.new; o.extend(self); o.foo(3, 4, false, 17)"),
-      ASSERT_EQUAL(
-          Object(rb_eArgError),
-          Object(CLASS_OF(ex.value()))
-          )
-      );
+    Exception,
+    m.module_eval("o = Object.new; o.extend(self); o.foo()"),
+    ASSERT_EQUAL("wrong number of arguments (given 0, expected 1..3)", ex.what())
+  );
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval("o = Object.new; o.extend(self); o.foo(3, 4, false, 17)"),
+    ASSERT_EQUAL(Object(rb_eArgError), Object(CLASS_OF(ex.value())))
+  );
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval("o = Object.new; o.extend(self); o.foo(3, 4, false, 17)"),
+    ASSERT_EQUAL("wrong number of arguments (given 4, expected 1..3)", ex.what())
+  );
 }
 
 namespace {

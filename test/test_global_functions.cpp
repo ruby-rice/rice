@@ -23,9 +23,9 @@ namespace {
     return true;
   }
 
-  int int_arg(int arg)
+  int int_arg(int value)
   {
-    return 2 * arg;
+    return 2 * value;
   }
 }
 
@@ -55,6 +55,28 @@ TESTCASE(int_arg)
   Module m = Module(rb_mKernel);
   Object result = m.call("method_with_args", 10);
   ASSERT_EQUAL(20, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(int_kw_arg)
+{
+  define_global_function("method_with_kw_args_1", &int_arg, Arg("value"));
+  Module m = Module(rb_mKernel);
+  std::string code = R"(method_with_kw_args_1(value: 15))";
+  Object result = m.instance_eval(code);
+  ASSERT_EQUAL(30, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(int_kw_arg_invalid)
+{
+  define_global_function("method_with_kw_args_2", &int_arg, Arg("value"));
+  Module m = Module(rb_mKernel);
+  std::string code = R"(method_with_kw_args_2(wrong: 15))";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.instance_eval(code),
+    ASSERT_EQUAL("Unknown keyword: wrong", ex.what())
+  );
 }
 
 TESTCASE(int_arg_lambda)
@@ -90,7 +112,7 @@ namespace
 
 TESTCASE(default_arguments_for_define_global_function)
 {
-  define_global_function("foo", &defaults_method_one, Arg("arg1"), Arg("arg2") = (int)3, Arg("arg3") = (bool)true);
+  define_global_function("foo", &defaults_method_one, Arg("arg1"), Arg("arg2") = (int)3, Arg("arg3") = true);
   Module m(rb_mKernel);
 
   m.call("foo", 2);
@@ -112,7 +134,26 @@ TESTCASE(default_arguments_for_define_global_function)
   ASSERT(!defaults_method_one_arg3);
 }
 
-TESTCASE(default_arguments_for_define_global_function_and_returning)
+TESTCASE(default_arguments_kw)
+{
+  define_global_function("defaults_method_one_kw", &defaults_method_one, 
+    Arg("arg1"), Arg("arg2"), Arg("arg3") = true);
+  Module m = Module(rb_mKernel);
+
+  std::string code = R"(defaults_method_one_kw(4, arg2: 5))";
+  m.instance_eval(code);
+  ASSERT_EQUAL(4, defaults_method_one_arg1);
+  ASSERT_EQUAL(5, defaults_method_one_arg2);
+  ASSERT(defaults_method_one_arg3);
+
+  code = R"(defaults_method_one_kw(arg1: 9, arg2: 11, arg3: false))";
+  m.instance_eval(code);
+  ASSERT_EQUAL(9, defaults_method_one_arg1);
+  ASSERT_EQUAL(11, defaults_method_one_arg2);
+  ASSERT(!defaults_method_one_arg3);
+}
+
+TESTCASE(default_arguments_and_returning)
 {
   define_global_function("foo_ret", &defaults_returns, Arg("arg1"), Arg("arg2") = (int)3);
   Module m(rb_mKernel);

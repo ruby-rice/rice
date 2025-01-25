@@ -83,7 +83,7 @@ namespace Rice::detail
     To_Ruby<To_Ruby_T> createToRuby();
       
     // Convert Ruby argv pointer to Ruby values
-    std::vector<VALUE> getRubyValues(int argc, const VALUE* argv);
+    std::vector<VALUE> getRubyValues(int argc, const VALUE* argv, bool validate);
 
     template<typename Arg_T, int I>
     Arg_T getNativeValue(std::vector<VALUE>& values);

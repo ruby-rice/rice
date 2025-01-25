@@ -112,24 +112,26 @@ namespace Rice::detail
     MethodInfo* methodInfo = this->methodInfo_.get();
     int index = 0;
 
+    std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv, false);
+
     // Loop over each FromRuby instance
     for_each_tuple(this->fromRubys_,
       [&](auto& fromRuby)
       {
         Convertible convertible = Convertible::None;
 
-        Arg* arg = methodInfo->arg(index);
+        const Arg* arg = methodInfo->arg(index);
 
         // Is a VALUE being passed directly to C++ ?
-        if (arg->isValue() && index < argc)
+        if (arg->isValue() && index < rubyValues.size())
         {
           convertible = Convertible::Exact;
         }
         // If index is less than argc then check with FromRuby if the VALUE is convertible
         // to C++.
-        else if (index < argc)
+        else if (index < rubyValues.size())
         {
-          VALUE value = argv[index];
+          VALUE value = rubyValues[index];
           convertible = fromRuby.is_convertible(value);
         }
         // Last check if a default value has been set
@@ -150,39 +152,58 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  std::vector<VALUE> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(int argc, const VALUE* argv)
+  std::vector<VALUE> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(int argc, const VALUE* argv, bool validate)
   {
-    // Block handling. If we find a block and there is a missing argument error, then we assume the
-    // block is being used as a callback for C/C++. The easiest thing to do is keep the format string the 
-    // same but convert the block to a proc and add it to argv.
-    std::vector<VALUE> argvCopy(argv, argv + argc);
-    if (rb_block_given_p() && argc < arity)
+    std::vector<VALUE> result;
+
+    // Keyword handling
+    if (rb_keyword_given_p())
     {
-      argc++;
+      // Keywords are stored in the last element in a hash
+      int actualArgc = argc - 1;
+
+      VALUE value = argv[actualArgc];
+      Hash keywords(value);
+
+      result.resize(actualArgc + keywords.size());
+
+      // Copy over leading arguments
+      for (int i = 0; i < actualArgc; i++)
+      {
+        result[i] = argv[i];
+      }
+
+      // Copy over keyword arguments
+      for (auto pair : keywords)
+      {
+        Symbol key(pair.first);
+        const Arg* arg = this->methodInfo_->arg(key.str());
+        if (!arg)
+        {
+          throw std::invalid_argument("Unknown keyword: " + key.str());
+        }
+        result[arg->position] = pair.second.value();
+      }
+    }
+    else
+    {
+      std::copy(argv, argv + argc, std::back_inserter(result));
+    }
+     
+    // Block handling. If we find a block and the last parameter is missing then
+    // set it to the block
+    if (rb_block_given_p() && result.size() < std::tuple_size_v<Arg_Ts>)
+    {
       VALUE proc = rb_block_proc();
-      argvCopy.push_back(proc);
+      result.push_back(proc);
     }
 
-    // Setup a tuple for the leading rb_scan_args arguments
-    std::string scanFormat = this->methodInfo_->formatString();
-    std::tuple<int, VALUE*, const char*> rbScanArgs = std::forward_as_tuple(argc, argvCopy.data(), scanFormat.c_str());
-
-    // Create a vector to store the VALUEs that will be returned by rb_scan_args
-    std::vector<VALUE> rbScanValues(std::tuple_size_v<Arg_Ts>, Qnil);
-
-    // Convert the vector to an array so it can be concatenated to a tuple. As importantly
-    // fill it with pointers to rbScanValues
-    std::array<VALUE*, std::tuple_size_v<Arg_Ts>> rbScanValuePointers;
-    std::transform(rbScanValues.begin(), rbScanValues.end(), rbScanValuePointers.begin(),
-      [](VALUE& value)
-      {
-        return &value;
-      });
-
-    // Combine the tuples and call rb_scan_args
-    std::apply(rb_scan_args, std::tuple_cat(rbScanArgs, rbScanValuePointers));
-
-    return rbScanValues;
+    if (validate)
+    {
+      this->methodInfo_->verifyArgCount(result.size());
+    }
+    
+    return result;
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
@@ -196,13 +217,17 @@ namespace Rice::detail
        An alternative solution is updating From_Ruby#convert to become a templated function that specifies
        the return type. That works but requires a lot more code changes for this one case and is not 
        backwards compatible. */
+
+    // If the user did provide a value assume Qnil
+    VALUE value = I < values.size() ? values[I] : Qnil;
+
     if constexpr (is_pointer_pointer_v<Arg_T> && !std::is_convertible_v<remove_cv_recursive_t<Arg_T>, Arg_T>)
     {
-      return (Arg_T)std::get<I>(this->fromRubys_).convert(values[I]);
+      return (Arg_T)std::get<I>(this->fromRubys_).convert(value);
     }
     else
     {
-      return std::get<I>(this->fromRubys_).convert(values[I]);
+      return std::get<I>(this->fromRubys_).convert(value);
     }
   }
 
@@ -383,8 +408,8 @@ namespace Rice::detail
   template<typename Class_T, typename Function_T, bool IsMethod>
   VALUE NativeFunction<Class_T, Function_T, IsMethod>::operator()(int argc, const VALUE* argv, VALUE self)
   {
-    // Get the ruby values
-    std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv);
+    // Get the ruby values and make sure we have the correct number
+    std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv, true);
 
     auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
 
