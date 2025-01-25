@@ -24,7 +24,19 @@ namespace Rice
       */
     void addArg(const Arg& arg);
 
+    /**
+      * Get argument by position
+      */
     Arg* arg(size_t pos);
+
+    /**
+      * Get argument by name
+      */
+    Arg* arg(std::string name);
+
+    int requiredArgCount();
+    int optionalArgCount();
+    void verifyArgCount(int argc);
 
     // Iterator support
     std::vector<Arg>::iterator begin();

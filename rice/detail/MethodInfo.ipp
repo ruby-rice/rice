@@ -40,6 +40,60 @@ namespace Rice
     this->args_.push_back(arg);
   }
 
+  inline int MethodInfo::requiredArgCount()
+  {
+    int result = 0;
+
+    for (const Arg& arg : this->args_)
+    {
+      if (!arg.hasDefaultValue())
+      {
+        result++;
+      }
+    }
+
+    return result;
+  }
+
+  inline int MethodInfo::optionalArgCount()
+  {
+    int result = 0;
+
+    for (const Arg& arg : this->args_)
+    {
+      if (arg.hasDefaultValue())
+      {
+        result++;
+      }
+    }
+
+    return result;
+  }
+
+  inline void MethodInfo::verifyArgCount(int argc)
+  {
+    int requiredArgCount = this->requiredArgCount();
+    int optionalArgCount = this->optionalArgCount();
+
+    if (argc < requiredArgCount || argc > requiredArgCount + optionalArgCount)
+    {
+      std::string message;
+
+      if (optionalArgCount > 0)
+      {
+        message = "wrong number of arguments (given " +
+          std::to_string(argc) + ", expected " +
+          std::to_string(requiredArgCount) + ".." + std::to_string(requiredArgCount + optionalArgCount) + ")";
+      }
+      else
+      {
+        message = "wrong number of arguments (given " +
+          std::to_string(argc) + ", expected " + std::to_string(requiredArgCount) + ")";
+      }
+      throw std::invalid_argument(message);
+    }
+  }
+
   inline std::string MethodInfo::formatString()
   {
     size_t required = 0;
@@ -70,6 +124,18 @@ namespace Rice
     {
       return nullptr;
     }
+  }
+
+  inline Arg* MethodInfo::arg(std::string name)
+  {
+    for (Arg& arg : this->args_)
+    {
+      if (arg.name == name)
+      {
+        return &arg;
+      }
+    }
+    return nullptr;
   }
 
   inline std::vector<Arg>::iterator MethodInfo::begin()
