@@ -144,6 +144,10 @@ namespace Rice
       // Define initialize_copy that will copy the C++ object
       this->define_method("initialize_copy", &Constructor_T::initialize_copy, args...);
     }
+    else if constexpr (Constructor_T::isMoveConstructor())
+    {
+      throw std::runtime_error("Rice does not support move constructors");
+    }
     else
     {
       // Define an initialize function that will create the C++ object
