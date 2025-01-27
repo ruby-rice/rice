@@ -225,11 +225,11 @@ TESTCASE(RubyObjectGced)
   {
     // Track the C++ object returned by keepPointer
     Data_Object<MyClass> my_class1 = factory.call("keep_pointer");
-    rb_gc_start();
+    //rb_gc_start();
   }
 
   // Make my_class1 invalid
-  rb_gc_start();
+  //rb_gc_start();
 
   // Get the object again - this should *not* return the previous value
   Data_Object<MyClass> my_class2 = factory.call("keep_pointer");

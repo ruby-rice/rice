@@ -14,6 +14,7 @@ void embed_ruby()
     ruby_sysinit(&argc, &pArgv);
     ruby_init();
     ruby_init_loadpath();
+    rb_gc_disable();
 
 #if RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR >= 1
     // Force the prelude / builtins

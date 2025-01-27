@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        ruby: ['3.1', '3.2', '3.3']
+        ruby: ['3.1', '3.2', '3.3', '3.4']
         exclude:
           # There's something wrong with this setup in GHA such that
           # it gets weird linking errors, however I'm unable to reproduce
