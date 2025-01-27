@@ -160,7 +160,7 @@ TESTCASE(test_return)
   Module m = define_module("TestingModule");
 
   Object column = getColumn(m, 3);
-  rb_gc_start();
+  //rb_gc_start();
   String name = column.call("name");
   ASSERT_EQUAL("column_3", name.c_str());
 }
