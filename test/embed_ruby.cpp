@@ -7,11 +7,7 @@ void embed_ruby()
 
   if (!initialized__)
   {
-    int argc = 0;
-    char* argv = nullptr;
-    char** pArgv = &argv;
-
-    ruby_sysinit(&argc, &pArgv);
+    RUBY_INIT_STACK;
     ruby_init();
     ruby_init_loadpath();
 
