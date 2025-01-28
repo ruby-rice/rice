@@ -146,7 +146,7 @@ namespace Rice::detail
       });
 
     if constexpr (arity > 0)
-      result.parameterMatch = (double)argc / arity;
+      result.parameterMatch = rubyValues.size() / (double)arity;
 
     return result;
   }

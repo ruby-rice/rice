@@ -105,7 +105,7 @@ namespace Rice::detail
         }
         else
         {
-          // Special case == to make the RubyMine debugger work, it liks calling == with a Module as
+          // Special case == to make the RubyMine debugger work. It calls == with a Module as
           // the other argument, thus breaking if C++ operator== is implemented.
           Identifier identifier(methodId);
           if (identifier.str() == "==")
@@ -117,7 +117,7 @@ namespace Rice::detail
             std::ostringstream message;
             message << "Could not resolve method call for %s#%s" << "\n"
                     << "  %d overload(s) were evaluated based on the types of Ruby parameters provided.";
-            rb_raise(rb_eArgError, message.str().c_str(), rb_class2name(klass), identifier.c_str(), natives.size());
+              rb_raise(rb_eArgError, message.str().c_str(), rb_class2name(klass), identifier.c_str(), natives.size());
           }
         }
       }

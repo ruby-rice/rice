@@ -35,9 +35,8 @@ Since default parameter values are not available through templates, it is necess
     Data_Type<Test> rb_cTest =
       define_class<Test>("Test")
       .define_constructor(Constructor<Test>())
-      .define_method("hello",
-         &Test::hello,
-         Arg("hello"), Arg("second") = "world"
+      .define_method("hello", &Test::hello,
+         Arg("first"), Arg("second") = "world"
       );
   }
 
@@ -47,7 +46,7 @@ The syntax is ``Arg(nameOfParameter)[ = defaultValue]``. The name of the paramet
 
   .define_method("hello",
      &Test::hello,
-     Arg("hello"), Arg("second") = (std::string)"world"
+     Arg("first"), Arg("second") = (std::string)"world"
   );
 
 These ``Rice::Arg`` objects must be in the correct positional order. Thus if the second argument has a default value, then there must be two Arg objects.
@@ -121,3 +120,27 @@ The above code works because the ``<<`` method returns the Array ``a``. You can 
   });
 
 Pay careful attention to the lambda return type of ``std::vector<int32_t>&``. If the return type is *not* specified, then by default the lambda will return by value. That will invoke ``std::vector``'s copy constructor, resulting in *two* ``std::vector<int32_t>`` instance and two Ruby objects. Not at all what you want.
+
+.. _keyword_arguments:
+
+Keyword Arguments
+-----------------
+Starting with version 4.5, Rice supports using Ruby keyword parameters to call C++ functions. The names of the keyword arguments must match the names specified in the ``Arg`` parameters used to define the method. The actual underlying names of the C++ parameters are irrelevant because C++ templates have no access to them.
+
+For example, reusing the example above:
+
+.. code-block:: cpp
+
+  .define_method("hello",
+     &Test::hello,
+     Arg("hello"), Arg("second") = (std::string)"world"
+  );
+
+The ``hello`` function can be called from Ruby like this:
+
+.. code-block:: cpp
+
+  test = Test.new
+  test.hello(first: "Hello", second: "World")
+  test.hello(first: "Hello") # This is ok because the second parameter has a default value
+
