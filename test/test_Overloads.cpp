@@ -2,6 +2,7 @@
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
+#include <ruby/version.h>
 
 using namespace Rice;
 
@@ -514,7 +515,11 @@ TESTCASE(int_conversion_4)
 #ifdef _WIN32
   const char* expected = "bignum too big to convert into `long'";
 #else
+#if RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR >= 4
+  const char* expected = "integer 4398046511104 too big to convert to 'short'";
+#else
   const char* expected = "integer 4398046511104 too big to convert to `short'";
+#endif
 #endif
 
   ASSERT_EXCEPTION_CHECK(
