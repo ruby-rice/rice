@@ -1,3 +1,38 @@
+## 4.5
+Rice 4.5 is a major release that adds significant new functionality, including:
+
+* Revamp type registry to support method overloading
+* Supports constructor overloading
+* Supports method overloading
+* Supports rvalues
+* Supports using keyword arguments in Ruby to call C++ methods
+* Supports C style callbacks, including adding a new define_callback method
+* Supports wrapping C/C++ functions as Ruby procs 
+* Adds Data_Type#define_constant method
+* Add Data_Type#define method to more easily support C++ template classes
+* Be more flexible on type verification by not throwing errors until all classes/methods have been defined and also allow a error message to be printed instead of thrown
+* Add ability to transfer ownership of Ruby created objects to C++ (useful for sending wrapped pointers to APIs that take smart pointers)
+* Add support for *char
+* Add support for **char
+* Improve C++ exception handling when called from Ruby
+* Improve handling of Ruby exceptions
+* Update std::variant to support references
+* Split NativeAttribute support to NativeAttributeGet and NativeAttributeSet
+* Create base class for Native classes (NativeFunction, NativeIterator, NativeAttributeGet, NativeAttributeSet - make the type registry easier to deal with (thus using type erasure like the Wrapper classes do).
+* Updated FindRuby to support rbenv (this change is being merged upstream to CMake)
+
+This release also improves STL support by adding:
+
+* std::exception
+* std::exception_ptr
+* std::monostage
+* std::shared_ptr<void>
+* std::type_index
+* std::type_info
+* std::vector<bool>
+
+Please see the migration guide for updating your bindings for version 4.5
+
 ## 4.3.3
 
 * Fix complication issue on Ubuntu 20.04 and GCC 9.
