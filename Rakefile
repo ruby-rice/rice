@@ -43,7 +43,13 @@ task :clean do
   binaries.each do |asset|
     dir = File.dirname(asset)
     cd dir do
-      run_command(MAKE, "clean")
+      begin
+        run_command(MAKE, "clean")
+      rescue
+        # If clean crashes, that's probably means there's no Makefile
+        # which is fine. That means this is a fresh checkout or the directory
+        # already otherwise got cleaned.
+      end
     end
   end
 end
