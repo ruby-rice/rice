@@ -17,6 +17,12 @@ namespace Outer
     using Vec2 = std::vector<unsigned char*>;
     using Map1 = std::map<std::string, std::vector<std::complex<float>>>;
     using UnorderedMap1 = std::unordered_map<std::string, std::complex<float>>;
+
+    class SomeClass
+    {
+    };
+
+    using Vec3 = std::vector<SomeClass>;
   }
 }
 
@@ -59,6 +65,10 @@ TESTCASE(MakeClassName)
   typeName = detail::typeName(typeid(Outer::Inner::Vec2));
   className = detail::makeClassName(typeName);
   ASSERT_EQUAL(u8"Vector≺unsigned char*≻", className.c_str());
+
+  typeName = detail::typeName(typeid(Outer::Inner::Vec3));
+  className = detail::makeClassName(typeName);
+  ASSERT_EQUAL(u8"Vector≺Outer꞉꞉Inner꞉꞉SomeClass≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::Map1));
   className = detail::makeClassName(typeName);

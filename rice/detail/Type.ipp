@@ -219,12 +219,16 @@ namespace Rice::detail
     // Capitalize first letter
     base[0] = std::toupper(base[0]);
 
-    // Replace :: or _ and capitalize the next letter
-    std::regex namespaceRegex(R"((_|::)(\w))");
+    // Replace :: with unicode U+u02F8 (Modified Letter raised colon)
+    auto colonRegex = std::regex(R"(:)");
+    replaceAll(base, colonRegex, "\uA789");
+
+    // Replace _ and capitalize the next letter
+    std::regex namespaceRegex(R"(_(\w))");
     std::smatch namespaceMatch;
     while (std::regex_search(base, namespaceMatch, namespaceRegex))
     {
-      std::string replacement = namespaceMatch[2];
+      std::string replacement = namespaceMatch[1];
       std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
       base.replace(namespaceMatch.position(), namespaceMatch.length(), replacement);
     }
