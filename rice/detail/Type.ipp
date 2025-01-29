@@ -243,7 +243,7 @@ namespace Rice::detail
     //replaceAll(base, greaterThanRegex, u8"≻");
     replaceAll(base, greaterThanRegex, "\u227B");
 
-    // Replace , with Unicode Character (U+066C) - Single Low-9 Quotation Mark
+    // Replace , with Unicode Character (U+066C) - Arabic Thousands Separator
     auto commaRegex = std::regex(R"(,\s*)");
     replaceAll(base, commaRegex, "\u201A");
 
