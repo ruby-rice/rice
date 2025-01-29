@@ -7,6 +7,8 @@ STL
 
   stl/stl
   stl/complex
+  stl/exception
+  stl/exception_ptr
   stl/map
   stl/optional
   stl/pair
@@ -14,6 +16,8 @@ STL
   stl/smart_pointers
   stl/string
   stl/string_view
+  stl/type_index
+  stl/type_info
   stl/unordered_map
   stl/variant
   stl/vector

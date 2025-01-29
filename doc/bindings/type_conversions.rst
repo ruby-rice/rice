@@ -17,6 +17,8 @@ For the sake of an example, let's say you want to expose ``std::deque<int>`` to 
 2. Specialize To_Ruby template
 3. Specialize From_Ruby template
 
+.. _type_specialiazation:
+
 Step 1 - Specialize Type
 ^^^^^^^^^^^^^^^^^^^^^^^^
 First we have to tell Rice that ``std::deque<int>`` is a known type so that it passes :doc:`type verification <type_verification>`. This is done by specializing the Type template:
@@ -53,6 +55,8 @@ The specialization *must* be in the ``Rice::detail`` namespace. If your type con
 
 Notice that std::optional is only valid if the type it stores is valid.
 
+.. _to_ruby_specialiazation:
+
 Step 2 - Specialize To_Ruby
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Next, we need to write C++ code that converts the ``std::deque<int>`` to a Ruby object. The most obvious Ruby object to map it to is an array.
@@ -88,6 +92,8 @@ Once again, the definition *must* be in the  ``Rice::detail`` namespace.
 
 Instead of using the raw Ruby C API as above, you may prefer to use ``Rice::Array`` which provides an nice C++ wrapper for Ruby arrays.
 
+.. _from_ruby_specialiazation:
+
 Step 3 - Specialize From_Ruby
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Last, if we want to convert a Ruby array to a  ``std::deque<int>``, then we need to write C++ code for that too.
@@ -100,19 +106,31 @@ Last, if we want to convert a Ruby array to a  ``std::deque<int>``, then we need
     class From_Ruby<std::deque<int>>
     {
     public:
-      std::deque<int> convert(VALUE ary)
+      Convertible convertible(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_ARRAY:
+            return Convertible::Cast;
+            break;
+          default:
+            return Convertible::None;
+        }
+      }
+
+      std::deque<int> convert(VALUE value)
       {
         // Make sure array is really an array - if not this call will
         // throw a Ruby exception so we need to protect it
         detail::protect(rb_check_type, array, (int)T_ARRAY);
 
-        long size = protect(rb_array_len, ary);
+        long size = protect(rb_array_len, value);
         std::deque<int> result(size);
 
         for (long i=0; i<size; i++)
         {
           // Get the array element
-          VALUE value = protect(rb_ary_entry, ary, i);
+          VALUE value = protect(rb_ary_entry, value, i);
 
           // Convert the Ruby int to a C++ int
           int element = From_Ruby<int>::convert(value);

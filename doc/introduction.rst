@@ -19,7 +19,7 @@ Version Differences 3.x vs 4.x and later
 
 This documentation and the ``master`` branch are for Rice 4.x and later, which is the header-only version of the library. Use the ``3.x`` branch for the docs and code for that line of releases.
 
-To upgrade a library from Rice 3 to 4, see :ref:`Migrating`.
+To upgrade a library from Rice 3 to 4, see :ref:`migration`.
 
 The documentation for the 3.x line of Rice is viewable at https://ruby-rice.github.io/3.x.
 

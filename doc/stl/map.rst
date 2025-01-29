@@ -1,7 +1,7 @@
 .. _std_map:
 
 std::map
------------
+========
 Outside of ``std::vector``, ``std::map`` is perhaps the most commonly used container in C+. Although there is a direct conceptual mapping between a ``std::map`` and a Ruby ``Hash``, Rice does not copy a map to an Hash. Instead, it wraps ``std::map``.
 
 There are multiple reasons for this:

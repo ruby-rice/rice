@@ -1,11 +1,16 @@
-.. _Migrating:
+.. _migration:
 
 =====================
-Migrating from 3 to 4
+Migration
 =====================
 
-Prior versions of Rice required compiling some initial code on ``gem install``. This has made Rice and libraries that use Rice to be difficult to use on some platforms, such as Heroku or Github Actions, where
-where the appropriate shared libraries and/or build systems are not allowed or available.
+Version 4.* to 4.5
+------------------
+Rice version 4.5 is significantly more powerful that previous versions. For the most part it is backwards compatible. The exception is if you defined a custom ``From_Ruby`` instantiation. In that case, you will need to add a ``convertible`` method. See the :ref:`from_ruby_specialiazation` documentation for an example.
+
+Version 3 to 4
+--------------
+Version 3 and earlier required compiling code on ``gem install``. This made it difficult to use Rice on some platforms, such as Heroku or Github Actions, where the appropriate shared libraries and/or build systems are not allowed or available.
 
 Rice 4 transitions to being a header only library, making it much easier for libraries using Rice to provide binary builds. However, this work was substantial and required making a few backwards-incompatible changes This page documents the major changes that any one using Rice 3 will need to apply to their libraries to work with Rice 4 or newer.
 

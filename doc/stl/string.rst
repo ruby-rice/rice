@@ -1,7 +1,7 @@
 .. _std_string:
 
 std::string
------------
+============
 Perhaps ``std::string`` is the most commonly used class in the C++ standard template library. Rice treats ``std::string``'s as  Builtin types, which means strings are copied between C++ and Ruby. Thus, if you pass a ``std::string`` to Ruby and modify it in Ruby, C++ will not see the changes (and vice versa).
 
 Unlike Ruby, C++ has very little support for encodings. Thus it is a guessing game to correctly translate strings between C++ and Ruby and its up to you to get it right.

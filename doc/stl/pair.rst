@@ -1,7 +1,7 @@
 .. _std_pair:
 
 std::pair
------------
+=========
 ``std::pair`` is a simple container that provides C++ code a way of associating two values. ``std::map`` and ``std::unordered_map`` use ``std::pair`` to hold keys and their associated values.
 
 Ruby does not have a concept of a pair. Therefore, Rice wraps ``std::pair`` which means that data is not copied between C++ and Ruby.

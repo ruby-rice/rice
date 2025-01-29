@@ -1,7 +1,7 @@
-.. _std_reference_wrapper:
+.. _std_type_index:
 
-std::reference_wrapper
-======================
+std::type_index
+===============
 Introduced in C++11, ``std::reference_wrapper`` wraps C++ references in a copyable, assignable object. This allows them to be stored in containers such as std::vector or other types such as std::variant.
 
 Since Ruby does not have an equivalent type, Rice unwraps ``std::reference_wrapper`` instances. If the ``std::reference_wrapper`` points to a Builtin type, then it will be converted to the appropriate Ruby type. It it points to a non Builtin type, then the value will be wrapped by Ruby.

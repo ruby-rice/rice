@@ -1,7 +1,7 @@
 .. _std_vector:
 
 std::vector
------------
+===========
 Along with ``std::string``, ``std::vector`` is a workhorse of many C++ code bases. Although there is a direct conceptual mapping between a ``std::vector`` and a Ruby ``Array``, Rice does not copy a vector to an Array. Instead, it wraps ``std::vector``.
 
 There are multiple reasons for this:
