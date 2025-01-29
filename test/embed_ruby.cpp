@@ -8,6 +8,13 @@ void embed_ruby()
   if (!initialized__)
   {
     RUBY_INIT_STACK;
+
+    int argc = 0;
+    char* argv = nullptr;
+    char** pArgv = &argv;
+
+    ruby_sysinit(&argc, &pArgv);
+
     ruby_init();
     ruby_init_loadpath();
 
