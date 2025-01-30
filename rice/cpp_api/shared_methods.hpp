@@ -82,9 +82,7 @@ inline auto& define_singleton_method(std::string name, Function_T&& func, const 
 
 //! Define a singleton method.
 /*! The method's implementation can be a static member function, plain
- *  function or lambda.
- . A wrapper will be
- * generated which will convert the method
+ *  function or lambda. A wrapper will be generated which will convert the method
  *  from ruby types to C++ types before calling the function.  The return
  *  value will be converted back to ruby.
  *  \param name the name of the method
