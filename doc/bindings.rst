@@ -11,6 +11,7 @@ Bindings
   bindings/methods
   bindings/overloaded_methods
   bindings/iterators
+  bindings/class_templates
   bindings/memory_management
   bindings/exceptions
   bindings/types_overview
@@ -19,3 +20,4 @@ Bindings
   bindings/inheritance
   bindings/callbacks
   bindings/instance_registry
+

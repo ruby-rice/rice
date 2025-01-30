@@ -1,3 +1,5 @@
+.. _introduction:
+
 ============
 Introduction
 ============
@@ -31,6 +33,8 @@ The source is hosted on GitHub: http://github.com/ruby-rice/rice
 Bug tracking: http://github.com/ruby-rice/rice/issues
 
 API documentation: http://ruby-rice.github.io/4.x
+
+.. _installation:
 
 Installation
 ------------

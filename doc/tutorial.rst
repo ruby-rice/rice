@@ -7,22 +7,16 @@ Tutorial
 Getting started
 ---------------
 
-Writing an extension with Rice is very similar to writing an extension with the C API.
+First :ref:`install <installation>` Rice.
 
-The first step is to install the Rice gem:
-
-.. code-block:: bash
-
-  gem install rice
-
-Next create an extconf.rb file:
+Next, create an extconf.rb file:
 
 .. code-block:: ruby
 
   require 'mkmf-rice'
   create_makefile('test')
 
-Note that we use ``mkmf-rice`` instead of ``mkmf``. This will ensure that the extension will be linked with standard C++ library and allows access to the Rice header files.
+Note that we use ``mkmf-rice`` instead of ``mkmf``. This ensures that the extension will be linked with the standard C++ library and allows access to the Rice header files.
 
 .. note::
   For advanced users - instead of using mkmf-rice you can use your own build system such as CMake. In this case you may prefer to download the Rice header file, `rice.hpp <https://github.com/ruby-rice/rice/blob/master/include/rice/rice.hpp>`_, from github and directly include it in your source tree.
@@ -57,7 +51,7 @@ Defining a class in Rice is a single call:
     Class rb_cTest = define_class("Test");
   }
 
-This will create a class called ``Test`` that inherits from ``Object``. If we wanted to inherit from a different class, we do so with the second parameter:
+This will create a class called ``Test`` that inherits from ``Object``. If we wanted to inherit from a different class, we can do so by adding a second parameter:
 
 .. code-block:: cpp
 
@@ -71,7 +65,7 @@ This will create a class called ``Test`` that inherits from ``Object``. If we wa
     Class rb_cMySocket = define_class("MySocket", rb_cIO);
   }
 
-Note the prefix ``rb_c`` on the name of the class. This is a convention that the Ruby interpreter and many extensions tend to use. It signifies that this is a class and not some other type of object. Some other naming conventions that are commonly used:
+Note the prefix ``rb_c`` on the name of the class. This is a convention that the Ruby interpreter and many extensions use. It signifies that this is a class and not another type of object. Common naming conventions include:
 
 * ``rb_c`` variable name prefix for a Class
 * ``rb_m`` variable name prefix for a Module
@@ -220,19 +214,18 @@ This is a C++ version of the Ruby class we just created in the previous section.
     Data_Type<Test> rb_cTest =
       define_class<Test>("Test")
       .define_constructor(Constructor<Test>())
-      .define_function("static_hello", &Test::static_hello)
+      .define_singleton_function("static_hello", &Test::static_hello)
       .define_method("hello", &Test::hello);
   }
 
 In this example we use ``Data_Type<>`` instead of ``Class`` and the template version of ``define_class()`` instead of the non-template version. This creates a binding in the Rice library between the Ruby class ``Test`` and the C++ class Test.
 
-Next, we define a function ``static_hello`` that is implemented by a C++ static member function. Since static functions are not tied to a specific object, there is no self parameter. Therefore we use ``define_function`` instead of ``define_method``.
+Next, we define a function ``static_hello`` that is implemented by a C++ static member function. Since static functions are not tied to a specific object, there is no self parameter. Therefore we use ``define_singleton_function`` instead of ``define_method``.
 
 Last, we define a method ``hello`` that is implemented by a C++ member function. When Ruby calls this function, instead of passing an implicit self parameter, Rice is smart enough to direct the call to the correct C++ Test instance.
 
 Defining attributes
 -------------------
-
 C++ structures, and sometimes classes, often have public member variables that store data. Rice makes it easy to wrap these member variables via the use of ``define_attr``:
 
 .. code-block:: cpp
@@ -247,7 +240,7 @@ C++ structures, and sometimes classes, often have public member variables that s
   Data_Type<MyStruct> rb_cMyStrut =
     define_class<MyStruct>("MyStruct")
     .define_constructor(Constructor<MyStruct>())
-    .define_attr("read_only", &MyStruct::readOnly, Rice::AttrAccess::Read)
+    .define_attr("read_only",  &MyStruct::readOnly, Rice::AttrAccess::Read)
     .define_attr("write_only", &MyStruct::writeOnly, Rice::AttrAccess::Write)
     .define_attr("read_write", &MyStruct::readWrite);
   }
@@ -309,7 +302,7 @@ Rice is smart enough to convert between most Ruby and C++ objects. Let's look ag
 
 When we wrote our class, we never wrote a single line of code to convert
 the ``std::string`` returned by ``hello()`` into a Ruby type. Nevertheless, the
-conversion works, and when we write:
+conversion works. When we write:
 
 .. code-block:: ruby
 
@@ -336,35 +329,20 @@ Take another look at the wrapper we wrote for the ``Test`` class:
       .define_method("hello", &Test::hello);
   }
 
-When we called ``define_class<Test>``, it created a Class for us and automatically registered the new Class with the type system, so that the calls:
+When we called ``define_class<Test>``, it created a Class for us and automatically registered the new Class with the type system.
+
+The ``Data_Object`` class can be used to wrap a C++ object in a Ruby object:
 
 .. code-block:: cpp
 
   Data_Object<Foo> obj(new Foo);
-  Foo * f = detail::From_Ruby<Foo *>::convert(obj);
-  Foo const * f = detail::From_Ruby<Foo const *>::convert(obj);
 
-works as expected.
-
-The ``Data_Object`` class is a wrapper for the ``TypedData_Wrap_Struct`` and the ``TypedData_Get_Struct`` macros in C extensions. It can be used to wrap or unwrap any class that has been assigned to a ``Data_Type``. It inherits from ``Object``, so any member functions we can call on an ``Object`` we can also call on a ``Data_Object``:
+We can then convert it back to C++:
 
 .. code-block:: cpp
+  Foo *f = detail::From_Ruby<Foo *>::convert(obj);
 
-  Object object_id = obj.call("object_id");
-  std::cout << object_id << std::endl;
-
-The ``Data_Object`` class can be used to wrap a newly-created object:
-
-.. code-block:: cpp
-
-  Data_Object<Foo> foo(new Foo);
-
-or to unwrap an already-created object:
-
-.. code-block:: cpp
-
-  VALUE obj = ...;
-  Data_Object<Foo> foo(obj);
+The ``Data_Object`` class is a wrapper for the ``TypedData_Wrap_Struct`` and the ``TypedData_Get_Struct`` macros in C extensions. It can be used to wrap or unwrap any class that has been previously defined using a ``Data_Type``.
 
 A ``Data_Object`` functions like a smart pointer:
 
@@ -376,10 +354,17 @@ A ``Data_Object`` functions like a smart pointer:
 
 Like a ``VALUE`` or an ``Object``, data stored in a ``Data_Object`` will be marked by the garbage collector as long as the ``Data_Object`` is on the stack.
 
+Last, ``Data_Object`` inherites from ``Object``, so any Object member functions work with ``Data_Object``:
+
+.. code-block:: cpp
+
+  Object object_id = obj.call("object_id");
+  std::cout << object_id << std::endl;
+
+
 Exceptions
 ----------
-
-In general Rice automatically handles exceptions. For example, suppose a member function of our example class could throw an exception:
+Rice automatically handles exceptions. For example, suppose a member function of our example class can throw an exception:
 
 .. code-block:: cpp
 
@@ -406,7 +391,7 @@ In general Rice automatically handles exceptions. For example, suppose a member 
       .define_method("error", &Test::error);
   }
 
-If we call this function from Ruby, C++ will raise an exception. Rice will automatically catch it and convert it to a Ruby exception:
+When we call the ``error`` function from Ruby, C++ will raise an exception. Rice will catch the exception and convert it into a Ruby exception:
 
 .. code-block:: ruby
 
