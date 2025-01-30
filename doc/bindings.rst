@@ -10,6 +10,7 @@ Bindings
   bindings/constructors
   bindings/methods
   bindings/overloaded_methods
+  bindings/attributes
   bindings/iterators
   bindings/class_templates
   bindings/memory_management

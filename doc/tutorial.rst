@@ -340,6 +340,7 @@ The ``Data_Object`` class can be used to wrap a C++ object in a Ruby object:
 We can then convert it back to C++:
 
 .. code-block:: cpp
+
   Foo *f = detail::From_Ruby<Foo *>::convert(obj);
 
 The ``Data_Object`` class is a wrapper for the ``TypedData_Wrap_Struct`` and the ``TypedData_Get_Struct`` macros in C extensions. It can be used to wrap or unwrap any class that has been previously defined using a ``Data_Type``.

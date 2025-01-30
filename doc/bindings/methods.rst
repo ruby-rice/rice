@@ -33,9 +33,9 @@ Since default parameter values are not available through templates, it is necess
   void Init_test()
   {
     Data_Type<Test> rb_cTest =
-      define_class<Test>("Test")
-      .define_constructor(Constructor<Test>())
-      .define_method("hello", &Test::hello,
+      define_class<Test>("Test").
+      define_constructor(Constructor<Test>()).
+      define_method("hello", &Test::hello,
          Arg("first"), Arg("second") = "world"
       );
   }
@@ -95,6 +95,29 @@ Note that you can mix ``Arg`` and ``Return`` objects in any order. For example t
 
   define_global_function("some_function", &some_function, Return.setValue(), Arg("ary").setValue());
 
+.. _keyword_arguments:
+
+Keyword Arguments
+-----------------
+Starting with version 4.5, Rice supports using Ruby keyword parameters to call C++ functions. The names of the keyword arguments must match the names specified in the ``Arg`` parameters used to define the method. The actual underlying names of the C++ parameters are irrelevant because C++ templates have no access to them.
+
+For example, reusing the example above:
+
+.. code-block:: cpp
+
+  .define_method("hello",
+     &Test::hello,
+     Arg("hello"), Arg("second") = (std::string)"world"
+  );
+
+The ``hello`` function can be called from Ruby like this:
+
+.. code-block:: cpp
+
+  test = Test.new
+  test.hello(first: "Hello", second: "World")
+  test.hello(first: "Hello") # This is ok because the second parameter has a default value
+
 .. _return_self:
 
 Return Self
@@ -121,26 +144,20 @@ The above code works because the ``<<`` method returns the Array ``a``. You can 
 
 Pay careful attention to the lambda return type of ``std::vector<int32_t>&``. If the return type is *not* specified, then by default the lambda will return by value. That will invoke ``std::vector``'s copy constructor, resulting in *two* ``std::vector<int32_t>`` instance and two Ruby objects. Not at all what you want.
 
-.. _keyword_arguments:
-
-Keyword Arguments
------------------
-Starting with version 4.5, Rice supports using Ruby keyword parameters to call C++ functions. The names of the keyword arguments must match the names specified in the ``Arg`` parameters used to define the method. The actual underlying names of the C++ parameters are irrelevant because C++ templates have no access to them.
-
-For example, reusing the example above:
+Lambda Functions
+----------------
+Ruby classes are expected to define a ``to_s`` method that provides a string representation of an object. A good way of adding addition methods to a class is to use lambda functions:
 
 .. code-block:: cpp
 
-  .define_method("hello",
-     &Test::hello,
-     Arg("hello"), Arg("second") = (std::string)"world"
-  );
+    Data_Type<Test> rb_cTest =
+      define_class<Test>("Test").
+      define_method("to_s", [](Test& self)
+      {
+         return "<Test>";
+      })
+    );
 
-The ``hello`` function can be called from Ruby like this:
+We define the ``to_s`` method to take a single parameter, self, which is an C++ instance of ``Test``. Note that ``self`` is passed by reference - we do not want to create a copy of the Test object!
 
-.. code-block:: cpp
-
-  test = Test.new
-  test.hello(first: "Hello", second: "World")
-  test.hello(first: "Hello") # This is ok because the second parameter has a default value
-
+The lambda function can take any number of additional parameters. It can be either a stateless or stateful lambda.
