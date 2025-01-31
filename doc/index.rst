@@ -11,6 +11,7 @@ Rice - Ruby Interface for C++ Extensions
   bindings
   stl
   api
+  cmake
   migration
   history
   architecture

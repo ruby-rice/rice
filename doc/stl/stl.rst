@@ -6,7 +6,7 @@ Overview
 
 Rice supports the C++ standard template library (STL). To enable STL support include the ``rice/stl.hpp`` header file after the ``rice/rice.hpp`` header file.
 
-.. _stl_class_names:
+.. _stl_wrapped_builtin:
 
 Wrapped Versus BuiltIn Classes
 ==============================
@@ -35,6 +35,8 @@ In contrast, a builtin class means that Rice will copy data from a C++ object to
 * std::variant (to whatever the variant contains)
 
 For more information see the :ref:`type_conversions` section.
+
+.. _stl_class_names:
 
 Automatically Generated Ruby Classes
 ====================================
