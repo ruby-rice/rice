@@ -8,7 +8,7 @@ Rice 4.5 is a major release that adds significant new functionality, including:
 * Supports using keyword arguments in Ruby to call C++ methods
 * Supports C style callbacks, including adding a new define_callback method
 * Supports wrapping C/C++ functions as Ruby procs 
-* Adds Data_Type#define_constant method
+* Adds #define_constant method
 * Add Data_Type#define method to more easily support C++ template classes
 * Be more flexible on type verification by not throwing errors until all classes/methods have been defined and also allow a error message to be printed instead of thrown
 * Add ability to transfer ownership of Ruby created objects to C++ (useful for sending wrapped pointers to APIs that take smart pointers)
