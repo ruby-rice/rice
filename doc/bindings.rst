@@ -15,6 +15,7 @@ Bindings
   bindings/constants
   bindings/iterators
   bindings/class_templates
+  bindings/operators
   bindings/memory_management
   bindings/exceptions
   bindings/types_overview
