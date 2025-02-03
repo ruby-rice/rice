@@ -91,7 +91,9 @@ Remember that C style callbacks are simply function pointers, they do not have a
 
 Simple Callback
 """""""""""""""
-In the simplest case, a callback is only used once in a code base. Thus the ``Proc`` can be associated with the function pointer type. This is exactly what Rice does via the `NativeCallbackSimple <https://github.com/ruby-rice/rice/blob/master/rice/detail/NativeCallbackSimple.hpp>`_ template. Each callback signature creates a new C++ class from the NativeCallback template. The created class has a static member field that stores the ``Proc``.
+In the simplest case, a callback is only used once in a code base. Thus there is a one-to-one mapping between a callback and its associated Ruby ``Proc``.
+
+This is easy to implement - Rice generates a new C++ class based on the callback's signature using the `NativeCallbackSimple <https://github.com/ruby-rice/rice/blob/master/rice/detail/NativeCallbackSimple.hpp>`_ class template. The generated class has a static member field that stores the ``Proc``. Thus every callback is associated with a single instantiation of the `NativeCallbackSimple` template.
 
 LibFFI Callback
 """""""""""""""
@@ -102,10 +104,10 @@ However, a library often times use a callback in multiple places. For example:
   void setMouseClickCallback(MouseCallback_T onSingleClick, MouseCallback_T onDoubleClick, );
   void setMouseEnterExitCallback(MouseCallback_T onEnterExit);
 
-The above code uses the same callback type 3 different times, thus the one-to-one mapping between callback type and C++ class is broken. Intead, we want a callback type to map to 3 different Ruby ``Procs``.
+The above code uses the same callback type 3 different times, thus the one-to-one mapping between callback type and C++ class is broken. Therefore the simple solution of using a static member variable to store the Ruby proc no longer works. Instead, we need to store 3 different ``Procs`` and figure out which one to call when the callback is invoked.
 
-In this case, Ruby can use libffi's `closure <https://github.com/libffi/libffi/blob/master/src/closures.c>`_ API. The closure API associates a piece of user data with a callback and then dynamically generates a new function that the callback invokes.
+In this case, Rice uses libffi's `closure <https://github.com/libffi/libffi/blob/master/src/closures.c>`_ API. The closure API associates a piece of user data, in this case the ``Proc``, with a callback and then dynamically generates a new function which is what is invoked by the callback function.
 
-Since you are working with Ruby, it is highly likely that you have LibFFI installed since the `Fiddle <https://github.com/ruby/fiddle>`_ gem requires it. The default build script will check for LibFFI and if it is found compile it into your bindings.
+Since you are working with Ruby, it is highly likely that LibFFI is already installed since the `Fiddle <https://github.com/ruby/fiddle>`_ gem requires it. The default build script will check for LibFFI and if it is found compile it into your bindings.
 
-If you are using CMake, you will need to define a C++ preprocessor define called ``HAVE_LIBFFI`` and link to libffi.
+If you are using CMake, you will need to add a C++ preprocessor define called ``HAVE_LIBFFI`` and link to libffi.
