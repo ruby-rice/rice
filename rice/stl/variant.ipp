@@ -54,7 +54,7 @@ namespace Rice::detail
         comma operator to return true to the fold expression. If the variant does not have
         a value for the type then return false. 
         
-        The fold operator is or (||). If an index returns false, then the next index is evaulated
+        The fold operator is or (||). If an index returns false, then the next index is evaluated
         up until I. 
         
         Code inspired by https://www.foonathan.net/2020/05/fold-tricks/ */
