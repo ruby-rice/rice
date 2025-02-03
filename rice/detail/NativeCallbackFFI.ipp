@@ -117,8 +117,8 @@ namespace Rice::detail
     }
 
     // Create FFI closure
-    this->closure_ = (ffi_closure *)ffi_closure_alloc(sizeof(ffi_closure), (void**)(&this->callback_));
-    ffi_status status = ffi_prep_closure_loc(this->closure_, &cif_, ffiCallback, (void*)this, nullptr);
+    this->closure_ = (ffi_closure *)ffi_closure_alloc(sizeof(ffi_closure) + sizeof(void*), (void**)(&this->callback_));
+    ffi_status status = ffi_prep_closure_loc(this->closure_, &cif_, ffiCallback, (void*)this, (void*)this->callback_);
   }
 
   template<typename Return_T, typename ...Arg_Ts>

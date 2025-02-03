@@ -66,7 +66,7 @@ def system_libffi_usable?
   libffi_ok
 end
 
-# Check for libffi to support C style callacks. MacOS for now is crashing so disable
-if system_libffi_usable? && !IS_DARWIN
+# Check for libffi to support C style callacks.
+if system_libffi_usable?
   $CPPFLAGS += " -DHAVE_LIBFFI"
 end
