@@ -69,7 +69,7 @@ std::shared_ptr
 --------------- 
 When a native method returns a ``std::shared_ptr``, Rice copies it via its move constructor and therefore owns one instance of the shared_pointer. Of course it is likely there are other copies of the ``std::shared_ptr`` owned by other objects.
 
-Use of the ``std::shared_ptr`` is transparent to Ruby code. As far a Ruby is concerned, its wrapping the type managed by the shareed pointer, thus ``std::shared_ptr::element_type``. As a result, there is not a Ruby visible API to the ``std::unique_ptr`` itself.
+Use of the ``std::shared_ptr`` is transparent to Ruby code. As far a Ruby is concerned, its wrapping the type managed by the shared pointer, thus ``std::shared_ptr::element_type``. As a result, there is not a Ruby visible API to the ``std::unique_ptr`` itself.
 
 Rice supports ``std::shared_ptr`` out of the box - there is no additional work you have to do except include the "rice/stl.hpp" header. Let's take a look at an example:
 
@@ -140,7 +140,7 @@ And in Ruby:
   
 When ``myInstance`` goes out of scope and is garbage collected, it will free the ``std::shared_ptr`` it wraps. That may or may not free the underlying C++ MyClass instance depending if there are other ``std::smart_pointer`` instances managing it.
 
-Unlike ``std::unique_ptr``, you can pass a copy of a ``std::sharted_ptr`` back to native code via a function parameter. However, Ruby will always mantain one copy of the shared pointer until the wrapper Ruby object is freed.
+Unlike ``std::unique_ptr``, you can pass a copy of a ``std::shared_ptr`` back to native code via a function parameter. However, Ruby will always maintain one copy of the shared pointer until the wrapper Ruby object is freed.
 
 Custom Smart Pointer
 --------------------
@@ -190,7 +190,7 @@ Let's start by telling Rice how to wrap the smart pointer. Here is how that is d
   }
 
 First we specialize ``detail::To_Ruby`` for our smart pointer type, in this case ``std::unique_ptr``.
-Next we pass the pointer to Rice's TypeRegistry to look up what Ruby class wraps the C++ class. Then we instantiate a Wrapper_T class from the ``WrapperSmartPointer``. Finally we pass the type information and pointer to a helper method that will first create an instance of Wrapper_T and then an a Ruby object to store it.
+Next we pass the pointer to Rice's TypeRegistry to look up what Ruby class wraps the C++ class. Then we instantiate a Wrapper_T class from the ``WrapperSmartPointer``. Finally we pass the type information and pointer to a helper method that will first create an instance of Wrapper_T and then on a Ruby object to store it.
 
 The second step is to tell Rice how to extract the smart pointer from Ruby.
 

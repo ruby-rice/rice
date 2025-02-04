@@ -30,7 +30,7 @@ When Ruby loads the Rice extension above it will throw an exception. The reason 
 
 When ``define_method`` is called, Rice will see that the return type for ``&Factory::make_fancy_type`` is ``Fancy_T``. It will then drill down through the vector to the unique_ptr to the pair to ``MyClass``. When it encounters ``MyClass`` it will check its internal ``TypeRegistry`` and realize it has not yet been defined and throw a ``std::runtime_exception``.
 
-To fix this requires first definining ``MyClass`` like this:
+To fix this requires first defining ``MyClass`` like this:
 
 .. code-block:: cpp
 

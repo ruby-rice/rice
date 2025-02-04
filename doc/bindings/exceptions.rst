@@ -128,7 +128,7 @@ If your C++ code calls a Ruby API which then in turns calls C++ code, you will n
         std::map<T, U>* result = (std::map<T, U>*)(user_data);
 
         // This method is being called from Ruby so we cannot let any C++
-        // exceptions propogate back to Ruby
+        // exceptions propagate back to Ruby
         return cpp_protect([&]
         {
           result->operator[](From_Ruby<T>().convert(key)) = From_Ruby<U>().convert(value);

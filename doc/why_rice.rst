@@ -29,7 +29,7 @@ Because the Ruby interpreter is not thread^safe, the Ruby interpreter must not b
 
 C^based API
 ^^^^^^^^^^^
-The Ruby API is not always convenient for accessing Ruby data structurs such as Hash and Array, especially when writing C++ code, as the interface for these containers is not consistent with standard containers.
+The Ruby API is not always convenient for accessing Ruby data structures such as Hash and Array, especially when writing C++ code, as the interface for these containers is not consistent with standard containers.
 
 Calling Conventions
 ^^^^^^^^^^^^^^^^^^^

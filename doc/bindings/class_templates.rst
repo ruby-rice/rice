@@ -56,11 +56,11 @@ Instead, write a function to create wrappers. A simplified version looks like th
     inline void Mat__builder(Data_Type_T& klass)
     {
       klass.define_constructor(Constructor<cv::Mat_::Mat_<_Tp>>()).
-        define_constructor(Constructor<cv::Mat_::Mat_<_Tp>, int, int>(),
-          Arg("_rows"), Arg("_cols")).
+        define_constructor(Constructor<cv::Mat_::Mat_<_Tp>, int, int>(), Arg("_rows"), Arg("_cols")).
+
         template define_iterator<cv::Mat_<_Tp>::iterator(cv::Mat_<_Tp>::*)()>(&cv::Mat_<_Tp>::begin, &cv::Mat_<_Tp>::end, "each").
-        template define_method<_Tp&(cv::Mat_<_Tp>::*)(int, int)>("[]", &cv::Mat_<_Tp>::operator(),
-          Arg("row"), Arg("col")).
+        template define_method<_Tp&(cv::Mat_<_Tp>::*)(int, int)>("[]", &cv::Mat_<_Tp>::operator(), Arg("row"), Arg("col")).
+
         define_method("[]=", [](cv::Mat_<_Tp>& self, int row, int column, _Tp& value)
         {
           self(row, column) = value;
@@ -89,7 +89,7 @@ Second, the ``template`` keyword needs to be used in front of methods:
 
    template define_iterator<cv::Mat_<_Tp>::iterator(cv::Mat_<_Tp>::*)()>(&cv::Mat_<_Tp>::begin, &cv::Mat_<_Tp>::end, "each").
 
-   template define_method<_Tp&(cv::Mat_<_Tp>::*)(int, int)>("[]", &cv::Mat_<_Tp>::operator(),
+   template define_method<_Tp&(cv::Mat_<_Tp>::*)(int, int)>("[]", &cv::Mat_<_Tp>::operator(), Arg("row"), Arg("col")).
 
 Third, the array constructor cannot be wrapped because it uses a template parameter that is not defined:
 
@@ -102,8 +102,7 @@ Fourth, the ``operator()`` is mapped to two Ruby methods, ``[]`` and ``[]=``.
 
 .. code-block:: cpp
 
-        template define_method<_Tp&(cv::Mat_<_Tp>::*)(int, int)>("[]", &cv::Mat_<_Tp>::operator(),
-          Arg("row"), Arg("col")).
+        template define_method<_Tp&(cv::Mat_<_Tp>::*)(int, int)>("[]", &cv::Mat_<_Tp>::operator(), Arg("row"), Arg("col")).
         define_method("[]=", [](cv::Mat_<_Tp>& self, int row, int column, _Tp& value)
         {
           self(row, column) = value;

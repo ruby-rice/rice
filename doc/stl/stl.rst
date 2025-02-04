@@ -48,7 +48,7 @@ Rice can also automatically generate Ruby classes. These Ruby classes are added 
 
 Sometimes Ruby also needs to create new instances of these classes. With manually defined class names, this is easy to do. With generated class names you need to understand how Rice creates class names.
 
-Starting in version 4.5, Rice makes use of three unicode characters to create class names that "look" like their C++ counterparts. For example, the type ``std::pair<std::string, double>`` becomes ``Rice::Std::Pair≺string≺char≻‚ double≻``.  Or assume there is a vector containing a custom class``MyNamespace::MyClass``. Then generated name would be ``Rice::Std::Vector≺MyNamesapce꞉꞉MyClass≻``.
+Starting in version 4.5, Rice makes use of three unicode characters to create class names that "look" like their C++ counterparts. For example, the type ``std::pair<std::string, double>`` becomes ``Rice::Std::Pair≺string≺char≻‚ double≻``.  Or assume there is a vector containing a custom class ``MyNamespace::MyClass``. Then generated name would be ``Rice::Std::Vector≺MyNamespace꞉꞉MyClass≻``.
 
 The unicode characters are:
 

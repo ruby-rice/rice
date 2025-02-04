@@ -112,7 +112,7 @@ For example, reusing the example above:
 
 The ``hello`` function can be called from Ruby like this:
 
-.. code-block:: cpp
+.. code-block:: ruby
 
   test = Test.new
   test.hello(first: "Hello", second: "World")
@@ -136,7 +136,7 @@ The above code works because the ``<<`` method returns the Array ``a``. You can 
 .. code-block:: cpp
 
   define_vector<std::vector<int32_t>>().
-  define_method("<<", [](std::vector<int32_t>& self, int32_t value) -> std::vector<int32_t>&  // <----- DONT MISS THIS
+  define_method("<<", [](std::vector<int32_t>& self, int32_t value) -> std::vector<int32_t>&  // <----- DON'T MISS THIS
   {
     self.push_back(value);
     return self;  // <------  Allows chaining on calls
@@ -155,8 +155,7 @@ Ruby classes are expected to define a ``to_s`` method that provides a string rep
       define_method("to_s", [](Test& self)
       {
          return "<Test>";
-      })
-    );
+      });
 
 We define the ``to_s`` method to take a single parameter, self, which is an C++ instance of ``Test``. Note that ``self`` is passed by reference - we do not want to create a copy of the Test object!
 

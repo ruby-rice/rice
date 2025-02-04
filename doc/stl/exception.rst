@@ -2,7 +2,7 @@
 
 std::exception
 ==============
-Most of the time you do not have to worry about C++ exceptions. Rice `:ref:automatically <.. _exceptions>`_ handles C++ exceptions and converts them to the appropriate Ruby exception.
+Most of the time you do not have to worry about C++ exceptions. Rice :ref:`automatically <exceptions>` handles C++ exceptions and converts them to the appropriate Ruby exception.
 
 However, although rare, some C++ APIs define methods that take exception parameters. For example, OpenCV's API includes:
 

@@ -32,4 +32,4 @@ These constants can be wrapped like this:
 
 Enums as Constants
 ------------------
-Older C++ code sometimes uses anonymous C style enums as a hack for defining class constants. For more information see :ref:anonymous_enums.
+Older C++ code sometimes uses anonymous C style enums as a hack for defining class constants. For more information see :ref:`anonymous_enums`.

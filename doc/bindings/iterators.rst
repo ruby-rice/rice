@@ -3,7 +3,7 @@
 Iterators
 =========
 
-C++ iterators are used to traverse through elements stored in a container. C++ iterators are external iterators that work in pairs, with a beginning iterator and an ending iterator. For example, std::vector has begin/end, cbegin/cend, rbegin/rend, etc.
+C++ iterators are used to traverse through elements stored in a container. C++ iterators are external iterators that work in pairs, with a beginning iterator and an ending iterator. For example, ``std::vector`` has begin/end, cbegin/cend, rbegin/rend, etc.
 
 Enumerable Support (Internal Iterators)
 ---------------------------------------
@@ -32,7 +32,7 @@ For example let's create a simple wrapper around std::vector (for full support p
 
 Notice that we have to tell Rice which overloaded version of ``push_back``, ``begin`` and ``end`` we want to expose For more information please see :ref:`overloaded_methods`.
 
-Once the interator is defined you can write standard Ruby code such as:
+Once the iterator is defined you can write standard Ruby code such as:
 
 .. code-block:: ruby
 
@@ -47,7 +47,7 @@ Once the interator is defined you can write standard Ruby code such as:
 
 Where result will be ``[2, 4, 6]``.
 
-Let's say you also want to expose std::vector's reverse iterator to Ruby using the method name ``reach``. This is done by adding a third parameter to the ``define_iterator`` call, in this case it is set to reach":
+Let's say you also want to expose std::vector's reverse iterator to Ruby using the method name ``reach``. This is done by adding a third parameter to the ``define_iterator`` call, in this case it is set to ``"reach"``:
 
 .. code-block:: cpp
 
@@ -80,7 +80,7 @@ Enumerator Support (External Iterators)
 ---------------------------------------
 Ruby supports external iterators via the `Enumerator <https://ruby-doc.org/3.2.2/Enumerator.html>`_ class. The ``define_iterator`` method automatically adds support for Enumerators.
 
-Enumerators can be created by calling an iterator method without a block, in the same way you can call Array#each or other methods without a block. For example:
+Enumerators can be created by calling an iterator method without a block, in the same way you can call ``Array#each`` or other methods without a block. For example:
 
 .. code-block:: ruby
 

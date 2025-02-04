@@ -11,7 +11,7 @@ There are multiple reasons for this:
 * ``std::unordered_map`` instances commonly contain C++ classes that have complex copy or move semantics
 * having two disconnected copies of data, one in C++ and one in Ruby, is usually undesirable
 
-Rice will automatically define Ruby classes for each instantation of ``std::unordered_map`` it finds. You may also manually define Ruby classes via the use of ``define_unordered_map`` or ``define_unordered_map_under`` methods. But make sure to define them *before* Rice automatically creates them.
+Rice will automatically define Ruby classes for each instantiation of ``std::unordered_map`` it finds. You may also manually define Ruby classes via the use of ``define_unordered_map`` or ``define_unordered_map_under`` methods. But make sure to define them *before* Rice automatically creates them.
 
 Example:
 
