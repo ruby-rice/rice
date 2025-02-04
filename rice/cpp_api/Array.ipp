@@ -100,12 +100,13 @@ namespace Rice
   std::vector<T> Array::to_vector()
   {
     long size = this->size();
-    std::vector<T> result(size);
+    std::vector<T> result;
+    result.reserve(size);
 
     for (long i = 0; i < size; i++)
     {
       VALUE element = detail::protect(rb_ary_entry, this->value(), i);
-      result[i] = detail::From_Ruby<T>().convert(element);
+      result.push_back(detail::From_Ruby<T>().convert(element));
     }
 
     return result;
