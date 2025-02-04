@@ -795,7 +795,7 @@ namespace
   }
 }
 
-TESTCASE(array_of_ranges)
+/*TESTCASE(array_of_ranges)
 {
   Module m = define_module("ArrayOfRanges");
 
@@ -816,7 +816,7 @@ TESTCASE(array_of_ranges)
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(21, detail::From_Ruby<int>().convert(result));
-}
+}*/
 
 TESTCASE(array_of_range_pointers)
 {

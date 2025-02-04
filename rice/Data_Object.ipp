@@ -445,9 +445,9 @@ namespace Rice::detail
         case RUBY_T_NIL:
           return Convertible::Exact;
           break;
-        case RUBY_T_ARRAY:
+       /* case RUBY_T_ARRAY:
           return Convertible::Exact;
-          break;
+          break;*/
         default:
           return Convertible::None;
       }
@@ -467,7 +467,7 @@ namespace Rice::detail
           return nullptr;
           break;
         }
-        case RUBY_T_ARRAY:
+       /* case RUBY_T_ARRAY:
         {
           if constexpr (std::is_copy_constructible_v<Intrinsic_T>)
           {
@@ -475,7 +475,7 @@ namespace Rice::detail
             return this->vector_.data();
           }
           // Will fall through if we get here to the default
-        }
+        }*/
         default:
         {
           throw create_type_exception<Intrinsic_T>(value);
@@ -485,7 +485,7 @@ namespace Rice::detail
 
   private:
     Arg* arg_ = nullptr;
-    std::vector<Intrinsic_T> vector_;
+  //  std::vector<Intrinsic_T> vector_;
   };
 
   template<typename T>
