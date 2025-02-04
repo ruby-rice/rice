@@ -58,11 +58,16 @@ files has not yet been checked in.
 ## Documentation
 
 Our documentation makes use of the [sphinx-doc](https://www.sphinx-doc.org) project.
-To generate the documentation you need the following Python packages installed:
+To generate the documentation you need to run the following:
 
 ```bash
-  pip install sphinx-docs
+  brew install sphinx-doc
+
+  python -m venv docs
+  source docs/bin/activate
   pip install furo
+
+  rake doc
 ```
 
 Then, in the `doc` directory you should be able to run `make html` and get generated

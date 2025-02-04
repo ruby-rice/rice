@@ -5,7 +5,7 @@ Type Conversions
 
 Rice refers to types that should be converted (copied) between Ruby and C++ as builtin types. Builtin types are types that directly map from C++ to Ruby. Examples include nullptr, bool, numeric types (integer, float, double, complex), char types and strings.
 
-Since they are copied, instances of builtin types are disconnected. Therefore, if a Ruby string is converted to a std::string then the two strings are independent and changes in one will *not* be reflected in the other. Also understand that if you allocate a new char* in C++ and pass it to Ruby, then you will get a memory leak because Ruby will copy the contents on the char* but will *not* free the original buffer. 
+Since they are copied, instances of builtin types are disconnected. Therefore, if a Ruby string is converted to a ``std::string`` then the two strings are independent and changes in one will *not* be reflected in the other. Also understand that if you allocate a new ``char*`` in C++ and pass it to Ruby, then you will get a memory leak because Ruby will copy the contents on the ``char*`` but will *not* free the original buffer. 
 
 Rice supports all common builtin types out of the box. In general, to add new C++ types to Ruby you should wrap them by using ``define_class``, ``define_enum``, etc.  It should be quite rare to add new builtin types.
 
@@ -92,7 +92,7 @@ Once again, the definition *must* be in the  ``Rice::detail`` namespace.
 
 Instead of using the raw Ruby C API as above, you may prefer to use ``Rice::Array`` which provides an nice C++ wrapper for Ruby arrays.
 
-.. _from_ruby_specialiazation:
+.. _from_ruby_specialization:
 
 Step 3 - Specialize From_Ruby
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -152,7 +152,7 @@ Rice supports C++ :ref:`default_arguments`. To enable this support for your cust
 
 *  Add an additional constructor that takes a ``detail::Arg`` pointer and store it in a member variable
 *  Add back in the default constructor.
-*  In the ``convert`` method, if the Ruby value is ``nil (ie, Qnil)`` and arg is set then return the default value.
+*  In the ``convert`` method, if the Ruby value is ``nil`` (ie, ``Qnil``) and arg is set then return the default value.
 
 Expanding on our example above:
 

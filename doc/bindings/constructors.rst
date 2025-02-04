@@ -72,7 +72,7 @@ This defines a constructor that takes no arguments. It can be invoked from Ruby 
 
     Mat.new
 
-Under the hood, the ``define_constructor`` call creates a new ``initialize`` method on the Ruby Mat class. The ``initialize`` method is responsible for creating a new C++ ``Mat`` instance and associating it with the wrapper Ruby object. Thus if you override the ``initialize`` method you MUST call super:
+Under the hood, the ``define_constructor`` call creates a new ``initialize`` method on the Ruby ``Mat`` class. The ``initialize`` method is responsible for creating a new C++ ``Mat`` instance and associating it with the wrapper Ruby object. Thus if you override the ``initialize`` method you MUST call ``super``:
 
 .. code-block:: ruby
 
@@ -113,7 +113,7 @@ Most C++ classes include a copy constructor that takes one argument. These are m
 
 .. code-block:: cpp
 
-  define_constructor(Constructor<const Mat&())
+  define_constructor(Constructor<const Mat&>())
 
 Rice maps copy constructors to Ruby's ``clone`` and ``dup`` methods:
 
@@ -123,7 +123,7 @@ Rice maps copy constructors to Ruby's ``clone`` and ``dup`` methods:
     mat2 = mat1.dup
     mat3 = mat1.clone
 
-Under the hood, the ``define_constructor`` call creates a new ``initialize_copy`` method on the Ruby Mat class. The ``initialize_copy`` method is responsible for calling the C++ copy constructor and assigning the new C++ instance to the wrapper Ruby object. Thus if you override the ``initialize_copy`` method you MUST call super:
+Under the hood, the ``define_constructor`` call creates a new ``initialize_copy`` method on the Ruby Mat class. The ``initialize_copy`` method is responsible for calling the C++ copy constructor and assigning the new C++ instance to the wrapper Ruby object. Thus if you override the ``initialize_copy`` method you MUST call ``super``:
 
 .. code-block:: ruby
 

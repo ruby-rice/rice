@@ -38,8 +38,8 @@ Directors
 Inheritance becomes much more complex if you want to create Ruby classes that inherit from wrapped C++ classes. This introduces several problems:
 
 * Ruby classes should be able to override C++ virtual methods
-* Overriden virtual methods should be able to call ``super`` and invoke the overriden C++ method
-* C++ code calling the virtual methods should invoke the overriden version in Ruby
+* Overridden virtual methods should be able to call ``super`` and invoke the overridden C++ method
+* C++ code calling the virtual methods should invoke the overridden version in Ruby
 
 Rice supports these use cases through the use of ``Director`` classes. ``Directors`` are proxies that can correctly dispatch method invocations up or down a Class hierarchy.
 
@@ -126,7 +126,7 @@ Next we implement ``doWork``. The director class overrides its by forwarding the
         return VirtualBase::doWork();
       }
 
-It director also implements ``default_doWork`` which enables Ruby to call the overriden virtual C++ method. The ``default_`` prefix is a naming convention to help keep straight which methods perform which functions.
+It director also implements ``default_doWork`` which enables Ruby to call the overridden virtual C++ method. The ``default_`` prefix is a naming convention to help keep straight which methods perform which functions.
 
 If Ruby should never call the C++ method then the ``default_`` implementation should call ``raisePureVirtual()``:
 

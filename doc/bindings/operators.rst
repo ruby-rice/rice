@@ -8,16 +8,16 @@ Both C++ and Ruby support operator overriding, although C++ supports more of the
 
 Arithmetic Operators
 --------------------
-Most overridden C++ arithmetic operators can be overriden in Ruby.
+Most overridden C++ arithmetic operators can be overridden in Ruby.
 
 +---------+-------------------+
 |   C++   |       Ruby        |
 +=========+===================+
-|    +    |         +         |
+|   \+    |        \+         |
 +---------+-------------------+
-|    -    |         -         |
+|   \-    |        \-         |
 +---------+-------------------+
-|    *    |         *         |
+|   \*    |        \*         |
 +---------+-------------------+
 |    /    |         /         |
 +---------+-------------------+
@@ -88,7 +88,7 @@ C++ and Ruby support overriding the same comparison operators.
 
 Logical Operators
 -----------------
-Ruby allows the ``!`` operator to be overriden but not ``&&`` or `||`.
+Ruby allows the ``!`` operator to be overridden but not ``&&`` or ``||``.
 
 +---------+-------------------+
 | C++     |        Ruby       |
@@ -120,9 +120,9 @@ C++ and Ruby support overriding an additional set of operators.
 | >>      |   >>                 |
 +---------+----------------------+
 
-If a C++ class defines an ``[]`` operator that returns a reference, then in it should be mapped to two Ruby operators - ``[]`` and ``[]=``.
+If a C++ class defines an ``[]`` operator that returns a reference, then in it should be mapped to two Ruby operators: ``[]`` and ``[]=``.
 
-C++ classes that support the ``()`` operator are known as functors. Ruby supports overriding the ``.()`` operator by defining a ``call`` function. Note this isn't quite the same as C++ because it is invoked via ``.()`` and not ``()`` - notice the ``.`` before the ``()``.
+C++ classes that support the ``()`` operator are known as functors. Ruby supports overriding the ``.()`` operator by defining a ``call`` function. Note this isn't quite the same as C++ because it is invoked via ``.()`` and not ``()`` -- notice the ``.`` before the ``()``.
 
 Conversion Operators
 --------------------

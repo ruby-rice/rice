@@ -355,7 +355,7 @@ A ``Data_Object`` functions like a smart pointer:
 
 Like a ``VALUE`` or an ``Object``, data stored in a ``Data_Object`` will be marked by the garbage collector as long as the ``Data_Object`` is on the stack.
 
-Last, ``Data_Object`` inherites from ``Object``, so any Object member functions work with ``Data_Object``:
+Last, ``Data_Object`` inherits from ``Object``, so any Object member functions work with ``Data_Object``:
 
 .. code-block:: cpp
 

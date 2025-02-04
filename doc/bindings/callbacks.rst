@@ -33,7 +33,7 @@ To wrap this code in Rice, first expose the register function to Ruby:
   rb_mCv.define_module_function("set_mouse_callback", &cv::setMouseCallback,
     Arg("winname"), Arg("on_mouse"), Arg("userdata") = static_cast<void *>(0));
 
-Next, in Ruby, define a Proc to handle the callback and then call the resgister exposed register function:
+Next, in Ruby, define a Proc to handle the callback and then call the register exposed register function:
 
 .. code-block:: ruby
 
@@ -46,18 +46,18 @@ Next, in Ruby, define a Proc to handle the callback and then call the resgister 
 
   # Register the proc
   Cv::set_mouse_callback("Starry", on_mouse_event)
-  Module rb_mCv = define_module("Cv");
 
 You can also use ``lambdas`` in addition to ``Procs``
 
 User Data
 ^^^^^^^^^
-Notice that the ``MouseCallback`` callback defines a parameter called ``userdata`` which has a type of ``void*``. This is a common pattern in C style callbacks and allows clients to pass information into the callback - its a way of handling state.
+Notice that the ``MouseCallback`` callback defines a parameter called ``userdata`` which has a type of ``void*``. This is a common pattern in C style callbacks and allows clients to pass information into the callback - it's a way of handling state.
 
 Rice enables Ruby code to pass Ruby objects from the client to the callback. To do this, you must tell Rice that it should not try to convert the Ruby object to C++ or from C++ to Ruby. This is done by using the ``setOpaque`` method:
 
 .. code-block:: cpp
 
+  Module rb_mCv = define_module("Cv");
   rb_mCv.define_module_function("set_mouse_callback", &cv::setMouseCallback,
     Arg("winname"), Arg("on_mouse"), Arg("userdata").setOpaque() = static_cast<void *>(0));
 
@@ -67,9 +67,9 @@ Notice the addition of ``Arg("userdata").setOpaque()``. Ruby code can now call t
 
   Cv::set_mouse_callback("Starry", on_mouse_event, self)
 
-This allows the current Ruby object, self, to pass a reference to itself to the callback method.
+This allows the current Ruby object, ``self``, to pass a reference to itself to the callback method.
 
-However, this only solves 1/2 the problem - passing a Ruby object unchanged to C++. When C++ later invokes the callback, Rice will try to tranlsate it from C++ to Ruby. Of course, that does not make sense for the self reference, so we need to tell Rice not to do it. This is done by using the ``define_callback`` function.
+However, this only solves 1/2 the problem - passing a Ruby object unchanged to C++. When C++ later invokes the callback, Rice will try to translate it from C++ to Ruby. Of course, that does not make sense for the self reference, so we need to tell Rice not to do it. This is done by using the ``define_callback`` function.
 
 .. code-block:: cpp
 
@@ -93,7 +93,7 @@ Simple Callback
 """""""""""""""
 In the simplest case, a callback is only used once in a code base. Thus there is a one-to-one mapping between a callback and its associated Ruby ``Proc``.
 
-This is easy to implement - Rice generates a new C++ class based on the callback's signature using the `NativeCallbackSimple <https://github.com/ruby-rice/rice/blob/master/rice/detail/NativeCallbackSimple.hpp>`_ class template. The generated class has a static member field that stores the ``Proc``. Thus every callback is associated with a single instantiation of the `NativeCallbackSimple` template.
+This is easy to implement - Rice generates a new C++ class based on the callback's signature using the `NativeCallbackSimple <https://github.com/ruby-rice/rice/blob/master/rice/detail/NativeCallbackSimple.hpp>`_ class template. The generated class has a static member field that stores the ``Proc``. Thus every callback is associated with a single instantiation of the ``NativeCallbackSimple`` template.
 
 LibFFI Callback
 """""""""""""""
@@ -101,7 +101,7 @@ However, a library often times use a callback in multiple places. For example:
 
 .. code-block:: cpp
 
-  void setMouseClickCallback(MouseCallback_T onSingleClick, MouseCallback_T onDoubleClick, );
+  void setMouseClickCallback(MouseCallback_T onSingleClick, MouseCallback_T onDoubleClick);
   void setMouseEnterExitCallback(MouseCallback_T onEnterExit);
 
 The above code uses the same callback type 3 different times, thus the one-to-one mapping between callback type and C++ class is broken. Therefore the simple solution of using a static member variable to store the Ruby proc no longer works. Instead, we need to store 3 different ``Procs`` and figure out which one to call when the callback is invoked.

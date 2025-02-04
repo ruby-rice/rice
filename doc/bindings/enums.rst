@@ -26,7 +26,7 @@ To expose an enum to Ruby, use ``define_enum`` like this:
     .define_value("BLACK", BLACK)
     .define_value("GREEN", GREEN);
 
-``define_enum<Color>("Color")`` creates a new Ruby class called ``Color``. Each call to ``define_value``  defines a new instance of Color that is stored as a constant on the Color class. Thus from the Ruby side of things, the mapping looks like:
+``define_enum<Color>("Color")`` creates a new Ruby class called ``Color``. Each call to ``define_value`` defines a new instance of Color that is stored as a constant on the Color class. Thus from the Ruby side of things, the mapping looks like:
 
 .. code-block:: ruby
 
@@ -88,7 +88,7 @@ From the Ruby side, this creates:
   class MyClass
     SOME_CONSTANT = 42
     HACKED_CLASS_CONSTANT_1 = MyClass::HACKED_CLASS_CONSTANT_1
-    HACKED_CLASS_CONSTANT_2", MyClass::HACKED_CLASS_CONSTANT_2
+    HACKED_CLASS_CONSTANT_2 = MyClass::HACKED_CLASS_CONSTANT_2
 
     class Season
       Spring = Color.new(Season::Spring)
@@ -102,29 +102,35 @@ Ruby API
 --------
 Generated enum classes have the following Ruby API.
 
-Enum.from_int
+.. code-block::
 
-Enum#<=>
-Enum#eql?
-Enum#hash
-Enum#each
-Enum#inspect
-Enum#to_int
-Enum#to_s
+  Enum.from_int
 
-Enum#&
-Enum#|
-Enum#^
-Enum#~
-Enum#<<
-Enum#>>
+  Enum#<=>
+  Enum#eql?
+  Enum#hash
+  Enum#each
+  Enum#inspect
+  Enum#to_int
+  Enum#to_s
+
+  Enum#&
+  Enum#|
+  Enum#^
+  Enum#~
+  Enum#<<
+  Enum#>>
 
 In addition, they have the following aliases:
 
-Enum#===  Enum#eql?
-Enum#to_i Enum#to_int
+.. code-block::
+
+  Enum#===
+  Enum#eql?
+  Enum#to_i
+  Enum#to_int
 
 And mixin the following modules:
 
-* Comparable
-* Enumerable
+* `Comparable <https://ruby-doc.org/core-3.0.3/Comparable.html>`_
+* `Enumerable <https://ruby-doc.org/core-3.0.3/Enumerable.html>`_

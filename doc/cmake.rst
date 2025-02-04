@@ -75,5 +75,5 @@ Ruby_INCLUDE_DIRS          Include and config directories
 
 Compiler Settings
 -----------------
-On Windows, for both GCC (MinGW) and MSVC you have to turn on big object support. For MSVC, you will want to turn on UTF-8 since there are UTF-8 characters in the comments of the source code. See :ref:stl_class_names.
+On Windows, for both GCC (MinGW) and MSVC you have to turn on big object support. For MSVC, you will want to turn on UTF-8 since there are UTF-8 characters in the comments of the source code. See :ref:`stl_class_names`.
 
