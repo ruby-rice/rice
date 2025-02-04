@@ -19,7 +19,7 @@ TEARDOWN(Data_Type)
   Rice::detail::Registries::instance.types.clearUnverifiedTypes();
   rb_gc_start();
 }
-/*
+
 namespace
 {
   class MyClass
@@ -755,7 +755,7 @@ TESTCASE(not_defined)
   
   // This actually works because we pass a nullptr
   m.call("undefined_arg_pointer", nullptr);
-}*/
+}
 
 namespace
 {
