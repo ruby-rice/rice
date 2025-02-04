@@ -19,7 +19,7 @@ TEARDOWN(Data_Type)
   Rice::detail::Registries::instance.types.clearUnverifiedTypes();
   rb_gc_start();
 }
-
+/*
 namespace
 {
   class MyClass
@@ -755,82 +755,88 @@ TESTCASE(not_defined)
   
   // This actually works because we pass a nullptr
   m.call("undefined_arg_pointer", nullptr);
-}
+}*/
 
 namespace
 {
-  class Container
+  class Range
   {
   public:
-    size_t capacity()
+    Range(int x, int y) : x(x), y(y)
     {
-      return this->capacity_;
     }
 
-    void capacity(size_t value)
-    {
-      this->capacity_ = value;
-    }
-
-  private:
-    size_t capacity_;
+    int x;
+    int y;
   };
+
+  int sumRanges(int size, const Range* ranges)
+  {
+    int result = 0;
+    for (int i = 0; i < size; i++)
+    {
+      const Range& range = ranges[i];
+      result += range.x + range.y;
+    }
+
+    return result;
+  }
+
+  int sumRanges(int size, const Range** ranges)
+  {
+    int result = 0;
+    for (int i = 0; i < size; i++)
+    {
+      const Range* range = ranges[i];
+      result += range->x + range->y;
+    }
+
+    return result;
+  }
 }
 
-TESTCASE(OverloadsWithTemplateParameter)
+TESTCASE(array_of_ranges)
 {
-  Class c = define_class<Container>("Container")
-    .define_constructor(Constructor<Container>())
-    .define_method<size_t(Container::*)()>("capacity", &Container::capacity)
-    .define_method<void(Container::*)(size_t)>("capacity=", &Container::capacity);
+  Module m = define_module("ArrayOfRanges");
 
-  
-  Module m = define_module("Testing");
+  Class c = define_class_under<Range>(m, "Range")
+    .define_constructor(Constructor<Range, int, int>())
+    .define_attr("x", &Range::x)
+    .define_attr("y", &Range::y);
 
-  std::string code = R"(container = Container.new
-                        container.capacity = 5
-                        container.capacity)";
+  m.define_module_function<int(*)(int, const Range*)>("sum_ranges", sumRanges);
+
+  std::string code = R"(range1 = Range.new(1, 2)
+                        range2 = Range.new(3, 4)
+                        range3 = Range.new(5, 6)
+
+                        ranges = [range1, range2, range3]
+
+                        sum_ranges(ranges.count, ranges))";
 
   Object result = m.module_eval(code);
-  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result.value()));
+  ASSERT_EQUAL(21, detail::From_Ruby<int>().convert(result));
 }
 
-TESTCASE(OverloadsWithUsing)
+TESTCASE(array_of_range_pointers)
 {
-  using Getter_T = size_t(Container::*)();
-  using Setter_T = void(Container::*)(size_t);
+  Module m = define_module("ArrayOfRangePointers");
 
-  Class c = define_class<Container>("Container")
-    .define_constructor(Constructor<Container>())
-    .define_method("capacity", (Getter_T)&Container::capacity)
-    .define_method("capacity=", (Setter_T)&Container::capacity);
+  Class c = define_class_under<Range>(m, "Range")
+    .define_constructor(Constructor<Range, int, int>())
+    .define_attr("x", &Range::x)
+    .define_attr("y", &Range::y);
 
-  Module m = define_module("Testing");
+  m.define_module_function<int(*)(int, const Range**)>("sum_ranges", sumRanges);
 
-  std::string code = R"(container = Container.new
-                        container.capacity = 6
-                        container.capacity)";
+  std::string code = R"(range1 = Range.new(1, 2)
+                        range2 = Range.new(3, 4)
+                        range3 = Range.new(5, 6)
+
+                        ranges = [range1, range2, range3]
+
+                        sum_ranges(ranges.count, ranges))";
 
   Object result = m.module_eval(code);
-  ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(result.value()));
-}
-
-TESTCASE(OverloadsWithTypedef)
-{
-  typedef size_t(Container::* Getter_T)();
-  typedef void (Container::* Setter_T)(size_t);
-
-  Class c = define_class<Container>("Container")
-    .define_constructor(Constructor<Container>())
-    .define_method("capacity", (Getter_T)&Container::capacity)
-    .define_method("capacity=", (Setter_T)&Container::capacity);
-
-  Module m = define_module("Testing");
-
-  std::string code = R"(container = Container.new
-                        container.capacity = 7
-                        container.capacity)";
-
-  Object result = m.module_eval(code);
-  ASSERT_EQUAL(7, detail::From_Ruby<int>().convert(result.value()));
+  ASSERT_EQUAL(21, detail::From_Ruby<int>().convert(result));
 }

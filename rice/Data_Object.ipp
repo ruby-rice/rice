@@ -426,6 +426,8 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+    using Intrinsic_T = intrinsic_type<T>;
+
   public:
     From_Ruby() = default;
 
@@ -443,6 +445,9 @@ namespace Rice::detail
         case RUBY_T_NIL:
           return Convertible::Exact;
           break;
+        case RUBY_T_ARRAY:
+          return Convertible::Exact;
+          break;
         default:
           return Convertible::None;
       }
@@ -450,20 +455,37 @@ namespace Rice::detail
 
     T* convert(VALUE value)
     {
-      using Intrinsic_T = intrinsic_type<T>;
-
-      if (value == Qnil)
+      switch (rb_type(value))
       {
-        return nullptr;
-      }
-      else
-      {
-        return Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
+        case RUBY_T_DATA:
+        {
+          return Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
+          break;
+        }
+        case RUBY_T_NIL:
+        {
+          return nullptr;
+          break;
+        }
+        case RUBY_T_ARRAY:
+        {
+          if constexpr (std::is_copy_constructible_v<Intrinsic_T>)
+          {
+            this->vector_ = Array(value).to_vector<Intrinsic_T>();
+            return this->vector_.data();
+          }
+          // Will fall through if we get here to the default
+        }
+        default:
+        {
+          throw create_type_exception<Intrinsic_T>(value);
+        }
       }
     }
 
   private:
     Arg* arg_ = nullptr;
+    std::vector<Intrinsic_T> vector_;
   };
 
   template<typename T>
@@ -513,6 +535,7 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+    using Intrinsic_T = intrinsic_type<T>;
   public:
     From_Ruby() = default;
 
@@ -524,30 +547,49 @@ namespace Rice::detail
     {
       switch (rb_type(value))
       {
-      case RUBY_T_DATA:
-        return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
-        break;
-      default:
-        return Convertible::None;
+        case RUBY_T_DATA:
+          return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          break;
+        case RUBY_T_NIL:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_ARRAY:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
       }
     }
 
     T** convert(VALUE value)
     {
-      using Intrinsic_T = intrinsic_type<T>;
-
-      if (value == Qnil)
+      switch (rb_type(value))
       {
-        return nullptr;
-      }
-      else
-      {
-        return detail::unwrap<Intrinsic_T*>(value, Data_Type<T>::ruby_data_type(), false);
+        case RUBY_T_DATA:
+        {
+          return detail::unwrap<Intrinsic_T*>(value, Data_Type<T>::ruby_data_type(), false);
+          break;
+        }
+        case RUBY_T_NIL:
+        {
+          return nullptr;
+          break;
+        }
+        case RUBY_T_ARRAY:
+        {
+          this->vector_ = Array(value).to_vector<Intrinsic_T*>();
+          return this->vector_.data();
+        }
+        default:
+        {
+          throw create_type_exception<Intrinsic_T>(value);
+        }
       }
     }
 
   private:
     Arg* arg_ = nullptr;
+    std::vector<Intrinsic_T*> vector_;
   };
 
   template<typename T>

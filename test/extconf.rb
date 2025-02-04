@@ -2,6 +2,8 @@ require 'bundler/setup'
 require 'mkmf-rice'
 require 'rbconfig'
 
+abort "libffi not found" unless have_libffi
+
 # Totally hack mkmf to make a unittest executable instead of a shared library
 target_exe = "unittest#{RbConfig::CONFIG['EXEEXT']}"
 $cleanfiles << target_exe

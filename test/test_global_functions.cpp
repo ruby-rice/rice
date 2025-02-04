@@ -165,7 +165,8 @@ TESTCASE(default_arguments_and_returning)
   ASSERT_EQUAL(INT2NUM(50), o.value());
 }
 
-namespace {
+namespace
+{
   int the_one_default_arg = 0;
   void method_with_one_default_arg(int num = 4) {
     the_one_default_arg = num;
