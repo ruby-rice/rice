@@ -66,7 +66,9 @@ def system_libffi_usable?
   libffi_ok
 end
 
-# Check for libffi to support C style callacks.
-if system_libffi_usable?
-  $CPPFLAGS += " -DHAVE_LIBFFI"
+def have_libffi
+  # Check for libffi to support C style callacks.
+  libffi_usable = system_libffi_usable?
+  $CPPFLAGS += " -DHAVE_LIBFFI" if libffi_usable
+  libffi_usable
 end
