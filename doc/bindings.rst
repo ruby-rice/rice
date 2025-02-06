@@ -14,6 +14,7 @@ Bindings
   bindings/enums
   bindings/constants
   bindings/iterators
+  bindings/arrays
   bindings/class_templates
   bindings/operators
   bindings/memory_management
