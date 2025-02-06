@@ -35,7 +35,7 @@ Ruby does not support overriding assignment operators.
 +---------+-------------------+
 | C++     |     Ruby          |
 +=========+===================+
-|  =      | Not overridable   |
+|  =      | assign            |
 +---------+-------------------+
 | +=      | Not overridable   |
 +---------+-------------------+
