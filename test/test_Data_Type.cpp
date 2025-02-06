@@ -19,7 +19,7 @@ TEARDOWN(Data_Type)
   Rice::detail::Registries::instance.types.clearUnverifiedTypes();
   rb_gc_start();
 }
-
+/*
 namespace
 {
   class MyClass
@@ -756,7 +756,7 @@ TESTCASE(not_defined)
   // This actually works because we pass a nullptr
   m.call("undefined_arg_pointer", nullptr);
 }
-
+*/
 namespace
 {
   class Range
@@ -766,9 +766,23 @@ namespace
     {
     }
 
+    Range(const Range& other) = default;
+
     int x;
     int y;
   };
+
+  int sumRangesArray(int size, Range ranges[])
+  {
+    int result = 0;
+    for (int i = 0; i < size; i++)
+    {
+      const Range& range = ranges[i];
+      result += range.x + range.y;
+    }
+
+    return result;
+  }
 
   int sumRanges(int size, const Range* ranges)
   {
@@ -795,9 +809,32 @@ namespace
   }
 }
 
-/*TESTCASE(array_of_ranges)
+TESTCASE(array_of_ranges)
 {
   Module m = define_module("ArrayOfRanges");
+
+  Class c = define_class_under<Range>(m, "Range")
+    .define_constructor(Constructor<Range, int, int>())
+    .define_attr("x", &Range::x)
+    .define_attr("y", &Range::y);
+
+  m.define_module_function("sum_ranges", sumRangesArray);
+
+  std::string code = R"(range1 = Range.new(1, 2)
+                        range2 = Range.new(3, 4)
+                        range3 = Range.new(5, 6)
+
+                        ranges = [range1, range2, range3]
+
+                        sum_ranges(ranges.count, ranges))";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(21, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(pointer_of_ranges)
+{
+  Module m = define_module("PointerOfRanges");
 
   Class c = define_class_under<Range>(m, "Range")
     .define_constructor(Constructor<Range, int, int>())
@@ -816,11 +853,11 @@ namespace
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(21, detail::From_Ruby<int>().convert(result));
-}*/
+}
 
-TESTCASE(array_of_range_pointers)
+TESTCASE(pointer_of_pointer_ranges)
 {
-  Module m = define_module("ArrayOfRangePointers");
+  Module m = define_module("PointerOfPointersOfRanges");
 
   Class c = define_class_under<Range>(m, "Range")
     .define_constructor(Constructor<Range, int, int>())

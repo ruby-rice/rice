@@ -321,15 +321,34 @@ namespace Rice::detail
 
     T convert(VALUE value)
     {
-      using Intrinsic_T = intrinsic_type<T>;
-
+      // This expression checks to see if T has an explicit copy constructor
+      // If it does then we have to call it directly. Not sure if this end ups
+      // with an extra copy or not?
+      // 
+      // std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->template defaultValue<Intrinsic_T>();
+        if constexpr (std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>)
+        {
+          return T(this->arg_->template defaultValue<T>());
+        }
+        else
+        {
+          return this->arg_->template defaultValue<T>();
+        }
       }
       else
       {
-        return *Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
+        if constexpr (std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>)
+        {
+          using Intrinsic_T = intrinsic_type<T>;
+          return T(*Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner()));
+        }
+        else
+        {
+          using Intrinsic_T = intrinsic_type<T>;
+          return *Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
+        }
       }
     }
 
@@ -421,6 +440,36 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 
+  // Helper class to convert a Ruby array of T to a C++ array of T (this happens when an API take T* as parameter
+  // along with a second size parameter)
+  template<typename T>
+  class ArrayHelper
+  {
+  public:
+    using Intrinsic_T = intrinsic_type<T>;
+
+    T* convert(VALUE value)
+    {
+      this->vector_ = Array(value).to_vector<T>();
+      return this->vector_.data();
+    }
+
+  private:
+    std::vector<Intrinsic_T> vector_;
+  };
+
+  // 99% of the time a T* represents a wrapped C++ object that we want to call methods on. However, T* 
+  // could also be a pointer to an array of T objects, so T[]. OpenCV for example has API calls like this.
+  //
+  // Therefore this From_Ruby implementation supports both uses cases which complicates the code. The problem
+  // is for T[] to compile, a class needs to be constructible, destructible and not abstract. A further wrinkle
+  // is if T has an explicit copy-constructor then that requires additional special handling in the code
+  // (see From_Ruby<T>). Whether this extra complication is worth it is debatable, but it does mean that 
+  // a Ruby array can be passed to any C++ API that takes a * including fundamental types (unsigned char)
+  // and class types (T).
+  //
+  // Note that the From_Ruby<T[]> specialization never matches a parameter defined in function as T[] - the C++ 
+  // compiler always picks T* instead. Not sure why...
   template<typename T>
   class From_Ruby<T*>
   {
@@ -435,6 +484,14 @@ namespace Rice::detail
     {
     }
 
+    ~From_Ruby()
+    {
+      if constexpr (std::is_destructible_v<Intrinsic_T>)
+      {
+        delete this->arrayHelper_;
+      }
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -445,9 +502,9 @@ namespace Rice::detail
         case RUBY_T_NIL:
           return Convertible::Exact;
           break;
-       /* case RUBY_T_ARRAY:
+        case RUBY_T_ARRAY:
           return Convertible::Exact;
-          break;*/
+          break;
         default:
           return Convertible::None;
       }
@@ -467,15 +524,19 @@ namespace Rice::detail
           return nullptr;
           break;
         }
-       /* case RUBY_T_ARRAY:
+        case RUBY_T_ARRAY:
         {
-          if constexpr (std::is_copy_constructible_v<Intrinsic_T>)
+          if constexpr (std::is_copy_constructible_v<Intrinsic_T> && std::is_destructible_v<Intrinsic_T> && !std::is_abstract_v<Intrinsic_T>)
           {
-            this->vector_ = Array(value).to_vector<Intrinsic_T>();
-            return this->vector_.data();
+            if (this->arrayHelper_ == nullptr)
+            {
+              this->arrayHelper_ = new ArrayHelper<T>();
+            }
+            return this->arrayHelper_->convert(value);
+            break;
           }
-          // Will fall through if we get here to the default
-        }*/
+          // Will fall through to the type exception if we get here
+        }
         default:
         {
           throw create_type_exception<Intrinsic_T>(value);
@@ -485,7 +546,7 @@ namespace Rice::detail
 
   private:
     Arg* arg_ = nullptr;
-  //  std::vector<Intrinsic_T> vector_;
+    ArrayHelper<T>* arrayHelper_ = nullptr;
   };
 
   template<typename T>
