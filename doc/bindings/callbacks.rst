@@ -106,8 +106,14 @@ However, a library often times use a callback in multiple places. For example:
 
 The above code uses the same callback type 3 different times, thus the one-to-one mapping between callback type and C++ class is broken. Therefore the simple solution of using a static member variable to store the Ruby proc no longer works. Instead, we need to store 3 different ``Procs`` and figure out which one to call when the callback is invoked.
 
-In this case, Rice uses libffi's `closure <https://github.com/libffi/libffi/blob/master/src/closures.c>`_ API. The closure API associates a piece of user data, in this case the ``Proc``, with a callback and then dynamically generates a new function which is what is invoked by the callback function.
+In this case, Rice can use libffi's `closure <https://github.com/libffi/libffi/blob/master/src/closures.c>`_ API. The closure API associates a piece of user data, in this case the ``Proc``, with a callback and then dynamically generates a new function which is what is invoked by the callback function.
 
-Since you are working with Ruby, it is highly likely that LibFFI is already installed since the `Fiddle <https://github.com/ruby/fiddle>`_ gem requires it. The default build script will check for LibFFI and if it is found compile it into your bindings.
+Since you are working with Ruby, it is highly likely that LibFFI is already installed since the `Fiddle <https://github.com/ruby/fiddle>`_ gem requires it.
+
+However, you must opt into using libffi. To do this update your ``extconf.rb`` file like this:
+
+.. code-block:: ruby
+
+  abort "libffi not found" unless have_libffi
 
 If you are using CMake, you will need to add a C++ preprocessor define called ``HAVE_LIBFFI`` and link to libffi.
