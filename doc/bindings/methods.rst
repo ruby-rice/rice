@@ -118,6 +118,16 @@ The ``hello`` function can be called from Ruby like this:
   test.hello(first: "Hello", second: "World")
   test.hello(first: "Hello") # This is ok because the second parameter has a default value
 
+And it can also be called in the traditional manner like this:
+
+.. code-block:: ruby
+
+  test = Test.new
+  test.hello("Hello", "World")
+  test.hello("Hello")
+
+The ability to call the function in two different ways (position and keyword) could cause problems in the future. Imagine that you decide to move the code to Ruby - you will need to chose one of the two forms. That could result in breaking someone else's code. This risk seems low though, so for the moment Rice only supports defining arguments using the ``Arg`` class. In the future Rice may introduce a ``KeyArg`` class to avoid this issue.
+
 .. _return_self:
 
 Return Self
