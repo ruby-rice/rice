@@ -1109,7 +1109,7 @@ namespace Rice::detail
         comma operator to return true to the fold expression. If the variant does not have
         a value for the type then return false. 
         
-        The fold operator is or (||). If an index returns false, then the next index is evaulated
+        The fold operator is or (||). If an index returns false, then the next index is evaluated
         up until I. 
         
         Code inspired by https://www.foonathan.net/2020/05/fold-tricks/ */
@@ -1202,18 +1202,17 @@ namespace Rice::detail
     {
       int i = 0;
       int index = -1;
+      Convertible foundConversion = Convertible::None;
 
       for_each_tuple(this->fromRubys_,
         [&](auto& fromRuby)
         {
           Convertible isConvertible = fromRuby.is_convertible(value);
-          if (isConvertible == Convertible::Exact)
+
+          if (isConvertible > foundConversion)
           {
             index = i;
-          }
-          else if (isConvertible == Convertible::Cast && index == -1)
-          {
-            index = i;
+            foundConversion = isConvertible;
           }
           i++;
         });

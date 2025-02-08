@@ -5387,12 +5387,16 @@ namespace Rice::detail
     // Capitalize first letter
     base[0] = std::toupper(base[0]);
 
-    // Replace :: or _ and capitalize the next letter
-    std::regex namespaceRegex(R"((_|::)(\w))");
+    // Replace :: with unicode U+u02F8 (Modified Letter raised colon)
+    auto colonRegex = std::regex(R"(:)");
+    replaceAll(base, colonRegex, "\uA789");
+
+    // Replace _ and capitalize the next letter
+    std::regex namespaceRegex(R"(_(\w))");
     std::smatch namespaceMatch;
     while (std::regex_search(base, namespaceMatch, namespaceRegex))
     {
-      std::string replacement = namespaceMatch[2];
+      std::string replacement = namespaceMatch[1];
       std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
       base.replace(namespaceMatch.position(), namespaceMatch.length(), replacement);
     }
@@ -7251,8 +7255,8 @@ namespace Rice::detail
     }
 
     // Create FFI closure
-    this->closure_ = (ffi_closure *)ffi_closure_alloc(sizeof(ffi_closure), (void**)(&this->callback_));
-    ffi_status status = ffi_prep_closure_loc(this->closure_, &cif_, ffiCallback, (void*)this, nullptr);
+    this->closure_ = (ffi_closure *)ffi_closure_alloc(sizeof(ffi_closure) + sizeof(void*), (void**)(&this->callback_));
+    ffi_status status = ffi_prep_closure_loc(this->closure_, &cif_, ffiCallback, (void*)this, (void*)this->callback_);
   }
 
   template<typename Return_T, typename ...Arg_Ts>
@@ -7283,6 +7287,7 @@ namespace Rice::detail
   }
 }
 #endif // HAVE_LIBFFI
+
 // =========   NativeCallbackSimple.hpp   =========
 
 namespace Rice::detail
@@ -7983,12 +7988,13 @@ namespace Rice
   std::vector<T> Array::to_vector()
   {
     long size = this->size();
-    std::vector<T> result(size);
+    std::vector<T> result;
+    result.reserve(size);
 
     for (long i = 0; i < size; i++)
     {
       VALUE element = detail::protect(rb_ary_entry, this->value(), i);
-      result[i] = detail::From_Ruby<T>().convert(element);
+      result.push_back(detail::From_Ruby<T>().convert(element));
     }
 
     return result;
@@ -8667,9 +8673,7 @@ inline auto& define_singleton_method(std::string name, Function_T&& func, const 
 
 //! Define a singleton method.
 /*! The method's implementation can be a static member function, plain
- *  function or lambda.
- . A wrapper will be
- * generated which will convert the method
+ *  function or lambda. A wrapper will be generated which will convert the method
  *  from ruby types to C++ types before calling the function.  The return
  *  value will be converted back to ruby.
  *  \param name the name of the method
@@ -8966,9 +8970,7 @@ inline auto& define_singleton_method(std::string name, Function_T&& func, const 
 
 //! Define a singleton method.
 /*! The method's implementation can be a static member function, plain
- *  function or lambda.
- . A wrapper will be
- * generated which will convert the method
+ *  function or lambda. A wrapper will be generated which will convert the method
  *  from ruby types to C++ types before calling the function.  The return
  *  value will be converted back to ruby.
  *  \param name the name of the method
@@ -9817,9 +9819,7 @@ inline auto& define_singleton_method(std::string name, Function_T&& func, const 
 
 //! Define a singleton method.
 /*! The method's implementation can be a static member function, plain
- *  function or lambda.
- . A wrapper will be
- * generated which will convert the method
+ *  function or lambda. A wrapper will be generated which will convert the method
  *  from ruby types to C++ types before calling the function.  The return
  *  value will be converted back to ruby.
  *  \param name the name of the method
@@ -10847,15 +10847,34 @@ namespace Rice::detail
 
     T convert(VALUE value)
     {
-      using Intrinsic_T = intrinsic_type<T>;
-
+      // This expression checks to see if T has an explicit copy constructor
+      // If it does then we have to call it directly. Not sure if this end ups
+      // with an extra copy or not?
+      // 
+      // std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
-        return this->arg_->template defaultValue<Intrinsic_T>();
+        if constexpr (std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>)
+        {
+          return T(this->arg_->template defaultValue<T>());
+        }
+        else
+        {
+          return this->arg_->template defaultValue<T>();
+        }
       }
       else
       {
-        return *Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
+        if constexpr (std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>)
+        {
+          using Intrinsic_T = intrinsic_type<T>;
+          return T(*Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner()));
+        }
+        else
+        {
+          using Intrinsic_T = intrinsic_type<T>;
+          return *Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
+        }
       }
     }
 
@@ -10947,16 +10966,56 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 
+  // Helper class to convert a Ruby array of T to a C++ array of T (this happens when an API take T* as parameter
+  // along with a second size parameter)
+  template<typename T>
+  class ArrayHelper
+  {
+  public:
+    using Intrinsic_T = intrinsic_type<T>;
+
+    T* convert(VALUE value)
+    {
+      this->vector_ = Array(value).to_vector<T>();
+      return this->vector_.data();
+    }
+
+  private:
+    std::vector<Intrinsic_T> vector_;
+  };
+
+  // 99% of the time a T* represents a wrapped C++ object that we want to call methods on. However, T* 
+  // could also be a pointer to an array of T objects, so T[]. OpenCV for example has API calls like this.
+  //
+  // Therefore this From_Ruby implementation supports both uses cases which complicates the code. The problem
+  // is for T[] to compile, a class needs to be constructible, destructible and not abstract. A further wrinkle
+  // is if T has an explicit copy-constructor then that requires additional special handling in the code
+  // (see From_Ruby<T>). Whether this extra complication is worth it is debatable, but it does mean that 
+  // a Ruby array can be passed to any C++ API that takes a * including fundamental types (unsigned char)
+  // and class types (T).
+  //
+  // Note that the From_Ruby<T[]> specialization never matches a parameter defined in function as T[] - the C++ 
+  // compiler always picks T* instead. Not sure why...
   template<typename T>
   class From_Ruby<T*>
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+    using Intrinsic_T = intrinsic_type<T>;
+
   public:
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
+    }
+
+    ~From_Ruby()
+    {
+      if constexpr (std::is_destructible_v<Intrinsic_T>)
+      {
+        delete this->arrayHelper_;
+      }
     }
 
     Convertible is_convertible(VALUE value)
@@ -10969,6 +11028,9 @@ namespace Rice::detail
         case RUBY_T_NIL:
           return Convertible::Exact;
           break;
+        case RUBY_T_ARRAY:
+          return Convertible::Exact;
+          break;
         default:
           return Convertible::None;
       }
@@ -10976,20 +11038,41 @@ namespace Rice::detail
 
     T* convert(VALUE value)
     {
-      using Intrinsic_T = intrinsic_type<T>;
-
-      if (value == Qnil)
+      switch (rb_type(value))
       {
-        return nullptr;
-      }
-      else
-      {
-        return Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
+        case RUBY_T_DATA:
+        {
+          return Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
+          break;
+        }
+        case RUBY_T_NIL:
+        {
+          return nullptr;
+          break;
+        }
+        case RUBY_T_ARRAY:
+        {
+          if constexpr (std::is_copy_constructible_v<Intrinsic_T> && std::is_destructible_v<Intrinsic_T> && !std::is_abstract_v<Intrinsic_T>)
+          {
+            if (this->arrayHelper_ == nullptr)
+            {
+              this->arrayHelper_ = new ArrayHelper<T>();
+            }
+            return this->arrayHelper_->convert(value);
+            break;
+          }
+          // Will fall through to the type exception if we get here
+        }
+        default:
+        {
+          throw create_type_exception<Intrinsic_T>(value);
+        }
       }
     }
 
   private:
     Arg* arg_ = nullptr;
+    ArrayHelper<T>* arrayHelper_ = nullptr;
   };
 
   template<typename T>
@@ -11039,6 +11122,7 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+    using Intrinsic_T = intrinsic_type<T>;
   public:
     From_Ruby() = default;
 
@@ -11050,30 +11134,49 @@ namespace Rice::detail
     {
       switch (rb_type(value))
       {
-      case RUBY_T_DATA:
-        return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
-        break;
-      default:
-        return Convertible::None;
+        case RUBY_T_DATA:
+          return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          break;
+        case RUBY_T_NIL:
+          return Convertible::Exact;
+          break;
+        case RUBY_T_ARRAY:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
       }
     }
 
     T** convert(VALUE value)
     {
-      using Intrinsic_T = intrinsic_type<T>;
-
-      if (value == Qnil)
+      switch (rb_type(value))
       {
-        return nullptr;
-      }
-      else
-      {
-        return detail::unwrap<Intrinsic_T*>(value, Data_Type<T>::ruby_data_type(), false);
+        case RUBY_T_DATA:
+        {
+          return detail::unwrap<Intrinsic_T*>(value, Data_Type<T>::ruby_data_type(), false);
+          break;
+        }
+        case RUBY_T_NIL:
+        {
+          return nullptr;
+          break;
+        }
+        case RUBY_T_ARRAY:
+        {
+          this->vector_ = Array(value).to_vector<Intrinsic_T*>();
+          return this->vector_.data();
+        }
+        default:
+        {
+          throw create_type_exception<Intrinsic_T>(value);
+        }
       }
     }
 
   private:
     Arg* arg_ = nullptr;
+    std::vector<Intrinsic_T*> vector_;
   };
 
   template<typename T>
