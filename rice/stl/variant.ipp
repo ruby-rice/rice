@@ -147,18 +147,17 @@ namespace Rice::detail
     {
       int i = 0;
       int index = -1;
+      Convertible foundConversion = Convertible::None;
 
       for_each_tuple(this->fromRubys_,
         [&](auto& fromRuby)
         {
           Convertible isConvertible = fromRuby.is_convertible(value);
-          if (isConvertible == Convertible::Exact)
+
+          if (isConvertible > foundConversion)
           {
             index = i;
-          }
-          else if (isConvertible == Convertible::Cast && index == -1)
-          {
-            index = i;
+            foundConversion = isConvertible;
           }
           i++;
         });
