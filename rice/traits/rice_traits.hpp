@@ -3,6 +3,7 @@
 
 #include <ostream>
 #include <type_traits>
+#include <variant>
 #include <vector>
 
 namespace Rice
@@ -112,6 +113,15 @@ namespace Rice
     struct tuple_map<T, std::tuple<Arg_Ts...>>
     {
       using type = std::tuple<T<remove_cv_recursive_t<Arg_Ts>>...>;
+    };
+
+    template<typename...Arg_Ts>
+    struct tuple_to_variant;
+
+    template<typename...Arg_Ts>
+    struct tuple_to_variant<std::tuple<Arg_Ts...>>
+    {
+      using type = std::variant<Arg_Ts...>;
     };
 
     template<class T>
