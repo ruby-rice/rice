@@ -7,7 +7,7 @@ namespace Rice::detail
   template <typename T, typename Iterator_Func_T>
   inline void NativeIterator<T, Iterator_Func_T>::define(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end)
   {
-    // Tell Ruby to invoke the resolveIterator static method defined above
+    // Tell Ruby to invoke the resolveIterator static method defined in Native super class.
     detail::protect(rb_define_method, klass, method_name.c_str(), (RUBY_METHOD_FUNC)&Native::resolve, -1);
 
     // Create a NativeIterator instance and save it to the NativeRegistry. There may be multiple
@@ -80,13 +80,16 @@ namespace Rice::detail
     }
     else
     {
-      T* receiver = detail::From_Ruby<T*>().convert(self);
+      detail::From_Ruby<T*> fromRuby;
+      T* receiver = fromRuby.convert(self);
+
       Iterator_T it = std::invoke(this->begin_, *receiver);
       Iterator_T end = std::invoke(this->end_, *receiver);
 
+      detail::To_Ruby<To_Ruby_T> toRuby;
       for (; it != end; ++it)
       {
-        protect(rb_yield, detail::To_Ruby<To_Ruby_T>().convert(*it));
+        protect(rb_yield, toRuby.convert(*it));
       }
 
       return self;
