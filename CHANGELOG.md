@@ -1,15 +1,15 @@
-## 4.5
+## 4.5 (2025-02-09)
 Rice 4.5 is a major release that adds significant new functionality, including:
 
-* Revamp type registry to support method overloading
-* Supports constructor overloading
-* Supports method overloading
-* Supports rvalues
-* Supports using keyword arguments in Ruby to call C++ methods
-* Supports C style callbacks, including adding a new define_callback method
-* Supports wrapping C/C++ functions as Ruby procs 
-* Adds #define_constant method
+* Support method overloading
+* Support constructor overloading
+* Support rvalues
+* Support using keyword arguments in Ruby to call C++ methods
+* Support C style callbacks, including adding a new define_callback method
+* Support wrapping C/C++ functions as Ruby procs 
+* Support calling methods that take pointers
 * Add Data_Type#define method to more easily support C++ template classes
+* Adds #define_constant method
 * Be more flexible on type verification by not throwing errors until all classes/methods have been defined and also allow a error message to be printed instead of thrown
 * Add ability to transfer ownership of Ruby created objects to C++ (useful for sending wrapped pointers to APIs that take smart pointers)
 * Add support for *char
@@ -19,7 +19,9 @@ Rice 4.5 is a major release that adds significant new functionality, including:
 * Update std::variant to support references
 * Split NativeAttribute support to NativeAttributeGet and NativeAttributeSet
 * Create base class for Native classes (NativeFunction, NativeIterator, NativeAttributeGet, NativeAttributeSet - make the type registry easier to deal with (thus using type erasure like the Wrapper classes do).
-* Updated FindRuby to support rbenv (this change is being merged upstream to CMake)
+* Support Ruby 3.4
+* Lots of documentation additions and updates
+* Updated FindRuby to support rbenv (this change is also merged upstream to CMake)
 
 This release also improves STL support by adding:
 
@@ -33,19 +35,19 @@ This release also improves STL support by adding:
 
 Please see the migration guide for updating your bindings for version 4.5
 
-## 4.3.3
+## 4.3.3 (2024-10-19)
 
 * Fix complication issue on Ubuntu 20.04 and GCC 9.
 
-## 4.3.2
+## 4.3.2 (2024-10-18)
 
 * Improve NativeRegistry to reduce possible hash collisions and weird "bad any cast" errors.
 
-## 4.3.1
+## 4.3.1 (2024-3-16)
 
 * Update links and related references to the new repo and docs location: ruby-rice.github.io.
 
-## 4.3
+## 4.3 (2024-2-25)
 
 * Add support for STL containers that contain pointers
 * Add support for std::string_view
@@ -53,18 +55,18 @@ Please see the migration guide for updating your bindings for version 4.5
 * Fix container iteration so elements are passed by reference and not copied
 * Avoid unnecessary copies when creating Rice::Identifiers and Rice::Symbols
 
-## 4.2.1
+## 4.2.1 (2024-1-20)
 
 * Support systems who use `#include <experimental/filesystem>` over `#include<filesystem>`. See [#197](https://github.com/jasonroelofs/rice/issues/197) and [#201](https://github.com/jasonroelofs/rice/pull/201)
 
-## 4.2
+## 4.2 (2024-1-10)
 
 * Support Ruby 3.3.0.
 * Split Object.call to an explicit Object.call_kw for calling methods expecting keyword arguments.
 * Previously, if a wrapper used `keepAlive` on an argument or return value that was itself a Rice type, calling said method would segfault. We've now added an explicit exception to be thrown in this case, prevending the segfault and providing guidance on what was wrong and how to fix it. See [#193](https://github.com/jasonroelofs/rice/pull/193) and [#194](https://github.com/jasonroelofs/rice/pull/194)
 * Fix wrapping of std::shared_ptr to properly take default arguments into account.
 
-## 4.1
+## 4.1 (2023-4-21)
 
 Rice 4.1 builds on the 4.0 release and has a number of improvements that both polish Rice and extend its functionality. However, there are three incompatibilities to know about:
 
@@ -94,7 +96,7 @@ New or improved functionality includes:
 Rice also includes experimental support for instance tracking so that Rice maps the same C++ instance to the same Ruby instance each time it is passed to Ruby. See the documentation for more information.
 
 
-## 4.0
+## 4.0 (2021-4-8)
 
 Rice 4.0 is a significant change from 3.0 and has multiple backwards-incompatible
 changes. Rice 4.0 no longer requires pre-compilation and is now a header-only library,
@@ -110,7 +112,7 @@ There are a ton of changes, but some of the most important ones:
 * [Built-in STL support](https://ruby-rice.github.io/4.x/stl/stl.html)
 * And so much more. See the documentation for more details.
 
-## 3.0
+## 3.0 (2021-1-8)
 
 * Now requires a compiler supporting for C++14 or later
 * Drop support for Ruby 2.4. Supported versions are now 2.5 through 3.0.
@@ -118,33 +120,33 @@ There are a ton of changes, but some of the most important ones:
 * Fix a data corruption issue with `Rice::Exception::what`.
 * Move CI from Travis to GitHub Actions. Now also able to verify Windows builds!
 
-## 2.2.0
+## 2.2.0 (2020-1-10)
 
 * Deprecate support for Rubies older than 2.4
 * Provide a few more built-in to_ruby/from_ruby conversions
 * Fix compilation error when building under Ruby 2.7.0
 
-## 2.1.3
+## 2.1.3 (2019-2-28)
 
 * Don't lock down HAVE_CXX11 on the Rice build itself.
 
-## 2.1.2
+## 2.1.2 (2017-11-20)
 
 * Fix defining custom `begin` and `end` methods on an `Iterator`
 
-## 2.1.1
+## 2.1.1 (2020-1-10)
 
 * Support Ruby 2.4
 * Re-enable Rice::Enum#hash to support putting Enums in Hashes
 
-## 2.1.0
+## 2.1.0 (2016-1-1)
 
 * Fix compliation issues related to g++ and Ruby 2.3.0
   To do this, I had to remove Array::to_c_array which was exposing the internals of a
 	Ruby RArray type to the system. This is not something that we should support going forward
 	as these internals are going to change.
 
-# 2.0.0
+# 2.0.0 (2015-11-27)
 
 * Deprecated all versions of Ruby < 2.0
 * Removed Rice::VM.
@@ -157,7 +159,7 @@ There are a ton of changes, but some of the most important ones:
   but that seems to be more because newer Ruby versions don't have good static builds.
   Thanks to @Kagetsuki for his help tracking down what's going on here.
 
-## 1.7.0
+## 1.7.0 (2015-1-6)
 
 * Ruby 2.2 support
   Potential breaking changes. Ruby 2.2 removed RHash as a public accessible struct
@@ -166,50 +168,50 @@ There are a ton of changes, but some of the most important ones:
   objects directly I recommend using either the Rice API or Ruby's CAPI instead for
   future compatibility.
 
-## 1.6.3
+## 1.6.3 (2014-12-18)
 
 * Fix complication issue on some 64-bit *nix systems
 
-## 1.6.2
+## 1.6.2 (2014-5-5)
 
 * Oops! Missed new file in the gemspec
 
-## 1.6.1
+## 1.6.1 (2014-5-5)
 
 * Support C++x11 uniqe_ptr over auto_ptr
 * Fix some warnings
 
-## 1.6.0
+## 1.6.0 (2014-2-3)
 
 * Ruby 2.1 support -- Thanks Chai Zhenhua
 * Methods and Constructors have correct method access specifiers [#57]
 * Clean up some 64-bit compiler warnings
 
-## 1.5.3
+## 1.5.3 (2013-10-14)
 
 * Fix signed / unsigned compiler warning with Hash#each
 * Fix compilation on clang 5 (Xcode 5)
 
-## 1.5.2
+## 1.5.2 (2013-10-5)
 
 * Update build system to remove deprecation warnings and allow easier building
 * Fix String to work as a parameter in a wrapped method (#59)
 * Update documentation a bit
 
-## 1.5.1
+## 1.5.1 (2013-5-2)
 
 * Doc string fix
 
-## 1.5.0
+## 1.5.0 (2013-5-1)
 
 * Ruby 2.0 compatability
 * Bug fixes
 
-## 1.4.3
+## 1.4.3 (2011-10-9)
 
 * Various build configuration fixes
 
-## 1.4.0
+## 1.4.0 (2010-8-30)
 
 * Fully compatible with Ruby 1.9.2
 * Constructor supports default arguments
