@@ -49,7 +49,8 @@ Ruby extensions with C++ easier.
 
     # Ruby files
     'lib/mkmf-rice.rb',
-    'lib/version.rb',
+    'lib/rice.rb',
+    'lib/rice/version.rb',
 
     # Samples
     'sample/enum/extconf.rb',
