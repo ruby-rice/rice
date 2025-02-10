@@ -27,6 +27,19 @@ namespace Rice::detail
   };
 
   template<typename T>
+  class To_Ruby<std::complex<T>&>
+  {
+  public:
+    VALUE convert(const std::complex<T>& data)
+    {
+      std::vector<VALUE> args(2);
+      args[0] = To_Ruby<T>().convert(data.real());
+      args[1] = To_Ruby<T>().convert(data.imag());
+      return protect(rb_funcallv, rb_mKernel, rb_intern("Complex"), (int)args.size(), (const VALUE*)args.data());
+    }
+  };
+
+  template<typename T>
   class From_Ruby<std::complex<T>>
   {
   public:
