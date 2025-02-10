@@ -106,7 +106,7 @@ Last, if we want to convert a Ruby array to a  ``std::deque<int>``, then we need
     class From_Ruby<std::deque<int>>
     {
     public:
-      Convertible convertible(VALUE value)
+      Convertible is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
