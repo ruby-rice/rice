@@ -68,6 +68,10 @@ This also works with Constructors:
 
 .. _return:
 
+Output Parameters
+-----------------
+Some C/C++ APIs use output parameter to return multiple values from a functiom. To wrap these functions please see the :ref:`_out_parameters` section.
+
 Return
 -------
 Similarly to the ``Arg`` class, Rice also supports a ``Return`` class that let's you tell Rice how to handle returned values from C++. This is particularly important in correctly managing memory (see :ref:`cpp_to_ruby`).
@@ -170,3 +174,4 @@ Ruby classes are expected to define a ``to_s`` method that provides a string rep
 We define the ``to_s`` method to take a single parameter, self, which is an C++ instance of ``Test``. Note that ``self`` is passed by reference - we do not want to create a copy of the Test object!
 
 The lambda function can take any number of additional parameters. It can be either a stateless or stateful lambda.
+
