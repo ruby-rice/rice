@@ -10,6 +10,7 @@
 #include "stl/reference_wrapper.hpp"
 #include "stl/smart_ptr.hpp"
 #include "stl/monostate.hpp"
+#include "stl/tuple.hpp"
 #include "stl/type_index.hpp"
 #include "stl/type_info.hpp"
 #include "stl/variant.hpp"
