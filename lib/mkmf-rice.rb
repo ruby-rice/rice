@@ -1,4 +1,8 @@
 require 'mkmf'
+require 'rice/version'
+
+major, minor, patch = Rice::VERSION.split(".")
+$CXXFLAGS += " -DRICE_VERSION_MAJOR=#{major} -DRICE_VERSION_MINOR=#{minor} -DRICE_VERSION_PATCH=#{patch}"
 
 IS_MSWIN = /mswin/ =~ RUBY_PLATFORM
 IS_MINGW = /mingw/ =~ RUBY_PLATFORM
