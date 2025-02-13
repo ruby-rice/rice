@@ -91,6 +91,8 @@ namespace Rice::detail
   template<typename T>
   class To_Ruby
   {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
   public:
     VALUE convert(T& data)
     {
@@ -116,6 +118,8 @@ namespace Rice::detail
   template <typename T>
   class To_Ruby<T&>
   {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
   public:
     To_Ruby() = default;
 
@@ -150,6 +154,8 @@ namespace Rice::detail
   template <typename T>
   class To_Ruby<T*>
   {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
   public:
     To_Ruby() = default;
 
@@ -196,6 +202,8 @@ namespace Rice::detail
   template <typename T>
   class To_Ruby<T*&>
   {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
   public:
     To_Ruby() = default;
 
@@ -242,6 +250,8 @@ namespace Rice::detail
   template <typename T>
   class To_Ruby<T**>
   {
+    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
+                  "Data_Object cannot be used with fundamental types");
   public:
     To_Ruby() = default;
 
