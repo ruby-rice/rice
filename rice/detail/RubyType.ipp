@@ -89,7 +89,9 @@ namespace Rice::detail
     static inline FromRuby_T fromRuby = rb_num2int_inline;
     static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM };
     static inline std::set<ruby_value_type> Castable = { };
-    static inline std::set<ruby_value_type> Narrowable = { };
+    // We allow bignum to integer because Ruby switches to bignum at about 2 billion on 64 bit systems,
+    // while int can go up to 4 billion
+    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "i*";
   };
 
@@ -102,7 +104,9 @@ namespace Rice::detail
     static inline FromRuby_T fromRuby = RB_NUM2UINT;
     static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM };
     static inline std::set<ruby_value_type> Castable = { };
-    static inline std::set<ruby_value_type> Narrowable = { };
+    // We allow bignum to integer because Ruby switches to bignum at about 2 billion on 64 bit systems,
+    // while int can go up to 4 billion
+    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "I*";
   };
 
@@ -115,7 +119,7 @@ namespace Rice::detail
     static inline FromRuby_T fromRuby = rb_num2long_inline;
     static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM };
     static inline std::set<ruby_value_type> Castable = { };
-    static inline std::set<ruby_value_type> Narrowable = { };
+    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "l_*";
   };
 
@@ -128,7 +132,7 @@ namespace Rice::detail
     static inline FromRuby_T fromRuby = rb_num2ulong_inline;
     static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM  };
     static inline std::set<ruby_value_type> Castable = { };
-    static inline std::set<ruby_value_type> Narrowable = { };
+    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM};
     static inline std::string packTemplate = "L_*";
   };
 
