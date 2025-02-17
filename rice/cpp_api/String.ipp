@@ -63,6 +63,12 @@ namespace Rice
     return std::string(RSTRING_PTR(value()), length());
   }
 
+  template<typename T>
+  inline Array String::unpack() const
+  {
+    return this->call("unpack", detail::RubyType<T>::packTemplate);
+  }
+
   inline Identifier String::intern() const
   {
     return rb_intern(c_str());
