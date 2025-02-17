@@ -25,6 +25,14 @@ namespace Rice
     return std::string(buffer);
   }
 
+  inline const std::string Class::base_name() const
+  {
+    std::string name = this->name();
+    auto regex = std::regex("^.*::");
+    std::string result = std::regex_replace(name, regex, "");
+    return result;
+  }
+
   inline Class define_class_under(Object parent, Identifier id, const Class& superclass)
   {
     VALUE klass = detail::protect(rb_define_class_id_under, parent.value(), id, superclass.value());

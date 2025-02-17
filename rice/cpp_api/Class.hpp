@@ -37,7 +37,12 @@ namespace Rice
      */
     const std::string name() const;
 
-    #include "shared_methods.hpp"
+    //! Base class name - does not include any parent modules
+    /*! \return std::string.
+     */
+    const std::string base_name() const;
+
+#include "shared_methods.hpp"
   };
 
   //! Define a new class in the namespace given by module.
