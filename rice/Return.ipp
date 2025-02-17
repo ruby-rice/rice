@@ -29,4 +29,15 @@ namespace Rice
     Arg::takeOwnership();
     return *this;
   }
+
+  inline Return& Return::setArray()
+  {
+    this->isArray_ = true;
+    return *this;
+  }
+
+  inline bool Return::isArray()
+  {
+    return this->isArray_;
+  }
 }  // Rice
