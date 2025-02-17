@@ -91,7 +91,7 @@ To avoid this incorrect conversion, use the ``setValue()`` method on the ``Arg``
     return new_ary;
   }
 
-  define_global_function("some_function", &some_function, Arg("ary").setValue(), Return.setValue());
+  define_global_function("some_function", &some_function, Arg("ary").setValue(), Return().setValue());
 
 Note that you can mix ``Arg`` and ``Return`` objects in any order. For example this also works:
 
