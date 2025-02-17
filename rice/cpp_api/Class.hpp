@@ -52,7 +52,7 @@ namespace Rice
    *  \return the new class.
    */
   Class define_class_under(Object parent, char const * name, const Class& superclass = rb_cObject);
-  Class define_class_under(Object parent, Identifier id, const Class& superclass);
+  Class define_class_under(Object parent, Identifier id, const Class& superclass = rb_cObject);
 
   //! Define a new class in the default namespace.
   /*! \param name the name of the class.

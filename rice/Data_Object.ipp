@@ -163,10 +163,14 @@ namespace Rice::detail
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
   public:
-    To_Ruby() = default;
+    To_Ruby()
+    {
+      detail::Type<PointerView<T>>::verify();
+    };
 
     explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
+      detail::Type<PointerView<T>>::verify();
     }
 
     VALUE convert(T* data)
@@ -177,8 +181,6 @@ namespace Rice::detail
       }
       else if (this->returnInfo_ && this->returnInfo_->isArray())
       {
-        // We need to manually define the pointer view once since it not defined in any method signature
-        static Data_Type<PointerView<T>> dataType = define_pointer_view<T>();
         PointerView<T> pointerView(data);
         Data_Object<PointerView<T>> dataObject(pointerView, true);
         return dataObject.value();

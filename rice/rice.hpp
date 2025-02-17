@@ -30,6 +30,13 @@
 #include "JumpException.ipp"
 #include "detail/RubyFunction.hpp"
 #include "detail/RubyFunction.ipp"
+#include "detail/to_ruby.hpp"
+
+// Code for Ruby to call C++
+#include "Arg.hpp"
+#include "Return.hpp"
+#include "detail/MethodInfo.hpp"
+#include "detail/from_ruby.hpp"
 
 // C++ API declarations
 #include "detail/Type.hpp"
@@ -43,13 +50,19 @@
 #include "cpp_api/Array.hpp"
 #include "cpp_api/Hash.hpp"
 
+#include "cpp_api/Module.hpp"
+#include "cpp_api/Class.hpp"
+
+#include "detail/Native.hpp"
+#include "detail/NativeAttributeGet.hpp"
+#include "detail/NativeAttributeSet.hpp"
+#include "Data_Type.hpp"
+#include "Data_Object.hpp"
+
 // Type Conversion declarations
 #include "detail/RubyType.hpp"
 #include "detail/RubyType.ipp"
 #include "detail/Wrapper.hpp"
-#include "detail/to_ruby.hpp"
-#include "detail/from_ruby.hpp"
-#include "detail/Native.hpp"
 
 // Registries
 #include "detail/TypeRegistry.hpp"
@@ -60,10 +73,10 @@
 #include "detail/Registries.hpp"
 
 // To / From Ruby
-#include "Arg.hpp"
 #include "Arg.ipp"
-#include "Return.hpp"
 #include "Return.ipp"
+#include "PointerView.hpp"
+#include "PointerView.ipp"
 #include "detail/to_ruby.ipp"
 #include "detail/from_ruby.ipp"
 #include "detail/Proc.hpp"
@@ -82,12 +95,9 @@
 #include "Exception.ipp"
 #include "detail/cpp_protect.hpp"
 #include "detail/Wrapper.ipp"
-#include "detail/MethodInfo.hpp"
 #include "detail/MethodInfo.ipp"
 #include "detail/Native.ipp"
-#include "detail/NativeAttributeGet.hpp"
 #include "detail/NativeAttributeGet.ipp"
-#include "detail/NativeAttributeSet.hpp"
 #include "detail/NativeAttributeSet.ipp"
 #include "detail/NativeFunction.hpp"
 #include "detail/NativeFunction.ipp"
@@ -108,9 +118,7 @@
 #include "cpp_api/Hash.ipp"
 #include "cpp_api/Symbol.ipp"
 
-#include "cpp_api/Module.hpp"
 #include "cpp_api/Module.ipp"
-#include "cpp_api/Class.hpp"
 #include "cpp_api/Class.ipp"
 #include "cpp_api/Struct.hpp"
 #include "cpp_api/Struct.ipp"
@@ -124,14 +132,12 @@
 #include "ruby_mark.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "Director.hpp"
-#include "Data_Type.hpp"
 #include "Data_Type.ipp"
 #include "detail/default_allocation_func.ipp"
 #include "Constructor.hpp"
 #include "Constructor.ipp"
 #include "Callback.hpp"
 #include "Callback.ipp"
-#include "Data_Object.hpp"
 #include "Data_Object.ipp"
 #include "Enum.hpp"
 #include "Enum.ipp"

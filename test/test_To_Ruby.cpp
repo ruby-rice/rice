@@ -1,11 +1,13 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
+#include <rice/stl.hpp>
 
 #include <limits>
 #include <cmath>
 
 using namespace Rice;
+using namespace std::string_literals;
 
 TESTSUITE(ToRuby);
 
@@ -149,4 +151,427 @@ TESTCASE(char_const_ptr_to_ruby)
 TESTCASE(char_const_array_to_ruby_symbol)
 {
   ASSERT(rb_equal(Symbol("foo").value(), detail::to_ruby(":foo")));
+}
+
+namespace
+{
+  template<typename T>
+  class Matrix2
+  {
+  public:
+    T* ptr()
+    {
+      return this->data;
+    }
+
+    T data[5] = { 1,2,3,4,5 };
+  };
+
+  using Matrix2UnsignedChar = Matrix2<unsigned char>;
+  using Matrix2Char = Matrix2<char>;
+  using Matrix2UnsignedShort = Matrix2<unsigned short>;
+  using Matrix2Short = Matrix2<short>;
+  using Matrix2UnsignedInt = Matrix2<unsigned int>;
+  using Matrix2Int = Matrix2<int>;
+  using Matrix2Float = Matrix2<float>;
+  using Matrix2Double = Matrix2<double>;
+}
+
+TESTCASE(unsigned_char_ptr_buffer)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix2UnsignedChar>(m, "Matrix2UnsignedChar")
+    .define_constructor(Constructor<Matrix2UnsignedChar>())
+    .define_method("ptr", &Matrix2UnsignedChar::ptr)
+    .define_attr("data", &Matrix2UnsignedChar::data, Rice::AttrAccess::Read);
+
+  std::string code = R"(matrix = Matrix2UnsignedChar.new
+                        pointer_view = matrix.ptr
+                        pointer_view.buffer(0, 5))";
+  String buffer = m.module_eval(code);
+  ASSERT_EQUAL("\x1\x2\x3\x4\x5", buffer.str());
+
+  code = R"(matrix = Matrix2UnsignedChar.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 1))";
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL("\x3", buffer.str());
+
+  code = R"(matrix = Matrix2UnsignedChar.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 2))";
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL("\x3\x4", buffer.str());
+
+  code = R"(matrix = Matrix2UnsignedChar.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 0))";
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL("", buffer.str());
+
+  code = R"(matrix = Matrix2UnsignedChar.new
+            pointer_view = matrix.data
+            pointer_view.buffer)";
+
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL("\x1\x2\x3\x4\x5", buffer.str());
+}
+
+TESTCASE(unsigned_char_ptr_array)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix2UnsignedChar>(m, "Matrix2UnsignedChar")
+    .define_constructor(Constructor<Matrix2UnsignedChar>())
+    .define_method("ptr", &Matrix2UnsignedChar::ptr);
+
+  std::string code = R"(matrix = Matrix2UnsignedChar.new
+                        pointer_view = matrix.ptr
+                        pointer_view.to_array(0, 5))";
+
+  std::vector<unsigned char> expected = std::vector<unsigned char>{ 1,2,3,4,5 };
+  Array array = m.module_eval(code);
+  std::vector<unsigned char> actual = array.to_vector<unsigned char>();
+  ASSERT_EQUAL(expected, actual);
+
+  code = R"(matrix = Matrix2UnsignedChar.new
+           pointer_view = matrix.ptr
+           pointer_view.to_array(0, 1))";
+
+  expected = std::vector<unsigned char>{ 1 };
+  array = m.module_eval(code);
+  actual = array.to_vector<unsigned char>();
+  ASSERT_EQUAL(expected, actual);
+}
+
+TESTCASE(short_ptr_buffer)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix2Short>(m, "Matrix2Short")
+    .define_constructor(Constructor<Matrix2Short>())
+    .define_method("ptr", &Matrix2Short::ptr);
+
+  std::string code = R"(matrix = Matrix2Short.new
+                        pointer_view = matrix.ptr
+                        pointer_view.buffer(0, 5))";
+
+  std::string expected = "\x1\0\x2\0\x3\0\x4\0\x5\0"s;
+  String buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2Short.new
+                        pointer_view = matrix.ptr
+                        pointer_view.buffer(2, 1))";
+  expected = "\x3\0"s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2Short.new
+                        pointer_view = matrix.ptr
+                        pointer_view.buffer(2, 2))";
+
+  expected = "\x3\0\x4\0"s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2Short.new
+                        pointer_view = matrix.ptr
+                        pointer_view.buffer(2, 0))";
+  expected = ""s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+}
+
+TESTCASE(short_ptr_array)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix2Short>(m, "Matrix2Short")
+    .define_constructor(Constructor<Matrix2Short>())
+    .define_method("ptr", &Matrix2Short::ptr);
+
+  std::string code = R"(matrix = Matrix2Short.new
+                        pointer_view = matrix.ptr
+                        pointer_view.to_array(0, 5))";
+
+   std::vector<short> expected = std::vector<short>{1,2,3,4,5};
+   Array array = m.module_eval(code);
+   std::vector<short> actual = array.to_vector<short>();
+   ASSERT_EQUAL(expected, actual);
+
+   code = R"(matrix = Matrix2Short.new
+             pointer_view = matrix.ptr
+             pointer_view.to_array(3, 2))";
+
+    expected = std::vector<short>{4, 5};
+    array = m.module_eval(code);
+    actual = array.to_vector<short>();
+    ASSERT_EQUAL(expected, actual);
+}
+
+TESTCASE(unsigned_short_ptr_buffer)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix2UnsignedShort>(m, "Matrix2UnsignedShort")
+    .define_constructor(Constructor<Matrix2UnsignedShort>())
+    .define_method("ptr", &Matrix2UnsignedShort::ptr);
+
+  std::string code = R"(matrix = Matrix2UnsignedShort.new
+                        pointer_view = matrix.ptr
+                        pointer_view.buffer(0, 5))";
+
+  std::string expected = "\x1\0\x2\0\x3\0\x4\0\x5\0"s;
+  String buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2UnsignedShort.new
+                        pointer_view = matrix.ptr
+                        pointer_view.buffer(2, 1))";
+  expected = "\x3\0"s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2UnsignedShort.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 2))";
+
+  expected = "\x3\0\x4\0"s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2UnsignedShort.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 0))";
+  expected = ""s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+}
+
+TESTCASE(unsigned_short_ptr_array)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix2UnsignedShort>(m, "Matrix2UnsignedShort")
+    .define_constructor(Constructor<Matrix2UnsignedShort>())
+    .define_method("ptr", &Matrix2UnsignedShort::ptr);
+
+  std::string code = R"(matrix = Matrix2UnsignedShort.new
+                        pointer_view = matrix.ptr
+                        pointer_view.to_array(0, 5))";
+
+  std::vector<unsigned short> expected = std::vector<unsigned short>{ 1,2,3,4,5 };
+  Array array = m.module_eval(code);
+  std::vector<unsigned short> actual = array.to_vector<unsigned short>();
+  ASSERT_EQUAL(expected, actual);
+
+  code = R"(matrix = Matrix2UnsignedShort.new
+            pointer_view = matrix.ptr
+            pointer_view.to_array(3, 2))";
+
+  expected = std::vector<unsigned short>{ 4, 5 };
+  array = m.module_eval(code);
+  actual = array.to_vector<unsigned short>();
+  ASSERT_EQUAL(expected, actual);
+}
+
+TESTCASE(int_ptr_buffer)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix2Int>(m, "Matrix2Int")
+    .define_constructor(Constructor<Matrix2Int>())
+    .define_method("ptr", &Matrix2Int::ptr);
+
+  std::string code = R"(matrix = Matrix2Int.new
+                        pointer_view = matrix.ptr
+                        pointer_view.buffer(0, 5))";
+
+  std::string expected = "\x1\0\0\0\x2\0\0\0\x3\0\0\0\x4\0\0\0\x5\0\0\0"s;
+  String buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2Int.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 1))";
+  expected = "\x3\0\0\0"s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2Int.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 2))";
+
+  expected = "\x3\0\0\0\x4\0\0\0"s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2Int.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 0))";
+  expected = ""s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+}
+
+TESTCASE(int_ptr_array)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix2Int>(m, "Matrix2Int")
+    .define_constructor(Constructor<Matrix2Int>())
+    .define_method("ptr", &Matrix2Int::ptr);
+
+  std::string code = R"(matrix = Matrix2Int.new
+                        pointer_view = matrix.ptr
+                        pointer_view.to_array(0, 5))";
+
+  std::vector<int> expected = std::vector<int>{ 1,2,3,4,5 };
+  Array array = m.module_eval(code);
+  std::vector<int> actual = array.to_vector<int>();
+  ASSERT_EQUAL(expected, actual);
+
+  code = R"(matrix = Matrix2Int.new
+            pointer_view = matrix.ptr
+            pointer_view.to_array(3, 2))";
+
+  expected = std::vector<int>{ 4, 5 };
+  array = m.module_eval(code);
+  actual = array.to_vector<int>();
+  ASSERT_EQUAL(expected, actual);
+}
+
+TESTCASE(float_ptr_buffer)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix2Float>(m, "Matrix2Float")
+    .define_constructor(Constructor<Matrix2Float>())
+    .define_method("ptr", &Matrix2Float::ptr);
+
+  std::string code = R"(matrix = Matrix2Float.new
+                        pointer_view = matrix.ptr
+                        pointer_view.buffer(0, 5))";
+
+  std::string expected = "\0\0\x80\x3f\0\0\0\x40\0\0\x40\x40\0\0\x80\x40\0\0\xa0\x40"s;
+  String buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2Float.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 1))";
+  expected = "\0\0\x40\x40"s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2Float.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 2))";
+
+  expected = "\0\0\x40\x40\0\0\x80\x40"s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2Float.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 0))";
+  expected = ""s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+}
+
+TESTCASE(float_ptr_array)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix2Float>(m, "Matrix2Float")
+    .define_constructor(Constructor<Matrix2Float>())
+    .define_method("ptr", &Matrix2Float::ptr);
+
+  std::string code = R"(matrix = Matrix2Float.new
+                        pointer_view = matrix.ptr
+                        pointer_view.to_array(0, 5))";
+
+  std::vector<float> expected = std::vector<float>{ 1.0,2.0,3.0,4.0,5.0 };
+  Array array = m.module_eval(code);
+  std::vector<float> actual = array.to_vector<float>();
+  ASSERT_EQUAL(expected, actual);
+
+  code = R"(matrix = Matrix2Float.new
+             pointer_view = matrix.ptr
+             pointer_view.to_array(3, 2))";
+
+  expected = std::vector<float>{ 4.0, 5.0 };
+  array = m.module_eval(code);
+  actual = array.to_vector<float>();
+  ASSERT_EQUAL(expected, actual);
+}
+
+TESTCASE(double_ptr_buffer)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix2Double>(m, "Matrix2Double")
+    .define_constructor(Constructor<Matrix2Double>())
+    .define_method("ptr", &Matrix2Double::ptr);
+
+  std::string code = R"(matrix = Matrix2Double.new
+                        pointer_view = matrix.ptr
+                        pointer_view.buffer(0, 5))";
+
+  std::string expected = "\0\0\0\0\0\0\xf0\x3f\0\0\0\0\0\0\0\x40\0\0\0\0\0\0\x08\x40\0\0\0\0\0\0\x10\x40\0\0\0\0\0\0\x14\x40"s;
+  String buffer = m.module_eval(code);
+  const char* ptr = RSTRING_PTR(buffer.value());
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2Double.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 1))";
+  expected = "\0\0\0\0\0\0\x08\x40"s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2Double.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 2))";
+
+  expected = "\0\0\0\0\0\0\x08\x40\0\0\0\0\0\0\x10\x40"s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+
+  code = R"(matrix = Matrix2Double.new
+            pointer_view = matrix.ptr
+            pointer_view.buffer(2, 0))";
+  expected = ""s;
+  buffer = m.module_eval(code);
+  ASSERT_EQUAL(expected, buffer.str());
+}
+
+TESTCASE(double_ptr_array)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix2Double>(m, "Matrix2Double")
+    .define_constructor(Constructor<Matrix2Double>())
+    .define_method("ptr", &Matrix2Double::ptr);
+
+  std::string code = R"(matrix = Matrix2Double.new
+                        pointer_view = matrix.ptr
+                        pointer_view.to_array(0, 5))";
+
+  std::vector<double> expected = std::vector<double>{ 1.0,2.0,3.0,4.0,5.0 };
+  Array array = m.module_eval(code);
+  std::vector<double> actual = array.to_vector<double>();
+  ASSERT_EQUAL(expected, actual);
+
+  code = R"(matrix = Matrix2Double.new
+             pointer_view = matrix.ptr
+             pointer_view.to_array(3, 2))";
+
+  expected = std::vector<double>{ 4.0, 5.0 };
+  array = m.module_eval(code);
+  actual = array.to_vector<double>();
+  ASSERT_EQUAL(expected, actual);
 }

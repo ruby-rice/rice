@@ -179,9 +179,6 @@ SETUP(SmartPointer)
       Arg("myClass").takeOwnership()).
     define_method<int(Sink::*)(std::shared_ptr<void>&)>("handle_void", &Sink::handleVoid);
 
-  // Needed for shared_ptr<void>
-  define_class<void>("Void");
-
   define_global_function("extract_flag_unique_ptr_ref", &extractFlagUniquePtrRef);
   define_global_function("extract_flag_shared_ptr", &extractFlagSharedPtr);
   define_global_function("extract_flag_shared_ptr_ref", &extractFlagSharedPtrRef);
@@ -485,4 +482,33 @@ TESTCASE(SharedPtrVoid)
   ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
   ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
  // ASSERT_EQUAL(1, MyClass::destructorCalls);
+}
+
+namespace
+{
+  std::shared_ptr<int> createPointer(int value)
+  {
+    int* sharedInt = new int(value);
+    std::shared_ptr<int> shared(sharedInt);
+    return shared;
+  }
+
+  int getPointerValue(std::shared_ptr<int> ptr)
+  {
+    return *ptr;
+  }
+}
+
+TESTCASE(SharedPtrInt)
+{
+  Module m = define_module("SharedPtrInt").
+    define_module_function("create_pointer", &createPointer).
+    define_module_function("get_pointer_value", &getPointerValue);
+
+  // Create ruby objects that point to the same instance of MyClass
+  std::string code = R"(ptr = create_pointer(44)
+                        get_pointer_value(ptr))";
+
+  Object result = m.instance_eval(code);
+  ASSERT_EQUAL(44, detail::From_Ruby<int>().convert(result.value()));
 }
