@@ -66,6 +66,7 @@ namespace Rice
      *  \param value the Ruby object to unwrap.
      */
     Data_Object(Object value);
+    Data_Object(VALUE value);
 
     T& operator*() const; //!< Return a reference to obj_
     T* operator->() const; //!< Return a pointer to obj_
