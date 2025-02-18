@@ -196,11 +196,15 @@ TESTCASE(polymorphic_calls_head_down_the_call_chain)
 
 namespace {
 
-  class CallsSelf {
+  class CallsSelf
+  {
     public:
-      virtual ~CallsSelf() { }
+      virtual ~CallsSelf()
+      {
+      }
 
-      int doIt(int in) {
+      int doIt(int in)
+      {
         return doItImpl(in); 
       }
 
