@@ -154,21 +154,17 @@ namespace Rice::detail
 
     VALUE convert(std::shared_ptr<T>& data)
     {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-      return detail::wrap<std::shared_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
-    }
-  };
-
-  template <>
-  class To_Ruby<std::shared_ptr<void>>
-  {
-  public:
-    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, void>;
-
-    VALUE convert(std::shared_ptr<void>& data)
-    {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(data.get());
-      return detail::wrap<std::shared_ptr<void>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        rb_data_type_t* ruby_data_type = RubyType<T>::ruby_data_type();
+        VALUE klass = RubyType<T>::klass();
+        return detail::wrap<std::shared_ptr<T>, Wrapper_T>(klass, ruby_data_type, data, true);
+      }
+      else
+      {
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
+        return detail::wrap<std::shared_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+      }
     }
   };
 
@@ -186,8 +182,16 @@ namespace Rice::detail
 
     Wrapper_T* is_same_smart_ptr(VALUE value)
     {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-      return dynamic_cast<Wrapper_T*>(wrapper);
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        Wrapper* wrapper = detail::getWrapper(value, RubyType<T>::ruby_data_type());
+        return dynamic_cast<Wrapper_T*>(wrapper);
+      }
+      else
+      {
+        Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+        return dynamic_cast<Wrapper_T*>(wrapper);
+      }
     }
 
     Convertible is_convertible(VALUE value)
@@ -231,8 +235,17 @@ namespace Rice::detail
 
     VALUE convert(std::shared_ptr<T>& data)
     {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-      return detail::wrap<std::shared_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        rb_data_type_t* ruby_data_type = RubyType<T>::ruby_data_type();
+        VALUE klass = RubyType<T>::klass();
+        return detail::wrap<std::shared_ptr<T>, Wrapper_T>(klass, ruby_data_type, data, true);
+      }
+      else
+      {
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
+        return detail::wrap<std::shared_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+      }
     }
   };
 
@@ -250,8 +263,16 @@ namespace Rice::detail
 
     Wrapper_T* is_same_smart_ptr(VALUE value)
     {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-      return dynamic_cast<Wrapper_T*>(wrapper);
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        Wrapper* wrapper = detail::getWrapper(value, RubyType<T>::ruby_data_type());
+        return dynamic_cast<Wrapper_T*>(wrapper);
+      }
+      else
+      {
+        Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+        return dynamic_cast<Wrapper_T*>(wrapper);
+      }
     }
 
     Convertible is_convertible(VALUE value)

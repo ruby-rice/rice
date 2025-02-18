@@ -276,12 +276,15 @@ TESTCASE(assign_int)
  * Issue 59 - Copy constructor compilation problem.
  */
 
-namespace {
-  void testArrayArg(Object self, Array string) {
+namespace
+{
+  void testArrayArg(Object self, Array string)
+  {
   }
 }
 
-TESTCASE(use_array_in_wrapped_function) {
+TESTCASE(use_array_in_wrapped_function)
+{
   define_global_function("test_array_arg", &testArrayArg);
 }
 

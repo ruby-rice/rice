@@ -93,6 +93,30 @@ namespace Rice::detail
     // while int can go up to 4 billion
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "i*";
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<int>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = {"RubyType<int>"};
+    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -188,4 +212,38 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "d*";
   };
+
+  template<>
+  class RubyType<void>
+  {
+  public:
+    static inline std::set<ruby_value_type> Exact = { };
+    static inline std::set<ruby_value_type> Castable = { };
+    static inline std::set<ruby_value_type> Narrowable = { };
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<void>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<void>" };
+    static inline VALUE klass_ = Qnil;
+  };
+
 }

@@ -13,20 +13,15 @@ namespace Rice::detail
     {
       return true;
     }
+    else if constexpr (std::is_array_v<T> && std::is_fundamental_v<std::remove_extent_t<T>>)
+    {
+      return true;
+    }
     else
     {
       return Registries::instance.types.verify<T>();
     }
   }
-
-  template<>
-  struct Type<void>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-  };
 
   template<typename T>
   void verifyType()

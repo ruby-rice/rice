@@ -212,12 +212,12 @@ namespace Rice
     // Is the class already defined?
     if (detail::Registries::instance.types.isDefined<T>())
     {
-      Data_Type<T> result = Data_Type<T>();
+      Data_Type<T> dataType;
 
       // If this redefinition is a different name then create a new constant
-      if (result.name() != name)
+      if (dataType.base_name() != name)
       {
-        detail::protect(rb_define_const, parent, name.c_str(), result.klass());
+        detail::protect(rb_define_const, parent, name.c_str(), dataType.klass());
       }
 
       return true;

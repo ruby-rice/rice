@@ -1609,13 +1609,18 @@ namespace Rice::detail
   class From_Ruby<void*>
   {
   public:
-    From_Ruby() = default;
+    From_Ruby()
+    {
+      detail::Type<PointerView<void>>::verify();
+    };
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
+      detail::Type<PointerView<void>>::verify();
+
       if (this->arg_->isOwner())
       {
-        throw Exception(rb_eTypeError, "Cannot transfer ownership of string data to C++ void pointer");
+        throw Exception(rb_eTypeError, "Cannot transfer ownership of C++ void pointer");
       }
     }
 
@@ -1667,7 +1672,19 @@ namespace Rice::detail
           // Since C++ is not telling us type information, we need to extract it
           // from the Ruby object.
           const rb_data_type_t* rb_type = RTYPEDDATA_TYPE(value);
-          return detail::unwrap<void>(value, (rb_data_type_t*)rb_type, this->arg_ && this->arg_->isOwner());
+
+          // Is this a PointerView? It could also be a pointer to any other object being passed to 
+          // a C++ paramter that takes void*
+          if (rb_type == Data_Type<PointerView<void>>::ruby_data_type())
+          {
+            Data_Object<PointerView<void>> pointerView(value);
+            return pointerView->pointer;
+          }
+          else 
+          {
+            return detail::unwrap<void>(value, (rb_data_type_t*)rb_type, this->arg_ && this->arg_->isOwner());
+          }
+
           break;
         }
         case RUBY_T_STRING:

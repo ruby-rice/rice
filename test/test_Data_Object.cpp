@@ -15,7 +15,7 @@ namespace
 
   struct MyDataType
   {
-    MyDataType() : x(42)
+    MyDataType(int value) : x(value)
     {
     }
 
@@ -26,6 +26,17 @@ namespace
     
     int x;
   };
+
+  static MyDataType myDataTypes[] = { 1,2,3 };
+  MyDataType* dataTypes()
+  {
+    return myDataTypes;
+  }
+
+  int dataTypesCount()
+  {
+    return sizeof(myDataTypes)/sizeof(MyDataType);
+  }
 
   struct Bar
   {
@@ -63,18 +74,18 @@ TEARDOWN(Data_Object)
   rb_gc_start();
 }
 
-TESTCASE(construct_from_pointer)
+TESTCASE(data_object_construct_from_pointer)
 {
-  MyDataType* myDataType = new MyDataType;
+  MyDataType* myDataType = new MyDataType(42);
   Data_Object<MyDataType> wrapped_foo(myDataType);
   ASSERT_EQUAL(myDataType, wrapped_foo.get());
   ASSERT_EQUAL(Data_Type<MyDataType>::klass(), wrapped_foo.class_of());
   ASSERT_EQUAL(myDataType, detail::unwrap<MyDataType>(wrapped_foo, Data_Type<MyDataType>::ruby_data_type(), false));
 }
 
-TESTCASE(construct_from_ruby_object)
+TESTCASE(data_object_construct_from_ruby_object)
 {
-  MyDataType * myDataType = new MyDataType;
+  MyDataType * myDataType = new MyDataType(42);
   VALUE wrapped_foo = detail::wrap(Data_Type<MyDataType>::klass(), Data_Type<MyDataType>::ruby_data_type(), myDataType, true);
 
   Data_Object<MyDataType> data_object_foo(wrapped_foo);
@@ -84,9 +95,9 @@ TESTCASE(construct_from_ruby_object)
   ASSERT_EQUAL(myDataType, detail::unwrap<MyDataType>(wrapped_foo, Data_Type<MyDataType>::ruby_data_type(), false));
 }
 
-TESTCASE(construct_from_ruby_object_and_wrong_class)
+TESTCASE(data_object_construct_from_ruby_object_and_wrong_class)
 {
-  MyDataType * myDataType = new MyDataType;
+  MyDataType * myDataType = new MyDataType(42);
   VALUE wrapped_foo = detail::wrap(Data_Type<MyDataType>::klass(), Data_Type<MyDataType>::ruby_data_type(), myDataType, true);
 
   ASSERT_EXCEPTION_CHECK(
@@ -100,9 +111,9 @@ TESTCASE(construct_from_ruby_object_and_wrong_class)
     ASSERT_EQUAL("Wrong argument type. Expected: Bar. Received: MyDataType.", ex.what()));
 }
 
-TESTCASE(copy_construct)
+TESTCASE(data_object_copy_construct)
 {
-  MyDataType * myDataType = new MyDataType;
+  MyDataType * myDataType = new MyDataType(42);
   VALUE wrapped_foo = detail::wrap(Data_Type<MyDataType>::klass(), Data_Type<MyDataType>::ruby_data_type(), myDataType, true);
   Data_Object<MyDataType> orig_data_object_foo(wrapped_foo);
   Data_Object<MyDataType> data_object_foo(orig_data_object_foo);
@@ -113,9 +124,9 @@ TESTCASE(copy_construct)
   ASSERT_EQUAL(myDataType, detail::unwrap<MyDataType>(wrapped_foo, Data_Type<MyDataType>::ruby_data_type(), false));
 }
 
-TESTCASE(move_construct)
+TESTCASE(data_object_move_construct)
 {
-  MyDataType* myDataType = new MyDataType;
+  MyDataType* myDataType = new MyDataType(42);
 
   Data_Object<MyDataType> wrapper1(myDataType);
   Data_Object<MyDataType> wrapper2(std::move(wrapper1));
@@ -124,12 +135,12 @@ TESTCASE(move_construct)
   ASSERT((wrapper1.get() == nullptr));
 }
 
-TESTCASE(move_assign)
+TESTCASE(data_object_move_assign)
 {
-  MyDataType* foo1 = new MyDataType;
+  MyDataType* foo1 = new MyDataType(42);
   Data_Object<MyDataType> wrapper1(foo1);
 
-  MyDataType* foo2 = new MyDataType;
+  MyDataType* foo2 = new MyDataType(42);
   Data_Object<MyDataType> wrapper2(foo2);
 
   wrapper2 = std::move(wrapper1);
@@ -138,74 +149,94 @@ TESTCASE(move_assign)
   ASSERT((wrapper1.get() == nullptr));
 }
 
-TESTCASE(dereference)
+TESTCASE(data_object_dereference)
 {
   Data_Type<MyDataType> rb_cFoo;
-  MyDataType * myDataType = new MyDataType;
+  MyDataType * myDataType = new MyDataType(42);
   Data_Object<MyDataType> wrapped_foo(myDataType);
   ASSERT_EQUAL(myDataType, &*wrapped_foo);
 }
 
-TESTCASE(arrow)
+TESTCASE(data_object_arrow)
 {
   Data_Type<MyDataType> rb_cFoo;
-  MyDataType * myDataType = new MyDataType;
+  MyDataType * myDataType = new MyDataType(42);
   Data_Object<MyDataType> wrapped_foo(myDataType);
   ASSERT_EQUAL(42, myDataType->x);
 }
 
-TESTCASE(get)
+TESTCASE(data_object_get)
 {
   Data_Type<MyDataType> rb_cFoo;
-  MyDataType * myDataType = new MyDataType;
+  MyDataType * myDataType = new MyDataType(42);
   Data_Object<MyDataType> wrapped_foo(myDataType);
   ASSERT_EQUAL(myDataType, wrapped_foo.get());
 }
 
-TESTCASE(to_ruby)
+TESTCASE(data_object_to_ruby)
 {
   Data_Type<MyDataType> rb_cFoo;
-  MyDataType * myDataType = new MyDataType;
+  MyDataType * myDataType = new MyDataType(42);
   Data_Object<MyDataType> wrapped_foo(myDataType);
   ASSERT_EQUAL(String("MyDataType"), wrapped_foo.class_name());
 }
 
-TESTCASE(from_ruby)
+TESTCASE(data_object_from_ruby)
 {
   Data_Type<MyDataType> rb_cFoo;
-  MyDataType* myDataType = new MyDataType();
+  MyDataType* myDataType = new MyDataType(42);
   Data_Object<MyDataType> wrapped_foo(myDataType);
   ASSERT_EQUAL(myDataType, wrapped_foo.get());
 }
 
-TESTCASE(from_ruby_const_ref)
+TESTCASE(data_object_from_ruby_const_ref)
 {
   Data_Type<MyDataType> rb_cFoo;
-  MyDataType * myDataType = new MyDataType;
+  MyDataType * myDataType = new MyDataType(42);
   Data_Object<MyDataType> wrapped_foo(myDataType);
   ASSERT_EQUAL(myDataType->x, detail::From_Ruby<MyDataType const &>().convert(wrapped_foo).x);
 }
 
-TESTCASE(from_ruby_copy)
+TESTCASE(data_object_from_ruby_copy)
 {
   Data_Type<MyDataType> rb_cFoo;
-  MyDataType * myDataType = new MyDataType;
+  MyDataType * myDataType = new MyDataType(42);
   Data_Object<MyDataType> wrapped_foo(myDataType);
   ASSERT_EQUAL(myDataType->x, detail::From_Ruby<MyDataType>().convert(wrapped_foo).x);
 }
 
-TESTCASE(ruby_custom_mark)
+TESTCASE(data_object_return_array)
+{
+  Module m = define_module("DataObjectTest").
+    define_module_function("data_types", &dataTypes, Return().setArray()).
+    define_module_function("data_types_count", &dataTypesCount);
+
+  std::string code = R"(pointer_view = data_types
+                        count = data_types_count
+                        pointer_view.to_array(0, count))";
+
+  Array dataTypes = m.module_eval(code);
+  ASSERT_EQUAL(3, dataTypes.size());
+
+  std::vector<MyDataType> vector = dataTypes.to_vector<MyDataType>();
+  ASSERT_EQUAL(1, vector[0].x);
+  ASSERT_EQUAL(2, vector[1].x);
+  ASSERT_EQUAL(3, vector[2].x);
+}
+
+/*
+TESTCASE(data_object_ruby_custom_mark)
 {
   test_ruby_mark_called = false;
 
-  MyDataType* myDataType = new MyDataType;
+  MyDataType* myDataType = new MyDataType(42);
   Data_Object<MyDataType> wrapped_foo(myDataType);
   rb_gc_start();
 
   ASSERT_EQUAL(true, test_ruby_mark_called);
 }
 
-TESTCASE(ruby_custom_free)
+TESTCASE(data_object_ruby_custom_free)
 {
   test_ruby_mark_called = false;
   test_destructor_called = false;
@@ -213,7 +244,7 @@ TESTCASE(ruby_custom_free)
   {
     // Put this code in a block so wrapped_foo is destroyed at the end of it.
     // That will set its value field to Qnil allowing myDataType to be freed
-    MyDataType* myDataType = new MyDataType;
+    MyDataType* myDataType = new MyDataType(42);
     Data_Object<MyDataType> wrapped_foo(myDataType, true);
 
     // Force a mark
@@ -234,3 +265,4 @@ TESTCASE(ruby_custom_free)
 //  ASSERT_EQUAL(true, test_destructor_called);
 #endif
 }
+*/

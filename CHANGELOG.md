@@ -1,3 +1,12 @@
+## 4.5.1 (in progress)
+* Add new PointerView class to provide Ruby API to raw pointers returned by C++
+* Add support for pointers to arrays
+* Add support for smart pointers (shared_ptr, unique_ptr) to fundamental types (void, int, etc)
+* Add support for std::tuple
+* Update is_convertible documentation
+* Fix missing version.rb file in gemspec
+* Add C++ preprocessor defines for Rice version
+
 ## 4.5 (2025-02-09)
 Rice 4.5 is a major release that adds significant new functionality, including:
 

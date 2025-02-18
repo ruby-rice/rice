@@ -77,7 +77,7 @@ namespace
         std::to_string(f) + ", " + s + ", " + std::string(c) + ")";
     }
   };
-} // namespace
+}
 
 TESTCASE(methods_with_member_pointers)
 {
@@ -558,8 +558,6 @@ namespace
 
 TESTCASE(pointers)
 {
-  Class voidClass = define_class<void>("Void");
-
   Class helperClass = define_class<Helper>("Helper")
     .define_constructor(Constructor<Helper, int>())
     .define_method("value", &Helper::value);
@@ -593,9 +591,9 @@ TESTCASE(pointers)
   value = result.call("value");
   ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(value));
 
-   helper = object.call("return_void_helper");
-   result = object.call("check_void_helper", helper);
-   ASSERT_EQUAL(Qtrue, result.value());
+  helper = object.call("return_void_helper");
+  result = object.call("check_void_helper", helper);
+  ASSERT_EQUAL(Qtrue, result.value());
 }
 
 namespace
@@ -759,49 +757,49 @@ TESTCASE(not_defined)
 
 namespace
 {
-  class Range
+  class RangeCustom
   {
   public:
-    Range(int x, int y) : x(x), y(y)
+    RangeCustom(int x, int y) : x(x), y(y)
     {
     }
 
-    Range(const Range& other) = default;
+    RangeCustom(const RangeCustom& other) = default;
 
     int x;
     int y;
   };
 
-  int sumRangesArray(int size, Range ranges[])
+  int sumRangesArray(int size, RangeCustom ranges[])
   {
     int result = 0;
     for (int i = 0; i < size; i++)
     {
-      const Range& range = ranges[i];
+      const RangeCustom& range = ranges[i];
       result += range.x + range.y;
     }
 
     return result;
   }
 
-  int sumRanges(int size, const Range* ranges)
+  int sumRanges(int size, const RangeCustom* ranges)
   {
     int result = 0;
     for (int i = 0; i < size; i++)
     {
-      const Range& range = ranges[i];
+      const RangeCustom& range = ranges[i];
       result += range.x + range.y;
     }
 
     return result;
   }
 
-  int sumRanges(int size, const Range** ranges)
+  int sumRanges(int size, const RangeCustom** ranges)
   {
     int result = 0;
     for (int i = 0; i < size; i++)
     {
-      const Range* range = ranges[i];
+      const RangeCustom* range = ranges[i];
       result += range->x + range->y;
     }
 
@@ -811,18 +809,18 @@ namespace
 
 TESTCASE(array_of_ranges)
 {
-  Module m = define_module("ArrayOfRanges");
+  Module m = define_module("CustomRanges");
 
-  Class c = define_class_under<Range>(m, "Range")
-    .define_constructor(Constructor<Range, int, int>())
-    .define_attr("x", &Range::x)
-    .define_attr("y", &Range::y);
+  Class c = define_class_under<RangeCustom>(m, "RangeCustom")
+    .define_constructor(Constructor<RangeCustom, int, int>())
+    .define_attr("x", &RangeCustom::x)
+    .define_attr("y", &RangeCustom::y);
 
   m.define_module_function("sum_ranges", sumRangesArray);
 
-  std::string code = R"(range1 = Range.new(1, 2)
-                        range2 = Range.new(3, 4)
-                        range3 = Range.new(5, 6)
+  std::string code = R"(range1 = RangeCustom.new(1, 2)
+                        range2 = RangeCustom.new(3, 4)
+                        range3 = RangeCustom.new(5, 6)
 
                         ranges = [range1, range2, range3]
 
@@ -834,18 +832,18 @@ TESTCASE(array_of_ranges)
 
 TESTCASE(pointer_of_ranges)
 {
-  Module m = define_module("PointerOfRanges");
+  Module m = define_module("CustomRanges");
 
-  Class c = define_class_under<Range>(m, "Range")
-    .define_constructor(Constructor<Range, int, int>())
-    .define_attr("x", &Range::x)
-    .define_attr("y", &Range::y);
+  Class c = define_class_under<RangeCustom>(m, "RangeCustom")
+    .define_constructor(Constructor<RangeCustom, int, int>())
+    .define_attr("x", &RangeCustom::x)
+    .define_attr("y", &RangeCustom::y);
 
-  m.define_module_function<int(*)(int, const Range*)>("sum_ranges", sumRanges);
+  m.define_module_function<int(*)(int, const RangeCustom*)>("sum_ranges", sumRanges);
 
-  std::string code = R"(range1 = Range.new(1, 2)
-                        range2 = Range.new(3, 4)
-                        range3 = Range.new(5, 6)
+  std::string code = R"(range1 = RangeCustom.new(1, 2)
+                        range2 = RangeCustom.new(3, 4)
+                        range3 = RangeCustom.new(5, 6)
 
                         ranges = [range1, range2, range3]
 
@@ -857,18 +855,18 @@ TESTCASE(pointer_of_ranges)
 
 TESTCASE(pointer_of_pointer_ranges)
 {
-  Module m = define_module("PointerOfPointersOfRanges");
+  Module m = define_module("CustomRanges");
 
-  Class c = define_class_under<Range>(m, "Range")
-    .define_constructor(Constructor<Range, int, int>())
-    .define_attr("x", &Range::x)
-    .define_attr("y", &Range::y);
+  Class c = define_class_under<RangeCustom>(m, "RangeCustom")
+    .define_constructor(Constructor<RangeCustom, int, int>())
+    .define_attr("x", &RangeCustom::x)
+    .define_attr("y", &RangeCustom::y);
 
-  m.define_module_function<int(*)(int, const Range**)>("sum_ranges", sumRanges);
+  m.define_module_function<int(*)(int, const RangeCustom**)>("sum_ranges", sumRanges);
 
-  std::string code = R"(range1 = Range.new(1, 2)
-                        range2 = Range.new(3, 4)
-                        range3 = Range.new(5, 6)
+  std::string code = R"(range1 = RangeCustom.new(1, 2)
+                        range2 = RangeCustom.new(3, 4)
+                        range3 = RangeCustom.new(5, 6)
 
                         ranges = [range1, range2, range3]
 

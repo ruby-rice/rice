@@ -8,11 +8,6 @@ namespace Rice::detail
   template <typename T>
   class RubyType
   {
-  public:
-    static std::set<ruby_value_type> types();
-    static std::set<ruby_value_type> convertibleFrom();
-    static T(*converter)(VALUE);
-    static std::string packTemplate;
   };
 }
 

@@ -59,6 +59,10 @@ namespace Rice
     //! Return a copy of the string as an std::string.
     std::string str() const;
 
+    //! Return an array from a string by unpacking it
+    template<typename T>
+    Array unpack() const;
+
     //! Create an Identifier from the String.
     /*! Calls rb_intern to create an ID.
      *  \return an Identifier holding the ID returned from rb_intern.

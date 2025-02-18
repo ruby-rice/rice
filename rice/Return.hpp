@@ -13,7 +13,10 @@ namespace Rice
     Return& setValue() override;
     Return& setOpaque() override;
     Return& takeOwnership() override;
-
+    Return& setArray();
+    bool isArray();
+  private:
+    bool isArray_ = false;
   };
 } // Rice
 
