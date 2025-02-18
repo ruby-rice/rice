@@ -167,7 +167,12 @@ namespace Rice::detail
     auto stdClangRegex = std::regex("std::__[^:]+::");
     base = std::regex_replace(base, stdClangRegex, "");
       
-    // Remove std::
+    // Remove leading namespaces. This will not remove namespaces
+    // embedded in template types like std::vector<mynamespace::foo>
+    auto leadingNamespacesRegex = std::regex("^[^<]*::");
+    base = std::regex_replace(base, leadingNamespacesRegex, "");
+
+    // Remove std:: these could be embedded in template types
     auto stdRegex = std::regex("std::");
     base = std::regex_replace(base, stdRegex, "");
 
