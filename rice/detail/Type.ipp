@@ -30,7 +30,7 @@ namespace Rice::detail
   }
 
   template<typename Tuple_T, size_t...Is>
-  void verifyTypesImpl()
+  void verifyTypesImpl(std::index_sequence<Is...> indexes)
   {
     (verifyType<typename std::tuple_element<Is, Tuple_T>::type>(), ...);
   }
@@ -38,10 +38,8 @@ namespace Rice::detail
   template<typename Tuple_T>
   void verifyTypes()
   {
-    if constexpr (std::tuple_size<Tuple_T>::value > 0)
-    {
-      verifyTypesImpl<Tuple_T, std::tuple_size<Tuple_T>::value - 1>();
-    }
+    std::make_index_sequence<std::tuple_size_v<Tuple_T>> indexes;
+    verifyTypesImpl<Tuple_T>(indexes);
   }
 
   inline std::string demangle(char const* mangled_name)

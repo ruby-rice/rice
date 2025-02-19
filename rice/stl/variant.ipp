@@ -1,5 +1,4 @@
 #include <variant>
-#include "../detail/TupleIterator.hpp"
 
 namespace Rice::detail
 {
