@@ -21,9 +21,6 @@
 #include "traits/method_traits.hpp"
 #include "traits/attribute_traits.hpp"
 
-// Helpers
-#include "detail/TupleIterator.hpp"
-
 // Code for C++ to call Ruby
 #include "Exception.hpp"
 #include "JumpException.hpp"
