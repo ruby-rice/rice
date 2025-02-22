@@ -20,7 +20,7 @@ Thus Rice provides access to creating new C++ exception instances:
 
 .. code-block:: cpp
 
-   exception = Rice::Std::Exception.new
+   exception = Std::Exception.new
 
 Note currently only supports creating instances of ``std::exception`` and none of its subtypes.
 

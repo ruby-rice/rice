@@ -97,7 +97,7 @@ TESTCASE(TypeIndexCreate)
 
   std::string code = R"(int = 5
                         type_info = get_type_info(5)
-                        Rice::Std::TypeIndex.new(type_info))";
+                        Std::TypeIndex.new(type_info))";
 
 #ifdef _MSC_VER
   const char* expected = "int";
