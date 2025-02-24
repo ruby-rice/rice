@@ -6,9 +6,17 @@ C++ supports a lot of operators! These include operators that you likely think o
 
 Both C++ and Ruby support operator overriding, although C++ supports more of them. The sections below describe how to map C++ operators to Ruby operators.
 
+C++ operators that are not supported by Ruby can be mapped to Ruby methods instead. By convention these methods are named based on the C++ operator name. Thus the C++ assign operator, `=`, is mapped to a Ruby method called assign.
+
+.. code-block:: ruby
+
+  my_object1 = SomeClass.new
+  my_object2 = SomeClass.new
+  my_object1.assign(my_object2)
+
 Arithmetic Operators
 --------------------
-Most overridden C++ arithmetic operators can be overridden in Ruby.
+C++ and Ruby support overriding the same arithmetic operators.
 
 +---------+-------------------+
 |   C++   |       Ruby        |
@@ -23,30 +31,26 @@ Most overridden C++ arithmetic operators can be overridden in Ruby.
 +---------+-------------------+
 |    %    |         %         |
 +---------+-------------------+
-|   ++    |  Not overridable  |
-+---------+-------------------+
-|   --    |  Not overridable  |
-+---------+-------------------+
 
 Assignment Operators
 --------------------
-Ruby does not support overriding assignment operators.
+C++ supports overriding assignment operators while Ruby does not. Thus these operators must be mapped to Ruby methods.
 
-+---------+-------------------+
-| C++     |     Ruby          |
-+=========+===================+
-|  =      | assign            |
-+---------+-------------------+
-| +=      | Not overridable   |
-+---------+-------------------+
-| -=      | Not overridable   |
-+---------+-------------------+
-| \*=     | Not overridable   |
-+---------+-------------------+
-| /=      | Not overridable   |
-+---------+-------------------+
-| %=      | Not overridable   |
-+---------+-------------------+
++---------+------------------+------------------+
+| C++     |  Ruby            |   Ruby Method    |
++=========+==================+==================+
+|  =      | Not overridable  |  assign          |
++---------+------------------+------------------+
+|  +=     | Not overridable  |  assign_plus     |
++---------+------------------+------------------+
+|  -=     | Not overridable  |  assign_minus    |
++---------+------------------+------------------+
+|  *=     | Not overridable  |  assign_multiply |
++---------+------------------+------------------+
+|  /=     | Not overridable  |  assign_divide   |
++---------+------------------+------------------+
+|  %=     | Not overridable  |  assign_plus     |
++---------+------------------+------------------+
 
 Bitwise Operators
 -----------------
@@ -90,35 +94,53 @@ Logical Operators
 -----------------
 Ruby allows the ``!`` operator to be overridden but not ``&&`` or ``||``.
 
-+---------+-------------------+
-| C++     |        Ruby       |
-+=========+===================+
-|  &&     |  Not overridable  |
-+---------+-------------------+
-| \|\|    |  Not overridable  |
-+---------+-------------------+
-|  !      |        !          |
-+---------+-------------------+
++---------+------------------+------------- +
+| C++     |        Ruby      | Ruby Method  |
++=========+==================+==============+
+|  &&     |  Not overridable | logical_and  |
++---------+------------------+------------- +
+| \|\|    |  Not overridable | logical_or   |
++---------+------------------+------------- +
+|  !      |        !         |              |
++---------+------------------+------------- +
+
+Increment / Decrement Operators
+-------------------------------
+C++ supports increment and decrement operators while Ruby does not. Thus these operators must be mapped to Ruby methods.
+
++---------+------------------+----------------+
+| C++     |        Ruby      | Ruby Method    |
++=========+==================+================+
+|  ++a    |  Not overridable | increment_pre  |
++---------+------------------+----------------+
+|  a++    |  Not overridable | increment      |
++---------+------------------+----------------+
+| --a     |  Not overridable | decrement_pre  |
++---------+------------------+----------------+
+|  a--    |  Not overridable | decrement      |
++---------+------------------+----------------+
 
 Other Operators
 -------------------
-C++ and Ruby support overriding an additional set of operators.
+C++ and Ruby support overriding an additional set of operators. The comma operator is not overridable in Ruby nor does it make sense to map it to a Ruby method.
 
-+---------+----------------------+
-| C++     |     Ruby             |
-+=========+======================+
-| []      | []                   |
-+         +----------------------+
-|         | []= (if reference)   |
-+---------+----------------------+
-| ()      |   call               |
-+---------+----------------------+
-|  ,      |  Not overridable     |
-+---------+----------------------+
-| <<      |   <<                 |
-+---------+----------------------+
-| >>      |   >>                 |
-+---------+----------------------+
++---------+----------------------+--------------+
+| C++     |     Ruby             |  Ruby Method |
++=========+======================+==============+
+| []      | []                   |              |
++         +----------------------+--------------+
+|         | []= (if reference)   |              |
++---------+----------------------+--------------+
+| ()      | Not Overridable      |  call        |
++---------+----------------------+--------------+
+| *       | Not Overridable      |  dereference |
++---------+----------------------+--------------+
+| <<      |   <<                 |              |
++---------+----------------------+--------------+
+| >>      |   >>                 |              |
++---------+----------------------+--------------+
+|  ,      |  Not overridable     |              |
++---------+----------------------+--------------+
 
 If a C++ class defines an ``[]`` operator that returns a reference, then in it should be mapped to two Ruby operators: ``[]`` and ``[]=``.
 
