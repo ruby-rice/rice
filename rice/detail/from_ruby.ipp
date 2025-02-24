@@ -132,6 +132,73 @@ namespace Rice::detail
     }
   };
 
+  template<typename T>
+  class FromRubyFundamental<T**>
+  {
+  public:
+    using RubyType_T = RubyType<T>;
+
+    static Convertible is_convertible(VALUE value)
+    {
+      ruby_value_type valueType = rb_type(value);
+      
+      if (valueType == RUBY_T_ARRAY)
+      {
+        std::vector<detail::Convertible> convertibles;
+        Array array(value);
+        std::transform(array.begin(), array.end(), std::back_inserter(convertibles),
+          [](Object item)
+          {
+            return FromRubyFundamental<T*>::is_convertible(item.value());
+          });
+
+        auto iter = std::min_element(convertibles.begin(), convertibles.end());
+        return *iter;
+      }
+      else
+      {
+        return Convertible::None;
+      }
+    }
+
+    static std::tuple<std::unique_ptr<T*[]>, std::vector<std::unique_ptr<T[]>>> convert(VALUE value)
+    {
+      std::unique_ptr<T*[]> outer;
+      std::vector<std::unique_ptr<T[]>> inner;
+      
+      ruby_value_type valueType = rb_type(value);
+      switch (valueType)
+      {
+        case RUBY_T_NIL:
+        {
+          return { std::move(outer), std::move(inner) };
+          break;
+        }
+        case RUBY_T_ARRAY:
+        {
+          Array array(value);
+          outer = std::make_unique<T*[]>(array.size());
+
+          for (int i = 0; i < array.size(); i++)
+          {
+            std::unique_ptr<T[]> item = FromRubyFundamental<T*>::convert(array[i].value());
+            inner.push_back(std::move(item));
+            outer[i] = inner[i].get();
+          }
+
+          return { std::move(outer), std::move(inner) };
+          break;
+        }
+        default:
+        {
+          std::string typeName = detail::typeName(typeid(T));
+          throw Exception(rb_eTypeError, "wrong argument type %s - must be an Array of Arrays (expected % s*)",
+            detail::protect(rb_obj_classname, value), typeName.c_str());
+        }
+      }
+    }
+  };
+
   // ===========  bool  ============
   template<>
   class From_Ruby<bool>
@@ -376,6 +443,51 @@ namespace Rice::detail
     std::unique_ptr<char[]> converted_;
   };
 
+  template<>
+  class From_Ruby<char**>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isOwner())
+      {
+        for (std::unique_ptr<char[]>& ptr : this->inner_)
+        {
+          ptr.release();
+        }
+        this->outer_.release();
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<char**>::is_convertible(value);
+    }
+
+    char** convert(VALUE value)
+    {
+      auto arrays = FromRubyFundamental<char**>::convert(value);
+      this->outer_ = std::move(std::get<0>(arrays));
+      this->inner_ = std::move(std::get<1>(arrays));
+      return this->outer_.get();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::unique_ptr<char* []> outer_;
+    std::vector<std::unique_ptr<char[]>> inner_;
+  };
+
   // ===========  unsigned char  ============
   template<>
   class From_Ruby<unsigned char>
@@ -479,6 +591,51 @@ namespace Rice::detail
     std::unique_ptr<unsigned char[]> converted_;
   };
 
+  template<>
+  class From_Ruby<unsigned char**>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isOwner())
+      {
+        for (std::unique_ptr<unsigned char[]>& ptr : this->inner_)
+        {
+          ptr.release();
+        }
+        this->outer_.release();
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned char**>::is_convertible(value);
+    }
+
+    unsigned char** convert(VALUE value)
+    {
+      auto arrays = FromRubyFundamental<unsigned char**>::convert(value);
+      this->outer_ = std::move(std::get<0>(arrays));
+      this->inner_ = std::move(std::get<1>(arrays));
+      return this->outer_.get();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::unique_ptr<unsigned char* []> outer_;
+    std::vector<std::unique_ptr<unsigned char[]>> inner_;
+  };
+
   // ===========  signed char  ============
   template<>
   class From_Ruby<signed char>
@@ -547,6 +704,51 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     std::unique_ptr<signed char[]> converted_;
+  };
+
+  template<>
+  class From_Ruby<signed char**>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isOwner())
+      {
+        for (std::unique_ptr<signed char[]>& ptr : this->inner_)
+        {
+          ptr.release();
+        }
+        this->outer_.release();
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<signed char**>::is_convertible(value);
+    }
+
+    signed char** convert(VALUE value)
+    {
+      auto arrays = FromRubyFundamental<signed char**>::convert(value);
+      this->outer_ = std::move(std::get<0>(arrays));
+      this->inner_ = std::move(std::get<1>(arrays));
+      return this->outer_.get();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::unique_ptr<signed char* []> outer_;
+    std::vector<std::unique_ptr<signed char[]>> inner_;
   };
 
   // ===========  double  ============
@@ -652,6 +854,51 @@ namespace Rice::detail
     std::unique_ptr<double[]> converted_;
   };
 
+  template<>
+  class From_Ruby<double**>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isOwner())
+      {
+        for (std::unique_ptr<double[]>& ptr : this->inner_)
+        {
+          ptr.release();
+        }
+        this->outer_.release();
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<double**>::is_convertible(value);
+    }
+
+    double** convert(VALUE value)
+    {
+      auto arrays = FromRubyFundamental<double**>::convert(value);
+      this->outer_ = std::move(std::get<0>(arrays));
+      this->inner_ = std::move(std::get<1>(arrays));
+      return this->outer_.get();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::unique_ptr<double* []> outer_;
+    std::vector<std::unique_ptr<double[]>> inner_;
+  };
+
   // ===========  float  ============
   template<>
   class From_Ruby<float>
@@ -753,6 +1000,51 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     std::unique_ptr<float[]> converted_;
+  };
+
+  template<>
+  class From_Ruby<float**>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isOwner())
+      {
+        for (std::unique_ptr<float[]>& ptr : this->inner_)
+        {
+          ptr.release();
+        }
+        this->outer_.release();
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<float**>::is_convertible(value);
+    }
+
+    float** convert(VALUE value)
+    {
+      auto arrays = FromRubyFundamental<float**>::convert(value);
+      this->outer_ = std::move(std::get<0>(arrays));
+      this->inner_ = std::move(std::get<1>(arrays));
+      return this->outer_.get();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::unique_ptr<float*[]> outer_;
+    std::vector<std::unique_ptr<float[]>> inner_;
   };
 
   // ===========  int  ============
@@ -869,6 +1161,51 @@ namespace Rice::detail
     std::unique_ptr<int[]> converted_;
   };
 
+  template<>
+  class From_Ruby<int**>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isOwner())
+      {
+        for (std::unique_ptr<int[]>& ptr : this->inner_)
+        {
+          ptr.release();
+        }
+        this->outer_.release();
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<int**>::is_convertible(value);
+    }
+
+    int** convert(VALUE value)
+    {
+      auto arrays = FromRubyFundamental<int**>::convert(value);
+      this->outer_ = std::move(std::get<0>(arrays));
+      this->inner_ = std::move(std::get<1>(arrays));
+      return this->outer_.get();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::unique_ptr<int* []> outer_;
+    std::vector<std::unique_ptr<int[]>> inner_;
+  };
+
   // ===========  unsigned int  ============
   template<>
   class From_Ruby<unsigned int>
@@ -972,6 +1309,51 @@ namespace Rice::detail
     std::unique_ptr<unsigned int[]> converted_;;
   };
 
+  template<>
+  class From_Ruby<unsigned int**>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isOwner())
+      {
+        for (std::unique_ptr<unsigned int[]>& ptr : this->inner_)
+        {
+          ptr.release();
+        }
+        this->outer_.release();
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned int**>::is_convertible(value);
+    }
+
+    unsigned int** convert(VALUE value)
+    {
+      auto arrays = FromRubyFundamental<unsigned int**>::convert(value);
+      this->outer_ = std::move(std::get<0>(arrays));
+      this->inner_ = std::move(std::get<1>(arrays));
+      return this->outer_.get();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::unique_ptr<unsigned int* []> outer_;
+    std::vector<std::unique_ptr<unsigned int[]>> inner_;
+  };
+
   // ===========  long  ============
   template<>
   class From_Ruby<long>
@@ -1073,6 +1455,51 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     std::unique_ptr<long[]> converted_;
+  };
+
+  template<>
+  class From_Ruby<long**>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isOwner())
+      {
+        for (std::unique_ptr<long[]>& ptr : this->inner_)
+        {
+          ptr.release();
+        }
+        this->outer_.release();
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<long**>::is_convertible(value);
+    }
+
+    long** convert(VALUE value)
+    {
+      auto arrays = FromRubyFundamental<long**>::convert(value);
+      this->outer_ = std::move(std::get<0>(arrays));
+      this->inner_ = std::move(std::get<1>(arrays));
+      return this->outer_.get();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::unique_ptr<long* []> outer_;
+    std::vector<std::unique_ptr<long[]>> inner_;
   };
 
   // ===========  unsigned long  ============
@@ -1180,6 +1607,51 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     std::unique_ptr<unsigned long[]> converted_;
+  };
+
+  template<>
+  class From_Ruby<unsigned long**>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isOwner())
+      {
+        for (std::unique_ptr<unsigned long[]>& ptr : this->inner_)
+        {
+          ptr.release();
+        }
+        this->outer_.release();
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned long**>::is_convertible(value);
+    }
+
+    unsigned long** convert(VALUE value)
+    {
+      auto arrays = FromRubyFundamental<unsigned long**>::convert(value);
+      this->outer_ = std::move(std::get<0>(arrays));
+      this->inner_ = std::move(std::get<1>(arrays));
+      return this->outer_.get();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::unique_ptr<unsigned long* []> outer_;
+    std::vector<std::unique_ptr<unsigned long[]>> inner_;
   };
 
   // ===========  unsigned long long  ============
@@ -1296,7 +1768,52 @@ namespace Rice::detail
     std::unique_ptr<unsigned long long[]> converted_;
   };
 
-// ===========  long long  ============
+  template<>
+  class From_Ruby<unsigned long long**>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isOwner())
+      {
+        for (std::unique_ptr<unsigned long long[]>& ptr : this->inner_)
+        {
+          ptr.release();
+        }
+        this->outer_.release();
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned long long**>::is_convertible(value);
+    }
+
+    unsigned long long** convert(VALUE value)
+    {
+      auto arrays = FromRubyFundamental<unsigned long long**>::convert(value);
+      this->outer_ = std::move(std::get<0>(arrays));
+      this->inner_ = std::move(std::get<1>(arrays));
+      return this->outer_.get();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::unique_ptr<unsigned long long* []> outer_;
+    std::vector<std::unique_ptr<unsigned long long[]>> inner_;
+  };
+  
+  // ===========  long long  ============
   template<>
   class From_Ruby<long long>
   {
@@ -1397,6 +1914,51 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     std::unique_ptr<long long[]> converted_;
+  };
+
+  template<>
+  class From_Ruby<long long**>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isOwner())
+      {
+        for (std::unique_ptr<long long[]>& ptr : this->inner_)
+        {
+          ptr.release();
+        }
+        this->outer_.release();
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<long long**>::is_convertible(value);
+    }
+
+    long long** convert(VALUE value)
+    {
+      auto arrays = FromRubyFundamental<long long**>::convert(value);
+      this->outer_ = std::move(std::get<0>(arrays));
+      this->inner_ = std::move(std::get<1>(arrays));
+      return this->outer_.get();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::unique_ptr<long long* []> outer_;
+    std::vector<std::unique_ptr<long long[]>> inner_;
   };
 
   // ===========  short  ============
@@ -1502,6 +2064,51 @@ namespace Rice::detail
     std::unique_ptr<short[]> converted_;
   };
 
+  template<>
+  class From_Ruby<short**>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isOwner())
+      {
+        for (std::unique_ptr<short[]>& ptr : this->inner_)
+        {
+          ptr.release();
+        }
+        this->outer_.release();
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<short**>::is_convertible(value);
+    }
+
+    short** convert(VALUE value)
+    {
+      auto arrays = FromRubyFundamental<short**>::convert(value);
+      this->outer_ = std::move(std::get<0>(arrays));
+      this->inner_ = std::move(std::get<1>(arrays));
+      return this->outer_.get();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::unique_ptr<short* []> outer_;
+    std::vector<std::unique_ptr<short[]>> inner_;
+  };
+
   // ===========  unsigned short  ============
   template<>
   class From_Ruby<unsigned short>
@@ -1605,6 +2212,52 @@ namespace Rice::detail
     std::unique_ptr<unsigned short[]> converted_;
   };
 
+  template<>
+  class From_Ruby<unsigned short**>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    // Need move constructor and assignment due to std::unique_ptr
+    From_Ruby(From_Ruby&& other) = default;
+    From_Ruby& operator=(From_Ruby&& other) = default;
+
+    ~From_Ruby()
+    {
+      if (this->arg_ && this->arg_->isOwner())
+      {
+        for (std::unique_ptr<unsigned short[]>& ptr : this->inner_)
+        {
+          ptr.release();
+        }
+        this->outer_.release();
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<unsigned short**>::is_convertible(value);
+    }
+
+    unsigned short** convert(VALUE value)
+    {
+      auto arrays = FromRubyFundamental<unsigned short**>::convert(value);
+      this->outer_ = std::move(std::get<0>(arrays));
+      this->inner_ = std::move(std::get<1>(arrays));
+      return this->outer_.get();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::unique_ptr<unsigned short* []> outer_;
+    std::vector<std::unique_ptr<unsigned short[]>> inner_;
+  };
+
+  // ===========  void  ============
   template<>
   class From_Ruby<void*>
   {

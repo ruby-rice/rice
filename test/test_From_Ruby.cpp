@@ -23,7 +23,7 @@ TEARDOWN(FromRuby)
 namespace
 {
   template<typename T>
-  std::string toString(T* buffer, int size)
+  std::string arrayToString(T* buffer, int size)
   {
     std::ostringstream result;
     result << "[";
@@ -44,7 +44,38 @@ namespace
   template<typename T>
   std::string voidToString(void* buffer, int size)
   {
-    return toString<T>((T*)buffer, size/sizeof(T));
+    return arrayToString<T>((T*)buffer, size/sizeof(T));
+  }
+
+  template<typename T>
+  std::string arrayofArraysToString(T** buffer, int outerSize, int innerSize)
+  {
+    std::ostringstream result;
+    result << "[";
+
+    for (int i = 0; i < outerSize; i++)
+    {
+      T* outer = buffer[i];
+
+      result << "[";
+      for (int j = 0; j < innerSize; j++)
+      {
+        T item = outer[j];
+        result << item;
+        if (j < innerSize - 1)
+        {
+          result << ", ";
+        }
+      }
+      result << "]";
+      if (i < outerSize - 1)
+      {
+        result << ", ";
+      }
+    }
+
+    result << "]";
+    return result.str();
   }
 }
 
@@ -257,7 +288,7 @@ TESTCASE(unsigned_char_pointer_array)
 {
   Module m = define_module("Testing");
 
-  m.define_singleton_function("unsigned_char_pointer", &toString<unsigned char>);
+  m.define_singleton_function("unsigned_char_pointer", &arrayToString<unsigned char>);
 
   std::string code = R"(arr = ["A", "B"]
                         unsigned_char_pointer(arr, arr.size))";
@@ -315,7 +346,7 @@ TESTCASE(double)
 TESTCASE(double_pointer_array)
 {
   Module m = define_module("Testing");
-  m.define_singleton_function("double_pointer", &toString<double>);
+  m.define_singleton_function("double_pointer", &arrayToString<double>);
 
   std::string code = R"(arr = [1.1, 2.2, 3.3, 4.4]
                         double_pointer(arr, arr.size))";
@@ -350,7 +381,7 @@ TESTCASE(float_pointer_array)
 {
   Module m = define_module("Testing");
 
-  m.define_singleton_function("float_pointer", &toString<float>);
+  m.define_singleton_function("float_pointer", &arrayToString<float>);
 
   std::string code = R"(arr = [4.3, 3.2, 2.1, 1.1]
                         float_pointer(arr, arr.size))";
@@ -370,6 +401,54 @@ TESTCASE(float_pointer_array)
     m.module_eval(code),
     ASSERT_EQUAL("can't convert String into Float", ex.what())
   );
+}
+
+TESTCASE(float_array_array)
+{
+  Module m = define_module("Testing");
+
+  m.define_singleton_function("array_array_to_string", &arrayofArraysToString<float>);
+
+  std::string code = R"(arr = [[1.1, 2.2], [3.3, 4.4]]
+                        array_array_to_string(arr, arr.size, 2))";
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL("[[1.1, 2.2], [3.3, 4.4]]", detail::From_Ruby<std::string>().convert(result.value()));
+
+  code = R"(arr = [[4, 3], [2.8, 1]]
+            array_array_to_string(arr, arr.size, 2))";
+  result = m.module_eval(code);
+  ASSERT_EQUAL("[[4, 3], [2.8, 1]]", detail::From_Ruby<std::string>().convert(result.value()));
+
+  code = R"(arr = [[4, "bad"], [2, 1]]
+            array_array_to_string(arr, arr.size, 2))";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval(code),
+    ASSERT_EQUAL("can't convert String into Float", ex.what())
+  );
+
+  detail::From_Ruby<float**> fromRuby;
+
+  code = R"(array = [[4, "\x3\x4"], [2, 1]])";
+  Object object = m.instance_eval(code);
+  detail::Convertible convertible = fromRuby.is_convertible(object);
+  ASSERT_EQUAL(detail::Convertible::Exact, convertible);
+
+  code = R"(array = [45])";
+  object = m.instance_eval(code);
+  convertible = fromRuby.is_convertible(object);
+  ASSERT_EQUAL(detail::Convertible::None, convertible);
+
+  code = R"(array = [[45], false])";
+  object = m.instance_eval(code);
+  convertible = fromRuby.is_convertible(object);
+  ASSERT_EQUAL(detail::Convertible::None, convertible);
+
+  code = R"(array = [[45], "\x1\x2"])";
+  object = m.instance_eval(code);
+  convertible = fromRuby.is_convertible(object);
+  ASSERT_EQUAL(detail::Convertible::Exact, convertible);
 }
 
 TESTCASE(int)
@@ -392,7 +471,7 @@ TESTCASE(int)
 TESTCASE(int_pointer_array)
 {
   Module m = define_module("Testing");
-  m.define_singleton_function("int_pointer", &toString<int>);
+  m.define_singleton_function("int_pointer", &arrayToString<int>);
 
   std::string code = R"(arr = [4, 3, 2, 1]
                         int_pointer(arr, arr.size))";
@@ -539,4 +618,3 @@ TESTCASE(void_pointer_array)
   Object result = m.module_eval(code);
   ASSERT_EQUAL("[4, 3, 2, 1]", detail::From_Ruby<std::string>().convert(result.value()));
 }
-
