@@ -44,11 +44,11 @@ Many STL classes are templates, and thus must be instantiated with concrete type
 
 Rice makes it easy to manually create Ruby classes for instantiated STL templates. The way to do this varies per STL type, but follows a simple naming scheme - ``define_pair``, ``define_vector``, etc. Please refer to the documentation for each supported STL type.
 
-Rice can also automatically generate Ruby classes. These Ruby classes are added to the ``Rice::Std`` module. Automatic classes work well in cases where Ruby code is accessing, or modifying, wrapped objects created in C++.
+Rice can also automatically generate Ruby classes. These Ruby classes are added to the ``Std`` module. Automatic classes work well in cases where Ruby code is accessing, or modifying, wrapped objects created in C++.
 
 Sometimes Ruby also needs to create new instances of these classes. With manually defined class names, this is easy to do. With generated class names you need to understand how Rice creates class names.
 
-Starting in version 4.5, Rice makes use of three unicode characters to create class names that "look" like their C++ counterparts. For example, the type ``std::pair<std::string, double>`` becomes ``Rice::Std::Pair≺string≺char≻‚ double≻``.  Or assume there is a vector containing a custom class ``MyNamespace::MyClass``. Then generated name would be ``Rice::Std::Vector≺MyNamespace꞉꞉MyClass≻``.
+Starting in version 4.5, Rice makes use of unicode characters to create class names that "look" like their C++ counterparts. For example, the type ``std::pair<std::string, double>`` becomes ``Std::Pair≺string≺char≻‚ double≻``.  Or assume there is a vector containing a custom class ``MyNamespace::MyClass``. Then generated name would be ``Std::Vector≺MyNamespace꞉꞉MyClass≻``.
 
 The unicode characters are:
 
@@ -63,18 +63,18 @@ The unicode characters are:
 +-------------+-------------+-----------------------------+
 | ,           | U+066C      | Arabic Thousands Separator  |
 +-------------+-------------+-----------------------------+
-|             | U+u00A0     | Non breaking Space          |
+|          | U+u00A0     | Non breaking Space          |
 +-------------+-------------+-----------------------------+
 
 To use this class in Ruby:
 
 .. code-block:: ruby
 
-    pair = Rice::Std::Pair≺string≺char≻‚ double≻.new
+    pair = Std::Pair≺string≺char≻‚ double≻.new
 
 Note manual class names can be defined *after* auto generated class names. Rice only registers one class with Ruby, but it has two constants pointing at it. For example if you call ``define_pair<std::pair<std::string, double>>(StringDoublePair)`` after the pair has been registered, in Ruby you will have two constants pointing to the class:
 
 .. code-block:: ruby
 
-    Rice::Std::Pair≺string≺char≻‚ double≻
+    Std::Pair≺string≺char≻‚ double≻
     Object::StringDoublePair

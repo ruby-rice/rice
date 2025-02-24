@@ -6,6 +6,7 @@
 * Update is_convertible documentation
 * Fix missing version.rb file in gemspec
 * Add C++ preprocessor defines for Rice version
+* Moved auto-generated C++ STL classes (std::vector, std::map, etc) from the module Rice::Std module to just Std
 
 ## 4.5 (2025-02-09)
 Rice 4.5 is a major release that adds significant new functionality, including:

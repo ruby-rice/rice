@@ -149,10 +149,9 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair_auto()
   {
+    Module rb_mStd = define_module("Std");
     std::string name = detail::typeName(typeid(T));
     std::string klassName = detail::makeClassName(name);
-    Module rb_mRice = define_module("Rice");
-    Module rb_mStd = define_module_under(rb_mRice, "Std");
     return define_pair_under<T>(rb_mStd, klassName);
   }
    

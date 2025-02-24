@@ -4,9 +4,7 @@ namespace Rice::stl
 {
   inline Data_Type<std::exception_ptr> define_exception_ptr()
   {
-    Module rb_mRice = define_module("Rice");
-    Module rb_mStd = define_module_under(rb_mRice, "Std");
-
+    Module rb_mStd = define_module("Std");
     return define_class_under<std::exception_ptr>(rb_mStd, "ExceptionPtr");
   }
 }
