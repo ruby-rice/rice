@@ -2257,6 +2257,67 @@ namespace Rice::detail
     std::vector<std::unique_ptr<unsigned short[]>> inner_;
   };
 
+  // ===========  std::nullptr_t  ============
+  template<>
+  class From_Ruby<std::nullptr_t>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+      if (this->arg_->isOwner())
+      {
+        throw Exception(rb_eTypeError, "Cannot transfer ownership of C++ void pointer");
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      if (this->arg_ && this->arg_->isOpaque())
+      {
+        return Convertible::Exact;
+      }
+
+      switch (rb_type(value))
+      {
+        case RUBY_T_NIL:
+        {
+          return Convertible::Exact;
+          break;
+        }
+        default:
+        {
+          return Convertible::None;
+        }
+      }
+    }
+
+    void* convert(VALUE value)
+    {
+      if (this->arg_ && this->arg_->isOpaque())
+      {
+        return (void*)value;
+      }
+
+      switch (rb_type(value))
+      {
+        case RUBY_T_NIL:
+        {
+          return nullptr;
+          break;
+        }
+        default:
+        {
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            detail::protect(rb_obj_classname, value), "nil");
+        }
+      }
+    }
+  private:
+    Arg* arg_ = nullptr;
+  };
+
   // ===========  void  ============
   template<>
   class From_Ruby<void*>
