@@ -152,6 +152,38 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
+    template<>
+    class To_Ruby<int**>
+    {
+    public:
+      To_Ruby()
+      {
+        detail::Type<PointerView<int>>::verify();
+        detail::Type<PointerView<int*>>::verify();
+      };
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+        detail::Type<PointerView<int>>::verify();
+        detail::Type<PointerView<int*>>::verify();
+      }
+
+      VALUE convert(int** buffer)
+      {
+        PointerView<int*> pointerView(buffer);
+        Data_Object<PointerView<int*>> dataObject(pointerView, true);
+        return dataObject.value();
+      }
+
+      VALUE convert(const int** buffer)
+      {
+        return this->convert((int**)buffer);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
     // ===========  unsigned int  ============
     template<>
     class To_Ruby<unsigned int>
@@ -249,6 +281,38 @@ namespace Rice
         Data_Object<PointerView<unsigned int>> dataObject(pointerView, true);
         return dataObject.value();
       }
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<unsigned int**>
+    {
+    public:
+      To_Ruby()
+      {
+        detail::Type<PointerView<unsigned int>>::verify();
+        detail::Type<PointerView<unsigned int*>>::verify();
+      };
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+        detail::Type<PointerView<unsigned int>>::verify();
+        detail::Type<PointerView<unsigned int*>>::verify();
+      }
+
+      VALUE convert(unsigned int** buffer)
+      {
+        PointerView<unsigned int*> pointerView(buffer);
+        Data_Object<PointerView<unsigned int*>> dataObject(pointerView, true);
+        return dataObject.value();
+      }
+
+      VALUE convert(const unsigned int** buffer)
+      {
+        return this->convert((unsigned int**)buffer);
+      }
+
     private:
       Arg* arg_ = nullptr;
     };
@@ -368,6 +432,38 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
+    template<>
+    class To_Ruby<char**>
+    {
+    public:
+      To_Ruby()
+      {
+        detail::Type<PointerView<char>>::verify();
+        detail::Type<PointerView<char*>>::verify();
+      };
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+        detail::Type<PointerView<char>>::verify();
+        detail::Type<PointerView<char*>>::verify();
+      }
+
+      VALUE convert(char** buffer)
+      {
+        PointerView<char*> pointerView(buffer);
+        Data_Object<PointerView<char*>> dataObject(pointerView, true);
+        return dataObject.value();
+      }
+
+      VALUE convert(const char** buffer)
+      {
+        return this->convert((char**)buffer);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
     // ===========  unsigned char  ============
     template<>
     class To_Ruby<unsigned char>
@@ -457,6 +553,38 @@ namespace Rice
         Data_Object<PointerView<unsigned char>> dataObject(pointerView, true);
         return dataObject.value();
       }
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<unsigned char**>
+    {
+    public:
+      To_Ruby()
+      {
+        detail::Type<PointerView<unsigned char>>::verify();
+        detail::Type<PointerView<unsigned char*>>::verify();
+      };
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+        detail::Type<PointerView<unsigned char>>::verify();
+        detail::Type<PointerView<unsigned char*>>::verify();
+      }
+
+      VALUE convert(unsigned char** buffer)
+      {
+        PointerView<unsigned char*> pointerView(buffer);
+        Data_Object<PointerView<unsigned char*>> dataObject(pointerView, true);
+        return dataObject.value();
+      }
+
+      VALUE convert(const unsigned char** buffer)
+      {
+        return this->convert((unsigned char**)buffer);
+      }
+
     private:
       Arg* arg_ = nullptr;
     };
@@ -554,6 +682,38 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
+    template<>
+    class To_Ruby<signed char**>
+    {
+    public:
+      To_Ruby()
+      {
+        detail::Type<PointerView<signed char>>::verify();
+        detail::Type<PointerView<signed char*>>::verify();
+      };
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+        detail::Type<PointerView<signed char>>::verify();
+        detail::Type<PointerView<signed char*>>::verify();
+      }
+
+      VALUE convert(signed char** buffer)
+      {
+        PointerView<signed char*> pointerView(buffer);
+        Data_Object<PointerView<signed char*>> dataObject(pointerView, true);
+        return dataObject.value();
+      }
+
+      VALUE convert(const signed char** buffer)
+      {
+        return this->convert((signed char**)buffer);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
     // ===========  double  ============
     template<>
     class To_Ruby<double>
@@ -638,6 +798,38 @@ namespace Rice
         Data_Object<PointerView<double>> dataObject(pointerView, true);
         return dataObject.value();
       }
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<double**>
+    {
+    public:
+      To_Ruby()
+      {
+        detail::Type<PointerView<double>>::verify();
+        detail::Type<PointerView<double*>>::verify();
+      };
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+        detail::Type<PointerView<double>>::verify();
+        detail::Type<PointerView<double*>>::verify();
+      }
+
+      VALUE convert(double** buffer)
+      {
+        PointerView<double*> pointerView(buffer);
+        Data_Object<PointerView<double*>> dataObject(pointerView, true);
+        return dataObject.value();
+      }
+
+      VALUE convert(const double** buffer)
+      {
+        return this->convert((double**)buffer);
+      }
+
     private:
       Arg* arg_ = nullptr;
     };
@@ -730,6 +922,38 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
+    template<>
+    class To_Ruby<float**>
+    {
+    public:
+      To_Ruby()
+      {
+        detail::Type<PointerView<float>>::verify();
+        detail::Type<PointerView<float*>>::verify();
+      };
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+        detail::Type<PointerView<float>>::verify();
+        detail::Type<PointerView<float*>>::verify();
+      }
+
+      VALUE convert(float** buffer)
+      {
+        PointerView<float*> pointerView(buffer);
+        Data_Object<PointerView<float*>> dataObject(pointerView, true);
+        return dataObject.value();
+      }
+
+      VALUE convert(const float** buffer)
+      {
+        return this->convert((float**)buffer);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
     // ===========  long  ============
     template<>
     class To_Ruby<long>
@@ -814,6 +1038,38 @@ namespace Rice
         Data_Object<PointerView<long>> dataObject(pointerView, true);
         return dataObject.value();
       }
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<long**>
+    {
+    public:
+      To_Ruby()
+      {
+        detail::Type<PointerView<long>>::verify();
+        detail::Type<PointerView<long*>>::verify();
+      };
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+        detail::Type<PointerView<long>>::verify();
+        detail::Type<PointerView<long*>>::verify();
+      }
+
+      VALUE convert(long** buffer)
+      {
+        PointerView<long*> pointerView(buffer);
+        Data_Object<PointerView<long*>> dataObject(pointerView, true);
+        return dataObject.value();
+      }
+
+      VALUE convert(const long** buffer)
+      {
+        return this->convert((long**)buffer);
+      }
+
     private:
       Arg* arg_ = nullptr;
     };
@@ -920,6 +1176,38 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
+    template<>
+    class To_Ruby<unsigned long**>
+    {
+    public:
+      To_Ruby()
+      {
+        detail::Type<PointerView<unsigned long>>::verify();
+        detail::Type<PointerView<unsigned long*>>::verify();
+      };
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+        detail::Type<PointerView<unsigned long>>::verify();
+        detail::Type<PointerView<unsigned long*>>::verify();
+      }
+
+      VALUE convert(unsigned long** buffer)
+      {
+        PointerView<unsigned long*> pointerView(buffer);
+        Data_Object<PointerView<unsigned long*>> dataObject(pointerView, true);
+        return dataObject.value();
+      }
+
+      VALUE convert(const unsigned long** buffer)
+      {
+        return this->convert((unsigned long**)buffer);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
     // ===========  long long  ============
     template<>
     class To_Ruby<long long>
@@ -1004,6 +1292,38 @@ namespace Rice
         Data_Object<PointerView<long long>> dataObject(pointerView, true);
         return dataObject.value();
       }
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<long long**>
+    {
+    public:
+      To_Ruby()
+      {
+        detail::Type<PointerView<long long>>::verify();
+        detail::Type<PointerView<long long*>>::verify();
+      };
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+        detail::Type<PointerView<long long>>::verify();
+        detail::Type<PointerView<long long*>>::verify();
+      }
+
+      VALUE convert(long long** buffer)
+      {
+        PointerView<long long*> pointerView(buffer);
+        Data_Object<PointerView<long long*>> dataObject(pointerView, true);
+        return dataObject.value();
+      }
+
+      VALUE convert(const long long** buffer)
+      {
+        return this->convert((long long**)buffer);
+      }
+
     private:
       Arg* arg_ = nullptr;
     };
@@ -1121,6 +1441,38 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
+    template<>
+    class To_Ruby<unsigned long long**>
+    {
+    public:
+      To_Ruby()
+      {
+        detail::Type<PointerView<unsigned long long>>::verify();
+        detail::Type<PointerView<unsigned long long*>>::verify();
+      };
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+        detail::Type<PointerView<unsigned long long>>::verify();
+        detail::Type<PointerView<unsigned long long*>>::verify();
+      }
+
+      VALUE convert(unsigned long long** buffer)
+      {
+        PointerView<unsigned long long*> pointerView(buffer);
+        Data_Object<PointerView<unsigned long long*>> dataObject(pointerView, true);
+        return dataObject.value();
+      }
+
+      VALUE convert(const unsigned long long** buffer)
+      {
+        return this->convert((unsigned long long**)buffer);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
     // ===========  short  ============
     template<>
     class To_Ruby<short>
@@ -1217,6 +1569,38 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
+    template<>
+    class To_Ruby<short**>
+    {
+    public:
+      To_Ruby()
+      {
+        detail::Type<PointerView<short>>::verify();
+        detail::Type<PointerView<short*>>::verify();
+      };
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+        detail::Type<PointerView<short>>::verify();
+        detail::Type<PointerView<short*>>::verify();
+      }
+
+      VALUE convert(short** buffer)
+      {
+        PointerView<short*> pointerView(buffer);
+        Data_Object<PointerView<short*>> dataObject(pointerView, true);
+        return dataObject.value();
+      }
+
+      VALUE convert(const short** buffer)
+      {
+        return this->convert((short**)buffer);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
     // ===========  unsigned short  ============
     template<>
     class To_Ruby<unsigned short>
@@ -1309,6 +1693,38 @@ namespace Rice
         Data_Object<PointerView<unsigned short>> dataObject(pointerView, true);
         return dataObject.value();
       }
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<unsigned short**>
+    {
+    public:
+      To_Ruby()
+      {
+        detail::Type<PointerView<unsigned short>>::verify();
+        detail::Type<PointerView<unsigned short*>>::verify();
+      };
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+        detail::Type<PointerView<unsigned short>>::verify();
+        detail::Type<PointerView<unsigned short*>>::verify();
+      }
+
+      VALUE convert(unsigned short** buffer)
+      {
+        PointerView<unsigned short*> pointerView(buffer);
+        Data_Object<PointerView<unsigned short*>> dataObject(pointerView, true);
+        return dataObject.value();
+      }
+
+      VALUE convert(const unsigned short** buffer)
+      {
+        return this->convert((unsigned short**)buffer);
+      }
+
     private:
       Arg* arg_ = nullptr;
     };

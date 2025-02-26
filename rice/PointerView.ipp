@@ -52,8 +52,10 @@ namespace Rice
     }
     else
     {
+      // Is this a pointer to a pointer, so T**?
+      constexpr bool isPointerToPointer = std::is_pointer_v<T>;
+
       Array result;
-      detail::To_Ruby<T&> toRuby;
 
       T* begin = this->pointer + offset;
       T* end = this->pointer + offset + count;
@@ -61,7 +63,16 @@ namespace Rice
       for (T* ptr = begin; ptr < end; ptr++)
       {
         T& object = *ptr;
-        result.push(object);
+
+        if constexpr (isPointerToPointer)
+        {
+          PointerView<std::remove_pointer_t<T>> pointerView(object);
+          result.push(pointerView);
+        }
+        else
+        {
+          result.push(object);
+        }
       }
       return result;
     }
@@ -100,8 +111,8 @@ namespace Rice::detail
       define_attr("size", &T::size).
       template define_method<VALUE(T::*)(size_t, size_t)>("read", &T::read, Return().setValue()).
       template define_method<VALUE(T::*)()>("read", &T::read, Return().setValue()).
-      template define_method<Array(T::*)(size_t, size_t)>("to_array", &T::toArray, Return().setValue()).
-      template define_method<Array(T::*)()>("to_array", &T::toArray, Return().setValue());
+      template define_method<Array(T::*)(size_t, size_t)>("to_a", &T::toArray, Return().setValue()).
+      template define_method<Array(T::*)()>("to_a", &T::toArray, Return().setValue());
 
     return result;
   }
