@@ -18,7 +18,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE PointerView<T>::buffer(size_t offset, size_t count)
+  inline VALUE PointerView<T>::read(size_t offset, size_t count)
   {
     if (!this->pointer)
     {
@@ -33,9 +33,9 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE PointerView<T>::buffer()
+  inline VALUE PointerView<T>::read()
   {
-    return this->buffer(0, this->size);
+    return this->read(0, this->size);
   }
 
   template<typename T>
@@ -47,13 +47,15 @@ namespace Rice
     }
     else if constexpr (std::is_fundamental_v<T>)
     {
-      VALUE string = this->buffer(offset, count);
+      VALUE string = this->read(offset, count);
       return String(string).unpack<T>();
     }
     else
     {
+      // Is this a pointer to a pointer, so T**?
+      constexpr bool isPointerToPointer = std::is_pointer_v<T>;
+
       Array result;
-      detail::To_Ruby<T&> toRuby;
 
       T* begin = this->pointer + offset;
       T* end = this->pointer + offset + count;
@@ -61,7 +63,16 @@ namespace Rice
       for (T* ptr = begin; ptr < end; ptr++)
       {
         T& object = *ptr;
-        result.push(object);
+
+        if constexpr (isPointerToPointer)
+        {
+          PointerView<std::remove_pointer_t<T>> pointerView(object);
+          result.push(pointerView);
+        }
+        else
+        {
+          result.push(object);
+        }
       }
       return result;
     }
@@ -75,7 +86,7 @@ namespace Rice
 
   // Specializations to handle void
   template<>
-  inline VALUE PointerView<void>::buffer(size_t offset, size_t count)
+  inline VALUE PointerView<void>::read(size_t offset, size_t count)
   {
     return Qnil;
   }
@@ -98,10 +109,10 @@ namespace Rice::detail
 
     Data_Type<T> result = define_class_under<T>(rb_mRice, klassName).
       define_attr("size", &T::size).
-      template define_method<VALUE(T::*)(size_t, size_t)>("buffer", &T::buffer, Return().setValue()).
-      template define_method<VALUE(T::*)()>("buffer", &T::buffer, Return().setValue()).
-      template define_method<Array(T::*)(size_t, size_t)>("to_array", &T::toArray, Return().setValue()).
-      template define_method<Array(T::*)()>("to_array", &T::toArray, Return().setValue());
+      template define_method<VALUE(T::*)(size_t, size_t)>("read", &T::read, Return().setValue()).
+      template define_method<VALUE(T::*)()>("read", &T::read, Return().setValue()).
+      template define_method<Array(T::*)(size_t, size_t)>("to_a", &T::toArray, Return().setValue()).
+      template define_method<Array(T::*)()>("to_a", &T::toArray, Return().setValue());
 
     return result;
   }

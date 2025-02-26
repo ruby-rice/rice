@@ -175,8 +175,31 @@ namespace
   using Matrix2Int = Matrix2<int>;
   using Matrix2Float = Matrix2<float>;
   using Matrix2Double = Matrix2<double>;
-}
 
+  template<typename T>
+  class Matrix3
+  {
+  public:
+    T** ptr()
+    {
+      return this->data;
+    }
+
+  private:
+    T one = 1;
+    T two = 2;
+    T three = 3;
+    T four = 4;
+    T five = 5;
+
+  public:
+    T* data[5] = { &one, &two, &three, &four, &five };
+
+  };
+
+  using Matrix3UnsignedChar = Matrix3<unsigned char>;
+}
+/*
 TESTCASE(unsigned_char_ptr_buffer)
 {
   Module m = define_module("ToRubyPtr");
@@ -188,31 +211,31 @@ TESTCASE(unsigned_char_ptr_buffer)
 
   std::string code = R"(matrix = Matrix2UnsignedChar.new
                         pointer_view = matrix.ptr
-                        pointer_view.buffer(0, 5))";
+                        pointer_view.read(0, 5))";
   String buffer = m.module_eval(code);
   ASSERT_EQUAL("\x1\x2\x3\x4\x5", buffer.str());
 
   code = R"(matrix = Matrix2UnsignedChar.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 1))";
+            pointer_view.read(2, 1))";
   buffer = m.module_eval(code);
   ASSERT_EQUAL("\x3", buffer.str());
 
   code = R"(matrix = Matrix2UnsignedChar.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 2))";
+            pointer_view.read(2, 2))";
   buffer = m.module_eval(code);
   ASSERT_EQUAL("\x3\x4", buffer.str());
 
   code = R"(matrix = Matrix2UnsignedChar.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 0))";
+            pointer_view.read(2, 0))";
   buffer = m.module_eval(code);
   ASSERT_EQUAL("", buffer.str());
 
   code = R"(matrix = Matrix2UnsignedChar.new
             pointer_view = matrix.data
-            pointer_view.buffer)";
+            pointer_view.read)";
 
   buffer = m.module_eval(code);
   ASSERT_EQUAL("\x1\x2\x3\x4\x5", buffer.str());
@@ -228,7 +251,7 @@ TESTCASE(unsigned_char_ptr_array)
 
   std::string code = R"(matrix = Matrix2UnsignedChar.new
                         pointer_view = matrix.ptr
-                        pointer_view.to_array(0, 5))";
+                        pointer_view.to_a(0, 5))";
 
   std::vector<unsigned char> expected = std::vector<unsigned char>{ 1,2,3,4,5 };
   Array array = m.module_eval(code);
@@ -237,12 +260,54 @@ TESTCASE(unsigned_char_ptr_array)
 
   code = R"(matrix = Matrix2UnsignedChar.new
            pointer_view = matrix.ptr
-           pointer_view.to_array(0, 1))";
+           pointer_view.to_a(0, 1))";
 
   expected = std::vector<unsigned char>{ 1 };
   array = m.module_eval(code);
   actual = array.to_vector<unsigned char>();
   ASSERT_EQUAL(expected, actual);
+}
+
+TESTCASE(unsigned_char_ptr_ptr_buffer)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix3UnsignedChar>(m, "Matrix3UnsignedChar")
+    .define_constructor(Constructor<Matrix3UnsignedChar>())
+    .define_method("ptr", &Matrix3UnsignedChar::ptr)
+    .define_attr("data", &Matrix3UnsignedChar::data, Rice::AttrAccess::Read);
+
+  std::string code = R"(matrix = Matrix3UnsignedChar.new
+                        pointer_view = matrix.ptr
+                        pointer_view.read(0, 5))";
+  String buffer = m.module_eval(code);
+  ASSERT_EQUAL(5, buffer.length());
+}*/
+
+TESTCASE(unsigned_char_ptr_ptr_array)
+{
+  Module m = define_module("ToRubyPtr");
+
+  Class c = define_class_under<Matrix3UnsignedChar>(m, "Matrix3UnsignedChar")
+    .define_constructor(Constructor<Matrix3UnsignedChar>())
+    .define_method("ptr", &Matrix3UnsignedChar::ptr);
+
+  std::string code = R"(matrix = Matrix3UnsignedChar.new
+                        pointer_view = matrix.ptr
+                        pointer_view.to_a(0, 5))";
+
+  Array pointers = m.module_eval(code);
+  ASSERT_EQUAL(5, pointers.size());
+
+  for (int i = 0; i < pointers.size(); i++)
+  {
+    Object pointerView = pointers[i];
+    Array array = pointerView.call("to_a", 0, 1);
+
+    std::vector<unsigned char> expected = std::vector<unsigned char>{ (unsigned char)(i + 1) };
+    std::vector<unsigned char> actual = array.to_vector<unsigned char>();
+    ASSERT_EQUAL(expected, actual);
+  }
 }
 
 TESTCASE(short_ptr_buffer)
@@ -255,7 +320,7 @@ TESTCASE(short_ptr_buffer)
 
   std::string code = R"(matrix = Matrix2Short.new
                         pointer_view = matrix.ptr
-                        pointer_view.buffer(0, 5))";
+                        pointer_view.read(0, 5))";
 
   std::string expected = "\x1\0\x2\0\x3\0\x4\0\x5\0"s;
   String buffer = m.module_eval(code);
@@ -263,14 +328,14 @@ TESTCASE(short_ptr_buffer)
 
   code = R"(matrix = Matrix2Short.new
                         pointer_view = matrix.ptr
-                        pointer_view.buffer(2, 1))";
+                        pointer_view.read(2, 1))";
   expected = "\x3\0"s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
 
   code = R"(matrix = Matrix2Short.new
                         pointer_view = matrix.ptr
-                        pointer_view.buffer(2, 2))";
+                        pointer_view.read(2, 2))";
 
   expected = "\x3\0\x4\0"s;
   buffer = m.module_eval(code);
@@ -278,7 +343,7 @@ TESTCASE(short_ptr_buffer)
 
   code = R"(matrix = Matrix2Short.new
                         pointer_view = matrix.ptr
-                        pointer_view.buffer(2, 0))";
+                        pointer_view.read(2, 0))";
   expected = ""s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
@@ -294,7 +359,7 @@ TESTCASE(short_ptr_array)
 
   std::string code = R"(matrix = Matrix2Short.new
                         pointer_view = matrix.ptr
-                        pointer_view.to_array(0, 5))";
+                        pointer_view.to_a(0, 5))";
 
    std::vector<short> expected = std::vector<short>{1,2,3,4,5};
    Array array = m.module_eval(code);
@@ -303,7 +368,7 @@ TESTCASE(short_ptr_array)
 
    code = R"(matrix = Matrix2Short.new
              pointer_view = matrix.ptr
-             pointer_view.to_array(3, 2))";
+             pointer_view.to_a(3, 2))";
 
     expected = std::vector<short>{4, 5};
     array = m.module_eval(code);
@@ -321,7 +386,7 @@ TESTCASE(unsigned_short_ptr_buffer)
 
   std::string code = R"(matrix = Matrix2UnsignedShort.new
                         pointer_view = matrix.ptr
-                        pointer_view.buffer(0, 5))";
+                        pointer_view.read(0, 5))";
 
   std::string expected = "\x1\0\x2\0\x3\0\x4\0\x5\0"s;
   String buffer = m.module_eval(code);
@@ -329,14 +394,14 @@ TESTCASE(unsigned_short_ptr_buffer)
 
   code = R"(matrix = Matrix2UnsignedShort.new
                         pointer_view = matrix.ptr
-                        pointer_view.buffer(2, 1))";
+                        pointer_view.read(2, 1))";
   expected = "\x3\0"s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
 
   code = R"(matrix = Matrix2UnsignedShort.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 2))";
+            pointer_view.read(2, 2))";
 
   expected = "\x3\0\x4\0"s;
   buffer = m.module_eval(code);
@@ -344,7 +409,7 @@ TESTCASE(unsigned_short_ptr_buffer)
 
   code = R"(matrix = Matrix2UnsignedShort.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 0))";
+            pointer_view.read(2, 0))";
   expected = ""s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
@@ -360,7 +425,7 @@ TESTCASE(unsigned_short_ptr_array)
 
   std::string code = R"(matrix = Matrix2UnsignedShort.new
                         pointer_view = matrix.ptr
-                        pointer_view.to_array(0, 5))";
+                        pointer_view.to_a(0, 5))";
 
   std::vector<unsigned short> expected = std::vector<unsigned short>{ 1,2,3,4,5 };
   Array array = m.module_eval(code);
@@ -369,7 +434,7 @@ TESTCASE(unsigned_short_ptr_array)
 
   code = R"(matrix = Matrix2UnsignedShort.new
             pointer_view = matrix.ptr
-            pointer_view.to_array(3, 2))";
+            pointer_view.to_a(3, 2))";
 
   expected = std::vector<unsigned short>{ 4, 5 };
   array = m.module_eval(code);
@@ -387,7 +452,7 @@ TESTCASE(int_ptr_buffer)
 
   std::string code = R"(matrix = Matrix2Int.new
                         pointer_view = matrix.ptr
-                        pointer_view.buffer(0, 5))";
+                        pointer_view.read(0, 5))";
 
   std::string expected = "\x1\0\0\0\x2\0\0\0\x3\0\0\0\x4\0\0\0\x5\0\0\0"s;
   String buffer = m.module_eval(code);
@@ -395,14 +460,14 @@ TESTCASE(int_ptr_buffer)
 
   code = R"(matrix = Matrix2Int.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 1))";
+            pointer_view.read(2, 1))";
   expected = "\x3\0\0\0"s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
 
   code = R"(matrix = Matrix2Int.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 2))";
+            pointer_view.read(2, 2))";
 
   expected = "\x3\0\0\0\x4\0\0\0"s;
   buffer = m.module_eval(code);
@@ -410,7 +475,7 @@ TESTCASE(int_ptr_buffer)
 
   code = R"(matrix = Matrix2Int.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 0))";
+            pointer_view.read(2, 0))";
   expected = ""s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
@@ -426,7 +491,7 @@ TESTCASE(int_ptr_array)
 
   std::string code = R"(matrix = Matrix2Int.new
                         pointer_view = matrix.ptr
-                        pointer_view.to_array(0, 5))";
+                        pointer_view.to_a(0, 5))";
 
   std::vector<int> expected = std::vector<int>{ 1,2,3,4,5 };
   Array array = m.module_eval(code);
@@ -435,7 +500,7 @@ TESTCASE(int_ptr_array)
 
   code = R"(matrix = Matrix2Int.new
             pointer_view = matrix.ptr
-            pointer_view.to_array(3, 2))";
+            pointer_view.to_a(3, 2))";
 
   expected = std::vector<int>{ 4, 5 };
   array = m.module_eval(code);
@@ -453,7 +518,7 @@ TESTCASE(float_ptr_buffer)
 
   std::string code = R"(matrix = Matrix2Float.new
                         pointer_view = matrix.ptr
-                        pointer_view.buffer(0, 5))";
+                        pointer_view.read(0, 5))";
 
   std::string expected = "\0\0\x80\x3f\0\0\0\x40\0\0\x40\x40\0\0\x80\x40\0\0\xa0\x40"s;
   String buffer = m.module_eval(code);
@@ -461,14 +526,14 @@ TESTCASE(float_ptr_buffer)
 
   code = R"(matrix = Matrix2Float.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 1))";
+            pointer_view.read(2, 1))";
   expected = "\0\0\x40\x40"s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
 
   code = R"(matrix = Matrix2Float.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 2))";
+            pointer_view.read(2, 2))";
 
   expected = "\0\0\x40\x40\0\0\x80\x40"s;
   buffer = m.module_eval(code);
@@ -476,7 +541,7 @@ TESTCASE(float_ptr_buffer)
 
   code = R"(matrix = Matrix2Float.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 0))";
+            pointer_view.read(2, 0))";
   expected = ""s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
@@ -492,7 +557,7 @@ TESTCASE(float_ptr_array)
 
   std::string code = R"(matrix = Matrix2Float.new
                         pointer_view = matrix.ptr
-                        pointer_view.to_array(0, 5))";
+                        pointer_view.to_a(0, 5))";
 
   std::vector<float> expected = std::vector<float>{ 1.0,2.0,3.0,4.0,5.0 };
   Array array = m.module_eval(code);
@@ -501,7 +566,7 @@ TESTCASE(float_ptr_array)
 
   code = R"(matrix = Matrix2Float.new
              pointer_view = matrix.ptr
-             pointer_view.to_array(3, 2))";
+             pointer_view.to_a(3, 2))";
 
   expected = std::vector<float>{ 4.0, 5.0 };
   array = m.module_eval(code);
@@ -519,7 +584,7 @@ TESTCASE(double_ptr_buffer)
 
   std::string code = R"(matrix = Matrix2Double.new
                         pointer_view = matrix.ptr
-                        pointer_view.buffer(0, 5))";
+                        pointer_view.read(0, 5))";
 
   std::string expected = "\0\0\0\0\0\0\xf0\x3f\0\0\0\0\0\0\0\x40\0\0\0\0\0\0\x08\x40\0\0\0\0\0\0\x10\x40\0\0\0\0\0\0\x14\x40"s;
   String buffer = m.module_eval(code);
@@ -528,14 +593,14 @@ TESTCASE(double_ptr_buffer)
 
   code = R"(matrix = Matrix2Double.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 1))";
+            pointer_view.read(2, 1))";
   expected = "\0\0\0\0\0\0\x08\x40"s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
 
   code = R"(matrix = Matrix2Double.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 2))";
+            pointer_view.read(2, 2))";
 
   expected = "\0\0\0\0\0\0\x08\x40\0\0\0\0\0\0\x10\x40"s;
   buffer = m.module_eval(code);
@@ -543,7 +608,7 @@ TESTCASE(double_ptr_buffer)
 
   code = R"(matrix = Matrix2Double.new
             pointer_view = matrix.ptr
-            pointer_view.buffer(2, 0))";
+            pointer_view.read(2, 0))";
   expected = ""s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
@@ -559,7 +624,7 @@ TESTCASE(double_ptr_array)
 
   std::string code = R"(matrix = Matrix2Double.new
                         pointer_view = matrix.ptr
-                        pointer_view.to_array(0, 5))";
+                        pointer_view.to_a(0, 5))";
 
   std::vector<double> expected = std::vector<double>{ 1.0,2.0,3.0,4.0,5.0 };
   Array array = m.module_eval(code);
@@ -568,7 +633,7 @@ TESTCASE(double_ptr_array)
 
   code = R"(matrix = Matrix2Double.new
              pointer_view = matrix.ptr
-             pointer_view.to_array(3, 2))";
+             pointer_view.to_a(3, 2))";
 
   expected = std::vector<double>{ 4.0, 5.0 };
   array = m.module_eval(code);

@@ -11,10 +11,10 @@ namespace Rice
     PointerView(T* pointer, size_t size);
     PointerView(const PointerView& other);
 
-    VALUE buffer(size_t offset, size_t count);
+    VALUE read(size_t offset, size_t count);
     Array toArray(size_t offset, size_t count);
 
-    VALUE buffer();
+    VALUE read();
     Array toArray();
 
     T* pointer = nullptr;

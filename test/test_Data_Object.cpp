@@ -213,7 +213,7 @@ TESTCASE(data_object_return_array)
 
   std::string code = R"(pointer_view = data_types
                         count = data_types_count
-                        pointer_view.to_array(0, count))";
+                        pointer_view.to_a(0, count))";
 
   Array dataTypes = m.module_eval(code);
   ASSERT_EQUAL(3, dataTypes.size());
