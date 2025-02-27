@@ -42,7 +42,7 @@ namespace Rice::detail
       }
       else if (RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
       {
-        return Convertible::Narrowable;
+        return Convertible::Narrow;
       }
       else
       {
@@ -66,22 +66,41 @@ namespace Rice::detail
     {
       ruby_value_type valueType = rb_type(value);
 
-      if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end())
+      switch (valueType)
       {
-        return Convertible::Exact;
-      }
-      else if (valueType == RUBY_T_ARRAY)
-      {
-        return Convertible::Exact;
-      }
-      else if (valueType == RUBY_T_STRING)
-      {
-        // Maybe we should check for ascii8bit encoding?
-        //if (RB_ENCODING_IS_ASCII8BIT(value))
-        return Convertible::Exact;
-      }
+        case RUBY_T_NIL:
+        {
+          return Convertible::Exact;
+          break;
+        }
+        case RUBY_T_ARRAY:
+        {
+          return Convertible::Exact;
+          break;
+        }
+        case RUBY_T_STRING:
+        {
+          return Convertible::Exact;
+          break;
+        }
+        default:
+        {
+          if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end())
+          {
+            return Convertible::Exact;
+          }
+          else if (RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end())
+          {
+            return Convertible::Cast;
+          }
+          else if (RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
+          {
+            return Convertible::Narrow;
+          }
 
-      return Convertible::None;
+          return Convertible::None;
+        }
+      }
     }
 
     static std::unique_ptr<T[]> convert(VALUE value)
