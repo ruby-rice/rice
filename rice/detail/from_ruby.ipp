@@ -153,7 +153,15 @@ namespace Rice::detail
           });
 
         auto iter = std::min_element(convertibles.begin(), convertibles.end());
-        return *iter;
+
+        if (iter == convertibles.end())
+        {
+          return Convertible::None;
+        }
+        else
+        {
+          return *iter;
+        }
       }
       else
       {
