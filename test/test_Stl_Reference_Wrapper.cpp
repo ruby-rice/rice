@@ -92,7 +92,8 @@ TESTCASE(RoundTrip)
   Object result = myClass.call("roundtrip_class", myClass);
   Data_Object<MyClass> finish(result);
 
-  ASSERT_EQUAL(Data_Object<MyClass>::from_ruby(myClass), Data_Object<MyClass>::from_ruby(result));
+  ASSERT_EQUAL(detail::unwrap<MyClass>(myClass, Data_Type<MyClass>::ruby_data_type(), false),
+               detail::unwrap<MyClass>(result, Data_Type<MyClass>::ruby_data_type(), false));
 }
 
 TESTCASE(RoundTripInVariant)
@@ -103,5 +104,6 @@ TESTCASE(RoundTripInVariant)
   Object result = myClass.call("roundtrip_class_in_variant", myClass);
   Data_Object<MyClass> finish(result);
 
-  ASSERT_EQUAL(Data_Object<MyClass>::from_ruby(myClass), Data_Object<MyClass>::from_ruby(result));
+  ASSERT_EQUAL(detail::unwrap<MyClass>(myClass, Data_Type<MyClass>::ruby_data_type(), false),
+               detail::unwrap<MyClass>(result, Data_Type<MyClass>::ruby_data_type(), false));
 }
