@@ -6,7 +6,7 @@ namespace Rice::detail
   class WrapperBase
   {
   public:
-    WrapperBase(bool isOwner = false);
+    WrapperBase() = default;
     virtual ~WrapperBase() = default;
     virtual void* get() = 0;
 
@@ -24,20 +24,56 @@ namespace Rice::detail
     std::vector<VALUE> keepAlive_;
   };
 
-  template <typename T, typename Wrapper_T = void>
+  template <typename T>
+  class Wrapper : public WrapperBase
+  {
+  public:
+    Wrapper(T& data);
+    ~Wrapper();
+    void* get() override;
+
+  private:
+    T data_;
+  };
+
+  template<typename T>
+  class Wrapper<T&> : public WrapperBase
+  {
+  public:
+    Wrapper(T& data);
+    ~Wrapper();
+    void* get() override;
+
+  private:
+    T& data_;
+  };
+
+  template <typename T>
+  class Wrapper<T*> : public WrapperBase
+  {
+  public:
+    Wrapper(T* data, bool isOwner);
+    ~Wrapper();
+    void* get() override;
+
+  private:
+    T* data_ = nullptr;
+  };
+
+  // ---- Helper Functions ---------
+  template <typename T>
+  void wrapConstructed(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner);
+
+  template <typename T>
   VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner);
 
-  template <typename T, typename Wrapper_T = void>
+  template <typename T>
   VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner);
 
   template <typename T>
   T* unwrap(VALUE value, rb_data_type_t* rb_type, bool takeOwnership);
 
   WrapperBase* getWrapper(VALUE value, rb_data_type_t* rb_type);
-
-  template <typename T>
-  void wrapConstructed(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner);
-
   WrapperBase* getWrapper(VALUE value);
 }
 #endif // Rice__detail__Wrapper__hpp_
