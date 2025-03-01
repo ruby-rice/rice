@@ -11,6 +11,30 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_NIL };
     static inline std::set<ruby_value_type> Narrowable = {  };
     static inline std::string packTemplate = "not supported";
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<bool>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<bool>" };
+    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -24,6 +48,30 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = CHAR_MIN < 0 ? "c*" : "C*";
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<char>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<char>" };
+    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -38,6 +86,30 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "c*";
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<signed char>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<signed char>" };
+    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -52,6 +124,30 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "C*";
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<unsigned char>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<unsigned char>" };
+    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -65,6 +161,30 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "s*";
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<short>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<short>" };
+    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -78,6 +198,30 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "S*";
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<unsigned short>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<unsigned short>" };
+    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -132,6 +276,30 @@ namespace Rice::detail
     // while int can go up to 4 billion
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "I*";
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<unsigned int>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<unsigned int>" };
+    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -145,6 +313,30 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "l_*";
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<long>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<long>" };
+    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -158,6 +350,30 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM};
     static inline std::string packTemplate = "L_*";
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<unsigned long>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<unsigned long>" };
+    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -171,6 +387,30 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "q_*";
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<long long>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<long long>" };
+    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -184,8 +424,31 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "Q_*";
-  };
 
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<unsigned long long>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<unsigned long long>" };
+    static inline VALUE klass_ = Qnil;
+  };
 
   template<>
   class RubyType<float>
@@ -198,6 +461,30 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_FIXNUM };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FLOAT };
     static inline std::string packTemplate = "f*";
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<float>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<float>" };
+    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -211,6 +498,30 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_FIXNUM, RUBY_T_BIGNUM };
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "d*";
+
+    static rb_data_type_t* ruby_data_type()
+    {
+      return &ruby_data_type_;
+    }
+
+    static VALUE klass()
+    {
+      if (klass_ == Qnil)
+      {
+        std::string name = detail::typeName(typeid(RubyType<double>));
+        std::string klassName = detail::makeClassName(name);
+        Identifier id(klassName);
+        Module rb_mRice = define_module("Rice");
+        Class klass = define_class_under(rb_mRice, id);
+        klass.undef_creation_funcs();
+        klass_ = klass;
+      }
+      return klass_;
+    }
+
+  private:
+    static inline rb_data_type_t ruby_data_type_ = { "RubyType<double>" };
+    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -245,5 +556,4 @@ namespace Rice::detail
     static inline rb_data_type_t ruby_data_type_ = { "RubyType<void>" };
     static inline VALUE klass_ = Qnil;
   };
-
 }

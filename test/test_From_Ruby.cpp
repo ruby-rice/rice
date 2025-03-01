@@ -438,6 +438,21 @@ TESTCASE(float_array_array)
   code = R"(array = [45])";
   object = m.instance_eval(code);
   convertible = fromRuby.is_convertible(object);
+  ASSERT_EQUAL(detail::Convertible::Cast, convertible);
+
+  code = R"(array = [false])";
+  object = m.instance_eval(code);
+  convertible = fromRuby.is_convertible(object);
+  ASSERT_EQUAL(detail::Convertible::None, convertible);
+
+  code = R"(array = ["\x1\x2"])";
+  object = m.instance_eval(code);
+  convertible = fromRuby.is_convertible(object);
+  ASSERT_EQUAL(detail::Convertible::Exact, convertible);
+
+  code = R"(array = [])";
+  object = m.instance_eval(code);
+  convertible = fromRuby.is_convertible(object);
   ASSERT_EQUAL(detail::Convertible::None, convertible);
 
   code = R"(array = [[45], false])";
