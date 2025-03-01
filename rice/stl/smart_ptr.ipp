@@ -66,7 +66,7 @@ namespace Rice::detail
 
     Wrapper_T* is_same_smart_ptr(VALUE value)
     {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+      WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
       return dynamic_cast<Wrapper_T*>(wrapper);
     }
 
@@ -105,7 +105,7 @@ namespace Rice::detail
 
     Wrapper_T* is_same_smart_ptr(VALUE value)
     {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+      WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
       return dynamic_cast<Wrapper_T*>(wrapper);
     }
 
@@ -184,12 +184,12 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        Wrapper* wrapper = detail::getWrapper(value, RubyType<T>::ruby_data_type());
+        WrapperBase* wrapper = detail::getWrapper(value, RubyType<T>::ruby_data_type());
         return dynamic_cast<Wrapper_T*>(wrapper);
       }
       else
       {
-        Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+        WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
         return dynamic_cast<Wrapper_T*>(wrapper);
       }
     }
@@ -265,12 +265,12 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        Wrapper* wrapper = detail::getWrapper(value, RubyType<T>::ruby_data_type());
+        WrapperBase* wrapper = detail::getWrapper(value, RubyType<T>::ruby_data_type());
         return dynamic_cast<Wrapper_T*>(wrapper);
       }
       else
       {
-        Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+        WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
         return dynamic_cast<Wrapper_T*>(wrapper);
       }
     }

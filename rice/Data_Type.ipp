@@ -3,7 +3,7 @@
 namespace Rice
 {
   template<typename T>
-  inline void ruby_mark_internal(detail::Wrapper* wrapper)
+  inline void ruby_mark_internal(detail::WrapperBase* wrapper)
   {
     // Tell the wrapper to mark the objects its keeping alive
     wrapper->ruby_mark();
@@ -14,7 +14,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline void ruby_free_internal(detail::Wrapper* wrapper)
+  inline void ruby_free_internal(detail::WrapperBase* wrapper)
   {
     delete wrapper;
   }

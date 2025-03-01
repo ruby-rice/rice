@@ -2,11 +2,11 @@
 
 namespace Rice::detail
 {
-  inline Wrapper::Wrapper(bool isOwner): isOwner_(isOwner)
+  inline WrapperBase::WrapperBase(bool isOwner): isOwner_(isOwner)
   {
   }
 
-  inline void Wrapper::ruby_mark()
+  inline void WrapperBase::ruby_mark()
   {
     for (VALUE value : this->keepAlive_)
     {
@@ -14,18 +14,18 @@ namespace Rice::detail
     }
   }
 
-  inline void Wrapper::addKeepAlive(VALUE value)
+  inline void WrapperBase::addKeepAlive(VALUE value)
   {
     this->keepAlive_.push_back(value);
   }
 
-  inline void Wrapper::setOwner(bool value)
+  inline void WrapperBase::setOwner(bool value)
   {
     this->isOwner_ = value;
   }
 
   template <typename T>
-  class WrapperValue : public Wrapper
+  class WrapperValue : public WrapperBase
   {
   public:
     WrapperValue(T& data): data_(std::move(data))
@@ -47,7 +47,7 @@ namespace Rice::detail
   };
 
   template <typename T>
-  class WrapperReference : public Wrapper
+  class WrapperReference : public WrapperBase
   {
   public:
     WrapperReference(T& data): data_(data)
@@ -69,10 +69,10 @@ namespace Rice::detail
   };
 
   template <typename T>
-  class WrapperPointer : public Wrapper
+  class WrapperPointer : public WrapperBase
   {
   public:
-    WrapperPointer(T* data, bool isOwner) : Wrapper(isOwner), data_(data)
+    WrapperPointer(T* data, bool isOwner) : WrapperBase(isOwner), data_(data)
     {
     }
 
@@ -107,7 +107,7 @@ namespace Rice::detail
     if (result != Qnil)
       return result;
 
-    Wrapper* wrapper = nullptr;
+    WrapperBase* wrapper = nullptr;
 
     // Is this a pointer but cannot be copied? For example a std::unique_ptr
     if constexpr (!std::is_void_v<Wrapper_T> && !std::is_copy_constructible_v<Wrapper_T>)
@@ -156,7 +156,7 @@ namespace Rice::detail
     if (result != Qnil)
       return result;
 
-    Wrapper* wrapper = nullptr;
+    WrapperBase* wrapper = nullptr;
 
     if constexpr (!std::is_void_v<Wrapper_T>)
     {
@@ -176,7 +176,7 @@ namespace Rice::detail
   template <typename T>
   inline T* unwrap(VALUE value, rb_data_type_t* rb_type, bool takeOwnership)
   {
-    Wrapper* wrapper = getWrapper(value, rb_type);
+    WrapperBase* wrapper = getWrapper(value, rb_type);
 
     if (wrapper == nullptr)
     {
@@ -193,14 +193,14 @@ namespace Rice::detail
     return static_cast<T*>(wrapper->get());
   }
     
-  inline Wrapper* getWrapper(VALUE value, rb_data_type_t* rb_type)
+  inline WrapperBase* getWrapper(VALUE value, rb_data_type_t* rb_type)
   {
-    Wrapper* wrapper = nullptr;
-    TypedData_Get_Struct(value, Wrapper, rb_type, wrapper);
+    WrapperBase* wrapper = nullptr;
+    TypedData_Get_Struct(value, WrapperBase, rb_type, wrapper);
     return wrapper;
   }
 
-  inline Wrapper* getWrapper(VALUE value)
+  inline WrapperBase* getWrapper(VALUE value)
   {
     // Turn off spurious warning on g++ 12
     #if defined(__GNUC__) || defined(__clang__)
@@ -208,7 +208,7 @@ namespace Rice::detail
     #pragma GCC diagnostic ignored "-Warray-bounds"
     #endif
 
-    return RTYPEDDATA_P(value) ? static_cast<Wrapper*>(RTYPEDDATA_DATA(value)) : nullptr;
+    return RTYPEDDATA_P(value) ? static_cast<WrapperBase*>(RTYPEDDATA_DATA(value)) : nullptr;
     
     #if defined(__GNUC__) || defined(__clang__)
     #pragma GCC diagnostic pop
@@ -216,7 +216,7 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner)
+  inline void wrapConstructed(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner)
   {
     WrapperPointer<T>* wrapper = nullptr;
     TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);

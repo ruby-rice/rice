@@ -6,7 +6,7 @@
 namespace Rice::detail
 {
   template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
-  class WrapperSmartPointer : public Wrapper
+  class WrapperSmartPointer : public WrapperBase
   {
   public:
     WrapperSmartPointer(SmartPointer_T<Arg_Ts...> data);
