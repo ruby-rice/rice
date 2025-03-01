@@ -177,8 +177,6 @@ namespace Rice::detail
   inline T* unwrap(VALUE value, rb_data_type_t* rb_type, bool takeOwnership)
   {
     Wrapper* wrapper = getWrapper(value, rb_type);
-    if (takeOwnership)
-      wrapper->setOwner(false);
 
     if (wrapper == nullptr)
     {
@@ -188,6 +186,9 @@ namespace Rice::detail
 
       throw std::runtime_error(message);
     }
+
+    if (takeOwnership)
+      wrapper->setOwner(false);
 
     return static_cast<T*>(wrapper->get());
   }
