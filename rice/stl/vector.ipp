@@ -374,14 +374,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector(std::string name)
   {
-    if (Data_Type<T>::check_defined(name))
-    {
-      return Data_Type<T>();
-    }
-
-    Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
-    stl::VectorHelper<T> helper(result);
-    return result;
+    return define_vector_under<T>(rb_cObject, name);
   }
 
   template<typename T>
@@ -410,7 +403,6 @@ namespace Rice
         return true;
       }
     };
-
 
     template<typename T>
     class From_Ruby<std::vector<T>>
