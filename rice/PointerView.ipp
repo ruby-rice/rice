@@ -124,7 +124,7 @@ namespace Rice::detail
     {
       Type<intrinsic_type<T>>::verify();
 
-      if (!detail::Registries::instance.types.isDefined<PointerView<T>>())
+      if (!Data_Type<PointerView<T>>::is_defined())
       {
         define_pointer_view<PointerView<T>>();
       }

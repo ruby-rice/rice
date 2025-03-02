@@ -114,7 +114,8 @@ namespace Rice
      */
     static bool is_bound();
     static void check_is_bound();
-    static bool is_defined(Object parent, const std::string& name);
+    static bool is_defined();
+    static bool check_defined(const std::string& name, Object parent = rb_cObject);
 
     // This is only for testing - DO NOT USE!!!
     static void unbind();

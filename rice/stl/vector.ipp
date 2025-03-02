@@ -360,12 +360,8 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector_under(Object parent, std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
+    if (Data_Type<T>::check_defined(name, parent))
     {
-      // If the vector has been previously seen it will be registered but may
-      // not be associated with the constant Module::<name>
-      parent.const_set_maybe(name, Data_Type<T>().klass());
-
       return Data_Type<T>();
     }
 
@@ -378,12 +374,8 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector(std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
+    if (Data_Type<T>::check_defined(name))
     {
-      // If the vector has been previously seen it will be registered but may
-      // not be associated with the constant Module::<name>
-      Object(rb_cObject).const_set_maybe(name, Data_Type<T>().klass());
-
       return Data_Type<T>();
     }
 
@@ -410,7 +402,7 @@ namespace Rice
       {
         Type<intrinsic_type<T>>::verify();
 
-        if (!detail::Registries::instance.types.isDefined<std::vector<T>>())
+        if (!Data_Type<std::vector<T>>::is_defined())
         {
           define_vector_auto<std::vector<T>>();
         }
