@@ -22,7 +22,12 @@ namespace Rice::detail
 
   // ----  Wrapper -----
   template <typename T>
-  inline Wrapper<T>::Wrapper(T& data): data_(std::move(data))
+  inline Wrapper<T>::Wrapper(T& data): data_(data)
+  {
+  }
+
+  template <typename T>
+  inline Wrapper<T>::Wrapper(T&& data) : data_(std::move(data))
   {
   }
 
@@ -100,12 +105,13 @@ namespace Rice::detail
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
 
-    // Ruby is the owner so copy data if possible
+    // Ruby is the owner so copy data
     else if constexpr (std::is_copy_constructible_v<T> || std::is_move_constructible_v<T>)
     {
-      wrapper = new Wrapper<T>(data);
+      wrapper = new Wrapper<T>(std::forward<T>(data));
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
+
     else
     {
       std::string message = "Ruby was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: " +

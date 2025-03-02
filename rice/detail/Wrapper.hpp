@@ -29,6 +29,7 @@ namespace Rice::detail
   {
   public:
     Wrapper(T& data);
+    Wrapper(T&& data);
     ~Wrapper();
     void* get() override;
 
