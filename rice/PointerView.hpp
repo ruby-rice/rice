@@ -7,6 +7,8 @@ namespace Rice
   class PointerView
   {
   public:
+    using type = T;
+
     PointerView(T* pointer);
     PointerView(T* pointer, size_t size);
     PointerView(const PointerView& other);

@@ -100,19 +100,20 @@ namespace Rice
 
 namespace Rice::detail
 {
-  template<typename T>
-  Data_Type<T> define_pointer_view()
+  template<typename PointerView_T>
+  Data_Type<PointerView_T> define_pointer_view()
   {
-    std::string name = detail::typeName(typeid(T));
+    std::string name = detail::typeName(typeid(PointerView_T));
     std::string klassName = detail::makeClassName(name);
     Module rb_mRice = define_module("Rice");
 
-    Data_Type<T> result = define_class_under<T>(rb_mRice, klassName).
-      define_attr("size", &T::size).
-      template define_method<VALUE(T::*)(size_t, size_t)>("read", &T::read, Return().setValue()).
-      template define_method<VALUE(T::*)()>("read", &T::read, Return().setValue()).
-      template define_method<Array(T::*)(size_t, size_t)>("to_a", &T::toArray, Return().setValue()).
-      template define_method<Array(T::*)()>("to_a", &T::toArray, Return().setValue());
+    Data_Type<PointerView_T> result = define_class_under<PointerView_T>(rb_mRice, klassName).
+      define_constructor(Constructor<PointerView_T, PointerView_T::type*>()).
+      define_attr("size", &PointerView_T::size).
+      template define_method<VALUE(PointerView_T::*)(size_t, size_t)>("read", &PointerView_T::read, Return().setValue()).
+      template define_method<VALUE(PointerView_T::*)()>("read", &PointerView_T::read, Return().setValue()).
+      template define_method<Array(PointerView_T::*)(size_t, size_t)>("to_a", &PointerView_T::toArray, Return().setValue()).
+      template define_method<Array(PointerView_T::*)()>("to_a", &PointerView_T::toArray, Return().setValue());
 
     return result;
   }
