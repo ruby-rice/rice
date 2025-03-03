@@ -18,6 +18,20 @@ namespace Rice
   }
 
   template<typename T>
+  PointerView<std::remove_pointer_t<T>> PointerView<T>::operator*()
+  {
+    if constexpr (std::is_pointer_v<T>)
+    {
+      // This assumes that the value stored in this->pointer is another pointer of the same type
+      return PointerView<std::remove_pointer_t<T>>(*this->pointer);
+    }
+    else
+    {
+      throw std::runtime_error("Can only dereference a pointer");
+    }
+  }
+  
+  template<typename T>
   inline VALUE PointerView<T>::read(size_t offset, size_t count)
   {
     if (!this->pointer)
@@ -110,6 +124,7 @@ namespace Rice::detail
     Data_Type<PointerView_T> result = define_class_under<PointerView_T>(rb_mRice, klassName).
       define_constructor(Constructor<PointerView_T, PointerView_T::type*>()).
       define_attr("size", &PointerView_T::size).
+      define_method("dereference", &PointerView_T::operator*).
       template define_method<VALUE(PointerView_T::*)(size_t, size_t)>("read", &PointerView_T::read, Return().setValue()).
       template define_method<VALUE(PointerView_T::*)()>("read", &PointerView_T::read, Return().setValue()).
       template define_method<Array(PointerView_T::*)(size_t, size_t)>("to_a", &PointerView_T::toArray, Return().setValue()).

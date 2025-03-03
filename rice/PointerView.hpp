@@ -13,6 +13,7 @@ namespace Rice
     PointerView(T* pointer, size_t size);
     PointerView(const PointerView& other);
 
+    PointerView<std::remove_pointer_t<T>> operator*();
     VALUE read(size_t offset, size_t count);
     Array toArray(size_t offset, size_t count);
 

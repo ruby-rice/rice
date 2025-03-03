@@ -1,4 +1,4 @@
-#include "unittest.hpp"
+﻿#include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
@@ -277,11 +277,16 @@ TESTCASE(unsigned_char_ptr_ptr_buffer)
     .define_method("ptr", &Matrix3UnsignedChar::ptr)
     .define_attr("data", &Matrix3UnsignedChar::data, Rice::AttrAccess::Read);
 
-  std::string code = R"(matrix = Matrix3UnsignedChar.new
-                        pointer_view = matrix.ptr
-                        pointer_view.read(0, 5))";
-  String buffer = m.module_eval(code);
-  ASSERT_EQUAL(5, buffer.length());
+  std::string code = u8R"(matrix = Matrix3UnsignedChar.new
+                        view = matrix.ptr
+                        view2 = view.dereference
+                        view2.to_a(0, 5))";
+  Array array = m.module_eval(code);
+  ASSERT_EQUAL(5, array.size());
+
+  std::vector<unsigned char> expected{ 1, 2, 3, 4, 5 };
+  std::vector<unsigned char> actual = array.to_vector<unsigned char>();
+  ASSERT_EQUAL(expected, actual);
 }
 
 TESTCASE(unsigned_char_ptr_ptr_array)
