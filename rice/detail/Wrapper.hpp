@@ -74,7 +74,9 @@ namespace Rice::detail
   template <typename T>
   T* unwrap(VALUE value, rb_data_type_t* rb_type, bool takeOwnership);
 
-  WrapperBase* getWrapper(VALUE value, rb_data_type_t* rb_type);
+  template <typename Wrapper_T = WrapperBase>
+  Wrapper_T* getWrapper(VALUE value, rb_data_type_t* rb_type);
+
   WrapperBase* getWrapper(VALUE value);
 }
 #endif // Rice__detail__Wrapper__hpp_

@@ -159,11 +159,12 @@ namespace Rice::detail
     return static_cast<T*>(wrapper->get());
   }
     
-  inline WrapperBase* getWrapper(VALUE value, rb_data_type_t* rb_type)
+  template <typename Wrapper_T>
+  inline Wrapper_T* getWrapper(VALUE value, rb_data_type_t* rb_type)
   {
     WrapperBase* wrapper = nullptr;
     TypedData_Get_Struct(value, WrapperBase, rb_type, wrapper);
-    return wrapper;
+    return dynamic_cast<Wrapper_T*>(wrapper);
   }
 
   inline WrapperBase* getWrapper(VALUE value)
