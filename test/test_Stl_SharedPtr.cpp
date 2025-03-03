@@ -1,4 +1,4 @@
-#include "unittest.hpp"
+﻿#include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
@@ -352,6 +352,8 @@ TESTCASE(Void)
   MyClass::reset();
   Factory::reset();
 
+  detail::Type<PointerView<void>>::verify();
+
   Module m = define_module("TestingModule");
 
   // Create ruby objects that point to the same instance of MyClass
@@ -385,18 +387,75 @@ namespace
   {
     return *ptr;
   }
+
+  int updatePointerValue(std::shared_ptr<int> ptr)
+  {
+    *ptr = *ptr + 1;
+    return *ptr;
+  }
 }
 
-TESTCASE(PtrInt)
+TESTCASE(PointerToInt)
 {
+  detail::Type<PointerView<int>>::verify();
+
   Module m = define_module("SharedPtrInt").
     define_module_function("create_pointer", &createPointer).
     define_module_function("get_pointer_value", &getPointerValue);
 
-  // Create ruby objects that point to the same instance of MyClass
   std::string code = R"(ptr = create_pointer(44)
                         get_pointer_value(ptr))";
 
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(44, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(CreatePointerToInt)
+{
+  Module m = define_module("CreatePointerToInt").
+    define_module_function("get_pointer_value", &getPointerValue);
+
+  Class c = define_class_under<std::shared_ptr<int>>(m, "SharedPtrInt").
+    define_constructor(Constructor<std::shared_ptr<int>, int*>(), Arg("value").takeOwnership());
+
+  std::string code = R"(ptr = CreatePointerToInt::SharedPtrInt.new(45)
+                        get_pointer_value(ptr))";
+
+  Object result = m.instance_eval(code);
+  ASSERT_EQUAL(45, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(UpdatePointerToInt)
+{
+  Module m = define_module("UpdatePointerToInt").
+    define_module_function("update_pointer_value", &updatePointerValue);
+
+  Class c = define_class_under<std::shared_ptr<int>>(m, "SharedPtrInt2").
+    define_constructor(Constructor<std::shared_ptr<int>, int*>(), Arg("value").takeOwnership());
+
+  std::string code = R"(ptr = UpdatePointerToInt::SharedPtrInt2.new(45)
+                        update_pointer_value(ptr))";
+
+  Object result = m.instance_eval(code);
+  ASSERT_EQUAL(46, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(ReadPointerToInt)
+{
+  detail::Type<PointerView<int>>::verify();
+
+  Module m = define_module("ReadPointerToInt").
+      define_module_function("create_pointer", &createPointer);
+
+  Class c = define_class_under<std::shared_ptr<int>>(m, "SharedPtrInt").
+    define_constructor(Constructor<std::shared_ptr<int>, int*>(), Arg("value").takeOwnership());
+
+  std::string code = u8R"(ptr = create_pointer(50)
+                          view = Rice::PointerView≺int≻.new(ptr)
+                          view.to_a(0, 1))";
+
+  Array array = m.instance_eval(code);
+  std::vector<int> actual = array.to_vector<int>();
+  std::vector<int> expected { 50 };
+  ASSERT_EQUAL(expected, actual);
 }

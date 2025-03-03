@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <memory>
 
+// --------- Wrapper ---------
 namespace Rice::detail
 {
   template<typename T>
@@ -29,6 +30,19 @@ namespace Rice::detail
   {
     return data_;
   }
+}
+
+// --------- Type/To_Ruby/From_Ruby ---------
+namespace Rice::detail
+{
+  template<typename T>
+  struct Type<std::shared_ptr<T>>
+  {
+    static bool verify()
+    {
+      return Type<T>::verify();
+    }
+  };
 
   template <typename T>
   class To_Ruby<std::shared_ptr<T>>
@@ -38,14 +52,11 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        rb_data_type_t* ruby_data_type = RubyType<T>::ruby_data_type();
-        VALUE klass = RubyType<T>::klass();
-        return detail::wrap<std::shared_ptr<T>>(klass, ruby_data_type, data, true);
+        return detail::wrap(RubyType<T>::klass(), RubyType<T>::ruby_data_type(), data, true);
       }
       else
       {
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-        return detail::wrap<std::shared_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+        return detail::wrap<std::shared_ptr<T>>(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
       }
     }
   };
@@ -60,25 +71,8 @@ namespace Rice::detail
     {
     }
 
-    Wrapper<std::shared_ptr<T>>* is_same_smart_ptr(VALUE value)
-    {
-      if constexpr (std::is_fundamental_v<T>)
-      {
-        WrapperBase* wrapper = detail::getWrapper(value, RubyType<T>::ruby_data_type());
-        return dynamic_cast<Wrapper<std::shared_ptr<T>>*>(wrapper);
-      }
-      else
-      {
-        WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-        return dynamic_cast<Wrapper<std::shared_ptr<T>>*>(wrapper);
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
-      if (!is_same_smart_ptr(value))
-        return Convertible::None;
-
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
@@ -91,17 +85,35 @@ namespace Rice::detail
 
     std::shared_ptr<T> convert(VALUE value)
     {
-      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue()) {
+      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
         return this->arg_->template defaultValue<std::shared_ptr<T>>();
       }
 
-      Wrapper<std::shared_ptr<T>>* wrapper = is_same_smart_ptr(value);
-      if (!wrapper)
+      // Get the wrapper
+      WrapperBase* wrapperBase = detail::getWrapper(value);
+
+      // Was this shared_ptr created by the user from Ruby? If so it will
+      // be wrapped as a pointer, std::shared_ptr<T>*. In the case just
+      // return the shared pointer
+      if (dynamic_cast<Wrapper<std::shared_ptr<T>*>*>(wrapperBase))
       {
-        std::string message = "Invalid smart pointer wrapper";
-          throw std::runtime_error(message.c_str());
+        // Use unwrap to validate the underlying wrapper is the correct type
+        std::shared_ptr<T>* ptr = unwrap<std::shared_ptr<T>>(value, Data_Type<std::shared_ptr<T>>::ruby_data_type(), false);
+        return *ptr;
       }
-      return wrapper->data();
+      else if constexpr (std::is_fundamental_v<T>)
+      {
+        // Get the wrapper again to validate T's type
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, RubyType<T>::ruby_data_type());
+        return wrapper->data();
+      }
+      else
+      {
+        // Get the wrapper again to validate T's type
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
+        return wrapper->data();
+      }
     }
   private:
     Arg* arg_ = nullptr;
@@ -115,14 +127,11 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        rb_data_type_t* ruby_data_type = RubyType<T>::ruby_data_type();
-        VALUE klass = RubyType<T>::klass();
-        return detail::wrap<std::shared_ptr<T>>(klass, ruby_data_type, data, true);
+        return detail::wrap(RubyType<T>::klass(), RubyType<T>::ruby_data_type(), data, true);
       }
       else
       {
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-        return detail::wrap<std::shared_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+        return detail::wrap<std::shared_ptr<T>>(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
       }
     }
   };
@@ -137,25 +146,8 @@ namespace Rice::detail
     {
     }
 
-    Wrapper<std::shared_ptr<T>>* is_same_smart_ptr(VALUE value)
-    {
-      if constexpr (std::is_fundamental_v<T>)
-      {
-        WrapperBase* wrapper = detail::getWrapper(value, RubyType<T>::ruby_data_type());
-        return dynamic_cast<Wrapper<std::shared_ptr<T>>*>(wrapper);
-      }
-      else
-      {
-        WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-        return dynamic_cast<Wrapper<std::shared_ptr<T>>*>(wrapper);
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
-      if (!is_same_smart_ptr(value))
-        return Convertible::None;
-
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
@@ -168,29 +160,38 @@ namespace Rice::detail
 
     std::shared_ptr<T>& convert(VALUE value)
     {
-      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue()) {
+      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
         return this->arg_->template defaultValue<std::shared_ptr<T>>();
       }
 
-      Wrapper<std::shared_ptr<T>>* wrapper = is_same_smart_ptr(value);
-      if (!wrapper)
+      // Get the wrapper
+      WrapperBase* wrapperBase = detail::getWrapper(value);
+
+      // Was this shared_ptr created by the user from Ruby? If so it will
+      // be wrapped as a pointer, std::shared_ptr<T>*. In the case just
+      // return the shared pointer
+      if (dynamic_cast<Wrapper<std::shared_ptr<T>*>*>(wrapperBase))
       {
-        std::string message = "Invalid smart pointer wrapper";
-          throw std::runtime_error(message.c_str());
+        // Use unwrap to validate the underlying wrapper is the correct type
+        std::shared_ptr<T>* ptr = unwrap<std::shared_ptr<T>>(value, Data_Type<std::shared_ptr<T>>::ruby_data_type(), false);
+        return *ptr;
       }
-      return wrapper->data();
+      else if constexpr (std::is_fundamental_v<T>)
+      {
+        // Get the wrapper again to validate T's type
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, RubyType<T>::ruby_data_type());
+        return wrapper->data();
+      }
+      else
+      {
+        // Get the wrapper again to validate T's type
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
+        return wrapper->data();
+      }
     }
 
   private:
     Arg* arg_ = nullptr;
-  };
-
-  template<typename T>
-  struct Type<std::shared_ptr<T>>
-  {
-    static bool verify()
-    {
-      return Type<T>::verify();
-    }
   };
 }

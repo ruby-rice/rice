@@ -199,7 +199,7 @@ namespace
 
   using Matrix3UnsignedChar = Matrix3<unsigned char>;
 }
-/*
+
 TESTCASE(unsigned_char_ptr_buffer)
 {
   Module m = define_module("ToRubyPtr");
@@ -282,7 +282,7 @@ TESTCASE(unsigned_char_ptr_ptr_buffer)
                         pointer_view.read(0, 5))";
   String buffer = m.module_eval(code);
   ASSERT_EQUAL(5, buffer.length());
-}*/
+}
 
 TESTCASE(unsigned_char_ptr_ptr_array)
 {
