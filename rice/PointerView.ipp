@@ -122,7 +122,7 @@ namespace Rice::detail
     Module rb_mRice = define_module("Rice");
 
     Data_Type<PointerView_T> result = define_class_under<PointerView_T>(rb_mRice, klassName).
-      define_constructor(Constructor<PointerView_T, PointerView_T::type*>()).
+      define_constructor(Constructor<PointerView_T, typename PointerView_T::type*>()).
       define_attr("size", &PointerView_T::size).
       define_method("dereference", &PointerView_T::operator*).
       template define_method<VALUE(PointerView_T::*)(size_t, size_t)>("read", &PointerView_T::read, Return().setValue()).

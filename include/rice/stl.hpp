@@ -1415,7 +1415,7 @@ namespace Rice
 
     Identifier id(klassName);
     Data_Type<T> result = define_class_under<T>(rb_mStd, id).
-      define_constructor(Constructor<T, T::element_type*>(), Arg("value").takeOwnership());
+      define_constructor(Constructor<T, typename T::element_type*>(), Arg("value").takeOwnership());
 
     return result;
   }
