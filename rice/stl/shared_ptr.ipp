@@ -4,6 +4,32 @@
 #include <assert.h>
 #include <memory>
 
+// --------- Enable creation of std::shared_ptr from Ruby ---------
+namespace Rice
+{
+  template<typename T>
+  inline Data_Type<T> define_shared_ptr(std::string klassName)
+  {
+    if (klassName.empty())
+    {
+      std::string typeName = detail::typeName(typeid(T));
+      klassName = detail::makeClassName(typeName);
+    }
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type<T>::check_defined(klassName, rb_mStd))
+    {
+      return Data_Type<T>();
+    }
+
+    Identifier id(klassName);
+    Data_Type<T> result = define_class_under<T>(rb_mStd, id).
+      define_constructor(Constructor<T, T::element_type*>(), Arg("value").takeOwnership());
+
+    return result;
+  }
+}
+
 // --------- Wrapper ---------
 namespace Rice::detail
 {

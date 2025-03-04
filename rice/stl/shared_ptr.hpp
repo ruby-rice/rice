@@ -17,6 +17,12 @@ namespace Rice::detail
   };
 }
 
+namespace Rice
+{
+  template<typename T>
+  Data_Type<T> define_shared_ptr(std::string klassName = "");
+}
+
 #include "shared_ptr.ipp"
 
 #endif // Rice__stl__shared_ptr__hpp_
