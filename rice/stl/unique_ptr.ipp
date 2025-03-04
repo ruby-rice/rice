@@ -7,7 +7,7 @@
 namespace Rice::detail
 {
   template<typename T>
-  inline Wrapper<std::unique_ptr<T>>::Wrapper(std::unique_ptr<T>& data)
+  inline Wrapper<std::unique_ptr<T>>::Wrapper(std::unique_ptr<T>&& data)
     : data_(std::move(data))
   {
   }

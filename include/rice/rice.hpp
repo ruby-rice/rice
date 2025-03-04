@@ -3783,6 +3783,27 @@ namespace Rice
   }
 }  // Rice
 
+// =========   Constructor.hpp   =========
+
+namespace Rice
+{
+  //! Define a Type's Constructor and it's arguments.
+  /*! E.g. for the default constructor on a Type:
+      \code
+        define_class<Test>()
+          .define_constructor(Constructor<Test>());
+      \endcode
+  *
+  *  The first template argument must be the type being wrapped.
+  *  Additional arguments must be the types of the parameters sent
+  *  to the constructor.
+  *
+  *  For more information, see Rice::Data_Type::define_constructor.
+  */
+  template<typename T, typename...Arg_Ts>
+  class Constructor;
+}
+
 // =========   PointerView.hpp   =========
 
 namespace Rice
@@ -3940,7 +3961,7 @@ namespace Rice::detail
     Module rb_mRice = define_module("Rice");
 
     Data_Type<PointerView_T> result = define_class_under<PointerView_T>(rb_mRice, klassName).
-      define_constructor(Constructor<PointerView_T, PointerView_T::type*>()).
+      define_constructor(Constructor<PointerView_T, typename PointerView_T::type*>()).
       define_attr("size", &PointerView_T::size).
       define_method("dereference", &PointerView_T::operator*).
       template define_method<VALUE(PointerView_T::*)(size_t, size_t)>("read", &PointerView_T::read, Return().setValue()).
@@ -13006,27 +13027,6 @@ namespace Rice::detail
     return TypedData_Wrap_Struct(klass, Data_Type<T>::ruby_data_type(), nullptr);
   }
 }
-// =========   Constructor.hpp   =========
-
-namespace Rice
-{
-  //! Define a Type's Constructor and it's arguments.
-  /*! E.g. for the default constructor on a Type:
-      \code
-        define_class<Test>()
-          .define_constructor(Constructor<Test>());
-      \endcode
-  *
-  *  The first template argument must be the type being wrapped.
-  *  Additional arguments must be the types of the parameters sent
-  *  to the constructor.
-  *
-  *  For more information, see Rice::Data_Type::define_constructor.
-  */
-  template<typename T, typename...Arg_Ts>
-  class Constructor;
-}
-
 // =========   Constructor.ipp   =========
 namespace Rice
 {

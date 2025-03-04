@@ -24,7 +24,7 @@ namespace Rice
 
     Identifier id(klassName);
     Data_Type<T> result = define_class_under<T>(rb_mStd, id).
-      define_constructor(Constructor<T, T::element_type*>(), Arg("value").takeOwnership());
+      define_constructor(Constructor<T, typename T::element_type*>(), Arg("value").takeOwnership());
 
     return result;
   }
@@ -34,7 +34,7 @@ namespace Rice
 namespace Rice::detail
 {
   template<typename T>
-  inline Wrapper<std::shared_ptr<T>>::Wrapper(std::shared_ptr<T>& data)
+  inline Wrapper<std::shared_ptr<T>>::Wrapper(const std::shared_ptr<T>& data)
     : data_(data)
   {
   }

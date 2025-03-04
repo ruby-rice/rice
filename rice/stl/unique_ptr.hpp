@@ -7,7 +7,7 @@ namespace Rice::detail
   class Wrapper<std::unique_ptr<T>> : public WrapperBase
   {
   public:
-    Wrapper(std::unique_ptr<T>& data);
+    Wrapper(std::unique_ptr<T>&& data);
     ~Wrapper();
     void* get() override;
     std::unique_ptr<T>& data();
