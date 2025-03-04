@@ -360,12 +360,8 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector_under(Object parent, std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
+    if (Data_Type<T>::check_defined(name, parent))
     {
-      // If the vector has been previously seen it will be registered but may
-      // not be associated with the constant Module::<name>
-      parent.const_set_maybe(name, Data_Type<T>().klass());
-
       return Data_Type<T>();
     }
 
@@ -378,18 +374,7 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector(std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
-    {
-      // If the vector has been previously seen it will be registered but may
-      // not be associated with the constant Module::<name>
-      Object(rb_cObject).const_set_maybe(name, Data_Type<T>().klass());
-
-      return Data_Type<T>();
-    }
-
-    Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
-    stl::VectorHelper<T> helper(result);
-    return result;
+    return define_vector_under<T>(rb_cObject, name);
   }
 
   template<typename T>
@@ -410,7 +395,7 @@ namespace Rice
       {
         Type<intrinsic_type<T>>::verify();
 
-        if (!detail::Registries::instance.types.isDefined<std::vector<T>>())
+        if (!Data_Type<std::vector<T>>::is_defined())
         {
           define_vector_auto<std::vector<T>>();
         }
@@ -418,7 +403,6 @@ namespace Rice
         return true;
       }
     };
-
 
     template<typename T>
     class From_Ruby<std::vector<T>>
@@ -452,7 +436,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped vector (hopefully!)
-            return *Data_Object<std::vector<T>>::from_ruby(value);
+            return *detail::unwrap<std::vector<T>>(value, Data_Type<std::vector<T>>::ruby_data_type(), false);
           }
           case RUBY_T_ARRAY:
           {
@@ -513,7 +497,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped vector (hopefully!)
-            return *Data_Object<std::vector<T>>::from_ruby(value);
+            return *detail::unwrap<std::vector<T>>(value, Data_Type<std::vector<T>>::ruby_data_type(), false);
           }
           case RUBY_T_ARRAY:
           {
@@ -573,7 +557,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped vector (hopefully!)
-            return Data_Object<std::vector<T>>::from_ruby(value);
+            return detail::unwrap<std::vector<T>>(value, Data_Type<std::vector<T>>::ruby_data_type(), false);
           }
           case RUBY_T_ARRAY:
           {

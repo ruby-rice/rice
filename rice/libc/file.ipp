@@ -21,7 +21,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
-      if (!detail::Registries::instance.types.isDefined<FILE>())
+      if (!Data_Type<FILE>::is_defined())
       {
         libc::define_libc_file();
       }

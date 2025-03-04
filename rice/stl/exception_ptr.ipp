@@ -16,7 +16,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
-      if (!detail::Registries::instance.types.isDefined<std::exception_ptr>())
+      if (!Data_Type<std::exception_ptr>::is_defined())
       {
         stl::define_exception_ptr();
       }

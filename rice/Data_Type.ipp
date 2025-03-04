@@ -3,7 +3,7 @@
 namespace Rice
 {
   template<typename T>
-  inline void ruby_mark_internal(detail::Wrapper* wrapper)
+  inline void ruby_mark_internal(detail::WrapperBase* wrapper)
   {
     // Tell the wrapper to mark the objects its keeping alive
     wrapper->ruby_mark();
@@ -14,7 +14,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline void ruby_free_internal(detail::Wrapper* wrapper)
+  inline void ruby_free_internal(detail::WrapperBase* wrapper)
   {
     delete wrapper;
   }
@@ -172,7 +172,7 @@ namespace Rice
   template<typename Director_T>
   inline Data_Type<T>& Data_Type<T>::define_director()
   {
-    if (!detail::Registries::instance.types.isDefined<Director_T>())
+    if (!Data_Type<Director_T>::is_defined())
     {
       Data_Type<Director_T>::bind(*this);
     }
@@ -207,24 +207,26 @@ namespace Rice
   }
 
   template<typename T>
-  inline bool Data_Type<T>::is_defined(Object parent, const std::string& name)
+  inline bool Data_Type<T>::is_defined()
   {
-    // Is the class already defined?
-    if (detail::Registries::instance.types.isDefined<T>())
+    return detail::Registries::instance.types.isDefined<T>();
+  }
+
+  template<typename T>
+  inline bool Data_Type<T>::check_defined(const std::string& name, Object parent)
+  {
+    if (Data_Type<T>::is_defined())
     {
       Data_Type<T> dataType;
-
-      // If this redefinition is a different name then create a new constant
-      if (dataType.base_name() != name)
-      {
-        detail::protect(rb_define_const, parent, name.c_str(), dataType.klass());
-      }
-
+      parent.const_set_maybe(name, dataType.klass());
       return true;
     }
-    return false;
+    else
+    {
+      return false;
+    }
   }
-  
+   
   template<typename Base_T>
   inline Class get_superklass()
   {
@@ -247,7 +249,7 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class_under(Object parent, Identifier id, Class superKlass)
   {
-    if (Rice::Data_Type<T>::is_defined(parent, id.str()))
+    if (Rice::Data_Type<T>::check_defined(id.str(), parent))
     {
       return Data_Type<T>();
     }
@@ -270,7 +272,7 @@ namespace Rice
   {
     std::string klassName(name);
 
-    if (Rice::Data_Type<T>::is_defined(rb_cObject, klassName))
+    if (Rice::Data_Type<T>::check_defined(klassName))
     {
       return Data_Type<T>();
     }

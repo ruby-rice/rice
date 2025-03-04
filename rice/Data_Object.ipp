@@ -77,19 +77,6 @@ namespace Rice
       return detail::unwrap<T>(this->value(), Data_Type<T>::ruby_data_type(), false);
     }
   }
-
-  template<typename T>
-  inline T* Data_Object<T>::from_ruby(VALUE value, bool takeOwnership)
-  {
-    if (Data_Type<T>::is_descendant(value))
-    {
-      return detail::unwrap<T>(value, Data_Type<T>::ruby_data_type(), takeOwnership);
-    }
-    else
-    {
-      throw create_type_exception<T>(value);
-    }
-  }
 }
 
 namespace Rice::detail
@@ -365,15 +352,16 @@ namespace Rice::detail
       }
       else
       {
+        using Intrinsic_T = intrinsic_type<T>;
+        Intrinsic_T* instance = detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
+
         if constexpr (std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>)
         {
-          using Intrinsic_T = intrinsic_type<T>;
-          return T(*Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner()));
+          return T(*instance);
         }
         else
         {
-          using Intrinsic_T = intrinsic_type<T>;
-          return *Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
+          return *instance;
         }
       }
     }
@@ -416,7 +404,7 @@ namespace Rice::detail
       }
       else
       {
-        return *Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
+        return *detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner()); 
       }
     }
 
@@ -458,7 +446,8 @@ namespace Rice::detail
       }
       else
       {
-        return std::move(*Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner()));
+        Intrinsic_T* object = detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
+        return std::move(*object);
       }
     }
 
@@ -542,7 +531,7 @@ namespace Rice::detail
       {
         case RUBY_T_DATA:
         {
-          return Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
+          return detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
           break;
         }
         case RUBY_T_NIL:
@@ -609,7 +598,7 @@ namespace Rice::detail
       }
       else
       {
-        return Data_Object<Intrinsic_T>::from_ruby(value, this->arg_ && this->arg_->isOwner());
+        return detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
       }
     }
 

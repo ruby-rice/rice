@@ -72,6 +72,7 @@
 // To / From Ruby
 #include "Arg.ipp"
 #include "Return.ipp"
+#include "Constructor.hpp"
 #include "PointerView.hpp"
 #include "PointerView.ipp"
 #include "detail/to_ruby.ipp"
@@ -131,7 +132,6 @@
 #include "Director.hpp"
 #include "Data_Type.ipp"
 #include "detail/default_allocation_func.ipp"
-#include "Constructor.hpp"
 #include "Constructor.ipp"
 #include "Callback.hpp"
 #include "Callback.ipp"

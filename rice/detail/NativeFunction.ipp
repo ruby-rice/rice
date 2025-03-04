@@ -372,7 +372,7 @@ namespace Rice::detail
 
     // selfWrapper will be nullptr if this(self) is a builtin type and not an external(wrapped) type
     // it is highly unlikely that keepAlive is used in this case but we check anyway
-    Wrapper* selfWrapper = getWrapper(self);
+    WrapperBase* selfWrapper = getWrapper(self);
 
     // Check function arguments
     for (const Arg& arg : (*this->methodInfo_))
@@ -396,7 +396,7 @@ namespace Rice::detail
       }
 
       // returnWrapper will be nullptr if returnValue is a built-in type and not an external(wrapped) type
-      Wrapper* returnWrapper = getWrapper(returnValue);
+      WrapperBase* returnWrapper = getWrapper(returnValue);
       if (returnWrapper == nullptr)
       {
         noWrapper(returnValue, "return");

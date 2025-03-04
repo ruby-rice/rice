@@ -42,9 +42,6 @@ namespace Rice
     static_assert(!std::is_void_v<T>);
 
   public:
-    static T* from_ruby(VALUE value, bool takeOwnership = false);
-
-  public:
     //! Wrap a C++ object.
     /*! This constructor is analogous to calling Data_Wrap_Struct.  Be
      *  careful not to call this function more than once for the same
