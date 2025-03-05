@@ -13,7 +13,7 @@ namespace Rice::detail
   class To_Ruby<std::string>
   {
   public:
-    VALUE convert(std::string const& x)
+    VALUE convert(const std::string& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
     }
@@ -23,7 +23,7 @@ namespace Rice::detail
   class To_Ruby<std::string&>
   {
   public:
-    VALUE convert(std::string const& x)
+    VALUE convert(const std::string& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
     }
