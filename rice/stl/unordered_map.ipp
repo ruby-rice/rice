@@ -246,11 +246,8 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_unordered_map_under(Object parent, std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
+    if (Data_Type<T>::check_defined(name, parent))
     {
-      // If the unordered_map has been previously seen it will be registered but may
-      // not be associated with the constant Module::<name>
-      parent.const_set_maybe(name, Data_Type<T>().klass());
       return Data_Type<T>();
     }
 
@@ -262,11 +259,8 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_unordered_map(std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
+    if (Data_Type<T>::check_defined(name))
     {
-      // If the unordered_map has been previously seen it will be registered but may
-      // not be associated with the constant Object::<name>
-      Object(rb_cObject).const_set_maybe(name, Data_Type<T>().klass());
       return Data_Type<T>();
     }
 
@@ -294,7 +288,7 @@ namespace Rice
         Type<T>::verify();
         Type<U>::verify();
 
-        if (!detail::Registries::instance.types.isDefined<std::unordered_map<T, U>>())
+        if (!Data_Type<std::unordered_map<T, U>>::is_defined())
         {
           define_unordered_map_auto<std::unordered_map<T, U>>();
         }
@@ -364,7 +358,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped unordered_map (hopefully!)
-            return *Data_Object<std::unordered_map<T, U>>::from_ruby(value);
+            return *detail::unwrap<std::unordered_map<T, U>>(value, Data_Type<std::unordered_map<T, U>>::ruby_data_type(), false);
           }
           case RUBY_T_HASH:
           {
@@ -425,7 +419,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped unordered_map (hopefully!)
-            return *Data_Object<std::unordered_map<T, U>>::from_ruby(value);
+            return *detail::unwrap<std::unordered_map<T, U>>(value, Data_Type<std::unordered_map<T, U>>::ruby_data_type(), false);
           }
           case RUBY_T_HASH:
           {
@@ -485,7 +479,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped unordered_map (hopefully!)
-            return Data_Object<std::unordered_map<T, U>>::from_ruby(value);
+            return detail::unwrap<std::unordered_map<T, U>>(value, Data_Type<std::unordered_map<T, U>>::ruby_data_type(), false);
           }
           case RUBY_T_HASH:
           {

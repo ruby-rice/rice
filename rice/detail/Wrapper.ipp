@@ -2,11 +2,7 @@
 
 namespace Rice::detail
 {
-  inline Wrapper::Wrapper(bool isOwner): isOwner_(isOwner)
-  {
-  }
-
-  inline void Wrapper::ruby_mark()
+  inline void WrapperBase::ruby_mark()
   {
     for (VALUE value : this->keepAlive_)
     {
@@ -14,92 +10,85 @@ namespace Rice::detail
     }
   }
 
-  inline void Wrapper::addKeepAlive(VALUE value)
+  inline void WrapperBase::addKeepAlive(VALUE value)
   {
     this->keepAlive_.push_back(value);
   }
 
-  inline void Wrapper::setOwner(bool value)
+  inline void WrapperBase::setOwner(bool value)
   {
     this->isOwner_ = value;
   }
 
+  // ----  Wrapper -----
   template <typename T>
-  class WrapperValue : public Wrapper
+  inline Wrapper<T>::Wrapper(T& data): data_(data)
   {
-  public:
-    WrapperValue(T& data): data_(std::move(data))
-    {
-    }
-
-    ~WrapperValue()
-    {
-      Registries::instance.instances.remove(this->get());
-    }
-
-    void* get() override
-    {
-      return (void*)&this->data_;
-    }
-
-  private:
-    T data_;
-  };
+  }
 
   template <typename T>
-  class WrapperReference : public Wrapper
+  inline Wrapper<T>::Wrapper(T&& data) : data_(std::move(data))
   {
-  public:
-    WrapperReference(T& data): data_(data)
-    {
-    }
-
-    ~WrapperReference()
-    {
-      Registries::instance.instances.remove(this->get());
-    }
-
-    void* get() override
-    {
-      return (void*)&this->data_;
-    }
-
-  private:
-    T& data_;
-  };
+  }
 
   template <typename T>
-  class WrapperPointer : public Wrapper
+  inline Wrapper<T>::~Wrapper()
   {
-  public:
-    WrapperPointer(T* data, bool isOwner) : Wrapper(isOwner), data_(data)
-    {
-    }
+    Registries::instance.instances.remove(this->get());
+  }
 
-    ~WrapperPointer()
-    {
-      Registries::instance.instances.remove(this->get());
+  template <typename T>
+  inline void* Wrapper<T>::Wrapper::get()
+  {
+    return (void*)&this->data_;
+  }
 
-      if constexpr (std::is_destructible_v<T>)
+  // ----  Wrapper& -----
+  template <typename T>
+  inline Wrapper<T&>::Wrapper(T& data): data_(data)
+  {
+  }
+
+  template <typename T>
+  inline Wrapper<T&>::~Wrapper()
+  {
+    Registries::instance.instances.remove(this->get());
+  }
+
+  template <typename T>
+  inline void* Wrapper<T&>::get()
+  {
+    return (void*)&this->data_;
+  }
+
+  // ----  Wrapper* -----
+  template <typename T>
+  inline Wrapper<T*>::Wrapper(T* data, bool isOwner) : data_(data)
+  {
+    this->isOwner_ = isOwner;
+  }
+
+  template <typename T>
+  inline Wrapper<T*>::~Wrapper()
+  {
+    Registries::instance.instances.remove(this->get());
+    if constexpr (std::is_destructible_v<T>)
+    {
+      if (this->isOwner_)
       {
-        if (this->isOwner_)
-        {
-          delete this->data_;
-        }
+        delete this->data_;
       }
     }
+  }
 
-    void* get() override
-    {
-      return (void*)this->data_;
-    }
-
-  private:
-    T* data_ = nullptr;
-  };
+  template <typename T>
+  inline void* Wrapper<T*>::get()
+  {
+    return (void*)this->data_;
+  }
 
   // ---- Helper Functions -------
-  template <typename T, typename Wrapper_T>
+  template <typename T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner)
   {
     VALUE result = Registries::instance.instances.lookup(&data);
@@ -107,40 +96,27 @@ namespace Rice::detail
     if (result != Qnil)
       return result;
 
-    Wrapper* wrapper = nullptr;
+    WrapperBase* wrapper = nullptr;
 
-    // Is this a pointer but cannot be copied? For example a std::unique_ptr
-    if constexpr (!std::is_void_v<Wrapper_T> && !std::is_copy_constructible_v<Wrapper_T>)
+    // If Ruby is not the owner then wrap the reference
+    if (!isOwner)
     {
-      wrapper = new Wrapper_T(std::move(data));
+      wrapper = new Wrapper<T&>(data);
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
-    // Is this a pointer or smart pointer like std::shared_ptr
-    else if constexpr (!std::is_void_v<Wrapper_T>)
+
+    // Ruby is the owner so copy data
+    else if constexpr (std::is_copy_constructible_v<T> || std::is_move_constructible_v<T>)
     {
-      wrapper = new Wrapper_T(data);
+      wrapper = new Wrapper<T>(std::forward<T>(data));
       result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
     }
-    // If ruby is the owner than copy the object if possible
-    else if (isOwner)
-    {
-      if constexpr (std::is_copy_constructible_v<T> || std::is_move_constructible_v<T>)
-      {
-        wrapper = new WrapperValue<T>(data);
-        result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
-      }
-      else
-      {
-        std::string message = "Ruby was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: " +
-          typeName(typeid(T));
-        throw std::runtime_error(message);
-      }
-    }
-    // Ruby is not the owner so just wrap the reference
+
     else
     {
-      wrapper = new WrapperReference<T>(data);
-      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      std::string message = "Ruby was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: " +
+        typeName(typeid(T));
+      throw std::runtime_error(message);
     }
 
     Registries::instance.instances.add(wrapper->get(), result);
@@ -148,7 +124,7 @@ namespace Rice::detail
     return result;
   };
 
-  template <typename T, typename Wrapper_T>
+  template <typename T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner)
   {
     VALUE result = Registries::instance.instances.lookup(data);
@@ -156,18 +132,8 @@ namespace Rice::detail
     if (result != Qnil)
       return result;
 
-    Wrapper* wrapper = nullptr;
-
-    if constexpr (!std::is_void_v<Wrapper_T>)
-    {
-      wrapper = new Wrapper_T(data);
-      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
-    }
-    else
-    {
-      wrapper = new WrapperPointer<T>(data, isOwner);
-      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
-    }
+    WrapperBase* wrapper = new Wrapper<T*>(data, isOwner);
+    result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
 
     Registries::instance.instances.add(wrapper->get(), result);
     return result;
@@ -176,9 +142,7 @@ namespace Rice::detail
   template <typename T>
   inline T* unwrap(VALUE value, rb_data_type_t* rb_type, bool takeOwnership)
   {
-    Wrapper* wrapper = getWrapper(value, rb_type);
-    if (takeOwnership)
-      wrapper->setOwner(false);
+    WrapperBase* wrapper = getWrapper(value, rb_type);
 
     if (wrapper == nullptr)
     {
@@ -189,17 +153,21 @@ namespace Rice::detail
       throw std::runtime_error(message);
     }
 
+    if (takeOwnership)
+      wrapper->setOwner(false);
+
     return static_cast<T*>(wrapper->get());
   }
     
-  inline Wrapper* getWrapper(VALUE value, rb_data_type_t* rb_type)
+  template <typename Wrapper_T>
+  inline Wrapper_T* getWrapper(VALUE value, rb_data_type_t* rb_type)
   {
-    Wrapper* wrapper = nullptr;
-    TypedData_Get_Struct(value, Wrapper, rb_type, wrapper);
-    return wrapper;
+    WrapperBase* wrapper = nullptr;
+    TypedData_Get_Struct(value, WrapperBase, rb_type, wrapper);
+    return dynamic_cast<Wrapper_T*>(wrapper);
   }
 
-  inline Wrapper* getWrapper(VALUE value)
+  inline WrapperBase* getWrapper(VALUE value)
   {
     // Turn off spurious warning on g++ 12
     #if defined(__GNUC__) || defined(__clang__)
@@ -207,7 +175,7 @@ namespace Rice::detail
     #pragma GCC diagnostic ignored "-Warray-bounds"
     #endif
 
-    return RTYPEDDATA_P(value) ? static_cast<Wrapper*>(RTYPEDDATA_DATA(value)) : nullptr;
+    return RTYPEDDATA_P(value) ? static_cast<WrapperBase*>(RTYPEDDATA_DATA(value)) : nullptr;
     
     #if defined(__GNUC__) || defined(__clang__)
     #pragma GCC diagnostic pop
@@ -215,17 +183,19 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void replace(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner)
+  inline void wrapConstructed(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner)
   {
-    WrapperPointer<T>* wrapper = nullptr;
-    TypedData_Get_Struct(value, WrapperPointer<T>, rb_type, wrapper);
+    using Wrapper_T = Wrapper<T*>;
+    
+    Wrapper_T* wrapper = nullptr;
+    TypedData_Get_Struct(value, Wrapper_T, rb_type, wrapper);
     if (wrapper)
     {
       Registries::instance.instances.remove(wrapper->get());
       delete wrapper;
     }
 
-    wrapper = new WrapperPointer<T>(data, isOwner);
+    wrapper = new Wrapper_T(data, true);
     RTYPEDDATA_DATA(value) = wrapper;
 
     Registries::instance.instances.add(data, value);

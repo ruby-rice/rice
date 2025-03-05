@@ -1,4 +1,4 @@
-#include "unittest.hpp"
+﻿#include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
@@ -7,7 +7,7 @@
 
 using namespace Rice;
 
-TESTSUITE(SmartPointer);
+TESTSUITE(SharedPtr);
 
 namespace
 {
@@ -69,11 +69,6 @@ namespace
     {
     }
 
-    std::unique_ptr<MyClass> transfer()
-    {
-      return std::make_unique<MyClass>();
-    }
-
     std::shared_ptr<MyClass> share()
     {
       if (!instance_)
@@ -99,20 +94,9 @@ namespace
   class Sink
   {
   public:
-    int takeOwnership(std::unique_ptr<MyClass> ptr)
-    {
-      return ptr->flag;
-    }
-
     long shareOwnership(std::shared_ptr<MyClass> ptr)
     {
       return ptr.use_count();
-    }
-
-    int updatePointer(std::unique_ptr<MyClass>& ptr, MyClass* myClass)
-    {
-      ptr.reset(myClass);
-      return ptr->flag;
     }
 
     int updatePointer(std::shared_ptr<MyClass>& ptr, MyClass* myClass)
@@ -133,11 +117,6 @@ namespace
     }
   };
 
-  int extractFlagUniquePtrRef(std::unique_ptr<MyClass>& myClass)
-  {
-    return myClass->flag;
-  }
-
   int extractFlagSharedPtr(std::shared_ptr<MyClass> myClass)
   {
     return myClass->flag;
@@ -149,7 +128,7 @@ namespace
   }
 }
 
-SETUP(SmartPointer)
+SETUP(SharedPtr)
 {
   embed_ruby();
 
@@ -163,23 +142,18 @@ SETUP(SmartPointer)
 
   define_class<Factory>("Factory").
     define_constructor(Constructor<Factory>()).
-    define_method("transfer", &Factory::transfer).
     define_method("share", &Factory::share).
     define_method("share_ref", &Factory::share_ref);
 
   define_class<Sink>("Sink").
     define_constructor(Constructor<Sink>()).
-    define_method("take_ownership", &Sink::takeOwnership).
     define_method("share_ownership", &Sink::shareOwnership).
-    define_method<int(Sink::*)(std::unique_ptr<MyClass>&, MyClass*)>("update_pointer", &Sink::updatePointer, 
-      Arg("ptr"), Arg("myClass").takeOwnership()).
-    define_method<int(Sink::*)(std::shared_ptr<MyClass>&, MyClass*)>("update_pointer", &Sink::updatePointer,
+    define_method("update_pointer", &Sink::updatePointer,
       Arg("ptr"), Arg("myClass").takeOwnership()).
     define_method("make_void_shared", &Sink::makeVoidShared,
       Arg("myClass").takeOwnership()).
     define_method<int(Sink::*)(std::shared_ptr<void>&)>("handle_void", &Sink::handleVoid);
 
-  define_global_function("extract_flag_unique_ptr_ref", &extractFlagUniquePtrRef);
   define_global_function("extract_flag_shared_ptr", &extractFlagSharedPtr);
   define_global_function("extract_flag_shared_ptr_ref", &extractFlagSharedPtrRef);
 
@@ -189,36 +163,12 @@ SETUP(SmartPointer)
       Arg("myClass") = std::make_shared<MyClass>());
 }
 
-TEARDOWN(SmartPointer)
+TEARDOWN(SharedPtr)
 {
   rb_gc_start();
 #if RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR >= 2
   rb_eval_string("GC.stress = false");
 #endif
-}
-
-TESTCASE(takeOwnership)
-{
-  MyClass::reset();
-  Factory::reset();
-
-  Module m = define_module("TestingModule");
-
-  std::string code = R"(factory = Factory.new
-                        10.times do |i|
-                          my_class = factory.transfer
-                          my_class.set_flag(i)
-                          my_class = nil
-                        end)";
-
-  m.module_eval(code);
-  rb_gc_start();
-
-  ASSERT_EQUAL(10, MyClass::constructorCalls);
-  ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
-  ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
-  ASSERT_EQUAL(10, MyClass::destructorCalls);
-  ASSERT(!Factory::instance_);
 }
 
 TESTCASE(ShareOwnership)
@@ -279,23 +229,7 @@ TESTCASE(ShareOwnership2)
   ASSERT_EQUAL(2, Factory::instance_.use_count());
 }
 
-TESTCASE(UniquePtrRefParameter)
-{
-  MyClass::reset();
-  Factory::reset();
-
-  Module m = define_module("TestingModule");
-
-  std::string code = R"(factory = Factory.new
-                        my_class = factory.transfer
-                        my_class.set_flag(7)
-                        extract_flag_unique_ptr_ref(my_class))";
-
-  Object result = m.module_eval(code);
-  ASSERT_EQUAL(7, detail::From_Ruby<int>().convert(result));
-}
-
-TESTCASE(SharedPtrParameter)
+TESTCASE(PtrParameter)
 {
   MyClass::reset();
   Factory::reset();
@@ -311,7 +245,7 @@ TESTCASE(SharedPtrParameter)
   ASSERT_EQUAL(8, detail::From_Ruby<int>().convert(result));
 }
 
-TESTCASE(SharedPtrRefParameter)
+TESTCASE(RefParameter)
 {
   MyClass::reset();
   Factory::reset();
@@ -327,7 +261,7 @@ TESTCASE(SharedPtrRefParameter)
   ASSERT_EQUAL(9, detail::From_Ruby<int>().convert(result));
 }
 
-TESTCASE(SharedPtrDefaultParameter)
+TESTCASE(DefaultParameter)
 {
   MyClass::reset();
   Factory::reset();
@@ -344,7 +278,7 @@ TESTCASE(SharedPtrDefaultParameter)
   ASSERT_EQUAL(0, detail::From_Ruby<int>().convert(result));
 }
 
-TESTCASE(SharedPtrRefDefaultParameter)
+TESTCASE(RefDefaultParameter)
 {
   MyClass::reset();
   Factory::reset();
@@ -365,56 +299,10 @@ TESTCASE(SharedPtrRefDefaultParameter)
   ASSERT_EQUAL(1, MyClass::constructorCalls);
   ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
   ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
- // ASSERT_EQUAL(1, MyClass::destructorCalls);
+  ASSERT_EQUAL(1, MyClass::destructorCalls);
 }
 
-TESTCASE(UniquePtrRoundTrip)
-{
-  MyClass::reset();
-  Factory::reset();
-
-  Module m = define_module("TestingModule");
-
-  // Create ruby objects that point to the same instance of MyClass
-  std::string code = R"(factory = Factory.new
-                        my_class = factory.transfer
-                        my_class.set_flag(5)
-                        
-                        sink = Sink.new
-                        sink.take_ownership(my_class))";
-
-  Object result = m.instance_eval(code);
-  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result.value()));
-
-  ASSERT_EQUAL(1, MyClass::constructorCalls);
-  ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
-  ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
- // ASSERT_EQUAL(1, MyClass::destructorCalls);
-}
-
-TESTCASE(UniquePtrUpdate)
-{
-  MyClass::reset();
-  Factory::reset();
-
-  Module m = define_module("TestingModule");
-
-  // Create ruby objects that point to the same instance of MyClass
-  std::string code = R"(factory = Factory.new
-                        my_class1 = factory.transfer
-                        my_class1.set_flag(5)
-                        
-                        my_class2 = MyClass.new
-                        my_class2.set_flag(11)
-
-                        sink = Sink.new
-                        sink.update_pointer(my_class1, my_class2))";
-
-  Object result = m.instance_eval(code);
-  ASSERT_EQUAL(11, detail::From_Ruby<long>().convert(result.value()));
-}
-
-TESTCASE(SharedPtrRoundTrip)
+TESTCASE(RoundTrip)
 {
   MyClass::reset();
   Factory::reset();
@@ -434,10 +322,10 @@ TESTCASE(SharedPtrRoundTrip)
   ASSERT_EQUAL(1, MyClass::constructorCalls);
   ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
   ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
- // ASSERT_EQUAL(0, MyClass::destructorCalls);
+  ASSERT_EQUAL(1, MyClass::destructorCalls);
 }
 
-TESTCASE(SharedPtrUpdate)
+TESTCASE(Update)
 {
   MyClass::reset();
   Factory::reset();
@@ -459,10 +347,12 @@ TESTCASE(SharedPtrUpdate)
   ASSERT_EQUAL(14, detail::From_Ruby<long>().convert(result.value()));
 }
 
-TESTCASE(SharedPtrVoid)
+TESTCASE(Void)
 {
   MyClass::reset();
   Factory::reset();
+
+  detail::Type<PointerView<void>>::verify();
 
   Module m = define_module("TestingModule");
 
@@ -497,18 +387,70 @@ namespace
   {
     return *ptr;
   }
+
+  int updatePointerValue(std::shared_ptr<int> ptr)
+  {
+    *ptr = *ptr + 1;
+    return *ptr;
+  }
 }
 
-TESTCASE(SharedPtrInt)
+TESTCASE(PointerToInt)
 {
+  detail::Type<PointerView<int>>::verify();
+
   Module m = define_module("SharedPtrInt").
     define_module_function("create_pointer", &createPointer).
     define_module_function("get_pointer_value", &getPointerValue);
 
-  // Create ruby objects that point to the same instance of MyClass
   std::string code = R"(ptr = create_pointer(44)
                         get_pointer_value(ptr))";
 
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(44, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(CreatePointerToInt)
+{
+  Module m = define_module("CreatePointerToInt").
+    define_module_function("get_pointer_value", &getPointerValue);
+
+  define_shared_ptr<std::shared_ptr<int>>("SharedPtrInt");
+
+  std::string code = R"(ptr = Std::SharedPtrInt.new(45)
+                        get_pointer_value(ptr))";
+
+  Object result = m.instance_eval(code);
+  ASSERT_EQUAL(45, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(UpdatePointerToInt)
+{
+  Module m = define_module("UpdatePointerToInt").
+    define_module_function("update_pointer_value", &updatePointerValue);
+
+  define_shared_ptr<std::shared_ptr<int>>();
+
+  std::string code = R"(ptr = Std::SharedPtr≺int≻.new(45)
+                        update_pointer_value(ptr))";
+
+  Object result = m.instance_eval(code);
+  ASSERT_EQUAL(46, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(ReadPointerToInt)
+{
+  detail::Type<PointerView<int>>::verify();
+
+  Module m = define_module("ReadPointerToInt").
+      define_module_function("create_pointer", &createPointer);
+
+  std::string code = u8R"(ptr = create_pointer(50)
+                          view = Rice::PointerView≺int≻.new(ptr)
+                          view.to_a(0, 1))";
+
+  Array array = m.instance_eval(code);
+  std::vector<int> actual = array.to_vector<int>();
+  std::vector<int> expected { 50 };
+  ASSERT_EQUAL(expected, actual);
 }

@@ -33,7 +33,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<bool>" };
+    static inline rb_data_type_t ruby_data_type_ = { "bool*" };
     static inline VALUE klass_ = Qnil;
   };
 
@@ -70,7 +70,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<char>" };
+    static inline rb_data_type_t ruby_data_type_ = { "char*" };
     static inline VALUE klass_ = Qnil;
   };
 
@@ -108,7 +108,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<signed char>" };
+    static inline rb_data_type_t ruby_data_type_ = { "signed char*" };
     static inline VALUE klass_ = Qnil;
   };
 
@@ -146,7 +146,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<unsigned char>" };
+    static inline rb_data_type_t ruby_data_type_ = { "unsigned char*" };
     static inline VALUE klass_ = Qnil;
   };
 
@@ -183,7 +183,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<short>" };
+    static inline rb_data_type_t ruby_data_type_ = { "short*" };
     static inline VALUE klass_ = Qnil;
   };
 
@@ -220,7 +220,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<unsigned short>" };
+    static inline rb_data_type_t ruby_data_type_ = { "unsigned short*" };
     static inline VALUE klass_ = Qnil;
   };
 
@@ -259,7 +259,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = {"RubyType<int>"};
+    static inline rb_data_type_t ruby_data_type_ = {"int*"};
     static inline VALUE klass_ = Qnil;
   };
 
@@ -298,7 +298,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<unsigned int>" };
+    static inline rb_data_type_t ruby_data_type_ = { "unsigned int*" };
     static inline VALUE klass_ = Qnil;
   };
 
@@ -335,7 +335,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<long>" };
+    static inline rb_data_type_t ruby_data_type_ = { "long*" };
     static inline VALUE klass_ = Qnil;
   };
 
@@ -372,7 +372,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<unsigned long>" };
+    static inline rb_data_type_t ruby_data_type_ = { "unsigned long*" };
     static inline VALUE klass_ = Qnil;
   };
 
@@ -409,7 +409,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<long long>" };
+    static inline rb_data_type_t ruby_data_type_ = { "long long*" };
     static inline VALUE klass_ = Qnil;
   };
 
@@ -446,7 +446,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<unsigned long long>" };
+    static inline rb_data_type_t ruby_data_type_ = { "unsigned long long*" };
     static inline VALUE klass_ = Qnil;
   };
 
@@ -483,7 +483,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<float>" };
+    static inline rb_data_type_t ruby_data_type_ = { "float*" };
     static inline VALUE klass_ = Qnil;
   };
 
@@ -520,7 +520,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<double>" };
+    static inline rb_data_type_t ruby_data_type_ = { "double*" };
     static inline VALUE klass_ = Qnil;
   };
 
@@ -553,7 +553,7 @@ namespace Rice::detail
     }
 
   private:
-    static inline rb_data_type_t ruby_data_type_ = { "RubyType<void>" };
+    static inline rb_data_type_t ruby_data_type_ = { "void*" };
     static inline VALUE klass_ = Qnil;
   };
 }

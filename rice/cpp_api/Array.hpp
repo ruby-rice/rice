@@ -69,7 +69,7 @@ namespace Rice
     //! C++ APIs that take large chunks of memory should not be passed Ruby Arrrays.
     //! \return std::unique_ptr that is owned by the caller.
     template<typename T>
-    std::unique_ptr<T[]> pack();
+    T* pack();
 
   private:
     //! A helper class so array[index]=value can work.

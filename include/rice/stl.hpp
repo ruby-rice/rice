@@ -21,8 +21,7 @@ namespace Rice::stl
 
   inline void define_stl_exception()
   {
-    Module rb_mRice = define_module("Rice");
-    Module rb_mStd = define_module_under(rb_mRice, "Std");
+    Module rb_mStd = define_module("Std");
     rb_cStlException = define_class_under<std::exception>(rb_mStd, "Exception", rb_eStandardError).
                         define_constructor(Constructor<std::exception>()).
                         define_method("message", &std::exception::what);
@@ -53,9 +52,7 @@ namespace Rice::stl
 {
   inline Data_Type<std::exception_ptr> define_exception_ptr()
   {
-    Module rb_mRice = define_module("Rice");
-    Module rb_mStd = define_module_under(rb_mRice, "Std");
-
+    Module rb_mStd = define_module("Std");
     return define_class_under<std::exception_ptr>(rb_mStd, "ExceptionPtr");
   }
 }
@@ -67,7 +64,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
-      if (!detail::Registries::instance.types.isDefined<std::exception_ptr>())
+      if (!Data_Type<std::exception_ptr>::is_defined())
       {
         stl::define_exception_ptr();
       }
@@ -596,860 +593,6 @@ namespace Rice::detail
 }
 
 
-// =========   smart_ptr.hpp   =========
-
-
-namespace Rice::detail
-{
-  template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
-  class WrapperSmartPointer : public Wrapper
-  {
-  public:
-    WrapperSmartPointer(SmartPointer_T<Arg_Ts...> data);
-    ~WrapperSmartPointer();
-    void* get() override;
-    SmartPointer_T<Arg_Ts...>& data();
-
-  private:
-    SmartPointer_T<Arg_Ts...> data_;
-  };
-}
-
-
-// ---------   smart_ptr.ipp   ---------
-
-#include <assert.h>
-#include <memory>
-
-namespace Rice::detail
-{
-  // ---- WrapperSmartPointer ------
-  template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
-  inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::WrapperSmartPointer(SmartPointer_T<Arg_Ts...> data) 
-    : data_(std::move(data))
-  {
-  }
-
-  template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
-  inline WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::~WrapperSmartPointer()
-  {
-    Registries::instance.instances.remove(this->get());
-  }
-
-  template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
-  inline void* WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::get()
-  {
-    return (void*)this->data_.get();
-  }
-
-  template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
-  inline SmartPointer_T<Arg_Ts...>& WrapperSmartPointer<SmartPointer_T, Arg_Ts...>::data()
-  {
-    return data_;
-  }
-
-  // ---- unique_ptr ------
-  template <typename T>
-  class To_Ruby<std::unique_ptr<T>>
-  {
-  public:
-    using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
-
-    VALUE convert(std::unique_ptr<T>& data)
-    {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-      return detail::wrap<std::unique_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
-    }
-  };
-
-  template <typename T>
-  class To_Ruby<std::unique_ptr<T>&>
-  {
-  public:
-    using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
-
-    VALUE convert(std::unique_ptr<T>& data)
-    {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-      return detail::wrap<std::unique_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
-    }
-  };
-
-  template <typename T>
-  class From_Ruby<std::unique_ptr<T>>
-  {
-  public:
-    using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
-
-    Wrapper_T* is_same_smart_ptr(VALUE value)
-    {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-      return dynamic_cast<Wrapper_T*>(wrapper);
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      if (!is_same_smart_ptr(value))
-        return Convertible::None;
-
-      switch (rb_type(value))
-      {
-        case RUBY_T_DATA:
-          return Convertible::Exact;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    std::unique_ptr<T> convert(VALUE value)
-    {
-      Wrapper_T* smartWrapper = is_same_smart_ptr(value);
-      if (!smartWrapper)
-      {
-        std::string message = "Invalid smart pointer wrapper";
-        throw std::runtime_error(message.c_str());
-      }
-      return std::move(smartWrapper->data());
-    }
-  };
-
-  template <typename T>
-  class From_Ruby<std::unique_ptr<T>&>
-  {
-  public:
-    using Wrapper_T = WrapperSmartPointer<std::unique_ptr, T>;
-
-    Wrapper_T* is_same_smart_ptr(VALUE value)
-    {
-      Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-      return dynamic_cast<Wrapper_T*>(wrapper);
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      if (!is_same_smart_ptr(value))
-        return Convertible::None;
-
-      switch (rb_type(value))
-      {
-        case RUBY_T_DATA:
-          return Convertible::Exact;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    std::unique_ptr<T>& convert(VALUE value)
-    {
-      Wrapper_T* smartWrapper = is_same_smart_ptr(value);
-      if (!smartWrapper)
-      {
-        std::string message = "Invalid smart pointer wrapper";
-        throw std::runtime_error(message.c_str());
-      }
-      return smartWrapper->data();
-    }
-  };
-
-  template<typename T>
-  struct Type<std::unique_ptr<T>>
-  {
-    static bool verify()
-    {
-      return Type<T>::verify();
-    }
-  };
-
-  // ----- shared_ptr -------------
-  template <typename T>
-  class To_Ruby<std::shared_ptr<T>>
-  {
-  public:
-    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
-
-    VALUE convert(std::shared_ptr<T>& data)
-    {
-      if constexpr (std::is_fundamental_v<T>)
-      {
-        rb_data_type_t* ruby_data_type = RubyType<T>::ruby_data_type();
-        VALUE klass = RubyType<T>::klass();
-        return detail::wrap<std::shared_ptr<T>, Wrapper_T>(klass, ruby_data_type, data, true);
-      }
-      else
-      {
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-        return detail::wrap<std::shared_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
-      }
-    }
-  };
-
-  template <typename T>
-  class From_Ruby<std::shared_ptr<T>>
-  {
-  public:
-    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
-
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg * arg) : arg_(arg)
-    {
-    }
-
-    Wrapper_T* is_same_smart_ptr(VALUE value)
-    {
-      if constexpr (std::is_fundamental_v<T>)
-      {
-        Wrapper* wrapper = detail::getWrapper(value, RubyType<T>::ruby_data_type());
-        return dynamic_cast<Wrapper_T*>(wrapper);
-      }
-      else
-      {
-        Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-        return dynamic_cast<Wrapper_T*>(wrapper);
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      if (!is_same_smart_ptr(value))
-        return Convertible::None;
-
-      switch (rb_type(value))
-      {
-        case RUBY_T_DATA:
-          return Convertible::Exact;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    std::shared_ptr<T> convert(VALUE value)
-    {
-      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue()) {
-        return this->arg_->template defaultValue<std::shared_ptr<T>>();
-      }
-
-      Wrapper_T* smartWrapper = is_same_smart_ptr(value);
-      if (!smartWrapper)
-      {
-        std::string message = "Invalid smart pointer wrapper";
-          throw std::runtime_error(message.c_str());
-      }
-      return smartWrapper->data();
-    }
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template <typename T>
-  class To_Ruby<std::shared_ptr<T>&>
-  {
-  public:
-    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
-
-    VALUE convert(std::shared_ptr<T>& data)
-    {
-      if constexpr (std::is_fundamental_v<T>)
-      {
-        rb_data_type_t* ruby_data_type = RubyType<T>::ruby_data_type();
-        VALUE klass = RubyType<T>::klass();
-        return detail::wrap<std::shared_ptr<T>, Wrapper_T>(klass, ruby_data_type, data, true);
-      }
-      else
-      {
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-        return detail::wrap<std::shared_ptr<T>, Wrapper_T>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
-      }
-    }
-  };
-
-  template <typename T>
-  class From_Ruby<std::shared_ptr<T>&>
-  {
-  public:
-    using Wrapper_T = WrapperSmartPointer<std::shared_ptr, T>;
-
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg * arg) : arg_(arg)
-    {
-    }
-
-    Wrapper_T* is_same_smart_ptr(VALUE value)
-    {
-      if constexpr (std::is_fundamental_v<T>)
-      {
-        Wrapper* wrapper = detail::getWrapper(value, RubyType<T>::ruby_data_type());
-        return dynamic_cast<Wrapper_T*>(wrapper);
-      }
-      else
-      {
-        Wrapper* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-        return dynamic_cast<Wrapper_T*>(wrapper);
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      if (!is_same_smart_ptr(value))
-        return Convertible::None;
-
-      switch (rb_type(value))
-      {
-        case RUBY_T_DATA:
-          return Convertible::Exact;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    std::shared_ptr<T>& convert(VALUE value)
-    {
-      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue()) {
-        return this->arg_->template defaultValue<std::shared_ptr<T>>();
-      }
-
-      Wrapper_T* smartWrapper = is_same_smart_ptr(value);
-      if (!smartWrapper)
-      {
-        std::string message = "Invalid smart pointer wrapper";
-          throw std::runtime_error(message.c_str());
-      }
-      return smartWrapper->data();
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<typename T>
-  struct Type<std::shared_ptr<T>>
-  {
-    static bool verify()
-    {
-      return Type<T>::verify();
-    }
-  };
-}
-
-
-// =========   monostate.hpp   =========
-
-
-// ---------   monostate.ipp   ---------
-#include <variant>
-
-namespace Rice::detail
-{
-  template<>
-  struct Type<std::monostate>
-  {
-    constexpr static bool verify()
-    {
-      return true;
-    }
-  };
-
-  template<>
-  class To_Ruby<std::monostate>
-  {
-  public:
-    VALUE convert(const std::monostate& _)
-    {
-      return Qnil;
-    }
-  };
-
-  template<>
-  class To_Ruby<std::monostate&>
-  {
-  public:
-    static VALUE convert(const std::monostate& data, bool takeOwnership = false)
-    {
-      return Qnil;
-    }
-  };
-
-  template<>
-  class From_Ruby<std::monostate>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
-    {
-      return Convertible::None;
-    }
-
-    std::monostate convert(VALUE value)
-    {
-      return std::monostate();
-    }
-  };
-
-  template<>
-  class From_Ruby<std::monostate&>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
-    {
-      return Convertible::None;
-    }
-
-    std::monostate& convert(VALUE value)
-    {
-      return this->converted_;
-    }
-    
-  private:
-    std::monostate converted_ = std::monostate();
-  };
-}
-
-
-// =========   tuple.hpp   =========
-
-
-// ---------   tuple.ipp   ---------
-#include <tuple>
-
-namespace Rice::detail
-{
-  template<typename...Types>
-  struct Type<std::tuple<Types...>>
-  {
-    using Tuple_T = std::tuple<Types...>;
-
-    template<std::size_t... I>
-    constexpr static bool verifyTypes(std::index_sequence<I...>& indices)
-    {
-      return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
-    }
-
-    template<std::size_t... I>
-    constexpr static bool verify()
-    {
-      auto indices = std::make_index_sequence<std::tuple_size_v<std::tuple<Types...>>>{};
-      return verifyTypes(indices);
-    }
-  };
-
-  template<typename...Types>
-  class To_Ruby<std::tuple<Types...>>
-  {
-  public:
-    static VALUE convert(std::tuple<Types...>& data, bool takeOwnership = false)
-    {
-      Array result;
-
-      for_each_tuple(data, [&](auto element)
-      {
-        using Element_T = decltype(element);
-        result.push<Element_T>((Element_T)element);
-      });
-
-      return result.value();
-    }
-  };
-
-  template<typename...Types>
-  class To_Ruby<std::tuple<Types...>&>
-  {
-  public:
-    static VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
-    {
-      Array result;
-
-      for_each_tuple(data, [&](auto& value)
-        {
-          VALUE element = detail::To_Ruby<decltype(value)>().convert(value);
-          result.push(element);
-        });
-
-      return result.value();
-    }
-  };
-
-  template<typename...Types>
-  class From_Ruby<std::tuple<Types...>>
-  {
-  public:
-    using Tuple_T = std::tuple<Types...>;
-
-    template<std::size_t... I>
-    constexpr static bool verifyTypes(Array& array, std::index_sequence<I...>& indices)
-    {
-      return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      Convertible result = Convertible::None;
-
-      // The ruby value must be an array of the correct size
-      if (rb_type(value) != RUBY_T_ARRAY || Array(value).size() != std::tuple_size_v<Tuple_T>)
-      {
-        return result;
-      }
-      
-      // Now check that each tuple type is convertible
-      Array array(value);
-      int i = 0;
-      for_each_tuple(this->fromRubys_,
-        [&](auto& fromRuby)
-        {
-          result = result | fromRuby.is_convertible(array[i].value());
-          i++;
-        });
-
-      return result;
-    }
-
-    template <std::size_t... I>
-    std::tuple<Types...> convertInternal(Array array, std::index_sequence<I...>& indices)
-    {
-      return std::forward_as_tuple(std::get<I>(this->fromRubys_).convert(array[I].value())...);
-    }
-
-    std::tuple<Types...> convert(VALUE value)
-    {
-      Array array(value);
-      auto indices = std::make_index_sequence<std::tuple_size_v<Tuple_T>>{};
-      return convertInternal(array, indices);
-    }
-
-  private:
-    // Possible converters we could use for this variant
-    using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
-    From_Ruby_Ts fromRubys_;
-  };
-
-/*  template<typename...Types>
-  class From_Ruby<std::tuple<Types...>&> : public From_Ruby<std::tuple<Types...>>
-  {
-  public:
-    std::tuple<Types...>& convert(VALUE value)
-    {
-      int index = this->figureIndex(value);
-      this->converted_ = this->convertInternal(value, index);
-      return this->converted_;
-    }
-
-  private:
-    std::tuple<Types...> converted_;
-  };*/
-}
-
-
-// =========   type_index.hpp   =========
-
-
-// ---------   type_index.ipp   ---------
-#include <typeindex>
-
-namespace Rice::stl
-{
-  inline Data_Type<std::type_index> define_type_index()
-  {
-    Module rb_mRice = define_module("Rice");
-    Module rb_mStd = define_module_under(rb_mRice, "Std");
-
-    return define_class_under<std::type_index>(rb_mStd, "TypeIndex").
-      define_constructor(Constructor<std::type_index, const std::type_info&>()).
-      define_method("hash_code", &std::type_index::hash_code).
-      define_method("name", &std::type_index::name);
-  }
-}
-
-namespace Rice::detail
-{
-  template<>
-  struct Type<std::type_index>
-  {
-    static bool verify()
-    {
-      if (!detail::Registries::instance.types.isDefined<std::type_index>())
-      {
-        stl::define_type_index();
-      }
-
-      return true;
-    }
-  };
-}
-
-
-// =========   type_info.hpp   =========
-
-
-// ---------   type_info.ipp   ---------
-#include <typeinfo>
-
-namespace Rice::stl
-{
-  inline Data_Type<std::type_info> define_type_info()
-  {
-    Module rb_mRice = define_module("Rice");
-    Module rb_mStd = define_module_under(rb_mRice, "Std");
-
-    return define_class_under<std::type_info>(rb_mStd, "TypeInfo").
-      define_method("hash_code", &std::type_info::hash_code).
-      define_method("name", &std::type_info::name);
-  }
-}
-
-namespace Rice::detail
-{
-  template<>
-  struct Type<std::type_info>
-  {
-    static inline bool verify()
-    {
-      if (!detail::Registries::instance.types.isDefined<std::type_info>())
-      {
-        stl::define_type_info();
-      }
-
-      return true;
-    }
-  };
-}
-
-
-// =========   variant.hpp   =========
-
-
-// ---------   variant.ipp   ---------
-#include <variant>
-
-namespace Rice::detail
-{
-  template<typename...Types>
-  struct Type<std::variant<Types...>>
-  {
-    using Tuple_T = std::tuple<Types...>;
-
-    template<std::size_t... I>
-    constexpr static bool verifyTypes(std::index_sequence<I...>& indices)
-    {
-      return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
-    }
-
-    template<std::size_t... I>
-    constexpr static bool verify()
-    {
-      auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
-      return verifyTypes(indices);
-    }
-  };
-
-  template<typename...Types>
-  class To_Ruby<std::variant<Types...>>
-  {
-  public:
-
-    template<typename T>
-    static VALUE convertElement(const std::variant<Types...>& data, bool takeOwnership)
-    {
-      return To_Ruby<T>().convert(std::get<T>(data));
-    }
-
-    template<std::size_t... I>
-    static VALUE convertIterator(const std::variant<Types...>& data, bool takeOwnership, std::index_sequence<I...>& indices)
-    {
-      // Create a tuple of the variant types so we can look over the tuple's types
-      using Tuple_T = std::tuple<Types...>;
-      
-      /* This is a fold expression. In pseudo code:
-       
-        for (type in variant.types)
-        {
-          if (variant.has_value<type>())
-            return ToRuby<type>().convert(variant.getValue<type>)
-        }
-
-        The list of variant types is stored in Tuple_T. The number of types is stored in I.
-        Starting with index 0, get the variant type using td::tuple_element_t<I, Tuple_T>>.
-        Next check if the variant has a value for that type using std::holds_alternative<T>. 
-        If yes, then call convertElement and save the return value to result. Then use the 
-        comma operator to return true to the fold expression. If the variant does not have
-        a value for the type then return false. 
-        
-        The fold operator is or (||). If an index returns false, then the next index is evaluated
-        up until I. 
-        
-        Code inspired by https://www.foonathan.net/2020/05/fold-tricks/ */
-
-      VALUE result = Qnil;
-
-      #if defined(__GNUC__) || defined(__clang__)
-      #pragma GCC diagnostic push
-      #pragma GCC diagnostic ignored "-Wunused-value"
-      #endif
-
-      ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
-               (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
-      
-      #if defined(__GNUC__) || defined(__clang__)
-      #pragma GCC diagnostic pop
-      #endif
-
-      return result;
-    }
-
-    static VALUE convert(const std::variant<Types...>& data, bool takeOwnership = false)
-    {
-      auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
-      return convertIterator(data, takeOwnership, indices);
-    }
-  };
-
-  template<typename...Types>
-  class To_Ruby<std::variant<Types...>&>
-  {
-  public:
-    template<typename T>
-    static VALUE convertElement(const std::variant<Types...>& data, bool takeOwnership)
-    {
-      return To_Ruby<T>().convert(std::get<T>(data));
-    }
-
-    template<std::size_t... I>
-    static VALUE convertIterator(const std::variant<Types...>& data, bool takeOwnership, std::index_sequence<I...>& indices)
-    {
-      // Create a tuple of the variant types so we can look over the tuple's types
-      using Tuple_T = std::tuple<Types...>;
-
-      // See comments above for explanation of this code
-      VALUE result = Qnil;
-
-      #if defined(__GNUC__) || defined(__clang__)
-      #pragma GCC diagnostic push
-      #pragma GCC diagnostic ignored "-Wunused-value"
-      #endif
-
-      ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
-        (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
-
-      #if defined(__GNUC__) || defined(__clang__)
-      #pragma GCC diagnostic pop
-      #endif
-
-      return result;
-    }
-
-    static VALUE convert(const std::variant<Types...>& data, bool takeOwnership = false)
-    {
-      auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
-      return convertIterator(data, takeOwnership, indices);
-    }
-  };
-
-  template<typename...Types>
-  class From_Ruby<std::variant<Types...>>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
-    {
-      Convertible result = Convertible::None;
-
-      for_each_tuple(this->fromRubys_,
-        [&](auto& fromRuby)
-        {
-          result = result | fromRuby.is_convertible(value);
-        });
-
-      return result;
-    }
-
-    // This method search through a variant's types to figure out which one the
-    // currently Ruby value best matches. It then returns the index of the type.
-    int figureIndex(VALUE value)
-    {
-      int i = 0;
-      int index = -1;
-      Convertible foundConversion = Convertible::None;
-
-      for_each_tuple(this->fromRubys_,
-        [&](auto& fromRuby)
-        {
-          Convertible isConvertible = fromRuby.is_convertible(value);
-
-          if (isConvertible > foundConversion)
-          {
-            index = i;
-            foundConversion = isConvertible;
-          }
-          i++;
-        });
-
-      if (index == -1)
-      {
-        rb_raise(rb_eArgError, "Could not find converter for variant");
-      }
-
-      return index;
-    }
-
-    /* This method loops over each type in the variant, creates a From_Ruby converter,
-       and then check if the converter can work with the provided Rby value (it checks
-       the type of the Ruby object to see if it matches the variant type).
-       If yes, then the converter runs. If no, then the method recursively calls itself
-       increasing the index.
-
-       We use recursion, with a constexpr, to avoid having to instantiate an instance
-       of the variant to store results from a fold expression like the To_Ruby code
-       does above. That allows us to process variants with non default constructible
-       arguments like std::reference_wrapper. */
-    template <std::size_t I = 0>
-    std::variant<Types...> convertInternal(VALUE value, int index)
-    {
-      if constexpr (I < std::variant_size_v<std::variant<Types...>>)
-      {
-        if (I == index)
-        {
-          auto fromRuby = std::get<I>(this->fromRubys_);
-          return fromRuby.convert(value);
-        }
-        else
-        {
-          return convertInternal<I + 1>(value, index);
-        }
-      }
-      rb_raise(rb_eArgError, "Could not find converter for variant");
-    }
-
-    std::variant<Types...> convert(VALUE value)
-    {
-      int index = this->figureIndex(value);
-      return this->convertInternal(value, index);
-    }
-
-  private:
-    // Possible converters we could use for this variant
-    using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
-    From_Ruby_Ts fromRubys_;
-  };
-
-  template<typename...Types>
-  class From_Ruby<std::variant<Types...>&> : public From_Ruby<std::variant<Types...>>
-  {
-  public:
-    std::variant<Types...>& convert(VALUE value)
-    {
-      int index = this->figureIndex(value);
-      this->converted_ = this->convertInternal(value, index);
-      return this->converted_;
-    }
-
-  private:
-    std::variant<Types...> converted_;
-  };
-}
-
-
 // =========   pair.hpp   =========
 
 
@@ -1581,11 +724,8 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair_under(Object parent, std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
+    if (Data_Type<T>::check_defined(name, parent))
     {
-      // If the pair has been previously seen it will be registered but may
-      // not be associated with the constant Module::<name>
-      parent.const_set_maybe(name, Data_Type<T>().klass());
       return Data_Type<T>();
     }
 
@@ -1597,11 +737,8 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair(std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
+    if (Data_Type<T>::check_defined(name))
     {
-      // If the pair has been previously seen it will be registered but may
-      // not be associated with the constant Object::<name>
-      Object(rb_cObject).const_set_maybe(name, Data_Type<T>().klass());
       return Data_Type<T>();
     }
 
@@ -1613,10 +750,9 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_pair_auto()
   {
+    Module rb_mStd = define_module("Std");
     std::string name = detail::typeName(typeid(T));
     std::string klassName = detail::makeClassName(name);
-    Module rb_mRice = define_module("Rice");
-    Module rb_mStd = define_module_under(rb_mRice, "Std");
     return define_pair_under<T>(rb_mStd, klassName);
   }
    
@@ -1630,7 +766,7 @@ namespace Rice
         detail::verifyType<T1>();
         detail::verifyType<T2>();
 
-        if (!detail::Registries::instance.types.isDefined<std::pair<T1, T2>>())
+        if (!Data_Type<std::pair<T1, T2>>::is_defined())
         {
           define_pair_auto<std::pair<T1, T2>>();
         }
@@ -1899,11 +1035,8 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_map_under(Object parent, std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
+    if (Data_Type<T>::check_defined(name, parent))
     {
-      // If the map has been previously seen it will be registered but may
-      // not be associated with the constant Module::<name>
-      parent.const_set_maybe(name, Data_Type<T>().klass());
       return Data_Type<T>();
     }
 
@@ -1915,11 +1048,8 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_map(std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
+    if (Data_Type<T>::check_defined(name))
     {
-      // If the map has been previously seen it will be registered but may
-      // not be associated with the constant Object::<name>
-      Object(rb_cObject).const_set_maybe(name, Data_Type<T>().klass());
       return Data_Type<T>();
     }
 
@@ -1931,10 +1061,9 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_map_auto()
   {
+    Module rb_mStd = define_module("Std");
     std::string name = detail::typeName(typeid(T));
     std::string klassName = detail::makeClassName(name);
-    Module rb_mRice = define_module("Rice");
-    Module rb_mStd = define_module_under(rb_mRice, "Std");
     return define_map_under<T>(rb_mStd, klassName);
   }
    
@@ -1948,7 +1077,7 @@ namespace Rice
         Type<T>::verify();
         Type<U>::verify();
 
-        if (!detail::Registries::instance.types.isDefined<std::map<T, U>>())
+        if (!Data_Type<std::map<T, U>>::is_defined())
         {
           define_map_auto<std::map<T, U>>();
         }
@@ -2018,7 +1147,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped map (hopefully!)
-            return *Data_Object<std::map<T, U>>::from_ruby(value);
+            return *detail::unwrap<std::map<T, U>>(value, Data_Type<std::map<T, U>>::ruby_data_type(), false);
           }
           case RUBY_T_HASH:
           {
@@ -2079,7 +1208,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped map (hopefully!)
-            return *Data_Object<std::map<T, U>>::from_ruby(value);
+            return *detail::unwrap<std::map<T, U>>(value, Data_Type<std::map<T, U>>::ruby_data_type(), false);
           }
           case RUBY_T_HASH:
           {
@@ -2139,7 +1268,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped map (hopefully!)
-            return Data_Object<std::map<T, U>>::from_ruby(value);
+            return detail::unwrap<std::map<T, U>>(value, Data_Type<std::map<T, U>>::ruby_data_type(), false);
           }
           case RUBY_T_HASH:
           {
@@ -2163,6 +1292,921 @@ namespace Rice
     };
   }
 }
+
+// =========   monostate.hpp   =========
+
+
+// ---------   monostate.ipp   ---------
+#include <variant>
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<std::monostate>
+  {
+    constexpr static bool verify()
+    {
+      return true;
+    }
+  };
+
+  template<>
+  class To_Ruby<std::monostate>
+  {
+  public:
+    VALUE convert(const std::monostate& _)
+    {
+      return Qnil;
+    }
+  };
+
+  template<>
+  class To_Ruby<std::monostate&>
+  {
+  public:
+    static VALUE convert(const std::monostate& data, bool takeOwnership = false)
+    {
+      return Qnil;
+    }
+  };
+
+  template<>
+  class From_Ruby<std::monostate>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      return Convertible::None;
+    }
+
+    std::monostate convert(VALUE value)
+    {
+      return std::monostate();
+    }
+  };
+
+  template<>
+  class From_Ruby<std::monostate&>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      return Convertible::None;
+    }
+
+    std::monostate& convert(VALUE value)
+    {
+      return this->converted_;
+    }
+    
+  private:
+    std::monostate converted_ = std::monostate();
+  };
+}
+
+
+// =========   shared_ptr.hpp   =========
+
+namespace Rice::detail
+{
+  template<typename T>
+  class Wrapper<std::shared_ptr<T>> : public WrapperBase
+  {
+  public:
+    Wrapper(const std::shared_ptr<T>& data);
+    ~Wrapper();
+    void* get() override;
+    std::shared_ptr<T>& data();
+
+  private:
+    std::shared_ptr<T> data_;
+  };
+}
+
+namespace Rice
+{
+  template<typename T>
+  Data_Type<T> define_shared_ptr(std::string klassName = "");
+}
+
+
+// ---------   shared_ptr.ipp   ---------
+
+#include <assert.h>
+#include <memory>
+
+// --------- Enable creation of std::shared_ptr from Ruby ---------
+namespace Rice
+{
+  template<typename T>
+  inline Data_Type<T> define_shared_ptr(std::string klassName)
+  {
+    if (klassName.empty())
+    {
+      std::string typeName = detail::typeName(typeid(T));
+      klassName = detail::makeClassName(typeName);
+    }
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type<T>::check_defined(klassName, rb_mStd))
+    {
+      return Data_Type<T>();
+    }
+
+    Identifier id(klassName);
+    Data_Type<T> result = define_class_under<T>(rb_mStd, id).
+      define_constructor(Constructor<T, typename T::element_type*>(), Arg("value").takeOwnership());
+
+    return result;
+  }
+}
+
+// --------- Wrapper ---------
+namespace Rice::detail
+{
+  template<typename T>
+  inline Wrapper<std::shared_ptr<T>>::Wrapper(const std::shared_ptr<T>& data)
+    : data_(data)
+  {
+  }
+
+  template<typename T>
+  inline Wrapper<std::shared_ptr<T>>::~Wrapper()
+  {
+    Registries::instance.instances.remove(this->get());
+  }
+
+  template<typename T>
+  inline void* Wrapper<std::shared_ptr<T>>::get()
+  {
+    return (void*)this->data_.get();
+  }
+
+  template<typename T>
+  inline std::shared_ptr<T>& Wrapper<std::shared_ptr<T>>::data()
+  {
+    return data_;
+  }
+}
+
+// --------- Type/To_Ruby/From_Ruby ---------
+namespace Rice::detail
+{
+  template<typename T>
+  struct Type<std::shared_ptr<T>>
+  {
+    static bool verify()
+    {
+      return Type<T>::verify();
+    }
+  };
+
+  template <typename T>
+  class To_Ruby<std::shared_ptr<T>>
+  {
+  public:
+    VALUE convert(std::shared_ptr<T>& data)
+    {
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        return detail::wrap(RubyType<T>::klass(), RubyType<T>::ruby_data_type(), data, true);
+      }
+      else
+      {
+        return detail::wrap<std::shared_ptr<T>>(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
+      }
+    }
+  };
+
+  template <typename T>
+  class From_Ruby<std::shared_ptr<T>>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg * arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
+    std::shared_ptr<T> convert(VALUE value)
+    {
+      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->template defaultValue<std::shared_ptr<T>>();
+      }
+
+      // Get the wrapper
+      WrapperBase* wrapperBase = detail::getWrapper(value);
+
+      // Was this shared_ptr created by the user from Ruby? If so it will
+      // be wrapped as a pointer, std::shared_ptr<T>*. In the case just
+      // return the shared pointer
+      if (dynamic_cast<Wrapper<std::shared_ptr<T>*>*>(wrapperBase))
+      {
+        // Use unwrap to validate the underlying wrapper is the correct type
+        std::shared_ptr<T>* ptr = unwrap<std::shared_ptr<T>>(value, Data_Type<std::shared_ptr<T>>::ruby_data_type(), false);
+        return *ptr;
+      }
+      else if constexpr (std::is_fundamental_v<T>)
+      {
+        // Get the wrapper again to validate T's type
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, RubyType<T>::ruby_data_type());
+        return wrapper->data();
+      }
+      else
+      {
+        // Get the wrapper again to validate T's type
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
+        return wrapper->data();
+      }
+    }
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template <typename T>
+  class To_Ruby<std::shared_ptr<T>&>
+  {
+  public:
+    VALUE convert(std::shared_ptr<T>& data)
+    {
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        return detail::wrap(RubyType<T>::klass(), RubyType<T>::ruby_data_type(), data, true);
+      }
+      else
+      {
+        return detail::wrap<std::shared_ptr<T>>(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
+      }
+    }
+  };
+
+  template <typename T>
+  class From_Ruby<std::shared_ptr<T>&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg * arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
+    std::shared_ptr<T>& convert(VALUE value)
+    {
+      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      {
+        return this->arg_->template defaultValue<std::shared_ptr<T>>();
+      }
+
+      // Get the wrapper
+      WrapperBase* wrapperBase = detail::getWrapper(value);
+
+      // Was this shared_ptr created by the user from Ruby? If so it will
+      // be wrapped as a pointer, std::shared_ptr<T>*. In the case just
+      // return the shared pointer
+      if (dynamic_cast<Wrapper<std::shared_ptr<T>*>*>(wrapperBase))
+      {
+        // Use unwrap to validate the underlying wrapper is the correct type
+        std::shared_ptr<T>* ptr = unwrap<std::shared_ptr<T>>(value, Data_Type<std::shared_ptr<T>>::ruby_data_type(), false);
+        return *ptr;
+      }
+      else if constexpr (std::is_fundamental_v<T>)
+      {
+        // Get the wrapper again to validate T's type
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, RubyType<T>::ruby_data_type());
+        return wrapper->data();
+      }
+      else
+      {
+        // Get the wrapper again to validate T's type
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
+        return wrapper->data();
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+}
+
+
+// =========   tuple.hpp   =========
+
+
+// ---------   tuple.ipp   ---------
+#include <tuple>
+
+namespace Rice::detail
+{
+  template<typename...Types>
+  struct Type<std::tuple<Types...>>
+  {
+    using Tuple_T = std::tuple<Types...>;
+
+    template<std::size_t... I>
+    constexpr static bool verifyTypes(std::index_sequence<I...>& indices)
+    {
+      return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
+    }
+
+    template<std::size_t... I>
+    constexpr static bool verify()
+    {
+      auto indices = std::make_index_sequence<std::tuple_size_v<std::tuple<Types...>>>{};
+      return verifyTypes(indices);
+    }
+  };
+
+  template<typename...Types>
+  class To_Ruby<std::tuple<Types...>>
+  {
+  public:
+    static VALUE convert(std::tuple<Types...>& data, bool takeOwnership = false)
+    {
+      Array result;
+
+      for_each_tuple(data, [&](auto element)
+      {
+        using Element_T = decltype(element);
+        result.push<Element_T>((Element_T)element);
+      });
+
+      return result.value();
+    }
+  };
+
+  template<typename...Types>
+  class To_Ruby<std::tuple<Types...>&>
+  {
+  public:
+    static VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
+    {
+      Array result;
+
+      for_each_tuple(data, [&](auto& value)
+        {
+          VALUE element = detail::To_Ruby<decltype(value)>().convert(value);
+          result.push(element);
+        });
+
+      return result.value();
+    }
+  };
+
+  template<typename...Types>
+  class From_Ruby<std::tuple<Types...>>
+  {
+  public:
+    using Tuple_T = std::tuple<Types...>;
+
+    template<std::size_t... I>
+    constexpr static bool verifyTypes(Array& array, std::index_sequence<I...>& indices)
+    {
+      return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      Convertible result = Convertible::None;
+
+      // The ruby value must be an array of the correct size
+      if (rb_type(value) != RUBY_T_ARRAY || Array(value).size() != std::tuple_size_v<Tuple_T>)
+      {
+        return result;
+      }
+      
+      // Now check that each tuple type is convertible
+      Array array(value);
+      int i = 0;
+      for_each_tuple(this->fromRubys_,
+        [&](auto& fromRuby)
+        {
+          result = result | fromRuby.is_convertible(array[i].value());
+          i++;
+        });
+
+      return result;
+    }
+
+    template <std::size_t... I>
+    std::tuple<Types...> convertInternal(Array array, std::index_sequence<I...>& indices)
+    {
+      return std::forward_as_tuple(std::get<I>(this->fromRubys_).convert(array[I].value())...);
+    }
+
+    std::tuple<Types...> convert(VALUE value)
+    {
+      Array array(value);
+      auto indices = std::make_index_sequence<std::tuple_size_v<Tuple_T>>{};
+      return convertInternal(array, indices);
+    }
+
+  private:
+    // Possible converters we could use for this variant
+    using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
+    From_Ruby_Ts fromRubys_;
+  };
+
+/*  template<typename...Types>
+  class From_Ruby<std::tuple<Types...>&> : public From_Ruby<std::tuple<Types...>>
+  {
+  public:
+    std::tuple<Types...>& convert(VALUE value)
+    {
+      int index = this->figureIndex(value);
+      this->converted_ = this->convertInternal(value, index);
+      return this->converted_;
+    }
+
+  private:
+    std::tuple<Types...> converted_;
+  };*/
+}
+
+
+// =========   type_index.hpp   =========
+
+
+// ---------   type_index.ipp   ---------
+#include <typeindex>
+
+namespace Rice::stl
+{
+  inline Data_Type<std::type_index> define_type_index()
+  {
+    Module rb_mStd = define_module("Std");
+    return define_class_under<std::type_index>(rb_mStd, "TypeIndex").
+      define_constructor(Constructor<std::type_index, const std::type_info&>()).
+      define_method("hash_code", &std::type_index::hash_code).
+      define_method("name", &std::type_index::name);
+  }
+}
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<std::type_index>
+  {
+    static bool verify()
+    {
+      if (!detail::Registries::instance.types.isDefined<std::type_index>())
+      {
+        stl::define_type_index();
+      }
+
+      return true;
+    }
+  };
+}
+
+
+// =========   type_info.hpp   =========
+
+
+// ---------   type_info.ipp   ---------
+#include <typeinfo>
+
+namespace Rice::stl
+{
+  inline Data_Type<std::type_info> define_type_info()
+  {
+    Module rb_mStd = define_module("Std");
+    return define_class_under<std::type_info>(rb_mStd, "TypeInfo").
+      define_method("hash_code", &std::type_info::hash_code).
+      define_method("name", &std::type_info::name);
+  }
+}
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<std::type_info>
+  {
+    static inline bool verify()
+    {
+      if (!detail::Registries::instance.types.isDefined<std::type_info>())
+      {
+        stl::define_type_info();
+      }
+
+      return true;
+    }
+  };
+}
+
+
+// =========   variant.hpp   =========
+
+
+// ---------   variant.ipp   ---------
+#include <variant>
+
+namespace Rice::detail
+{
+  template<typename...Types>
+  struct Type<std::variant<Types...>>
+  {
+    using Tuple_T = std::tuple<Types...>;
+
+    template<std::size_t... I>
+    constexpr static bool verifyTypes(std::index_sequence<I...>& indices)
+    {
+      return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
+    }
+
+    template<std::size_t... I>
+    constexpr static bool verify()
+    {
+      auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
+      return verifyTypes(indices);
+    }
+  };
+
+  template<typename...Types>
+  class To_Ruby<std::variant<Types...>>
+  {
+  public:
+
+    template<typename T>
+    static VALUE convertElement(const std::variant<Types...>& data, bool takeOwnership)
+    {
+      return To_Ruby<T>().convert(std::get<T>(data));
+    }
+
+    template<std::size_t... I>
+    static VALUE convertIterator(const std::variant<Types...>& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    {
+      // Create a tuple of the variant types so we can look over the tuple's types
+      using Tuple_T = std::tuple<Types...>;
+      
+      /* This is a fold expression. In pseudo code:
+       
+        for (type in variant.types)
+        {
+          if (variant.has_value<type>())
+            return ToRuby<type>().convert(variant.getValue<type>)
+        }
+
+        The list of variant types is stored in Tuple_T. The number of types is stored in I.
+        Starting with index 0, get the variant type using td::tuple_element_t<I, Tuple_T>>.
+        Next check if the variant has a value for that type using std::holds_alternative<T>. 
+        If yes, then call convertElement and save the return value to result. Then use the 
+        comma operator to return true to the fold expression. If the variant does not have
+        a value for the type then return false. 
+        
+        The fold operator is or (||). If an index returns false, then the next index is evaluated
+        up until I. 
+        
+        Code inspired by https://www.foonathan.net/2020/05/fold-tricks/ */
+
+      VALUE result = Qnil;
+
+      #if defined(__GNUC__) || defined(__clang__)
+      #pragma GCC diagnostic push
+      #pragma GCC diagnostic ignored "-Wunused-value"
+      #endif
+
+      ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
+               (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
+      
+      #if defined(__GNUC__) || defined(__clang__)
+      #pragma GCC diagnostic pop
+      #endif
+
+      return result;
+    }
+
+    static VALUE convert(const std::variant<Types...>& data, bool takeOwnership = false)
+    {
+      auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
+      return convertIterator(data, takeOwnership, indices);
+    }
+  };
+
+  template<typename...Types>
+  class To_Ruby<std::variant<Types...>&>
+  {
+  public:
+    template<typename T>
+    static VALUE convertElement(const std::variant<Types...>& data, bool takeOwnership)
+    {
+      return To_Ruby<T>().convert(std::get<T>(data));
+    }
+
+    template<std::size_t... I>
+    static VALUE convertIterator(const std::variant<Types...>& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    {
+      // Create a tuple of the variant types so we can look over the tuple's types
+      using Tuple_T = std::tuple<Types...>;
+
+      // See comments above for explanation of this code
+      VALUE result = Qnil;
+
+      #if defined(__GNUC__) || defined(__clang__)
+      #pragma GCC diagnostic push
+      #pragma GCC diagnostic ignored "-Wunused-value"
+      #endif
+
+      ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
+        (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
+
+      #if defined(__GNUC__) || defined(__clang__)
+      #pragma GCC diagnostic pop
+      #endif
+
+      return result;
+    }
+
+    static VALUE convert(const std::variant<Types...>& data, bool takeOwnership = false)
+    {
+      auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
+      return convertIterator(data, takeOwnership, indices);
+    }
+  };
+
+  template<typename...Types>
+  class From_Ruby<std::variant<Types...>>
+  {
+  public:
+    Convertible is_convertible(VALUE value)
+    {
+      Convertible result = Convertible::None;
+
+      for_each_tuple(this->fromRubys_,
+        [&](auto& fromRuby)
+        {
+          result = result | fromRuby.is_convertible(value);
+        });
+
+      return result;
+    }
+
+    // This method search through a variant's types to figure out which one the
+    // currently Ruby value best matches. It then returns the index of the type.
+    int figureIndex(VALUE value)
+    {
+      int i = 0;
+      int index = -1;
+      Convertible foundConversion = Convertible::None;
+
+      for_each_tuple(this->fromRubys_,
+        [&](auto& fromRuby)
+        {
+          Convertible isConvertible = fromRuby.is_convertible(value);
+
+          if (isConvertible > foundConversion)
+          {
+            index = i;
+            foundConversion = isConvertible;
+          }
+          i++;
+        });
+
+      if (index == -1)
+      {
+        rb_raise(rb_eArgError, "Could not find converter for variant");
+      }
+
+      return index;
+    }
+
+    /* This method loops over each type in the variant, creates a From_Ruby converter,
+       and then check if the converter can work with the provided Rby value (it checks
+       the type of the Ruby object to see if it matches the variant type).
+       If yes, then the converter runs. If no, then the method recursively calls itself
+       increasing the index.
+
+       We use recursion, with a constexpr, to avoid having to instantiate an instance
+       of the variant to store results from a fold expression like the To_Ruby code
+       does above. That allows us to process variants with non default constructible
+       arguments like std::reference_wrapper. */
+    template <std::size_t I = 0>
+    std::variant<Types...> convertInternal(VALUE value, int index)
+    {
+      if constexpr (I < std::variant_size_v<std::variant<Types...>>)
+      {
+        if (I == index)
+        {
+          auto fromRuby = std::get<I>(this->fromRubys_);
+          return fromRuby.convert(value);
+        }
+        else
+        {
+          return convertInternal<I + 1>(value, index);
+        }
+      }
+      rb_raise(rb_eArgError, "Could not find converter for variant");
+    }
+
+    std::variant<Types...> convert(VALUE value)
+    {
+      int index = this->figureIndex(value);
+      return this->convertInternal(value, index);
+    }
+
+  private:
+    // Possible converters we could use for this variant
+    using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
+    From_Ruby_Ts fromRubys_;
+  };
+
+  template<typename...Types>
+  class From_Ruby<std::variant<Types...>&> : public From_Ruby<std::variant<Types...>>
+  {
+  public:
+    std::variant<Types...>& convert(VALUE value)
+    {
+      int index = this->figureIndex(value);
+      this->converted_ = this->convertInternal(value, index);
+      return this->converted_;
+    }
+
+  private:
+    std::variant<Types...> converted_;
+  };
+}
+
+
+// =========   unique_ptr.hpp   =========
+
+namespace Rice::detail
+{
+  template<typename T>
+  class Wrapper<std::unique_ptr<T>> : public WrapperBase
+  {
+  public:
+    Wrapper(std::unique_ptr<T>&& data);
+    ~Wrapper();
+    void* get() override;
+    std::unique_ptr<T>& data();
+
+  private:
+    std::unique_ptr<T> data_;
+  };
+}
+
+
+// ---------   unique_ptr.ipp   ---------
+
+#include <assert.h>
+#include <memory>
+
+namespace Rice::detail
+{
+  template<typename T>
+  inline Wrapper<std::unique_ptr<T>>::Wrapper(std::unique_ptr<T>&& data)
+    : data_(std::move(data))
+  {
+  }
+
+  template<typename T>
+  inline Wrapper<std::unique_ptr<T>>::~Wrapper()
+  {
+    Registries::instance.instances.remove(this->get());
+  }
+
+  template<typename T>
+  inline void* Wrapper<std::unique_ptr<T>>::get()
+  {
+    return (void*)this->data_.get();
+  }
+
+  template<typename T>
+  inline std::unique_ptr<T>& Wrapper<std::unique_ptr<T>>::data()
+  {
+    return data_;
+  }
+
+  template <typename T>
+  class To_Ruby<std::unique_ptr<T>>
+  {
+  public:
+    VALUE convert(std::unique_ptr<T>& data)
+    {
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
+      return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
+  };
+
+  template <typename T>
+  class To_Ruby<std::unique_ptr<T>&>
+  {
+  public:
+    VALUE convert(std::unique_ptr<T>& data)
+    {
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
+      return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
+  };
+
+  template <typename T>
+  class From_Ruby<std::unique_ptr<T>>
+  {
+  public:
+    Wrapper<std::unique_ptr<T>>* is_same_smart_ptr(VALUE value)
+    {
+      WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+      return dynamic_cast<Wrapper<std::unique_ptr<T>>*>(wrapper);
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      if (!is_same_smart_ptr(value))
+        return Convertible::None;
+
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
+    std::unique_ptr<T> convert(VALUE value)
+    {
+      Wrapper<std::unique_ptr<T>>* wrapper = is_same_smart_ptr(value);
+      if (!wrapper)
+      {
+        std::string message = "Invalid smart pointer wrapper";
+        throw std::runtime_error(message.c_str());
+      }
+      return std::move(wrapper->data());
+    }
+  };
+
+  template <typename T>
+  class From_Ruby<std::unique_ptr<T>&>
+  {
+  public:
+    Wrapper<std::unique_ptr<T>>* is_same_smart_ptr(VALUE value)
+    {
+      WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
+      return dynamic_cast<Wrapper<std::unique_ptr<T>>*>(wrapper);
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      if (!is_same_smart_ptr(value))
+        return Convertible::None;
+
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
+    std::unique_ptr<T>& convert(VALUE value)
+    {
+      Wrapper<std::unique_ptr<T>>* wrapper = is_same_smart_ptr(value);
+      if (!wrapper)
+      {
+        std::string message = "Invalid smart pointer wrapper";
+        throw std::runtime_error(message.c_str());
+      }
+      return wrapper->data();
+    }
+  };
+
+  template<typename T>
+  struct Type<std::unique_ptr<T>>
+  {
+    static bool verify()
+    {
+      return Type<T>::verify();
+    }
+  };
+}
+
 
 // =========   unordered_map.hpp   =========
 
@@ -2420,11 +2464,8 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_unordered_map_under(Object parent, std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
+    if (Data_Type<T>::check_defined(name, parent))
     {
-      // If the unordered_map has been previously seen it will be registered but may
-      // not be associated with the constant Module::<name>
-      parent.const_set_maybe(name, Data_Type<T>().klass());
       return Data_Type<T>();
     }
 
@@ -2436,11 +2477,8 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_unordered_map(std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
+    if (Data_Type<T>::check_defined(name))
     {
-      // If the unordered_map has been previously seen it will be registered but may
-      // not be associated with the constant Object::<name>
-      Object(rb_cObject).const_set_maybe(name, Data_Type<T>().klass());
       return Data_Type<T>();
     }
 
@@ -2452,10 +2490,9 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_unordered_map_auto()
   {
+    Module rb_mStd = define_module("Std");
     std::string name = detail::typeName(typeid(T));
     std::string klassName = detail::makeClassName(name);
-    Module rb_mRice = define_module("Rice");
-    Module rb_mStd = define_module_under(rb_mRice, "Std");
     return define_unordered_map_under<T>(rb_mStd, klassName);
   }
    
@@ -2469,7 +2506,7 @@ namespace Rice
         Type<T>::verify();
         Type<U>::verify();
 
-        if (!detail::Registries::instance.types.isDefined<std::unordered_map<T, U>>())
+        if (!Data_Type<std::unordered_map<T, U>>::is_defined())
         {
           define_unordered_map_auto<std::unordered_map<T, U>>();
         }
@@ -2539,7 +2576,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped unordered_map (hopefully!)
-            return *Data_Object<std::unordered_map<T, U>>::from_ruby(value);
+            return *detail::unwrap<std::unordered_map<T, U>>(value, Data_Type<std::unordered_map<T, U>>::ruby_data_type(), false);
           }
           case RUBY_T_HASH:
           {
@@ -2600,7 +2637,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped unordered_map (hopefully!)
-            return *Data_Object<std::unordered_map<T, U>>::from_ruby(value);
+            return *detail::unwrap<std::unordered_map<T, U>>(value, Data_Type<std::unordered_map<T, U>>::ruby_data_type(), false);
           }
           case RUBY_T_HASH:
           {
@@ -2660,7 +2697,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped unordered_map (hopefully!)
-            return Data_Object<std::unordered_map<T, U>>::from_ruby(value);
+            return detail::unwrap<std::unordered_map<T, U>>(value, Data_Type<std::unordered_map<T, U>>::ruby_data_type(), false);
           }
           case RUBY_T_HASH:
           {
@@ -3056,12 +3093,8 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector_under(Object parent, std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
+    if (Data_Type<T>::check_defined(name, parent))
     {
-      // If the vector has been previously seen it will be registered but may
-      // not be associated with the constant Module::<name>
-      parent.const_set_maybe(name, Data_Type<T>().klass());
-
       return Data_Type<T>();
     }
 
@@ -3074,27 +3107,15 @@ namespace Rice
   template<typename T>
   Data_Type<T> define_vector(std::string name)
   {
-    if (detail::Registries::instance.types.isDefined<T>())
-    {
-      // If the vector has been previously seen it will be registered but may
-      // not be associated with the constant Module::<name>
-      Object(rb_cObject).const_set_maybe(name, Data_Type<T>().klass());
-
-      return Data_Type<T>();
-    }
-
-    Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
-    stl::VectorHelper<T> helper(result);
-    return result;
+    return define_vector_under<T>(rb_cObject, name);
   }
 
   template<typename T>
   Data_Type<T> define_vector_auto()
   {
+    Module rb_mStd = define_module("Std");
     std::string name = detail::typeName(typeid(T));
     std::string klassName = detail::makeClassName(name);
-    Module rb_mRice = define_module("Rice");
-    Module rb_mStd = define_module_under(rb_mRice, "Std");
     return define_vector_under<T>(rb_mStd, klassName);
   }
    
@@ -3107,7 +3128,7 @@ namespace Rice
       {
         Type<intrinsic_type<T>>::verify();
 
-        if (!detail::Registries::instance.types.isDefined<std::vector<T>>())
+        if (!Data_Type<std::vector<T>>::is_defined())
         {
           define_vector_auto<std::vector<T>>();
         }
@@ -3115,7 +3136,6 @@ namespace Rice
         return true;
       }
     };
-
 
     template<typename T>
     class From_Ruby<std::vector<T>>
@@ -3149,7 +3169,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped vector (hopefully!)
-            return *Data_Object<std::vector<T>>::from_ruby(value);
+            return *detail::unwrap<std::vector<T>>(value, Data_Type<std::vector<T>>::ruby_data_type(), false);
           }
           case RUBY_T_ARRAY:
           {
@@ -3210,7 +3230,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped vector (hopefully!)
-            return *Data_Object<std::vector<T>>::from_ruby(value);
+            return *detail::unwrap<std::vector<T>>(value, Data_Type<std::vector<T>>::ruby_data_type(), false);
           }
           case RUBY_T_ARRAY:
           {
@@ -3270,7 +3290,7 @@ namespace Rice
           case RUBY_T_DATA:
           {
             // This is a wrapped vector (hopefully!)
-            return Data_Object<std::vector<T>>::from_ruby(value);
+            return detail::unwrap<std::vector<T>>(value, Data_Type<std::vector<T>>::ruby_data_type(), false);
           }
           case RUBY_T_ARRAY:
           {
