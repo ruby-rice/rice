@@ -76,6 +76,7 @@ add_executable(unittest
                "test_Stl_Optional.cpp"
                "test_Stl_Pair.cpp"
                "test_Stl_Reference_Wrapper.cpp"
+               "test_Stl_Set.cpp"
                "test_Stl_SharedPtr.cpp"
                "test_Stl_String.cpp"
                "test_Stl_String_View.cpp"
