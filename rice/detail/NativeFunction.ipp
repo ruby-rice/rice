@@ -29,8 +29,11 @@ namespace Rice::detail
   template<typename Class_T, typename Function_T, bool IsMethod>
   VALUE NativeFunction<Class_T, Function_T, IsMethod>::procEntry(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
   {
-    NativeFunction_T* native = (NativeFunction_T*)callback_arg;
-    return (*native)(argc, argv, Qnil);
+    return cpp_protect([&]
+    {
+      NativeFunction_T * native = (NativeFunction_T*)callback_arg;
+      return (*native)(argc, argv, Qnil);
+    });
   }
 
   // Ruby calls this method if an instance f a NativeFunction is owned by a Ruby proc. That happens when C++
