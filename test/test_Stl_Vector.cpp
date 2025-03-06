@@ -777,15 +777,15 @@ namespace
     stream << "Vector";
     return stream;
   }
-}
 
-void createFactoryClass()
-{
-  define_class<Factory>("Factory").
-    define_constructor(Constructor<Factory>()).
-    define_method("pointer", &Factory::returnPointer).
-    define_method("reference", &Factory::returnReference).
-    define_method("value", &Factory::returnValue);
+  void createFactoryClass()
+  {
+    define_class<Factory>("Factory").
+      define_constructor(Constructor<Factory>()).
+      define_method("pointer", &Factory::returnPointer).
+      define_method("reference", &Factory::returnReference).
+      define_method("value", &Factory::returnValue);
+  }
 }
 
 TESTCASE(Returns)
