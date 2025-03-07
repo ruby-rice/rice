@@ -11,6 +11,7 @@
 #include "stl/pair.hpp"
 #include "stl/map.hpp"
 #include "stl/monostate.hpp"
+#include "stl/multimap.hpp"
 #include "stl/set.hpp"
 #include "stl/shared_ptr.hpp"
 #include "stl/tuple.hpp"
