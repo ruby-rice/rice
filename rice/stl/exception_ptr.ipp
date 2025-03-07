@@ -1,4 +1,4 @@
-#include <functional>
+#include <exception>
 
 namespace Rice::stl
 {

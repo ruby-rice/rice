@@ -1,8 +1,6 @@
 #ifndef Rice__stl__set__hpp_
 #define Rice__stl__set__hpp_
 
-#include "../detail/ruby.hpp"
-
 namespace Rice
 {
   template<typename T>

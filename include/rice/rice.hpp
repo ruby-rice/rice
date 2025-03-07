@@ -9006,6 +9006,12 @@ namespace Rice::detail
     auto commaSpaceRegex = std::regex(R"(,(\S))");
     replaceAll(base, commaSpaceRegex, ", $1");
 
+    // Normalize Anonymouse namespace
+    auto anonymousNamespaceGcc = std::regex(R"(\(anonymous namespace\))");
+    replaceAll(base, anonymousNamespaceGcc, "AnonymousNamespace");
+    auto anonymousNamespaceMsvc = std::regex(R"(`anonymous namespace')");
+    replaceAll(base, anonymousNamespaceMsvc, "AnonymousNamespace");
+
     // Capitalize first letter
     base[0] = std::toupper(base[0]);
 
@@ -9984,8 +9990,11 @@ namespace Rice::detail
   template<typename Class_T, typename Function_T, bool IsMethod>
   VALUE NativeFunction<Class_T, Function_T, IsMethod>::procEntry(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
   {
-    NativeFunction_T* native = (NativeFunction_T*)callback_arg;
-    return (*native)(argc, argv, Qnil);
+    return cpp_protect([&]
+    {
+      NativeFunction_T * native = (NativeFunction_T*)callback_arg;
+      return (*native)(argc, argv, Qnil);
+    });
   }
 
   // Ruby calls this method if an instance f a NativeFunction is owned by a Ruby proc. That happens when C++

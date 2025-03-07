@@ -1,7 +1,5 @@
 #include <complex>
 
-#include "../detail/ruby.hpp"
-
 namespace Rice::detail
 {
   template<typename T>
