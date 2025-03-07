@@ -1,3 +1,5 @@
+#include <string>
+
 namespace Rice::detail
 {
   template<>

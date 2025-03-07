@@ -1,14 +1,4 @@
-#include "../traits/function_traits.hpp"
-#include "../detail/from_ruby.hpp"
-#include "../detail/to_ruby.hpp"
-#include "../Data_Type.hpp"
-#include "../Data_Object.hpp"
-
-#include <sstream>
-#include <stdexcept>
-#include <type_traits>
 #include <vector>
-#include <variant>
 
 namespace Rice
 {

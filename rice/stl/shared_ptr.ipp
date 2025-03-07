@@ -1,7 +1,3 @@
-#include "../detail/to_ruby.hpp"
-#include "../detail/Registries.hpp"
-
-#include <assert.h>
 #include <memory>
 
 // --------- Enable creation of std::shared_ptr from Ruby ---------

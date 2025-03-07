@@ -1,8 +1,3 @@
-#include "../traits/function_traits.hpp"
-#include "../Data_Type.hpp"
-
-#include <sstream>
-#include <stdexcept>
 #include <utility>
 
 namespace Rice

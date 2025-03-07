@@ -1,18 +1,4 @@
-#include "../traits/function_traits.hpp"
-#include "../traits/rice_traits.hpp"
-#include "../detail/from_ruby.hpp"
-#include "../detail/to_ruby.hpp"
-#include "../detail/RubyFunction.hpp"
-#include "../detail/NativeIterator.hpp"
-#include "../Data_Type.hpp"
-#include "../Data_Object.hpp"
-#include "pair.hpp"
-
-#include <sstream>
-#include <stdexcept>
 #include <map>
-#include <type_traits>
-#include <variant>
 
 namespace Rice
 {

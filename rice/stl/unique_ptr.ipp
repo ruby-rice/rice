@@ -1,7 +1,3 @@
-#include "../detail/to_ruby.hpp"
-#include "../detail/Registries.hpp"
-
-#include <assert.h>
 #include <memory>
 
 namespace Rice::detail

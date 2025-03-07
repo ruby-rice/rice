@@ -46,7 +46,7 @@ namespace Rice::detail
 
 
 // ---------   exception_ptr.ipp   ---------
-#include <functional>
+#include <exception>
 
 namespace Rice::stl
 {
@@ -79,6 +79,8 @@ namespace Rice::detail
 
 
 // ---------   string.ipp   ---------
+#include <string>
+
 namespace Rice::detail
 {
   template<>
@@ -94,7 +96,7 @@ namespace Rice::detail
   class To_Ruby<std::string>
   {
   public:
-    VALUE convert(std::string const& x)
+    VALUE convert(const std::string& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
     }
@@ -104,7 +106,7 @@ namespace Rice::detail
   class To_Ruby<std::string&>
   {
   public:
-    VALUE convert(std::string const& x)
+    VALUE convert(const std::string& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
     }
@@ -327,7 +329,6 @@ namespace Rice::detail
 
 // ---------   complex.ipp   ---------
 #include <complex>
-
 
 namespace Rice::detail
 {
@@ -595,7 +596,6 @@ namespace Rice::detail
 
 // =========   pair.hpp   =========
 
-
 namespace Rice
 {
   template<typename T>
@@ -607,9 +607,6 @@ namespace Rice
 
 
 // ---------   pair.ipp   ---------
-
-#include <sstream>
-#include <stdexcept>
 #include <utility>
 
 namespace Rice
@@ -781,7 +778,6 @@ namespace Rice
 
 // =========   map.hpp   =========
 
-
 namespace Rice
 {
   template<typename U>
@@ -793,12 +789,7 @@ namespace Rice
 
 
 // ---------   map.ipp   ---------
-
-#include <sstream>
-#include <stdexcept>
 #include <map>
-#include <type_traits>
-#include <variant>
 
 namespace Rice
 {
@@ -1365,6 +1356,997 @@ namespace Rice::detail
 }
 
 
+// =========   multimap.hpp   =========
+
+#include <map>
+
+namespace Rice
+{
+  template<typename U>
+  Data_Type<U> define_multimap(std::string name = "");
+}
+
+
+// ---------   multimap.ipp   ---------
+#include <map>
+
+namespace Rice
+{
+  namespace stl
+  {
+    template<typename T>
+    class MultimapHelper
+    {
+      using Key_T = typename T::key_type;
+      using Mapped_T = typename T::mapped_type;
+      using Value_T = typename T::value_type;
+      using Reference_T = typename T::reference;
+      using Size_T = typename T::size_type;
+      using Difference_T = typename T::difference_type;
+      using To_Ruby_T = typename detail::remove_cv_recursive_t<Mapped_T>;
+
+    public:
+      MultimapHelper(Data_Type<T> klass) : klass_(klass)
+      {
+        this->register_pair();
+        this->define_constructor();
+        this->define_copyable_methods();
+        this->define_capacity_methods();
+        this->define_access_methods();
+        this->define_comparable_methods();
+        this->define_modify_methods();
+        this->define_enumerable();
+        this->define_to_s();
+      }
+
+    private:
+
+      void register_pair()
+      {
+        define_pair_auto<Value_T>();
+      }
+
+      void define_constructor()
+      {
+        klass_.define_constructor(Constructor<T>());
+      }
+
+      void define_copyable_methods()
+      {
+        if constexpr (std::is_copy_constructible_v<Value_T>)
+        {
+          klass_.define_method("copy", [](T& multimap) -> T
+            {
+              return multimap;
+            });
+        }
+        else
+        {
+          klass_.define_method("copy", [](T& multimap) -> T
+            {
+              throw std::runtime_error("Cannot copy multimaps with non-copy constructible types");
+              return multimap;
+            });
+        }
+      }
+
+      void define_capacity_methods()
+      {
+        klass_.define_method("empty?", &T::empty)
+          .define_method("max_size", &T::max_size)
+          .define_method("size", &T::size);
+        
+        rb_define_alias(klass_, "count", "size");
+        rb_define_alias(klass_, "length", "size");
+      }
+
+      void define_access_methods()
+      {
+        // Access methods
+        klass_.
+          define_method("[]", [](const T& multimap, const Key_T& key) -> Array
+          {
+            Array result;
+            auto range = multimap.equal_range(key);
+
+            for (auto iter = range.first; iter != range.second; iter++)
+            {
+              result.push<Mapped_T>(iter->second);
+            }
+
+            return result;
+          })
+          .define_method("include?", [](T& multimap, Key_T& key) -> bool
+          {
+              return multimap.find(key) != multimap.end();
+          })
+          .define_method("keys", [](T& multimap) -> std::vector<Key_T>
+            {
+              std::vector<Key_T> result;
+              std::transform(multimap.begin(), multimap.end(), std::back_inserter(result),
+                [](const auto& pair)
+                {
+                  return pair.first;
+                });
+
+              return result;
+            })
+          .define_method("values", [](T& multimap) -> std::vector<Mapped_T>
+            {
+              std::vector<Mapped_T> result;
+              std::transform(multimap.begin(), multimap.end(), std::back_inserter(result),
+                [](const auto& pair)
+                {
+                  return pair.second;
+                });
+
+              return result;
+            });
+
+            rb_define_alias(klass_, "has_key", "include?");
+      }
+
+      // Methods that require Value_T to support operator==
+      void define_comparable_methods()
+      {
+        if constexpr (detail::is_comparable_v<Mapped_T>)
+        {
+          klass_.define_method("value?", [](T& multimap, Mapped_T& value) -> bool
+            {
+              auto it = std::find_if(multimap.begin(), multimap.end(),
+              [&value](auto& pair)
+                {
+                  return pair.second == value;
+                });
+
+              return it != multimap.end();
+          });
+        }
+        else
+        {
+          klass_.define_method("value?", [](T& multimap, Mapped_T& value) -> bool
+          {
+              return false;
+          });
+        }
+
+        rb_define_alias(klass_, "has_value", "value?");
+      }
+
+      void define_modify_methods()
+      {
+        klass_.define_method("clear", &T::clear)
+          .define_method("delete", [](T& multimap, Key_T& key) -> std::optional<Mapped_T>
+          {
+            auto iter = multimap.find(key);
+
+            if (iter != multimap.end())
+            {
+              Mapped_T result = iter->second;
+              multimap.erase(iter);
+              return result;
+            }
+            else
+            {
+              return std::nullopt;
+            }
+          })
+          .define_method("insert", [](T& map, Key_T key, Mapped_T& value) -> Mapped_T
+          {
+            Value_T element{ key, value };
+            map.insert(element);
+            return value;
+          });
+      }
+
+      void define_enumerable()
+      {
+        // Add enumerable support
+        klass_.template define_iterator<typename T::iterator (T::*)()>(&T::begin, &T::end);
+      }
+
+      void define_to_s()
+      {
+        if constexpr (detail::is_ostreamable_v<Key_T> && detail::is_ostreamable_v<Mapped_T>)
+        {
+          klass_.define_method("to_s", [](const T& multimap)
+            {
+              auto iter = multimap.begin();
+
+              std::stringstream stream;
+              stream << "<" << detail::makeClassName(detail::typeName(typeid(T))) << ":";
+              stream << "{";
+
+              for (; iter != multimap.end(); iter++)
+              {
+                if (iter != multimap.begin())
+                {
+                  stream << ", ";
+                }
+                stream << iter->first << " => " << iter->second;
+              }
+
+              stream << "}>";
+              return stream.str();
+            });
+        }
+        else
+        {
+          klass_.define_method("to_s", [](const T& multimap)
+            {
+              return "[Not printable]";
+            });
+        }
+      }
+
+      private:
+        Data_Type<T> klass_;
+    };
+  } // namespace
+
+  template<typename T>
+  Data_Type<T> define_multimap(std::string klassName)
+  {
+    if (klassName.empty())
+    {
+      std::string typeName = detail::typeName(typeid(T));
+      klassName = detail::makeClassName(typeName);
+    }
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type<T>::check_defined(klassName, rb_mStd))
+    {
+      return Data_Type<T>();
+    }
+
+    Identifier id(klassName);
+    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
+    stl::MultimapHelper helper(result);
+    return result;
+  }
+
+  namespace detail
+  {
+    // Helper method - maybe someday create a C++ Ruby set wrapper
+    template<typename T, typename U>
+    std::multimap<T, U> toMultimap(VALUE rubyHash)
+    {
+      using Function_T = void(*)(VALUE, int(*)(VALUE, VALUE, VALUE), VALUE);
+
+      auto block = [](VALUE key, VALUE value, VALUE user_data) -> int
+      {
+        using Key_T = typename std::multimap<T, U>::key_type;
+        using Mapped_T = typename std::multimap<T, U>::mapped_type;
+        using Value_T = typename std::multimap<T, U>::value_type;
+
+        return cpp_protect([&]
+        {
+          Value_T pair = { From_Ruby<Key_T>().convert(key), From_Ruby<Mapped_T>().convert(value) };
+          std::multimap<T, U>* result = (std::multimap<T, U>*)user_data;
+          result->insert(pair);
+          return ST_CONTINUE;
+        });
+      };
+
+      std::multimap<T, U> result;
+      detail::protect<Function_T>(rb_hash_foreach, rubyHash, block, (VALUE)&result);
+      return result;
+    }
+
+    template<typename T, typename U>
+    struct Type<std::multimap<T, U>>
+    {
+      static bool verify()
+      {
+        Type<T>::verify();
+        Type<U>::verify();
+
+        if (!Data_Type<std::multimap<T, U>>::is_defined())
+        {
+          define_multimap<std::multimap<T, U>>();
+        }
+
+        return true;
+      }
+    };
+
+    template<typename T, typename U>
+    class From_Ruby<std::multimap<T, U>>
+    {
+    public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg * arg) : arg_(arg)
+      {
+      }
+
+      Convertible is_convertible(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_HASH:
+            return Convertible::Cast;
+            break;
+          default:
+            return Convertible::None;
+        }
+      }
+
+      std::multimap<T, U> convert(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+          {
+            // This is a wrapped multimap (hopefully!)
+            return *detail::unwrap<std::multimap<T, U>>(value, Data_Type<std::multimap<T, U>>::ruby_data_type(), false);
+          }
+          case RUBY_T_HASH:
+          {
+            // If this an Ruby hash and the multimapped type is copyable
+            if constexpr (std::is_default_constructible_v<U>)
+            {
+              return toMultimap<T, U>(value);
+            }
+          }
+          case RUBY_T_NIL:
+          {
+            if (this->arg_ && this->arg_->hasDefaultValue())
+            {
+              return this->arg_->template defaultValue<std::multimap<T, U>>();
+            }
+          }
+          default:
+          {
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::multimap");
+          }
+        }
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<typename T, typename U>
+    class From_Ruby<std::multimap<T, U>&>
+    {
+    public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg * arg) : arg_(arg)
+      {
+      }
+
+      Convertible is_convertible(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_HASH:
+            return Convertible::Cast;
+            break;
+          default:
+            return Convertible::None;
+        }
+      }
+
+      std::multimap<T, U>& convert(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+          {
+            // This is a wrapped multimap (hopefully!)
+            return *detail::unwrap<std::multimap<T, U>>(value, Data_Type<std::multimap<T, U>>::ruby_data_type(), false);
+          }
+          case RUBY_T_HASH:
+          {
+            // If this an Ruby array and the multimap type is copyable
+            if constexpr (std::is_default_constructible_v<std::multimap<T, U>>)
+            {
+              this->converted_ = toMultimap<T, U>(value);
+              return this->converted_;
+            }
+          }
+          case RUBY_T_NIL:
+          {
+            if (this->arg_ && this->arg_->hasDefaultValue())
+            {
+              return this->arg_->template defaultValue<std::multimap<T, U>>();
+            }
+          }
+          default:
+          {
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::multimap");
+          }
+        }
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+      std::multimap<T, U> converted_;
+    };
+
+    template<typename T, typename U>
+    class From_Ruby<std::multimap<T, U>*>
+    {
+    public:
+      Convertible is_convertible(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_NIL:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_HASH:
+            return Convertible::Cast;
+            break;
+          default:
+            return Convertible::None;
+        }
+      }
+
+      std::multimap<T, U>* convert(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+          {
+            // This is a wrapped multimap (hopefully!)
+            return detail::unwrap<std::multimap<T, U>>(value, Data_Type<std::multimap<T, U>>::ruby_data_type(), false);
+          }
+          case RUBY_T_HASH:
+          {
+            // If this an Ruby array and the multimap type is copyable
+            if constexpr (std::is_default_constructible_v<U>)
+            {
+              this->converted_ = toMultimap<T, U>(value);
+              return &this->converted_;
+            }
+          }
+          default:
+          {
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::multimap");
+          }
+        }
+      }
+
+    private:
+      std::multimap<T, U> converted_;
+    };
+  }
+}
+
+// =========   set.hpp   =========
+
+namespace Rice
+{
+  template<typename T>
+  Data_Type<T> define_set(std::string klassName = "");
+}
+
+
+// ---------   set.ipp   ---------
+#include <set>
+
+namespace Rice
+{
+  namespace stl
+  {
+    template<typename T>
+    class SetHelper
+    {
+      // We do NOT use Reference_T and instead use Parameter_T to avoid the weirdness
+      // of std::set<bool>. Reference_T is actually a proxy class that we do not
+      // want to have to register with Rice nor do we want to pass it around.
+      using Key_T = typename T::key_type;
+      using Value_T = typename T::value_type;
+      using Size_T = typename T::size_type;
+      using Difference_T = typename T::difference_type;
+      // For To_Ruby_T however we do need to use reference type because this is what
+      // will be passed by an interator to To_Ruby#convert
+      using Reference_T = typename T::reference;
+      using Parameter_T = std::conditional_t<std::is_pointer_v<Value_T>, Value_T, Value_T&>;
+      using To_Ruby_T = detail::remove_cv_recursive_t<typename T::reference>;
+
+    public:
+      SetHelper(Data_Type<T> klass) : klass_(klass)
+      {
+        this->define_constructors();
+        this->define_capacity_methods();
+        this->define_comparable_methods();
+        this->define_modify_methods();
+        this->define_operators();
+        this->define_enumerable();
+        this->define_to_array();
+        this->define_to_s();
+      }
+
+    private:
+
+      void define_constructors()
+      {
+        klass_.define_constructor(Constructor<T>())
+              .define_constructor(Constructor<T, const T&>());
+      }
+
+      void define_capacity_methods()
+      {
+        klass_.define_method("empty?", &T::empty)
+          .define_method("max_size", &T::max_size)
+          .define_method("size", &T::size);
+        
+        rb_define_alias(klass_, "count", "size");
+        rb_define_alias(klass_, "length", "size");
+      }
+
+      void define_comparable_methods()
+      {
+        klass_
+          .define_method("include?", [](T& self, const Key_T element) -> bool
+          {
+            auto iter = self.find(element);
+            return iter != self.end();
+          })
+          .define_method("count", [](T& self, const Key_T element) -> Size_T
+          {
+            return self.count(element);
+          });
+      }
+
+      void define_modify_methods()
+      {
+        klass_
+          .define_method("clear", &T::clear)
+          .define_method("delete", [](T& self, const Key_T key) -> T&
+          {
+            self.erase(key);
+            return self;
+          })
+          .define_method("insert", [](T& self, const Value_T value) -> T&
+          {
+            self.insert(value);
+            return self;
+          })
+          .define_method("merge", [](T& self, T& other) -> T&
+          {
+            self.merge(other);
+            return self;
+          });
+
+        rb_define_alias(klass_, "erase", "delete");
+      }
+
+      void define_operators()
+      {
+        klass_
+          .define_method("<<", [](T& self, const Value_T value) -> T&
+          {
+            self.insert(value);
+            return self;
+          })
+          .define_method("==", [](const T& self, const T& other) -> bool
+          {
+            if constexpr (detail::is_comparable_v<Value_T>)
+            {
+              return self == other;
+            }
+            else
+            {
+              return false;
+            }
+          })
+          .define_method("&", [](const T& self, const T& other) -> T
+          {
+            T result;
+            std::set_intersection(self.begin(), self.end(),
+                                  other.begin(), other.end(),
+                                  std::inserter(result, result.begin()));
+
+            return result;
+          })
+          .define_method("|", [](const T& self, const T& other) -> T
+          {
+            T result;
+            std::set_union(self.begin(), self.end(),
+                           other.begin(), other.end(),
+                           std::inserter(result, result.begin()));
+
+            return result;
+          })
+          .define_method("-", [](const T& self, const T& other) -> T
+          {
+            T result;
+            std::set_difference(self.begin(), self.end(),
+                                other.begin(), other.end(),
+                                std::inserter(result, result.begin()));
+
+            return result;
+          })
+          .define_method("^", [](const T& self, const T& other) -> T
+          {
+            T result;
+            std::set_symmetric_difference(self.begin(), self.end(),
+                                          other.begin(), other.end(),
+                                          std::inserter(result, result.begin()));
+
+            return result;
+          })
+          .define_method("<", [](const T& self, const T& other) -> bool
+          {
+            return std::includes(other.begin(), other.end(),
+                                 self.begin(), self.end());
+          })
+          .define_method(">", [](const T& self, const T& other) -> bool
+          {
+            return std::includes(self.begin(), self.end(),
+                                 other.begin(), other.end());
+          });
+        
+          rb_define_alias(klass_, "eql?", "==");
+          rb_define_alias(klass_, "intersection", "&");
+          rb_define_alias(klass_, "union", "|");
+          rb_define_alias(klass_, "difference", "-");
+          rb_define_alias(klass_, "proper_subset?", "<");
+          rb_define_alias(klass_, "subset?", "<");
+          rb_define_alias(klass_, "proper_superset?", ">");
+          rb_define_alias(klass_, "superset?", ">");
+      }
+
+      void define_enumerable()
+      {
+        // Add enumerable support
+        klass_.template define_iterator<typename T::iterator(T::*)() const>(&T::begin, &T::end);
+      }
+
+      void define_to_array()
+      {
+        // Add enumerable support
+        klass_.define_method("to_a", [](T& self) -> VALUE
+        {
+          Array array;
+          for (const Value_T& element: self)
+          {
+            array.push(element);
+          }
+
+          return array.value();
+        }, Return().setValue());
+      }
+
+      void define_to_s()
+      {
+        if constexpr (detail::is_ostreamable_v<Value_T>)
+        {
+          klass_.define_method("to_s", [](const T& self)
+          {
+            auto iter = self.begin();
+            auto finish = self.end();
+
+            std::stringstream stream;
+            stream << "<" << detail::makeClassName(detail::typeName(typeid(T))) << ":";
+            stream << "{";
+
+            for (; iter != finish; iter++)
+            {
+              if (iter == self.begin())
+              {
+                stream << *iter;
+              }
+              else
+              {
+                stream << ", " << *iter;
+              }
+            }
+
+            stream << "}>";
+            return stream.str();
+          });
+        }
+        else
+        {
+          klass_.define_method("to_s", [](const T& self)
+            {
+              return "[Not printable]";
+            });
+        }
+      }
+
+      private:
+        Data_Type<T> klass_;
+    };
+  } // namespace
+
+
+  template<typename T>
+  Data_Type<T> define_set(std::string klassName)
+  {
+    if (klassName.empty())
+    {
+      std::string typeName = detail::typeName(typeid(T));
+      klassName = detail::makeClassName(typeName);
+    }
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type<T>::check_defined(klassName, rb_mStd))
+    {
+      return Data_Type<T>();
+    }
+
+    Identifier id(klassName);
+    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
+    stl::SetHelper helper(result);
+    return result;
+  }
+
+  namespace detail
+  {
+    // Helper method - maybe someday create a C++ Ruby set wrapper
+    template<typename T>
+    std::set<T> toSet(VALUE rubySet)
+    {
+      using Function_T = VALUE(*)(VALUE, ID, int, const VALUE*, rb_block_call_func_t, VALUE);
+      static Identifier identifier("each");
+
+      std::set<T> result;
+      auto block = [&result](const typename std::set<T>::value_type element) -> VALUE
+      {
+        result.insert(element);
+        return Qnil;
+      };
+      
+      using NativeFunction_T = NativeFunction<void, decltype(block), false>;
+
+      // It is ok to use the address of native because it will remain valid while we iterate the set
+      NativeFunction_T native(block);
+      detail::protect<Function_T>(rb_block_call, rubySet, identifier.id(), 0, nullptr, NativeFunction_T::procEntry, (VALUE)&native);
+      
+      return result;
+    }
+
+    template<typename T>
+    struct Type<std::set<T>>
+    {
+      static bool verify()
+      {
+        Type<intrinsic_type<T>>::verify();
+
+        if (!Data_Type<std::set<T>>::is_defined())
+        {
+          define_set<std::set<T>>();
+        }
+
+        return true;
+      }
+    };
+
+    template<typename T>
+    class From_Ruby<std::set<T>>
+    {
+    private:
+      static inline std::string setName = "Set";
+
+    public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg * arg) : arg_(arg)
+      {
+      }
+
+      Convertible is_convertible(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_OBJECT:
+          {
+            Object object(value);
+            if (object.class_name().str() == setName)
+            {
+              return Convertible::Cast;
+            }
+          }
+          default:
+            return Convertible::None;
+        }
+      }
+
+      std::set<T> convert(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+          {
+            // This is a wrapped self (hopefully!)
+            return *detail::unwrap<std::set<T>>(value, Data_Type<std::set<T>>::ruby_data_type(), false);
+          }
+          case RUBY_T_OBJECT:
+          {
+            Object object(value);
+            if (object.class_name().str() == setName)
+            {
+              return toSet<T>(value);
+            }
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::set");
+          }
+          case RUBY_T_NIL:
+          {
+            if (this->arg_ && this->arg_->hasDefaultValue())
+            {
+              return this->arg_->template defaultValue<std::set<T>>();
+            }
+          }
+          default:
+          {
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::set");
+          }
+        }
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<typename T>
+    class From_Ruby<std::set<T>&>
+    {
+    private:
+      static inline std::string setName = "Set";
+
+    public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg * arg) : arg_(arg)
+      {
+      }
+
+      Convertible is_convertible(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_OBJECT:
+          {
+            Object object(value);
+            if (object.class_name().str() == setName)
+            {
+              return Convertible::Cast;
+            }
+          }
+          default:
+            return Convertible::None;
+        }
+      }
+
+      std::set<T>& convert(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+          {
+            // This is a wrapped self (hopefully!)
+            return *detail::unwrap<std::set<T>>(value, Data_Type<std::set<T>>::ruby_data_type(), false);
+          }
+          case RUBY_T_OBJECT:
+          {
+            Object object(value);
+            if (object.class_name().str() == setName)
+            {
+              // If this an Ruby array and the vector type is copyable
+              if constexpr (std::is_default_constructible_v<T>)
+              {
+                this->converted_ = toSet<T>(value);
+                return this->converted_;
+              }
+            }
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::set");
+          }
+          case RUBY_T_NIL:
+          {
+            if (this->arg_ && this->arg_->hasDefaultValue())
+            {
+              return this->arg_->template defaultValue<std::set<T>>();
+            }
+          }
+          default:
+          {
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::set");
+          }
+        }
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+      std::set<T> converted_;
+    };
+
+    template<typename T>
+    class From_Ruby<std::set<T>*>
+    {
+    private:
+      static inline std::string setName = "Set";
+    public:
+      Convertible is_convertible(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_NIL:
+            return Convertible::Exact;
+            break;
+          case RUBY_T_OBJECT:
+          {
+            Object object(value);
+            if (object.class_name().str() == setName)
+            {
+              return Convertible::Cast;
+            }
+          }
+          default:
+            return Convertible::None;
+        }
+      }
+
+      std::set<T>* convert(VALUE value)
+      {
+        switch (rb_type(value))
+        {
+          case RUBY_T_DATA:
+          {
+            // This is a wrapped self (hopefully!)
+            return detail::unwrap<std::set<T>>(value, Data_Type<std::set<T>>::ruby_data_type(), false);
+          }
+          case RUBY_T_OBJECT:
+          {
+            Object object(value);
+            if (object.class_name().str() == setName)
+            {
+              // If this an Ruby array and the vector type is copyable
+              if constexpr (std::is_default_constructible_v<T>)
+              {
+                this->converted_ = toSet<T>(value);
+                return &this->converted_;
+              }
+            }
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::set");
+          }
+          default:
+          {
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+              detail::protect(rb_obj_classname, value), "std::set");
+          }
+        }
+      }
+
+    private:
+      std::set<T> converted_;
+    };
+  }
+}
+
+
 // =========   shared_ptr.hpp   =========
 
 namespace Rice::detail
@@ -1391,8 +2373,6 @@ namespace Rice
 
 
 // ---------   shared_ptr.ipp   ---------
-
-#include <assert.h>
 #include <memory>
 
 // --------- Enable creation of std::shared_ptr from Ruby ---------
@@ -2071,8 +3051,6 @@ namespace Rice::detail
 
 
 // ---------   unique_ptr.ipp   ---------
-
-#include <assert.h>
 #include <memory>
 
 namespace Rice::detail
@@ -2210,7 +3188,6 @@ namespace Rice::detail
 
 // =========   unordered_map.hpp   =========
 
-
 namespace Rice
 {
   template<typename U>
@@ -2222,12 +3199,7 @@ namespace Rice
 
 
 // ---------   unordered_map.ipp   ---------
-
-#include <sstream>
-#include <stdexcept>
-#include <type_traits>
 #include <unordered_map>
-#include <variant>
 
 namespace Rice
 {
@@ -2724,7 +3696,6 @@ namespace Rice
 
 // =========   vector.hpp   =========
 
-
 namespace Rice
 {
   template<typename T>
@@ -2736,12 +3707,7 @@ namespace Rice
 
 
 // ---------   vector.ipp   ---------
-
-#include <sstream>
-#include <stdexcept>
-#include <type_traits>
 #include <vector>
-#include <variant>
 
 namespace Rice
 {
