@@ -214,6 +214,12 @@ namespace Rice::detail
     auto commaSpaceRegex = std::regex(R"(,(\S))");
     replaceAll(base, commaSpaceRegex, ", $1");
 
+    // Normalize Anonymouse namespace
+    auto anonymousNamespaceGcc = std::regex(R"(\(anonymous namespace\))");
+    replaceAll(base, anonymousNamespaceGcc, "AnonymousNamespace");
+    auto anonymousNamespaceMsvc = std::regex(R"(`anonymous namespace')");
+    replaceAll(base, anonymousNamespaceMsvc, "AnonymousNamespace");
+
     // Capitalize first letter
     base[0] = std::toupper(base[0]);
 

@@ -73,6 +73,7 @@ add_executable(unittest
                "test_Type.cpp"
                "test_Stl_Exception.cpp"
                "test_Stl_Map.cpp"
+               "test_Stl_Multimap.cpp"
                "test_Stl_Optional.cpp"
                "test_Stl_Pair.cpp"
                "test_Stl_Reference_Wrapper.cpp"
@@ -91,4 +92,5 @@ target_include_directories(unittest PRIVATE ..)
 #target_compile_definitions(unittest PRIVATE -DHAVE_LIBFFI)
 target_include_directories(unittest PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})
 target_include_directories(unittest PRIVATE ${PROJECT_SOURCE_DIR})
+target_link_directories(unittest PRIVATE c:/msys64/ucrt64/lib)
 target_link_libraries(unittest ${Ruby_LIBRARY} ffi)
