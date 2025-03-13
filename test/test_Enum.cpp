@@ -4,6 +4,7 @@
 #include "embed_ruby.hpp"
 
 #include <rice/rice.hpp>
+#include <rice/stl.hpp>
 
 using namespace Rice;
 
@@ -164,7 +165,11 @@ TESTCASE(bitset_operators)
   Object value = m.module_eval(code);
   ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(value));
 
-  code = R"(Season::Summer | Season::Fall)";
+  code = R"(Season::Spring | Season::Summer)";
+  value = m.module_eval(code);
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(value));
+
+  code = R"(Season::Spring | Season::Summer | Season::Fall)";
   value = m.module_eval(code);
   ASSERT_EQUAL(3, detail::From_Ruby<int>().convert(value));
 

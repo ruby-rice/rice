@@ -30,7 +30,6 @@ namespace Rice
     using Underlying_T = std::underlying_type_t<Enum_T>;
 
   public:
-
     Enum() = default;
 
     //! Construct and initialize.
