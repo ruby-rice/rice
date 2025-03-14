@@ -1,4 +1,3 @@
-
 #include <stdexcept>
 
 namespace Rice
@@ -44,6 +43,21 @@ namespace Rice
       {
         Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
         return static_cast<Underlying_T>(*self);
+      })
+      .define_method("coerce", [](Enum_T& notSelf, Underlying_T& other) -> std::tuple<Enum_T, Data_Object<Enum_T>>
+      {
+        /* Other will be a numeric value that matches the underlying type of the enum, for example an int.
+           Convert that to the enum type and then create new Ruby object to wrap it. This then enables code
+           like this:
+        
+           Colors::Red | Colors:Blue | Colors:Green
+
+        Colors::Red | Colors:Blue returns an integer. Then this method converts the integer back into an Enum
+        instance so that Colors:Blue | Colors:Green works. */
+
+        Enum_T enumValue = (Enum_T)other;
+        Data_Object<Enum_T> object(enumValue, true, Enum<Enum_T>::klass());
+        return std::tie<Enum_T, Data_Object<Enum_T>>(notSelf, object);
       })
       .define_method("inspect", [](Enum_T& notSelf)
       {
