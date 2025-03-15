@@ -28,23 +28,15 @@ namespace Rice
     // First we need a constructor
     klass.define_constructor(Constructor<Enum_T>());
 
-    // Instance methods. The self parameter is confusing because it is really a Data_Object<Enum_T>.
-    // However, if we make that the type then the From_Ruby code will consider it a 
-    // Data_Type<Data_Object<Enum_T>>>. But in define class above it was actually bound as 
-    // Data_Type<Enum_T>. Thus the static_casts in the methods below.
-    klass.define_method("to_s", [](Enum_T& notSelf)
+    klass.define_method("to_s", [](Enum_T& self) -> std::string
       {
-        // We have to return string because we don't know if std::string support has
-        // been included by the user
-        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
-        return String(valuesToNames_[*self]);
+        return std::string(valuesToNames_[self]);
       })
-      .define_method("to_int", [](Enum_T& notSelf) ->  Underlying_T
+      .define_method("to_int", [](Enum_T& self) ->  Underlying_T
       {
-        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
-        return static_cast<Underlying_T>(*self);
+        return (Underlying_T)(self);
       })
-      .define_method("coerce", [](Enum_T& notSelf, Underlying_T& other) -> std::tuple<Enum_T, Data_Object<Enum_T>>
+      .define_method("coerce", [](Enum_T& self, Underlying_T& other) -> std::tuple<Enum_T, Enum_T>
       {
         /* Other will be a numeric value that matches the underlying type of the enum, for example an int.
            Convert that to the enum type and then create new Ruby object to wrap it. This then enables code
@@ -54,33 +46,26 @@ namespace Rice
 
         Colors::Red | Colors:Blue returns an integer. Then this method converts the integer back into an Enum
         instance so that Colors:Blue | Colors:Green works. */
-
-        Enum_T enumValue = (Enum_T)other;
-        Data_Object<Enum_T> object(enumValue, true, Enum<Enum_T>::klass());
-        return std::tie<Enum_T, Data_Object<Enum_T>>(notSelf, object);
+        Enum_T otherEnum = (Enum_T)other;
+        return std::tie<Enum_T, Enum_T>(self, otherEnum);
       })
-      .define_method("inspect", [](Enum_T& notSelf)
+      .define_method("inspect", [](Enum_T& self)
       {
-        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
-
         std::stringstream result;
         VALUE rubyKlass = Enum<Enum_T>::klass().value();
         result << "#<" << detail::protect(rb_class2name, rubyKlass)
-          << "::" << Enum<Enum_T>::valuesToNames_[*self] << ">";
+          << "::" << Enum<Enum_T>::valuesToNames_[self] << ">";
 
         // We have to return string because we don't know if std::string support has
         // been included by the user
         return String(result.str());
       })
-      .define_method("hash", [](Enum_T& notSelf) ->  Underlying_T
+      .define_method("hash", [](Enum_T& self) ->  Underlying_T
       {
-        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
-        return (Underlying_T)*self;
+        return (Underlying_T)self;
       })
-      .define_method("eql?", [](Enum_T& notSelf, Enum_T& notOther)
+      .define_method("eql?", [](Enum_T& self, Enum_T& other)
       {
-        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
-        Data_Object<Enum_T> other = static_cast<Data_Object<Enum_T>>(notOther);
         return self == other;
     });
 
