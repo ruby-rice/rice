@@ -47,7 +47,7 @@ TESTCASE(StringVector)
 
   Class c = define_vector<std::vector<std::string>>("StringVector");
 
-  Object vec = m.module_eval("$vector = StringVector.new");
+  Object vec = m.module_eval("$vector = Std::StringVector.new");
   Object result = vec.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
@@ -72,7 +72,7 @@ TESTCASE(WrongType)
 
   Class c = define_vector<std::vector<std::string>>("StringVector");
 
-  Object vec = m.module_eval("$vector = StringVector.new");
+  Object vec = m.module_eval("$vector = Std::StringVector.new");
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.module_eval("$vector << 1"),
@@ -537,13 +537,7 @@ TESTCASE(AutoRegisterReturn)
 
   // Now register this same vector
   define_vector<std::vector<std::complex<double>>>("ComplexVector");
-  code = R"(vector = ComplexVector.new)";
-  result = m.module_eval(code);
-  ASSERT(result.is_instance_of(vec.class_of()));
-
-  // Now register it again in the module
-  define_vector_under<std::vector<std::complex<double>>>(m, "ComplexVector2");
-  code = R"(vector = Testing::ComplexVector2.new)";
+  code = R"(vector = Std::ComplexVector.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(vec.class_of()));
 }
@@ -601,7 +595,7 @@ TESTCASE(ToArray)
   Class c = define_vector<std::vector<std::string>>("StringVector").
     define_constructor(Constructor<std::vector<std::string>>());
 
-  std::string code = R"(vector = StringVector.new
+  std::string code = R"(vector = Std::StringVector.new
                         vector << "abc"
                         vector << "def"
                         vector << "ghi"
@@ -811,7 +805,7 @@ TESTCASE(Iterate)
   Module m = define_module("Testing");
   Class c = define_vector<std::vector<double>>("DoubleVector");
 
-  std::string code = R"(vector = DoubleVector.new
+  std::string code = R"(vector = Std::DoubleVector.new
                         vector << 5.0 << 6.0 << 7.0
                         updated = vector.map do |value|
                                     value * 2.0

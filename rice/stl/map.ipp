@@ -233,40 +233,26 @@ namespace Rice
   } // namespace
 
   template<typename T>
-  Data_Type<T> define_map_under(Object parent, std::string name)
+  Data_Type<T> define_map(std::string klassName)
   {
-    if (Data_Type<T>::check_defined(name, parent))
+    if (klassName.empty())
+    {
+      std::string typeName = detail::typeName(typeid(T));
+      klassName = detail::makeClassName(typeName);
+    }
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type<T>::check_defined(klassName, rb_mStd))
     {
       return Data_Type<T>();
     }
 
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(parent, name.c_str());
+    Identifier id(klassName);
+    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
     stl::MapHelper helper(result);
     return result;
   }
 
-  template<typename T>
-  Data_Type<T> define_map(std::string name)
-  {
-    if (Data_Type<T>::check_defined(name))
-    {
-      return Data_Type<T>();
-    }
-
-    Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
-    stl::MapHelper<T> helper(result);
-    return result;
-  }
-
-  template<typename T>
-  Data_Type<T> define_map_auto()
-  {
-    Module rb_mStd = define_module("Std");
-    std::string name = detail::typeName(typeid(T));
-    std::string klassName = detail::makeClassName(name);
-    return define_map_under<T>(rb_mStd, klassName);
-  }
-   
   namespace detail
   {
     template<typename T, typename U>
@@ -279,7 +265,7 @@ namespace Rice
 
         if (!Data_Type<std::map<T, U>>::is_defined())
         {
-          define_map_auto<std::map<T, U>>();
+          define_map<std::map<T, U>>();
         }
 
         return true;

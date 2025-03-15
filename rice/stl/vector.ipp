@@ -348,34 +348,27 @@ namespace Rice
   } // namespace
 
   template<typename T>
-  Data_Type<T> define_vector_under(Object parent, std::string name)
+  Data_Type<T> define_vector(std::string klassName)
   {
-    if (Data_Type<T>::check_defined(name, parent))
+    if (klassName.empty())
+    {
+      std::string typeName = detail::typeName(typeid(T));
+      klassName = detail::makeClassName(typeName);
+    }
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type<T>::check_defined(klassName, rb_mStd))
     {
       return Data_Type<T>();
     }
 
-    Identifier id(name);
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(parent, id, rb_cObject);
+    Identifier id(klassName);
+    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
     stl::VectorHelper helper(result);
     return result;
   }
 
-  template<typename T>
-  Data_Type<T> define_vector(std::string name)
-  {
-    return define_vector_under<T>(rb_cObject, name);
-  }
 
-  template<typename T>
-  Data_Type<T> define_vector_auto()
-  {
-    Module rb_mStd = define_module("Std");
-    std::string name = detail::typeName(typeid(T));
-    std::string klassName = detail::makeClassName(name);
-    return define_vector_under<T>(rb_mStd, klassName);
-  }
-   
   namespace detail
   {
     template<typename T>
@@ -387,7 +380,7 @@ namespace Rice
 
         if (!Data_Type<std::vector<T>>::is_defined())
         {
-          define_vector_auto<std::vector<T>>();
+          define_vector<std::vector<T>>();
         }
 
         return true;
