@@ -49,7 +49,7 @@ TESTCASE(StringMap)
 
   Class c = define_map<std::map<std::string, std::string>>("StringMap");
 
-  Object map = m.module_eval("$map = StringMap.new");
+  Object map = m.module_eval("$map = Std::StringMap.new");
   Object result = map.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
@@ -67,7 +67,7 @@ TESTCASE(WrongType)
   Module m = define_module("Testing");
 
   Class c = define_map<std::map<std::string, std::string>>("StringMap");
-  Object map = m.module_eval("$map = StringMap.new");
+  Object map = m.module_eval("$map = Std::StringMap.new");
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -243,7 +243,7 @@ TESTCASE(Iterate)
   Module m = define_module("Testing");
   Class c = define_map<std::map<std::string, int>>("IntMap");
 
-  std::string code = R"(map = IntMap.new
+  std::string code = R"(map = Std::IntMap.new
                         map["five"] = 5
                         map["six"] = 6
                         map["seven"] = 7
@@ -270,7 +270,7 @@ TESTCASE(ToEnum)
   Module m = define_module("Testing");
   Class c = define_map<std::map<std::string, int>>("IntMap");
 
-  std::string code = R"(map = IntMap.new
+  std::string code = R"(map = Std::IntMap.new
                         map["five"] = 5
                         map["six"] = 6
                         map["seven"] = 7
@@ -298,7 +298,7 @@ TESTCASE(ToEnumSize)
   Module m = define_module("TestingModule");
   Class c = define_map<std::map<std::string, int>>("IntMap");
 
-  std::string code = R"(map = IntMap.new
+  std::string code = R"(map = Std::IntMap.new
                         map["five"] = 5
                         map["six"] = 6
                         map["seven"] = 7
@@ -459,13 +459,7 @@ TESTCASE(AutoRegisterReturn)
 
   // Now register the map again
   define_map<std::map<std::string, std::complex<double>>>("ComplexMap");
-  code = R"(map = ComplexMap.new)";
-  result = m.module_eval(code);
-  ASSERT(result.is_instance_of(map.class_of()));
-
-  // And again in the module
-  define_map_under<std::map<std::string, std::complex<double>>>(m, "ComplexMap2");
-  code = R"(map = Testing::ComplexMap2.new)";
+  code = R"(map = Std::ComplexMap.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(map.class_of()));
 }

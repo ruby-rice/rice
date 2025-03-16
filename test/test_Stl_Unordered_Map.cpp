@@ -49,7 +49,7 @@ TESTCASE(StringUnorderedMap)
 
   Class c = define_unordered_map<std::unordered_map<std::string, std::string>>("StringUnorderedMap");
 
-  Object unordered_map = m.module_eval("$unordered_map = StringUnorderedMap.new");
+  Object unordered_map = m.module_eval("$unordered_map = Std::StringUnorderedMap.new");
   Object result = unordered_map.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
@@ -67,7 +67,7 @@ TESTCASE(WrongType)
   Module m = define_module("Testing");
 
   Class c = define_unordered_map<std::unordered_map<std::string, std::string>>("StringUnorderedMap");
-  Object unordered_map = m.module_eval("$unordered_map = StringUnorderedMap.new");
+  Object unordered_map = m.module_eval("$unordered_map = Std::StringUnorderedMap.new");
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -243,7 +243,7 @@ TESTCASE(Iterate)
   Module m = define_module("Testing");
   Class c = define_unordered_map<std::unordered_map<std::string, int>>("IntUnorderedMap");
 
-  std::string code = R"(unordered_map = IntUnorderedMap.new
+  std::string code = R"(unordered_map = Std::IntUnorderedMap.new
                         unordered_map["five"] = 5
                         unordered_map["six"] = 6
                         unordered_map["seven"] = 7
@@ -267,7 +267,7 @@ TESTCASE(ToEnum)
   Module m = define_module("Testing");
   Class c = define_unordered_map<std::unordered_map<std::string, int>>("IntUnorderedMap");
 
-  std::string code = R"(unordered_map = IntUnorderedMap.new
+  std::string code = R"(unordered_map = Std::IntUnorderedMap.new
                         unordered_map["five"] = 5
                         unordered_map["six"] = 6
                         unordered_map["seven"] = 7
@@ -292,7 +292,7 @@ TESTCASE(ToEnumSize)
   Module m = define_module("TestingModule");
   Class c = define_unordered_map<std::unordered_map<std::string, int>>("IntUnorderedMap");
 
-  std::string code = R"(map = IntUnorderedMap.new
+  std::string code = R"(map = Std::IntUnorderedMap.new
                         map["five"] = 5
                         map["six"] = 6
                         map["seven"] = 7
@@ -455,13 +455,7 @@ TESTCASE(AutoRegisterReturn)
 
   // Now register the unordered_map again
   define_unordered_map<std::unordered_map<std::string, std::complex<double>>>("ComplexUnorderedMap");
-  code = R"(unordered_map = ComplexUnorderedMap.new)";
-  result = m.module_eval(code);
-  ASSERT(result.is_instance_of(unordered_map.class_of()));
-
-  // And again in the module
-  define_unordered_map_under<std::unordered_map<std::string, std::complex<double>>>(m, "ComplexUnorderedMap2");
-  code = R"(unordered_map = Testing::ComplexUnorderedMap2.new)";
+  code = R"(unordered_map = Std::ComplexUnorderedMap.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(unordered_map.class_of()));
 }
