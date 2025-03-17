@@ -3804,21 +3804,21 @@ namespace Rice
   class Constructor;
 }
 
-// =========   PointerView.hpp   =========
+// =========   Buffer.hpp   =========
 
 namespace Rice
 {
   template<typename T>
-  class PointerView
+  class Buffer
   {
   public:
     using type = T;
 
-    PointerView(T* pointer);
-    PointerView(T* pointer, size_t size);
-    PointerView(const PointerView& other);
+    Buffer(T* pointer);
+    Buffer(T* pointer, size_t size);
+    Buffer(const Buffer& other);
 
-    PointerView<std::remove_pointer_t<T>> operator*();
+    Buffer<std::remove_pointer_t<T>> operator*();
     VALUE read(size_t offset, size_t count);
     Array toArray(size_t offset, size_t count);
 
@@ -3833,36 +3833,36 @@ namespace Rice
 namespace Rice::detail
 {
   template<typename T>
-  Data_Type<T> define_pointer_view();
+  Data_Type<T> define_buffer();
 }
 
-// =========   PointerView.ipp   =========
+// =========   Buffer.ipp   =========
 namespace Rice
 {
   template<typename T>
-  PointerView<T>::PointerView(T* pointer) : pointer(pointer)
+  Buffer<T>::Buffer(T* pointer) : pointer(pointer)
   {
   }
 
   template<typename T>
-  PointerView<T>::PointerView(T* pointer, size_t size) : pointer(pointer), size(size)
+  Buffer<T>::Buffer(T* pointer, size_t size) : pointer(pointer), size(size)
   {
   }
 
   template<typename T>
-  PointerView<T>::PointerView(const PointerView& other)
+  Buffer<T>::Buffer(const Buffer& other)
   {
     this->pointer = other.pointer;
     this->size = other.size;
   }
 
   template<typename T>
-  PointerView<std::remove_pointer_t<T>> PointerView<T>::operator*()
+  Buffer<std::remove_pointer_t<T>> Buffer<T>::operator*()
   {
     if constexpr (std::is_pointer_v<T>)
     {
       // This assumes that the value stored in this->pointer is another pointer of the same type
-      return PointerView<std::remove_pointer_t<T>>(*this->pointer);
+      return Buffer<std::remove_pointer_t<T>>(*this->pointer);
     }
     else
     {
@@ -3871,7 +3871,7 @@ namespace Rice
   }
   
   template<typename T>
-  inline VALUE PointerView<T>::read(size_t offset, size_t count)
+  inline VALUE Buffer<T>::read(size_t offset, size_t count)
   {
     if (!this->pointer)
     {
@@ -3886,13 +3886,13 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE PointerView<T>::read()
+  inline VALUE Buffer<T>::read()
   {
     return this->read(0, this->size);
   }
 
   template<typename T>
-  inline Array PointerView<T>::toArray(size_t offset, size_t count)
+  inline Array Buffer<T>::toArray(size_t offset, size_t count)
   {
     if (!this->pointer)
     {
@@ -3919,7 +3919,7 @@ namespace Rice
 
         if constexpr (isPointerToPointer)
         {
-          PointerView<std::remove_pointer_t<T>> pointerView(object);
+          Buffer<std::remove_pointer_t<T>> pointerView(object);
           result.push(pointerView);
         }
         else
@@ -3932,20 +3932,20 @@ namespace Rice
   }
 
   template<typename T>
-  inline Array PointerView<T>::toArray()
+  inline Array Buffer<T>::toArray()
   {
     return this->toArray(0, this->size);
   }
 
   // Specializations to handle void
   template<>
-  inline VALUE PointerView<void>::read(size_t offset, size_t count)
+  inline VALUE Buffer<void>::read(size_t offset, size_t count)
   {
     return Qnil;
   }
 
   template<>
-  inline Array PointerView<void>::toArray(size_t offset, size_t count)
+  inline Array Buffer<void>::toArray(size_t offset, size_t count)
   {
     return Qnil;
   }
@@ -3954,7 +3954,7 @@ namespace Rice
 namespace Rice::detail
 {
   template<typename PointerView_T>
-  Data_Type<PointerView_T> define_pointer_view()
+  Data_Type<PointerView_T> define_buffer()
   {
     std::string name = detail::typeName(typeid(PointerView_T));
     std::string klassName = detail::makeClassName(name);
@@ -3973,15 +3973,15 @@ namespace Rice::detail
   }
 
   template<typename T>
-  struct Type<PointerView<T>>
+  struct Type<Buffer<T>>
   {
     static bool verify()
     {
       Type<intrinsic_type<T>>::verify();
 
-      if (!Data_Type<PointerView<T>>::is_defined())
+      if (!Data_Type<Buffer<T>>::is_defined())
       {
-        define_pointer_view<PointerView<T>>();
+        define_buffer<Buffer<T>>();
       }
 
       return true;
@@ -4096,18 +4096,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<int>>::verify();
+        detail::Type<Buffer<int>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<int>>::verify();
+        detail::Type<Buffer<int>>::verify();
       }
 
       VALUE convert(int* buffer)
       {
-        PointerView<int> pointerView(buffer);
-        Data_Object<PointerView<int>> dataObject(pointerView, true);
+        Buffer<int> pointerView(buffer);
+        Data_Object<Buffer<int>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -4126,18 +4126,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<int>>::verify();
+        detail::Type<Buffer<int>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<int>>::verify();
+        detail::Type<Buffer<int>>::verify();
       }
 
       VALUE convert(int buffer[N])
       {
-        PointerView<int> pointerView(buffer, N);
-        Data_Object<PointerView<int>> dataObject(pointerView, true);
+        Buffer<int> pointerView(buffer, N);
+        Data_Object<Buffer<int>> dataObject(pointerView, true);
         return dataObject.value();
       }
     private:
@@ -4150,20 +4150,20 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<int>>::verify();
-        detail::Type<PointerView<int*>>::verify();
+        detail::Type<Buffer<int>>::verify();
+        detail::Type<Buffer<int*>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<int>>::verify();
-        detail::Type<PointerView<int*>>::verify();
+        detail::Type<Buffer<int>>::verify();
+        detail::Type<Buffer<int*>>::verify();
       }
 
       VALUE convert(int** buffer)
       {
-        PointerView<int*> pointerView(buffer);
-        Data_Object<PointerView<int*>> dataObject(pointerView, true);
+        Buffer<int*> pointerView(buffer);
+        Data_Object<Buffer<int*>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -4229,18 +4229,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned int>>::verify();
+        detail::Type<Buffer<unsigned int>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned int>>::verify();
+        detail::Type<Buffer<unsigned int>>::verify();
       }
 
       VALUE convert(unsigned int* buffer)
       {
-        PointerView<unsigned int> pointerView(buffer);
-        Data_Object<PointerView<unsigned int>> dataObject(pointerView, true);
+        Buffer<unsigned int> pointerView(buffer);
+        Data_Object<Buffer<unsigned int>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -4259,18 +4259,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned int>>::verify();
+        detail::Type<Buffer<unsigned int>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned int>>::verify();
+        detail::Type<Buffer<unsigned int>>::verify();
       }
 
       VALUE convert(unsigned int buffer[N])
       {
-        PointerView<unsigned int> pointerView(buffer, N);
-        Data_Object<PointerView<unsigned int>> dataObject(pointerView, true);
+        Buffer<unsigned int> pointerView(buffer, N);
+        Data_Object<Buffer<unsigned int>> dataObject(pointerView, true);
         return dataObject.value();
       }
     private:
@@ -4283,20 +4283,20 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned int>>::verify();
-        detail::Type<PointerView<unsigned int*>>::verify();
+        detail::Type<Buffer<unsigned int>>::verify();
+        detail::Type<Buffer<unsigned int*>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned int>>::verify();
-        detail::Type<PointerView<unsigned int*>>::verify();
+        detail::Type<Buffer<unsigned int>>::verify();
+        detail::Type<Buffer<unsigned int*>>::verify();
       }
 
       VALUE convert(unsigned int** buffer)
       {
-        PointerView<unsigned int*> pointerView(buffer);
-        Data_Object<PointerView<unsigned int*>> dataObject(pointerView, true);
+        Buffer<unsigned int*> pointerView(buffer);
+        Data_Object<Buffer<unsigned int*>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -4430,20 +4430,20 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<char>>::verify();
-        detail::Type<PointerView<char*>>::verify();
+        detail::Type<Buffer<char>>::verify();
+        detail::Type<Buffer<char*>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<char>>::verify();
-        detail::Type<PointerView<char*>>::verify();
+        detail::Type<Buffer<char>>::verify();
+        detail::Type<Buffer<char*>>::verify();
       }
 
       VALUE convert(char** buffer)
       {
-        PointerView<char*> pointerView(buffer);
-        Data_Object<PointerView<char*>> dataObject(pointerView, true);
+        Buffer<char*> pointerView(buffer);
+        Data_Object<Buffer<char*>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -4501,18 +4501,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned char>>::verify();
+        detail::Type<Buffer<unsigned char>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned char>>::verify();
+        detail::Type<Buffer<unsigned char>>::verify();
       }
 
       VALUE convert(unsigned char* buffer)
       {
-        PointerView<unsigned char> pointerView(buffer);
-        Data_Object<PointerView<unsigned char>> dataObject(pointerView, true);
+        Buffer<unsigned char> pointerView(buffer);
+        Data_Object<Buffer<unsigned char>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -4531,18 +4531,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned char>>::verify();
+        detail::Type<Buffer<unsigned char>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned char>>::verify();
+        detail::Type<Buffer<unsigned char>>::verify();
       }
 
       VALUE convert(unsigned char buffer[N])
       {
-        PointerView<unsigned char> pointerView(buffer, N);
-        Data_Object<PointerView<unsigned char>> dataObject(pointerView, true);
+        Buffer<unsigned char> pointerView(buffer, N);
+        Data_Object<Buffer<unsigned char>> dataObject(pointerView, true);
         return dataObject.value();
       }
     private:
@@ -4555,20 +4555,20 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned char>>::verify();
-        detail::Type<PointerView<unsigned char*>>::verify();
+        detail::Type<Buffer<unsigned char>>::verify();
+        detail::Type<Buffer<unsigned char*>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned char>>::verify();
-        detail::Type<PointerView<unsigned char*>>::verify();
+        detail::Type<Buffer<unsigned char>>::verify();
+        detail::Type<Buffer<unsigned char*>>::verify();
       }
 
       VALUE convert(unsigned char** buffer)
       {
-        PointerView<unsigned char*> pointerView(buffer);
-        Data_Object<PointerView<unsigned char*>> dataObject(pointerView, true);
+        Buffer<unsigned char*> pointerView(buffer);
+        Data_Object<Buffer<unsigned char*>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -4626,18 +4626,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<signed char>>::verify();
+        detail::Type<Buffer<signed char>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<signed char>>::verify();
+        detail::Type<Buffer<signed char>>::verify();
       }
 
       VALUE convert(signed char* buffer)
       {
-        PointerView<signed char> pointerView(buffer);
-        Data_Object<PointerView<signed char>> dataObject(pointerView, true);
+        Buffer<signed char> pointerView(buffer);
+        Data_Object<Buffer<signed char>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -4656,18 +4656,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<signed char>>::verify();
+        detail::Type<Buffer<signed char>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<signed char>>::verify();
+        detail::Type<Buffer<signed char>>::verify();
       }
 
       VALUE convert(signed char buffer[N])
       {
-        PointerView<signed char> pointerView(buffer, N);
-        Data_Object<PointerView<signed char>> dataObject(pointerView, true);
+        Buffer<signed char> pointerView(buffer, N);
+        Data_Object<Buffer<signed char>> dataObject(pointerView, true);
         return dataObject.value();
       }
     private:
@@ -4680,20 +4680,20 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<signed char>>::verify();
-        detail::Type<PointerView<signed char*>>::verify();
+        detail::Type<Buffer<signed char>>::verify();
+        detail::Type<Buffer<signed char*>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<signed char>>::verify();
-        detail::Type<PointerView<signed char*>>::verify();
+        detail::Type<Buffer<signed char>>::verify();
+        detail::Type<Buffer<signed char*>>::verify();
       }
 
       VALUE convert(signed char** buffer)
       {
-        PointerView<signed char*> pointerView(buffer);
-        Data_Object<PointerView<signed char*>> dataObject(pointerView, true);
+        Buffer<signed char*> pointerView(buffer);
+        Data_Object<Buffer<signed char*>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -4751,18 +4751,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<double>>::verify();
+        detail::Type<Buffer<double>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<double>>::verify();
+        detail::Type<Buffer<double>>::verify();
       }
 
       VALUE convert(double* buffer)
       {
-        PointerView<double> pointerView(buffer);
-        Data_Object<PointerView<double>> dataObject(pointerView, true);
+        Buffer<double> pointerView(buffer);
+        Data_Object<Buffer<double>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -4776,18 +4776,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<double>>::verify();
+        detail::Type<Buffer<double>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<double>>::verify();
+        detail::Type<Buffer<double>>::verify();
       }
 
       VALUE convert(double buffer[N])
       {
-        PointerView<double> pointerView(buffer, N);
-        Data_Object<PointerView<double>> dataObject(pointerView, true);
+        Buffer<double> pointerView(buffer, N);
+        Data_Object<Buffer<double>> dataObject(pointerView, true);
         return dataObject.value();
       }
     private:
@@ -4800,20 +4800,20 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<double>>::verify();
-        detail::Type<PointerView<double*>>::verify();
+        detail::Type<Buffer<double>>::verify();
+        detail::Type<Buffer<double*>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<double>>::verify();
-        detail::Type<PointerView<double*>>::verify();
+        detail::Type<Buffer<double>>::verify();
+        detail::Type<Buffer<double*>>::verify();
       }
 
       VALUE convert(double** buffer)
       {
-        PointerView<double*> pointerView(buffer);
-        Data_Object<PointerView<double*>> dataObject(pointerView, true);
+        Buffer<double*> pointerView(buffer);
+        Data_Object<Buffer<double*>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -4871,18 +4871,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<float>>::verify();
+        detail::Type<Buffer<float>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<float>>::verify();
+        detail::Type<Buffer<float>>::verify();
       }
 
       VALUE convert(float* buffer)
       {
-        PointerView<float> pointerView(buffer);
-        Data_Object<PointerView<float>> dataObject(pointerView, true);
+        Buffer<float> pointerView(buffer);
+        Data_Object<Buffer<float>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -4896,18 +4896,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<float>>::verify();
+        detail::Type<Buffer<float>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<float>>::verify();
+        detail::Type<Buffer<float>>::verify();
       }
 
       VALUE convert(float buffer[N])
       {
-        PointerView<float> pointerView(buffer, N);
-        Data_Object<PointerView<float>> dataObject(pointerView, true);
+        Buffer<float> pointerView(buffer, N);
+        Data_Object<Buffer<float>> dataObject(pointerView, true);
         return dataObject.value();
       }
     private:
@@ -4920,20 +4920,20 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<float>>::verify();
-        detail::Type<PointerView<float*>>::verify();
+        detail::Type<Buffer<float>>::verify();
+        detail::Type<Buffer<float*>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<float>>::verify();
-        detail::Type<PointerView<float*>>::verify();
+        detail::Type<Buffer<float>>::verify();
+        detail::Type<Buffer<float*>>::verify();
       }
 
       VALUE convert(float** buffer)
       {
-        PointerView<float*> pointerView(buffer);
-        Data_Object<PointerView<float*>> dataObject(pointerView, true);
+        Buffer<float*> pointerView(buffer);
+        Data_Object<Buffer<float*>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -4991,18 +4991,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<long>>::verify();
+        detail::Type<Buffer<long>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<long>>::verify();
+        detail::Type<Buffer<long>>::verify();
       }
 
       VALUE convert(long* buffer)
       {
-        PointerView<long> pointerView(buffer);
-        Data_Object<PointerView<long>> dataObject(pointerView, true);
+        Buffer<long> pointerView(buffer);
+        Data_Object<Buffer<long>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -5016,18 +5016,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<long>>::verify();
+        detail::Type<Buffer<long>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<long>>::verify();
+        detail::Type<Buffer<long>>::verify();
       }
 
       VALUE convert(long buffer[N])
       {
-        PointerView<long> pointerView(buffer, N);
-        Data_Object<PointerView<long>> dataObject(pointerView, true);
+        Buffer<long> pointerView(buffer, N);
+        Data_Object<Buffer<long>> dataObject(pointerView, true);
         return dataObject.value();
       }
     private:
@@ -5040,20 +5040,20 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<long>>::verify();
-        detail::Type<PointerView<long*>>::verify();
+        detail::Type<Buffer<long>>::verify();
+        detail::Type<Buffer<long*>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<long>>::verify();
-        detail::Type<PointerView<long*>>::verify();
+        detail::Type<Buffer<long>>::verify();
+        detail::Type<Buffer<long*>>::verify();
       }
 
       VALUE convert(long** buffer)
       {
-        PointerView<long*> pointerView(buffer);
-        Data_Object<PointerView<long*>> dataObject(pointerView, true);
+        Buffer<long*> pointerView(buffer);
+        Data_Object<Buffer<long*>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -5125,18 +5125,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned long>>::verify();
+        detail::Type<Buffer<unsigned long>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned long>>::verify();
+        detail::Type<Buffer<unsigned long>>::verify();
       }
 
       VALUE convert(unsigned long* buffer)
       {
-        PointerView<unsigned long> pointerView(buffer);
-        Data_Object<PointerView<unsigned long>> dataObject(pointerView, true);
+        Buffer<unsigned long> pointerView(buffer);
+        Data_Object<Buffer<unsigned long>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -5150,18 +5150,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned long>>::verify();
+        detail::Type<Buffer<unsigned long>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned long>>::verify();
+        detail::Type<Buffer<unsigned long>>::verify();
       }
 
       VALUE convert(unsigned long buffer[N])
       {
-        PointerView<unsigned long> pointerView(buffer, N);
-        Data_Object<PointerView<unsigned long>> dataObject(pointerView, true);
+        Buffer<unsigned long> pointerView(buffer, N);
+        Data_Object<Buffer<unsigned long>> dataObject(pointerView, true);
         return dataObject.value();
       }
     private:
@@ -5174,20 +5174,20 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned long>>::verify();
-        detail::Type<PointerView<unsigned long*>>::verify();
+        detail::Type<Buffer<unsigned long>>::verify();
+        detail::Type<Buffer<unsigned long*>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned long>>::verify();
-        detail::Type<PointerView<unsigned long*>>::verify();
+        detail::Type<Buffer<unsigned long>>::verify();
+        detail::Type<Buffer<unsigned long*>>::verify();
       }
 
       VALUE convert(unsigned long** buffer)
       {
-        PointerView<unsigned long*> pointerView(buffer);
-        Data_Object<PointerView<unsigned long*>> dataObject(pointerView, true);
+        Buffer<unsigned long*> pointerView(buffer);
+        Data_Object<Buffer<unsigned long*>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -5245,18 +5245,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<long long>>::verify();
+        detail::Type<Buffer<long long>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<long long>>::verify();
+        detail::Type<Buffer<long long>>::verify();
       }
 
       VALUE convert(long long* buffer)
       {
-        PointerView<long long> pointerView(buffer);
-        Data_Object<PointerView<long long>> dataObject(pointerView, true);
+        Buffer<long long> pointerView(buffer);
+        Data_Object<Buffer<long long>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -5270,18 +5270,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<long long>>::verify();
+        detail::Type<Buffer<long long>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<long long>>::verify();
+        detail::Type<Buffer<long long>>::verify();
       }
 
       VALUE convert(long long buffer[N])
       {
-        PointerView<long long> pointerView(buffer, N);
-        Data_Object<PointerView<long long>> dataObject(pointerView, true);
+        Buffer<long long> pointerView(buffer, N);
+        Data_Object<Buffer<long long>> dataObject(pointerView, true);
         return dataObject.value();
       }
     private:
@@ -5294,20 +5294,20 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<long long>>::verify();
-        detail::Type<PointerView<long long*>>::verify();
+        detail::Type<Buffer<long long>>::verify();
+        detail::Type<Buffer<long long*>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<long long>>::verify();
-        detail::Type<PointerView<long long*>>::verify();
+        detail::Type<Buffer<long long>>::verify();
+        detail::Type<Buffer<long long*>>::verify();
       }
 
       VALUE convert(long long** buffer)
       {
-        PointerView<long long*> pointerView(buffer);
-        Data_Object<PointerView<long long*>> dataObject(pointerView, true);
+        Buffer<long long*> pointerView(buffer);
+        Data_Object<Buffer<long long*>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -5390,18 +5390,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned long long>>::verify();
+        detail::Type<Buffer<unsigned long long>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned long long>>::verify();
+        detail::Type<Buffer<unsigned long long>>::verify();
       }
 
       VALUE convert(unsigned long long* buffer)
       {
-        PointerView<unsigned long long> pointerView(buffer);
-        Data_Object<PointerView<unsigned long long>> dataObject(pointerView, true);
+        Buffer<unsigned long long> pointerView(buffer);
+        Data_Object<Buffer<unsigned long long>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -5415,18 +5415,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned long long>>::verify();
+        detail::Type<Buffer<unsigned long long>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned long long>>::verify();
+        detail::Type<Buffer<unsigned long long>>::verify();
       }
 
       VALUE convert(unsigned long long buffer[N])
       {
-        PointerView<unsigned long long> pointerView(buffer, N);
-        Data_Object<PointerView<unsigned long long>> dataObject(pointerView, true);
+        Buffer<unsigned long long> pointerView(buffer, N);
+        Data_Object<Buffer<unsigned long long>> dataObject(pointerView, true);
         return dataObject.value();
       }
     private:
@@ -5439,20 +5439,20 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned long long>>::verify();
-        detail::Type<PointerView<unsigned long long*>>::verify();
+        detail::Type<Buffer<unsigned long long>>::verify();
+        detail::Type<Buffer<unsigned long long*>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned long long>>::verify();
-        detail::Type<PointerView<unsigned long long*>>::verify();
+        detail::Type<Buffer<unsigned long long>>::verify();
+        detail::Type<Buffer<unsigned long long*>>::verify();
       }
 
       VALUE convert(unsigned long long** buffer)
       {
-        PointerView<unsigned long long*> pointerView(buffer);
-        Data_Object<PointerView<unsigned long long*>> dataObject(pointerView, true);
+        Buffer<unsigned long long*> pointerView(buffer);
+        Data_Object<Buffer<unsigned long long*>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -5518,18 +5518,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<short>>::verify();
+        detail::Type<Buffer<short>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<short>>::verify();
+        detail::Type<Buffer<short>>::verify();
       }
 
       VALUE convert(short* buffer)
       {
-        PointerView<short> pointerView(buffer);
-        Data_Object<PointerView<short>> dataObject(pointerView, true);
+        Buffer<short> pointerView(buffer);
+        Data_Object<Buffer<short>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -5543,18 +5543,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<short>>::verify();
+        detail::Type<Buffer<short>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<short>>::verify();
+        detail::Type<Buffer<short>>::verify();
       }
 
       VALUE convert(short buffer[N])
       {
-        PointerView<short> pointerView(buffer, N);
-        Data_Object<PointerView<short>> dataObject(pointerView, true);
+        Buffer<short> pointerView(buffer, N);
+        Data_Object<Buffer<short>> dataObject(pointerView, true);
         return dataObject.value();
       }
     private:
@@ -5567,20 +5567,20 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<short>>::verify();
-        detail::Type<PointerView<short*>>::verify();
+        detail::Type<Buffer<short>>::verify();
+        detail::Type<Buffer<short*>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<short>>::verify();
-        detail::Type<PointerView<short*>>::verify();
+        detail::Type<Buffer<short>>::verify();
+        detail::Type<Buffer<short*>>::verify();
       }
 
       VALUE convert(short** buffer)
       {
-        PointerView<short*> pointerView(buffer);
-        Data_Object<PointerView<short*>> dataObject(pointerView, true);
+        Buffer<short*> pointerView(buffer);
+        Data_Object<Buffer<short*>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -5646,18 +5646,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned short>>::verify();
+        detail::Type<Buffer<unsigned short>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned short>>::verify();
+        detail::Type<Buffer<unsigned short>>::verify();
       }
 
       VALUE convert(unsigned short* buffer)
       {
-        PointerView<unsigned short> pointerView(buffer);
-        Data_Object<PointerView<unsigned short>> dataObject(pointerView, true);
+        Buffer<unsigned short> pointerView(buffer);
+        Data_Object<Buffer<unsigned short>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -5671,18 +5671,18 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned short>>::verify();
+        detail::Type<Buffer<unsigned short>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned short>>::verify();
+        detail::Type<Buffer<unsigned short>>::verify();
       }
 
       VALUE convert(unsigned short buffer[N])
       {
-        PointerView<unsigned short> pointerView(buffer, N);
-        Data_Object<PointerView<unsigned short>> dataObject(pointerView, true);
+        Buffer<unsigned short> pointerView(buffer, N);
+        Data_Object<Buffer<unsigned short>> dataObject(pointerView, true);
         return dataObject.value();
       }
     private:
@@ -5695,20 +5695,20 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<unsigned short>>::verify();
-        detail::Type<PointerView<unsigned short*>>::verify();
+        detail::Type<Buffer<unsigned short>>::verify();
+        detail::Type<Buffer<unsigned short*>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<unsigned short>>::verify();
-        detail::Type<PointerView<unsigned short*>>::verify();
+        detail::Type<Buffer<unsigned short>>::verify();
+        detail::Type<Buffer<unsigned short*>>::verify();
       }
 
       VALUE convert(unsigned short** buffer)
       {
-        PointerView<unsigned short*> pointerView(buffer);
-        Data_Object<PointerView<unsigned short*>> dataObject(pointerView, true);
+        Buffer<unsigned short*> pointerView(buffer);
+        Data_Object<Buffer<unsigned short*>> dataObject(pointerView, true);
         return dataObject.value();
       }
 
@@ -5768,12 +5768,12 @@ namespace Rice
     public:
       To_Ruby()
       {
-        detail::Type<PointerView<void>>::verify();
+        detail::Type<Buffer<void>>::verify();
       };
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<PointerView<void>>::verify();
+        detail::Type<Buffer<void>>::verify();
       }
 
       VALUE convert(void* data)
@@ -5788,8 +5788,8 @@ namespace Rice
         }
         else
         {
-          PointerView<void> pointerView(data);
-          Data_Object<PointerView<void>> dataObject(pointerView, true);
+          Buffer<void> pointerView(data);
+          Data_Object<Buffer<void>> dataObject(pointerView, true);
           return dataObject.value();
         }
       }
@@ -8368,12 +8368,12 @@ namespace Rice::detail
   public:
     From_Ruby()
     {
-      detail::Type<PointerView<void>>::verify();
+      detail::Type<Buffer<void>>::verify();
     };
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
-      detail::Type<PointerView<void>>::verify();
+      detail::Type<Buffer<void>>::verify();
 
       if (this->arg_->isOwner())
       {
@@ -8435,11 +8435,11 @@ namespace Rice::detail
           // from the Ruby object.
           const rb_data_type_t* rb_type = RTYPEDDATA_TYPE(value);
 
-          // Is this a PointerView? It could also be a pointer to any other object being passed to 
+          // Is this a Buffer? It could also be a pointer to any other object being passed to 
           // a C++ paramter that takes void*
-          if (rb_type == Data_Type<PointerView<void>>::ruby_data_type())
+          if (rb_type == Data_Type<Buffer<void>>::ruby_data_type())
           {
-            Data_Object<PointerView<void>> pointerView(value);
+            Data_Object<Buffer<void>> pointerView(value);
             return pointerView->pointer;
           }
           else 
@@ -13305,12 +13305,12 @@ namespace Rice::detail
   public:
     To_Ruby()
     {
-      detail::Type<PointerView<T>>::verify();
+      detail::Type<Buffer<T>>::verify();
     };
 
     explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
-      detail::Type<PointerView<T>>::verify();
+      detail::Type<Buffer<T>>::verify();
     }
 
     VALUE convert(T* data)
@@ -13321,8 +13321,8 @@ namespace Rice::detail
       }
       else if (this->returnInfo_ && this->returnInfo_->isArray())
       {
-        PointerView<T> pointerView(data);
-        Data_Object<PointerView<T>> dataObject(pointerView, true);
+        Buffer<T> pointerView(data);
+        Data_Object<Buffer<T>> dataObject(pointerView, true);
         return dataObject.value();
       }
       else

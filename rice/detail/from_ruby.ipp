@@ -2561,12 +2561,12 @@ namespace Rice::detail
   public:
     From_Ruby()
     {
-      detail::Type<PointerView<void>>::verify();
+      detail::Type<Buffer<void>>::verify();
     };
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
-      detail::Type<PointerView<void>>::verify();
+      detail::Type<Buffer<void>>::verify();
 
       if (this->arg_->isOwner())
       {
@@ -2628,12 +2628,12 @@ namespace Rice::detail
           // from the Ruby object.
           const rb_data_type_t* rb_type = RTYPEDDATA_TYPE(value);
 
-          // Is this a PointerView? It could also be a pointer to any other object being passed to 
+          // Is this a Buffer? It could also be a pointer to any other object being passed to 
           // a C++ paramter that takes void*
-          if (rb_type == Data_Type<PointerView<void>>::ruby_data_type())
+          if (rb_type == Data_Type<Buffer<void>>::ruby_data_type())
           {
-            Data_Object<PointerView<void>> pointerView(value);
-            return pointerView->pointer;
+            Data_Object<Buffer<void>> buffer(value);
+            return buffer->pointer;
           }
           else 
           {

@@ -306,8 +306,8 @@ TESTCASE(unsigned_char_ptr_ptr_array)
 
   for (int i = 0; i < pointers.size(); i++)
   {
-    Object pointerView = pointers[i];
-    Array array = pointerView.call("to_a", 0, 1);
+    Object buffer = pointers[i];
+    Array array = buffer.call("to_a", 0, 1);
 
     std::vector<unsigned char> expected = std::vector<unsigned char>{ (unsigned char)(i + 1) };
     std::vector<unsigned char> actual = array.to_vector<unsigned char>();
