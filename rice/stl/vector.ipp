@@ -161,9 +161,10 @@ namespace Rice
               auto begin = vector.begin() + start;
 
               // Ruby does not throw an exception when the length is too long
-              if (start + length > vector.size())
+              Difference_T size = (Difference_T)vector.size();
+              if (start + length > size)
               {
-                length = vector.size() - start;
+                length = size - start;
               }
 
               auto finish = vector.begin() + start + length;

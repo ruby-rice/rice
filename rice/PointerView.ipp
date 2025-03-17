@@ -41,7 +41,7 @@ namespace Rice
     else
     {
       T* start = this->pointer + offset;
-      long length = count * sizeof(T);
+      long length = (long)(count * sizeof(T));
       return detail::protect(rb_str_new_static, (const char*)start, length);
     }
   }

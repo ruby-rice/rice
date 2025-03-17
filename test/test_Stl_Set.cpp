@@ -227,9 +227,9 @@ namespace
   std::set<float> returnFloatSet()
   {
     std::set<float> result;
-    result.insert(1.1);
-    result.insert(2.2);
-    result.insert(3.3);
+    result.insert(1.1f);
+    result.insert(2.2f);
+    result.insert(3.3f);
     return result;
   }
 

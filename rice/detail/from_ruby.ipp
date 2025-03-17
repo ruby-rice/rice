@@ -151,7 +151,7 @@ namespace Rice::detail
               RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end() ||
               RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
           {
-            T data = protect(RubyType_T::fromRuby, value);
+            T data = (T)protect(RubyType_T::fromRuby, value);
             T* result = new T(data);
             return result;
           }

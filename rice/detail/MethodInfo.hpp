@@ -36,7 +36,7 @@ namespace Rice
 
     int requiredArgCount();
     int optionalArgCount();
-    void verifyArgCount(int argc);
+    void verifyArgCount(size_t argc);
 
     // Iterator support
     std::vector<Arg>::iterator begin();
