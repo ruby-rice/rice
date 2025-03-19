@@ -142,9 +142,9 @@ namespace Rice
         detail::Type<Buffer<int>>::verify();
       }
 
-      VALUE convert(int buffer[N])
+      VALUE convert(int data[N])
       {
-        Buffer<int> buffer(buffer, N);
+        Buffer<int> buffer(data, N);
         Data_Object<Buffer<int>> dataObject(buffer, true);
         return dataObject.value();
       }
@@ -275,9 +275,9 @@ namespace Rice
         detail::Type<Buffer<unsigned int>>::verify();
       }
 
-      VALUE convert(unsigned int buffer[N])
+      VALUE convert(unsigned int data[N])
       {
-        Buffer<unsigned int> buffer(buffer, N);
+        Buffer<unsigned int> buffer(data, N);
         Data_Object<Buffer<unsigned int>> dataObject(buffer, true);
         return dataObject.value();
       }
@@ -672,9 +672,9 @@ namespace Rice
         detail::Type<Buffer<signed char>>::verify();
       }
 
-      VALUE convert(signed char buffer[N])
+      VALUE convert(signed char data[N])
       {
-        Buffer<signed char> buffer(buffer, N);
+        Buffer<signed char> buffer(data, N);
         Data_Object<Buffer<signed char>> dataObject(buffer, true);
         return dataObject.value();
       }
@@ -792,9 +792,9 @@ namespace Rice
         detail::Type<Buffer<double>>::verify();
       }
 
-      VALUE convert(double buffer[N])
+      VALUE convert(double data[N])
       {
-        Buffer<double> buffer(buffer, N);
+        Buffer<double> buffer(data, N);
         Data_Object<Buffer<double>> dataObject(buffer, true);
         return dataObject.value();
       }
@@ -912,9 +912,9 @@ namespace Rice
         detail::Type<Buffer<float>>::verify();
       }
 
-      VALUE convert(float buffer[N])
+      VALUE convert(float data[N])
       {
-        Buffer<float> buffer(buffer, N);
+        Buffer<float> buffer(data, N);
         Data_Object<Buffer<float>> dataObject(buffer, true);
         return dataObject.value();
       }
@@ -1032,9 +1032,9 @@ namespace Rice
         detail::Type<Buffer<long>>::verify();
       }
 
-      VALUE convert(long buffer[N])
+      VALUE convert(long data[N])
       {
-        Buffer<long> buffer(buffer, N);
+        Buffer<long> buffer(data, N);
         Data_Object<Buffer<long>> dataObject(buffer, true);
         return dataObject.value();
       }
@@ -1166,9 +1166,9 @@ namespace Rice
         detail::Type<Buffer<unsigned long>>::verify();
       }
 
-      VALUE convert(unsigned long buffer[N])
+      VALUE convert(unsigned long data[N])
       {
-        Buffer<unsigned long> buffer(buffer, N);
+        Buffer<unsigned long> buffer(data, N);
         Data_Object<Buffer<unsigned long>> dataObject(buffer, true);
         return dataObject.value();
       }
@@ -1286,9 +1286,9 @@ namespace Rice
         detail::Type<Buffer<long long>>::verify();
       }
 
-      VALUE convert(long long buffer[N])
+      VALUE convert(long long data[N])
       {
-        Buffer<long long> buffer(buffer, N);
+        Buffer<long long> buffer(data, N);
         Data_Object<Buffer<long long>> dataObject(buffer, true);
         return dataObject.value();
       }
@@ -1431,9 +1431,9 @@ namespace Rice
         detail::Type<Buffer<unsigned long long>>::verify();
       }
 
-      VALUE convert(unsigned long long buffer[N])
+      VALUE convert(unsigned long long data[N])
       {
-        Buffer<unsigned long long> buffer(buffer, N);
+        Buffer<unsigned long long> buffer(data, N);
         Data_Object<Buffer<unsigned long long>> dataObject(buffer, true);
         return dataObject.value();
       }
@@ -1559,9 +1559,9 @@ namespace Rice
         detail::Type<Buffer<short>>::verify();
       }
 
-      VALUE convert(short buffer[N])
+      VALUE convert(short data[N])
       {
-        Buffer<short> buffer(buffer, N);
+        Buffer<short> buffer(data, N);
         Data_Object<Buffer<short>> dataObject(buffer, true);
         return dataObject.value();
       }
@@ -1687,9 +1687,9 @@ namespace Rice
         detail::Type<Buffer<unsigned short>>::verify();
       }
 
-      VALUE convert(unsigned short buffer[N])
+      VALUE convert(unsigned short data[N])
       {
-        Buffer<unsigned short> buffer(buffer, N);
+        Buffer<unsigned short> buffer(data, N);
         Data_Object<Buffer<unsigned short>> dataObject(buffer, true);
         return dataObject.value();
       }

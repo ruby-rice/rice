@@ -862,7 +862,7 @@ namespace Rice
 
     int requiredArgCount();
     int optionalArgCount();
-    void verifyArgCount(int argc);
+    void verifyArgCount(size_t argc);
 
     // Iterator support
     std::vector<Arg>::iterator begin();
@@ -938,6 +938,7 @@ namespace Rice::detail
   std::string typeName(const std::type_index& typeIndex);
   std::string makeClassName(const std::string& typeInfoName);
   std::string findGroup(std::string& string, size_t start = 0);
+  void replaceGroup(std::string& string, std::regex regex, std::string replacement);
   void replaceAll(std::string& string, std::regex regex, std::string replacement);
 
   template<typename T>
@@ -3880,7 +3881,7 @@ namespace Rice
     else
     {
       T* start = this->pointer + offset;
-      long length = count * sizeof(T);
+      long length = (long)(count * sizeof(T));
       return detail::protect(rb_str_new_static, (const char*)start, length);
     }
   }
@@ -3919,8 +3920,8 @@ namespace Rice
 
         if constexpr (isPointerToPointer)
         {
-          Buffer<std::remove_pointer_t<T>> pointerView(object);
-          result.push(pointerView);
+          Buffer<std::remove_pointer_t<T>> buffer(object);
+          result.push(buffer);
         }
         else
         {
@@ -3953,21 +3954,21 @@ namespace Rice
 
 namespace Rice::detail
 {
-  template<typename PointerView_T>
-  Data_Type<PointerView_T> define_buffer()
+  template<typename Buffer_T>
+  Data_Type<Buffer_T> define_buffer()
   {
-    std::string name = detail::typeName(typeid(PointerView_T));
+    std::string name = detail::typeName(typeid(Buffer_T));
     std::string klassName = detail::makeClassName(name);
     Module rb_mRice = define_module("Rice");
 
-    Data_Type<PointerView_T> result = define_class_under<PointerView_T>(rb_mRice, klassName).
-      define_constructor(Constructor<PointerView_T, typename PointerView_T::type*>()).
-      define_attr("size", &PointerView_T::size).
-      define_method("dereference", &PointerView_T::operator*).
-      template define_method<VALUE(PointerView_T::*)(size_t, size_t)>("read", &PointerView_T::read, Return().setValue()).
-      template define_method<VALUE(PointerView_T::*)()>("read", &PointerView_T::read, Return().setValue()).
-      template define_method<Array(PointerView_T::*)(size_t, size_t)>("to_a", &PointerView_T::toArray, Return().setValue()).
-      template define_method<Array(PointerView_T::*)()>("to_a", &PointerView_T::toArray, Return().setValue());
+    Data_Type<Buffer_T> result = define_class_under<Buffer_T>(rb_mRice, klassName).
+      define_constructor(Constructor<Buffer_T, typename Buffer_T::type*>()).
+      define_attr("size", &Buffer_T::size).
+      define_method("dereference", &Buffer_T::operator*).
+      template define_method<VALUE(Buffer_T::*)(size_t, size_t)>("read", &Buffer_T::read, Return().setValue()).
+      template define_method<VALUE(Buffer_T::*)()>("read", &Buffer_T::read, Return().setValue()).
+      template define_method<Array(Buffer_T::*)(size_t, size_t)>("to_a", &Buffer_T::toArray, Return().setValue()).
+      template define_method<Array(Buffer_T::*)()>("to_a", &Buffer_T::toArray, Return().setValue());
 
     return result;
   }
@@ -4104,16 +4105,16 @@ namespace Rice
         detail::Type<Buffer<int>>::verify();
       }
 
-      VALUE convert(int* buffer)
+      VALUE convert(int* data)
       {
-        Buffer<int> pointerView(buffer);
-        Data_Object<Buffer<int>> dataObject(pointerView, true);
+        Buffer<int> buffer(data);
+        Data_Object<Buffer<int>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const int* buffer)
+      VALUE convert(const int* data)
       {
-        return this->convert((int*)buffer);
+        return this->convert((int*)data);
       }
 
     private:
@@ -4134,10 +4135,10 @@ namespace Rice
         detail::Type<Buffer<int>>::verify();
       }
 
-      VALUE convert(int buffer[N])
+      VALUE convert(int data[N])
       {
-        Buffer<int> pointerView(buffer, N);
-        Data_Object<Buffer<int>> dataObject(pointerView, true);
+        Buffer<int> buffer(data, N);
+        Data_Object<Buffer<int>> dataObject(buffer, true);
         return dataObject.value();
       }
     private:
@@ -4160,16 +4161,16 @@ namespace Rice
         detail::Type<Buffer<int*>>::verify();
       }
 
-      VALUE convert(int** buffer)
+      VALUE convert(int** data)
       {
-        Buffer<int*> pointerView(buffer);
-        Data_Object<Buffer<int*>> dataObject(pointerView, true);
+        Buffer<int*> buffer(data);
+        Data_Object<Buffer<int*>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const int** buffer)
+      VALUE convert(const int** data)
       {
-        return this->convert((int**)buffer);
+        return this->convert((int**)data);
       }
 
     private:
@@ -4237,16 +4238,16 @@ namespace Rice
         detail::Type<Buffer<unsigned int>>::verify();
       }
 
-      VALUE convert(unsigned int* buffer)
+      VALUE convert(unsigned int* data)
       {
-        Buffer<unsigned int> pointerView(buffer);
-        Data_Object<Buffer<unsigned int>> dataObject(pointerView, true);
+        Buffer<unsigned int> buffer(data);
+        Data_Object<Buffer<unsigned int>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const unsigned int* buffer)
+      VALUE convert(const unsigned int* data)
       {
-        return this->convert((unsigned int*)buffer);
+        return this->convert((unsigned int*)data);
       }
 
     private:
@@ -4267,10 +4268,10 @@ namespace Rice
         detail::Type<Buffer<unsigned int>>::verify();
       }
 
-      VALUE convert(unsigned int buffer[N])
+      VALUE convert(unsigned int data[N])
       {
-        Buffer<unsigned int> pointerView(buffer, N);
-        Data_Object<Buffer<unsigned int>> dataObject(pointerView, true);
+        Buffer<unsigned int> buffer(data, N);
+        Data_Object<Buffer<unsigned int>> dataObject(buffer, true);
         return dataObject.value();
       }
     private:
@@ -4293,16 +4294,16 @@ namespace Rice
         detail::Type<Buffer<unsigned int*>>::verify();
       }
 
-      VALUE convert(unsigned int** buffer)
+      VALUE convert(unsigned int** data)
       {
-        Buffer<unsigned int*> pointerView(buffer);
-        Data_Object<Buffer<unsigned int*>> dataObject(pointerView, true);
+        Buffer<unsigned int*> buffer(data);
+        Data_Object<Buffer<unsigned int*>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const unsigned int** buffer)
+      VALUE convert(const unsigned int** data)
       {
-        return this->convert((unsigned int**)buffer);
+        return this->convert((unsigned int**)data);
       }
 
     private:
@@ -4358,17 +4359,17 @@ namespace Rice
       {
       }
 
-      VALUE convert(const char* buffer)
+      VALUE convert(const char* data)
       {
-        if (!buffer)
+        if (!data)
         {
           return Qnil;
         }
-        else if (strlen(buffer) > 0 && buffer[0] == ':')
+        else if (strlen(data) > 0 && data[0] == ':')
         {
-          size_t symbolLength = strlen(buffer) - 1;
+          size_t symbolLength = strlen(data) - 1;
           char* symbol = new char[symbolLength];
-          strncpy(symbol, buffer + 1, symbolLength);
+          strncpy(symbol, data + 1, symbolLength);
           ID id = protect(rb_intern2, symbol, (long)symbolLength);
           delete[] symbol;
           return protect(rb_id2sym, id);
@@ -4378,13 +4379,13 @@ namespace Rice
           // This copies the buffer but does not free it. So Ruby is not really
           // taking ownership of it. But there isn't a Ruby API for creating a string
           // from an existing buffer and later freeing it.
-          return protect(rb_usascii_str_new_cstr, buffer);
+          return protect(rb_usascii_str_new_cstr, data);
         }
         else
         {
           // Does NOT copy the passed in buffer and does NOT free it when the string is GCed
-          long size = (long)strlen(buffer);
-          return protect(rb_usascii_str_new_static, buffer, size);
+          long size = (long)strlen(data);
+          return protect(rb_usascii_str_new_static, data, size);
         }
       }
 
@@ -4440,16 +4441,16 @@ namespace Rice
         detail::Type<Buffer<char*>>::verify();
       }
 
-      VALUE convert(char** buffer)
+      VALUE convert(char** data)
       {
-        Buffer<char*> pointerView(buffer);
-        Data_Object<Buffer<char*>> dataObject(pointerView, true);
+        Buffer<char*> buffer(data);
+        Data_Object<Buffer<char*>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const char** buffer)
+      VALUE convert(const char** data)
       {
-        return this->convert((char**)buffer);
+        return this->convert((char**)data);
       }
 
     private:
@@ -4509,16 +4510,16 @@ namespace Rice
         detail::Type<Buffer<unsigned char>>::verify();
       }
 
-      VALUE convert(unsigned char* buffer)
+      VALUE convert(unsigned char* data)
       {
-        Buffer<unsigned char> pointerView(buffer);
-        Data_Object<Buffer<unsigned char>> dataObject(pointerView, true);
+        Buffer<unsigned char> buffer(data);
+        Data_Object<Buffer<unsigned char>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const unsigned char* buffer)
+      VALUE convert(const unsigned char* data)
       {
-        return this->convert((unsigned char*)buffer);
+        return this->convert((unsigned char*)data);
       }
 
     private:
@@ -4539,10 +4540,10 @@ namespace Rice
         detail::Type<Buffer<unsigned char>>::verify();
       }
 
-      VALUE convert(unsigned char buffer[N])
+      VALUE convert(unsigned char data[N])
       {
-        Buffer<unsigned char> pointerView(buffer, N);
-        Data_Object<Buffer<unsigned char>> dataObject(pointerView, true);
+        Buffer<unsigned char> buffer(data, N);
+        Data_Object<Buffer<unsigned char>> dataObject(buffer, true);
         return dataObject.value();
       }
     private:
@@ -4565,16 +4566,16 @@ namespace Rice
         detail::Type<Buffer<unsigned char*>>::verify();
       }
 
-      VALUE convert(unsigned char** buffer)
+      VALUE convert(unsigned char** data)
       {
-        Buffer<unsigned char*> pointerView(buffer);
-        Data_Object<Buffer<unsigned char*>> dataObject(pointerView, true);
+        Buffer<unsigned char*> buffer(data);
+        Data_Object<Buffer<unsigned char*>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const unsigned char** buffer)
+      VALUE convert(const unsigned char** data)
       {
-        return this->convert((unsigned char**)buffer);
+        return this->convert((unsigned char**)data);
       }
 
     private:
@@ -4634,16 +4635,16 @@ namespace Rice
         detail::Type<Buffer<signed char>>::verify();
       }
 
-      VALUE convert(signed char* buffer)
+      VALUE convert(signed char* data)
       {
-        Buffer<signed char> pointerView(buffer);
-        Data_Object<Buffer<signed char>> dataObject(pointerView, true);
+        Buffer<signed char> buffer(data);
+        Data_Object<Buffer<signed char>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const signed char* buffer)
+      VALUE convert(const signed char* data)
       {
-        return this->convert((signed char*)buffer);
+        return this->convert((signed char*)data);
       }
 
     private:
@@ -4664,10 +4665,10 @@ namespace Rice
         detail::Type<Buffer<signed char>>::verify();
       }
 
-      VALUE convert(signed char buffer[N])
+      VALUE convert(signed char data[N])
       {
-        Buffer<signed char> pointerView(buffer, N);
-        Data_Object<Buffer<signed char>> dataObject(pointerView, true);
+        Buffer<signed char> buffer(data, N);
+        Data_Object<Buffer<signed char>> dataObject(buffer, true);
         return dataObject.value();
       }
     private:
@@ -4690,16 +4691,16 @@ namespace Rice
         detail::Type<Buffer<signed char*>>::verify();
       }
 
-      VALUE convert(signed char** buffer)
+      VALUE convert(signed char** data)
       {
-        Buffer<signed char*> pointerView(buffer);
-        Data_Object<Buffer<signed char*>> dataObject(pointerView, true);
+        Buffer<signed char*> buffer(data);
+        Data_Object<Buffer<signed char*>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const signed char** buffer)
+      VALUE convert(const signed char** data)
       {
-        return this->convert((signed char**)buffer);
+        return this->convert((signed char**)data);
       }
 
     private:
@@ -4759,10 +4760,10 @@ namespace Rice
         detail::Type<Buffer<double>>::verify();
       }
 
-      VALUE convert(double* buffer)
+      VALUE convert(double* data)
       {
-        Buffer<double> pointerView(buffer);
-        Data_Object<Buffer<double>> dataObject(pointerView, true);
+        Buffer<double> buffer(data);
+        Data_Object<Buffer<double>> dataObject(buffer, true);
         return dataObject.value();
       }
 
@@ -4784,10 +4785,10 @@ namespace Rice
         detail::Type<Buffer<double>>::verify();
       }
 
-      VALUE convert(double buffer[N])
+      VALUE convert(double data[N])
       {
-        Buffer<double> pointerView(buffer, N);
-        Data_Object<Buffer<double>> dataObject(pointerView, true);
+        Buffer<double> buffer(data, N);
+        Data_Object<Buffer<double>> dataObject(buffer, true);
         return dataObject.value();
       }
     private:
@@ -4810,16 +4811,16 @@ namespace Rice
         detail::Type<Buffer<double*>>::verify();
       }
 
-      VALUE convert(double** buffer)
+      VALUE convert(double** data)
       {
-        Buffer<double*> pointerView(buffer);
-        Data_Object<Buffer<double*>> dataObject(pointerView, true);
+        Buffer<double*> buffer(data);
+        Data_Object<Buffer<double*>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const double** buffer)
+      VALUE convert(const double** data)
       {
-        return this->convert((double**)buffer);
+        return this->convert((double**)data);
       }
 
     private:
@@ -4879,10 +4880,10 @@ namespace Rice
         detail::Type<Buffer<float>>::verify();
       }
 
-      VALUE convert(float* buffer)
+      VALUE convert(float* data)
       {
-        Buffer<float> pointerView(buffer);
-        Data_Object<Buffer<float>> dataObject(pointerView, true);
+        Buffer<float> buffer(data);
+        Data_Object<Buffer<float>> dataObject(buffer, true);
         return dataObject.value();
       }
 
@@ -4904,10 +4905,10 @@ namespace Rice
         detail::Type<Buffer<float>>::verify();
       }
 
-      VALUE convert(float buffer[N])
+      VALUE convert(float data[N])
       {
-        Buffer<float> pointerView(buffer, N);
-        Data_Object<Buffer<float>> dataObject(pointerView, true);
+        Buffer<float> buffer(data, N);
+        Data_Object<Buffer<float>> dataObject(buffer, true);
         return dataObject.value();
       }
     private:
@@ -4930,16 +4931,16 @@ namespace Rice
         detail::Type<Buffer<float*>>::verify();
       }
 
-      VALUE convert(float** buffer)
+      VALUE convert(float** data)
       {
-        Buffer<float*> pointerView(buffer);
-        Data_Object<Buffer<float*>> dataObject(pointerView, true);
+        Buffer<float*> buffer(data);
+        Data_Object<Buffer<float*>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const float** buffer)
+      VALUE convert(const float** data)
       {
-        return this->convert((float**)buffer);
+        return this->convert((float**)data);
       }
 
     private:
@@ -4999,10 +5000,10 @@ namespace Rice
         detail::Type<Buffer<long>>::verify();
       }
 
-      VALUE convert(long* buffer)
+      VALUE convert(long* data)
       {
-        Buffer<long> pointerView(buffer);
-        Data_Object<Buffer<long>> dataObject(pointerView, true);
+        Buffer<long> buffer(data);
+        Data_Object<Buffer<long>> dataObject(buffer, true);
         return dataObject.value();
       }
 
@@ -5024,10 +5025,10 @@ namespace Rice
         detail::Type<Buffer<long>>::verify();
       }
 
-      VALUE convert(long buffer[N])
+      VALUE convert(long data[N])
       {
-        Buffer<long> pointerView(buffer, N);
-        Data_Object<Buffer<long>> dataObject(pointerView, true);
+        Buffer<long> buffer(data, N);
+        Data_Object<Buffer<long>> dataObject(buffer, true);
         return dataObject.value();
       }
     private:
@@ -5050,16 +5051,16 @@ namespace Rice
         detail::Type<Buffer<long*>>::verify();
       }
 
-      VALUE convert(long** buffer)
+      VALUE convert(long** data)
       {
-        Buffer<long*> pointerView(buffer);
-        Data_Object<Buffer<long*>> dataObject(pointerView, true);
+        Buffer<long*> buffer(data);
+        Data_Object<Buffer<long*>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const long** buffer)
+      VALUE convert(const long** data)
       {
-        return this->convert((long**)buffer);
+        return this->convert((long**)data);
       }
 
     private:
@@ -5133,10 +5134,10 @@ namespace Rice
         detail::Type<Buffer<unsigned long>>::verify();
       }
 
-      VALUE convert(unsigned long* buffer)
+      VALUE convert(unsigned long* data)
       {
-        Buffer<unsigned long> pointerView(buffer);
-        Data_Object<Buffer<unsigned long>> dataObject(pointerView, true);
+        Buffer<unsigned long> buffer(data);
+        Data_Object<Buffer<unsigned long>> dataObject(buffer, true);
         return dataObject.value();
       }
 
@@ -5158,10 +5159,10 @@ namespace Rice
         detail::Type<Buffer<unsigned long>>::verify();
       }
 
-      VALUE convert(unsigned long buffer[N])
+      VALUE convert(unsigned long data[N])
       {
-        Buffer<unsigned long> pointerView(buffer, N);
-        Data_Object<Buffer<unsigned long>> dataObject(pointerView, true);
+        Buffer<unsigned long> buffer(data, N);
+        Data_Object<Buffer<unsigned long>> dataObject(buffer, true);
         return dataObject.value();
       }
     private:
@@ -5184,16 +5185,16 @@ namespace Rice
         detail::Type<Buffer<unsigned long*>>::verify();
       }
 
-      VALUE convert(unsigned long** buffer)
+      VALUE convert(unsigned long** data)
       {
-        Buffer<unsigned long*> pointerView(buffer);
-        Data_Object<Buffer<unsigned long*>> dataObject(pointerView, true);
+        Buffer<unsigned long*> buffer(data);
+        Data_Object<Buffer<unsigned long*>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const unsigned long** buffer)
+      VALUE convert(const unsigned long** data)
       {
-        return this->convert((unsigned long**)buffer);
+        return this->convert((unsigned long**)data);
       }
 
     private:
@@ -5253,10 +5254,10 @@ namespace Rice
         detail::Type<Buffer<long long>>::verify();
       }
 
-      VALUE convert(long long* buffer)
+      VALUE convert(long long* data)
       {
-        Buffer<long long> pointerView(buffer);
-        Data_Object<Buffer<long long>> dataObject(pointerView, true);
+        Buffer<long long> buffer(data);
+        Data_Object<Buffer<long long>> dataObject(buffer, true);
         return dataObject.value();
       }
 
@@ -5278,10 +5279,10 @@ namespace Rice
         detail::Type<Buffer<long long>>::verify();
       }
 
-      VALUE convert(long long buffer[N])
+      VALUE convert(long long data[N])
       {
-        Buffer<long long> pointerView(buffer, N);
-        Data_Object<Buffer<long long>> dataObject(pointerView, true);
+        Buffer<long long> buffer(data, N);
+        Data_Object<Buffer<long long>> dataObject(buffer, true);
         return dataObject.value();
       }
     private:
@@ -5304,16 +5305,16 @@ namespace Rice
         detail::Type<Buffer<long long*>>::verify();
       }
 
-      VALUE convert(long long** buffer)
+      VALUE convert(long long** data)
       {
-        Buffer<long long*> pointerView(buffer);
-        Data_Object<Buffer<long long*>> dataObject(pointerView, true);
+        Buffer<long long*> buffer(data);
+        Data_Object<Buffer<long long*>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const long long** buffer)
+      VALUE convert(const long long** data)
       {
-        return this->convert((long long**)buffer);
+        return this->convert((long long**)data);
       }
 
     private:
@@ -5398,10 +5399,10 @@ namespace Rice
         detail::Type<Buffer<unsigned long long>>::verify();
       }
 
-      VALUE convert(unsigned long long* buffer)
+      VALUE convert(unsigned long long* data)
       {
-        Buffer<unsigned long long> pointerView(buffer);
-        Data_Object<Buffer<unsigned long long>> dataObject(pointerView, true);
+        Buffer<unsigned long long> buffer(data);
+        Data_Object<Buffer<unsigned long long>> dataObject(buffer, true);
         return dataObject.value();
       }
 
@@ -5423,10 +5424,10 @@ namespace Rice
         detail::Type<Buffer<unsigned long long>>::verify();
       }
 
-      VALUE convert(unsigned long long buffer[N])
+      VALUE convert(unsigned long long data[N])
       {
-        Buffer<unsigned long long> pointerView(buffer, N);
-        Data_Object<Buffer<unsigned long long>> dataObject(pointerView, true);
+        Buffer<unsigned long long> buffer(data, N);
+        Data_Object<Buffer<unsigned long long>> dataObject(buffer, true);
         return dataObject.value();
       }
     private:
@@ -5449,16 +5450,16 @@ namespace Rice
         detail::Type<Buffer<unsigned long long*>>::verify();
       }
 
-      VALUE convert(unsigned long long** buffer)
+      VALUE convert(unsigned long long** data)
       {
-        Buffer<unsigned long long*> pointerView(buffer);
-        Data_Object<Buffer<unsigned long long*>> dataObject(pointerView, true);
+        Buffer<unsigned long long*> buffer(data);
+        Data_Object<Buffer<unsigned long long*>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const unsigned long long** buffer)
+      VALUE convert(const unsigned long long** data)
       {
-        return this->convert((unsigned long long**)buffer);
+        return this->convert((unsigned long long**)data);
       }
 
     private:
@@ -5526,10 +5527,10 @@ namespace Rice
         detail::Type<Buffer<short>>::verify();
       }
 
-      VALUE convert(short* buffer)
+      VALUE convert(short* data)
       {
-        Buffer<short> pointerView(buffer);
-        Data_Object<Buffer<short>> dataObject(pointerView, true);
+        Buffer<short> buffer(data);
+        Data_Object<Buffer<short>> dataObject(buffer, true);
         return dataObject.value();
       }
 
@@ -5551,10 +5552,10 @@ namespace Rice
         detail::Type<Buffer<short>>::verify();
       }
 
-      VALUE convert(short buffer[N])
+      VALUE convert(short data[N])
       {
-        Buffer<short> pointerView(buffer, N);
-        Data_Object<Buffer<short>> dataObject(pointerView, true);
+        Buffer<short> buffer(data, N);
+        Data_Object<Buffer<short>> dataObject(buffer, true);
         return dataObject.value();
       }
     private:
@@ -5577,16 +5578,16 @@ namespace Rice
         detail::Type<Buffer<short*>>::verify();
       }
 
-      VALUE convert(short** buffer)
+      VALUE convert(short** data)
       {
-        Buffer<short*> pointerView(buffer);
-        Data_Object<Buffer<short*>> dataObject(pointerView, true);
+        Buffer<short*> buffer(data);
+        Data_Object<Buffer<short*>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const short** buffer)
+      VALUE convert(const short** data)
       {
-        return this->convert((short**)buffer);
+        return this->convert((short**)data);
       }
 
     private:
@@ -5654,10 +5655,10 @@ namespace Rice
         detail::Type<Buffer<unsigned short>>::verify();
       }
 
-      VALUE convert(unsigned short* buffer)
+      VALUE convert(unsigned short* data)
       {
-        Buffer<unsigned short> pointerView(buffer);
-        Data_Object<Buffer<unsigned short>> dataObject(pointerView, true);
+        Buffer<unsigned short> buffer(data);
+        Data_Object<Buffer<unsigned short>> dataObject(buffer, true);
         return dataObject.value();
       }
 
@@ -5679,10 +5680,10 @@ namespace Rice
         detail::Type<Buffer<unsigned short>>::verify();
       }
 
-      VALUE convert(unsigned short buffer[N])
+      VALUE convert(unsigned short data[N])
       {
-        Buffer<unsigned short> pointerView(buffer, N);
-        Data_Object<Buffer<unsigned short>> dataObject(pointerView, true);
+        Buffer<unsigned short> buffer(data, N);
+        Data_Object<Buffer<unsigned short>> dataObject(buffer, true);
         return dataObject.value();
       }
     private:
@@ -5705,16 +5706,16 @@ namespace Rice
         detail::Type<Buffer<unsigned short*>>::verify();
       }
 
-      VALUE convert(unsigned short** buffer)
+      VALUE convert(unsigned short** data)
       {
-        Buffer<unsigned short*> pointerView(buffer);
-        Data_Object<Buffer<unsigned short*>> dataObject(pointerView, true);
+        Buffer<unsigned short*> buffer(data);
+        Data_Object<Buffer<unsigned short*>> dataObject(buffer, true);
         return dataObject.value();
       }
 
-      VALUE convert(const unsigned short** buffer)
+      VALUE convert(const unsigned short** data)
       {
-        return this->convert((unsigned short**)buffer);
+        return this->convert((unsigned short**)data);
       }
 
     private:
@@ -5788,8 +5789,8 @@ namespace Rice
         }
         else
         {
-          Buffer<void> pointerView(data);
-          Data_Object<Buffer<void>> dataObject(pointerView, true);
+          Buffer<void> buffer(data);
+          Data_Object<Buffer<void>> dataObject(buffer, true);
           return dataObject.value();
         }
       }
@@ -5958,7 +5959,7 @@ namespace Rice::detail
               RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end() ||
               RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
           {
-            T data = protect(RubyType_T::fromRuby, value);
+            T data = (T)protect(RubyType_T::fromRuby, value);
             T* result = new T(data);
             return result;
           }
@@ -8439,8 +8440,8 @@ namespace Rice::detail
           // a C++ paramter that takes void*
           if (rb_type == Data_Type<Buffer<void>>::ruby_data_type())
           {
-            Data_Object<Buffer<void>> pointerView(value);
-            return pointerView->pointer;
+            Data_Object<Buffer<void>> buffer(value);
+            return buffer->pointer;
           }
           else 
           {
@@ -8941,6 +8942,17 @@ namespace Rice::detail
     }
   }
 
+  inline void replaceGroup(std::string& string, std::regex regex, std::string replacement)
+  {
+    std::smatch match;
+    while (std::regex_search(string, match, regex))
+    {
+      std::string group = findGroup(string, match.position());
+      group = match.str() + group;
+      string.replace(match.position(), group.length(), replacement);
+    }
+  }
+
   inline std::string makeClassName(const std::string& typeInfoName)
   {
     std::string base = typeInfoName;
@@ -8966,10 +8978,6 @@ namespace Rice::detail
     auto stdRegex = std::regex("std::");
     base = std::regex_replace(base, stdRegex, "");
 
-    // Replace basic_string with string
-    auto basicStringRegex = std::regex(R"(basic_string)");
-    replaceAll(base, basicStringRegex, "string");
-      
     // Remove allocators
     std::regex allocatorRegex(R"(,\s*allocator)");
     removeGroup(base, allocatorRegex);
@@ -9005,6 +9013,13 @@ namespace Rice::detail
     // One space after a comma (MSVC has no spaces, GCC one space)
     auto commaSpaceRegex = std::regex(R"(,(\S))");
     replaceAll(base, commaSpaceRegex, ", $1");
+
+    // Fix strings
+    auto stringRegex = std::regex(R"(basic_string<char>)");
+    replaceAll(base, stringRegex, "string");
+
+    auto wstringRegex = std::regex(R"(basic_string<wchar_t>)");
+    replaceAll(base, wstringRegex, "wstring");
 
     // Normalize Anonymouse namespace
     auto anonymousNamespaceGcc = std::regex(R"(\(anonymous namespace\))");
@@ -9494,7 +9509,7 @@ namespace Rice
     return result;
   }
 
-  inline void MethodInfo::verifyArgCount(int argc)
+  inline void MethodInfo::verifyArgCount(size_t argc)
   {
     int requiredArgCount = this->requiredArgCount();
     int optionalArgCount = this->optionalArgCount();
@@ -13321,8 +13336,8 @@ namespace Rice::detail
       }
       else if (this->returnInfo_ && this->returnInfo_->isArray())
       {
-        Buffer<T> pointerView(data);
-        Data_Object<Buffer<T>> dataObject(pointerView, true);
+        Buffer<T> buffer(data);
+        Data_Object<Buffer<T>> dataObject(buffer, true);
         return dataObject.value();
       }
       else
@@ -13877,7 +13892,6 @@ namespace Rice
     using Underlying_T = std::underlying_type_t<Enum_T>;
 
   public:
-
     Enum() = default;
 
     //! Construct and initialize.
@@ -13911,7 +13925,6 @@ namespace Rice
 
 
 // =========   Enum.ipp   =========
-
 #include <stdexcept>
 
 namespace Rice
@@ -13942,44 +13955,44 @@ namespace Rice
     // First we need a constructor
     klass.define_constructor(Constructor<Enum_T>());
 
-    // Instance methods. The self parameter is confusing because it is really a Data_Object<Enum_T>.
-    // However, if we make that the type then the From_Ruby code will consider it a 
-    // Data_Type<Data_Object<Enum_T>>>. But in define class above it was actually bound as 
-    // Data_Type<Enum_T>. Thus the static_casts in the methods below.
-    klass.define_method("to_s", [](Enum_T& notSelf)
+    klass.define_method("to_s", [](Enum_T& self) -> std::string
       {
-        // We have to return string because we don't know if std::string support has
-        // been included by the user
-        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
-        return String(valuesToNames_[*self]);
+        return std::string(valuesToNames_[self]);
       })
-      .define_method("to_int", [](Enum_T& notSelf) ->  Underlying_T
+      .define_method("to_int", [](Enum_T& self) ->  Underlying_T
       {
-        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
-        return static_cast<Underlying_T>(*self);
+        return (Underlying_T)(self);
       })
-      .define_method("inspect", [](Enum_T& notSelf)
+      .define_method("coerce", [](Enum_T& self, Underlying_T& other) -> std::tuple<Enum_T, Enum_T>
       {
-        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
+        /* Other will be a numeric value that matches the underlying type of the enum, for example an int.
+           Convert that to the enum type and then create new Ruby object to wrap it. This then enables code
+           like this:
+        
+           Colors::Red | Colors:Blue | Colors:Green
 
+        Colors::Red | Colors:Blue returns an integer. Then this method converts the integer back into an Enum
+        instance so that Colors:Blue | Colors:Green works. */
+        Enum_T otherEnum = (Enum_T)other;
+        return std::tie<Enum_T, Enum_T>(self, otherEnum);
+      })
+      .define_method("inspect", [](Enum_T& self)
+      {
         std::stringstream result;
         VALUE rubyKlass = Enum<Enum_T>::klass().value();
         result << "#<" << detail::protect(rb_class2name, rubyKlass)
-          << "::" << Enum<Enum_T>::valuesToNames_[*self] << ">";
+          << "::" << Enum<Enum_T>::valuesToNames_[self] << ">";
 
         // We have to return string because we don't know if std::string support has
         // been included by the user
         return String(result.str());
       })
-      .define_method("hash", [](Enum_T& notSelf) ->  Underlying_T
+      .define_method("hash", [](Enum_T& self) ->  Underlying_T
       {
-        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
-        return (Underlying_T)*self;
+        return (Underlying_T)self;
       })
-      .define_method("eql?", [](Enum_T& notSelf, Enum_T& notOther)
+      .define_method("eql?", [](Enum_T& self, Enum_T& other)
       {
-        Data_Object<Enum_T> self = static_cast<Data_Object<Enum_T>>(notSelf);
-        Data_Object<Enum_T> other = static_cast<Data_Object<Enum_T>>(notOther);
         return self == other;
     });
 
