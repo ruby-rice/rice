@@ -447,7 +447,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object map = m.module_eval("return_complex_map");
-  ASSERT_EQUAL(u8"Std::Map≺string≺char≻‚ complex≺double≻≻",
+  ASSERT_EQUAL(u8"Std::Map≺string‚ complex≺double≻≻",
                map.class_name().str());
 
   std::string code = R"(map = return_complex_map
@@ -468,7 +468,7 @@ TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_complex_map", &passComplexMap);
 
-  std::string code = u8R"(map = Std::Map≺string≺char≻‚ complex≺double≻≻.new
+  std::string code = u8R"(map = Std::Map≺string‚ complex≺double≻≻.new
                           map["four"] = Complex(4.0, 4.0)
                           map["five"] = Complex(5.0, 5.0)
                           pass_complex_map(map))";
@@ -477,7 +477,7 @@ TESTCASE(AutoRegisterParameter)
   Object map = m.module_eval(code);
 
   Object result = map.call("size");
-  ASSERT_EQUAL(u8"Std::Map≺string≺char≻‚ complex≺double≻≻",
+  ASSERT_EQUAL(u8"Std::Map≺string‚ complex≺double≻≻",
                map.class_name().str());
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 

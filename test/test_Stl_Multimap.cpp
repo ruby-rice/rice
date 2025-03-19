@@ -139,12 +139,12 @@ TESTCASE(ToString)
   multimap.call("insert", "two", 2);
 
   Object result = multimap.call("to_s");
-  ASSERT_EQUAL("<Multimap≺string≺char≻‚ int≻:{one => 1, two => 2}>", detail::From_Ruby<std::string>().convert(result));
+  ASSERT_EQUAL("<Multimap≺string‚ int≻:{one => 1, two => 2}>", detail::From_Ruby<std::string>().convert(result));
 
   multimap.call("clear");
 
   result = multimap.call("to_s");
-  ASSERT_EQUAL("<Multimap≺string≺char≻‚ int≻:{}>", detail::From_Ruby<std::string>().convert(result));
+  ASSERT_EQUAL("<Multimap≺string‚ int≻:{}>", detail::From_Ruby<std::string>().convert(result));
 }
 
 TESTCASE(Update)
@@ -415,7 +415,7 @@ TESTCASE(Printable)
   multimap.call("insert", "three", Comparable(3));
 
   Object result = multimap.call("to_s");
-  ASSERT_EQUAL("<Multimap≺string≺char≻‚ AnonymousNamespace꞉꞉Comparable≻:{one => Comparable(1), three => Comparable(3), two => Comparable(2)}>", 
+  ASSERT_EQUAL("<Multimap≺string‚ AnonymousNamespace꞉꞉Comparable≻:{one => Comparable(1), three => Comparable(3), two => Comparable(2)}>", 
                 detail::From_Ruby<std::string>().convert(result));
 }
 
@@ -447,7 +447,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object multimap = m.module_eval("return_complex_multimap");
-  ASSERT_EQUAL(u8"Std::Multimap≺string≺char≻‚ complex≺double≻≻",
+  ASSERT_EQUAL(u8"Std::Multimap≺string‚ complex≺double≻≻",
                multimap.class_name().str());
 
   std::string code = R"(multimap = return_complex_multimap
@@ -474,7 +474,7 @@ TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_complex_multimap", &passComplexMultimap);
 
-  std::string code = u8R"(multimap = Std::Multimap≺string≺char≻‚ complex≺double≻≻.new
+  std::string code = u8R"(multimap = Std::Multimap≺string‚ complex≺double≻≻.new
                           multimap.insert("four", Complex(4.0, 4.0))
                           multimap.insert("five", Complex(5.0, 5.0))
                           pass_complex_multimap(multimap))";
@@ -483,7 +483,7 @@ TESTCASE(AutoRegisterParameter)
   Object multimap = m.module_eval(code);
 
   Object result = multimap.call("size");
-  ASSERT_EQUAL(u8"Std::Multimap≺string≺char≻‚ complex≺double≻≻",
+  ASSERT_EQUAL(u8"Std::Multimap≺string‚ complex≺double≻≻",
                multimap.class_name().str());
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 

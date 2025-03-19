@@ -1013,17 +1013,17 @@ TESTCASE(TypeCheck)
     define_module_function("check_ref", &typeCheckRef).
     define_module_function("check_ptr", &typeCheckPtr);
 
-  std::string code = R"(vec = Std::Vector≺string≺char≻≻.new
+  std::string code = R"(vec = Std::Vector≺string≻.new
                         check_value(vec))";
   Object result = m.module_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
 
-  code = R"(vec = Std::Vector≺string≺char≻≻.new
+  code = R"(vec = Std::Vector≺string≻.new
             check_ref(vec))";
   result = m.module_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
 
-  code = R"(vec = Std::Vector≺string≺char≻≻.new
+  code = R"(vec = Std::Vector≺string≻.new
             check_ptr(vec))";
   result = m.module_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
@@ -1034,7 +1034,7 @@ TESTCASE(TypeCheck)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≺char≻≻)", ex.what()));
+    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≻)", ex.what()));
 
   code = R"(vec = Std::Vector≺int≻.new
             check_ref(vec))";
@@ -1042,7 +1042,7 @@ TESTCASE(TypeCheck)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≺char≻≻)", ex.what()));
+    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≻)", ex.what()));
 
   code = R"(vec = Std::Vector≺int≻.new
             check_ptr(vec))";
@@ -1050,5 +1050,5 @@ TESTCASE(TypeCheck)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≺char≻≻)", ex.what()));
+    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≻)", ex.what()));
 }

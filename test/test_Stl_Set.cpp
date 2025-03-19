@@ -73,7 +73,7 @@ TESTCASE(Add)
   ASSERT_EQUAL(3, detail::From_Ruby<int32_t>().convert(size));
 
   String string = set.call("to_s");
-  ASSERT_EQUAL("<Set≺string≺char≻≻:{one, three, two}>", string.c_str());
+  ASSERT_EQUAL("<Set≺string≻:{one, three, two}>", string.c_str());
 
   set.call("insert", "four");
 
@@ -125,7 +125,7 @@ TESTCASE(ToString)
                         set.to_s)";
 
   String string = m.instance_eval(code);
-  ASSERT_EQUAL("<Set≺string≺char≻≻:{one, three, two}>", string.c_str());
+  ASSERT_EQUAL("<Set≺string≻:{one, three, two}>", string.c_str());
 }
 
 TESTCASE(Include)
@@ -706,7 +706,7 @@ TESTCASE(Intersect)
   ASSERT_EQUAL(1, detail::From_Ruby<int32_t>().convert(size));
 
   String string = set.call("to_s");
-  ASSERT_EQUAL("<Set≺string≺char≻≻:{three}>", string.c_str());
+  ASSERT_EQUAL("<Set≺string≻:{three}>", string.c_str());
 }
 
 TESTCASE(Union)
@@ -727,7 +727,7 @@ TESTCASE(Union)
   ASSERT_EQUAL(4, detail::From_Ruby<int32_t>().convert(size));
 
   String string = set.call("to_s");
-  ASSERT_EQUAL("<Set≺string≺char≻≻:{four, one, three, two}>", string.c_str());
+  ASSERT_EQUAL("<Set≺string≻:{four, one, three, two}>", string.c_str());
 }
 
 TESTCASE(Difference)
@@ -748,7 +748,7 @@ TESTCASE(Difference)
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(size));
 
   String string = set.call("to_s");
-  ASSERT_EQUAL("<Set≺string≺char≻≻:{one, two}>", string.c_str());
+  ASSERT_EQUAL("<Set≺string≻:{one, two}>", string.c_str());
 }
 
 TESTCASE(Exclusive)
@@ -769,7 +769,7 @@ TESTCASE(Exclusive)
   ASSERT_EQUAL(3, detail::From_Ruby<int32_t>().convert(size));
 
   String string = set.call("to_s");
-  ASSERT_EQUAL("<Set≺string≺char≻≻:{four, one, two}>", string.c_str());
+  ASSERT_EQUAL("<Set≺string≻:{four, one, two}>", string.c_str());
 }
 
 TESTCASE(Superset)
