@@ -161,9 +161,10 @@ namespace Rice
               auto begin = vector.begin() + start;
 
               // Ruby does not throw an exception when the length is too long
-              if (start + length > vector.size())
+              Difference_T size = (Difference_T)vector.size();
+              if (start + length > size)
               {
-                length = vector.size() - start;
+                length = size - start;
               }
 
               auto finish = vector.begin() + start + length;
@@ -402,7 +403,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::vector<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_ARRAY:
             return Convertible::Cast;
@@ -463,7 +464,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::vector<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_ARRAY:
             return Convertible::Cast;
@@ -520,7 +521,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::vector<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_NIL:
             return Convertible::Exact;

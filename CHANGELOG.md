@@ -2,7 +2,7 @@
 * Add support for std::multimap
 * Add support for std::set
 * Add support for std::tuple
-* Add new PointerView class to provide Ruby API to raw pointers returned by C++
+* Add new Buffer class to provide Ruby API to raw pointers returned by C++
 * Add support for pointers to arrays
 * Add support for smart pointers (shared_ptr, unique_ptr) to fundamental types (void, int, etc)
 * Update is_convertible documentation

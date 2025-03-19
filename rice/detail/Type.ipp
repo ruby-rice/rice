@@ -149,6 +149,17 @@ namespace Rice::detail
     }
   }
 
+  inline void replaceGroup(std::string& string, std::regex regex, std::string replacement)
+  {
+    std::smatch match;
+    while (std::regex_search(string, match, regex))
+    {
+      std::string group = findGroup(string, match.position());
+      group = match.str() + group;
+      string.replace(match.position(), group.length(), replacement);
+    }
+  }
+
   inline std::string makeClassName(const std::string& typeInfoName)
   {
     std::string base = typeInfoName;
@@ -174,10 +185,6 @@ namespace Rice::detail
     auto stdRegex = std::regex("std::");
     base = std::regex_replace(base, stdRegex, "");
 
-    // Replace basic_string with string
-    auto basicStringRegex = std::regex(R"(basic_string)");
-    replaceAll(base, basicStringRegex, "string");
-      
     // Remove allocators
     std::regex allocatorRegex(R"(,\s*allocator)");
     removeGroup(base, allocatorRegex);
@@ -213,6 +220,13 @@ namespace Rice::detail
     // One space after a comma (MSVC has no spaces, GCC one space)
     auto commaSpaceRegex = std::regex(R"(,(\S))");
     replaceAll(base, commaSpaceRegex, ", $1");
+
+    // Fix strings
+    auto stringRegex = std::regex(R"(basic_string<char>)");
+    replaceAll(base, stringRegex, "string");
+
+    auto wstringRegex = std::regex(R"(basic_string<wchar_t>)");
+    replaceAll(base, wstringRegex, "wstring");
 
     // Normalize Anonymouse namespace
     auto anonymousNamespaceGcc = std::regex(R"(\(anonymous namespace\))");

@@ -352,7 +352,7 @@ TESTCASE(Void)
   MyClass::reset();
   Factory::reset();
 
-  detail::Type<PointerView<void>>::verify();
+  detail::Type<Buffer<void>>::verify();
 
   Module m = define_module("TestingModule");
 
@@ -397,7 +397,7 @@ namespace
 
 TESTCASE(PointerToInt)
 {
-  detail::Type<PointerView<int>>::verify();
+  detail::Type<Buffer<int>>::verify();
 
   Module m = define_module("SharedPtrInt").
     define_module_function("create_pointer", &createPointer).
@@ -440,13 +440,13 @@ TESTCASE(UpdatePointerToInt)
 
 TESTCASE(ReadPointerToInt)
 {
-  detail::Type<PointerView<int>>::verify();
+  detail::Type<Buffer<int>>::verify();
 
   Module m = define_module("ReadPointerToInt").
       define_module_function("create_pointer", &createPointer);
 
   std::string code = u8R"(ptr = create_pointer(50)
-                          view = Rice::PointerView≺int≻.new(ptr)
+                          view = Rice::Buffer≺int≻.new(ptr)
                           view.to_a(0, 1))";
 
   Array array = m.instance_eval(code);

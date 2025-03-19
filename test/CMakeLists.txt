@@ -53,7 +53,7 @@ add_executable(unittest
                "test_Identifier.cpp"
                "test_Inheritance.cpp"
                "test_Iterator.cpp"
-               "test_JumpException.cpp"
+               "test_Jump_Exception.cpp"
                "test_Keep_Alive.cpp"
                "test_Keep_Alive_No_Wrapper.cpp"
                "test_Memory_Management.cpp"

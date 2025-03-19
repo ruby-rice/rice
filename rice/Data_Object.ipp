@@ -152,12 +152,12 @@ namespace Rice::detail
   public:
     To_Ruby()
     {
-      detail::Type<PointerView<T>>::verify();
+      detail::Type<Buffer<T>>::verify();
     };
 
     explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
-      detail::Type<PointerView<T>>::verify();
+      detail::Type<Buffer<T>>::verify();
     }
 
     VALUE convert(T* data)
@@ -168,8 +168,8 @@ namespace Rice::detail
       }
       else if (this->returnInfo_ && this->returnInfo_->isArray())
       {
-        PointerView<T> pointerView(data);
-        Data_Object<PointerView<T>> dataObject(pointerView, true);
+        Buffer<T> buffer(data);
+        Data_Object<Buffer<T>> dataObject(buffer, true);
         return dataObject.value();
       }
       else

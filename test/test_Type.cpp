@@ -58,8 +58,24 @@ TESTCASE(FindGroup)
 
 TESTCASE(MakeClassName)
 {
-  std::string typeName = detail::typeName(typeid(Outer::Inner::Vec1));
+  std::string typeName = detail::typeName(typeid(std::string));
   std::string className = detail::makeClassName(typeName);
+  ASSERT_EQUAL(u8"String", className.c_str());
+
+  typeName = detail::typeName(typeid(std::wstring));
+  className = detail::makeClassName(typeName);
+  ASSERT_EQUAL(u8"Wstring", className.c_str());
+
+  typeName = detail::typeName(typeid(std::vector<std::string>));
+  className = detail::makeClassName(typeName);
+  ASSERT_EQUAL(u8"Vector≺string≻", className.c_str());
+
+  typeName = detail::typeName(typeid(std::vector<std::wstring>));
+  className = detail::makeClassName(typeName);
+  ASSERT_EQUAL(u8"Vector≺wstring≻", className.c_str());
+
+  typeName = detail::typeName(typeid(Outer::Inner::Vec1));
+  className = detail::makeClassName(typeName);
   ASSERT_EQUAL(u8"Vector≺complex≺float≻≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::Vec2));
@@ -72,11 +88,11 @@ TESTCASE(MakeClassName)
 
   typeName = detail::typeName(typeid(Outer::Inner::Map1));
   className = detail::makeClassName(typeName);
-  ASSERT_EQUAL(u8"Map≺string≺char≻‚ vector≺complex≺float≻≻≻", className.c_str());
+  ASSERT_EQUAL(u8"Map≺string‚ vector≺complex≺float≻≻≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::UnorderedMap1));
   className = detail::makeClassName(typeName);
-  ASSERT_EQUAL(u8"UnorderedMap≺string≺char≻‚ complex≺float≻≻", className.c_str());
+  ASSERT_EQUAL(u8"UnorderedMap≺string‚ complex≺float≻≻", className.c_str());
 }
 
 TESTCASE(MakeRubyClass)

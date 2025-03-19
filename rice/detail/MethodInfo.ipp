@@ -72,7 +72,7 @@ namespace Rice
     return result;
   }
 
-  inline void MethodInfo::verifyArgCount(int argc)
+  inline void MethodInfo::verifyArgCount(size_t argc)
   {
     int requiredArgCount = this->requiredArgCount();
     int optionalArgCount = this->optionalArgCount();

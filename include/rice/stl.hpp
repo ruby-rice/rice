@@ -781,10 +781,7 @@ namespace Rice
 namespace Rice
 {
   template<typename U>
-  Data_Type<U> define_map(std::string name);
-
-  template<typename U>
-  Data_Type<U> define_map_under(Object module, std::string name);
+  Data_Type<U> define_map(std::string name = "");
 }
 
 
@@ -1024,40 +1021,26 @@ namespace Rice
   } // namespace
 
   template<typename T>
-  Data_Type<T> define_map_under(Object parent, std::string name)
+  Data_Type<T> define_map(std::string klassName)
   {
-    if (Data_Type<T>::check_defined(name, parent))
+    if (klassName.empty())
+    {
+      std::string typeName = detail::typeName(typeid(T));
+      klassName = detail::makeClassName(typeName);
+    }
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type<T>::check_defined(klassName, rb_mStd))
     {
       return Data_Type<T>();
     }
 
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(parent, name.c_str());
+    Identifier id(klassName);
+    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
     stl::MapHelper helper(result);
     return result;
   }
 
-  template<typename T>
-  Data_Type<T> define_map(std::string name)
-  {
-    if (Data_Type<T>::check_defined(name))
-    {
-      return Data_Type<T>();
-    }
-
-    Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
-    stl::MapHelper<T> helper(result);
-    return result;
-  }
-
-  template<typename T>
-  Data_Type<T> define_map_auto()
-  {
-    Module rb_mStd = define_module("Std");
-    std::string name = detail::typeName(typeid(T));
-    std::string klassName = detail::makeClassName(name);
-    return define_map_under<T>(rb_mStd, klassName);
-  }
-   
   namespace detail
   {
     template<typename T, typename U>
@@ -1070,7 +1053,7 @@ namespace Rice
 
         if (!Data_Type<std::map<T, U>>::is_defined())
         {
-          define_map_auto<std::map<T, U>>();
+          define_map<std::map<T, U>>();
         }
 
         return true;
@@ -1121,7 +1104,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::map<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
             return Convertible::Cast;
@@ -1182,7 +1165,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::map<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
             return Convertible::Cast;
@@ -1239,7 +1222,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::map<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_NIL:
             return Convertible::Exact;
@@ -1665,7 +1648,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::multimap<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
             return Convertible::Cast;
@@ -1726,7 +1709,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::multimap<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
             return Convertible::Cast;
@@ -1783,7 +1766,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::multimap<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_NIL:
             return Convertible::Exact;
@@ -2149,7 +2132,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::set<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_OBJECT:
           {
@@ -2220,7 +2203,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::set<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_OBJECT:
           {
@@ -2290,7 +2273,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::set<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_NIL:
             return Convertible::Exact;
@@ -3191,10 +3174,7 @@ namespace Rice::detail
 namespace Rice
 {
   template<typename U>
-  Data_Type<U> define_unordered_map(std::string name);
-
-  template<typename U>
-  Data_Type<U> define_unordered_map_under(Object parent, std::string name);
+  Data_Type<U> define_unordered_map(std::string name = "");
 }
 
 
@@ -3434,40 +3414,26 @@ namespace Rice
   } // namespace
 
   template<typename T>
-  Data_Type<T> define_unordered_map_under(Object parent, std::string name)
+  Data_Type<T> define_unordered_map(std::string klassName)
   {
-    if (Data_Type<T>::check_defined(name, parent))
+    if (klassName.empty())
+    {
+      std::string typeName = detail::typeName(typeid(T));
+      klassName = detail::makeClassName(typeName);
+    }
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type<T>::check_defined(klassName, rb_mStd))
     {
       return Data_Type<T>();
     }
 
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(parent, name.c_str());
+    Identifier id(klassName);
+    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
     stl::UnorderedMapHelper helper(result);
     return result;
   }
 
-  template<typename T>
-  Data_Type<T> define_unordered_map(std::string name)
-  {
-    if (Data_Type<T>::check_defined(name))
-    {
-      return Data_Type<T>();
-    }
-
-    Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
-    stl::UnorderedMapHelper<T> helper(result);
-    return result;
-  }
-
-  template<typename T>
-  Data_Type<T> define_unordered_map_auto()
-  {
-    Module rb_mStd = define_module("Std");
-    std::string name = detail::typeName(typeid(T));
-    std::string klassName = detail::makeClassName(name);
-    return define_unordered_map_under<T>(rb_mStd, klassName);
-  }
-   
   namespace detail
   {
     template<typename T, typename U>
@@ -3480,7 +3446,7 @@ namespace Rice
 
         if (!Data_Type<std::unordered_map<T, U>>::is_defined())
         {
-          define_unordered_map_auto<std::unordered_map<T, U>>();
+          define_unordered_map<std::unordered_map<T, U>>();
         }
 
         return true;
@@ -3531,7 +3497,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::unordered_map<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
             return Convertible::Cast;
@@ -3592,7 +3558,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::unordered_map<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
             return Convertible::Cast;
@@ -3649,7 +3615,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::unordered_map<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_NIL:
             return Convertible::Exact;
@@ -3699,10 +3665,7 @@ namespace Rice
 namespace Rice
 {
   template<typename T>
-  Data_Type<T> define_vector(std::string name);
-
-  template<typename T>
-  Data_Type<T> define_vector_under(Object parent, std::string name);
+  Data_Type<T> define_vector(std::string name= "" );
 }
 
 
@@ -3870,9 +3833,10 @@ namespace Rice
               auto begin = vector.begin() + start;
 
               // Ruby does not throw an exception when the length is too long
-              if (start + length > vector.size())
+              Difference_T size = (Difference_T)vector.size();
+              if (start + length > size)
               {
-                length = vector.size() - start;
+                length = size - start;
               }
 
               auto finish = vector.begin() + start + length;
@@ -4057,34 +4021,27 @@ namespace Rice
   } // namespace
 
   template<typename T>
-  Data_Type<T> define_vector_under(Object parent, std::string name)
+  Data_Type<T> define_vector(std::string klassName)
   {
-    if (Data_Type<T>::check_defined(name, parent))
+    if (klassName.empty())
+    {
+      std::string typeName = detail::typeName(typeid(T));
+      klassName = detail::makeClassName(typeName);
+    }
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type<T>::check_defined(klassName, rb_mStd))
     {
       return Data_Type<T>();
     }
 
-    Identifier id(name);
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(parent, id, rb_cObject);
+    Identifier id(klassName);
+    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
     stl::VectorHelper helper(result);
     return result;
   }
 
-  template<typename T>
-  Data_Type<T> define_vector(std::string name)
-  {
-    return define_vector_under<T>(rb_cObject, name);
-  }
 
-  template<typename T>
-  Data_Type<T> define_vector_auto()
-  {
-    Module rb_mStd = define_module("Std");
-    std::string name = detail::typeName(typeid(T));
-    std::string klassName = detail::makeClassName(name);
-    return define_vector_under<T>(rb_mStd, klassName);
-  }
-   
   namespace detail
   {
     template<typename T>
@@ -4096,7 +4053,7 @@ namespace Rice
 
         if (!Data_Type<std::vector<T>>::is_defined())
         {
-          define_vector_auto<std::vector<T>>();
+          define_vector<std::vector<T>>();
         }
 
         return true;
@@ -4118,7 +4075,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::vector<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_ARRAY:
             return Convertible::Cast;
@@ -4179,7 +4136,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::vector<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_ARRAY:
             return Convertible::Cast;
@@ -4236,7 +4193,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::vector<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_NIL:
             return Convertible::Exact;
