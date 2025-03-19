@@ -66,7 +66,7 @@ TESTCASE(StringVector)
   ASSERT_EQUAL("four", detail::From_Ruby<std::string>().convert(result));
 }
 
-TESTCASE(WrongType)
+TESTCASE(WrongElementType)
 {
   Module m = define_module("Testing");
 
@@ -97,6 +97,45 @@ TESTCASE(Empty)
 
   result = vec.call("last");
   ASSERT_EQUAL(Qnil, result.value());
+}
+
+TESTCASE(BoolVector)
+{
+  Class boolVecClass = define_vector<std::vector<bool>>("BoolVector");
+
+  Object vec = boolVecClass.call("new");
+  vec.call("resize", 3, true);
+
+  Object result = vec.call("size");
+  ASSERT_EQUAL(3, detail::From_Ruby<int32_t>().convert(result));
+  result = vec.call("first");
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  Object enumerable = vec.call("each");
+  Object arr = enumerable.call("to_a");
+  Object size = arr.call("size");
+  ASSERT_EQUAL(3, detail::From_Ruby<int32_t>().convert(size));
+
+  result = vec.call("[]", 0);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  result = vec.call("[]=", 1, false);
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  std::string code = R"(array = self.each.to_a
+                        array == [true, false, true])";
+
+  result = vec.instance_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  result = vec.call("delete", 1);
+  ASSERT_EQUAL(Qtrue, result.value());
+  result = vec.call("size");
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
+
+  vec.call("clear");
+  result = vec.call("size");
+  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 }
 
 TESTCASE(Indexing)
@@ -947,41 +986,69 @@ TESTCASE(MyClass2PointerVector)
  ASSERT_EQUAL("Hello MyClass2", pMyClass->name);
 }
 
-TESTCASE(BoolVector)
+namespace
 {
-  Class boolVecClass = define_vector<std::vector<bool>>("BoolVector");
+  bool typeCheckValue(std::vector<std::string> vec)
+  {
+    return true;
+  }
 
-  Object vec = boolVecClass.call("new");
-  vec.call("resize", 3, true);
+  bool typeCheckRef(std::vector<std::string>& vec)
+  {
+    return true;
+  }
 
-  Object result = vec.call("size");
-  ASSERT_EQUAL(3, detail::From_Ruby<int32_t>().convert(result));
-  result = vec.call("first");
+  bool typeCheckPtr(std::vector<std::string>* vec)
+  {
+    return true;
+  }
+}
+
+TESTCASE(TypeCheck)
+{
+  define_vector<std::vector<int>>("Vector≺int≻");
+
+  Module m(anonymous_module());
+  m.define_module_function("check_value", &typeCheckValue).
+    define_module_function("check_ref", &typeCheckRef).
+    define_module_function("check_ptr", &typeCheckPtr);
+
+  std::string code = R"(vec = Std::Vector≺string≺char≻≻.new
+                        check_value(vec))";
+  Object result = m.module_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
 
-  Object enumerable = vec.call("each");
-  Object arr = enumerable.call("to_a");
-  Object size = arr.call("size");
-  ASSERT_EQUAL(3, detail::From_Ruby<int32_t>().convert(size));
-
-  result = vec.call("[]", 0);
+  code = R"(vec = Std::Vector≺string≺char≻≻.new
+            check_ref(vec))";
+  result = m.module_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
 
-  result = vec.call("[]=", 1, false);
-  ASSERT_EQUAL(Qfalse, result.value());
-
-  std::string code = R"(array = self.each.to_a
-                        array == [true, false, true])";
-
-  result = vec.instance_eval(code);
+  code = R"(vec = Std::Vector≺string≺char≻≻.new
+            check_ptr(vec))";
+  result = m.module_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
 
-  result = vec.call("delete", 1);
-  ASSERT_EQUAL(Qtrue, result.value());
-  result = vec.call("size");
-  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
+  code = R"(vec = Std::Vector≺int≻.new
+            check_value(vec))";
 
-  vec.call("clear");
-  result = vec.call("size");
-  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    result = m.module_eval(code),
+    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≺char≻≻)", ex.what()));
+
+  code = R"(vec = Std::Vector≺int≻.new
+            check_ref(vec))";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    result = m.module_eval(code),
+    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≺char≻≻)", ex.what()));
+
+  code = R"(vec = Std::Vector≺int≻.new
+            check_ptr(vec))";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    result = m.module_eval(code),
+    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≺char≻≻)", ex.what()));
 }

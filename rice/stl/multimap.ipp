@@ -295,7 +295,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::multimap<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
             return Convertible::Cast;
@@ -356,7 +356,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::multimap<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
             return Convertible::Cast;
@@ -413,7 +413,7 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
-            return Convertible::Exact;
+            return Data_Type<std::multimap<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_NIL:
             return Convertible::Exact;
