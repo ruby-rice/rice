@@ -269,6 +269,10 @@ namespace Rice::detail
     auto commaRegex = std::regex(R"(,\s*)");
     replaceAll(base, commaRegex, "\u201A");
 
+    // Replace * with Unicode Character (U+2217) -	Asterisk Operator
+    auto asteriskRegex = std::regex(R"(\*)");
+    replaceAll(base, asteriskRegex, "\u2217");
+
     return base;
   }
 }
