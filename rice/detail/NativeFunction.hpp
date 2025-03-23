@@ -66,12 +66,17 @@ namespace Rice::detail
 
     Resolved matches(int argc, const VALUE* argv, VALUE self) override;
     VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
+    std::string toString() override;
 
     NativeFunction(Function_T function);
     NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
+
   protected:
 
   private:
+    template<std::size_t...I>
+    std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);
+
     template<typename T, std::size_t I>
     From_Ruby<T> createFromRuby();
       

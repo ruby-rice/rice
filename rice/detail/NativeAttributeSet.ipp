@@ -79,4 +79,10 @@ namespace Rice::detail
 
     return value;
   }
+
+  template<typename Attribute_T>
+  inline std::string NativeAttributeSet<Attribute_T>::toString()
+  {
+    return "";
+  }
 } // Rice

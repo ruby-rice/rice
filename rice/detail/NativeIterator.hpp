@@ -28,6 +28,7 @@ namespace Rice::detail
 
     Resolved matches(int argc, const VALUE* argv, VALUE self) override;
     VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
+    std::string toString() override;
 
   protected:
     NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end);
