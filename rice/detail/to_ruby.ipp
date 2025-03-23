@@ -42,6 +42,52 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
+    template<>
+    class To_Ruby<bool*>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
+      VALUE convert(bool* data)
+      {
+        Buffer<bool> buffer(data);
+        Data_Object<Buffer<bool>> dataObject(std::move(buffer));
+        return dataObject.value();
+      }
+
+      VALUE convert(const bool* data)
+      {
+        return this->convert((bool*)data);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<bool N>
+    class To_Ruby<bool[N]>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
+      VALUE convert(bool data[N])
+      {
+        Buffer<bool> buffer(data, N);
+        Data_Object<Buffer<bool>> dataObject(std::move(buffer));
+        return dataObject.value();
+      }
+    private:
+      Arg* arg_ = nullptr;
+    };
+
     // ===========  int  ============
     template<>
     class To_Ruby<int>
@@ -102,20 +148,16 @@ namespace Rice
     class To_Ruby<int*>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<int>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<int>>::verify();
       }
 
       VALUE convert(int* data)
       {
         Buffer<int> buffer(data);
-        Data_Object<Buffer<int>> dataObject(buffer, true);
+        Data_Object<Buffer<int>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -132,20 +174,16 @@ namespace Rice
     class To_Ruby<int[N]>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<int>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<int>>::verify();
       }
 
       VALUE convert(int data[N])
       {
         Buffer<int> buffer(data, N);
-        Data_Object<Buffer<int>> dataObject(buffer, true);
+        Data_Object<Buffer<int>> dataObject(std::move(buffer));
         return dataObject.value();
       }
     private:
@@ -156,22 +194,16 @@ namespace Rice
     class To_Ruby<int**>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<int>>::verify();
-        detail::Type<Buffer<int*>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<int>>::verify();
-        detail::Type<Buffer<int*>>::verify();
       }
 
       VALUE convert(int** data)
       {
         Buffer<int*> buffer(data);
-        Data_Object<Buffer<int*>> dataObject(buffer, true);
+        Data_Object<Buffer<int*>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -235,20 +267,16 @@ namespace Rice
     class To_Ruby<unsigned int*>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned int>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned int>>::verify();
       }
 
       VALUE convert(unsigned int* data)
       {
         Buffer<unsigned int> buffer(data);
-        Data_Object<Buffer<unsigned int>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned int>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -265,20 +293,16 @@ namespace Rice
     class To_Ruby<unsigned int[N]>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned int>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned int>>::verify();
       }
 
       VALUE convert(unsigned int data[N])
       {
         Buffer<unsigned int> buffer(data, N);
-        Data_Object<Buffer<unsigned int>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned int>> dataObject(std::move(buffer));
         return dataObject.value();
       }
     private:
@@ -289,22 +313,16 @@ namespace Rice
     class To_Ruby<unsigned int**>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned int>>::verify();
-        detail::Type<Buffer<unsigned int*>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned int>>::verify();
-        detail::Type<Buffer<unsigned int*>>::verify();
       }
 
       VALUE convert(unsigned int** data)
       {
         Buffer<unsigned int*> buffer(data);
-        Data_Object<Buffer<unsigned int*>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned int*>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -392,7 +410,9 @@ namespace Rice
         {
           // Does NOT copy the passed in buffer and does NOT free it when the string is GCed
           long size = (long)strlen(data);
-          return protect(rb_usascii_str_new_static, data, size);
+          VALUE result = protect(rb_str_new_static, data, size);
+          // Freeze the object so Ruby can't modify the C string
+          return rb_obj_freeze(result);
         }
       }
 
@@ -436,22 +456,16 @@ namespace Rice
     class To_Ruby<char**>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<char>>::verify();
-        detail::Type<Buffer<char*>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<char>>::verify();
-        detail::Type<Buffer<char*>>::verify();
       }
 
       VALUE convert(char** data)
       {
         Buffer<char*> buffer(data);
-        Data_Object<Buffer<char*>> dataObject(buffer, true);
+        Data_Object<Buffer<char*>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -507,20 +521,16 @@ namespace Rice
     class To_Ruby<unsigned char*>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned char>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned char>>::verify();
       }
 
       VALUE convert(unsigned char* data)
       {
         Buffer<unsigned char> buffer(data);
-        Data_Object<Buffer<unsigned char>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned char>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -537,20 +547,10 @@ namespace Rice
     class To_Ruby<unsigned char[N]>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned char>>::verify();
-      };
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-        detail::Type<Buffer<unsigned char>>::verify();
-      }
-
       VALUE convert(unsigned char data[N])
       {
         Buffer<unsigned char> buffer(data, N);
-        Data_Object<Buffer<unsigned char>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned char>> dataObject(std::move(buffer));
         return dataObject.value();
       }
     private:
@@ -561,22 +561,16 @@ namespace Rice
     class To_Ruby<unsigned char**>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned char>>::verify();
-        detail::Type<Buffer<unsigned char*>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned char>>::verify();
-        detail::Type<Buffer<unsigned char*>>::verify();
       }
 
       VALUE convert(unsigned char** data)
       {
         Buffer<unsigned char*> buffer(data);
-        Data_Object<Buffer<unsigned char*>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned char*>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -632,20 +626,16 @@ namespace Rice
     class To_Ruby<signed char*>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<signed char>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<signed char>>::verify();
       }
 
       VALUE convert(signed char* data)
       {
         Buffer<signed char> buffer(data);
-        Data_Object<Buffer<signed char>> dataObject(buffer, true);
+        Data_Object<Buffer<signed char>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -662,20 +652,16 @@ namespace Rice
     class To_Ruby<signed char[N]>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<signed char>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<signed char>>::verify();
       }
 
       VALUE convert(signed char data[N])
       {
         Buffer<signed char> buffer(data, N);
-        Data_Object<Buffer<signed char>> dataObject(buffer, true);
+        Data_Object<Buffer<signed char>> dataObject(std::move(buffer));
         return dataObject.value();
       }
     private:
@@ -686,22 +672,16 @@ namespace Rice
     class To_Ruby<signed char**>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<signed char>>::verify();
-        detail::Type<Buffer<signed char*>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<signed char>>::verify();
-        detail::Type<Buffer<signed char*>>::verify();
       }
 
       VALUE convert(signed char** data)
       {
         Buffer<signed char*> buffer(data);
-        Data_Object<Buffer<signed char*>> dataObject(buffer, true);
+        Data_Object<Buffer<signed char*>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -757,20 +737,16 @@ namespace Rice
     class To_Ruby<double*>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<double>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<double>>::verify();
       }
 
       VALUE convert(double* data)
       {
         Buffer<double> buffer(data);
-        Data_Object<Buffer<double>> dataObject(buffer, true);
+        Data_Object<Buffer<double>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -782,20 +758,16 @@ namespace Rice
     class To_Ruby<double[N]>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<double>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<double>>::verify();
       }
 
       VALUE convert(double data[N])
       {
         Buffer<double> buffer(data, N);
-        Data_Object<Buffer<double>> dataObject(buffer, true);
+        Data_Object<Buffer<double>> dataObject(std::move(buffer));
         return dataObject.value();
       }
     private:
@@ -806,22 +778,16 @@ namespace Rice
     class To_Ruby<double**>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<double>>::verify();
-        detail::Type<Buffer<double*>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<double>>::verify();
-        detail::Type<Buffer<double*>>::verify();
       }
 
       VALUE convert(double** data)
       {
         Buffer<double*> buffer(data);
-        Data_Object<Buffer<double*>> dataObject(buffer, true);
+        Data_Object<Buffer<double*>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -877,20 +843,16 @@ namespace Rice
     class To_Ruby<float*>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<float>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<float>>::verify();
       }
 
       VALUE convert(float* data)
       {
         Buffer<float> buffer(data);
-        Data_Object<Buffer<float>> dataObject(buffer, true);
+        Data_Object<Buffer<float>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -902,20 +864,16 @@ namespace Rice
     class To_Ruby<float[N]>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<float>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<float>>::verify();
       }
 
       VALUE convert(float data[N])
       {
         Buffer<float> buffer(data, N);
-        Data_Object<Buffer<float>> dataObject(buffer, true);
+        Data_Object<Buffer<float>> dataObject(std::move(buffer));
         return dataObject.value();
       }
     private:
@@ -926,22 +884,16 @@ namespace Rice
     class To_Ruby<float**>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<float>>::verify();
-        detail::Type<Buffer<float*>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<float>>::verify();
-        detail::Type<Buffer<float*>>::verify();
       }
 
       VALUE convert(float** data)
       {
         Buffer<float*> buffer(data);
-        Data_Object<Buffer<float*>> dataObject(buffer, true);
+        Data_Object<Buffer<float*>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -997,20 +949,16 @@ namespace Rice
     class To_Ruby<long*>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<long>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<long>>::verify();
       }
 
       VALUE convert(long* data)
       {
         Buffer<long> buffer(data);
-        Data_Object<Buffer<long>> dataObject(buffer, true);
+        Data_Object<Buffer<long>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -1022,20 +970,16 @@ namespace Rice
     class To_Ruby<long[N]>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<long>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<long>>::verify();
       }
 
       VALUE convert(long data[N])
       {
         Buffer<long> buffer(data, N);
-        Data_Object<Buffer<long>> dataObject(buffer, true);
+        Data_Object<Buffer<long>> dataObject(std::move(buffer));
         return dataObject.value();
       }
     private:
@@ -1046,22 +990,16 @@ namespace Rice
     class To_Ruby<long**>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<long>>::verify();
-        detail::Type<Buffer<long*>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<long>>::verify();
-        detail::Type<Buffer<long*>>::verify();
       }
 
       VALUE convert(long** data)
       {
         Buffer<long*> buffer(data);
-        Data_Object<Buffer<long*>> dataObject(buffer, true);
+        Data_Object<Buffer<long*>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -1131,20 +1069,16 @@ namespace Rice
     class To_Ruby<unsigned long*>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned long>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned long>>::verify();
       }
 
       VALUE convert(unsigned long* data)
       {
         Buffer<unsigned long> buffer(data);
-        Data_Object<Buffer<unsigned long>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned long>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -1156,20 +1090,16 @@ namespace Rice
     class To_Ruby<unsigned long[N]>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned long>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned long>>::verify();
       }
 
       VALUE convert(unsigned long data[N])
       {
         Buffer<unsigned long> buffer(data, N);
-        Data_Object<Buffer<unsigned long>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned long>> dataObject(std::move(buffer));
         return dataObject.value();
       }
     private:
@@ -1180,22 +1110,16 @@ namespace Rice
     class To_Ruby<unsigned long**>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned long>>::verify();
-        detail::Type<Buffer<unsigned long*>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned long>>::verify();
-        detail::Type<Buffer<unsigned long*>>::verify();
       }
 
       VALUE convert(unsigned long** data)
       {
         Buffer<unsigned long*> buffer(data);
-        Data_Object<Buffer<unsigned long*>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned long*>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -1251,20 +1175,16 @@ namespace Rice
     class To_Ruby<long long*>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<long long>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<long long>>::verify();
       }
 
       VALUE convert(long long* data)
       {
         Buffer<long long> buffer(data);
-        Data_Object<Buffer<long long>> dataObject(buffer, true);
+        Data_Object<Buffer<long long>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -1276,20 +1196,16 @@ namespace Rice
     class To_Ruby<long long[N]>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<long long>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<long long>>::verify();
       }
 
       VALUE convert(long long data[N])
       {
         Buffer<long long> buffer(data, N);
-        Data_Object<Buffer<long long>> dataObject(buffer, true);
+        Data_Object<Buffer<long long>> dataObject(std::move(buffer));
         return dataObject.value();
       }
     private:
@@ -1300,22 +1216,16 @@ namespace Rice
     class To_Ruby<long long**>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<long long>>::verify();
-        detail::Type<Buffer<long long*>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<long long>>::verify();
-        detail::Type<Buffer<long long*>>::verify();
       }
 
       VALUE convert(long long** data)
       {
         Buffer<long long*> buffer(data);
-        Data_Object<Buffer<long long*>> dataObject(buffer, true);
+        Data_Object<Buffer<long long*>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -1396,20 +1306,16 @@ namespace Rice
     class To_Ruby<unsigned long long*>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned long long>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned long long>>::verify();
       }
 
       VALUE convert(unsigned long long* data)
       {
         Buffer<unsigned long long> buffer(data);
-        Data_Object<Buffer<unsigned long long>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned long long>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -1421,20 +1327,16 @@ namespace Rice
     class To_Ruby<unsigned long long[N]>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned long long>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned long long>>::verify();
       }
 
       VALUE convert(unsigned long long data[N])
       {
         Buffer<unsigned long long> buffer(data, N);
-        Data_Object<Buffer<unsigned long long>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned long long>> dataObject(std::move(buffer));
         return dataObject.value();
       }
     private:
@@ -1445,22 +1347,16 @@ namespace Rice
     class To_Ruby<unsigned long long**>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned long long>>::verify();
-        detail::Type<Buffer<unsigned long long*>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned long long>>::verify();
-        detail::Type<Buffer<unsigned long long*>>::verify();
       }
 
       VALUE convert(unsigned long long** data)
       {
         Buffer<unsigned long long*> buffer(data);
-        Data_Object<Buffer<unsigned long long*>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned long long*>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -1524,20 +1420,16 @@ namespace Rice
     class To_Ruby<short*>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<short>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<short>>::verify();
       }
 
       VALUE convert(short* data)
       {
         Buffer<short> buffer(data);
-        Data_Object<Buffer<short>> dataObject(buffer, true);
+        Data_Object<Buffer<short>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -1549,20 +1441,16 @@ namespace Rice
     class To_Ruby<short[N]>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<short>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<short>>::verify();
       }
 
       VALUE convert(short data[N])
       {
         Buffer<short> buffer(data, N);
-        Data_Object<Buffer<short>> dataObject(buffer, true);
+        Data_Object<Buffer<short>> dataObject(std::move(buffer));
         return dataObject.value();
       }
     private:
@@ -1573,22 +1461,16 @@ namespace Rice
     class To_Ruby<short**>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<short>>::verify();
-        detail::Type<Buffer<short*>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<short>>::verify();
-        detail::Type<Buffer<short*>>::verify();
       }
 
       VALUE convert(short** data)
       {
         Buffer<short*> buffer(data);
-        Data_Object<Buffer<short*>> dataObject(buffer, true);
+        Data_Object<Buffer<short*>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -1652,20 +1534,16 @@ namespace Rice
     class To_Ruby<unsigned short*>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned short>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned short>>::verify();
       }
 
       VALUE convert(unsigned short* data)
       {
         Buffer<unsigned short> buffer(data);
-        Data_Object<Buffer<unsigned short>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned short>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -1677,20 +1555,16 @@ namespace Rice
     class To_Ruby<unsigned short[N]>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned short>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned short>>::verify();
       }
 
       VALUE convert(unsigned short data[N])
       {
         Buffer<unsigned short> buffer(data, N);
-        Data_Object<Buffer<unsigned short>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned short>> dataObject(std::move(buffer));
         return dataObject.value();
       }
     private:
@@ -1701,22 +1575,16 @@ namespace Rice
     class To_Ruby<unsigned short**>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<unsigned short>>::verify();
-        detail::Type<Buffer<unsigned short*>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<unsigned short>>::verify();
-        detail::Type<Buffer<unsigned short*>>::verify();
       }
 
       VALUE convert(unsigned short** data)
       {
         Buffer<unsigned short*> buffer(data);
-        Data_Object<Buffer<unsigned short*>> dataObject(buffer, true);
+        Data_Object<Buffer<unsigned short*>> dataObject(std::move(buffer));
         return dataObject.value();
       }
 
@@ -1774,14 +1642,10 @@ namespace Rice
     class To_Ruby<void*>
     {
     public:
-      To_Ruby()
-      {
-        detail::Type<Buffer<void>>::verify();
-      };
+      To_Ruby() = default;
 
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
-        detail::Type<Buffer<void>>::verify();
       }
 
       VALUE convert(void* data)
@@ -1797,7 +1661,7 @@ namespace Rice
         else
         {
           Buffer<void> buffer(data);
-          Data_Object<Buffer<void>> dataObject(buffer, true);
+          Data_Object<Buffer<void>> dataObject(std::move(buffer));
           return dataObject.value();
         }
       }

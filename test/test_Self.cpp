@@ -146,8 +146,8 @@ TESTCASE(SelfValue)
   ASSERT((pointer1 != pointer2));
 
   ASSERT_EQUAL(1, SelfClass::constructorCalls);
-  ASSERT_EQUAL(1, SelfClass::copyConstructorCalls);
-  ASSERT_EQUAL(1, SelfClass::moveConstructorCalls);
+  ASSERT_EQUAL(2, SelfClass::copyConstructorCalls);
+  ASSERT_EQUAL(0, SelfClass::moveConstructorCalls);
   ASSERT_EQUAL(1, SelfClass::destructorCalls);
 }
 
@@ -203,7 +203,7 @@ TESTCASE(SelfValueLambda)
   ASSERT((pointer1 != pointer2));
 
   ASSERT_EQUAL(1, SelfClass::constructorCalls);
-  ASSERT_EQUAL(1, SelfClass::copyConstructorCalls);
-  ASSERT_EQUAL(1, SelfClass::moveConstructorCalls);
+  ASSERT_EQUAL(2, SelfClass::copyConstructorCalls);
+  ASSERT_EQUAL(0, SelfClass::moveConstructorCalls);
   ASSERT_EQUAL(1, SelfClass::destructorCalls);
 }

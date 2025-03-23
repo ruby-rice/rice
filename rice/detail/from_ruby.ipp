@@ -60,8 +60,6 @@ namespace Rice::detail
   class FromRubyFundamental<T*>
   {
   public:
-    using RubyType_T = RubyType<T>;
-
     static Convertible is_convertible(VALUE value)
     {
       ruby_value_type valueType = rb_type(value);
@@ -73,94 +71,53 @@ namespace Rice::detail
           return Convertible::Exact;
           break;
         }
-        case RUBY_T_ARRAY:
-        {
-          return Convertible::Exact;
-          break;
-        }
-        case RUBY_T_STRING:
-        {
-          return Convertible::Exact;
-          break;
-        }
         case RUBY_T_DATA:
         {
-          if (RTYPEDDATA_TYPE(value) == RubyType<T>::ruby_data_type())
-          {
-            return Convertible::Exact;
-            break;
-          }
+          return Data_Type<Buffer<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
         }
         default:
         {
-          if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end())
-          {
-            return Convertible::Exact;
-          }
-          else if (RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end())
-          {
-            return Convertible::Cast;
-          }
-          else if (RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
-          {
-            return Convertible::Narrow;
-          }
-
           return Convertible::None;
         }
       }
     }
 
-    static T* convert(VALUE value)
+    static T* convert(VALUE value, Arg* arg)
     {
       ruby_value_type valueType = rb_type(value);
+
       switch (valueType)
       {
         case RUBY_T_NIL:
         {
-          return nullptr;
-          break;
-        }
-        case RUBY_T_ARRAY:
-        {
-          Array array(value);
-          return array.pack<T>();
-          break;
-        }
-        case RUBY_T_STRING:
-        {
-          long size = RSTRING_LEN(value);
-          // Add null character to end and initialize to 0 - the () part
-          T* result = new T[size + 1]();
-          memcpy(result, RSTRING_PTR(value), size);
-          return result;
-          break;
-        }
-        case RUBY_T_DATA:
-        {
-          if (RTYPEDDATA_TYPE(value) == RubyType<T>::ruby_data_type())
+          if (arg && arg->hasDefaultValue())
           {
-            return unwrap<T>(value, RubyType<T>::ruby_data_type(), false);
-            break;
-          }
-        }
-
-        default:
-        {
-          if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end() ||
-              RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end() ||
-              RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
-          {
-            T data = (T)protect(RubyType_T::fromRuby, value);
-            T* result = new T(data);
-            return result;
+            return arg->defaultValue<T*>();
           }
           else
           {
-            std::string typeName = detail::typeName(typeid(T));
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
-              detail::protect(rb_obj_classname, value), typeName.c_str());
+            return nullptr;
           }
+        }
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Buffer<T>>::is_descendant(value))
+          {
+            Buffer<T>* buffer = unwrap<Buffer<T>>(value, Data_Type<Buffer<T>>::ruby_data_type(), false);
+            if (arg && arg->isOwner())
+            {
+              buffer->release();
+            }
+            return buffer->get();
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          std::string name = typeName(typeid(Buffer<intrinsic_type<T>>));
+          std::string expected = rubyClassName(name);
+          throw Exception(rb_eTypeError, u8"wrong argument type %s (expected % s)",
+            detail::protect(rb_obj_classname, value), expected.c_str());
         }
       }
     }
@@ -170,73 +127,64 @@ namespace Rice::detail
   class FromRubyFundamental<T**>
   {
   public:
-    using RubyType_T = RubyType<T>;
-
     static Convertible is_convertible(VALUE value)
     {
       ruby_value_type valueType = rb_type(value);
-      
-      if (valueType == RUBY_T_ARRAY)
-      {
-        std::vector<detail::Convertible> convertibles;
-        Array array(value);
-        std::transform(array.begin(), array.end(), std::back_inserter(convertibles),
-          [](Object item)
-          {
-            return FromRubyFundamental<T*>::is_convertible(item.value());
-          });
 
-        auto iter = std::min_element(convertibles.begin(), convertibles.end());
-
-        if (iter == convertibles.end())
-        {
-          return Convertible::None;
-        }
-        else
-        {
-          return *iter;
-        }
-      }
-      else
-      {
-        return Convertible::None;
-      }
-    }
-
-    static std::tuple<std::unique_ptr<T*[]>, std::vector<std::unique_ptr<T[]>>> convert(VALUE value)
-    {
-      std::unique_ptr<T*[]> outer;
-      std::vector<std::unique_ptr<T[]>> inner;
-      
-      ruby_value_type valueType = rb_type(value);
       switch (valueType)
       {
         case RUBY_T_NIL:
         {
-          return { std::move(outer), std::move(inner) };
+          return Convertible::Exact;
           break;
         }
-        case RUBY_T_ARRAY:
+        case RUBY_T_DATA:
         {
-          Array array(value);
-          outer = std::make_unique<T*[]>(array.size());
-
-          for (int i = 0; i < array.size(); i++)
-          {
-            T* data = FromRubyFundamental<T*>::convert(array[i].value());
-            std::unique_ptr<T[]> item(data);
-            inner.push_back(std::move(item));
-            outer[i] = inner[i].get();
-          }
-
-          return { std::move(outer), std::move(inner) };
-          break;
+          return Data_Type<Buffer<T*>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
         }
         default:
         {
-          std::string typeName = detail::typeName(typeid(T));
-          throw Exception(rb_eTypeError, "wrong argument type %s - must be an Array of Arrays (expected % s*)",
-            detail::protect(rb_obj_classname, value), typeName.c_str());
+          return Convertible::None;
+        }
+      }
+    }
+
+    static T** convert(VALUE value, Arg* arg)
+    {
+      ruby_value_type valueType = rb_type(value);
+
+      switch (valueType)
+      {
+        case RUBY_T_NIL:
+        {
+          if (arg && arg->hasDefaultValue())
+          {
+            return arg->defaultValue<T**>();
+          }
+          else
+          {
+            return nullptr;
+          }
+        }
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Buffer<T*>>::is_descendant(value))
+          {
+            Buffer<T*>* buffer = unwrap<Buffer<T*>>(value, Data_Type<Buffer<T*>>::ruby_data_type(), false);
+            if (arg && arg->isOwner())
+            {
+              buffer->release();
+            }
+            return buffer->get();
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          std::string name = typeName(typeid(Buffer<intrinsic_type<T>*>));
+          std::string expected = rubyClassName(name);
+          throw Exception(rb_eTypeError, u8"wrong argument type %s (expected % s)",
+            detail::protect(rb_obj_classname, value), expected.c_str());
         }
       }
     }
@@ -317,10 +265,6 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<bool>::is_convertible(value);
@@ -328,27 +272,11 @@ namespace Rice::detail
 
     bool* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      bool* data = FromRubyFundamental<bool*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
+      return FromRubyFundamental<bool*>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<bool[]> converted_;
   };
 
   // ===========  char  ============
@@ -426,82 +354,54 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<char*>::is_convertible(value);
+      switch (rb_type(value))
+      {
+        case RUBY_T_NIL:
+        {
+          return Convertible::Exact;
+        }
+        case RUBY_T_STRING:
+        {
+          return Convertible::Exact;
+        }
+        default:
+        {
+          return FromRubyFundamental<char*>::is_convertible(value);
+        }
+      }
     }
 
     char* convert(VALUE value)
     {
-      if (value == Qnil)
+      switch (rb_type(value))
       {
-        return nullptr;
-      }
-
-      char* data = FromRubyFundamental<char*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
+        case RUBY_T_NIL:
+        {
+          return nullptr;
+        }
+        case RUBY_T_STRING:
+        {
+          // WARNING - this shares the Ruby string memory directly with C++. value really should be frozen.
+          // Maybe we should enforce that? Note the user can always create a Buffer to allocate new memory.
+          return rb_string_value_cstr(&value);
+        }
+        default:
+        {
+          char* rb_string_value_cstr(volatile VALUE * ptr);
+          return FromRubyFundamental<char*>::convert(value, this->arg_);
+        }
       }
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<char[]> converted_;
   };
     
   template<>
-  class From_Ruby<const char*>
+  class From_Ruby<const char*> : public From_Ruby<char*>
   {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<char*>::is_convertible(value);
-    }
-
-    char* convert(VALUE value)
-    {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      char* data = FromRubyFundamental<char*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-    std::unique_ptr<char[]> converted_;
   };
 
   template<>
@@ -518,22 +418,6 @@ namespace Rice::detail
       }
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
-    ~From_Ruby()
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        for (std::unique_ptr<char[]>& ptr : this->inner_)
-        {
-          ptr.release();
-        }
-        this->outer_.release();
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<char**>::is_convertible(value);
@@ -541,21 +425,11 @@ namespace Rice::detail
 
     char** convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      auto arrays = FromRubyFundamental<char**>::convert(value);
-      this->outer_ = std::move(std::get<0>(arrays));
-      this->inner_ = std::move(std::get<1>(arrays));
-      return this->outer_.get();
+      return FromRubyFundamental<char**>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<char* []> outer_;
-    std::vector<std::unique_ptr<char[]>> inner_;
   };
 
   // ===========  unsigned char  ============
@@ -633,10 +507,6 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned char*>::is_convertible(value);
@@ -644,27 +514,11 @@ namespace Rice::detail
 
     unsigned char* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      unsigned char* data = FromRubyFundamental<unsigned char*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
+      return FromRubyFundamental<unsigned char*>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<unsigned char[]> converted_;
   };
 
   template<>
@@ -681,22 +535,6 @@ namespace Rice::detail
       }
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
-    ~From_Ruby()
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        for (std::unique_ptr<unsigned char[]>& ptr : this->inner_)
-        {
-          ptr.release();
-        }
-        this->outer_.release();
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned char**>::is_convertible(value);
@@ -704,21 +542,11 @@ namespace Rice::detail
 
     unsigned char** convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      auto arrays = FromRubyFundamental<unsigned char**>::convert(value);
-      this->outer_ = std::move(std::get<0>(arrays));
-      this->inner_ = std::move(std::get<1>(arrays));
-      return this->outer_.get();
+      return FromRubyFundamental<unsigned char**>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<unsigned char* []> outer_;
-    std::vector<std::unique_ptr<unsigned char[]>> inner_;
   };
 
   // ===========  signed char  ============
@@ -763,10 +591,6 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<signed char*>::is_convertible(value);
@@ -774,27 +598,11 @@ namespace Rice::detail
 
     signed char* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      signed char* data = FromRubyFundamental<signed char*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
+      return FromRubyFundamental<signed char*>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<signed char[]> converted_;
   };
 
   template<>
@@ -811,22 +619,6 @@ namespace Rice::detail
       }
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
-    ~From_Ruby()
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        for (std::unique_ptr<signed char[]>& ptr : this->inner_)
-        {
-          ptr.release();
-        }
-        this->outer_.release();
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<signed char**>::is_convertible(value);
@@ -834,21 +626,11 @@ namespace Rice::detail
 
     signed char** convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      auto arrays = FromRubyFundamental<signed char**>::convert(value);
-      this->outer_ = std::move(std::get<0>(arrays));
-      this->inner_ = std::move(std::get<1>(arrays));
-      return this->outer_.get();
+      return FromRubyFundamental<signed char**>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<signed char* []> outer_;
-    std::vector<std::unique_ptr<signed char[]>> inner_;
   };
 
   // ===========  double  ============
@@ -926,10 +708,6 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<double*>::is_convertible(value);
@@ -937,27 +715,11 @@ namespace Rice::detail
 
     double* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      double* data = FromRubyFundamental<double*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
+      return FromRubyFundamental<double*>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<double[]> converted_;
   };
 
   template<>
@@ -974,22 +736,6 @@ namespace Rice::detail
       }
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
-    ~From_Ruby()
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        for (std::unique_ptr<double[]>& ptr : this->inner_)
-        {
-          ptr.release();
-        }
-        this->outer_.release();
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<double**>::is_convertible(value);
@@ -997,21 +743,11 @@ namespace Rice::detail
 
     double** convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      auto arrays = FromRubyFundamental<double**>::convert(value);
-      this->outer_ = std::move(std::get<0>(arrays));
-      this->inner_ = std::move(std::get<1>(arrays));
-      return this->outer_.get();
+      return FromRubyFundamental<double**>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<double* []> outer_;
-    std::vector<std::unique_ptr<double[]>> inner_;
   };
 
   // ===========  float  ============
@@ -1089,10 +825,6 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<float*>::is_convertible(value);
@@ -1100,27 +832,11 @@ namespace Rice::detail
 
     float* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      float* data = FromRubyFundamental<float*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
+      return FromRubyFundamental<float*>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<float[]> converted_;
   };
 
   template<>
@@ -1137,22 +853,6 @@ namespace Rice::detail
       }
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
-    ~From_Ruby()
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        for (std::unique_ptr<float[]>& ptr : this->inner_)
-        {
-          ptr.release();
-        }
-        this->outer_.release();
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<float**>::is_convertible(value);
@@ -1160,21 +860,11 @@ namespace Rice::detail
 
     float** convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      auto arrays = FromRubyFundamental<float**>::convert(value);
-      this->outer_ = std::move(std::get<0>(arrays));
-      this->inner_ = std::move(std::get<1>(arrays));
-      return this->outer_.get();
+      return FromRubyFundamental<float**>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<float*[]> outer_;
-    std::vector<std::unique_ptr<float[]>> inner_;
   };
 
   // ===========  int  ============
@@ -1263,10 +953,6 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<int*>::is_convertible(value);
@@ -1274,27 +960,11 @@ namespace Rice::detail
 
     int* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      int* data = FromRubyFundamental<int*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
+      return FromRubyFundamental<int*>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<int[]> converted_;
   };
 
   template<>
@@ -1311,10 +981,6 @@ namespace Rice::detail
       }
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<int**>::is_convertible(value);
@@ -1322,21 +988,11 @@ namespace Rice::detail
 
     int** convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      auto arrays = FromRubyFundamental<int**>::convert(value);
-      this->outer_ = std::move(std::get<0>(arrays));
-      this->inner_ = std::move(std::get<1>(arrays));
-      return this->outer_.get();
+      return FromRubyFundamental<int**>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<int* []> outer_;
-    std::vector<std::unique_ptr<int[]>> inner_;
   };
 
   // ===========  unsigned int  ============
@@ -1414,10 +1070,6 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned int*>::is_convertible(value);
@@ -1425,27 +1077,11 @@ namespace Rice::detail
 
     unsigned int* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      unsigned int* data = FromRubyFundamental<unsigned int*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
+      return FromRubyFundamental<unsigned int*>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<unsigned int[]> converted_;;
   };
 
   template<>
@@ -1462,22 +1098,6 @@ namespace Rice::detail
       }
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
-    ~From_Ruby()
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        for (std::unique_ptr<unsigned int[]>& ptr : this->inner_)
-        {
-          ptr.release();
-        }
-        this->outer_.release();
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned int**>::is_convertible(value);
@@ -1485,21 +1105,11 @@ namespace Rice::detail
 
     unsigned int** convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      auto arrays = FromRubyFundamental<unsigned int**>::convert(value);
-      this->outer_ = std::move(std::get<0>(arrays));
-      this->inner_ = std::move(std::get<1>(arrays));
-      return this->outer_.get();
+      return FromRubyFundamental<unsigned int**>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<unsigned int* []> outer_;
-    std::vector<std::unique_ptr<unsigned int[]>> inner_;
   };
 
   // ===========  long  ============
@@ -1577,10 +1187,6 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<long*>::is_convertible(value);
@@ -1588,27 +1194,11 @@ namespace Rice::detail
 
     long* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      long* data = FromRubyFundamental<long*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
+      return FromRubyFundamental<long*>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<long[]> converted_;
   };
 
   template<>
@@ -1625,22 +1215,6 @@ namespace Rice::detail
       }
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
-    ~From_Ruby()
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        for (std::unique_ptr<long[]>& ptr : this->inner_)
-        {
-          ptr.release();
-        }
-        this->outer_.release();
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<long**>::is_convertible(value);
@@ -1648,21 +1222,11 @@ namespace Rice::detail
 
     long** convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      auto arrays = FromRubyFundamental<long**>::convert(value);
-      this->outer_ = std::move(std::get<0>(arrays));
-      this->inner_ = std::move(std::get<1>(arrays));
-      return this->outer_.get();
+      return FromRubyFundamental<long**>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<long* []> outer_;
-    std::vector<std::unique_ptr<long[]>> inner_;
   };
 
   // ===========  unsigned long  ============
@@ -1744,10 +1308,6 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned long*>::is_convertible(value);
@@ -1755,27 +1315,11 @@ namespace Rice::detail
 
     unsigned long* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      unsigned long* data = FromRubyFundamental<unsigned long*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
+      return FromRubyFundamental<unsigned long*>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<unsigned long[]> converted_;
   };
 
   template<>
@@ -1792,22 +1336,6 @@ namespace Rice::detail
       }
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
-    ~From_Ruby()
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        for (std::unique_ptr<unsigned long[]>& ptr : this->inner_)
-        {
-          ptr.release();
-        }
-        this->outer_.release();
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned long**>::is_convertible(value);
@@ -1815,21 +1343,11 @@ namespace Rice::detail
 
     unsigned long** convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      auto arrays = FromRubyFundamental<unsigned long**>::convert(value);
-      this->outer_ = std::move(std::get<0>(arrays));
-      this->inner_ = std::move(std::get<1>(arrays));
-      return this->outer_.get();
+      return FromRubyFundamental<unsigned long**>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<unsigned long* []> outer_;
-    std::vector<std::unique_ptr<unsigned long[]>> inner_;
   };
 
   // ===========  unsigned long long  ============
@@ -1911,10 +1429,6 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned long long*>::is_convertible(value);
@@ -1922,27 +1436,11 @@ namespace Rice::detail
 
     unsigned long long* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      unsigned long long* data = FromRubyFundamental<unsigned long long*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
+      return FromRubyFundamental<unsigned long long*>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<unsigned long long[]> converted_;
   };
 
   template<>
@@ -1959,22 +1457,6 @@ namespace Rice::detail
       }
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
-    ~From_Ruby()
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        for (std::unique_ptr<unsigned long long[]>& ptr : this->inner_)
-        {
-          ptr.release();
-        }
-        this->outer_.release();
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned long long**>::is_convertible(value);
@@ -1982,21 +1464,11 @@ namespace Rice::detail
 
     unsigned long long** convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      auto arrays = FromRubyFundamental<unsigned long long**>::convert(value);
-      this->outer_ = std::move(std::get<0>(arrays));
-      this->inner_ = std::move(std::get<1>(arrays));
-      return this->outer_.get();
+      return FromRubyFundamental<unsigned long long**>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<unsigned long long* []> outer_;
-    std::vector<std::unique_ptr<unsigned long long[]>> inner_;
   };
   
   // ===========  long long  ============
@@ -2074,10 +1546,6 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<long long*>::is_convertible(value);
@@ -2085,27 +1553,11 @@ namespace Rice::detail
 
     long long* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      long long* data = FromRubyFundamental<long long*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
+      return FromRubyFundamental<long long*>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<long long[]> converted_;
   };
 
   template<>
@@ -2122,22 +1574,6 @@ namespace Rice::detail
       }
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
-    ~From_Ruby()
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        for (std::unique_ptr<long long[]>& ptr : this->inner_)
-        {
-          ptr.release();
-        }
-        this->outer_.release();
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<long long**>::is_convertible(value);
@@ -2145,21 +1581,11 @@ namespace Rice::detail
 
     long long** convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      auto arrays = FromRubyFundamental<long long**>::convert(value);
-      this->outer_ = std::move(std::get<0>(arrays));
-      this->inner_ = std::move(std::get<1>(arrays));
-      return this->outer_.get();
+      return FromRubyFundamental<long long**>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<long long* []> outer_;
-    std::vector<std::unique_ptr<long long[]>> inner_;
   };
 
   // ===========  short  ============
@@ -2237,10 +1663,6 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<short*>::is_convertible(value);
@@ -2248,27 +1670,11 @@ namespace Rice::detail
 
     short* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      short* data = FromRubyFundamental<short*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
+      return FromRubyFundamental<short*>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<short[]> converted_;
   };
 
   template<>
@@ -2285,22 +1691,6 @@ namespace Rice::detail
       }
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
-    ~From_Ruby()
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        for (std::unique_ptr<short[]>& ptr : this->inner_)
-        {
-          ptr.release();
-        }
-        this->outer_.release();
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<short**>::is_convertible(value);
@@ -2308,21 +1698,10 @@ namespace Rice::detail
 
     short** convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      auto arrays = FromRubyFundamental<short**>::convert(value);
-      this->outer_ = std::move(std::get<0>(arrays));
-      this->inner_ = std::move(std::get<1>(arrays));
-      return this->outer_.get();
+      return FromRubyFundamental<short**>::convert(value, this->arg_);
     }
-
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<short* []> outer_;
-    std::vector<std::unique_ptr<short[]>> inner_;
   };
 
   // ===========  unsigned short  ============
@@ -2400,10 +1779,6 @@ namespace Rice::detail
     {
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned short*>::is_convertible(value);
@@ -2411,27 +1786,11 @@ namespace Rice::detail
 
     unsigned short* convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      unsigned short* data = FromRubyFundamental<unsigned short*>::convert(value);
-
-      if (rb_type(value) == RUBY_T_DATA || this->arg_ && this->arg_->isOwner())
-      {
-        return data;
-      }
-      else
-      {
-        this->converted_.reset(data);
-        return this->converted_.get();
-      }
+      return FromRubyFundamental<unsigned short*>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<unsigned short[]> converted_;
   };
 
   template<>
@@ -2448,22 +1807,6 @@ namespace Rice::detail
       }
     }
 
-    // Need move constructor and assignment due to std::unique_ptr
-    From_Ruby(From_Ruby&& other) = default;
-    From_Ruby& operator=(From_Ruby&& other) = default;
-
-    ~From_Ruby()
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        for (std::unique_ptr<unsigned short[]>& ptr : this->inner_)
-        {
-          ptr.release();
-        }
-        this->outer_.release();
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned short**>::is_convertible(value);
@@ -2471,21 +1814,11 @@ namespace Rice::detail
 
     unsigned short** convert(VALUE value)
     {
-      if (value == Qnil)
-      {
-        return nullptr;
-      }
-
-      auto arrays = FromRubyFundamental<unsigned short**>::convert(value);
-      this->outer_ = std::move(std::get<0>(arrays));
-      this->inner_ = std::move(std::get<1>(arrays));
-      return this->outer_.get();
+      return FromRubyFundamental<unsigned short**>::convert(value, this->arg_);
     }
 
   private:
     Arg* arg_ = nullptr;
-    std::unique_ptr<unsigned short* []> outer_;
-    std::vector<std::unique_ptr<unsigned short[]>> inner_;
   };
 
   // ===========  std::nullptr_t  ============
@@ -2633,7 +1966,7 @@ namespace Rice::detail
           if (rb_type == Data_Type<Buffer<void>>::ruby_data_type())
           {
             Data_Object<Buffer<void>> buffer(value);
-            return buffer->pointer;
+            return buffer->get();
           }
           else 
           {

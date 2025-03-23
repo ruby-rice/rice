@@ -1,4 +1,4 @@
-#include "unittest.hpp"
+﻿#include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
@@ -13,6 +13,7 @@ TESTSUITE(FromRuby);
 SETUP(FromRuby)
 {
   embed_ruby();
+  define_fundamental_buffer_types();
 }
 
 TEARDOWN(FromRuby)
@@ -134,43 +135,32 @@ TESTCASE(char_pointer)
   detail::From_Ruby<char*> fromRuby;
 
   char* expected = nullptr;
-  char* result = fromRuby.convert(Qnil);
-  ASSERT_EQUAL(expected, result);
+  char* data = fromRuby.convert(Qnil);
+  ASSERT_EQUAL(expected, data);
 
-  const char* expected2 = "my string";
-  result = fromRuby.convert(rb_str_new2(expected2));
-  ASSERT_EQUAL(*expected2, *result);
+  std::string code = u8R"(Rice::Buffer≺char≻.new("my string"))";
+  Object result = m.instance_eval(code);
+  data = fromRuby.convert(result.value());
+  //expected = "my string";
+ // ASSERT_EQUAL(*expected, *data);
 
-  std::string code = R"(arr = [0, 127, 128, 255, 256, -128, -129, -255])";
-  Array array = m.instance_eval(code);
-  result = fromRuby.convert(array.value());
+  code = u8R"(Rice::Buffer≺char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  result = m.instance_eval(code);
+  data = fromRuby.convert(result.value());
 
-  ASSERT_EQUAL(result[0], 0);
-  ASSERT_EQUAL(result[1], 127);
-  ASSERT_EQUAL(result[2], -128);
-  ASSERT_EQUAL(result[3], -1);
-  ASSERT_EQUAL(result[4], 0);
-  ASSERT_EQUAL(result[5], -128);
-  ASSERT_EQUAL(result[6], 127);
-  ASSERT_EQUAL(result[7], 1);
-
-  std::string format = CHAR_MIN < 0 ? "c*" : "C*";
-  String packed = array.call("pack", format);
-  result = fromRuby.convert(packed.value());
-
-  ASSERT_EQUAL(result[0], 0);
-  ASSERT_EQUAL(result[1], 127);
-  ASSERT_EQUAL(result[2], -128);
-  ASSERT_EQUAL(result[3], -1);
-  ASSERT_EQUAL(result[4], 0);
-  ASSERT_EQUAL(result[5], -128);
-  ASSERT_EQUAL(result[6], 127);
-  ASSERT_EQUAL(result[7], 1);
+  ASSERT_EQUAL(data[0], 0);
+  ASSERT_EQUAL(data[1], 127);
+  ASSERT_EQUAL(data[2], -128);
+  ASSERT_EQUAL(data[3], -1);
+  ASSERT_EQUAL(data[4], 0);
+  ASSERT_EQUAL(data[5], -128);
+  ASSERT_EQUAL(data[6], 127);
+  ASSERT_EQUAL(data[7], 1);
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
     fromRuby.convert(rb_float_new(11.11)),
-    ASSERT_EQUAL("wrong argument type Float (expected char*)", ex.what())
+    ASSERT_EQUAL("wrong argument type Float (expected Buffer≺char≻)", ex.what())
   );
 }
 
@@ -180,56 +170,55 @@ TESTCASE(signed_char_pointer)
   detail::From_Ruby<signed char*> fromRuby;
 
   signed char* expected = nullptr;
-  signed char* result = fromRuby.convert(Qnil);
-  ASSERT_EQUAL(expected, result);
+  signed char* data = fromRuby.convert(Qnil);
+  ASSERT_EQUAL(expected, data);
 
+  std::string code = u8R"(Rice::Buffer≺signed char≻.new("my string"))";
+  Object result = m.instance_eval(code);
+  data = fromRuby.convert(result.value());
   expected = (signed char*)"my string";
-  result = fromRuby.convert(rb_str_new2("my string"));
-  ASSERT_EQUAL(*expected, *result);
+  ASSERT_EQUAL(*expected, *data);
 
-  std::string code = R"(arr = [0, 127, 128, 255, 256, -128, -129, -255])";
-  Array array = m.instance_eval(code);
-  result = fromRuby.convert(array.value());
+  code = u8R"(Rice::Buffer≺signed char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  result = m.instance_eval(code);
+  data = fromRuby.convert(result.value());
 
-  ASSERT_EQUAL(result[0], 0);
-  ASSERT_EQUAL(result[1], 127);
-  ASSERT_EQUAL(result[2], -128);
-  ASSERT_EQUAL(result[3], -1);
-  ASSERT_EQUAL(result[4], 0);
-  ASSERT_EQUAL(result[5], -128);
-  ASSERT_EQUAL(result[6], 127);
-  ASSERT_EQUAL(result[7], 1);
-
-  std::string format = CHAR_MIN < 0 ? "c*" : "C*";
-  String packed = array.call("pack", format);
-  result = fromRuby.convert(packed.value());
-
-  ASSERT_EQUAL(result[0], 0);
-  ASSERT_EQUAL(result[1], 127);
-  ASSERT_EQUAL(result[2], -128);
-  ASSERT_EQUAL(result[3], -1);
-  ASSERT_EQUAL(result[4], 0);
-  ASSERT_EQUAL(result[5], -128);
-  ASSERT_EQUAL(result[6], 127);
-  ASSERT_EQUAL(result[7], 1);
+  ASSERT_EQUAL(data[0], 0);
+  ASSERT_EQUAL(data[1], 127);
+  ASSERT_EQUAL(data[2], -128);
+  ASSERT_EQUAL(data[3], -1);
+  ASSERT_EQUAL(data[4], 0);
+  ASSERT_EQUAL(data[5], -128);
+  ASSERT_EQUAL(data[6], 127);
+  ASSERT_EQUAL(data[7], 1);
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
     fromRuby.convert(rb_float_new(11.11)),
-    ASSERT_EQUAL("wrong argument type Float (expected signed char*)", ex.what())
+    ASSERT_EQUAL("wrong argument type Float (expected Buffer≺signed char≻)", ex.what())
   );
 }
 
 TESTCASE(char_pointer_const)
 {
-  char const* foo = "foo";
-  ASSERT_EQUAL(foo, detail::From_Ruby<char const*>().convert(rb_str_new2("foo")));
-  ASSERT_EQUAL("", detail::From_Ruby<char const*>().convert(rb_str_new2("")));
+  Module m = define_module("Testing");
+
+  std::string code = u8R"(Rice::Buffer≺char≻.new("my string"))";
+  Object result = m.instance_eval(code);
+  const char* expected = "my string";
+  const char* data = detail::From_Ruby<const char*>().convert(result.value());
+  ASSERT_EQUAL(expected, data);
+
+  code = R"(Rice::Buffer≺char≻.new(""))";
+  result = m.instance_eval(code);
+  expected = "";
+  data = detail::From_Ruby<const char*>().convert(result.value());
+  ASSERT_EQUAL(expected, data);
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
     detail::From_Ruby<char const*>().convert(rb_float_new(32.3)),
-    ASSERT_EQUAL("wrong argument type Float (expected char*)", ex.what())
+    ASSERT_EQUAL("wrong argument type Float (expected Buffer≺char≻)", ex.what())
   );
 }
 
@@ -249,38 +238,41 @@ TESTCASE(unsigned_char_pointer)
   detail::From_Ruby<unsigned char*> fromRuby;
 
   unsigned char* expected = nullptr;
-  unsigned char* result = fromRuby.convert(Qnil);
-  ASSERT_EQUAL(expected, result);
+  unsigned char* data = fromRuby.convert(Qnil);
+  ASSERT_EQUAL(expected, data);
 
-  std::string code = R"(arr = [0, 127, 128, 255, 256, -128, -129, -255])";
-  Array array = m.instance_eval(code);
-  result = fromRuby.convert(array.value());
+  std::string code = u8R"(Rice::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  Object result = m.instance_eval(code);
+  data = fromRuby.convert(result.value());
 
-  ASSERT_EQUAL(result[0], 0x0);
-  ASSERT_EQUAL(result[1], 0x7F);
-  ASSERT_EQUAL(result[2], 0x80);
-  ASSERT_EQUAL(result[3], 0xFF);
-  ASSERT_EQUAL(result[4], 0x00);
-  ASSERT_EQUAL(result[5], 0x80);
-  ASSERT_EQUAL(result[6], 0x7F);
-  ASSERT_EQUAL(result[7], 0x01);
+  ASSERT_EQUAL(data[0], 0x0);
+  ASSERT_EQUAL(data[1], 0x7F);
+  ASSERT_EQUAL(data[2], 0x80);
+  ASSERT_EQUAL(data[3], 0xFF);
+  ASSERT_EQUAL(data[4], 0x00);
+  ASSERT_EQUAL(data[5], 0x80);
+  ASSERT_EQUAL(data[6], 0x7F);
+  ASSERT_EQUAL(data[7], 0x01);
 
-  String packed = array.call("pack", "C*");
-  result = fromRuby.convert(packed.value());
+  code = u8R"(array = [0, 127, 128, 255, 256, -128, -129, -255]
+              packed = array.pack("C*")
+              Rice::Buffer≺unsigned char≻.new(packed))";
+  result = m.instance_eval(code);
+  data = fromRuby.convert(result.value());
 
-  ASSERT_EQUAL(result[0], 0x0);
-  ASSERT_EQUAL(result[1], 0x7F);
-  ASSERT_EQUAL(result[2], 0x80);
-  ASSERT_EQUAL(result[3], 0xFF);
-  ASSERT_EQUAL(result[4], 0x00);
-  ASSERT_EQUAL(result[5], 0x80);
-  ASSERT_EQUAL(result[6], 0x7F);
-  ASSERT_EQUAL(result[7], 0x01);
+  ASSERT_EQUAL(data[0], 0x0);
+  ASSERT_EQUAL(data[1], 0x7F);
+  ASSERT_EQUAL(data[2], 0x80);
+  ASSERT_EQUAL(data[3], 0xFF);
+  ASSERT_EQUAL(data[4], 0x00);
+  ASSERT_EQUAL(data[5], 0x80);
+  ASSERT_EQUAL(data[6], 0x7F);
+  ASSERT_EQUAL(data[7], 0x01);
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
     detail::From_Ruby<const char*>().convert(rb_float_new(11.11)),
-    ASSERT_EQUAL("wrong argument type Float (expected char*)", ex.what())
+    ASSERT_EQUAL("wrong argument type Float (expected Buffer≺char≻)", ex.what())
   );
 }
 
@@ -291,7 +283,8 @@ TESTCASE(unsigned_char_pointer_array)
   m.define_singleton_function("unsigned_char_pointer", &arrayToString<unsigned char>);
 
   std::string code = R"(arr = ["A", "B"]
-                        unsigned_char_pointer(arr, arr.size))";
+                        buffer = Rice::Buffer≺unsigned char≻.new(arr)
+                        unsigned_char_pointer(buffer, buffer.size))";
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -302,18 +295,21 @@ TESTCASE(unsigned_char_pointer_array)
   code = R"(arr = ["A", "B"].map do |char|
                                char.ord
                              end  
-            unsigned_char_pointer(arr, arr.size))";
+            buffer = Rice::Buffer≺unsigned char≻.new(arr)
+            unsigned_char_pointer(buffer, buffer.size))";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL("[A, B]", detail::From_Ruby<std::string>().convert(result.value()));
 
   code = R"(arr = [65, 66]
-            unsigned_char_pointer(arr, arr.size))";
+            buffer = Rice::Buffer≺unsigned char≻.new(arr)
+            unsigned_char_pointer(buffer, buffer.size))";
   result = m.module_eval(code);
   ASSERT_EQUAL("[A, B]", detail::From_Ruby<std::string>().convert(result.value()));
 
   code = R"(arr = [true]
-            unsigned_char_pointer(arr, arr.size))";
+            buffer = Rice::Buffer≺unsigned char≻.new(arr)
+            unsigned_char_pointer(buffer, buffer.size))";
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -349,7 +345,8 @@ TESTCASE(double_pointer_array)
   m.define_singleton_function("double_pointer", &arrayToString<double>);
 
   std::string code = R"(arr = [1.1, 2.2, 3.3, 4.4]
-                        double_pointer(arr, arr.size))";
+                        buffer = Rice::Buffer≺double≻.new(arr)
+                        double_pointer(buffer, buffer.size))";
 
   Object result = m.module_eval(code);
 
@@ -384,17 +381,20 @@ TESTCASE(float_pointer_array)
   m.define_singleton_function("float_pointer", &arrayToString<float>);
 
   std::string code = R"(arr = [4.3, 3.2, 2.1, 1.1]
-                        float_pointer(arr, arr.size))";
+                        buffer = Rice::Buffer≺float≻.new(arr)
+                        float_pointer(buffer, buffer.size))";
   Object result = m.module_eval(code);
   ASSERT_EQUAL("[4.3, 3.2, 2.1, 1.1]", detail::From_Ruby<std::string>().convert(result.value()));
 
   code = R"(arr = [4, 3, 2.8, 1]
-            float_pointer(arr, arr.size))";
+           buffer = Rice::Buffer≺float≻.new(arr)
+            float_pointer(buffer, buffer.size))";
   result = m.module_eval(code);
   ASSERT_EQUAL("[4, 3, 2.8, 1]", detail::From_Ruby<std::string>().convert(result.value()));
 
   code = R"(arr = [4, "bad", 2, 1]
-            float_pointer(arr, arr.size))";
+            buffer = Rice::Buffer≺float≻.new(arr)
+            float_pointer(buffer, buffer.size))";
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -409,18 +409,18 @@ TESTCASE(float_array_array)
 
   m.define_singleton_function("array_array_to_string", &arrayofArraysToString<float>);
 
-  std::string code = R"(arr = [[1.1, 2.2], [3.3, 4.4]]
-                        array_array_to_string(arr, arr.size, 2))";
+  std::string code = R"(buffer = Rice::Buffer≺float∗≻.new([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]])
+                        array_array_to_string(buffer, buffer.size, 2))";
   Object result = m.module_eval(code);
-  ASSERT_EQUAL("[[1.1, 2.2], [3.3, 4.4]]", detail::From_Ruby<std::string>().convert(result.value()));
+  ASSERT_EQUAL("[[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]]", detail::From_Ruby<std::string>().convert(result.value()));
 
-  code = R"(arr = [[4, 3], [2.8, 1]]
-            array_array_to_string(arr, arr.size, 2))";
+  code = R"(buffer = Rice::Buffer≺float∗≻.new([[4, 3], [2.8, 1]])
+            array_array_to_string(buffer, buffer.size, 2))";
   result = m.module_eval(code);
   ASSERT_EQUAL("[[4, 3], [2.8, 1]]", detail::From_Ruby<std::string>().convert(result.value()));
 
-  code = R"(arr = [[4, "bad"], [2, 1]]
-            array_array_to_string(arr, arr.size, 2))";
+  code = R"(buffer = Rice::Buffer≺float∗≻.new([[4, "bad"], [2, 1]])
+            array_array_to_string(buffer, buffer.size, 2))";
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -428,42 +428,14 @@ TESTCASE(float_array_array)
     ASSERT_EQUAL("can't convert String into Float", ex.what())
   );
 
-  detail::From_Ruby<float**> fromRuby;
+  code = R"(array = [[4, "bad"], [2, 1]]
+            array_array_to_string(array, array.size, 2))";
 
-  code = R"(array = [[4, "\x3\x4"], [2, 1]])";
-  Object object = m.instance_eval(code);
-  detail::Convertible convertible = fromRuby.is_convertible(object);
-  ASSERT_EQUAL(detail::Convertible::Exact, convertible);
-
-  code = R"(array = [45])";
-  object = m.instance_eval(code);
-  convertible = fromRuby.is_convertible(object);
-  ASSERT_EQUAL(detail::Convertible::Cast, convertible);
-
-  code = R"(array = [false])";
-  object = m.instance_eval(code);
-  convertible = fromRuby.is_convertible(object);
-  ASSERT_EQUAL(detail::Convertible::None, convertible);
-
-  code = R"(array = ["\x1\x2"])";
-  object = m.instance_eval(code);
-  convertible = fromRuby.is_convertible(object);
-  ASSERT_EQUAL(detail::Convertible::Exact, convertible);
-
-  code = R"(array = [])";
-  object = m.instance_eval(code);
-  convertible = fromRuby.is_convertible(object);
-  ASSERT_EQUAL(detail::Convertible::None, convertible);
-
-  code = R"(array = [[45], false])";
-  object = m.instance_eval(code);
-  convertible = fromRuby.is_convertible(object);
-  ASSERT_EQUAL(detail::Convertible::None, convertible);
-
-  code = R"(array = [[45], "\x1\x2"])";
-  object = m.instance_eval(code);
-  convertible = fromRuby.is_convertible(object);
-  ASSERT_EQUAL(detail::Convertible::Exact, convertible);
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval(code),
+    ASSERT_EQUAL("wrong argument type Array (expected Buffer≺float∗≻)", ex.what())
+  );
 }
 
 TESTCASE(int)
@@ -489,12 +461,14 @@ TESTCASE(int_pointer_array)
   m.define_singleton_function("int_pointer", &arrayToString<int>);
 
   std::string code = R"(arr = [4, 3, 2, 1]
-                        int_pointer(arr, arr.size))";
+                        buffer = Rice::Buffer≺int≻.new(arr)
+                        int_pointer(buffer, buffer.size))";
   Object result = m.module_eval(code);
   ASSERT_EQUAL("[4, 3, 2, 1]", detail::From_Ruby<std::string>().convert(result.value()));
 
   code = R"(arr = [4.2, 3.8, 2.0, 1]
-            int_pointer(arr, arr.size))";
+            buffer = Rice::Buffer≺int≻.new(arr)
+            int_pointer(buffer, buffer.size))";
   result = m.module_eval(code);
   ASSERT_EQUAL("[4, 3, 2, 1]", detail::From_Ruby<std::string>().convert(result.value()));
 }

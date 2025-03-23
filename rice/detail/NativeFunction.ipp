@@ -70,7 +70,7 @@ namespace Rice::detail
   std::vector<std::string> NativeFunction<Class_T, Function_T, IsMethod>::argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices)
   {
     std::vector<std::string> typeNames;
-    (typeNames.push_back(cppClassName(typeName(typeid(std::tuple_element<I, Arg_Ts>::type)))), ...);
+    (typeNames.push_back(cppClassName(typeName(typeid(typename std::tuple_element<I, Arg_Ts>::type)))), ...);
     return typeNames;
   }
 
@@ -336,7 +336,7 @@ namespace Rice::detail
       Return_T nativeResult = std::apply(this->function_, std::forward<Arg_Ts>(nativeArgs));
 
       // Return the result
-      return this->toRuby_.convert(nativeResult);
+      return this->toRuby_.convert(std::forward<Return_T>(nativeResult));
     }
   }
 
@@ -381,7 +381,7 @@ namespace Rice::detail
         }
       }
 
-      return this->toRuby_.convert(nativeResult);
+      return this->toRuby_.convert(std::forward<Return_T>(nativeResult));
     }
   }
 

@@ -936,7 +936,7 @@ namespace Rice::detail
   // Return the name of a type
   std::string typeName(const std::type_info& typeInfo);
   std::string typeName(const std::type_index& typeIndex);
-  std::string makeClassName(const std::string& typeInfoName);
+  std::string rubyClassName(const std::string& typeInfoName);
   std::string findGroup(std::string& string, size_t start = 0);
   void replaceGroup(std::string& string, std::regex regex, std::string replacement);
   void replaceAll(std::string& string, std::regex regex, std::string replacement);
@@ -2873,7 +2873,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<bool>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -2910,7 +2910,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<char>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -2948,7 +2948,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<signed char>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -2986,7 +2986,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<unsigned char>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -3023,7 +3023,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<short>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -3060,7 +3060,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<unsigned short>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -3099,7 +3099,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<int>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -3138,7 +3138,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<unsigned int>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -3175,7 +3175,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<long>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -3212,7 +3212,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<unsigned long>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -3249,7 +3249,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<long long>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -3286,7 +3286,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<unsigned long long>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -3323,7 +3323,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<float>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -3360,7 +3360,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<double>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -3393,7 +3393,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<void>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -3958,7 +3958,7 @@ namespace Rice::detail
   Data_Type<Buffer_T> define_buffer()
   {
     std::string name = detail::typeName(typeid(Buffer_T));
-    std::string klassName = detail::makeClassName(name);
+    std::string klassName = detail::rubyClassName(name);
     Module rb_mRice = define_module("Rice");
 
     Data_Type<Buffer_T> result = define_class_under<Buffer_T>(rb_mRice, klassName).
@@ -8953,7 +8953,7 @@ namespace Rice::detail
     }
   }
 
-  inline std::string makeClassName(const std::string& typeInfoName)
+  inline std::string rubyClassName(const std::string& typeInfoName)
   {
     std::string base = typeInfoName;
 
@@ -9346,7 +9346,7 @@ namespace Rice::detail
 
     else
     {
-      std::string message = "Ruby was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: " +
+      std::string message = "Rice was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: " +
         typeName(typeid(T));
       throw std::runtime_error(message);
     }

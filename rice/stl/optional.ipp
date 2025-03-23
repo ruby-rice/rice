@@ -15,7 +15,7 @@ namespace Rice::detail
   class To_Ruby<std::nullopt_t>
   {
   public:
-    VALUE convert(std::nullopt_t& _)
+    VALUE convert(const std::nullopt_t& _)
     {
       return Qnil;
     }

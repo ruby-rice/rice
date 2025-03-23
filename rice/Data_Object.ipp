@@ -19,6 +19,13 @@ namespace Rice
   }
 
   template<typename T>
+  inline Data_Object<T>::Data_Object(T&& data, Class klass)
+  {
+    VALUE value = detail::wrap(klass, Data_Type<T>::ruby_data_type(), data, true);
+    this->set_value(value);
+  }
+  
+  template<typename T>
   inline Data_Object<T>::Data_Object(const T& data, bool isOwner, Class klass)
   {
     VALUE value = detail::wrap(klass, Data_Type<T>::ruby_data_type(), data, isOwner);
@@ -87,7 +94,7 @@ namespace Rice::detail
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
   public:
-    VALUE convert(T& data)
+    VALUE convert(const T& data)
     {
       // Get the ruby typeinfo
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
@@ -97,7 +104,7 @@ namespace Rice::detail
       return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
 
-    VALUE convert(const T& data)
+    VALUE convert(T&& data)
     {
       // Get the ruby typeinfo
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
@@ -126,7 +133,7 @@ namespace Rice::detail
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
 
-      bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+      bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
       return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
     }
 
@@ -136,7 +143,7 @@ namespace Rice::detail
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
 
-      bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+      bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
       return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
     }
 
@@ -150,54 +157,36 @@ namespace Rice::detail
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
   public:
-    To_Ruby()
-    {
-      detail::Type<Buffer<T>>::verify();
-    };
+    To_Ruby() = default;
 
     explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
-      detail::Type<Buffer<T>>::verify();
     }
 
-    VALUE convert(T* data)
+    VALUE convert(const T* data)
     {
+      bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+
       if (data == nullptr)
       {
         return Qnil;
       }
       else if (this->returnInfo_ && this->returnInfo_->isArray())
       {
-        Buffer<T> buffer(data);
-        Data_Object<Buffer<T>> dataObject(buffer, true);
-        return dataObject.value();
+        using Buffer_T = Buffer<T>;
+        Buffer_T buffer((T*)data);
+        buffer.setOwner(isOwner);
+        return detail::wrap(Data_Type<Buffer_T>::klass(), Data_Type<Buffer_T>::ruby_data_type(), buffer, true);
       }
       else
       {
         // Note that T could be a pointer or reference to a base class while data is in fact a
         // child class. Lookup the correct type so we return an instance of the correct Ruby class
         std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
-        bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
         return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
       }
     }
-
-    VALUE convert(const T* data)
-    {
-      if (data)
-      {
-        // Note that T could be a pointer or reference to a base class while data is in fact a
-        // child class. Lookup the correct type so we return an instance of the correct Ruby class
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
-        bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
-        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
-      }
-      else
-      {
-        return Qnil;
-      }
-    }
-
+    
   private:
     Return* returnInfo_ = nullptr;
   };
@@ -214,35 +203,27 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(T* data)
-    {
-      if (data)
-      {
-        // Note that T could be a pointer or reference to a base class while data is in fact a
-        // child class. Lookup the correct type so we return an instance of the correct Ruby class
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
-        bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
-        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
-      }
-      else
-      {
-        return Qnil;
-      }
-    }
-
     VALUE convert(const T* data)
     {
-      if (data)
+      bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+
+      if (data == nullptr)
+      {
+        return Qnil;
+      }
+      else if (this->returnInfo_ && this->returnInfo_->isArray())
+      {
+        using Buffer_T = Buffer<intrinsic_type<T>>;
+        Buffer_T buffer((T*)data);
+        buffer.setOwner(isOwner);
+        return detail::wrap(Data_Type<Buffer_T>::klass(), Data_Type<Buffer_T>::ruby_data_type(), buffer, true);
+      }
+      else
       {
         // Note that T could be a pointer or reference to a base class while data is in fact a
         // child class. Lookup the correct type so we return an instance of the correct Ruby class
         std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
-        bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
         return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
-      }
-      else
-      {
-        return Qnil;
       }
     }
 
@@ -266,11 +247,11 @@ namespace Rice::detail
     {
       if (data)
       {
-        // Note that T could be a pointer or reference to a base class while data is in fact a
-        // child class. Lookup the correct type so we return an instance of the correct Ruby class
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(**data);
+        using Buffer_T = Buffer<intrinsic_type<T>*>;
         bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
-        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
+        Buffer_T buffer(data);
+        buffer.setOwner(isOwner);
+        return detail::wrap(Data_Type<Buffer_T>::klass(), Data_Type<Buffer_T>::ruby_data_type(), buffer, true);
       }
       else
       {
@@ -282,11 +263,11 @@ namespace Rice::detail
     {
       if (data)
       {
-        // Note that T could be a pointer or reference to a base class while data is in fact a
-        // child class. Lookup the correct type so we return an instance of the correct Ruby class
-        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
+        using Buffer_T = Buffer<intrinsic_type<T>*>;
         bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
-        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
+        Buffer_T buffer((T**)data);
+        buffer.setOwner(isOwner);
+        return detail::wrap(Data_Type<Buffer_T>::klass(), Data_Type<Buffer_T>::ruby_data_type(), buffer, true);
       }
       else
       {
@@ -455,36 +436,9 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 
-  // Helper class to convert a Ruby array of T to a C++ array of T (this happens when an API take T* as parameter
-  // along with a second size parameter)
-  template<typename T>
-  class ArrayHelper
-  {
-  public:
-    using Intrinsic_T = intrinsic_type<T>;
-
-    T* convert(VALUE value)
-    {
-      this->vector_ = Array(value).to_vector<T>();
-      return this->vector_.data();
-    }
-
-  private:
-    std::vector<Intrinsic_T> vector_;
-  };
-
   // 99% of the time a T* represents a wrapped C++ object that we want to call methods on. However, T* 
   // could also be a pointer to an array of T objects, so T[]. OpenCV for example has API calls like this.
-  //
-  // Therefore this From_Ruby implementation supports both uses cases which complicates the code. The problem
-  // is for T[] to compile, a class needs to be constructible, destructible and not abstract. A further wrinkle
-  // is if T has an explicit copy-constructor then that requires additional special handling in the code
-  // (see From_Ruby<T>). Whether this extra complication is worth it is debatable, but it does mean that 
-  // a Ruby array can be passed to any C++ API that takes a * including fundamental types (unsigned char)
-  // and class types (T).
-  //
-  // Note that the From_Ruby<T[]> specialization never matches a parameter defined in function as T[] - the C++ 
-  // compiler always picks T* instead. Not sure why...
+  // In that case, the Ruby VALUE will be a Buffer<T> instance
   template<typename T>
   class From_Ruby<T*>
   {
@@ -499,20 +453,19 @@ namespace Rice::detail
     {
     }
 
-    ~From_Ruby()
-    {
-      if constexpr (std::is_destructible_v<Intrinsic_T>)
-      {
-        delete this->arrayHelper_;
-      }
-    }
-
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
-          return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          if (this->arg_ && this->arg_->isArray())
+          {
+            return Data_Type<Buffer<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          }
+          else
+          {
+            return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          }
           break;
         case RUBY_T_NIL:
           return Convertible::Exact;
@@ -529,28 +482,23 @@ namespace Rice::detail
     {
       switch (rb_type(value))
       {
-        case RUBY_T_DATA:
-        {
-          return detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
-          break;
-        }
         case RUBY_T_NIL:
         {
           return nullptr;
           break;
         }
-        case RUBY_T_ARRAY:
+        case RUBY_T_DATA:
         {
-          if constexpr (std::is_copy_constructible_v<Intrinsic_T> && std::is_destructible_v<Intrinsic_T> && !std::is_abstract_v<Intrinsic_T>)
+          if (this->arg_ && this->arg_->isArray())
           {
-            if (this->arrayHelper_ == nullptr)
-            {
-              this->arrayHelper_ = new ArrayHelper<T>();
-            }
-            return this->arrayHelper_->convert(value);
-            break;
+            using Buffer_T = Buffer<Intrinsic_T>;
+            Buffer_T* buffer = detail::unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
+            return buffer->get();
           }
-          // Will fall through to the type exception if we get here
+          else
+          {
+            return detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
+          }
         }
         default:
         {
@@ -561,7 +509,6 @@ namespace Rice::detail
 
   private:
     Arg* arg_ = nullptr;
-    ArrayHelper<T>* arrayHelper_ = nullptr;
   };
 
   template<typename T>
@@ -624,7 +571,7 @@ namespace Rice::detail
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
-          return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          return Data_Type<Buffer<T*>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
           break;
         case RUBY_T_NIL:
           return Convertible::Exact;
@@ -643,18 +590,14 @@ namespace Rice::detail
       {
         case RUBY_T_DATA:
         {
-          return detail::unwrap<Intrinsic_T*>(value, Data_Type<T>::ruby_data_type(), false);
+          Buffer<Intrinsic_T*>* buffer = detail::unwrap<Buffer<Intrinsic_T*>>(value, Data_Type<Buffer<Intrinsic_T*>>::ruby_data_type(), false);
+          return buffer->get();
           break;
         }
         case RUBY_T_NIL:
         {
           return nullptr;
           break;
-        }
-        case RUBY_T_ARRAY:
-        {
-          this->vector_ = Array(value).to_vector<Intrinsic_T*>();
-          return this->vector_.data();
         }
         default:
         {

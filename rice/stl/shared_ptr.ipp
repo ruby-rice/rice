@@ -81,6 +81,18 @@ namespace Rice::detail
         return detail::wrap<std::shared_ptr<T>>(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
       }
     }
+
+    VALUE convert(std::shared_ptr<T>&& data)
+    {
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        return detail::wrap(RubyType<T>::klass(), RubyType<T>::ruby_data_type(), data, true);
+      }
+      else
+      {
+        return detail::wrap<std::shared_ptr<T>>(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
+      }
+    }
   };
 
   template <typename T>

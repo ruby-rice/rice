@@ -1,4 +1,4 @@
-#include "unittest.hpp"
+﻿#include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
@@ -319,11 +319,19 @@ TESTCASE(invalid_parameters)
   std::string code = R"(my_class = MyClass.new
                         my_class.run("abc", "def"))";
 
+  std::string expected = R"(Could not resolve method call for MyClass#run
+  6 overload(s) were evaluated based on the types of Ruby parameters provided:
+     std::string AnonymousNamespace::MyClass*::run(int, float)
+     std::string AnonymousNamespace::MyClass*::run(float, int)
+     std::string AnonymousNamespace::MyClass*::run()
+     std::string AnonymousNamespace::MyClass*::run(std::string)
+     std::string AnonymousNamespace::MyClass*::run(int)
+     std::string AnonymousNamespace::MyClass*::run(float))";
+
   ASSERT_EXCEPTION_CHECK(
     Exception,
     Rice::String result = m.module_eval(code),
-    ASSERT_EQUAL("Could not resolve method call for MyClass#run\n  6 overload(s) were evaluated based on the types of Ruby parameters provided.", 
-                 ex.what()));
+    ASSERT_EQUAL(expected.c_str(), ex.what()));
 }
 
 namespace
@@ -542,11 +550,15 @@ TESTCASE(int_conversion_2)
             value = 2**64
             my_class.run(value))";
 
+  std::string expected = R"(Could not resolve method call for MyClass3#run
+  2 overload(s) were evaluated based on the types of Ruby parameters provided:
+     std::string AnonymousNamespace::MyClass3*::run(short)
+     std::string AnonymousNamespace::MyClass3*::run(float))";
+
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("Could not resolve method call for MyClass3#run\n  2 overload(s) were evaluated based on the types of Ruby parameters provided.",
-    ex.what()));
+    ASSERT_EQUAL(expected.c_str(), ex.what()));
 }
 
 TESTCASE(int_conversion_3)
@@ -626,6 +638,22 @@ TESTCASE(int_conversion_5)
   std::string code = R"(my_class = MyClass3.new
                         value = "54"
                         my_class.run(value))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<unsigned char>", result.str());
+}
+
+TESTCASE(int_conversion_6)
+{
+  Class c = define_class<MyClass3>("MyClass3").
+    define_constructor(Constructor<MyClass3>()).
+    define_method<std::string(MyClass3::*)(unsigned char)>("run", &MyClass3::run).
+    define_method<std::string(MyClass3::*)(unsigned char*)>("run", &MyClass3::run);
+
+  Module m = define_module("Testing");
+
+  std::string code = u8R"(my_class = MyClass3.new
+                          buffer = Rice::Buffer≺unsigned char≻.new("54")
+                          my_class.run(buffer))";
   String result = m.module_eval(code);
   ASSERT_EQUAL("run<unsigned char*>", result.str());
 }

@@ -10,12 +10,11 @@ TESTSUITE(Ownership);
 
 namespace
 {
-  class MyClass
+  class MyCopyableClass
   {
   public:
     static inline int constructorCalls = 0;
     static inline int copyConstructorCalls = 0;
-    static inline int moveConstructorCalls = 0;
     static inline int destructorCalls = 0;
     static inline int methodCalls = 0;
 
@@ -23,6 +22,54 @@ namespace
     {
       constructorCalls = 0;
       copyConstructorCalls = 0;
+      destructorCalls = 0;
+      methodCalls = 0;
+    }
+
+  public:
+    int flag = 0;
+
+  public:
+    MyCopyableClass()
+    {
+      constructorCalls++;
+    }
+
+    ~MyCopyableClass()
+    {
+      destructorCalls++;
+    }
+
+    MyCopyableClass(const MyCopyableClass& other): flag(other.flag)
+    {
+      copyConstructorCalls++;
+    }
+
+    MyCopyableClass(MyCopyableClass&& other) = delete;
+
+    int32_t process()
+    {
+      methodCalls++;
+      return methodCalls;
+    }
+
+    void setFlag(int value)
+    {
+      this->flag = value;
+    }
+  };
+
+  class MyMovableClass
+  {
+  public:
+    static inline int constructorCalls = 0;
+    static inline int moveConstructorCalls = 0;
+    static inline int destructorCalls = 0;
+    static inline int methodCalls = 0;
+
+    static void reset()
+    {
+      constructorCalls = 0;
       moveConstructorCalls = 0;
       destructorCalls = 0;
       methodCalls = 0;
@@ -32,22 +79,19 @@ namespace
     int flag = 0;
 
   public:
-    MyClass()
+    MyMovableClass()
     {
       constructorCalls++;
     }
 
-    ~MyClass()
+    ~MyMovableClass()
     {
       destructorCalls++;
     }
 
-    MyClass(const MyClass& other): flag(other.flag)
-    {
-      copyConstructorCalls++;
-    }
+    MyMovableClass(const MyMovableClass& other) = delete;
 
-    MyClass(MyClass&& other) : flag(other.flag)
+    MyMovableClass(MyMovableClass&& other) : flag(other.flag)
     {
       moveConstructorCalls++;
     }
@@ -74,47 +118,47 @@ namespace
     }
 
   public:
-    MyClass* transferPointerToRuby()
+    MyCopyableClass* transferPointerToRuby()
     {
-      return new MyClass();
+      return new MyCopyableClass();
     }
 
-    MyClass* keepPointer()
+    MyCopyableClass* keepPointer()
     {
       return this->instance();
     }
 
-    MyClass& keepReference()
+    MyCopyableClass& keepReference()
     {
       return *this->instance();
     }
 
-    MyClass value()
+    MyCopyableClass value()
     {
-      return MyClass();
+      return MyCopyableClass();
     }
 
-    MyClass moveValue()
+    MyMovableClass moveValue()
     {
-      return std::move(MyClass());
+      return MyMovableClass();
     }
 
-    void transferPointerToCpp(MyClass* myClass)
+    void transferPointerToCpp(MyCopyableClass* myClass)
     {
       delete myClass;
     }
 
-    MyClass* instance()
+    MyCopyableClass* instance()
     {
       if (!instance_)
       {
-        instance_ = new MyClass();
+        instance_ = new MyCopyableClass();
       }
       return instance_;
     }
 
   public:
-    static inline MyClass* instance_ = nullptr;
+    static inline MyCopyableClass* instance_ = nullptr;
   };
 }
 
@@ -122,10 +166,15 @@ SETUP(Ownership)
 {
   embed_ruby();
 
-  define_class<MyClass>("MyClass").
-    define_constructor(Constructor<MyClass>()).
-    define_method("process", &MyClass::process).
-    define_method("set_flag", &MyClass::setFlag);
+  define_class<MyCopyableClass>("MyCopyableClass").
+    define_constructor(Constructor<MyCopyableClass>()).
+    define_method("process", &MyCopyableClass::process).
+    define_method("set_flag", &MyCopyableClass::setFlag);
+
+  define_class<MyMovableClass>("MyMovableClass").
+    define_constructor(Constructor<MyMovableClass>()).
+    define_method("process", &MyMovableClass::process).
+    define_method("set_flag", &MyMovableClass::setFlag);
 
   define_class<Factory>("Factory").
     define_constructor(Constructor<Factory>()).
@@ -146,7 +195,7 @@ TEARDOWN(Ownership)
 TESTCASE(TransferPointerToRuby)
 {
   Factory::reset();
-  MyClass::reset();
+  MyCopyableClass::reset();
 
   Module m = define_module("TestingModule");
 
@@ -160,21 +209,20 @@ TESTCASE(TransferPointerToRuby)
   m.module_eval(code);
   rb_gc_start();
 
-  ASSERT_EQUAL(10, MyClass::constructorCalls);
-  ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
-  ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
-  ASSERT_EQUAL(10, MyClass::destructorCalls);
+  ASSERT_EQUAL(10, MyCopyableClass::constructorCalls);
+  ASSERT_EQUAL(0, MyCopyableClass::copyConstructorCalls);
+  ASSERT_EQUAL(10, MyCopyableClass::destructorCalls);
   ASSERT(!Factory::instance_);
 }
 
 TESTCASE(TransferPointerToCpp)
 {
   Factory::reset();
-  MyClass::reset();
+  MyCopyableClass::reset();
 
   Module m = define_module("TestingModule");
 
-  std::string code = R"(myClass = MyClass.new
+  std::string code = R"(myClass = MyCopyableClass.new
                         factory = Factory.new
                         factory.transfer_pointer_to_cpp(myClass))";
 
@@ -187,7 +235,7 @@ TESTCASE(TransferPointerToCpp)
 TESTCASE(KeepPointer)
 {
   Factory::reset();
-  MyClass::reset();
+  MyCopyableClass::reset();
 
   Module m = define_module("TestingModule");
 
@@ -201,17 +249,16 @@ TESTCASE(KeepPointer)
   m.module_eval(code);
   rb_gc_start();
 
-  ASSERT_EQUAL(1, MyClass::constructorCalls);
-  ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
-  ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
-  ASSERT_EQUAL(0, MyClass::destructorCalls);
+  ASSERT_EQUAL(1, MyCopyableClass::constructorCalls);
+  ASSERT_EQUAL(0, MyCopyableClass::copyConstructorCalls);
+  ASSERT_EQUAL(0, MyCopyableClass::destructorCalls);
   ASSERT_EQUAL(9, Factory::instance_->flag);
 }
 
 TESTCASE(KeepReference)
 {
   Factory::reset();
-  MyClass::reset();
+  MyCopyableClass::reset();
 
   Module m = define_module("TestingModule");
 
@@ -225,17 +272,16 @@ TESTCASE(KeepReference)
   m.module_eval(code);
   rb_gc_start();
 
-  ASSERT_EQUAL(1, MyClass::constructorCalls);
-  ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
-  ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
-  ASSERT_EQUAL(0, MyClass::destructorCalls);
+  ASSERT_EQUAL(1, MyCopyableClass::constructorCalls);
+  ASSERT_EQUAL(0, MyCopyableClass::copyConstructorCalls);
+  ASSERT_EQUAL(0, MyCopyableClass::destructorCalls);
   ASSERT_EQUAL(9, Factory::instance_->flag);
 }
 
 TESTCASE(CopyReference)
 {
   Factory::reset();
-  MyClass::reset();
+  MyCopyableClass::reset();
 
   Module m = define_module("TestingModule");
 
@@ -249,17 +295,16 @@ TESTCASE(CopyReference)
   m.module_eval(code);
   rb_gc_start();
 
-  ASSERT_EQUAL(1, MyClass::constructorCalls);
-  ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
-  ASSERT_EQUAL(10, MyClass::moveConstructorCalls);
-  ASSERT_EQUAL(10, MyClass::destructorCalls);
+  ASSERT_EQUAL(1, MyCopyableClass::constructorCalls);
+  ASSERT_EQUAL(10, MyCopyableClass::copyConstructorCalls);
+  ASSERT_EQUAL(10, MyCopyableClass::destructorCalls);
   ASSERT_EQUAL(0, Factory::instance_->flag);
 }
 
 TESTCASE(TransferValue)
 {
   Factory::reset();
-  MyClass::reset();
+  MyCopyableClass::reset();
 
   Module m = define_module("TestingModule");
 
@@ -272,17 +317,16 @@ TESTCASE(TransferValue)
   m.module_eval(code);
   rb_gc_start();
 
-  ASSERT_EQUAL(10, MyClass::constructorCalls);
-  ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
-  ASSERT_EQUAL(10, MyClass::moveConstructorCalls);
-  ASSERT_EQUAL(20, MyClass::destructorCalls);
+  ASSERT_EQUAL(10, MyCopyableClass::constructorCalls);
+  ASSERT_EQUAL(10, MyCopyableClass::copyConstructorCalls);
+  ASSERT_EQUAL(20, MyCopyableClass::destructorCalls);
   ASSERT(!Factory::instance_);
 }
 
 TESTCASE(MoveValue)
 {
   Factory::reset();
-  MyClass::reset();
+  MyCopyableClass::reset();
 
   Module m = define_module("TestingModule");
 
@@ -295,10 +339,9 @@ TESTCASE(MoveValue)
   m.module_eval(code);
   rb_gc_start();
 
-  ASSERT_EQUAL(10, MyClass::constructorCalls);
-  ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
-  ASSERT_EQUAL(20, MyClass::moveConstructorCalls);
-  ASSERT_EQUAL(30, MyClass::destructorCalls);
+  ASSERT_EQUAL(10, MyMovableClass::constructorCalls);
+  ASSERT_EQUAL(10, MyMovableClass::moveConstructorCalls);
+  ASSERT_EQUAL(20, MyMovableClass::destructorCalls);
   ASSERT(!Factory::instance_);
 }
 
@@ -323,9 +366,9 @@ TESTCASE(NotCopyable)
   MyClassNotCopyable instance;
 
 #ifdef _MSC_VER
-  const char* expected = "Ruby was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: class `anonymous namespace'::MyClassNotCopyable";
+  const char* expected = "Rice was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: class `anonymous namespace'::MyClassNotCopyable";
 #else
-  const char* expected = "Ruby was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: (anonymous namespace)::MyClassNotCopyable";
+  const char* expected = "Rice was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: (anonymous namespace)::MyClassNotCopyable";
 #endif
 
   // Trying to take ownership should fail

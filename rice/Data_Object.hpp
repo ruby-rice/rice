@@ -55,6 +55,7 @@ namespace Rice
      */
     Data_Object(T* obj, bool isOwner = false, Class klass = Data_Type<T>::klass());
     Data_Object(T& obj, bool isOwner = false, Class klass = Data_Type<T>::klass());
+    Data_Object(T&& obj, Class klass = Data_Type<T>::klass());
     Data_Object(const T& obj, bool isOwner = false, Class klass = Data_Type<T>::klass());
 
     //! Unwrap a Ruby object.
