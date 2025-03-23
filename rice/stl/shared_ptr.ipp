@@ -9,7 +9,7 @@ namespace Rice
     if (klassName.empty())
     {
       std::string typeName = detail::typeName(typeid(T));
-      klassName = detail::makeClassName(typeName);
+      klassName = detail::rubyClassName(typeName);
     }
 
     Module rb_mStd = define_module("Std");

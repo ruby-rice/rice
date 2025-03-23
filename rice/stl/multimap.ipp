@@ -184,7 +184,7 @@ namespace Rice
               auto iter = multimap.begin();
 
               std::stringstream stream;
-              stream << "<" << detail::makeClassName(detail::typeName(typeid(T))) << ":";
+              stream << "<" << detail::rubyClassName(detail::typeName(typeid(T))) << ":";
               stream << "{";
 
               for (; iter != multimap.end(); iter++)
@@ -220,7 +220,7 @@ namespace Rice
     if (klassName.empty())
     {
       std::string typeName = detail::typeName(typeid(T));
-      klassName = detail::makeClassName(typeName);
+      klassName = detail::rubyClassName(typeName);
     }
 
     Module rb_mStd = define_module("Std");

@@ -140,7 +140,7 @@ namespace Rice
   {
     Module rb_mStd = define_module("Std");
     std::string name = detail::typeName(typeid(T));
-    std::string klassName = detail::makeClassName(name);
+    std::string klassName = detail::rubyClassName(name);
     return define_pair_under<T>(rb_mStd, klassName);
   }
    

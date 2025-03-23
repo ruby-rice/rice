@@ -160,7 +160,7 @@ namespace Rice::detail
     }
   }
 
-  inline std::string makeClassName(const std::string& typeInfoName)
+  inline std::string cppClassName(const std::string& typeInfoName)
   {
     std::string base = typeInfoName;
 
@@ -174,35 +174,26 @@ namespace Rice::detail
 
     // Remove std::__[^:]*::
     auto stdClangRegex = std::regex("std::__[^:]+::");
-    base = std::regex_replace(base, stdClangRegex, "");
-      
-    // Remove leading namespaces. This will not remove namespaces
-    // embedded in template types like std::vector<mynamespace::foo>
-    auto leadingNamespacesRegex = std::regex("^[^<]*::");
-    base = std::regex_replace(base, leadingNamespacesRegex, "");
-
-    // Remove std:: these could be embedded in template types
-    auto stdRegex = std::regex("std::");
-    base = std::regex_replace(base, stdRegex, "");
+    base = std::regex_replace(base, stdClangRegex, "std::");
 
     // Remove allocators
-    std::regex allocatorRegex(R"(,\s*allocator)");
+    std::regex allocatorRegex(R"(,\s*std::allocator)");
     removeGroup(base, allocatorRegex);
 
     // Remove char_traits
-    std::regex charTraitsRegex(R"(,\s*char_traits)");
+    std::regex charTraitsRegex(R"(,\s*std::char_traits)");
     removeGroup(base, charTraitsRegex);
 
     // Remove less (std::map)
-    std::regex lessRegex(R"(,\s*less)");
+    std::regex lessRegex(R"(,\s*std::less)");
     removeGroup(base, lessRegex);
 
     // Remove hash (std::unordered_map)
-    std::regex hashRegex(R"(,\s*hash)");
+    std::regex hashRegex(R"(,\s*std::hash)");
     removeGroup(base, hashRegex);
 
     // Remove equal_to (std::unordered_map)
-    std::regex equalRegex(R"(,\s*equal_to)");
+    std::regex equalRegex(R"(,\s*std::equal_to)");
     removeGroup(base, equalRegex);
 
     // Remove spaces before pointers
@@ -228,11 +219,28 @@ namespace Rice::detail
     auto wstringRegex = std::regex(R"(basic_string<wchar_t>)");
     replaceAll(base, wstringRegex, "wstring");
 
-    // Normalize Anonymouse namespace
+    // Normalize Anonymous namespace
     auto anonymousNamespaceGcc = std::regex(R"(\(anonymous namespace\))");
     replaceAll(base, anonymousNamespaceGcc, "AnonymousNamespace");
     auto anonymousNamespaceMsvc = std::regex(R"(`anonymous namespace')");
     replaceAll(base, anonymousNamespaceMsvc, "AnonymousNamespace");
+
+    return base;
+  }
+
+
+  inline std::string rubyClassName(const std::string& typeInfoName)
+  {
+    std::string base = cppClassName(typeInfoName);
+
+    // Remove std:: these could be embedded in template types
+    auto stdRegex = std::regex("std::");
+    base = std::regex_replace(base, stdRegex, "");
+
+    // Remove leading namespaces. This will not remove namespaces
+    // embedded in template types like std::vector<mynamespace::foo>
+    auto leadingNamespacesRegex = std::regex("^[^<]*::");
+    base = std::regex_replace(base, leadingNamespacesRegex, "");
 
     // Capitalize first letter
     base[0] = std::toupper(base[0]);
