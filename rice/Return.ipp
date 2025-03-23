@@ -32,12 +32,7 @@ namespace Rice
 
   inline Return& Return::setArray()
   {
-    this->isArray_ = true;
+    Arg::setArray();
     return *this;
-  }
-
-  inline bool Return::isArray()
-  {
-    return this->isArray_;
   }
 }  // Rice
