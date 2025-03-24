@@ -72,7 +72,7 @@ namespace Rice
     String pack();
 
     // Join elements together
-    String join(std::string separator);
+    String join(char* separator);
 
   private:
     //! A helper class so array[index]=value can work.
