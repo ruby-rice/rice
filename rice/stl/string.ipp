@@ -35,7 +35,15 @@ namespace Rice::detail
   class From_Ruby<std::string>
   {
   public:
-    From_Ruby() = default;
+    From_Ruby()
+    {
+      int a = 1;
+    }
+
+    ~From_Ruby()
+    {
+      int a = 1;
+    }
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
@@ -74,10 +82,19 @@ namespace Rice::detail
   class From_Ruby<std::string&>
   {
   public:
-    From_Ruby() = default;
+    From_Ruby()
+    {
+      int a = 1;
+    };
+
+    ~From_Ruby()
+    {
+      int a = 1;
+    };
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
+      int a = 1;
     }
 
     Convertible is_convertible(VALUE value)
@@ -108,7 +125,7 @@ namespace Rice::detail
 
   private:
     Arg* arg_ = nullptr;
-    std::string converted_;
+    std::string converted_ = "";
   };
 
   template<>

@@ -1,7 +1,6 @@
 ﻿#include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
-#include <rice/stl.hpp>
 
 #include <limits>
 #include <cmath>
@@ -23,7 +22,6 @@ TEARDOWN(Buffer)
 TESTCASE(Char)
 {
   define_buffer<Buffer<char>>();
-  detail::From_Ruby<char*> fromRuby;
 
   Module m = define_module("BufferTesting");
 

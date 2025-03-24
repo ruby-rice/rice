@@ -42,7 +42,7 @@ namespace Rice
     return RARRAY_LEN(this->value());
   }
 
-  inline String Array::join(std::string separator)
+  inline String Array::join(char* separator)
   {
     return this->call("join", separator);
   }
@@ -50,7 +50,8 @@ namespace Rice
   template<typename T>
   String Array::pack()
   {
-    return this->call("pack", detail::RubyType<T>::packTemplate);
+    // Use .c_str so that the stl.hpp header is not required
+    return this->call("pack", detail::RubyType<T>::packTemplate.c_str());
   }
 
   inline Object Array::operator[](long index) const

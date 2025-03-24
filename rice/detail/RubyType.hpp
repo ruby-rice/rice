@@ -9,6 +9,8 @@ namespace Rice::detail
   class RubyType
   {
   };
+
+  void define_ruby_types();
 }
 
 #endif // Rice__detail__ruby__type__hpp_
