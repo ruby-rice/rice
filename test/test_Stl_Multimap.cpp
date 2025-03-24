@@ -5,6 +5,7 @@
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
+#include <ruby/version.h>
 
 using namespace Rice;
 
