@@ -444,7 +444,7 @@ namespace Rice::detail
   class To_Ruby<std::nullopt_t>
   {
   public:
-    VALUE convert(std::nullopt_t& _)
+    VALUE convert(const std::nullopt_t& _)
     {
       return Qnil;
     }
@@ -2439,6 +2439,18 @@ namespace Rice::detail
         return detail::wrap<std::shared_ptr<T>>(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
       }
     }
+
+    VALUE convert(std::shared_ptr<T>&& data)
+    {
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        return detail::wrap(RubyType<T>::klass(), RubyType<T>::ruby_data_type(), data, true);
+      }
+      else
+      {
+        return detail::wrap<std::shared_ptr<T>>(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
+      }
+    }
   };
 
   template <typename T>
@@ -2608,7 +2620,7 @@ namespace Rice::detail
   class To_Ruby<std::tuple<Types...>>
   {
   public:
-    static VALUE convert(std::tuple<Types...>& data, bool takeOwnership = false)
+    static VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
     {
       Array result;
 
@@ -3071,6 +3083,12 @@ namespace Rice::detail
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
       return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
+
+    VALUE convert(std::unique_ptr<T>&& data)
+    {
+      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
+      return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+    }
   };
 
   template <typename T>
@@ -3080,7 +3098,7 @@ namespace Rice::detail
     VALUE convert(std::unique_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-      return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+      return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, std::move(data), true);
     }
   };
 
