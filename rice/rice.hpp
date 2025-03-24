@@ -147,4 +147,8 @@
 // For now include libc support - maybe should be separate header file someday
 #include "libc/file.hpp"
 
+// Initialize Rice
+#include "Init.hpp"
+#include "Init.ipp"
+
 #endif // Rice__hpp_
