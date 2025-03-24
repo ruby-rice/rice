@@ -1,7 +1,6 @@
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
-#include <rice/stl.hpp>
 
 using namespace Rice;
 
@@ -112,7 +111,10 @@ namespace
     {
     }
 
-    std::string name();
+    uint32_t index()
+    {
+      return this->index_;
+    }
 
   private:
     Connection& connection_;
@@ -126,20 +128,7 @@ namespace
     {
       return Column(*this, index);
     }
-
-    std::string getName(uint32_t index)
-    {
-      return this->prefix_ + std::to_string(index);
-    }
-
-  private:
-    std::string prefix_ = "column_";
   };
-
-  std::string Column::name()
-  {
-    return this->connection_.getName(this->index_);
-  }
 }
 
 Object getColumn(Module& m, uint32_t index)
@@ -151,7 +140,7 @@ Object getColumn(Module& m, uint32_t index)
 TESTCASE(test_return)
 {
   define_class<Column>("Column")
-    .define_method("name", &Column::name);
+    .define_method("index", &Column::index);
 
   define_class<Connection>("Connection")
     .define_constructor(Constructor<Connection>())
@@ -161,6 +150,6 @@ TESTCASE(test_return)
 
   Object column = getColumn(m, 3);
   rb_gc_start();
-  String name = column.call("name");
-  ASSERT_EQUAL("column_3", name.c_str());
+  Object index = column.call("index");
+  ASSERT_EQUAL(3, detail::From_Ruby<int>().convert(index));
 }
