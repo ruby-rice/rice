@@ -64,11 +64,11 @@ namespace Rice
       }
       case RUBY_T_DATA:
       {
-        if (RTYPEDDATA_TYPE(value) == RubyType_T::ruby_data_type())
+        if (Data_Type<T>::is_descendant(value))
         {
           this->m_size = 1;
           this->m_buffer = new T[this->m_size]();
-          this->m_buffer[0] = *detail::unwrap<T>(value, RubyType_T::ruby_data_type(), false);
+          this->m_buffer[0] = *detail::unwrap<T>(value, Data_Type<T>::ruby_data_type(), false);
           this->m_owner = false;
           break;
         }

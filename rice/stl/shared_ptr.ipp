@@ -74,7 +74,7 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return detail::wrap(RubyType<T>::klass(), RubyType<T>::ruby_data_type(), data, true);
+        return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
       }
       else
       {
@@ -86,7 +86,7 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return detail::wrap(RubyType<T>::klass(), RubyType<T>::ruby_data_type(), data, true);
+        return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
       }
       else
       {
@@ -139,7 +139,7 @@ namespace Rice::detail
       else if constexpr (std::is_fundamental_v<T>)
       {
         // Get the wrapper again to validate T's type
-        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, RubyType<T>::ruby_data_type());
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
         return wrapper->data();
       }
       else
@@ -161,7 +161,7 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return detail::wrap(RubyType<T>::klass(), RubyType<T>::ruby_data_type(), data, true);
+        return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
       }
       else
       {
@@ -214,7 +214,7 @@ namespace Rice::detail
       else if constexpr (std::is_fundamental_v<T>)
       {
         // Get the wrapper again to validate T's type
-        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, RubyType<T>::ruby_data_type());
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
         return wrapper->data();
       }
       else
