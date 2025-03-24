@@ -28,15 +28,15 @@ namespace Rice
     // First we need a constructor
     klass.define_constructor(Constructor<Enum_T>());
 
-    klass.define_method("to_s", [](Enum_T& self) -> std::string
+    klass.define_method("to_s", [](Enum_T& self) -> String
       {
-        return std::string(valuesToNames_[self]);
+        return String(valuesToNames_[self]);
       })
       .define_method("to_int", [](Enum_T& self) ->  Underlying_T
       {
         return (Underlying_T)(self);
       })
-      .define_method("coerce", [](Enum_T& self, Underlying_T& other) -> std::tuple<Enum_T, Enum_T>
+      .define_method("coerce", [](Enum_T& self, Underlying_T& other) -> Array
       {
         /* Other will be a numeric value that matches the underlying type of the enum, for example an int.
            Convert that to the enum type and then create new Ruby object to wrap it. This then enables code
@@ -47,7 +47,11 @@ namespace Rice
         Colors::Red | Colors:Blue returns an integer. Then this method converts the integer back into an Enum
         instance so that Colors:Blue | Colors:Green works. */
         Enum_T otherEnum = (Enum_T)other;
-        return std::tie<Enum_T, Enum_T>(self, otherEnum);
+
+        Array result;
+        result.push(self);
+        result.push(otherEnum);
+        return result;
       })
       .define_method("inspect", [](Enum_T& self)
       {
