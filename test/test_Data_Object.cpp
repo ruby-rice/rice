@@ -1,5 +1,3 @@
-#include <ruby/version.h>
-
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>

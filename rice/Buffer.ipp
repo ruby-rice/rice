@@ -408,7 +408,7 @@ namespace Rice
       T** ptr = this->m_outer + offset;
       T** end = this->m_outer + offset + count;
 
-      for (ptr; ptr < end; ptr++)
+      for (; ptr < end; ptr++)
       {
         Buffer<T> buffer(*ptr);
         result.push(std::move(buffer));
