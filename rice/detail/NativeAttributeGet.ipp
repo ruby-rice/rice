@@ -48,4 +48,10 @@ namespace Rice::detail
       return To_Ruby<To_Ruby_T>().convert(*attribute_);
     }
   }
+
+  template<typename Attribute_T>
+  inline std::string NativeAttributeGet<Attribute_T>::toString()
+  {
+    return "";
+  }
 } // Rice

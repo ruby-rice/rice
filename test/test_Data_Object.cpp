@@ -207,13 +207,16 @@ TESTCASE(data_object_from_ruby_copy)
 
 TESTCASE(data_object_return_array)
 {
+  define_buffer<Buffer<MyDataType>>();
   Module m = define_module("DataObjectTest").
     define_module_function("data_types", &dataTypes, Return().setArray()).
     define_module_function("data_types_count", &dataTypesCount);
 
-  std::string code = R"(pointer_view = data_types
+  std::string code = R"(buffer = data_types
+puts buffer
                         count = data_types_count
-                        pointer_view.to_a(0, count))";
+puts count
+                        buffer.to_a(0, count))";
 
   Array dataTypes = m.module_eval(code);
   ASSERT_EQUAL(3, dataTypes.size());

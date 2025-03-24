@@ -9,7 +9,7 @@ namespace Rice
     if (klassName.empty())
     {
       std::string typeName = detail::typeName(typeid(T));
-      klassName = detail::makeClassName(typeName);
+      klassName = detail::rubyClassName(typeName);
     }
 
     Module rb_mStd = define_module("Std");
@@ -71,6 +71,18 @@ namespace Rice::detail
   {
   public:
     VALUE convert(std::shared_ptr<T>& data)
+    {
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        return detail::wrap(RubyType<T>::klass(), RubyType<T>::ruby_data_type(), data, true);
+      }
+      else
+      {
+        return detail::wrap<std::shared_ptr<T>>(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
+      }
+    }
+
+    VALUE convert(std::shared_ptr<T>&& data)
     {
       if constexpr (std::is_fundamental_v<T>)
       {

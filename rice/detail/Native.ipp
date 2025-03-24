@@ -83,6 +83,8 @@ namespace Rice::detail
       }
       else
       {
+        Identifier identifier(methodId);
+
         // Loop over every native to see how well they match the Ruby parameters
         std::vector<Resolved> resolves;
         std::transform(natives.begin(), natives.end(), 
@@ -95,8 +97,29 @@ namespace Rice::detail
         // Now sort from best to worst
         std::sort(resolves.begin(), resolves.end(), std::greater{});
 
-        // Get the best one
+        // Get the first one
         Resolved resolved = resolves.front();
+
+        // Was there more than one match?
+        size_t count = std::count_if(resolves.begin(), resolves.end(),
+          [&resolved](Resolved& element)
+          {
+            return resolved.convertible == element.convertible;
+          });
+
+        /*if (count > 1)
+        {
+          std::ostringstream message;
+          message << "Could not resolve method call for %s#%s" << "\n"
+                  << "  %d overloaded functions matched based on the types of Ruby parameters provided:";
+
+          for (int i = 0; i < count; i++)
+          {
+            message << "\n     " << resolves[i].native->toString();
+          }
+          
+          rb_raise(rb_eArgError, message.str().c_str(), rb_class2name(klass), identifier.c_str(), count);
+        }*/
 
         // Did it match?
         if (resolved.convertible != Convertible::None)
@@ -107,7 +130,6 @@ namespace Rice::detail
         {
           // Special case == to make the RubyMine debugger work. It calls == with a Module as
           // the other argument, thus breaking if C++ operator== is implemented.
-          Identifier identifier(methodId);
           if (identifier.str() == "==")
           {
             return detail::protect(rb_call_super, argc, argv);
@@ -116,8 +138,14 @@ namespace Rice::detail
           {
             std::ostringstream message;
             message << "Could not resolve method call for %s#%s" << "\n"
-                    << "  %d overload(s) were evaluated based on the types of Ruby parameters provided.";
-              rb_raise(rb_eArgError, message.str().c_str(), rb_class2name(klass), identifier.c_str(), natives.size());
+                    << "  %d overload(s) were evaluated based on the types of Ruby parameters provided:";
+
+            for (Resolved& resolve: resolves)
+            {
+              message << "\n     " << resolve.native->toString();
+            }
+
+            rb_raise(rb_eArgError, message.str().c_str(), rb_class2name(klass), identifier.c_str(), natives.size());
           }
         }
       }

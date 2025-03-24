@@ -3,7 +3,6 @@
 #include <stdexcept>
 #include <sstream>
 
-
 namespace Rice::detail
 {
   template<typename Class_T, typename Function_T, bool IsMethod>
@@ -46,7 +45,6 @@ namespace Rice::detail
     return Qnil;
   }
 
-
   template<typename Class_T, typename Function_T, bool IsMethod>
   NativeFunction<Class_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
     : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo)
@@ -67,6 +65,43 @@ namespace Rice::detail
   {
   }
 
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  template<std::size_t... I>
+  std::vector<std::string> NativeFunction<Class_T, Function_T, IsMethod>::argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices)
+  {
+    std::vector<std::string> typeNames;
+    (typeNames.push_back(cppClassName(typeName(typeid(typename std::tuple_element<I, Arg_Ts>::type)))), ...);
+    return typeNames;
+  }
+
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  std::string NativeFunction<Class_T, Function_T, IsMethod>::toString()
+  {
+    std::ostringstream result;
+
+    result << cppClassName(typeName(typeid(Return_T))) << " ";
+    
+    if (!std::is_null_pointer_v<Receiver_T>)
+    {
+      result << cppClassName(typeName(typeid(Receiver_T))) << "::";
+    }
+    
+    result << this->method_name_;
+
+    result << "(";
+
+    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+    std::vector<std::string> argTypeNames = this->argTypeNames(result, indices);
+    for (int i = 0; i < argTypeNames.size(); i++)
+    {
+      result << argTypeNames[i];
+      if (i < argTypeNames.size() - 1)
+        result << ", ";
+    }
+    result << ")";
+    return result.str();
+  }
+    
   template<typename Class_T, typename Function_T, bool IsMethod>
   To_Ruby<typename NativeFunction<Class_T, Function_T, IsMethod>::To_Ruby_T> NativeFunction<Class_T, Function_T, IsMethod>::createToRuby()
   {
@@ -301,7 +336,7 @@ namespace Rice::detail
       Return_T nativeResult = std::apply(this->function_, std::forward<Arg_Ts>(nativeArgs));
 
       // Return the result
-      return this->toRuby_.convert(nativeResult);
+      return this->toRuby_.convert(std::forward<Return_T>(nativeResult));
     }
   }
 
@@ -346,7 +381,7 @@ namespace Rice::detail
         }
       }
 
-      return this->toRuby_.convert(nativeResult);
+      return this->toRuby_.convert(std::forward<Return_T>(nativeResult));
     }
   }
 

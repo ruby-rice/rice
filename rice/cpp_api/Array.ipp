@@ -42,15 +42,15 @@ namespace Rice
     return RARRAY_LEN(this->value());
   }
 
-  template<typename T>
-  T* Array::pack()
+  inline String Array::join(std::string separator)
   {
-    T* result = new T[this->size()];
+    return this->call("join", separator);
+  }
 
-    String string = this->call("pack", detail::RubyType<T>::packTemplate);
-    VALUE value = string.value();
-    memcpy(result, RSTRING_PTR(value), RSTRING_LEN(value));
-    return result;
+  template<typename T>
+  String Array::pack()
+  {
+    return this->call("pack", detail::RubyType<T>::packTemplate);
   }
 
   inline Object Array::operator[](long index) const
@@ -64,9 +64,9 @@ namespace Rice
   }
 
   template<typename T>
-  inline Object Array::push(T const& obj)
+  inline Object Array::push(T obj)
   {
-    return detail::protect(rb_ary_push, value(), detail::To_Ruby<T>().convert(obj));
+    return detail::protect(rb_ary_push, value(), detail::To_Ruby<T>().convert(std::forward<T>(obj)));
   }
 
   inline Object Array::pop()

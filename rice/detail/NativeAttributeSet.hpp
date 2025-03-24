@@ -28,6 +28,7 @@ namespace Rice
 
       Resolved matches(int argc, const VALUE* argv, VALUE self) override;
       VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
+      std::string toString() override;
 
     protected:
       NativeAttributeSet(VALUE klass, std::string name, Attribute_T attr);

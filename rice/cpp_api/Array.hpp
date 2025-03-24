@@ -69,7 +69,10 @@ namespace Rice
     //! C++ APIs that take large chunks of memory should not be passed Ruby Arrrays.
     //! \return std::unique_ptr that is owned by the caller.
     template<typename T>
-    T* pack();
+    String pack();
+
+    // Join elements together
+    String join(std::string separator);
 
   private:
     //! A helper class so array[index]=value can work.
@@ -89,7 +92,7 @@ namespace Rice
      *  \return the object which was pushed onto the array.
      */
     template<typename T>
-    Object push(T const& obj);
+    Object push(T obj);
 
     //! Pop an element from the end of the array
     /*! \return the object which was popped from the array, or Qnil if

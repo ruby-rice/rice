@@ -70,5 +70,14 @@ namespace Rice
     return this->isOwner_;
   }
 
+  inline Arg& Arg::setArray()
+  {
+    this->isArray_ = true;
+    return *this;
+  }
 
+  inline bool Arg::isArray()
+  {
+    return this->isArray_;
+  }
 } // Rice

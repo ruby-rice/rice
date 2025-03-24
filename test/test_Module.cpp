@@ -1,4 +1,4 @@
-#include "unittest.hpp"
+﻿#include "unittest.hpp"
 #include "embed_ruby.hpp"
 
 #include <rice/rice.hpp>
@@ -11,6 +11,7 @@ TESTSUITE(Module);
 SETUP(Module)
 {
   embed_ruby();
+  define_fundamental_buffer_types();
 }
 
 TEARDOWN(Module)
@@ -464,7 +465,9 @@ TESTCASE(define_method_works_with_pointers)
   Module m(anonymous_module());
   m.define_module_function("bar", &with_pointers);
 
-  m.call("bar", 3, "testing");
+  int anInt = 3;
+  Buffer<int> buffer(&anInt, 1);
+  m.call("bar", std::move(buffer), "testing");
 
   ASSERT_EQUAL(3, with_pointers_x);
   ASSERT_EQUAL("testing", with_pointers_str);
@@ -499,8 +502,12 @@ TESTCASE(pointers)
   define_global_function("with_pointers", &withPointers);
 
   Module m = define_module("TestingModule");
+  std::string code = u8R"(int_buffer = Rice::Buffer≺int≻.new(32)
+                          bool_buffer = Rice::Buffer≺bool≻.new(true)
+                          double_buffer = Rice::Buffer≺float≻.new(33.0)
+                          float_buffer = Rice::Buffer≺double≻.new(34.0)
+                          with_pointers(int_buffer, bool_buffer, double_buffer, float_buffer))";
 
-  std::string code = "with_pointers(32, true, 33.0, 34.0)";
   m.module_eval(code);
 
   ASSERT_EQUAL(intValue, 32);

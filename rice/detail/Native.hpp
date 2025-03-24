@@ -26,6 +26,7 @@ namespace Rice::detail
 
     virtual Resolved matches(int argc, const VALUE* argv, VALUE self) = 0;
     virtual VALUE operator()(int argc, const VALUE* argv, VALUE self) = 0;
+    virtual std::string toString() = 0;
   };
 }
 

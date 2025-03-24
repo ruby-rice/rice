@@ -95,4 +95,10 @@ namespace Rice::detail
       return self;
     }
   }
+
+  template<typename T, typename Iterator_Func_T>
+  inline std::string NativeIterator<T, Iterator_Func_T>::toString()
+  {
+    return "";
+  }
 }

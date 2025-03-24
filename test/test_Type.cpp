@@ -56,49 +56,104 @@ TESTCASE(FindGroup)
   );
 }
 
-TESTCASE(MakeClassName)
+TESTCASE(CppClassName)
 {
   std::string typeName = detail::typeName(typeid(std::string));
-  std::string className = detail::makeClassName(typeName);
+  std::string className = detail::cppClassName(typeName);
+  ASSERT_EQUAL("std::string", className.c_str());
+
+  typeName = detail::typeName(typeid(std::wstring));
+  className = detail::cppClassName(typeName);
+  ASSERT_EQUAL("std::wstring", className.c_str());
+
+  typeName = detail::typeName(typeid(std::vector<std::string>));
+  className = detail::cppClassName(typeName);
+  ASSERT_EQUAL("std::vector<std::string>", className.c_str());
+
+  typeName = detail::typeName(typeid(std::vector<std::wstring>));
+  className = detail::cppClassName(typeName);
+  ASSERT_EQUAL("std::vector<std::wstring>", className.c_str());
+
+  typeName = detail::typeName(typeid(std::vector<double*>));
+  className = detail::cppClassName(typeName);
+  ASSERT_EQUAL("std::vector<double*>", className.c_str());
+
+  typeName = detail::typeName(typeid(std::vector<double**>));
+  className = detail::cppClassName(typeName);
+  ASSERT_EQUAL("std::vector<double**>", className.c_str());
+
+  typeName = detail::typeName(typeid(Outer::Inner::Vec1));
+  className = detail::cppClassName(typeName);
+  ASSERT_EQUAL("std::vector<std::complex<float>>", className.c_str());
+
+  typeName = detail::typeName(typeid(Outer::Inner::Vec2));
+  className = detail::cppClassName(typeName);
+  ASSERT_EQUAL("std::vector<unsigned char*>", className.c_str());
+
+  typeName = detail::typeName(typeid(Outer::Inner::Vec3));
+  className = detail::cppClassName(typeName);
+  ASSERT_EQUAL("std::vector<Outer::Inner::SomeClass>", className.c_str());
+
+  typeName = detail::typeName(typeid(Outer::Inner::Map1));
+  className = detail::cppClassName(typeName);
+  ASSERT_EQUAL("std::map<std::string, std::vector<std::complex<float>>>", className.c_str());
+
+  typeName = detail::typeName(typeid(Outer::Inner::UnorderedMap1));
+  className = detail::cppClassName(typeName);
+  ASSERT_EQUAL("std::unordered_map<std::string, std::complex<float>>", className.c_str());
+}
+
+TESTCASE(RubyClassName)
+{
+  std::string typeName = detail::typeName(typeid(std::string));
+  std::string className = detail::rubyClassName(typeName);
   ASSERT_EQUAL(u8"String", className.c_str());
 
   typeName = detail::typeName(typeid(std::wstring));
-  className = detail::makeClassName(typeName);
+  className = detail::rubyClassName(typeName);
   ASSERT_EQUAL(u8"Wstring", className.c_str());
 
   typeName = detail::typeName(typeid(std::vector<std::string>));
-  className = detail::makeClassName(typeName);
+  className = detail::rubyClassName(typeName);
   ASSERT_EQUAL(u8"Vector≺string≻", className.c_str());
 
   typeName = detail::typeName(typeid(std::vector<std::wstring>));
-  className = detail::makeClassName(typeName);
+  className = detail::rubyClassName(typeName);
   ASSERT_EQUAL(u8"Vector≺wstring≻", className.c_str());
 
+  typeName = detail::typeName(typeid(std::vector<double*>));
+  className = detail::rubyClassName(typeName);
+  ASSERT_EQUAL(u8"Vector≺double∗≻", className.c_str());
+
+  typeName = detail::typeName(typeid(std::vector<double**>));
+  className = detail::rubyClassName(typeName);
+  ASSERT_EQUAL(u8"Vector≺double∗∗≻", className.c_str());
+
   typeName = detail::typeName(typeid(Outer::Inner::Vec1));
-  className = detail::makeClassName(typeName);
+  className = detail::rubyClassName(typeName);
   ASSERT_EQUAL(u8"Vector≺complex≺float≻≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::Vec2));
-  className = detail::makeClassName(typeName);
-  ASSERT_EQUAL(u8"Vector≺unsigned char*≻", className.c_str());
+  className = detail::rubyClassName(typeName);
+  ASSERT_EQUAL(u8"Vector≺unsigned char∗≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::Vec3));
-  className = detail::makeClassName(typeName);
+  className = detail::rubyClassName(typeName);
   ASSERT_EQUAL(u8"Vector≺Outer꞉꞉Inner꞉꞉SomeClass≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::Map1));
-  className = detail::makeClassName(typeName);
+  className = detail::rubyClassName(typeName);
   ASSERT_EQUAL(u8"Map≺string‚ vector≺complex≺float≻≻≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::UnorderedMap1));
-  className = detail::makeClassName(typeName);
+  className = detail::rubyClassName(typeName);
   ASSERT_EQUAL(u8"UnorderedMap≺string‚ complex≺float≻≻", className.c_str());
 }
 
 TESTCASE(MakeRubyClass)
 {
   std::string typeName = detail::typeName(typeid(Outer::Inner::Vec1));
-  std::string rubyClassName = detail::makeClassName(typeName);
+  std::string rubyClassName = detail::rubyClassName(typeName);
 
   Module module = define_module("Testing");
 

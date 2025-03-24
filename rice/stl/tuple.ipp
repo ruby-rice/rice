@@ -25,7 +25,7 @@ namespace Rice::detail
   class To_Ruby<std::tuple<Types...>>
   {
   public:
-    static VALUE convert(std::tuple<Types...>& data, bool takeOwnership = false)
+    static VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
     {
       Array result;
 

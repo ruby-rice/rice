@@ -22,7 +22,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<bool>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -59,7 +59,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<char>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -97,7 +97,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<signed char>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -135,7 +135,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<unsigned char>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -172,7 +172,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<short>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -209,7 +209,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<unsigned short>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -248,7 +248,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<int>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -287,7 +287,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<unsigned int>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -324,7 +324,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<long>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -361,7 +361,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<unsigned long>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -398,7 +398,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<long long>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -435,7 +435,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<unsigned long long>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -472,7 +472,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<float>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -509,7 +509,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<double>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
@@ -542,7 +542,7 @@ namespace Rice::detail
       if (klass_ == Qnil)
       {
         std::string name = detail::typeName(typeid(RubyType<void>));
-        std::string klassName = detail::makeClassName(name);
+        std::string klassName = detail::rubyClassName(name);
         Identifier id(klassName);
         Module rb_mRice = define_module("Rice");
         Class klass = define_class_under(rb_mRice, id);
