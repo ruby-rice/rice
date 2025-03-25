@@ -3990,8 +3990,9 @@ namespace Rice
               return element;
             });
 
-            rb_define_alias(klass_, "<<", "push");
-            rb_define_alias(klass_, "append", "push");
+        rb_define_alias(klass_, "push_back", "push");
+        rb_define_alias(klass_, "<<", "push");
+        rb_define_alias(klass_, "append", "push");
       }
 
       void define_enumerable()
@@ -4119,7 +4120,10 @@ namespace Rice
             return Data_Type<std::vector<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_ARRAY:
-            return Convertible::Cast;
+            if constexpr (std::is_default_constructible_v<T>)
+            {
+              return Convertible::Cast;
+            }
             break;
           default:
             return Convertible::None;
@@ -4180,7 +4184,10 @@ namespace Rice
             return Data_Type<std::vector<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_ARRAY:
-            return Convertible::Cast;
+            if constexpr (std::is_default_constructible_v<T>)
+            {
+              return Convertible::Cast;
+            }
             break;
           default:
             return Convertible::None;
@@ -4240,7 +4247,10 @@ namespace Rice
             return Convertible::Exact;
             break;
           case RUBY_T_ARRAY:
-            return Convertible::Cast;
+            if constexpr (std::is_default_constructible_v<T>)
+            {
+              return Convertible::Cast;
+            }
             break;
           default:
             return Convertible::None;
