@@ -1,4 +1,4 @@
-#include "unittest.hpp"
+﻿#include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
@@ -349,3 +349,56 @@ TESTCASE(ClassRoundtripRef)
   ASSERT_EQUAL("Hi from MyClass2", detail::From_Ruby<std::string>().convert(hello));
 }
 #endif
+
+
+namespace
+{
+  class MyClass4
+  {
+  public:
+    size_t variantIndex(std::variant<std::vector<std::string>, std::vector<int>> variant)
+    {
+      return variant.index();
+    }
+  };
+}
+
+TESTCASE(VariantWithTwoVectors)
+{
+  using namespace std::complex_literals;
+
+  define_class<MyClass4>("MyClass4").
+    define_constructor(Constructor<MyClass4>()).
+    define_method("variant_index", &MyClass4::variantIndex);
+
+  Module m = define_module("Testing");
+
+  std::string code = u8R"(vector = Std::Vector≺string≻.new
+                          vector << "a" << "b" << "c"
+                          my_class = MyClass4.new
+                          my_class.variant_index(vector))";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(0, detail::From_Ruby<size_t>().convert(result));
+
+  code = u8R"(vector = Std::Vector≺int≻.new
+              vector.push_back(4)
+              my_class = MyClass4.new
+              my_class.variant_index(vector))";
+  result = m.module_eval(code);
+  ASSERT_EQUAL(1, detail::From_Ruby<size_t>().convert(result));
+
+  code = u8R"(my_class = MyClass4.new
+              my_class.variant_index(["x", "y", "z"]))";
+  result = m.module_eval(code);
+  ASSERT_EQUAL(0, detail::From_Ruby<size_t>().convert(result));
+
+  code = u8R"(my_class = MyClass4.new
+              my_class.variant_index([5, 6]))";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval(code),
+    ASSERT_EQUAL("wrong argument type Integer (expected String)", ex.what())
+  );
+}
