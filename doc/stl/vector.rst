@@ -22,7 +22,7 @@ Example:
      return std::vector {"one", "two", "three"};
   }
 
-  define_vector<std::vector<std::string>>("StringVector");
+  define_vector<std::string>("StringVector");
   define_global_function("make_string_vector", &makeStringVector);
 
 Once you have defined this Ruby class, you can create a new instance like this:
@@ -45,7 +45,7 @@ For example, assume this C++ code:
   {
   }
 
-  define_vector<std::vector<std::int>("IntVector");
+  define_vector<int>("IntVector");
   define_global_function("pass_vector", &passVector);
 
 One way to call it from Ruby is like this:

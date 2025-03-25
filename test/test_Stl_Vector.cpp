@@ -45,7 +45,7 @@ TESTCASE(StringVector)
 {
   Module m = define_module("Testing");
 
-  Class c = define_vector<std::vector<std::string>>("StringVector");
+  Class c = define_vector<std::string>("StringVector");
 
   Object vec = m.module_eval("$vector = Std::StringVector.new");
   Object result = vec.call("size");
@@ -70,7 +70,7 @@ TESTCASE(WrongElementType)
 {
   Module m = define_module("Testing");
 
-  Class c = define_vector<std::vector<std::string>>("StringVector");
+  Class c = define_vector<std::string>("StringVector");
 
   Object vec = m.module_eval("$vector = Std::StringVector.new");
   ASSERT_EXCEPTION_CHECK(
@@ -83,7 +83,7 @@ TESTCASE(Empty)
 {
   Module m = define_module("Testing");
 
-  Class c = define_vector<std::vector<std::int32_t>>("IntVector");
+  Class c = define_vector<std::int32_t>("IntVector");
   Object vec = c.call("new");
 
   Object result = vec.call("size");
@@ -101,7 +101,7 @@ TESTCASE(Empty)
 
 TESTCASE(BoolVector)
 {
-  Class boolVecClass = define_vector<std::vector<bool>>("BoolVector");
+  Class boolVecClass = define_vector<bool>("BoolVector");
 
   Object vec = boolVecClass.call("new");
   vec.call("resize", 3, true);
@@ -142,7 +142,7 @@ TESTCASE(Indexing)
 {
   Module m = define_module("Testing");
 
-  Class c = define_vector<std::vector<std::int32_t>>("IntVector");
+  Class c = define_vector<std::int32_t>("IntVector");
   Object vec = c.call("new");
   vec.call("push", 0);
   vec.call("push", 1);
@@ -183,7 +183,7 @@ TESTCASE(Slice)
 {
   Module m = define_module("Testing");
 
-  Class c = define_vector<std::vector<std::int32_t>>("IntVector");
+  Class c = define_vector<std::int32_t>("IntVector");
   Object vec = c.call("new");
   vec.call("push", 7);
   vec.call("push", 8);
@@ -219,7 +219,7 @@ TESTCASE(Sizing)
 {
   Module m = define_module("Testing");
 
-  Class c = define_vector<std::vector<std::int32_t>>("IntVector");
+  Class c = define_vector<std::int32_t>("IntVector");
   Object vec = c.call("new");
   vec.call("resize", 10);
 
@@ -236,7 +236,7 @@ TESTCASE(ToString)
 {
   Module m = define_module("Testing");
 
-  Class c = define_vector<std::vector<std::int32_t>>("IntVector");
+  Class c = define_vector<std::int32_t>("IntVector");
   Object vec = c.call("new");
   vec.call("resize", 3);
 
@@ -253,7 +253,7 @@ TESTCASE(Update)
 {
   Module m = define_module("Testing");
 
-  Class c = define_vector<std::vector<std::string>>("StringVector");
+  Class c = define_vector<std::string>("StringVector");
   Object vec = c.call("new");
   vec.call("push", "original 1");
   vec.call("push", "original 2");
@@ -277,7 +277,7 @@ TESTCASE(Modify)
 {
   Module m = define_module("Testing");
 
-  Class c = define_vector<std::vector<int64_t>>("Int64Vector");
+  Class c = define_vector<int64_t>("Int64Vector");
   Object vec = c.call("new");
 
   Object result = vec.call("push", 11);
@@ -321,7 +321,7 @@ TESTCASE(Copy)
 {
   Module m = define_module("Testing");
 
-  Class c = define_vector<std::vector<double>>("DoubleVector");
+  Class c = define_vector<double>("DoubleVector");
   Object object = c.call("new");
 
   object.call("push", 11.1);
@@ -357,7 +357,7 @@ TESTCASE(NotComparable)
   define_class<NotComparable>("NotComparable").
     define_constructor(Constructor<NotComparable, uint32_t>());
 
-  Class c = define_vector<std::vector<NotComparable>>("NotComparableVector");
+  Class c = define_vector<NotComparable>("NotComparableVector");
 
   Object vec = c.call("new");
   vec.call("push", NotComparable(1));
@@ -382,7 +382,7 @@ TESTCASE(NotDefaultConstructable)
   define_class<NotComparable>("NotComparable").
     define_constructor(Constructor<NotComparable, uint32_t>());
     
-  Class c = define_vector<std::vector<NotComparable>>("NotComparableVector");
+  Class c = define_vector<NotComparable>("NotComparableVector");
   Object vec = c.call("new");
 
   Object result = vec.call("resize", 10);
@@ -397,7 +397,7 @@ TESTCASE(NotPrintable)
   define_class<NotComparable>("NotComparable").
     define_constructor(Constructor<NotComparable, uint32_t>());
 
-  Class c = define_vector<std::vector<NotComparable>>("NotComparableVector");
+  Class c = define_vector<NotComparable>("NotComparableVector");
 
   Object vec = c.call("new");
   vec.call("push", NotComparable(1));
@@ -437,7 +437,7 @@ TESTCASE(Comparable)
   define_class<Comparable>("IsComparable").
     define_constructor(Constructor<Comparable, uint32_t>());
 
-  Class c = define_vector<std::vector<Comparable>>("ComparableVector");
+  Class c = define_vector<Comparable>("ComparableVector");
 
   Object vec = c.call("new");
   
@@ -487,7 +487,7 @@ TESTCASE(ComparableButNotBool)
   define_class<ComparableButNotBool>("IsComparableButNotBool").
     define_constructor(Constructor<ComparableButNotBool, uint32_t>());
 
-  Class c = define_vector<std::vector<ComparableButNotBool>>("ComparableButNotBoolVector");
+  Class c = define_vector<ComparableButNotBool>("ComparableButNotBoolVector");
 
   Object vec = c.call("new");
   vec.call("push", ComparableButNotBool(1));
@@ -512,7 +512,7 @@ TESTCASE(DefaultConstructable)
   define_class<Comparable>("IsComparable").
     define_constructor(Constructor<Comparable, uint32_t>());
 
-  Class c = define_vector<std::vector<Comparable>>("ComparableVector");
+  Class c = define_vector<Comparable>("ComparableVector");
   Object vec = c.call("new");
 
   Object result = vec.call("resize", 10);
@@ -527,7 +527,7 @@ TESTCASE(Printable)
   define_class<Comparable>("IsComparable").
     define_constructor(Constructor<Comparable, uint32_t>());
 
-  Class c = define_vector<std::vector<Comparable>>("ComparableVector");
+  Class c = define_vector<Comparable>("ComparableVector");
 
   Object vec = c.call("new");
   vec.call("push", Comparable(1));
@@ -575,7 +575,7 @@ TESTCASE(AutoRegisterReturn)
   ASSERT_EQUAL(Qtrue, result.value());
 
   // Now register this same vector
-  define_vector<std::vector<std::complex<double>>>("ComplexVector");
+  define_vector<std::complex<double>>("ComplexVector");
   code = R"(vector = Std::ComplexVector.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(vec.class_of()));
@@ -612,7 +612,7 @@ namespace
 
 TESTCASE(DefaultValue)
 {
-  define_vector<std::vector<std::string>>("StringVector");
+  define_vector<std::string>("StringVector");
   define_global_function("default_vector", &defaultVector, Arg("strings") = std::vector<std::string> { "one", "two", "three" });
 
   Module m = define_module("Testing");
@@ -631,7 +631,7 @@ TESTCASE(ToArray)
 {
   Module m = define_module("Testing");
   
-  Class c = define_vector<std::vector<std::string>>("StringVector").
+  Class c = define_vector<std::string>("StringVector").
     define_constructor(Constructor<std::vector<std::string>>());
 
   std::string code = R"(vector = Std::StringVector.new
@@ -842,7 +842,7 @@ TESTCASE(Returns)
 TESTCASE(Iterate)
 {
   Module m = define_module("Testing");
-  Class c = define_vector<std::vector<double>>("DoubleVector");
+  Class c = define_vector<double>("DoubleVector");
 
   std::string code = R"(vector = Std::DoubleVector.new
                         vector << 5.0 << 6.0 << 7.0
@@ -1006,7 +1006,7 @@ namespace
 
 TESTCASE(TypeCheck)
 {
-  define_vector<std::vector<int>>("Vector≺int≻");
+  define_vector<int>("Vector≺int≻");
 
   Module m(anonymous_module());
   m.define_module_function("check_value", &typeCheckValue).

@@ -47,7 +47,7 @@ TESTCASE(StringUnorderedMap)
 {
   Module m = define_module("Testing");
 
-  Class c = define_unordered_map<std::unordered_map<std::string, std::string>>("StringUnorderedMap");
+  Class c = define_unordered_map<std::string, std::string>("StringUnorderedMap");
 
   Object unordered_map = m.module_eval("$unordered_map = Std::StringUnorderedMap.new");
   Object result = unordered_map.call("size");
@@ -66,7 +66,7 @@ TESTCASE(WrongType)
 {
   Module m = define_module("Testing");
 
-  Class c = define_unordered_map<std::unordered_map<std::string, std::string>>("StringUnorderedMap");
+  Class c = define_unordered_map<std::string, std::string>("StringUnorderedMap");
   Object unordered_map = m.module_eval("$unordered_map = Std::StringUnorderedMap.new");
 
   ASSERT_EXCEPTION_CHECK(
@@ -84,7 +84,7 @@ TESTCASE(Empty)
 {
   Module m = define_module("Testing");
 
-  Class c = define_unordered_map<std::unordered_map<std::string, std::int32_t>>("IntUnorderedMap");
+  Class c = define_unordered_map<std::string, std::int32_t>("IntUnorderedMap");
   Data_Object<std::unordered_map<std::string, std::int32_t>> unordered_map = c.call("new");
 
   Object result = unordered_map.call("size");
@@ -98,7 +98,7 @@ TESTCASE(Include)
 {
   Module m = define_module("Testing");
 
-  Class c = define_unordered_map<std::unordered_map<std::string, std::int32_t>>("IntUnorderedMap");
+  Class c = define_unordered_map<std::string, std::int32_t>("IntUnorderedMap");
   Data_Object<std::unordered_map<std::string, std::int32_t>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", 1);
   unordered_map.call("[]=", "two", 2);
@@ -117,7 +117,7 @@ TESTCASE(Value)
 {
   Module m = define_module("Testing");
 
-  Class c = define_unordered_map<std::unordered_map<std::string, std::int32_t>>("IntUnorderedMap");
+  Class c = define_unordered_map<std::string, std::int32_t>("IntUnorderedMap");
   Data_Object<std::unordered_map<std::string, std::int32_t>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", 1);
   unordered_map.call("[]=", "two", 2);
@@ -133,7 +133,7 @@ TESTCASE(ToString)
 {
   Module m = define_module("Testing");
 
-  Class c = define_unordered_map<std::unordered_map<std::string, std::int32_t>>("IntUnorderedMap");
+  Class c = define_unordered_map<std::string, std::int32_t>("IntUnorderedMap");
   Data_Object<std::unordered_map<std::string, std::int32_t>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", 1);
   unordered_map.call("[]=", "two", 2);
@@ -151,7 +151,7 @@ TESTCASE(Update)
 {
   Module m = define_module("Testing");
 
-  Class c = define_unordered_map<std::unordered_map<std::string, std::string>>("StringUnorderedMap");
+  Class c = define_unordered_map<std::string, std::string>("StringUnorderedMap");
   Data_Object<std::unordered_map<std::string, std::string>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", "original 1");
   unordered_map.call("[]=", "two", "original 2");
@@ -173,7 +173,7 @@ TESTCASE(Modify)
 {
   Module m = define_module("Testing");
 
-  Class c = define_unordered_map<std::unordered_map<std::string, int64_t>>("Int64UnorderedMap");
+  Class c = define_unordered_map<std::string, int64_t>("Int64UnorderedMap");
   Data_Object<std::unordered_map<std::string, std::int64_t>> unordered_map = c.call("new");
 
   Object result = unordered_map.call("[]=", "one", 3232323232);
@@ -192,7 +192,7 @@ TESTCASE(KeysAndValues)
 {
   Module m = define_module("Testing");
 
-  Class c = define_unordered_map<std::unordered_map<std::string, int32_t>>("Int32UnorderedMap");
+  Class c = define_unordered_map<std::string, int32_t>("Int32UnorderedMap");
   Data_Object<std::unordered_map<std::string, std::int32_t>> unordered_map = c.call("new");
 
   unordered_map.call("[]=", "one", 1);
@@ -220,7 +220,7 @@ TESTCASE(Copy)
 {
   Module m = define_module("Testing");
 
-  Class c = define_unordered_map<std::unordered_map<std::string, double>>("DoubleUnorderedMap");
+  Class c = define_unordered_map<std::string, double>("DoubleUnorderedMap");
   Object object = c.call("new");
 
   object.call("[]=", "one", 11.1);
@@ -241,7 +241,7 @@ TESTCASE(Copy)
 TESTCASE(Iterate)
 {
   Module m = define_module("Testing");
-  Class c = define_unordered_map<std::unordered_map<std::string, int>>("IntUnorderedMap");
+  Class c = define_unordered_map<std::string, int>("IntUnorderedMap");
 
   std::string code = R"(unordered_map = Std::IntUnorderedMap.new
                         unordered_map["five"] = 5
@@ -265,7 +265,7 @@ TESTCASE(Iterate)
 TESTCASE(ToEnum)
 {
   Module m = define_module("Testing");
-  Class c = define_unordered_map<std::unordered_map<std::string, int>>("IntUnorderedMap");
+  Class c = define_unordered_map<std::string, int>("IntUnorderedMap");
 
   std::string code = R"(unordered_map = Std::IntUnorderedMap.new
                         unordered_map["five"] = 5
@@ -290,7 +290,7 @@ TESTCASE(ToEnum)
 TESTCASE(ToEnumSize)
 {
   Module m = define_module("TestingModule");
-  Class c = define_unordered_map<std::unordered_map<std::string, int>>("IntUnorderedMap");
+  Class c = define_unordered_map<std::string, int>("IntUnorderedMap");
 
   std::string code = R"(map = Std::IntUnorderedMap.new
                         map["five"] = 5
@@ -327,7 +327,7 @@ TESTCASE(NotComparable)
   define_class<NotComparable>("NotComparable").
     define_constructor(Constructor<NotComparable, uint32_t>());
 
-  Class c = define_unordered_map<std::unordered_map<std::string, NotComparable>>("NotComparableUnorderedMap");
+  Class c = define_unordered_map<std::string, NotComparable>("NotComparableUnorderedMap");
 
   Data_Object<std::unordered_map<std::string, NotComparable>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", NotComparable(1));
@@ -346,7 +346,7 @@ TESTCASE(NotPrintable)
   define_class<NotComparable>("NotComparable").
     define_constructor(Constructor<NotComparable, uint32_t>());
 
-  Class c = define_unordered_map<std::unordered_map<std::string, NotComparable>>("NotComparableUnorderedMap");
+  Class c = define_unordered_map<std::string, NotComparable>("NotComparableUnorderedMap");
 
   Data_Object<std::unordered_map<std::string, NotComparable>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", NotComparable(1));
@@ -387,7 +387,7 @@ TESTCASE(Comparable)
   define_class<Comparable>("IsComparable").
     define_constructor(Constructor<Comparable, uint32_t>());
 
-  Class c = define_unordered_map<std::unordered_map<std::string, Comparable>>("ComparableUnorderedMap");
+  Class c = define_unordered_map<std::string, Comparable>("ComparableUnorderedMap");
 
   Data_Object<std::unordered_map<std::string, Comparable>> unordered_map = c.call("new");
   
@@ -404,7 +404,7 @@ TESTCASE(Printable)
   define_class<Comparable>("IsComparable").
     define_constructor(Constructor<Comparable, uint32_t>());
 
-  Class c = define_unordered_map<std::unordered_map<std::string, Comparable>>("ComparableUnorderedMap");
+  Class c = define_unordered_map<std::string, Comparable>("ComparableUnorderedMap");
 
   Data_Object<std::unordered_map<std::string, Comparable>> unordered_map = c.call("new");
   unordered_map.call("[]=", "one", Comparable(1));
@@ -454,7 +454,7 @@ TESTCASE(AutoRegisterReturn)
   ASSERT_EQUAL(Qtrue, result.value());
 
   // Now register the unordered_map again
-  define_unordered_map<std::unordered_map<std::string, std::complex<double>>>("ComplexUnorderedMap");
+  define_unordered_map<std::string, std::complex<double>>("ComplexUnorderedMap");
   code = R"(unordered_map = Std::ComplexUnorderedMap.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(unordered_map.class_of()));
@@ -492,7 +492,7 @@ namespace
 
 TESTCASE(DefaultValue)
 {
-  define_unordered_map<std::unordered_map<std::string, std::string>>("StringUnorderedMap");
+  define_unordered_map<std::string, std::string>("StringUnorderedMap");
   define_global_function("default_unordered_map", &defaultUnorderedMap, Arg("strings") = std::unordered_map<std::string, std::string>{ {"one", "value 1"}, {"two", "value 2"}, {"three", "value 3"} });
 
   Module m = define_module("Testing");

@@ -21,7 +21,7 @@ TEARDOWN(Buffer)
 
 TESTCASE(Char)
 {
-  define_buffer<Buffer<char>>();
+  define_buffer<char>();
 
   Module m = define_module("BufferTesting");
 
@@ -45,7 +45,7 @@ TESTCASE(Char)
 
 TESTCASE(CharArray)
 {
-  define_buffer<Buffer<char>>();
+  define_buffer<char>();
 
   Module m = define_module("BufferTesting");
 
@@ -66,7 +66,7 @@ TESTCASE(CharArray)
 
 TESTCASE(signed_char_pointer)
 {
-  define_buffer<Buffer<signed char>>();
+  define_buffer<signed char>();
   Module m = define_module("Testing");
 
   std::string code = u8R"(Rice::Buffer≺signed char≻.new("my string"))";
@@ -94,7 +94,7 @@ TESTCASE(signed_char_pointer)
 
 TESTCASE(char_pointer_const)
 {
-  define_buffer<Buffer<char>>();
+  define_buffer<char>();
   Module m = define_module("Testing");
 
   std::string code = u8R"(Rice::Buffer≺char≻.new("my string"))";
@@ -117,7 +117,7 @@ TESTCASE(char_pointer_const)
 
 TESTCASE(unsigned_char_pointer)
 {
-  define_buffer<Buffer<unsigned char>>();
+  define_buffer<unsigned char>();
   Module m = define_module("Testing");
 
   std::string code = u8R"(Rice::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
@@ -153,7 +153,7 @@ TESTCASE(unsigned_char_pointer)
 
 TESTCASE(float_array_array)
 {
-  define_buffer<Buffer<float*>>();
+  define_buffer<float*>();
   Module m = define_module("Testing");
 
   std::string code = R"(Rice::Buffer≺float∗≻.new([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]]))";
@@ -174,7 +174,7 @@ TESTCASE(float_array_array)
 
 TESTCASE(wrong_type)
 {
-  define_buffer<Buffer<float*>>();
+  define_buffer<float*>();
   Module m = define_module("Testing");
 
   std::string code = R"(Rice::Buffer≺float∗≻.new([[4, "bad"], [2, 1]]))";

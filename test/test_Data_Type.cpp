@@ -653,7 +653,7 @@ namespace
 
 TESTCASE(pointerToPointer)
 {
-  define_buffer<Buffer<BigObject*>>();
+  define_buffer<BigObject*>();
 
   Module m = define_module("DataTypePointerToPointer");
 
@@ -821,7 +821,7 @@ namespace RangesTest
 
 TESTCASE(array_of_ranges)
 {
-  define_buffer<Buffer<RangesTest::RangeCustom>>();
+  define_buffer<RangesTest::RangeCustom>();
 
   Module m = define_module("CustomRanges");
 
@@ -846,7 +846,7 @@ TESTCASE(array_of_ranges)
 
 TESTCASE(pointer_of_ranges)
 {
-  define_buffer<Buffer<RangesTest::RangeCustom>>();
+  define_buffer<RangesTest::RangeCustom>();
 
   Module m = define_module("CustomRanges");
 
@@ -871,7 +871,7 @@ TESTCASE(pointer_of_ranges)
 
 TESTCASE(pointer_of_ranges_wrong)
 {
-  define_buffer<Buffer<RangesTest::RangeCustom>>();
+  define_buffer<RangesTest::RangeCustom>();
 
   Module m = define_module("CustomRanges");
 
@@ -898,7 +898,7 @@ TESTCASE(pointer_of_ranges_wrong)
 
 TESTCASE(pointer_of_pointer_ranges)
 {
-  define_buffer<Buffer<RangesTest::RangeCustom*>>();
+  define_buffer<RangesTest::RangeCustom*>();
 
   Module m = define_module("CustomRanges");
 

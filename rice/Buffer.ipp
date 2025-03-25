@@ -442,9 +442,10 @@ namespace Rice
   }
 
   // ------  define_buffer ----------
-  template<typename Buffer_T>
-  inline Data_Type<Buffer_T> define_buffer()
+  template<typename T>
+  inline Data_Type<Buffer<T>> define_buffer()
   {
+    using Buffer_T = Buffer<T>;
     std::string name = detail::typeName(typeid(Buffer_T));
     std::string klassName = detail::rubyClassName(name);
     Module rb_mRice = define_module("Rice");
@@ -463,34 +464,34 @@ namespace Rice
 
   inline void define_fundamental_buffer_types()
   {
-    define_buffer<Buffer<bool>>();
-    define_buffer<Buffer<int>>();
-    define_buffer<Buffer<int*>>();
-    define_buffer<Buffer<unsigned int>>();
-    define_buffer<Buffer<unsigned int*>>();
-    define_buffer<Buffer<char>>();
-    define_buffer<Buffer<char*>>();
-    define_buffer<Buffer<unsigned char>>();
-    define_buffer<Buffer<unsigned char*>>();
-    define_buffer<Buffer<signed char>>();
-    define_buffer<Buffer<signed char*>>();
-    define_buffer<Buffer<double>>();
-    define_buffer<Buffer<double*>>();
-    define_buffer<Buffer<float>>();
-    define_buffer<Buffer<float*>>();
-    define_buffer<Buffer<long>>();
-    define_buffer<Buffer<long*>>();
-    define_buffer<Buffer<unsigned long>>();
-    define_buffer<Buffer<unsigned long*>>();
-    define_buffer<Buffer<long long>>();
-    define_buffer<Buffer<long long*>>();
-    define_buffer<Buffer<unsigned long long>>();
-    define_buffer<Buffer<unsigned long long*>>();
-    define_buffer<Buffer<short>>();
-    define_buffer<Buffer<short*>>();
-    define_buffer<Buffer<unsigned short>>();
-    define_buffer<Buffer<unsigned short*>>();
-    define_buffer<Buffer<void>>();
+    define_buffer<bool>();
+    define_buffer<int>();
+    define_buffer<int*>();
+    define_buffer<unsigned int>();
+    define_buffer<unsigned int*>();
+    define_buffer<char>();
+    define_buffer<char*>();
+    define_buffer<unsigned char>();
+    define_buffer<unsigned char*>();
+    define_buffer<signed char>();
+    define_buffer<signed char*>();
+    define_buffer<double>();
+    define_buffer<double*>();
+    define_buffer<float>();
+    define_buffer<float*>();
+    define_buffer<long>();
+    define_buffer<long*>();
+    define_buffer<unsigned long>();
+    define_buffer<unsigned long*>();
+    define_buffer<long long>();
+    define_buffer<long long*>();
+    define_buffer<unsigned long long>();
+    define_buffer<unsigned long long*>();
+    define_buffer<short>();
+    define_buffer<short*>();
+    define_buffer<unsigned short>();
+    define_buffer<unsigned short*>();
+    define_buffer<void>();
   }
 }
 
@@ -505,7 +506,7 @@ namespace Rice::detail
 
       if (!Data_Type<Buffer<T>>::is_defined())
       {
-        define_buffer<Buffer<T>>();
+        define_buffer<T>();
       }
 
       return true;

@@ -3,11 +3,8 @@
 
 namespace Rice
 {
-  template<typename T>
-  Data_Type<T> define_pair(std::string name);
-
-  template<typename T>
-  Data_Type<T> define_pair_under(Object parent, std::string name);
+  template<typename T1, typename T2>
+  Data_Type<std::pair<T1, T2>> define_pair(std::string klassName = "");
 }
 
 #include "pair.ipp"

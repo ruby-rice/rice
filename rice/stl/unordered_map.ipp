@@ -34,7 +34,7 @@ namespace Rice
 
       void register_pair()
       {
-        define_pair_auto<Value_T>();
+        define_pair<const Key_T, T>();
       }
 
       void define_constructor()
@@ -232,40 +232,43 @@ namespace Rice
     };
   } // namespace
 
-  template<typename T>
-  Data_Type<T> define_unordered_map(std::string klassName)
+  template<typename Key, typename T>
+  Data_Type<std::unordered_map<Key, T>> define_unordered_map(std::string klassName)
   {
+    using UnorderedMap_T = std::unordered_map<Key, T>;
+    using Data_Type_T = Data_Type<UnorderedMap_T>;
+
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(T));
+      std::string typeName = detail::typeName(typeid(UnorderedMap_T));
       klassName = detail::rubyClassName(typeName);
     }
 
     Module rb_mStd = define_module("Std");
-    if (Data_Type<T>::check_defined(klassName, rb_mStd))
+    if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
-      return Data_Type<T>();
+      return Data_Type_T();
     }
 
     Identifier id(klassName);
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
+    Data_Type_T result = define_class_under<detail::intrinsic_type<UnorderedMap_T>>(rb_mStd, id);
     stl::UnorderedMapHelper helper(result);
     return result;
   }
 
   namespace detail
   {
-    template<typename T, typename U>
-    struct Type<std::unordered_map<T, U>>
+    template<typename Key_T, typename T>
+    struct Type<std::unordered_map<Key_T, T>>
     {
       static bool verify()
       {
+        Type<Key_T>::verify();
         Type<T>::verify();
-        Type<U>::verify();
 
-        if (!Data_Type<std::unordered_map<T, U>>::is_defined())
+        if (!Data_Type<std::unordered_map<Key_T, T>>::is_defined())
         {
-          define_unordered_map<std::unordered_map<T, U>>();
+          define_unordered_map<Key_T, T>();
         }
 
         return true;

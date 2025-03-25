@@ -35,7 +35,7 @@ namespace
 TESTCASE(Size)
 {
   Module m = define_module("Testing");
-  define_set<std::set<std::string>>("StringSet");
+  define_set<std::string>("StringSet");
 
   std::string code = R"(s = Std::StringSet.new
                         s.size)";
@@ -62,7 +62,7 @@ TESTCASE(Size)
 TESTCASE(Add)
 {
   Module m = define_module("Testing");
-  define_set<std::set<std::string>>("StringSet");
+  define_set<std::string>("StringSet");
 
   std::string code = R"(set = Std::StringSet.new
                         set << "one" << "two" << "two" << "three"
@@ -84,7 +84,7 @@ TESTCASE(Add)
 TESTCASE(WrongType)
 {
   Module m = define_module("Testing");
-  Class c = define_set<std::set<std::string>>("StringSet");
+  Class c = define_set<std::string>("StringSet");
 
   std::string code = R"(set = Std::StringSet.new
                         set << 1
@@ -100,7 +100,7 @@ TESTCASE(Empty)
 {
   Module m = define_module("Testing");
 
-  Class c = define_set<std::set<std::int32_t>>("IntSet");
+  Class c = define_set<std::int32_t>("IntSet");
 
   std::string code = R"(set = Std::StringSet.new
                         set.size)";
@@ -117,7 +117,7 @@ TESTCASE(Empty)
 TESTCASE(ToString)
 {
   Module m = define_module("Testing");
-  define_set<std::set<std::string>>("StringSet");
+  define_set<std::string>("StringSet");
 
   std::string code = R"(set = Std::StringSet.new
                         set.insert("one")
@@ -131,7 +131,7 @@ TESTCASE(ToString)
 TESTCASE(Include)
 {
   Module m = define_module("Testing");
-  define_set<std::set<std::string>>("StringSet");
+  define_set<std::string>("StringSet");
 
   std::string code = R"(set = Std::StringSet.new
                         set << "one" << "two" << "two" << "three"
@@ -145,7 +145,7 @@ TESTCASE(Modify)
 {
   Module m = define_module("Testing");
 
-  Class c = define_set<std::set<int>>("Int64Set");
+  Class c = define_set<int>("Int64Set");
   Object set = c.call("new");
 
   Object result = set.call("insert", 11);
@@ -171,7 +171,7 @@ TESTCASE(Modify)
 TESTCASE(Clone)
 {
   Module m = define_module("Testing");
-  Class c = define_set<std::set<double>>("DoubleSet");
+  Class c = define_set<double>("DoubleSet");
 
   std::string code = R"(set = Std::DoubleSet.new
                         set << 11.1 << 22.2)";
@@ -211,7 +211,7 @@ TESTCASE(NotPrintable)
   define_class<NotPrintable>("NotPrintable").
     define_constructor(Constructor<NotPrintable, uint32_t>());
 
-  Class c = define_set<std::set<NotPrintable>>("NotPrintableSet");
+  Class c = define_set<NotPrintable>("NotPrintableSet");
 
   Object set = c.call("new");
   set.call("insert", NotPrintable(1));
@@ -254,13 +254,13 @@ TESTCASE(AutoRegisterReturn)
   ASSERT_EQUAL(Qtrue, result.value());
 
   // Now register this same set
-  define_set<std::set<float>>("FloatSet");
+  define_set<float>("FloatSet");
   code = R"(set = Std::FloatSet.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(set.class_of()));
 
   // Now register it again in the module
-  define_set<std::set<float>>("FloatSet2");
+  define_set<float>("FloatSet2");
   code = R"(set = Std::FloatSet2.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(set.class_of()));
@@ -293,7 +293,7 @@ namespace
 
 TESTCASE(DefaultValue)
 {
-  define_set<std::set<std::string>>("StringSet");
+  define_set<std::string>("StringSet");
   define_global_function("default_set", &defaultSet, Arg("strings") = std::set<std::string> { "one", "two", "three" });
 
   Module m = define_module("Testing");
@@ -309,7 +309,7 @@ TESTCASE(DefaultValue)
 TESTCASE(Equal)
 {
   Module m = define_module("Testing");
-  Class c = define_set<std::set<int>>("IntSet");
+  Class c = define_set<int>("IntSet");
 
   std::string code = R"(set1 = Std::IntSet.new
                         set1 << 4 << 5 << 6
@@ -325,7 +325,7 @@ TESTCASE(Equal)
   define_class<NotPrintable>("NotPrintable").
     define_constructor(Constructor<NotPrintable, uint32_t>());
 
-  define_set<std::set<NotPrintable>>("NotPrintableSet");
+  define_set<NotPrintable>("NotPrintableSet");
 
   code = R"(set1 = Std::NotPrintableSet.new
             set2 = Std::NotPrintableSet.new
@@ -339,7 +339,7 @@ TESTCASE(ToArray)
 {
   Module m = define_module("Testing");
   
-  Class c = define_set<std::set<std::string>>("StringSet").
+  Class c = define_set<std::string>("StringSet").
     define_constructor(Constructor<std::set<std::string>>());
 
   std::string code = R"(set = Std::StringSet.new
@@ -544,7 +544,7 @@ TESTCASE(Returns)
 TESTCASE(Iterate)
 {
   Module m = define_module("Testing");
-  Class c = define_set<std::set<double>>("DoubleSet");
+  Class c = define_set<double>("DoubleSet");
 
   std::string code = R"(set = Std::DoubleSet.new
                         set << 5.0 << 6.0 << 7.0
@@ -691,7 +691,7 @@ TESTCASE(MyClass2PointerSet)
 TESTCASE(Intersect)
 {
   Module m = define_module("Testing");
-  define_set<std::set<std::string>>("StringSet");
+  define_set<std::string>("StringSet");
 
   std::string code = R"(set1 = Std::StringSet.new
                         set1 << "one" << "two" << "two" << "three"
@@ -712,7 +712,7 @@ TESTCASE(Intersect)
 TESTCASE(Union)
 {
   Module m = define_module("Testing");
-  define_set<std::set<std::string>>("StringSet");
+  define_set<std::string>("StringSet");
 
   std::string code = R"(set1 = Std::StringSet.new
                         set1 << "one" << "two" << "two" << "three"
@@ -733,7 +733,7 @@ TESTCASE(Union)
 TESTCASE(Difference)
 {
   Module m = define_module("Testing");
-  define_set<std::set<std::string>>("StringSet");
+  define_set<std::string>("StringSet");
 
   std::string code = R"(set1 = Std::StringSet.new
                         set1 << "one" << "two" << "two" << "three"
@@ -754,7 +754,7 @@ TESTCASE(Difference)
 TESTCASE(Exclusive)
 {
   Module m = define_module("Testing");
-  define_set<std::set<std::string>>("StringSet");
+  define_set<std::string>("StringSet");
 
   std::string code = R"(set1 = Std::StringSet.new
                         set1 << "one" << "two" << "three"
@@ -775,7 +775,7 @@ TESTCASE(Exclusive)
 TESTCASE(Superset)
 {
   Module m = define_module("Testing");
-  define_set<std::set<std::string>>("StringSet");
+  define_set<std::string>("StringSet");
 
   std::string code = R"(set1 = Std::StringSet.new
                         set1 << "one" << "two" << "three"

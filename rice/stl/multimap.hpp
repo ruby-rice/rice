@@ -5,8 +5,8 @@
 
 namespace Rice
 {
-  template<typename U>
-  Data_Type<U> define_multimap(std::string name = "");
+  template<typename K, typename T>
+  Data_Type<std::multimap<K, T>> define_multimap(std::string name = "");
 }
 
 #include "multimap.ipp"

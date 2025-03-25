@@ -3,8 +3,8 @@
 
 namespace Rice
 {
-  template<typename U>
-  Data_Type<U> define_unordered_map(std::string name = "");
+  template<typename Key, typename T>
+  Data_Type<std::unordered_map<Key, T>> define_unordered_map(std::string name = "");
 }
 
 #include "unordered_map.ipp"

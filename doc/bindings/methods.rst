@@ -149,7 +149,7 @@ The above code works because the ``<<`` method returns the Array ``a``. You can 
 
 .. code-block:: cpp
 
-  define_vector<std::vector<int32_t>>().
+  define_vector<int32_t>().
   define_method("<<", [](std::vector<int32_t>& self, int32_t value) -> std::vector<int32_t>&  // <----- DON'T MISS THIS
   {
     self.push_back(value);
