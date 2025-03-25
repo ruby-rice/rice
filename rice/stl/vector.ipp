@@ -414,7 +414,6 @@ namespace Rice
             {
               return Convertible::Cast;
             }
-            break;
           default:
             return Convertible::None;
         }
@@ -478,7 +477,6 @@ namespace Rice
             {
               return Convertible::Cast;
             }
-            break;
           default:
             return Convertible::None;
         }
@@ -541,7 +539,6 @@ namespace Rice
             {
               return Convertible::Cast;
             }
-            break;
           default:
             return Convertible::None;
         }
