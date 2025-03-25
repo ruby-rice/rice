@@ -4,7 +4,7 @@
 namespace Rice
 {
   template<typename T>
-  Data_Type<T> define_set(std::string klassName = "");
+  Data_Type<std::set<T>> define_set(std::string klassName = "");
 }
 
 #include "set.ipp"

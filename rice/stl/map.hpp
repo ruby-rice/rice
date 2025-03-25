@@ -3,8 +3,8 @@
 
 namespace Rice
 {
-  template<typename U>
-  Data_Type<U> define_map(std::string name = "");
+  template<typename K, typename T>
+  Data_Type<std::map<K, T>> define_map(std::string name = "");
 }
 
 #include "map.ipp"

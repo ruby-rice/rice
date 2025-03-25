@@ -113,6 +113,26 @@ namespace Rice::detail
   };
 
   template<>
+  class To_Ruby<std::string*>
+  {
+  public:
+    VALUE convert(const std::string* x)
+    {
+      return detail::protect(rb_external_str_new, x->data(), (long)x->size());
+    }
+  };
+
+  template<>
+  class To_Ruby<std::string*&>
+  {
+  public:
+    VALUE convert(const std::string* x)
+    {
+      return detail::protect(rb_external_str_new, x->data(), (long)x->size());
+    }
+  };
+
+  template<>
   class From_Ruby<std::string>
   {
   public:
@@ -189,7 +209,7 @@ namespace Rice::detail
 
   private:
     Arg* arg_ = nullptr;
-    std::string converted_;
+    std::string converted_ = "";
   };
 
   template<>
@@ -598,11 +618,8 @@ namespace Rice::detail
 
 namespace Rice
 {
-  template<typename T>
-  Data_Type<T> define_pair(std::string name);
-
-  template<typename T>
-  Data_Type<T> define_pair_under(Object parent, std::string name);
+  template<typename T1, typename T2>
+  Data_Type<std::pair<T1, T2>> define_pair(std::string klassName = "");
 }
 
 
@@ -718,41 +735,30 @@ namespace Rice
     };
   } // namespace
 
-  template<typename T>
-  Data_Type<T> define_pair_under(Object parent, std::string name)
+  template<typename T1, typename T2>
+  Data_Type<std::pair<T1, T2>> define_pair(std::string klassName)
   {
-    if (Data_Type<T>::check_defined(name, parent))
+    using Pair_T = std::pair<T1, T2>;
+    using Data_Type_T = Data_Type<Pair_T>;
+
+    if (klassName.empty())
     {
-      return Data_Type<T>();
+      std::string typeName = detail::typeName(typeid(Pair_T));
+      klassName = detail::rubyClassName(typeName);
     }
 
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(parent, name.c_str());
+    Module rb_mStd = define_module("Std");
+    if (Data_Type_T::check_defined(klassName, rb_mStd))
+    {
+      return Data_Type_T();
+    }
+
+    Identifier id(klassName);
+    Data_Type_T result = define_class_under<detail::intrinsic_type<Pair_T>>(rb_mStd, id);
     stl::PairHelper helper(result);
     return result;
   }
 
-  template<typename T>
-  Data_Type<T> define_pair(std::string name)
-  {
-    if (Data_Type<T>::check_defined(name))
-    {
-      return Data_Type<T>();
-    }
-
-    Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
-    stl::PairHelper<T> helper(result);
-    return result;
-  }
-
-  template<typename T>
-  Data_Type<T> define_pair_auto()
-  {
-    Module rb_mStd = define_module("Std");
-    std::string name = detail::typeName(typeid(T));
-    std::string klassName = detail::rubyClassName(name);
-    return define_pair_under<T>(rb_mStd, klassName);
-  }
-   
   namespace detail
   {
     template<typename T1, typename T2>
@@ -765,7 +771,7 @@ namespace Rice
 
         if (!Data_Type<std::pair<T1, T2>>::is_defined())
         {
-          define_pair_auto<std::pair<T1, T2>>();
+          define_pair<T1, T2>();
         }
 
         return true;
@@ -780,8 +786,8 @@ namespace Rice
 
 namespace Rice
 {
-  template<typename U>
-  Data_Type<U> define_map(std::string name = "");
+  template<typename K, typename T>
+  Data_Type<std::map<K, T>> define_map(std::string name = "");
 }
 
 
@@ -822,7 +828,7 @@ namespace Rice
 
       void register_pair()
       {
-        define_pair_auto<Value_T>();
+        define_pair<const Key_T, Mapped_T>();
       }
 
       void define_constructor()
@@ -1020,40 +1026,43 @@ namespace Rice
     };
   } // namespace
 
-  template<typename T>
-  Data_Type<T> define_map(std::string klassName)
+  template<typename Key, typename T>
+  Data_Type<std::map<Key, T>> define_map(std::string klassName)
   {
+    using Map_T = std::map<Key, T>;
+    using Data_Type_T = Data_Type<Map_T>;
+
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(T));
+      std::string typeName = detail::typeName(typeid(Map_T));
       klassName = detail::rubyClassName(typeName);
     }
 
     Module rb_mStd = define_module("Std");
-    if (Data_Type<T>::check_defined(klassName, rb_mStd))
+    if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
-      return Data_Type<T>();
+      return Data_Type_T();
     }
 
     Identifier id(klassName);
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
+    Data_Type_T result = define_class_under<detail::intrinsic_type<Map_T>>(rb_mStd, id);
     stl::MapHelper helper(result);
     return result;
   }
 
   namespace detail
   {
-    template<typename T, typename U>
-    struct Type<std::map<T, U>>
+    template<typename Key_T, typename T>
+    struct Type<std::map<Key_T, T>>
     {
       static bool verify()
       {
+        Type<Key_T>::verify();
         Type<T>::verify();
-        Type<U>::verify();
 
-        if (!Data_Type<std::map<T, U>>::is_defined())
+        if (!Data_Type<std::map<Key_T, T>>::is_defined())
         {
-          define_map<std::map<T, U>>();
+          define_map<Key_T, T>();
         }
 
         return true;
@@ -1345,8 +1354,8 @@ namespace Rice::detail
 
 namespace Rice
 {
-  template<typename U>
-  Data_Type<U> define_multimap(std::string name = "");
+  template<typename K, typename T>
+  Data_Type<std::multimap<K, T>> define_multimap(std::string name = "");
 }
 
 
@@ -1386,7 +1395,7 @@ namespace Rice
 
       void register_pair()
       {
-        define_pair_auto<Value_T>();
+        define_pair<const Key_T, Mapped_T>();
       }
 
       void define_constructor()
@@ -1567,23 +1576,26 @@ namespace Rice
     };
   } // namespace
 
-  template<typename T>
-  Data_Type<T> define_multimap(std::string klassName)
+  template<typename Key, typename T>
+  Data_Type<std::multimap<Key, T>> define_multimap(std::string klassName)
   {
+    using MultiMap_T = std::multimap<Key, T>;
+    using Data_Type_T = Data_Type<MultiMap_T>;
+
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(T));
+      std::string typeName = detail::typeName(typeid(MultiMap_T));
       klassName = detail::rubyClassName(typeName);
     }
 
     Module rb_mStd = define_module("Std");
-    if (Data_Type<T>::check_defined(klassName, rb_mStd))
+    if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
-      return Data_Type<T>();
+      return Data_Type_T();
     }
 
     Identifier id(klassName);
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
+    Data_Type_T result = define_class_under<detail::intrinsic_type<MultiMap_T>>(rb_mStd, id);
     stl::MultimapHelper helper(result);
     return result;
   }
@@ -1616,17 +1628,17 @@ namespace Rice
       return result;
     }
 
-    template<typename T, typename U>
-    struct Type<std::multimap<T, U>>
+    template<typename Key_T, typename T>
+    struct Type<std::multimap<Key_T, T>>
     {
       static bool verify()
       {
-        Type<T>::verify();
-        Type<U>::verify();
+        Type<Key_T>::verify();
+        Type<Key_T>::verify();
 
-        if (!Data_Type<std::multimap<T, U>>::is_defined())
+        if (!Data_Type<std::multimap<Key_T, T>>::is_defined())
         {
-          define_multimap<std::multimap<T, U>>();
+          define_multimap<Key_T, T>();
         }
 
         return true;
@@ -1816,7 +1828,7 @@ namespace Rice
 namespace Rice
 {
   template<typename T>
-  Data_Type<T> define_set(std::string klassName = "");
+  Data_Type<std::set<T>> define_set(std::string klassName = "");
 }
 
 
@@ -2051,24 +2063,26 @@ namespace Rice
     };
   } // namespace
 
-
   template<typename T>
-  Data_Type<T> define_set(std::string klassName)
+  Data_Type<std::set<T>> define_set(std::string klassName)
   {
+    using Set_T = std::set<T>;
+    using Data_Type_T = Data_Type<Set_T>;
+
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(T));
+      std::string typeName = detail::typeName(typeid(Set_T));
       klassName = detail::rubyClassName(typeName);
     }
 
     Module rb_mStd = define_module("Std");
-    if (Data_Type<T>::check_defined(klassName, rb_mStd))
+    if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
-      return Data_Type<T>();
+      return Data_Type_T();
     }
 
     Identifier id(klassName);
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
+    Data_Type_T result = define_class_under<detail::intrinsic_type<Set_T>>(rb_mStd, id);
     stl::SetHelper helper(result);
     return result;
   }
@@ -2107,7 +2121,7 @@ namespace Rice
 
         if (!Data_Type<std::set<T>>::is_defined())
         {
-          define_set<std::set<T>>();
+          define_set<T>();
         }
 
         return true;
@@ -2351,7 +2365,7 @@ namespace Rice::detail
 namespace Rice
 {
   template<typename T>
-  Data_Type<T> define_shared_ptr(std::string klassName = "");
+  Data_Type<std::shared_ptr<T>> define_shared_ptr(std::string klassName = "");
 }
 
 
@@ -2362,23 +2376,26 @@ namespace Rice
 namespace Rice
 {
   template<typename T>
-  inline Data_Type<T> define_shared_ptr(std::string klassName)
+  Data_Type<std::shared_ptr<T>> define_shared_ptr(std::string klassName)
   {
+    using SharedPtr_T = std::shared_ptr<T>;
+    using Data_Type_T = Data_Type<SharedPtr_T>;
+
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(T));
+      std::string typeName = detail::typeName(typeid(SharedPtr_T));
       klassName = detail::rubyClassName(typeName);
     }
 
     Module rb_mStd = define_module("Std");
-    if (Data_Type<T>::check_defined(klassName, rb_mStd))
+    if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
-      return Data_Type<T>();
+      return Data_Type_T();
     }
 
     Identifier id(klassName);
-    Data_Type<T> result = define_class_under<T>(rb_mStd, id).
-      define_constructor(Constructor<T, typename T::element_type*>(), Arg("value").takeOwnership());
+    Data_Type_T result = define_class_under<detail::intrinsic_type<SharedPtr_T>>(rb_mStd, id).
+      define_constructor(Constructor<SharedPtr_T, typename SharedPtr_T::element_type*>(), Arg("value").takeOwnership());
 
     return result;
   }
@@ -2432,7 +2449,7 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return detail::wrap(RubyType<T>::klass(), RubyType<T>::ruby_data_type(), data, true);
+        return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
       }
       else
       {
@@ -2444,7 +2461,7 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return detail::wrap(RubyType<T>::klass(), RubyType<T>::ruby_data_type(), data, true);
+        return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
       }
       else
       {
@@ -2497,7 +2514,7 @@ namespace Rice::detail
       else if constexpr (std::is_fundamental_v<T>)
       {
         // Get the wrapper again to validate T's type
-        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, RubyType<T>::ruby_data_type());
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
         return wrapper->data();
       }
       else
@@ -2519,7 +2536,7 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return detail::wrap(RubyType<T>::klass(), RubyType<T>::ruby_data_type(), data, true);
+        return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
       }
       else
       {
@@ -2572,7 +2589,7 @@ namespace Rice::detail
       else if constexpr (std::is_fundamental_v<T>)
       {
         // Get the wrapper again to validate T's type
-        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, RubyType<T>::ruby_data_type());
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
         return wrapper->data();
       }
       else
@@ -3191,8 +3208,8 @@ namespace Rice::detail
 
 namespace Rice
 {
-  template<typename U>
-  Data_Type<U> define_unordered_map(std::string name = "");
+  template<typename Key, typename T>
+  Data_Type<std::unordered_map<Key, T>> define_unordered_map(std::string name = "");
 }
 
 
@@ -3233,7 +3250,7 @@ namespace Rice
 
       void register_pair()
       {
-        define_pair_auto<Value_T>();
+        define_pair<const Key_T, T>();
       }
 
       void define_constructor()
@@ -3431,40 +3448,43 @@ namespace Rice
     };
   } // namespace
 
-  template<typename T>
-  Data_Type<T> define_unordered_map(std::string klassName)
+  template<typename Key, typename T>
+  Data_Type<std::unordered_map<Key, T>> define_unordered_map(std::string klassName)
   {
+    using UnorderedMap_T = std::unordered_map<Key, T>;
+    using Data_Type_T = Data_Type<UnorderedMap_T>;
+
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(T));
+      std::string typeName = detail::typeName(typeid(UnorderedMap_T));
       klassName = detail::rubyClassName(typeName);
     }
 
     Module rb_mStd = define_module("Std");
-    if (Data_Type<T>::check_defined(klassName, rb_mStd))
+    if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
-      return Data_Type<T>();
+      return Data_Type_T();
     }
 
     Identifier id(klassName);
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
+    Data_Type_T result = define_class_under<detail::intrinsic_type<UnorderedMap_T>>(rb_mStd, id);
     stl::UnorderedMapHelper helper(result);
     return result;
   }
 
   namespace detail
   {
-    template<typename T, typename U>
-    struct Type<std::unordered_map<T, U>>
+    template<typename Key_T, typename T>
+    struct Type<std::unordered_map<Key_T, T>>
     {
       static bool verify()
       {
+        Type<Key_T>::verify();
         Type<T>::verify();
-        Type<U>::verify();
 
-        if (!Data_Type<std::unordered_map<T, U>>::is_defined())
+        if (!Data_Type<std::unordered_map<Key_T, T>>::is_defined())
         {
-          define_unordered_map<std::unordered_map<T, U>>();
+          define_unordered_map<Key_T, T>();
         }
 
         return true;
@@ -3683,7 +3703,7 @@ namespace Rice
 namespace Rice
 {
   template<typename T>
-  Data_Type<T> define_vector(std::string name= "" );
+  Data_Type<std::vector<T>> define_vector(std::string name = "" );
 }
 
 
@@ -4039,22 +4059,25 @@ namespace Rice
   } // namespace
 
   template<typename T>
-  Data_Type<T> define_vector(std::string klassName)
+  Data_Type<std::vector<T>> define_vector(std::string klassName)
   {
+    using Vector_T = std::vector<T>;
+    using Data_Type_T = Data_Type<Vector_T>;
+
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(T));
+      std::string typeName = detail::typeName(typeid(Vector_T));
       klassName = detail::rubyClassName(typeName);
     }
 
     Module rb_mStd = define_module("Std");
-    if (Data_Type<T>::check_defined(klassName, rb_mStd))
+    if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
-      return Data_Type<T>();
+      return Data_Type_T();
     }
 
     Identifier id(klassName);
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
+    Data_Type_T result = define_class_under<detail::intrinsic_type<Vector_T>>(rb_mStd, id);
     stl::VectorHelper helper(result);
     return result;
   }
@@ -4071,7 +4094,7 @@ namespace Rice
 
         if (!Data_Type<std::vector<T>>::is_defined())
         {
-          define_vector<std::vector<T>>();
+          define_vector<T>();
         }
 
         return true;

@@ -6,7 +6,7 @@ std::pair
 
 Ruby does not have a concept of a pair. Therefore, Rice wraps ``std::pair`` which means that data is not copied between C++ and Ruby.
 
-Since ``std::pair`` is a template of two types, each ``std::pair`` instantiation is its own unique C++ class, and thus its own unique Ruby class. You may manually define pair classes or let Rice do it for you. To manually define a Ruby class, use either the ``define_pair`` or ``define_pair_under`` methods.
+Since ``std::pair`` is a template of two types, each ``std::pair`` instantiation is its own unique C++ class, and thus its own unique Ruby class. You may manually define pair classes or let Rice do it for you. To manually define a Ruby class, use either the ``define_pair`` method.
 
 Example:
 
@@ -17,7 +17,7 @@ Example:
      return std::make_pair(key, value);
   }
 
-  define_pair<std::pair<std::string, uint32_t>>("StringIntPair");
+  define_pair<std::string, uint32_t>("StringIntPair");
   define_global_function("make_string_int_pair", &makeStringIntPair);
 
 Once you have defined this Ruby class, you can create a new instance like this:

@@ -72,7 +72,7 @@ To use this class in Ruby:
 
     pair = Std::Pair≺string‚ double≻.new
 
-Note manual class names can be defined *after* auto generated class names. Rice only registers one class with Ruby, but it has two constants pointing at it. For example if you call ``define_pair<std::pair<std::string, double>>(StringDoublePair)`` after the pair has been registered, in Ruby you will have two constants pointing to the class:
+Note manual class names can be defined *after* auto generated class names. Rice only registers one class with Ruby, but it has two constants pointing at it. For example if you call ``define_pair<std::string, double>(StringDoublePair)`` after the pair has been registered, in Ruby you will have two constants pointing to the class:
 
 .. code-block:: ruby
 

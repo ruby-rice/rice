@@ -109,41 +109,30 @@ namespace Rice
     };
   } // namespace
 
-  template<typename T>
-  Data_Type<T> define_pair_under(Object parent, std::string name)
+  template<typename T1, typename T2>
+  Data_Type<std::pair<T1, T2>> define_pair(std::string klassName)
   {
-    if (Data_Type<T>::check_defined(name, parent))
+    using Pair_T = std::pair<T1, T2>;
+    using Data_Type_T = Data_Type<Pair_T>;
+
+    if (klassName.empty())
     {
-      return Data_Type<T>();
+      std::string typeName = detail::typeName(typeid(Pair_T));
+      klassName = detail::rubyClassName(typeName);
     }
 
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(parent, name.c_str());
+    Module rb_mStd = define_module("Std");
+    if (Data_Type_T::check_defined(klassName, rb_mStd))
+    {
+      return Data_Type_T();
+    }
+
+    Identifier id(klassName);
+    Data_Type_T result = define_class_under<detail::intrinsic_type<Pair_T>>(rb_mStd, id);
     stl::PairHelper helper(result);
     return result;
   }
 
-  template<typename T>
-  Data_Type<T> define_pair(std::string name)
-  {
-    if (Data_Type<T>::check_defined(name))
-    {
-      return Data_Type<T>();
-    }
-
-    Data_Type<T> result = define_class<detail::intrinsic_type<T>>(name.c_str());
-    stl::PairHelper<T> helper(result);
-    return result;
-  }
-
-  template<typename T>
-  Data_Type<T> define_pair_auto()
-  {
-    Module rb_mStd = define_module("Std");
-    std::string name = detail::typeName(typeid(T));
-    std::string klassName = detail::rubyClassName(name);
-    return define_pair_under<T>(rb_mStd, klassName);
-  }
-   
   namespace detail
   {
     template<typename T1, typename T2>
@@ -156,7 +145,7 @@ namespace Rice
 
         if (!Data_Type<std::pair<T1, T2>>::is_defined())
         {
-          define_pair_auto<std::pair<T1, T2>>();
+          define_pair<T1, T2>();
         }
 
         return true;

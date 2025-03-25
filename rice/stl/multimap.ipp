@@ -33,7 +33,7 @@ namespace Rice
 
       void register_pair()
       {
-        define_pair_auto<Value_T>();
+        define_pair<const Key_T, Mapped_T>();
       }
 
       void define_constructor()
@@ -214,23 +214,26 @@ namespace Rice
     };
   } // namespace
 
-  template<typename T>
-  Data_Type<T> define_multimap(std::string klassName)
+  template<typename Key, typename T>
+  Data_Type<std::multimap<Key, T>> define_multimap(std::string klassName)
   {
+    using MultiMap_T = std::multimap<Key, T>;
+    using Data_Type_T = Data_Type<MultiMap_T>;
+
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(T));
+      std::string typeName = detail::typeName(typeid(MultiMap_T));
       klassName = detail::rubyClassName(typeName);
     }
 
     Module rb_mStd = define_module("Std");
-    if (Data_Type<T>::check_defined(klassName, rb_mStd))
+    if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
-      return Data_Type<T>();
+      return Data_Type_T();
     }
 
     Identifier id(klassName);
-    Data_Type<T> result = define_class_under<detail::intrinsic_type<T>>(rb_mStd, id);
+    Data_Type_T result = define_class_under<detail::intrinsic_type<MultiMap_T>>(rb_mStd, id);
     stl::MultimapHelper helper(result);
     return result;
   }
@@ -263,17 +266,17 @@ namespace Rice
       return result;
     }
 
-    template<typename T, typename U>
-    struct Type<std::multimap<T, U>>
+    template<typename Key_T, typename T>
+    struct Type<std::multimap<Key_T, T>>
     {
       static bool verify()
       {
-        Type<T>::verify();
-        Type<U>::verify();
+        Type<Key_T>::verify();
+        Type<Key_T>::verify();
 
-        if (!Data_Type<std::multimap<T, U>>::is_defined())
+        if (!Data_Type<std::multimap<Key_T, T>>::is_defined())
         {
-          define_multimap<std::multimap<T, U>>();
+          define_multimap<Key_T, T>();
         }
 
         return true;

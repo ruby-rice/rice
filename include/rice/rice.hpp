@@ -1553,7 +1553,7 @@ namespace Rice
     String pack();
 
     // Join elements together
-    String join(std::string separator);
+    String join(char* separator);
 
   private:
     //! A helper class so array[index]=value can work.
@@ -2856,6 +2856,8 @@ namespace Rice::detail
   class RubyType
   {
   };
+
+  void define_ruby_types();
 }
 
 
@@ -2873,30 +2875,6 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_NIL };
     static inline std::set<ruby_value_type> Narrowable = {  };
     static inline std::string packTemplate = "not supported";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<bool>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "bool*" };
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -2910,30 +2888,6 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = CHAR_MIN < 0 ? "c*" : "C*";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<char>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "char*" };
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -2948,30 +2902,6 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "c*";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<signed char>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "signed char*" };
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -2986,30 +2916,6 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "C*";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<unsigned char>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "unsigned char*" };
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -3023,30 +2929,6 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "s*";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<short>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "short*" };
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -3060,30 +2942,6 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "S*";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<unsigned short>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "unsigned short*" };
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -3099,30 +2957,6 @@ namespace Rice::detail
     // while int can go up to 4 billion
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "i*";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<int>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = {"int*"};
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -3138,30 +2972,6 @@ namespace Rice::detail
     // while int can go up to 4 billion
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "I*";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<unsigned int>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "unsigned int*" };
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -3175,30 +2985,6 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "l_*";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<long>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "long*" };
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -3212,30 +2998,6 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM};
     static inline std::string packTemplate = "L_*";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<unsigned long>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "unsigned long*" };
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -3249,30 +3011,6 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "q_*";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<long long>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "long long*" };
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -3286,30 +3024,6 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "Q_*";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<unsigned long long>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "unsigned long long*" };
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -3323,30 +3037,6 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_FIXNUM };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FLOAT };
     static inline std::string packTemplate = "f*";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<float>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "float*" };
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -3360,30 +3050,6 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_FIXNUM, RUBY_T_BIGNUM };
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "d*";
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<double>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "double*" };
-    static inline VALUE klass_ = Qnil;
   };
 
   template<>
@@ -3393,31 +3059,40 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Exact = { };
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { };
-
-    static rb_data_type_t* ruby_data_type()
-    {
-      return &ruby_data_type_;
-    }
-
-    static VALUE klass()
-    {
-      if (klass_ == Qnil)
-      {
-        std::string name = detail::typeName(typeid(RubyType<void>));
-        std::string klassName = detail::rubyClassName(name);
-        Identifier id(klassName);
-        Module rb_mRice = define_module("Rice");
-        Class klass = define_class_under(rb_mRice, id);
-        klass.undef_creation_funcs();
-        klass_ = klass;
-      }
-      return klass_;
-    }
-
-  private:
-    static inline rb_data_type_t ruby_data_type_ = { "void*" };
-    static inline VALUE klass_ = Qnil;
   };
+}
+
+namespace Rice::detail
+{
+  template<typename T>
+  inline Data_Type<T> define_ruby_type()
+  {
+    std::string name = detail::typeName(typeid(T*));
+    std::string klassName = detail::rubyClassName(name);
+    Identifier id(klassName);
+
+    Module rb_mRice = define_module("Rice");
+    return define_class_under<T>(rb_mRice, id);
+  }
+
+  inline void define_ruby_types()
+  {
+    define_ruby_type<bool>();
+    define_ruby_type<char>();
+    define_ruby_type<signed char>();
+    define_ruby_type<unsigned char>();
+    define_ruby_type<short>();
+    define_ruby_type<unsigned short>();
+    define_ruby_type<int>();
+    define_ruby_type<unsigned int>();
+    define_ruby_type<long>();
+    define_ruby_type<unsigned long>();
+    define_ruby_type<long long>();
+    define_ruby_type<unsigned long long>();
+    define_ruby_type<float>();
+    define_ruby_type<double>();
+    define_ruby_type<void>();
+  }
 }
 // =========   Wrapper.hpp   =========
 
@@ -3908,7 +3583,7 @@ namespace Rice
   };
 
   template<typename T>
-  Data_Type<T> define_buffer();
+  Data_Type<Buffer<T>> define_buffer();
 
   void define_fundamental_buffer_types();
 }
@@ -3980,11 +3655,11 @@ namespace Rice
       }
       case RUBY_T_DATA:
       {
-        if (RTYPEDDATA_TYPE(value) == RubyType_T::ruby_data_type())
+        if (Data_Type<T>::is_descendant(value))
         {
           this->m_size = 1;
           this->m_buffer = new T[this->m_size]();
-          this->m_buffer[0] = *detail::unwrap<T>(value, RubyType_T::ruby_data_type(), false);
+          this->m_buffer[0] = *detail::unwrap<T>(value, Data_Type<T>::ruby_data_type(), false);
           this->m_owner = false;
           break;
         }
@@ -4324,7 +3999,7 @@ namespace Rice
       T** ptr = this->m_outer + offset;
       T** end = this->m_outer + offset + count;
 
-      for (ptr; ptr < end; ptr++)
+      for (; ptr < end; ptr++)
       {
         Buffer<T> buffer(*ptr);
         result.push(std::move(buffer));
@@ -4358,9 +4033,10 @@ namespace Rice
   }
 
   // ------  define_buffer ----------
-  template<typename Buffer_T>
-  inline Data_Type<Buffer_T> define_buffer()
+  template<typename T>
+  inline Data_Type<Buffer<T>> define_buffer()
   {
+    using Buffer_T = Buffer<T>;
     std::string name = detail::typeName(typeid(Buffer_T));
     std::string klassName = detail::rubyClassName(name);
     Module rb_mRice = define_module("Rice");
@@ -4379,34 +4055,34 @@ namespace Rice
 
   inline void define_fundamental_buffer_types()
   {
-    define_buffer<Buffer<bool>>();
-    define_buffer<Buffer<int>>();
-    define_buffer<Buffer<int*>>();
-    define_buffer<Buffer<unsigned int>>();
-    define_buffer<Buffer<unsigned int*>>();
-    define_buffer<Buffer<char>>();
-    define_buffer<Buffer<char*>>();
-    define_buffer<Buffer<unsigned char>>();
-    define_buffer<Buffer<unsigned char*>>();
-    define_buffer<Buffer<signed char>>();
-    define_buffer<Buffer<signed char*>>();
-    define_buffer<Buffer<double>>();
-    define_buffer<Buffer<double*>>();
-    define_buffer<Buffer<float>>();
-    define_buffer<Buffer<float*>>();
-    define_buffer<Buffer<long>>();
-    define_buffer<Buffer<long*>>();
-    define_buffer<Buffer<unsigned long>>();
-    define_buffer<Buffer<unsigned long*>>();
-    define_buffer<Buffer<long long>>();
-    define_buffer<Buffer<long long*>>();
-    define_buffer<Buffer<unsigned long long>>();
-    define_buffer<Buffer<unsigned long long*>>();
-    define_buffer<Buffer<short>>();
-    define_buffer<Buffer<short*>>();
-    define_buffer<Buffer<unsigned short>>();
-    define_buffer<Buffer<unsigned short*>>();
-    define_buffer<Buffer<void>>();
+    define_buffer<bool>();
+    define_buffer<int>();
+    define_buffer<int*>();
+    define_buffer<unsigned int>();
+    define_buffer<unsigned int*>();
+    define_buffer<char>();
+    define_buffer<char*>();
+    define_buffer<unsigned char>();
+    define_buffer<unsigned char*>();
+    define_buffer<signed char>();
+    define_buffer<signed char*>();
+    define_buffer<double>();
+    define_buffer<double*>();
+    define_buffer<float>();
+    define_buffer<float*>();
+    define_buffer<long>();
+    define_buffer<long*>();
+    define_buffer<unsigned long>();
+    define_buffer<unsigned long*>();
+    define_buffer<long long>();
+    define_buffer<long long*>();
+    define_buffer<unsigned long long>();
+    define_buffer<unsigned long long*>();
+    define_buffer<short>();
+    define_buffer<short*>();
+    define_buffer<unsigned short>();
+    define_buffer<unsigned short*>();
+    define_buffer<void>();
   }
 }
 
@@ -4421,7 +4097,7 @@ namespace Rice::detail
 
       if (!Data_Type<Buffer<T>>::is_defined())
       {
-        define_buffer<Buffer<T>>();
+        define_buffer<T>();
       }
 
       return true;
@@ -11059,7 +10735,7 @@ namespace Rice
   template<typename T>
   inline Array String::unpack() const
   {
-    return this->call("unpack", detail::RubyType<T>::packTemplate);
+    return this->call("unpack", detail::RubyType<T>::packTemplate.c_str());
   }
 
   inline Identifier String::intern() const
@@ -11154,7 +10830,7 @@ namespace Rice
     return RARRAY_LEN(this->value());
   }
 
-  inline String Array::join(std::string separator)
+  inline String Array::join(char* separator)
   {
     return this->call("join", separator);
   }
@@ -11162,7 +10838,8 @@ namespace Rice
   template<typename T>
   String Array::pack()
   {
-    return this->call("pack", detail::RubyType<T>::packTemplate);
+    // Use .c_str so that the stl.hpp header is not required
+    return this->call("pack", detail::RubyType<T>::packTemplate.c_str());
   }
 
   inline Object Array::operator[](long index) const
@@ -13003,6 +12680,14 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+
+    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
+                  !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
+                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
+                  !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
+                  !std::is_same_v<T, std::vector<T>>,
+                  "Please include rice/stl.hpp header for STL support");
+
   public:
     VALUE convert(const T& data)
     {
@@ -13030,6 +12715,14 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+
+    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
+                  !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
+                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
+                  !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
+                  !std::is_same_v<T, std::vector<T>>,
+                  "Please include rice/stl.hpp header for STL support");
+
   public:
     To_Ruby() = default;
 
@@ -13066,6 +12759,14 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+
+    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
+                  !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
+                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
+                  !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
+                  !std::is_same_v<T, std::vector<T>>,
+                  "Please include rice/stl.hpp header for STL support");
+
   public:
     To_Ruby() = default;
 
@@ -13106,6 +12807,14 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+
+    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
+                  !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
+                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
+                  !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
+                  !std::is_same_v<T, std::vector<T>>,
+                  "Please include rice/stl.hpp header for STL support");
+
   public:
     To_Ruby() = default;
 
@@ -13146,6 +12855,14 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+
+    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
+                  !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
+                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
+                  !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
+                  !std::is_same_v<T, std::vector<T>>,
+                  "Please include rice/stl.hpp header for STL support");
+
   public:
     To_Ruby() = default;
 
@@ -13204,6 +12921,14 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+
+    static_assert(!std::is_same_v<T, std::map<T, T>> || !std::is_same_v<T, std::unordered_map<T, T>> ||
+                  !std::is_same_v<T, std::monostate> || !std::is_same_v<T, std::multimap<T, T>> ||
+                  !std::is_same_v<T, std::optional<T>> || !std::is_same_v<T, std::pair<T, T>> ||
+                  !std::is_same_v<T, std::set<T>> || !std::is_same_v<T, std::string> ||
+                  !std::is_same_v<T, std::vector<T>>,
+                  "Please include rice/stl.hpp header for STL support");
+
   public:
     From_Ruby() = default;
 
@@ -13266,6 +12991,14 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+
+    static_assert(!std::is_same_v<T, std::map<T, T>>   && !std::is_same_v<T, std::unordered_map<T, T>> &&
+                  !std::is_same_v<T, std::monostate>   && !std::is_same_v<T, std::multimap<T, T>>      &&
+                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>>          &&
+                  !std::is_same_v<T, std::set<T>>      && !std::is_same_v<T, std::string>              &&
+                  !std::is_same_v<T, std::vector<T>>,
+                  "Please include rice/stl.hpp header for STL support");
+
   public:
     From_Ruby() = default;
 
@@ -13308,6 +13041,14 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+
+    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
+                  !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
+                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
+                  !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
+                  !std::is_same_v<T, std::vector<T>>,
+                  "Please include rice/stl.hpp header for STL support");
+
   public:
     From_Ruby() = default;
 
@@ -13354,6 +13095,14 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+
+    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
+                  !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
+                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
+                  !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
+                  !std::is_same_v<T, std::vector<T>>,
+                  "Please include rice/stl.hpp header for STL support");
+
     using Intrinsic_T = intrinsic_type<T>;
 
   public:
@@ -13426,6 +13175,14 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+
+    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
+                  !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
+                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
+                  !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
+                  !std::is_same_v<T, std::vector<T>>,
+                  "Please include rice/stl.hpp header for STL support");
+
   public:
     From_Ruby() = default;
 
@@ -13468,6 +13225,14 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+
+    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
+                  !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
+                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
+                  !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
+                  !std::is_same_v<T, std::vector<T>>,
+                  "Please include rice/stl.hpp header for STL support");
+
     using Intrinsic_T = intrinsic_type<T>;
   public:
     From_Ruby() = default;
@@ -13526,6 +13291,14 @@ namespace Rice::detail
   {
     static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
                   "Data_Object cannot be used with fundamental types");
+
+    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
+                  !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
+                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
+                  !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
+                  !std::is_same_v<T, std::vector<T>>,
+                  "Please include rice/stl.hpp header for STL support");
+
   public:
     Convertible is_convertible(VALUE value)
     {
@@ -13640,15 +13413,15 @@ namespace Rice
     // First we need a constructor
     klass.define_constructor(Constructor<Enum_T>());
 
-    klass.define_method("to_s", [](Enum_T& self) -> std::string
+    klass.define_method("to_s", [](Enum_T& self) -> String
       {
-        return std::string(valuesToNames_[self]);
+        return String(valuesToNames_[self]);
       })
       .define_method("to_int", [](Enum_T& self) ->  Underlying_T
       {
         return (Underlying_T)(self);
       })
-      .define_method("coerce", [](Enum_T& self, Underlying_T& other) -> std::tuple<Enum_T, Enum_T>
+      .define_method("coerce", [](Enum_T& self, Underlying_T& other) -> Array
       {
         /* Other will be a numeric value that matches the underlying type of the enum, for example an int.
            Convert that to the enum type and then create new Ruby object to wrap it. This then enables code
@@ -13659,7 +13432,11 @@ namespace Rice
         Colors::Red | Colors:Blue returns an integer. Then this method converts the integer back into an Enum
         instance so that Colors:Blue | Colors:Green works. */
         Enum_T otherEnum = (Enum_T)other;
-        return std::tie<Enum_T, Enum_T>(self, otherEnum);
+
+        Array result;
+        result.push(self);
+        result.push(otherEnum);
+        return result;
       })
       .define_method("inspect", [](Enum_T& self)
       {
@@ -13930,4 +13707,32 @@ namespace Rice::detail
 }
 
 
+// Initialize Rice
+
+// =========   Init.hpp   =========
+
+namespace Rice
+{
+  // This class is used to initialize Rice when a Rice extension is loaded.
+  // It defines template instantiations for the Buffer and RubyTypes classes.
+  // To use it add the following code to your Init_ function when loading a 
+  // Rice extension:
+  //
+  //    static Rice::Init init;
+  class Init
+  {
+  public:
+    Init();
+  };
+}
+
+// =========   Init.ipp   =========
+namespace Rice
+{
+  inline Init::Init()
+  {
+    define_fundamental_buffer_types();
+    detail::define_ruby_types();
+  };
+}
 #endif // Rice__hpp_

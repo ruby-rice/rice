@@ -47,7 +47,7 @@ TESTCASE(StringMultimap)
 {
   Module m = define_module("Testing");
 
-  Class c = define_multimap<std::multimap<std::string, std::string>>("StringMultimap");
+  Class c = define_multimap<std::string, std::string>("StringMultimap");
 
   Object multimap = m.module_eval("$multimap = Std::StringMultimap.new");
   Object result = multimap.call("size");
@@ -66,7 +66,7 @@ TESTCASE(WrongType)
 {
   Module m = define_module("Testing");
 
-  Class c = define_multimap<std::multimap<std::string, std::string>>("StringMultimap");
+  Class c = define_multimap<std::string, std::string>("StringMultimap");
   Object multimap = m.module_eval("$multimap = Std::StringMultimap.new");
 
   ASSERT_EXCEPTION_CHECK(
@@ -84,7 +84,7 @@ TESTCASE(Empty)
 {
   Module m = define_module("Testing");
 
-  Class c = define_multimap<std::multimap<std::string, std::int32_t>>("IntMultimap");
+  Class c = define_multimap<std::string, std::int32_t>("IntMultimap");
   Object multimap = c.call("new");
 
   Object result = multimap.call("size");
@@ -98,7 +98,7 @@ TESTCASE(Include)
 {
   Module m = define_module("Testing");
 
-  Class c = define_multimap<std::multimap<std::string, std::int32_t>>("IntMultimap");
+  Class c = define_multimap<std::string, std::int32_t>("IntMultimap");
   Object multimap = c.call("new");
   multimap.call("insert", "one", 1);
   multimap.call("insert", "two", 2);
@@ -117,7 +117,7 @@ TESTCASE(Value)
 {
   Module m = define_module("Testing");
 
-  Class c = define_multimap<std::multimap<std::string, std::int32_t>>("IntMultimap");
+  Class c = define_multimap<std::string, std::int32_t>("IntMultimap");
   Object multimap = c.call("new");
   multimap.call("insert", "one", 1);
   multimap.call("insert", "two", 2);
@@ -133,7 +133,7 @@ TESTCASE(ToString)
 {
   Module m = define_module("Testing");
 
-  Class c = define_multimap<std::multimap<std::string, std::int32_t>>("IntMultimap");
+  Class c = define_multimap<std::string, std::int32_t>("IntMultimap");
   Object multimap = c.call("new");
   multimap.call("insert", "one", 1);
   multimap.call("insert", "two", 2);
@@ -151,7 +151,7 @@ TESTCASE(Update)
 {
   Module m = define_module("Testing");
 
-  Class c = define_multimap<std::multimap<std::string, std::string>>("StringMultimap");
+  Class c = define_multimap<std::string, std::string>("StringMultimap");
   Object multimap = c.call("new");
   multimap.call("insert", "one", "original 1");
   multimap.call("insert", "two", "original 2");
@@ -175,7 +175,7 @@ TESTCASE(Modify)
 {
   Module m = define_module("Testing");
 
-  Class c = define_multimap<std::multimap<std::string, int64_t>>("Int64Multimap");
+  Class c = define_multimap<std::string, int64_t>("Int64Multimap");
   Object multimap = c.call("new");
 
   Object result = multimap.call("insert", "one", 3232323232);
@@ -194,7 +194,7 @@ TESTCASE(keysAndValues)
 {
   Module m = define_module("Testing");
 
-  Class c = define_multimap<std::multimap<std::string, int32_t>>("Int32Multimap");
+  Class c = define_multimap<std::string, int32_t>("Int32Multimap");
   Object multimap = c.call("new");
 
   multimap.call("insert", "one", 1);
@@ -222,7 +222,7 @@ TESTCASE(Copy)
 {
   Module m = define_module("Testing");
 
-  Class c = define_multimap<std::multimap<std::string, double>>("DoubleMultimap");
+  Class c = define_multimap<std::string, double>("DoubleMultimap");
   Object object = c.call("new");
 
   object.call("insert", "one", 11.1);
@@ -238,7 +238,7 @@ TESTCASE(Copy)
 TESTCASE(Iterate)
 {
   Module m = define_module("Testing");
-  Class c = define_multimap<std::multimap<std::string, int>>("IntMultimap");
+  Class c = define_multimap<std::string, int>("IntMultimap");
 
   std::string code = R"(multimap = Std::IntMultimap.new
                         multimap.insert("five", 5)
@@ -265,7 +265,7 @@ TESTCASE(Iterate)
 TESTCASE(ToEnum)
 {
   Module m = define_module("Testing");
-  Class c = define_multimap<std::multimap<std::string, int>>("IntMultimap");
+  Class c = define_multimap<std::string, int>("IntMultimap");
 
   std::string code = R"(multimap = Std::IntMultimap.new
                         multimap.insert("five", 5)
@@ -293,7 +293,7 @@ TESTCASE(ToEnum)
 TESTCASE(ToEnumSize)
 {
   Module m = define_module("TestingModule");
-  Class c = define_multimap<std::multimap<std::string, int>>("IntMultimap");
+  Class c = define_multimap<std::string, int>("IntMultimap");
 
   std::string code = R"(multimap = Std::IntMultimap.new
                         multimap.insert("five", 5)
@@ -330,7 +330,7 @@ TESTCASE(NotComparable)
   define_class<NotComparable>("NotComparable").
     define_constructor(Constructor<NotComparable, uint32_t>());
 
-  Class c = define_multimap<std::multimap<std::string, NotComparable>>("NotComparableMultimap");
+  Class c = define_multimap<std::string, NotComparable>("NotComparableMultimap");
 
   Object multimap = c.call("new");
   multimap.call("insert", "one", NotComparable(1));
@@ -349,7 +349,7 @@ TESTCASE(NotPrintable)
   define_class<NotComparable>("NotComparable").
     define_constructor(Constructor<NotComparable, uint32_t>());
 
-  Class c = define_multimap<std::multimap<std::string, NotComparable>>("NotComparableMultimap");
+  Class c = define_multimap<std::string, NotComparable>("NotComparableMultimap");
 
   Object multimap = c.call("new");
   multimap.call("insert", "one", NotComparable(1));
@@ -390,7 +390,7 @@ TESTCASE(Comparable)
   define_class<Comparable>("IsComparable").
     define_constructor(Constructor<Comparable, uint32_t>());
 
-  Class c = define_multimap<std::multimap<std::string, Comparable>>("ComparableMultimap");
+  Class c = define_multimap<std::string, Comparable>("ComparableMultimap");
 
   Object multimap = c.call("new");
   
@@ -407,7 +407,7 @@ TESTCASE(Printable)
   define_class<Comparable>("IsComparable").
     define_constructor(Constructor<Comparable, uint32_t>());
 
-  Class c = define_multimap<std::multimap<std::string, Comparable>>("ComparableMultimap");
+  Class c = define_multimap<std::string, Comparable>("ComparableMultimap");
 
   Object multimap = c.call("new");
   multimap.call("insert", "one", Comparable(1));
@@ -458,13 +458,13 @@ TESTCASE(AutoRegisterReturn)
   ASSERT_EQUAL(Qtrue, result.value());
 
   // Now register the multimap again
-  define_multimap<std::multimap<std::string, std::complex<double>>>("ComplexMultimap");
+  define_multimap<std::string, std::complex<double>>("ComplexMultimap");
   code = R"(multimap = Std::ComplexMultimap.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(multimap.class_of()));
 
   // And again in the module
-  define_multimap<std::multimap<std::string, std::complex<double>>>("ComplexMultimap2");
+  define_multimap<std::string, std::complex<double>>("ComplexMultimap2");
   code = R"(multimap = Std::ComplexMultimap2.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(multimap.class_of()));
@@ -505,7 +505,7 @@ namespace
 
 TESTCASE(DefaultValue)
 {
-  define_multimap<std::multimap<std::string, std::string>>("StringMultimap");
+  define_multimap<std::string, std::string>("StringMultimap");
   define_global_function("default_multimap", &defaultMultimap, Arg("strings") = std::multimap<std::string, std::string>{ {"one", "value 1"}, {"two", "value 2"}, {"three", "value 3"} });
 
   Module m = define_module("Testing");

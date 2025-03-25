@@ -4,7 +4,7 @@
 namespace Rice
 {
   template<typename T>
-  Data_Type<T> define_vector(std::string name= "" );
+  Data_Type<std::vector<T>> define_vector(std::string name = "" );
 }
 
 #include "vector.ipp"

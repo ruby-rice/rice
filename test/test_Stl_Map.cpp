@@ -47,7 +47,7 @@ TESTCASE(StringMap)
 {
   Module m = define_module("Testing");
 
-  Class c = define_map<std::map<std::string, std::string>>("StringMap");
+  Class c = define_map<std::string, std::string>("StringMap");
 
   Object map = m.module_eval("$map = Std::StringMap.new");
   Object result = map.call("size");
@@ -66,7 +66,7 @@ TESTCASE(WrongType)
 {
   Module m = define_module("Testing");
 
-  Class c = define_map<std::map<std::string, std::string>>("StringMap");
+  Class c = define_map<std::string, std::string>("StringMap");
   Object map = m.module_eval("$map = Std::StringMap.new");
 
   ASSERT_EXCEPTION_CHECK(
@@ -84,7 +84,7 @@ TESTCASE(Empty)
 {
   Module m = define_module("Testing");
 
-  Class c = define_map<std::map<std::string, std::int32_t>>("IntMap");
+  Class c = define_map<std::string, std::int32_t>("IntMap");
   Object map = c.call("new");
 
   Object result = map.call("size");
@@ -98,7 +98,7 @@ TESTCASE(Include)
 {
   Module m = define_module("Testing");
 
-  Class c = define_map<std::map<std::string, std::int32_t>>("IntMap");
+  Class c = define_map<std::string, std::int32_t>("IntMap");
   Object map = c.call("new");
   map.call("[]=", "one", 1);
   map.call("[]=", "two", 2);
@@ -117,7 +117,7 @@ TESTCASE(Value)
 {
   Module m = define_module("Testing");
 
-  Class c = define_map<std::map<std::string, std::int32_t>>("IntMap");
+  Class c = define_map<std::string, std::int32_t>("IntMap");
   Object map = c.call("new");
   map.call("[]=", "one", 1);
   map.call("[]=", "two", 2);
@@ -133,7 +133,7 @@ TESTCASE(ToString)
 {
   Module m = define_module("Testing");
 
-  Class c = define_map<std::map<std::string, std::int32_t>>("IntMap");
+  Class c = define_map<std::string, std::int32_t>("IntMap");
   Object map = c.call("new");
   map.call("[]=", "one", 1);
   map.call("[]=", "two", 2);
@@ -151,7 +151,7 @@ TESTCASE(Update)
 {
   Module m = define_module("Testing");
 
-  Class c = define_map<std::map<std::string, std::string>>("StringMap");
+  Class c = define_map<std::string, std::string>("StringMap");
   Object map = c.call("new");
   map.call("[]=", "one", "original 1");
   map.call("[]=", "two", "original 2");
@@ -173,7 +173,7 @@ TESTCASE(Modify)
 {
   Module m = define_module("Testing");
 
-  Class c = define_map<std::map<std::string, int64_t>>("Int64Map");
+  Class c = define_map<std::string, int64_t>("Int64Map");
   Object map = c.call("new");
 
   Object result = map.call("[]=", "one", 3232323232);
@@ -192,7 +192,7 @@ TESTCASE(keysAndValues)
 {
   Module m = define_module("Testing");
 
-  Class c = define_map<std::map<std::string, int32_t>>("Int32Map");
+  Class c = define_map<std::string, int32_t>("Int32Map");
   Object map = c.call("new");
 
   map.call("[]=", "one", 1);
@@ -220,7 +220,7 @@ TESTCASE(Copy)
 {
   Module m = define_module("Testing");
 
-  Class c = define_map<std::map<std::string, double>>("DoubleMap");
+  Class c = define_map<std::string, double>("DoubleMap");
   Object object = c.call("new");
 
   object.call("[]=", "one", 11.1);
@@ -241,7 +241,7 @@ TESTCASE(Copy)
 TESTCASE(Iterate)
 {
   Module m = define_module("Testing");
-  Class c = define_map<std::map<std::string, int>>("IntMap");
+  Class c = define_map<std::string, int>("IntMap");
 
   std::string code = R"(map = Std::IntMap.new
                         map["five"] = 5
@@ -268,7 +268,7 @@ TESTCASE(Iterate)
 TESTCASE(ToEnum)
 {
   Module m = define_module("Testing");
-  Class c = define_map<std::map<std::string, int>>("IntMap");
+  Class c = define_map<std::string, int>("IntMap");
 
   std::string code = R"(map = Std::IntMap.new
                         map["five"] = 5
@@ -296,7 +296,7 @@ TESTCASE(ToEnum)
 TESTCASE(ToEnumSize)
 {
   Module m = define_module("TestingModule");
-  Class c = define_map<std::map<std::string, int>>("IntMap");
+  Class c = define_map<std::string, int>("IntMap");
 
   std::string code = R"(map = Std::IntMap.new
                         map["five"] = 5
@@ -332,7 +332,7 @@ TESTCASE(NotComparable)
   define_class<NotComparable>("NotComparable").
     define_constructor(Constructor<NotComparable, uint32_t>());
 
-  Class c = define_map<std::map<std::string, NotComparable>>("NotComparableMap");
+  Class c = define_map<std::string, NotComparable>("NotComparableMap");
 
   Object map = c.call("new");
   map.call("[]=", "one", NotComparable(1));
@@ -351,7 +351,7 @@ TESTCASE(NotPrintable)
   define_class<NotComparable>("NotComparable").
     define_constructor(Constructor<NotComparable, uint32_t>());
 
-  Class c = define_map<std::map<std::string, NotComparable>>("NotComparableMap");
+  Class c = define_map<std::string, NotComparable>("NotComparableMap");
 
   Object map = c.call("new");
   map.call("[]=", "one", NotComparable(1));
@@ -392,7 +392,7 @@ TESTCASE(Comparable)
   define_class<Comparable>("IsComparable").
     define_constructor(Constructor<Comparable, uint32_t>());
 
-  Class c = define_map<std::map<std::string, Comparable>>("ComparableMap");
+  Class c = define_map<std::string, Comparable>("ComparableMap");
 
   Object map = c.call("new");
   
@@ -409,7 +409,7 @@ TESTCASE(Printable)
   define_class<Comparable>("IsComparable").
     define_constructor(Constructor<Comparable, uint32_t>());
 
-  Class c = define_map<std::map<std::string, Comparable>>("ComparableMap");
+  Class c = define_map<std::string, Comparable>("ComparableMap");
 
   Object map = c.call("new");
   map.call("[]=", "one", Comparable(1));
@@ -458,7 +458,7 @@ TESTCASE(AutoRegisterReturn)
   ASSERT_EQUAL(Qtrue, result.value());
 
   // Now register the map again
-  define_map<std::map<std::string, std::complex<double>>>("ComplexMap");
+  define_map<std::string, std::complex<double>>("ComplexMap");
   code = R"(map = Std::ComplexMap.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(map.class_of()));
@@ -496,7 +496,7 @@ namespace
 
 TESTCASE(DefaultValue)
 {
-  define_map<std::map<std::string, std::string>>("StringMap");
+  define_map<std::string, std::string>("StringMap");
   define_global_function("default_map", &defaultMap, Arg("strings") = std::map<std::string, std::string>{ {"one", "value 1"}, {"two", "value 2"}, {"three", "value 3"} });
 
   Module m = define_module("Testing");

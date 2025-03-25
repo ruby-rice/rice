@@ -23,7 +23,7 @@ TESTCASE(CreatePair)
 {
   Module m = define_module("Testing");
 
-  Class c = define_pair<std::pair<int32_t, std::optional<std::string>>>("IntStringPair");
+  Class c = define_pair<int32_t, std::optional<std::string>>("IntStringPair");
 
   Object pair = c.call("new", 0, nullptr);
 
@@ -50,7 +50,7 @@ TESTCASE(CreatePairConst)
 {
   Module m = define_module("Testing");
 
-  Class c = define_pair<std::pair<const std::string, const std::string>>("ConstStringPair");
+  Class c = define_pair<const std::string, const std::string>("ConstStringPair");
   Object pair = c.call("new", "pair1", "pair2");
 
   Object result = pair.call("first");
@@ -130,14 +130,14 @@ TESTCASE(AutoRegister)
   ASSERT_EQUAL(3.2, detail::From_Ruby<double>().convert(result));
 
   // Now register the pair again
-  define_pair<std::pair<std::string, double>>("SomePair");
-  std::string code = R"(pair = SomePair.new('string', 2.0))";
+  define_pair<std::string, double>("SomePair");
+  std::string code = R"(pair = Std::SomePair.new('string', 2.0))";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(pair.class_of()));
 
   // And again in the module
-  define_pair_under<std::pair<std::string, double>>(m, "SomePair2");
-  code = R"(pair = Testing::SomePair2.new('string', 3.0))";
+  define_pair<std::string, double>("SomePair2");
+  code = R"(pair = Std::SomePair2.new('string', 3.0))";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(pair.class_of()));
 }
@@ -156,7 +156,7 @@ TESTCASE(ReferenceReturned)
     define_constructor(Constructor<SomeStruct>()).
     define_attr("value", &SomeStruct::value);
 
-  define_pair<std::pair<char, SomeStruct>>("CharSomeStructPair");
+  define_pair<char, SomeStruct>("CharSomeStructPair");
 
   std::pair<char, SomeStruct> aPair;
   aPair.first = 'a';
