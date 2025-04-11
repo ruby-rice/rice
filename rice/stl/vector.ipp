@@ -22,8 +22,7 @@ namespace Rice
     public:
       VectorHelper(Data_Type<T> klass) : klass_(klass)
       {
-        this->define_constructor();
-        this->define_copyable_methods();
+        this->define_constructors();
         this->define_constructable_methods();
         this->define_capacity_methods();
         this->define_access_methods();
@@ -55,28 +54,35 @@ namespace Rice
         return index;
       };
 
-      void define_constructor()
+      void define_constructors()
       {
-        klass_.define_constructor(Constructor<T>());
-      }
+        klass_.define_constructor(Constructor<T>())
+              .define_constructor(Constructor<T, Size_T, const Parameter_T>())
+              .define_constructor(Constructor<T, const T&>());
 
-      void define_copyable_methods()
-      {
-        if constexpr (std::is_copy_constructible_v<Value_T>)
+        if constexpr (std::is_default_constructible_v<Value_T>)
         {
-          klass_.define_method("copy", [](T& vector) -> T
-            {
-              return vector;
-            });
+          klass_.define_constructor(Constructor<T, Size_T>());
         }
-        else
+
+        // Allow creation of a vector from a Ruby Array
+        klass_.define_method("initialize", [](VALUE self, Array array) -> void
         {
-          klass_.define_method("copy", [](T& vector) -> T
-            {
-              throw std::runtime_error("Cannot copy vectors with non-copy constructible types");
-              return vector;
-            });
-        }
+          // Create a new vector from the array
+          T* data = new T();
+          data->reserve(array.size());
+
+          detail::From_Ruby<Value_T> fromRuby;
+
+          for (long i = 0; i < array.size(); i++)
+          {
+            VALUE element = detail::protect(rb_ary_entry, array, i);
+            data->push_back(fromRuby.convert(element));
+          }
+
+          // Wrap the vector
+          detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data, true);
+        });
       }
 
       void define_constructable_methods()

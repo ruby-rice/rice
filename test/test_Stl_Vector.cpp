@@ -66,6 +66,57 @@ TESTCASE(StringVector)
   ASSERT_EQUAL("four", detail::From_Ruby<std::string>().convert(result));
 }
 
+TESTCASE(Constructors)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_vector<int>("IntVector");
+
+  // Default constructor
+  std::string code = R"(Std::IntVector.new)";
+  Object vec = m.module_eval(code);
+  Object result = vec.call("size");
+  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
+
+  detail::From_Ruby<int> fromRuby;
+
+  // Constructor with specific size and default construtible values
+  code = R"(Std::IntVector.new(3))";
+  vec = m.module_eval(code);
+  result = vec.call("size");
+  ASSERT_EQUAL(3, fromRuby.convert(result));
+  Object element = vec.call("[]", 0);
+  ASSERT_EQUAL(0, fromRuby.convert(element));
+  element = vec.call("[]", 1);
+  ASSERT_EQUAL(0, fromRuby.convert(element));
+  element = vec.call("[]", 2);
+  ASSERT_EQUAL(0, fromRuby.convert(element));
+
+  // Constructor with specific size and value
+  code = R"(Std::IntVector.new(3, 5))";
+  vec = m.module_eval(code);
+  result = vec.call("size");
+  ASSERT_EQUAL(3, fromRuby.convert(result));
+  element = vec.call("[]", 0);
+  ASSERT_EQUAL(5, fromRuby.convert(element));
+  element = vec.call("[]", 1);
+  ASSERT_EQUAL(5, fromRuby.convert(element));
+  element = vec.call("[]", 2);
+  ASSERT_EQUAL(5, fromRuby.convert(element));
+
+  // Custom constructor
+  code = R"(Std::IntVector.new([1, 2, 3]))";
+  vec = m.module_eval(code);
+  result = vec.call("size");
+  ASSERT_EQUAL(3, fromRuby.convert(result));
+  element = vec.call("[]", 0);
+  ASSERT_EQUAL(1, fromRuby.convert(element));
+  element = vec.call("[]", 1);
+  ASSERT_EQUAL(2, fromRuby.convert(element));
+  element = vec.call("[]", 2);
+  ASSERT_EQUAL(3, fromRuby.convert(element));
+}
+
 TESTCASE(WrongElementType)
 {
   Module m = define_module("Testing");
@@ -317,7 +368,7 @@ TESTCASE(Modify)
   ASSERT_EQUAL(Qnil, result.value());
 }
 
-TESTCASE(Copy)
+TESTCASE(Clone)
 {
   Module m = define_module("Testing");
 
@@ -328,15 +379,15 @@ TESTCASE(Copy)
   object.call("push", 22.2);
   std::vector<double>& vec = detail::From_Ruby<std::vector<double>&>().convert(object);
 
-  Object result = object.call("copy");
-  std::vector<double>& vecCopy = detail::From_Ruby<std::vector<double>&>().convert(result);
+  Object result = object.call("clone");
+  std::vector<double>& vecClone = detail::From_Ruby<std::vector<double>&>().convert(result);
 
-  ASSERT_EQUAL(vec.size(), vecCopy.size());
-  ASSERT_EQUAL(vec[0], vecCopy[0]);
-  ASSERT_EQUAL(vec[1], vecCopy[1]);
+  ASSERT_EQUAL(vec.size(), vecClone.size());
+  ASSERT_EQUAL(vec[0], vecClone[0]);
+  ASSERT_EQUAL(vec[1], vecClone[1]);
 
-  vecCopy.push_back(33.3);
-  ASSERT_NOT_EQUAL(vec.size(), vecCopy.size());
+  vecClone.push_back(33.3);
+  ASSERT_NOT_EQUAL(vec.size(), vecClone.size());
 }
 
 namespace
@@ -1007,6 +1058,7 @@ namespace
 TESTCASE(TypeCheck)
 {
   define_vector<int>("Vector≺int≻");
+  define_vector<std::string>("Vector≺string≻");
 
   Module m(anonymous_module());
   m.define_module_function("check_value", &typeCheckValue).
@@ -1034,7 +1086,7 @@ TESTCASE(TypeCheck)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≻)", ex.what()));
+    ASSERT_EQUAL("wrong argument type Std::IntVector (expected Std::StringVector)", ex.what()));
 
   code = R"(vec = Std::Vector≺int≻.new
             check_ref(vec))";
@@ -1042,7 +1094,7 @@ TESTCASE(TypeCheck)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≻)", ex.what()));
+    ASSERT_EQUAL("wrong argument type Std::IntVector (expected Std::StringVector)", ex.what()));
 
   code = R"(vec = Std::Vector≺int≻.new
             check_ptr(vec))";
@@ -1050,5 +1102,5 @@ TESTCASE(TypeCheck)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≻)", ex.what()));
+    ASSERT_EQUAL("wrong argument type Std::IntVector (expected Std::StringVector)", ex.what()));
 }
