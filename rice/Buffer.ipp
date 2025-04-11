@@ -443,11 +443,16 @@ namespace Rice
 
   // ------  define_buffer ----------
   template<typename T>
-  inline Data_Type<Buffer<T>> define_buffer()
+  inline Data_Type<Buffer<T>> define_buffer(std::string klassName)
   {
     using Buffer_T = Buffer<T>;
-    std::string name = detail::typeName(typeid(Buffer_T));
-    std::string klassName = detail::rubyClassName(name);
+
+    if (klassName.empty())
+    {
+      std::string typeName = detail::typeName(typeid(Buffer_T));
+      klassName = detail::rubyClassName(typeName);
+    }
+
     Module rb_mRice = define_module("Rice");
 
     Data_Type<Buffer_T> result = define_class_under<Buffer_T>(rb_mRice, klassName).

@@ -87,7 +87,7 @@ namespace Rice
   };
 
   template<typename T>
-  Data_Type<Buffer<T>> define_buffer();
+  Data_Type<Buffer<T>> define_buffer(std::string klassName = "");
 
   void define_fundamental_buffer_types();
 }
