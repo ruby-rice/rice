@@ -1086,7 +1086,7 @@ TESTCASE(TypeCheck)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Std::IntVector (expected Std::StringVector)", ex.what()));
+    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≻)", ex.what()));
 
   code = R"(vec = Std::Vector≺int≻.new
             check_ref(vec))";
@@ -1094,7 +1094,7 @@ TESTCASE(TypeCheck)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Std::IntVector (expected Std::StringVector)", ex.what()));
+    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≻)", ex.what()));
 
   code = R"(vec = Std::Vector≺int≻.new
             check_ptr(vec))";
@@ -1102,5 +1102,5 @@ TESTCASE(TypeCheck)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Std::IntVector (expected Std::StringVector)", ex.what()));
+    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≻)", ex.what()));
 }
