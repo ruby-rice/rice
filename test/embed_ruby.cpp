@@ -27,6 +27,6 @@ void embed_ruby()
     initialized__ = true;
 
     // Initialize Rice
-    Rice::Init init;
+    Rice::init();
   }
 }
