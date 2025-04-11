@@ -256,7 +256,7 @@ namespace Rice::detail
        the return type. That works but requires a lot more code changes for this one case and is not 
        backwards compatible. */
 
-    // If the user did provide a value assume Qnil
+    // If the user did not provide a value assume Qnil
     VALUE value = I < values.size() ? values[I] : Qnil;
 
     if constexpr (is_pointer_pointer_v<Arg_T> && !std::is_convertible_v<remove_cv_recursive_t<Arg_T>, Arg_T>)
