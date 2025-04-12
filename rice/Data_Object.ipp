@@ -287,10 +287,10 @@ namespace Rice::detail
     {
       if (data)
       {
-        using Buffer_T = Buffer<intrinsic_type<T>*>;
         bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
-        Buffer_T buffer(data);
+        Buffer<T*> buffer(data);
         buffer.setOwner(isOwner);
+        using Buffer_T = Buffer<intrinsic_type<T>*>;
         return detail::wrap(Data_Type<Buffer_T>::klass(), Data_Type<Buffer_T>::ruby_data_type(), buffer, true);
       }
       else
