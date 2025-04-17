@@ -191,7 +191,7 @@ namespace Rice
           {
             define_buffer<Value_T>();
             define_buffer<Value_T*>();
-            klass_.define_method<Value_T*(T::*)()>("data", &T::data);
+            klass_.template define_method<Value_T*(T::*)()>("data", &T::data);
           }
 
           rb_define_alias(klass_, "at", "[]");
