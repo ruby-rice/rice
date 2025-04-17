@@ -15,6 +15,9 @@ namespace Rice
     template<typename T>
     using intrinsic_type = typename std::remove_cv_t<std::remove_pointer_t<std::remove_pointer_t<std::remove_reference_t<T>>>>;
 
+    template<typename T>
+    constexpr bool is_const_any_v = std::is_const_v<std::remove_pointer_t<std::remove_pointer_t<std::remove_reference_t<T>>>>;
+
     // Recursively remove const/volatile
     template<typename T>
     struct remove_cv_recursive

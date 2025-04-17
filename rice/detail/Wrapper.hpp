@@ -9,6 +9,7 @@ namespace Rice::detail
     WrapperBase() = default;
     virtual ~WrapperBase() = default;
     virtual void* get() = 0;
+    bool isConst();
 
     void ruby_mark();
     void addKeepAlive(VALUE value);
@@ -16,6 +17,7 @@ namespace Rice::detail
 
   protected:
     bool isOwner_ = false;
+    bool isConst_ = false;
 
   private:
     // We use a vector for speed and memory locality versus a set which does
