@@ -982,8 +982,12 @@ namespace
   std::vector<std::string*> vectorOfStringPointers()
   {
     std::vector<std::string*> result;
-    std::string* pString = new std::string("Hello");
-    result.push_back(pString);
+    std::string* pString1 = new std::string("Hello");
+    result.push_back(pString1);
+
+    std::string* pString2 = new std::string("World");
+    result.push_back(pString2);
+
     return result;
   }
 }
@@ -994,11 +998,20 @@ TESTCASE(StringPointerVector)
 
   Module m(rb_mKernel);
   Data_Object<std::vector<std::string*>> vec = m.call("vector_of_string_pointers");
-  ASSERT_EQUAL(1, vec->size());
+  ASSERT_EQUAL(2, vec->size());
 
   std::string expected("Hello");
   std::string* actual = (*vec)[0];
   ASSERT_EQUAL(expected, *actual);
+
+  std::string code = R"(vec = vector_of_string_pointers
+                        outer_buffer = vec.data
+                        inner_buffers = outer_buffer.to_a(0, 2)
+                        inner_buffer = inner_buffers[1]
+                        inner_buffer.to_a(0, 1))";
+  Array array = m.module_eval(code);
+  ASSERT_EQUAL(1, array.size());
+  ASSERT_EQUAL("World", detail::From_Ruby<std::string>().convert(array[0].value()).c_str());
 }
 
 namespace

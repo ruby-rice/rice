@@ -139,6 +139,69 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
+  template<int I>
+  Convertible NativeFunction<Class_T, Function_T, IsMethod>::matchParameter(std::vector<VALUE>& values, size_t index)
+  {
+    MethodInfo* methodInfo = this->methodInfo_.get();
+    const Arg* arg = methodInfo->arg(I);
+
+    // Is a VALUE being passed directly to C++ ?
+    if (arg->isValue() && index < values.size())
+    {
+      return Convertible::Exact;
+    }
+    // If index is less than argc then check with FromRuby if the VALUE is convertible
+    // to C++.
+    else if (index < values.size())
+    {
+      VALUE value = values[I];
+      auto fromRuby = std::get<I>(this->fromRubys_);
+      Convertible convertible = fromRuby.is_convertible(value);
+
+      // If this is an exact match check if the const-ness of the value and the parameter match
+      if (convertible == Convertible::Exact && rb_type(value) == RUBY_T_DATA)
+      {
+        // Check the constness of the Ruby wrapped value and the parameter
+        WrapperBase* wrapper = getWrapper(value);
+        using Parameter_T = std::tuple_element_t<I, Arg_Ts>;
+
+        // Do not send a const value to a non-const parameter
+        if (wrapper->isConst() && !is_const_any_v<Parameter_T>)
+        {
+          convertible = Convertible::None;
+        }
+        // It is ok to send a non-const value to a const parameter but
+        // prefer non-const to non-const by slighly decreasing the convertible value
+        else if (!wrapper->isConst() && is_const_any_v<Parameter_T>)
+        {
+          convertible = Convertible::Const;
+        }
+      }
+      return convertible;
+    }
+    // Last check if a default value has been set
+    else if (arg->hasDefaultValue())
+    {
+      return Convertible::Exact;
+    }
+    // The number of values is greater than the number of function parameters
+    else
+    {
+      return Convertible::None;
+    }
+  }
+
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  template<std::size_t... I>
+  Convertible NativeFunction<Class_T, Function_T, IsMethod>::matchParameters(std::vector<VALUE>& values,
+    std::index_sequence<I...>& indices)
+  {
+    Convertible result = Convertible::Exact;
+    ((result = result & this->matchParameter<I>(values, I)), ...);
+    return result;
+  }
+
+  template<typename Class_T, typename Function_T, bool IsMethod>
   Resolved NativeFunction<Class_T, Function_T, IsMethod>::matches(int argc, const VALUE* argv, VALUE self)
   {
     // Return false if Ruby provided more arguments than the C++ method takes
@@ -151,37 +214,8 @@ namespace Rice::detail
     int index = 0;
 
     std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv, false);
-
-    // Loop over each FromRuby instance
-    for_each_tuple(this->fromRubys_,
-      [&](auto& fromRuby)
-      {
-        Convertible convertible = Convertible::None;
-
-        const Arg* arg = methodInfo->arg(index);
-
-        // Is a VALUE being passed directly to C++ ?
-        if (arg->isValue() && index < rubyValues.size())
-        {
-          convertible = Convertible::Exact;
-        }
-        // If index is less than argc then check with FromRuby if the VALUE is convertible
-        // to C++.
-        else if (index < rubyValues.size())
-        {
-          VALUE value = rubyValues[index];
-          convertible = fromRuby.is_convertible(value);
-        }
-        // Last check if a default value has been set
-        else if (arg->hasDefaultValue())
-        {
-          convertible = Convertible::Exact;
-        }
-
-        result.convertible = result.convertible & convertible;
-
-        index++;
-      });
+    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+    result.convertible = this->matchParameters(rubyValues, indices);
 
     if constexpr (arity > 0)
       result.parameterMatch = rubyValues.size() / (double)arity;

@@ -187,6 +187,13 @@ namespace Rice
             }
           }, Return().setValue());
 
+          if constexpr (!std::is_same_v<Value_T, bool>)
+          {
+            define_buffer<Value_T>();
+            define_buffer<Value_T*>();
+            klass_.template define_method<Value_T*(T::*)()>("data", &T::data);
+          }
+
           rb_define_alias(klass_, "at", "[]");
       }
 

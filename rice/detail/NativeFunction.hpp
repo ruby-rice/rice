@@ -74,6 +74,12 @@ namespace Rice::detail
   protected:
 
   private:
+    template<int I>
+    Convertible matchParameter(std::vector<VALUE>& values, size_t index);
+
+    template<std::size_t...I>
+    Convertible matchParameters(std::vector<VALUE>& values, std::index_sequence<I...>& indices);
+
     template<std::size_t...I>
     std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);
 

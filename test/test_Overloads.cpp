@@ -657,3 +657,150 @@ TESTCASE(int_conversion_6)
   String result = m.module_eval(code);
   ASSERT_EQUAL("run<unsigned char*>", result.str());
 }
+
+namespace
+{
+  class MyClass4
+  {
+  public:
+    static const MyClass4& constRef()
+    {
+      if (!instance_)
+      {
+        instance_ = new MyClass4();
+      }
+      return *instance_;
+    }
+  
+  private:
+    static inline MyClass4* instance_ = nullptr;
+  };
+
+  class MyClass5
+  {
+  public:
+    MyClass5(MyClass4& class4)
+    {
+      this->result = "non-const ref";
+    }
+
+    MyClass5(const MyClass4& class4)
+    {
+      this->result = "const ref";
+    }
+
+  public:
+    std::string result = "";
+  };
+}
+
+TESTCASE(NonConstRef)
+{
+  Class c4 = define_class<MyClass4>("MyClass4").
+    define_constructor(Constructor<MyClass4>());
+
+  Class c5 = define_class<MyClass5>("MyClass5").
+    define_constructor(Constructor<MyClass5, const MyClass4&>()).
+    define_constructor(Constructor<MyClass5, MyClass4&>()).
+    define_attr("result", &MyClass5::result);
+
+  Module m = define_module("Testing");
+
+  std::string code = u8R"(my_class4 = MyClass4.new
+                          my_class5 = MyClass5.new(my_class4)
+                          my_class5.result)";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("non-const ref", result.str());
+}
+
+TESTCASE(ConstRef)
+{
+  Class c4 = define_class<MyClass4>("MyClass4").
+    define_singleton_function("const_instance", MyClass4::constRef);
+
+  Class c5 = define_class<MyClass5>("MyClass5").
+    define_constructor(Constructor<MyClass5, const MyClass4&>()).
+    define_constructor(Constructor<MyClass5, MyClass4&>()).
+    define_attr("result", &MyClass5::result);
+
+  Module m = define_module("Testing");
+
+  std::string code = u8R"(my_class4 = MyClass4.const_instance
+                          my_class5 = MyClass5.new(my_class4)
+                          my_class5.result)";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("const ref", result.str());
+}
+
+namespace
+{
+  class MyClass6
+  {
+  public:
+    static const MyClass6* constPointer()
+    {
+      if (!instance_)
+      {
+        instance_ = new MyClass6();
+      }
+      return instance_;
+    }
+
+  private:
+    static inline MyClass6* instance_ = nullptr;
+  };
+
+  class MyClass7
+  {
+  public:
+    MyClass7(MyClass6* class6)
+    {
+      this->result = "non-const pointer";
+    }
+
+    MyClass7(const MyClass6* class6)
+    {
+      this->result = "const pointer";
+    }
+  public:
+    std::string result = "";
+  };
+}
+
+TESTCASE(NonConstPointer)
+{
+  Class c6 = define_class<MyClass6>("MyClass6").
+    define_constructor(Constructor<MyClass6>());
+
+  Class c7 = define_class<MyClass7>("MyClass7").
+    define_constructor(Constructor<MyClass7, const MyClass6*>()).
+    define_constructor(Constructor<MyClass7, MyClass6*>()).
+    define_attr("result", &MyClass7::result);
+
+  Module m = define_module("Testing");
+
+  std::string code = u8R"(my_class6 = MyClass6.new
+                          my_class7 = MyClass7.new(my_class6)
+                          my_class7.result)";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("non-const pointer", result.str());
+}
+
+TESTCASE(ConstPointer)
+{
+  Class c6 = define_class<MyClass6>("MyClass6").
+    define_singleton_function("const_instance", MyClass6::constPointer);
+
+  Class c7 = define_class<MyClass7>("MyClass7").
+    define_constructor(Constructor<MyClass7, const MyClass6*>()).
+    define_constructor(Constructor<MyClass7, MyClass6*>()).
+    define_attr("result", &MyClass7::result);
+
+  Module m = define_module("Testing");
+
+  std::string code = u8R"(my_class6 = MyClass6.const_instance
+                          my_class7 = MyClass7.new(my_class6)
+                          my_class7.result)";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("const pointer", result.str());
+}

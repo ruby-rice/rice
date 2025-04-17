@@ -233,7 +233,7 @@ namespace Rice
       T* ptr = this->m_buffer + offset;
       T* end = this->m_buffer + offset + count;
 
-      for (ptr; ptr < end; ptr++)
+      for (; ptr < end; ptr++)
       {
         result.push(*ptr);
       }

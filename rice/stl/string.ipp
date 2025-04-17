@@ -52,6 +52,18 @@ namespace Rice::detail
   };
 
   template<>
+  class To_Ruby<std::string**>
+  {
+  public:
+    VALUE convert(std::string** data)
+    {
+      Buffer<std::string*> buffer(data);
+      Data_Object<Buffer<std::string*>> dataObject(std::move(buffer));
+      return dataObject.value();
+    }
+  };
+
+  template<>
   class From_Ruby<std::string>
   {
   public:

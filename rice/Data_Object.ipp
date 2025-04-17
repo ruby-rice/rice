@@ -102,7 +102,8 @@ namespace Rice::detail
                   "Please include rice/stl.hpp header for STL support");
 
   public:
-    VALUE convert(const T& data)
+    template<typename U>
+    VALUE convert(U& data)
     {
       // Get the ruby typeinfo
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
@@ -112,7 +113,8 @@ namespace Rice::detail
       return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
 
-    VALUE convert(T&& data)
+    template<typename U>
+    VALUE convert(U&& data)
     {
       // Get the ruby typeinfo
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
@@ -143,7 +145,8 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(T& data)
+    template<typename U>
+    VALUE convert(U& data)
     {
       // Note that T could be a pointer or reference to a base class while data is in fact a
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
@@ -152,17 +155,6 @@ namespace Rice::detail
       bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
       return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
     }
-
-    VALUE convert(const T& data)
-    {
-      // Note that T could be a pointer or reference to a base class while data is in fact a
-      // child class. Lookup the correct type so we return an instance of the correct Ruby class
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
-
-      bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
-      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
-    }
-
   private:
     Return* returnInfo_ = nullptr;
   };
@@ -187,7 +179,8 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const T* data)
+    template<typename U>
+    VALUE convert(U* data)
     {
       bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
 
@@ -235,7 +228,8 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const T* data)
+    template<typename U>
+    VALUE convert(U* data)
     {
       bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
 
@@ -283,30 +277,15 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(T** data)
+    template<typename U>
+    VALUE convert(U** data)
     {
       if (data)
       {
-        using Buffer_T = Buffer<intrinsic_type<T>*>;
         bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
-        Buffer_T buffer(data);
+        Buffer<T*> buffer((T**)data);
         buffer.setOwner(isOwner);
-        return detail::wrap(Data_Type<Buffer_T>::klass(), Data_Type<Buffer_T>::ruby_data_type(), buffer, true);
-      }
-      else
-      {
-        return Qnil;
-      }
-    }
-
-    VALUE convert(const T** data)
-    {
-      if (data)
-      {
         using Buffer_T = Buffer<intrinsic_type<T>*>;
-        bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
-        Buffer_T buffer((T**)data);
-        buffer.setOwner(isOwner);
         return detail::wrap(Data_Type<Buffer_T>::klass(), Data_Type<Buffer_T>::ruby_data_type(), buffer, true);
       }
       else

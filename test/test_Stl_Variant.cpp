@@ -104,6 +104,88 @@ void makeIntrinsicVariant()
     define_attr("variant_attr", &MyClass::variant_);
 }
 
+namespace
+{
+  class MyClass1
+  {
+  public:
+    MyClass1()
+    {
+      int a = 1;
+    }
+
+    std::string sayHello()
+    {
+      return "Hi from MyClass1";
+    }
+  };
+
+  class MyClass2
+  {
+  public:
+    MyClass2()
+    {
+      int a = 2;
+    }
+
+    std::string sayHello()
+    {
+      return "Hi from MyClass2";
+    }
+  };
+
+  using Class_Variant_T = std::variant<std::monostate, MyClass1, MyClass2>;
+
+  Class_Variant_T variantClass(bool myClass1)
+  {
+    if (myClass1)
+    {
+      return MyClass1();
+    }
+    else
+    {
+      return MyClass2();
+    }
+  }
+
+  Class_Variant_T roundTripVariantClass(Class_Variant_T variant)
+  {
+    return variant;
+  }
+
+  Class_Variant_T& roundTripVariantClassRef(Class_Variant_T& variant)
+  {
+    return variant;
+  }
+}
+
+void makeClassVariant()
+{
+  define_class<MyClass1>("MyClass1").
+    define_constructor(Constructor<MyClass1>()).
+    define_method("say_hello", &MyClass1::sayHello);
+
+  define_class<MyClass2>("MyClass2").
+    define_constructor(Constructor<MyClass2>()).
+    define_method("say_hello", &MyClass2::sayHello);
+
+  define_global_function("variant_class", &variantClass);
+  define_global_function("roundtrip_variant_class", &roundTripVariantClass);
+  define_global_function("roundtrip_variant_class_ref", &roundTripVariantClassRef);
+}
+
+SETUP(Variant)
+{
+  embed_ruby();
+  makeIntrinsicVariant();
+  makeClassVariant();
+}
+
+TEARDOWN(Variant)
+{
+  rb_gc_start();
+}
+
 TESTCASE(IntrinsicReturns)
 {
   using namespace std::complex_literals;
@@ -212,88 +294,6 @@ TESTCASE(VariantAttribute)
   ASSERT_EQUAL(78, detail::From_Ruby<int>().convert(result));
 }
 
-namespace
-{
-  class MyClass1
-  {
-  public:
-    MyClass1()
-    {
-      int a = 1;
-    }
-
-    std::string sayHello()
-    {
-      return "Hi from MyClass1";
-    }
-  };
-
-  class MyClass2
-  {
-  public:
-    MyClass2()
-    {
-      int a = 2;
-    }
-
-    std::string sayHello()
-    {
-      return "Hi from MyClass2";
-    }
-  };
-
-  using Class_Variant_T = std::variant<std::monostate, MyClass1, MyClass2>;
-
-  Class_Variant_T variantClass(bool myClass1)
-  {
-    if (myClass1)
-    {
-      return MyClass1();
-    }
-    else
-    {
-      return MyClass2();
-    }
-  }
-
-  Class_Variant_T roundTripVariantClass(Class_Variant_T variant)
-  {
-    return variant;
-  }
-
-  Class_Variant_T& roundTripVariantClassRef(Class_Variant_T& variant)
-  {
-    return variant;
-  }
-}
-
-void makeClassVariant()
-{
-  define_class<MyClass1>("MyClass1").
-    define_constructor(Constructor<MyClass1>()).
-    define_method("say_hello", &MyClass1::sayHello);
-
-  define_class<MyClass2>("MyClass2").
-    define_constructor(Constructor<MyClass2>()).
-    define_method("say_hello", &MyClass2::sayHello);
-
-  define_global_function("variant_class", &variantClass);
-  define_global_function("roundtrip_variant_class", &roundTripVariantClass);
-  define_global_function("roundtrip_variant_class_ref", &roundTripVariantClassRef);
-}
-
-SETUP(Variant)
-{
-  embed_ruby();
-  makeIntrinsicVariant();
-  makeClassVariant();
-}
-
-TEARDOWN(Variant)
-{
-  rb_gc_start();
-}
-
 TESTCASE(ClassReturns)
 {
   Module m = define_module("Testing");
@@ -331,7 +331,7 @@ TESTCASE(ClassRoundtrip)
  std::tuple with one element, a reference to a variant. So it doesn't change and the address
  of the variable doesn't change. But for some reason g++ resets the
  the std::variant index to 0 thus breaking the test. Maybe something to do with storing
- a refernence to a variant in a tuple? */
+ a reference to a variant in a tuple? */
 
 #ifdef _MSC_VER
 TESTCASE(ClassRoundtripRef)
@@ -401,4 +401,50 @@ TESTCASE(VariantWithTwoVectors)
     m.module_eval(code),
     ASSERT_EQUAL("wrong argument type Integer (expected String)", ex.what())
   );
+}
+
+namespace
+{
+  class MyClass5
+  {
+  public:
+    static inline int a = 10;
+    static inline float b = 11.0;
+  public:
+    std::variant<Buffer<int>, Buffer<float>> variantBuffer(int index)
+    {
+      if (index == 0)
+      {
+        return Buffer<int>(&a);
+      }
+      else
+      {
+        return Buffer<float>(&b);
+      }
+    }
+  };
+}
+
+TESTCASE(Buffer)
+{
+  define_buffer<int>();
+  define_buffer<float>();
+  using namespace std::complex_literals;
+
+  define_class<MyClass5>("MyClass5").
+    define_constructor(Constructor<MyClass5>()).
+    define_method("buffer", &MyClass5::variantBuffer);
+
+  Module m = define_module("Testing");
+
+  std::string code = u8R"(myclass = MyClass5.new
+                          myclass.buffer(0).to_a(0, 1).first)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(result));
+
+  code = u8R"(myclass = MyClass5.new
+              myclass.buffer(1).to_a(0, 1).first)";
+  result = m.module_eval(code);
+  ASSERT_EQUAL(11.0, detail::From_Ruby<float>().convert(result));
 }

@@ -32,10 +32,11 @@ namespace Rice::detail
 
   enum class Convertible: uint8_t
   {
-      None =   0b000,
-      Narrow = 0b001,
-      Cast =   0b011,
-      Exact =  0b111,
+      None   = 0b0000,
+      Narrow = 0b0001,
+      Cast   = 0b0011,
+      Const  = 0b0111,
+      Exact  = 0b1111
   };
 }
 

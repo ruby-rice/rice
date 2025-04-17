@@ -2,6 +2,11 @@
 
 namespace Rice::detail
 {
+  inline bool WrapperBase::isConst()
+  {
+    return this->isConst_;
+  }
+
   inline void WrapperBase::ruby_mark()
   {
     for (VALUE value : this->keepAlive_)
@@ -47,6 +52,7 @@ namespace Rice::detail
   template <typename T>
   inline Wrapper<T&>::Wrapper(T& data): data_(data)
   {
+    this->isConst_ = std::is_const_v<std::remove_reference_t<T>>;
   }
 
   template <typename T>
@@ -66,6 +72,7 @@ namespace Rice::detail
   inline Wrapper<T*>::Wrapper(T* data, bool isOwner) : data_(data)
   {
     this->isOwner_ = isOwner;
+    this->isConst_ = std::is_const_v<std::remove_pointer_t<T>>;
   }
 
   template <typename T>

@@ -1918,7 +1918,7 @@ namespace Rice::detail
       {
         case RUBY_T_DATA:
         {
-          return Convertible::Exact;
+          return Convertible::Cast;
           break;
         }
         case RUBY_T_STRING:
