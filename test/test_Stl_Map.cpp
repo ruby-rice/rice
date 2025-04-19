@@ -99,9 +99,13 @@ TESTCASE(Include)
   Module m = define_module("Testing");
 
   Class c = define_map<std::string, std::int32_t>("IntMap");
-  Object map = c.call("new");
-  map.call("[]=", "one", 1);
-  map.call("[]=", "two", 2);
+
+  std::string code = R"(map = Std::IntMap.new
+                        map["one"] = 1
+                        map["two"] = 2
+                        map)";
+
+  Object map = m.module_eval(code);
 
   Object result = map.call("include?", "two");
   ASSERT_EQUAL(Qtrue, result.value());
