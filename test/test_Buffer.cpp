@@ -185,3 +185,30 @@ TESTCASE(wrong_type)
     ASSERT_EQUAL("can't convert String into Float", ex.what())
   );
 }
+
+namespace
+{
+  void updateRef(int& ref)
+  {
+    ref = 4;
+  }
+
+  void updatePtr(int* ptr)
+  {
+    *ptr = 5;
+  }
+}
+
+TESTCASE(update_reference)
+{
+  define_buffer<int>();
+  Module m = define_module("Testing");
+  m.define_module_function("update_reference", &updateRef);
+
+  std::string code = R"(buffer = Rice::Buffer≺int≻.new(0)
+                        update_reference(buffer)
+                        buffer.to_a(0, 1).first)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(result));
+}

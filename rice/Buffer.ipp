@@ -176,6 +176,12 @@ namespace Rice
   }
 
   template <typename T>
+  inline T& Buffer<T>::reference()
+  {
+    return *this->m_buffer;
+  }
+
+  template <typename T>
   inline bool Buffer<T>::isOwner() const
   {
     return this->m_owner;
@@ -423,22 +429,27 @@ namespace Rice
     return this->toArray(0, this->m_size);
   }
 
-  // --------- Void Specialization ---------------
-  template<>
-  inline Buffer<void>::Buffer(VALUE value)
+  // ----  Buffer<void> ------- 
+  inline Buffer<void>::Buffer(void* pointer) : m_buffer(pointer)
   {
   }
 
-  template<>
-  inline VALUE Buffer<void>::read(size_t offset, size_t count) const
+  inline Buffer<void>::Buffer(Buffer<void>&& other) : m_buffer(other.m_buffer)
   {
-    return Qnil;
+    other.m_buffer = nullptr;
   }
 
-  template<>
-  inline Array Buffer<void>::toArray(size_t offset, size_t count) const
+  inline Buffer<void>& Buffer<void>::operator=(Buffer<void>&& other)
   {
-    return Qnil;
+    this->m_buffer = other.m_buffer;
+    other.m_buffer = nullptr;
+
+    return *this;
+  }
+
+  inline void* Buffer<void>::get()
+  {
+    return this->m_buffer;
   }
 
   // ------  define_buffer ----------
@@ -455,16 +466,21 @@ namespace Rice
 
     Module rb_mRice = define_module("Rice");
 
-    Data_Type<Buffer_T> result = define_class_under<Buffer_T>(rb_mRice, klassName).
-      define_constructor(Constructor<Buffer_T, VALUE>(), Arg("value").setValue()).
-      define_method("size", &Buffer_T::size).
-      define_method("get", &Buffer_T::get).
-      template define_method<VALUE(Buffer_T::*)(size_t, size_t) const>("read", &Buffer_T::read, Return().setValue()).
-      template define_method<VALUE(Buffer_T::*)() const>("read", &Buffer_T::read, Return().setValue()).
-      template define_method<Array(Buffer_T::*)(size_t, size_t) const>("to_a", &Buffer_T::toArray, Return().setValue()).
-      template define_method<Array(Buffer_T::*)() const>("to_a", &Buffer_T::toArray, Return().setValue());
-
-    return result;
+    if constexpr (std::is_void_v<T>)
+    {
+      return define_class_under<Buffer_T>(rb_mRice, klassName);
+    }
+    else
+    {
+      return define_class_under<Buffer_T>(rb_mRice, klassName).
+        define_constructor(Constructor<Buffer_T, VALUE>(), Arg("value").setValue()).
+        define_method("size", &Buffer_T::size).
+        define_method("get", &Buffer_T::get).
+        template define_method<VALUE(Buffer_T::*)(size_t, size_t) const>("read", &Buffer_T::read, Return().setValue()).
+        template define_method<VALUE(Buffer_T::*)() const>("read", &Buffer_T::read, Return().setValue()).
+        template define_method<Array(Buffer_T::*)(size_t, size_t) const>("to_a", &Buffer_T::toArray, Return().setValue()).
+        template define_method<Array(Buffer_T::*)() const>("to_a", &Buffer_T::toArray, Return().setValue());
+    }
   }
 
   inline void define_fundamental_buffer_types()

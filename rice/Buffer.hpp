@@ -22,6 +22,7 @@ namespace Rice
     Buffer& operator=(Buffer&& other);
 
     T* get();
+    T& reference();
     void release();
 
     size_t size() const;
@@ -84,6 +85,23 @@ namespace Rice
     size_t m_size = 0;
     T** m_outer = nullptr;
     std::vector<Buffer<T>> m_inner;
+  };
+
+  template<>
+  class Buffer<void>
+  {
+  public:
+    Buffer(void* pointer);
+    Buffer(const Buffer& other) = delete;
+    Buffer(Buffer&& other);
+
+    Buffer& operator=(const Buffer& other) = delete;
+    Buffer& operator=(Buffer&& other);
+
+    void* get();
+
+  private:
+    void* m_buffer = nullptr;
   };
 
   template<typename T>
