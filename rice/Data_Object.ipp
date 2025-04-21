@@ -544,7 +544,7 @@ namespace Rice::detail
           {
             using Buffer_T = Buffer<Intrinsic_T>;
             Buffer_T* buffer = detail::unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
-            return buffer->get();
+            return buffer->ptr();
           }
           else
           {
@@ -658,7 +658,7 @@ namespace Rice::detail
         case RUBY_T_DATA:
         {
           Buffer<Intrinsic_T*>* buffer = detail::unwrap<Buffer<Intrinsic_T*>>(value, Data_Type<Buffer<Intrinsic_T*>>::ruby_data_type(), false);
-          return buffer->get();
+          return buffer->ptr();
           break;
         }
         case RUBY_T_NIL:

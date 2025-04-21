@@ -1006,9 +1006,9 @@ TESTCASE(StringPointerVector)
 
   std::string code = R"(vec = vector_of_string_pointers
                         outer_buffer = vec.data
-                        inner_buffers = outer_buffer.to_a(0, 2)
+                        inner_buffers = outer_buffer.to_ary(2)
                         inner_buffer = inner_buffers[1]
-                        inner_buffer.to_a(0, 1))";
+                        inner_buffer.to_ary(1))";
   Array array = m.module_eval(code);
   ASSERT_EQUAL(1, array.size());
   ASSERT_EQUAL("World", detail::From_Ruby<std::string>().convert(array[0].value()).c_str());

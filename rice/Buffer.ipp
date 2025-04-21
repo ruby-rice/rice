@@ -170,7 +170,13 @@ namespace Rice
   }
 
   template <typename T>
-  inline T* Buffer<T>::get()
+  void  Buffer<T>::setSize(size_t value)
+  {
+    this->m_size = value;
+  }
+
+  template <typename T>
+  inline T* Buffer<T>::ptr()
   {
     return this->m_buffer;
   }
@@ -200,7 +206,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T>::read(size_t offset, size_t count) const
+  inline VALUE Buffer<T>::toString(size_t count) const
   {
     if (!this->m_buffer)
     {
@@ -208,20 +214,19 @@ namespace Rice
     }
     else
     {
-      T* start = this->m_buffer + offset;
       long length = (long)(count * sizeof(T));
-      return detail::protect(rb_str_new_static, (const char*)start, length);
+      return detail::protect(rb_str_new_static, (const char*)this->m_buffer, length);
     }
   }
 
   template<typename T>
-  inline VALUE Buffer<T>::read() const
+  inline VALUE Buffer<T>::toString() const
   {
-    return this->read(0, this->m_size);
+    return this->toString(this->m_size);
   }
 
   template<typename T>
-  inline Array Buffer<T>::toArray(size_t offset, size_t count) const
+  inline Array Buffer<T>::toArray(size_t count) const
   {
     if (!this->m_buffer)
     {
@@ -229,15 +234,15 @@ namespace Rice
     }
     else if constexpr (std::is_fundamental_v<T>)
     {
-      VALUE string = this->read(offset, count);
+      VALUE string = this->toString(count);
       return String(string).unpack<T>();
     }
     else
     {
       Array result;
 
-      T* ptr = this->m_buffer + offset;
-      T* end = this->m_buffer + offset + count;
+      T* ptr = this->m_buffer;
+      T* end = this->m_buffer + count;
 
       for (; ptr < end; ptr++)
       {
@@ -250,7 +255,29 @@ namespace Rice
   template<typename T>
   inline Array Buffer<T>::toArray() const
   {
-    return this->toArray(0, this->m_size);
+    return this->toArray(this->m_size);
+  }
+
+  template<typename T>
+  inline T Buffer<T>::get(size_t index) const
+  {
+    if (index >= this->m_size)
+    {
+      throw Exception(rb_eIndexError, "index %ld outside of bounds: 0..%ld", index, this->m_size);
+    }
+
+    return this->m_buffer[index];
+  }
+
+  template<typename T>
+  inline void Buffer<T>::set(size_t index, T element)
+  {
+    if (index >= this->m_size)
+    {
+      throw Exception(rb_eIndexError, "index %ld outside of bounds: 0..%ld", index, this->m_size);
+    }
+
+    this->m_buffer[index] = element;
   }
 
   // ----  Buffer<T*> ------- 
@@ -288,7 +315,7 @@ namespace Rice
           Buffer<T> buffer(inner.value());
 
           // And update the outer array
-          this->m_outer[i] = buffer.get();
+          this->m_outer[i] = buffer.ptr();
 
           // Now move the buffer into the affer, not the buffer pointer is still valid (it just got moved)
           this->m_inner.push_back(std::move(buffer));
@@ -356,7 +383,13 @@ namespace Rice
   }
 
   template <typename T>
-  inline T** Buffer<T*>::get()
+  void  Buffer<T*>::setSize(size_t value)
+  {
+    this->m_size = value;
+  }
+
+  template <typename T>
+  inline T** Buffer<T*>::ptr()
   {
     return this->m_outer;
   }
@@ -380,7 +413,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T*>::read(size_t offset, size_t count) const
+  inline VALUE Buffer<T*>::toString(size_t count) const
   {
     if (!this->m_outer)
     {
@@ -388,20 +421,20 @@ namespace Rice
     }
     else
     {
-      T** begin = this->m_outer + offset;
+      T** begin = this->m_outer;
       long length = (long)(count * sizeof(T*));
       return detail::protect(rb_str_new_static, (const char*)*begin, length);
     }
   }
 
   template<typename T>
-  inline VALUE Buffer<T*>::read() const
+  inline VALUE Buffer<T*>::toString() const
   {
-    return this->read(0, this->m_size);
+    return this->toString(this->m_size);
   }
 
   template<typename T>
-  inline Array Buffer<T*>::toArray(size_t offset, size_t count) const
+  inline Array Buffer<T*>::toArray(size_t count) const
   {
     if (!this->m_outer)
     {
@@ -411,8 +444,8 @@ namespace Rice
     {
       Array result;
 
-      T** ptr = this->m_outer + offset;
-      T** end = this->m_outer + offset + count;
+      T** ptr = this->m_outer;
+      T** end = this->m_outer + count;
 
       for (; ptr < end; ptr++)
       {
@@ -426,7 +459,7 @@ namespace Rice
   template<typename T>
   inline Array Buffer<T*>::toArray() const
   {
-    return this->toArray(0, this->m_size);
+    return this->toArray(this->m_size);
   }
 
   // ----  Buffer<void> ------- 
@@ -447,7 +480,7 @@ namespace Rice
     return *this;
   }
 
-  inline void* Buffer<void>::get()
+  inline void* Buffer<void>::ptr()
   {
     return this->m_buffer;
   }
@@ -472,14 +505,30 @@ namespace Rice
     }
     else
     {
-      return define_class_under<Buffer_T>(rb_mRice, klassName).
+      Data_Type<Buffer_T> klass = define_class_under<Buffer_T>(rb_mRice, klassName).
         define_constructor(Constructor<Buffer_T, VALUE>(), Arg("value").setValue()).
         define_method("size", &Buffer_T::size).
-        define_method("get", &Buffer_T::get).
-        template define_method<VALUE(Buffer_T::*)(size_t, size_t) const>("read", &Buffer_T::read, Return().setValue()).
-        template define_method<VALUE(Buffer_T::*)() const>("read", &Buffer_T::read, Return().setValue()).
-        template define_method<Array(Buffer_T::*)(size_t, size_t) const>("to_a", &Buffer_T::toArray, Return().setValue()).
-        template define_method<Array(Buffer_T::*)() const>("to_a", &Buffer_T::toArray, Return().setValue());
+        define_method("size=", &Buffer_T::setSize).
+        define_method("ptr", &Buffer_T::ptr).
+        template define_method<VALUE(Buffer_T::*)(size_t) const>("to_str", &Buffer_T::toString, Return().setValue()).
+        template define_method<VALUE(Buffer_T::*)() const>("to_str", &Buffer_T::toString, Return().setValue()).
+        template define_method<Array(Buffer_T::*)(size_t) const>("to_ary", &Buffer_T::toArray, Return().setValue()).
+        template define_method<Array(Buffer_T::*)() const>("to_ary", &Buffer_T::toArray, Return().setValue());
+
+      if constexpr (!std::is_pointer_v<T>)
+      {
+        klass.
+          define_method("[]", [](const Buffer_T& self, size_t index) -> T
+          {
+            return self.get(index);
+          }).
+          define_method("[]=", [](Buffer_T& self, size_t index, T element) -> void
+          {
+            self.set(index, element);
+          });
+      }
+
+      return klass;
     }
   }
 

@@ -108,7 +108,7 @@ namespace Rice::detail
             {
               buffer->release();
             }
-            return buffer->get();
+            return buffer->ptr();
           }
           [[fallthrough]];
         }
@@ -175,7 +175,7 @@ namespace Rice::detail
             {
               buffer->release();
             }
-            return buffer->get();
+            return buffer->ptr();
           }
           [[fallthrough]];
         }
@@ -2148,7 +2148,7 @@ namespace Rice::detail
           if (rb_type == Data_Type<Buffer<void>>::ruby_data_type())
           {
             Data_Object<Buffer<void>> buffer(value);
-            return buffer->get();
+            return buffer->ptr();
           }
           else 
           {

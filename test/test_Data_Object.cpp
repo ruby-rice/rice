@@ -206,13 +206,14 @@ TESTCASE(data_object_from_ruby_copy)
 TESTCASE(data_object_return_array)
 {
   define_buffer<MyDataType>();
+
   Module m = define_module("DataObjectTest").
     define_module_function("data_types", &dataTypes, Return().setArray()).
     define_module_function("data_types_count", &dataTypesCount);
 
   std::string code = R"(buffer = data_types
                         count = data_types_count
-                        buffer.to_a(0, count))";
+                        buffer.to_ary(count))";
 
   Array dataTypes = m.module_eval(code);
   ASSERT_EQUAL(3, dataTypes.size());
@@ -221,6 +222,30 @@ TESTCASE(data_object_return_array)
   ASSERT_EQUAL(1, vector[0].x);
   ASSERT_EQUAL(2, vector[1].x);
   ASSERT_EQUAL(3, vector[2].x);
+}
+
+TESTCASE(data_object_update_buffer)
+{
+  define_buffer<MyDataType>();
+
+  Class c = define_class<MyDataType>("MyDataType")
+    .define_constructor(Constructor<MyDataType, int>());
+
+  Module m = define_module("DataObjectTest").
+    define_module_function("data_types", &dataTypes, Return().setArray()).
+    define_module_function("data_types_count", &dataTypesCount);
+
+  std::string code = R"(buffer = data_types
+                        my_data_type = MyDataType.new(100)
+                        buffer.size = 3
+                        buffer[2] = my_data_type
+                        buffer)";
+
+  Object result = m.module_eval(code);
+  Data_Object<Buffer<MyDataType>> dataObject(result);
+  Buffer<MyDataType>* buffer = dataObject.get();
+  MyDataType myDataType = buffer->get(2);
+  ASSERT_EQUAL(100, myDataType.x);
 }
 
 TESTCASE(data_object_ruby_custom_mark)

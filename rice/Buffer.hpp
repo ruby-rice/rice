@@ -21,20 +21,25 @@ namespace Rice
     Buffer& operator=(const Buffer& other) = delete;
     Buffer& operator=(Buffer&& other);
 
-    T* get();
+    T* ptr();
     T& reference();
     void release();
 
     size_t size() const;
+    void setSize(size_t value);
+
+    // Ruby API
+    VALUE toString() const;
+    VALUE toString(size_t count) const;
+
+    Array toArray() const;
+    Array toArray(size_t count) const;
+
+    T get(size_t index) const;
+    void set(size_t index, T value);
 
     bool isOwner() const;
     void setOwner(bool value);
-
-    VALUE read(size_t offset, size_t count) const;
-    Array toArray(size_t offset, size_t count) const;
-
-    VALUE read() const;
-    Array toArray() const;
 
   private:
     void fromRubyType(VALUE value);
@@ -66,19 +71,21 @@ namespace Rice
 
     const Buffer<T>& operator[](size_t index);
 
-    T** get();
+    T** ptr();
     void release();
 
     size_t size() const;
+    void setSize(size_t value);
+
+    // Ruby API
+    VALUE toString() const;
+    VALUE toString(size_t count) const;
+
+    Array toArray() const;
+    Array toArray(size_t count) const;
 
     void setOwner(bool value);
     bool isOwner() const;
-
-    VALUE read(size_t offset, size_t count) const;
-    Array toArray(size_t offset, size_t count) const;
-
-    VALUE read() const;
-    Array toArray() const;
 
   private:
     bool m_owner = false;
@@ -98,7 +105,7 @@ namespace Rice
     Buffer& operator=(const Buffer& other) = delete;
     Buffer& operator=(Buffer&& other);
 
-    void* get();
+    void* ptr();
 
   private:
     void* m_buffer = nullptr;
