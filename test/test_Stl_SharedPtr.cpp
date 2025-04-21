@@ -448,8 +448,8 @@ TESTCASE(ReadPointerToInt)
       define_module_function("create_pointer", &createPointer);
 
   std::string code = u8R"(ptr = create_pointer(50)
-                          view = Rice::Buffer≺int≻.new(ptr)
-                          view.to_a(0, 1))";
+                          buffer = Rice::Buffer≺int≻.new(ptr)
+                          buffer.to_ary(1))";
 
   Array array = m.instance_eval(code);
   std::vector<int> actual = array.to_vector<int>();

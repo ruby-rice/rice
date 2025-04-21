@@ -108,7 +108,7 @@ namespace Rice::detail
             {
               buffer->release();
             }
-            return buffer->get();
+            return buffer->ptr();
           }
           [[fallthrough]];
         }
@@ -175,7 +175,7 @@ namespace Rice::detail
             {
               buffer->release();
             }
-            return buffer->get();
+            return buffer->ptr();
           }
           [[fallthrough]];
         }
@@ -226,6 +226,8 @@ namespace Rice::detail
   class From_Ruby<bool&>
   {
   public:
+    using Buffer_T = Buffer<bool>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -234,7 +236,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<bool>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<bool>::is_convertible(value);
+      }
     }
 
     bool& convert(VALUE value)
@@ -242,6 +251,11 @@ namespace Rice::detail
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
         return this->arg_->defaultValue<bool>();
+      }
+      else if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -315,6 +329,8 @@ namespace Rice::detail
   class From_Ruby<char&>
   {
   public:
+    using Buffer_T = Buffer<char>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -323,7 +339,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<char>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<char>::is_convertible(value);
+      }
     }
 
     char& convert(VALUE value)
@@ -331,6 +354,11 @@ namespace Rice::detail
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
         return this->arg_->defaultValue<char>();
+      }
+      else if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -468,6 +496,8 @@ namespace Rice::detail
   class From_Ruby<unsigned char&>
   {
   public:
+    using Buffer_T = Buffer<unsigned char>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -476,7 +506,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<unsigned char>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned char>::is_convertible(value);
+      }
     }
 
     unsigned char& convert(VALUE value)
@@ -484,6 +521,11 @@ namespace Rice::detail
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
         return this->arg_->defaultValue<unsigned char>();
+      }
+      else if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -669,6 +711,8 @@ namespace Rice::detail
   class From_Ruby<double&>
   {
   public:
+    using Buffer_T = Buffer<double>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -677,7 +721,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<double>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<double>::is_convertible(value);
+      }
     }
 
     double& convert(VALUE value)
@@ -685,6 +736,11 @@ namespace Rice::detail
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
         return this->arg_->defaultValue<double>();
+      }
+      else if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -786,6 +842,8 @@ namespace Rice::detail
   class From_Ruby<float&>
   {
   public:
+    using Buffer_T = Buffer<float>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -794,7 +852,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<float>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<float>::is_convertible(value);
+      }
     }
 
     float& convert(VALUE value)
@@ -802,6 +867,11 @@ namespace Rice::detail
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
         return this->arg_->defaultValue<float>();
+      }
+      else if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -914,6 +984,8 @@ namespace Rice::detail
   class From_Ruby<int&>
   {
   public:
+    using Buffer_T = Buffer<int>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -922,7 +994,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<int>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<int>::is_convertible(value);
+      }
     }
 
     int& convert(VALUE value)
@@ -930,6 +1009,11 @@ namespace Rice::detail
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
         return this->arg_->defaultValue<int>();
+      }
+      else if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -1031,6 +1115,8 @@ namespace Rice::detail
   class From_Ruby<unsigned int&>
   {
   public:
+    using Buffer_T = Buffer<unsigned int>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -1039,7 +1125,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<unsigned int>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned int>::is_convertible(value);
+      }
     }
 
     unsigned int& convert(VALUE value)
@@ -1047,6 +1140,11 @@ namespace Rice::detail
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
         return this->arg_->defaultValue<unsigned int>();
+      }
+      else if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -1148,6 +1246,8 @@ namespace Rice::detail
   class From_Ruby<long&>
   {
   public:
+    using Buffer_T = Buffer<long>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -1156,7 +1256,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<long>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<long>::is_convertible(value);
+      }
     }
 
     long& convert(VALUE value)
@@ -1164,6 +1271,11 @@ namespace Rice::detail
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
         return this->arg_->defaultValue<long>();
+      }
+      else if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -1269,6 +1381,8 @@ namespace Rice::detail
   class From_Ruby<unsigned long&>
   {
   public:
+    using Buffer_T = Buffer<unsigned long>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -1277,7 +1391,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<unsigned long>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned long>::is_convertible(value);
+      }
     }
 
     unsigned long& convert(VALUE value)
@@ -1285,6 +1406,11 @@ namespace Rice::detail
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
         return this->arg_->defaultValue<unsigned long>();
+      }
+      else if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -1390,6 +1516,8 @@ namespace Rice::detail
   class From_Ruby<unsigned long long&>
   {
   public:
+    using Buffer_T = Buffer<unsigned long long>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -1398,7 +1526,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<unsigned long long>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned long long>::is_convertible(value);
+      }
     }
 
     unsigned long long& convert(VALUE value)
@@ -1406,6 +1541,11 @@ namespace Rice::detail
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
         return this->arg_->defaultValue<unsigned long long>();
+      }
+      else if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -1507,6 +1647,8 @@ namespace Rice::detail
   class From_Ruby<long long&>
   {
   public:
+    using Buffer_T = Buffer<long long>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -1515,7 +1657,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<long long>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<long long>::is_convertible(value);
+      }
     }
 
     long long& convert(VALUE value)
@@ -1523,6 +1672,11 @@ namespace Rice::detail
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
         return this->arg_->defaultValue<long long>();
+      }
+      else if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -1624,6 +1778,8 @@ namespace Rice::detail
   class From_Ruby<short&>
   {
   public:
+    using Buffer_T = Buffer<short>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -1632,7 +1788,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<short>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<short>::is_convertible(value);
+      }
     }
 
     short& convert(VALUE value)
@@ -1640,6 +1803,11 @@ namespace Rice::detail
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
         return this->arg_->defaultValue<short>();
+      }
+      else if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -1740,6 +1908,8 @@ namespace Rice::detail
   class From_Ruby<unsigned short&>
   {
   public:
+    using Buffer_T = Buffer<unsigned short>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -1748,7 +1918,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<unsigned short>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned short>::is_convertible(value);
+      }
     }
 
     unsigned short& convert(VALUE value)
@@ -1756,6 +1933,11 @@ namespace Rice::detail
       if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
       {
         return this->arg_->defaultValue<unsigned short>();
+      }
+      else if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -1966,7 +2148,7 @@ namespace Rice::detail
           if (rb_type == Data_Type<Buffer<void>>::ruby_data_type())
           {
             Data_Object<Buffer<void>> buffer(value);
-            return buffer->get();
+            return buffer->ptr();
           }
           else 
           {

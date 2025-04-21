@@ -438,13 +438,13 @@ TESTCASE(Buffer)
   Module m = define_module("Testing");
 
   std::string code = u8R"(myclass = MyClass5.new
-                          myclass.buffer(0).to_a(0, 1).first)";
+                          myclass.buffer(0).to_ary(1).first)";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(result));
 
   code = u8R"(myclass = MyClass5.new
-              myclass.buffer(1).to_a(0, 1).first)";
+              myclass.buffer(1).to_ary(1).first)";
   result = m.module_eval(code);
   ASSERT_EQUAL(11.0, detail::From_Ruby<float>().convert(result));
 }

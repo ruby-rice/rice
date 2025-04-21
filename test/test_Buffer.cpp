@@ -29,9 +29,9 @@ TESTCASE(Char)
   Object result = m.instance_eval(code);
 
   ASSERT_EQUAL(u8"Rice::Buffer≺char≻", result.class_name().c_str());
-  ASSERT_EQUAL(u8"my string", String(result.call("read")).c_str());
+  ASSERT_EQUAL(u8"my string", String(result.call("to_str")).c_str());
 
-  Array array = result.call("to_a");
+  Array array = result.call("to_ary");
   ASSERT_EQUAL("109, 121, 32, 115, 116, 114, 105, 110, 103", array.join(", ").c_str());
 
   Object size = result.call("size");
@@ -39,7 +39,7 @@ TESTCASE(Char)
 
   Data_Object<Buffer<char>> dataObject(result);
   Buffer<char> buffer = std::move(*dataObject);
-  ASSERT_EQUAL("my string", buffer.get());
+  ASSERT_EQUAL("my string", buffer.ptr());
   ASSERT_EQUAL(9, buffer.size());
 }
 
@@ -52,7 +52,7 @@ TESTCASE(CharArray)
   std::string code = u8R"(Rice::Buffer≺char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   Data_Object<Buffer<char>> result = m.instance_eval(code);
   Buffer<char> buffer = std::move(*result);
-  char* data = buffer.get();
+  char* data = buffer.ptr();
 
   ASSERT_EQUAL(data[0], 0);
   ASSERT_EQUAL(data[1], 127);
@@ -72,7 +72,7 @@ TESTCASE(signed_char_pointer)
   std::string code = u8R"(Rice::Buffer≺signed char≻.new("my string"))";
   Data_Object<Buffer<signed char>> result = m.instance_eval(code);
   Buffer<signed char> buffer = std::move(*result);
-  signed char* data = buffer.get();
+  signed char* data = buffer.ptr();
 
   signed char* expected = (signed char*)"my string";
   ASSERT_EQUAL(*expected, *data);
@@ -80,7 +80,7 @@ TESTCASE(signed_char_pointer)
   code = u8R"(Rice::Buffer≺signed char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   result = m.instance_eval(code);
   buffer = std::move(*result);
-  data = buffer.get();
+  data = buffer.ptr();
 
   ASSERT_EQUAL(data[0], 0);
   ASSERT_EQUAL(data[1], 127);
@@ -101,7 +101,7 @@ TESTCASE(char_pointer_const)
 
   Data_Object<Buffer<char>> result = m.instance_eval(code);
   Buffer<char> buffer = std::move(*result);
-  char* data = buffer.get();
+  char* data = buffer.ptr();
 
   const char* expected = "my string";
   ASSERT_EQUAL(expected, data);
@@ -109,7 +109,7 @@ TESTCASE(char_pointer_const)
   code = R"(Rice::Buffer≺char≻.new(""))";
   result = m.instance_eval(code);
   buffer = std::move(*result);
-  data = buffer.get();
+  data = buffer.ptr();
 
   expected = "";
   ASSERT_EQUAL(expected, data);
@@ -123,7 +123,7 @@ TESTCASE(unsigned_char_pointer)
   std::string code = u8R"(Rice::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   Data_Object<Buffer<unsigned char>> result = m.instance_eval(code);
   Buffer<unsigned char> buffer = std::move(*result);
-  unsigned char* data = buffer.get();
+  unsigned char* data = buffer.ptr();
 
   ASSERT_EQUAL(data[0], 0x0);
   ASSERT_EQUAL(data[1], 0x7F);
@@ -139,7 +139,7 @@ TESTCASE(unsigned_char_pointer)
               Rice::Buffer≺unsigned char≻.new(packed))";
   result = m.instance_eval(code);
   buffer = std::move(*result);
-  data = buffer.get();
+  data = buffer.ptr();
 
   ASSERT_EQUAL(data[0], 0x0);
   ASSERT_EQUAL(data[1], 0x7F);
@@ -183,5 +183,103 @@ TESTCASE(wrong_type)
     Exception,
     m.module_eval(code),
     ASSERT_EQUAL("can't convert String into Float", ex.what())
+  );
+}
+
+namespace
+{
+  void updateRef(int& ref)
+  {
+    ref = 4;
+  }
+
+  void updatePtr(int* ptr)
+  {
+    *ptr = 5;
+  }
+}
+
+TESTCASE(update_reference)
+{
+  define_buffer<int>();
+  Module m = define_module("Testing");
+  m.define_module_function("update_reference", &updateRef);
+
+  std::string code = R"(buffer = Rice::Buffer≺int≻.new(0)
+                        update_reference(buffer)
+                        buffer.to_ary(1).first)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(result));
+
+  code = R"(buffer = Rice::Buffer≺int≻.new(0)
+            update_reference(buffer)
+            buffer[0])";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(result));
+
+  code = R"(buffer = Rice::Buffer≺int≻.new(0)
+            update_reference(buffer)
+            buffer[1])";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval(code),
+    ASSERT_EQUAL("index 1 outside of bounds: 0..1", ex.what())
+  );
+}
+
+TESTCASE(update_ptr)
+{
+  define_buffer<int>();
+  Module m = define_module("Testing");
+  m.define_module_function("update_pointer", &updatePtr);
+
+  std::string code = R"(buffer = Rice::Buffer≺int≻.new(0)
+                        update_pointer(buffer)
+                        buffer.to_ary(1).first)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result));
+
+  code = R"(buffer = Rice::Buffer≺int≻.new(0)
+            update_pointer(buffer)
+            buffer[0])";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result));
+
+  code = R"(buffer = Rice::Buffer≺int≻.new(0)
+            update_pointer(buffer)
+            buffer[1])";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval(code),
+    ASSERT_EQUAL("index 1 outside of bounds: 0..1", ex.what())
+  );
+}
+
+TESTCASE(update_buffer)
+{
+  define_buffer<int>();
+  Module m = define_module("Testing");
+
+  std::string code = R"(buffer = Rice::Buffer≺int≻.new(0)
+                        buffer[0] = 8
+                        buffer[0])";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(8, detail::From_Ruby<int>().convert(result));
+
+  code = R"(buffer = Rice::Buffer≺int≻.new(0)
+            buffer[1] = 9
+            buffer[1])";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval(code),
+    ASSERT_EQUAL("index 1 outside of bounds: 0..1", ex.what())
   );
 }
