@@ -188,7 +188,7 @@ TESTCASE(method_int_passed_no_args)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.module_eval("o = Object.new; o.extend(self); o.foo"),
-    ASSERT_EQUAL("wrong number of arguments (given 0, expected 1)", ex.what())
+    ASSERT_EQUAL("Missing argument. Name: arg_0. Index: 0.", ex.what())
   );
 }
 
@@ -273,7 +273,7 @@ TESTCASE(default_arguments_still_throws_argument_error)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.module_eval("o = Object.new; o.extend(self); o.foo()"),
-    ASSERT_EQUAL("wrong number of arguments (given 0, expected 1..3)", ex.what())
+    ASSERT_EQUAL("Missing argument. Name: arg1. Index: 0.", ex.what())
   );
 
   ASSERT_EXCEPTION_CHECK(
@@ -285,7 +285,7 @@ TESTCASE(default_arguments_still_throws_argument_error)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.module_eval("o = Object.new; o.extend(self); o.foo(3, 4, false, 17)"),
-    ASSERT_EQUAL("wrong number of arguments (given 4, expected 1..3)", ex.what())
+    ASSERT_EQUAL("wrong number of arguments (given 4, expected 3)", ex.what())
   );
 }
 

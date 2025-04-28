@@ -55,7 +55,7 @@ namespace Rice
     /*! \return the type saved to this Arg
      */
     template<typename Arg_Type>
-    Arg_Type& defaultValue();
+    Arg_Type defaultValue();
 
     //! Tell the receiving object to keep this argument alive
     //! until the receiving object is freed.

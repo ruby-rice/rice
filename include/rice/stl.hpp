@@ -133,6 +133,18 @@ namespace Rice::detail
   };
 
   template<>
+  class To_Ruby<std::string**>
+  {
+  public:
+    VALUE convert(std::string** data)
+    {
+      Buffer<std::string*> buffer(data);
+      Data_Object<Buffer<std::string*>> dataObject(std::move(buffer));
+      return dataObject.value();
+    }
+  };
+
+  template<>
   class From_Ruby<std::string>
   {
   public:
@@ -156,15 +168,8 @@ namespace Rice::detail
 
     std::string convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<std::string>();
-      }
-      else
-      {
-        detail::protect(rb_check_type, value, (int)T_STRING);
-        return std::string(RSTRING_PTR(value), RSTRING_LEN(value));
-      }
+      detail::protect(rb_check_type, value, (int)T_STRING);
+      return std::string(RSTRING_PTR(value), RSTRING_LEN(value));
     }
 
   private:
@@ -195,16 +200,9 @@ namespace Rice::detail
 
     std::string& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<std::string>();
-      }
-      else
-      {
-        detail::protect(rb_check_type, value, (int)T_STRING);
-        this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
-        return this->converted_;
-      }
+      detail::protect(rb_check_type, value, (int)T_STRING);
+      this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      return this->converted_;
     }
 
   private:
@@ -214,33 +212,6 @@ namespace Rice::detail
 
   template<>
   class From_Ruby<std::string*>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_STRING:
-          return Convertible::Exact;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    std::string* convert(VALUE value)
-    {
-      detail::protect(rb_check_type, value, (int)T_STRING);
-      this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
-      return &this->converted_;
-    }
-
-  private:
-    std::string converted_;
-  };
-
-  template<>
-  class From_Ruby<std::string*&>
   {
   public:
     Convertible is_convertible(VALUE value)
@@ -328,15 +299,8 @@ namespace Rice::detail
 
     std::string_view convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<std::string_view>();
-      }
-      else
-      {
-        detail::protect(rb_check_type, value, (int)T_STRING);
-        return std::string_view(RSTRING_PTR(value), RSTRING_LEN(value));
-      }
+      detail::protect(rb_check_type, value, (int)T_STRING);
+      return std::string_view(RSTRING_PTR(value), RSTRING_LEN(value));
     }
 
   private:
@@ -1140,13 +1104,6 @@ namespace Rice
               return MapFromHash<T, U>::convert(value);
             }
           }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::map<T, U>>();
-            }
-          }
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
@@ -1200,13 +1157,6 @@ namespace Rice
             {
               this->converted_ = MapFromHash<T, U>::convert(value);
               return this->converted_;
-            }
-          }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::map<T, U>>();
             }
           }
           default:
@@ -1687,13 +1637,6 @@ namespace Rice
               return toMultimap<T, U>(value);
             }
           }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::multimap<T, U>>();
-            }
-          }
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
@@ -1747,13 +1690,6 @@ namespace Rice
             {
               this->converted_ = toMultimap<T, U>(value);
               return this->converted_;
-            }
-          }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::multimap<T, U>>();
             }
           }
           default:
@@ -2180,13 +2116,6 @@ namespace Rice
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::set<T>>();
-            }
-          }
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
@@ -2255,13 +2184,6 @@ namespace Rice
             }
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
               detail::protect(rb_obj_classname, value), "std::set");
-          }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::set<T>>();
-            }
           }
           default:
           {
@@ -2494,11 +2416,6 @@ namespace Rice::detail
 
     std::shared_ptr<T> convert(VALUE value)
     {
-      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->template defaultValue<std::shared_ptr<T>>();
-      }
-
       // Get the wrapper
       WrapperBase* wrapperBase = detail::getWrapper(value);
 
@@ -2569,11 +2486,6 @@ namespace Rice::detail
 
     std::shared_ptr<T>& convert(VALUE value)
     {
-      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->template defaultValue<std::shared_ptr<T>>();
-      }
-
       // Get the wrapper
       WrapperBase* wrapperBase = detail::getWrapper(value);
 
@@ -2844,13 +2756,13 @@ namespace Rice::detail
   public:
 
     template<typename T>
-    static VALUE convertElement(const std::variant<Types...>& data, bool takeOwnership)
+    static VALUE convertElement(std::variant<Types...>& data, bool takeOwnership)
     {
-      return To_Ruby<T>().convert(std::get<T>(data));
+      return To_Ruby<T>().convert(std::forward<T>(std::get<T>(data)));
     }
 
-    template<std::size_t... I>
-    static VALUE convertIterator(const std::variant<Types...>& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    template<typename U, std::size_t... I>
+    static VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
     {
       // Create a tuple of the variant types so we can look over the tuple's types
       using Tuple_T = std::tuple<Types...>;
@@ -2892,7 +2804,15 @@ namespace Rice::detail
       return result;
     }
 
-    static VALUE convert(const std::variant<Types...>& data, bool takeOwnership = false)
+    template<typename U>
+    static VALUE convert(U& data, bool takeOwnership = false)
+    {
+      auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
+      return convertIterator(data, takeOwnership, indices);
+    }
+
+    template<typename U>
+    static VALUE convert(U&& data, bool takeOwnership = false)
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return convertIterator(data, takeOwnership, indices);
@@ -2904,13 +2824,13 @@ namespace Rice::detail
   {
   public:
     template<typename T>
-    static VALUE convertElement(const std::variant<Types...>& data, bool takeOwnership)
+    static VALUE convertElement(std::variant<Types...>& data, bool takeOwnership)
     {
-      return To_Ruby<T>().convert(std::get<T>(data));
+      return To_Ruby<T>().convert(std::forward<T>(std::get<T>(data)));
     }
 
     template<std::size_t... I>
-    static VALUE convertIterator(const std::variant<Types...>& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    static VALUE convertIterator(std::variant<Types...>& data, bool takeOwnership, std::index_sequence<I...>& indices)
     {
       // Create a tuple of the variant types so we can look over the tuple's types
       using Tuple_T = std::tuple<Types...>;
@@ -2933,7 +2853,7 @@ namespace Rice::detail
       return result;
     }
 
-    static VALUE convert(const std::variant<Types...>& data, bool takeOwnership = false)
+    static VALUE convert(std::variant<Types...>& data, bool takeOwnership = false)
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return convertIterator(data, takeOwnership, indices);
@@ -3562,13 +3482,6 @@ namespace Rice
               return UnorderedMapFromHash<T, U>::convert(value);
             }
           }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::unordered_map<T, U>>();
-            }
-          }
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
@@ -3622,13 +3535,6 @@ namespace Rice
             {
               this->converted_ = UnorderedMapFromHash<T, U>::convert(value);
               return this->converted_;
-            }
-          }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::unordered_map<T, U>>();
             }
           }
           default:
@@ -3732,8 +3638,7 @@ namespace Rice
     public:
       VectorHelper(Data_Type<T> klass) : klass_(klass)
       {
-        this->define_constructor();
-        this->define_copyable_methods();
+        this->define_constructors();
         this->define_constructable_methods();
         this->define_capacity_methods();
         this->define_access_methods();
@@ -3765,28 +3670,35 @@ namespace Rice
         return index;
       };
 
-      void define_constructor()
+      void define_constructors()
       {
-        klass_.define_constructor(Constructor<T>());
-      }
+        klass_.define_constructor(Constructor<T>())
+              .define_constructor(Constructor<T, Size_T, const Parameter_T>())
+              .define_constructor(Constructor<T, const T&>());
 
-      void define_copyable_methods()
-      {
-        if constexpr (std::is_copy_constructible_v<Value_T>)
+        if constexpr (std::is_default_constructible_v<Value_T>)
         {
-          klass_.define_method("copy", [](T& vector) -> T
-            {
-              return vector;
-            });
+          klass_.define_constructor(Constructor<T, Size_T>());
         }
-        else
+
+        // Allow creation of a vector from a Ruby Array
+        klass_.define_method("initialize", [](VALUE self, Array array) -> void
         {
-          klass_.define_method("copy", [](T& vector) -> T
-            {
-              throw std::runtime_error("Cannot copy vectors with non-copy constructible types");
-              return vector;
-            });
-        }
+          // Create a new vector from the array
+          T* data = new T();
+          data->reserve(array.size());
+
+          detail::From_Ruby<Value_T> fromRuby;
+
+          for (long i = 0; i < array.size(); i++)
+          {
+            VALUE element = detail::protect(rb_ary_entry, array, i);
+            data->push_back(fromRuby.convert(element));
+          }
+
+          // Wrap the vector
+          detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data, true);
+        });
       }
 
       void define_constructable_methods()
@@ -3890,6 +3802,13 @@ namespace Rice
               return result;
             }
           }, Return().setValue());
+
+          if constexpr (!std::is_same_v<Value_T, bool>)
+          {
+            define_buffer<Value_T>();
+            define_buffer<Value_T*>();
+            klass_.template define_method<Value_T*(T::*)()>("data", &T::data);
+          }
 
           rb_define_alias(klass_, "at", "[]");
       }
@@ -4124,7 +4043,6 @@ namespace Rice
             {
               return Convertible::Cast;
             }
-            break;
           default:
             return Convertible::None;
         }
@@ -4145,13 +4063,6 @@ namespace Rice
             if constexpr (std::is_default_constructible_v<T>)
             {
               return Array(value).to_vector<T>();
-            }
-          }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::vector<T>>();
             }
           }
           default:
@@ -4188,7 +4099,6 @@ namespace Rice
             {
               return Convertible::Cast;
             }
-            break;
           default:
             return Convertible::None;
         }
@@ -4210,13 +4120,6 @@ namespace Rice
             {
               this->converted_ = Array(value).to_vector<T>();
               return this->converted_;
-            }
-          }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::vector<T>>();
             }
           }
           default:
@@ -4251,7 +4154,6 @@ namespace Rice
             {
               return Convertible::Cast;
             }
-            break;
           default:
             return Convertible::None;
         }

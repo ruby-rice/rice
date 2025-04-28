@@ -346,13 +346,6 @@ namespace Rice
               return MapFromHash<T, U>::convert(value);
             }
           }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::map<T, U>>();
-            }
-          }
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
@@ -406,13 +399,6 @@ namespace Rice
             {
               this->converted_ = MapFromHash<T, U>::convert(value);
               return this->converted_;
-            }
-          }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::map<T, U>>();
             }
           }
           default:

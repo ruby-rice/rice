@@ -86,6 +86,9 @@ namespace Rice
     template<typename T>
     using intrinsic_type = typename std::remove_cv_t<std::remove_pointer_t<std::remove_pointer_t<std::remove_reference_t<T>>>>;
 
+    template<typename T>
+    constexpr bool is_const_any_v = std::is_const_v<std::remove_pointer_t<std::remove_pointer_t<std::remove_reference_t<T>>>>;
+
     // Recursively remove const/volatile
     template<typename T>
     struct remove_cv_recursive
@@ -762,7 +765,7 @@ namespace Rice
     /*! \return the type saved to this Arg
      */
     template<typename Arg_Type>
-    Arg_Type& defaultValue();
+    Arg_Type defaultValue();
 
     //! Tell the receiving object to keep this argument alive
     //! until the receiving object is freed.
@@ -843,12 +846,6 @@ namespace Rice
     MethodInfo(size_t argCount, const Arg_Ts&...args);
 
     /**
-      * Get the rb_scan_args format string for this
-      * list of arguments.
-      */
-    std::string formatString();
-
-    /**
       * Add a defined Arg to this list of Arguments
       */
     void addArg(const Arg& arg);
@@ -863,9 +860,7 @@ namespace Rice
       */
     Arg* arg(std::string name);
 
-    int requiredArgCount();
-    int optionalArgCount();
-    void verifyArgCount(size_t argc);
+    int argCount();
 
     // Iterator support
     std::vector<Arg>::iterator begin();
@@ -914,10 +909,11 @@ namespace Rice::detail
 
   enum class Convertible: uint8_t
   {
-      None =   0b000,
-      Narrow = 0b001,
-      Cast =   0b011,
-      Exact =  0b111,
+      None   = 0b0000,
+      Narrow = 0b0001,
+      Cast   = 0b0011,
+      Const  = 0b0111,
+      Exact  = 0b1111
   };
 }
 
@@ -3104,6 +3100,7 @@ namespace Rice::detail
     WrapperBase() = default;
     virtual ~WrapperBase() = default;
     virtual void* get() = 0;
+    bool isConst();
 
     void ruby_mark();
     void addKeepAlive(VALUE value);
@@ -3111,6 +3108,7 @@ namespace Rice::detail
 
   protected:
     bool isOwner_ = false;
+    bool isConst_ = false;
 
   private:
     // We use a vector for speed and memory locality versus a set which does
@@ -3374,9 +3372,9 @@ namespace Rice
   /*! \return the type saved to this Arg
     */
   template<typename Arg_Type>
-  inline Arg_Type& Arg::defaultValue()
+  inline Arg_Type Arg::defaultValue()
   {
-    return std::any_cast<Arg_Type&>(this->defaultValue_);
+    return std::any_cast<Arg_Type>(this->defaultValue_);
   }
 
   inline Arg& Arg::keepAlive()
@@ -3517,19 +3515,25 @@ namespace Rice
     Buffer& operator=(const Buffer& other) = delete;
     Buffer& operator=(Buffer&& other);
 
-    T* get();
+    T* ptr();
+    T& reference();
     void release();
 
     size_t size() const;
+    void setSize(size_t value);
+
+    // Ruby API
+    VALUE toString() const;
+    VALUE toString(size_t count) const;
+
+    Array toArray() const;
+    Array toArray(size_t count) const;
+
+    T get(size_t index) const;
+    void set(size_t index, T value);
 
     bool isOwner() const;
     void setOwner(bool value);
-
-    VALUE read(size_t offset, size_t count) const;
-    Array toArray(size_t offset, size_t count) const;
-
-    VALUE read() const;
-    Array toArray() const;
 
   private:
     void fromRubyType(VALUE value);
@@ -3561,19 +3565,21 @@ namespace Rice
 
     const Buffer<T>& operator[](size_t index);
 
-    T** get();
+    T** ptr();
     void release();
 
     size_t size() const;
+    void setSize(size_t value);
+
+    // Ruby API
+    VALUE toString() const;
+    VALUE toString(size_t count) const;
+
+    Array toArray() const;
+    Array toArray(size_t count) const;
 
     void setOwner(bool value);
     bool isOwner() const;
-
-    VALUE read(size_t offset, size_t count) const;
-    Array toArray(size_t offset, size_t count) const;
-
-    VALUE read() const;
-    Array toArray() const;
 
   private:
     bool m_owner = false;
@@ -3582,8 +3588,25 @@ namespace Rice
     std::vector<Buffer<T>> m_inner;
   };
 
+  template<>
+  class Buffer<void>
+  {
+  public:
+    Buffer(void* pointer);
+    Buffer(const Buffer& other) = delete;
+    Buffer(Buffer&& other);
+
+    Buffer& operator=(const Buffer& other) = delete;
+    Buffer& operator=(Buffer&& other);
+
+    void* ptr();
+
+  private:
+    void* m_buffer = nullptr;
+  };
+
   template<typename T>
-  Data_Type<Buffer<T>> define_buffer();
+  Data_Type<Buffer<T>> define_buffer(std::string klassName = "");
 
   void define_fundamental_buffer_types();
 }
@@ -3761,9 +3784,21 @@ namespace Rice
   }
 
   template <typename T>
-  inline T* Buffer<T>::get()
+  void  Buffer<T>::setSize(size_t value)
+  {
+    this->m_size = value;
+  }
+
+  template <typename T>
+  inline T* Buffer<T>::ptr()
   {
     return this->m_buffer;
+  }
+
+  template <typename T>
+  inline T& Buffer<T>::reference()
+  {
+    return *this->m_buffer;
   }
 
   template <typename T>
@@ -3785,7 +3820,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T>::read(size_t offset, size_t count) const
+  inline VALUE Buffer<T>::toString(size_t count) const
   {
     if (!this->m_buffer)
     {
@@ -3793,20 +3828,19 @@ namespace Rice
     }
     else
     {
-      T* start = this->m_buffer + offset;
       long length = (long)(count * sizeof(T));
-      return detail::protect(rb_str_new_static, (const char*)start, length);
+      return detail::protect(rb_str_new_static, (const char*)this->m_buffer, length);
     }
   }
 
   template<typename T>
-  inline VALUE Buffer<T>::read() const
+  inline VALUE Buffer<T>::toString() const
   {
-    return this->read(0, this->m_size);
+    return this->toString(this->m_size);
   }
 
   template<typename T>
-  inline Array Buffer<T>::toArray(size_t offset, size_t count) const
+  inline Array Buffer<T>::toArray(size_t count) const
   {
     if (!this->m_buffer)
     {
@@ -3814,17 +3848,17 @@ namespace Rice
     }
     else if constexpr (std::is_fundamental_v<T>)
     {
-      VALUE string = this->read(offset, count);
+      VALUE string = this->toString(count);
       return String(string).unpack<T>();
     }
     else
     {
       Array result;
 
-      T* ptr = this->m_buffer + offset;
-      T* end = this->m_buffer + offset + count;
+      T* ptr = this->m_buffer;
+      T* end = this->m_buffer + count;
 
-      for (ptr; ptr < end; ptr++)
+      for (; ptr < end; ptr++)
       {
         result.push(*ptr);
       }
@@ -3835,7 +3869,29 @@ namespace Rice
   template<typename T>
   inline Array Buffer<T>::toArray() const
   {
-    return this->toArray(0, this->m_size);
+    return this->toArray(this->m_size);
+  }
+
+  template<typename T>
+  inline T Buffer<T>::get(size_t index) const
+  {
+    if (index >= this->m_size)
+    {
+      throw Exception(rb_eIndexError, "index %ld outside of bounds: 0..%ld", index, this->m_size);
+    }
+
+    return this->m_buffer[index];
+  }
+
+  template<typename T>
+  inline void Buffer<T>::set(size_t index, T element)
+  {
+    if (index >= this->m_size)
+    {
+      throw Exception(rb_eIndexError, "index %ld outside of bounds: 0..%ld", index, this->m_size);
+    }
+
+    this->m_buffer[index] = element;
   }
 
   // ----  Buffer<T*> ------- 
@@ -3873,7 +3929,7 @@ namespace Rice
           Buffer<T> buffer(inner.value());
 
           // And update the outer array
-          this->m_outer[i] = buffer.get();
+          this->m_outer[i] = buffer.ptr();
 
           // Now move the buffer into the affer, not the buffer pointer is still valid (it just got moved)
           this->m_inner.push_back(std::move(buffer));
@@ -3941,7 +3997,13 @@ namespace Rice
   }
 
   template <typename T>
-  inline T** Buffer<T*>::get()
+  void  Buffer<T*>::setSize(size_t value)
+  {
+    this->m_size = value;
+  }
+
+  template <typename T>
+  inline T** Buffer<T*>::ptr()
   {
     return this->m_outer;
   }
@@ -3965,7 +4027,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T*>::read(size_t offset, size_t count) const
+  inline VALUE Buffer<T*>::toString(size_t count) const
   {
     if (!this->m_outer)
     {
@@ -3973,20 +4035,20 @@ namespace Rice
     }
     else
     {
-      T** begin = this->m_outer + offset;
+      T** begin = this->m_outer;
       long length = (long)(count * sizeof(T*));
       return detail::protect(rb_str_new_static, (const char*)*begin, length);
     }
   }
 
   template<typename T>
-  inline VALUE Buffer<T*>::read() const
+  inline VALUE Buffer<T*>::toString() const
   {
-    return this->read(0, this->m_size);
+    return this->toString(this->m_size);
   }
 
   template<typename T>
-  inline Array Buffer<T*>::toArray(size_t offset, size_t count) const
+  inline Array Buffer<T*>::toArray(size_t count) const
   {
     if (!this->m_outer)
     {
@@ -3996,8 +4058,8 @@ namespace Rice
     {
       Array result;
 
-      T** ptr = this->m_outer + offset;
-      T** end = this->m_outer + offset + count;
+      T** ptr = this->m_outer;
+      T** end = this->m_outer + count;
 
       for (; ptr < end; ptr++)
       {
@@ -4011,46 +4073,77 @@ namespace Rice
   template<typename T>
   inline Array Buffer<T*>::toArray() const
   {
-    return this->toArray(0, this->m_size);
+    return this->toArray(this->m_size);
   }
 
-  // --------- Void Specialization ---------------
-  template<>
-  inline Buffer<void>::Buffer(VALUE value)
+  // ----  Buffer<void> ------- 
+  inline Buffer<void>::Buffer(void* pointer) : m_buffer(pointer)
   {
   }
 
-  template<>
-  inline VALUE Buffer<void>::read(size_t offset, size_t count) const
+  inline Buffer<void>::Buffer(Buffer<void>&& other) : m_buffer(other.m_buffer)
   {
-    return Qnil;
+    other.m_buffer = nullptr;
   }
 
-  template<>
-  inline Array Buffer<void>::toArray(size_t offset, size_t count) const
+  inline Buffer<void>& Buffer<void>::operator=(Buffer<void>&& other)
   {
-    return Qnil;
+    this->m_buffer = other.m_buffer;
+    other.m_buffer = nullptr;
+
+    return *this;
+  }
+
+  inline void* Buffer<void>::ptr()
+  {
+    return this->m_buffer;
   }
 
   // ------  define_buffer ----------
   template<typename T>
-  inline Data_Type<Buffer<T>> define_buffer()
+  inline Data_Type<Buffer<T>> define_buffer(std::string klassName)
   {
     using Buffer_T = Buffer<T>;
-    std::string name = detail::typeName(typeid(Buffer_T));
-    std::string klassName = detail::rubyClassName(name);
+
+    if (klassName.empty())
+    {
+      std::string typeName = detail::typeName(typeid(Buffer_T));
+      klassName = detail::rubyClassName(typeName);
+    }
+
     Module rb_mRice = define_module("Rice");
 
-    Data_Type<Buffer_T> result = define_class_under<Buffer_T>(rb_mRice, klassName).
-      define_constructor(Constructor<Buffer_T, VALUE>(), Arg("value").setValue()).
-      define_method("size", &Buffer_T::size).
-      define_method("get", &Buffer_T::get).
-      template define_method<VALUE(Buffer_T::*)(size_t, size_t) const>("read", &Buffer_T::read, Return().setValue()).
-      template define_method<VALUE(Buffer_T::*)() const>("read", &Buffer_T::read, Return().setValue()).
-      template define_method<Array(Buffer_T::*)(size_t, size_t) const>("to_a", &Buffer_T::toArray, Return().setValue()).
-      template define_method<Array(Buffer_T::*)() const>("to_a", &Buffer_T::toArray, Return().setValue());
+    if constexpr (std::is_void_v<T>)
+    {
+      return define_class_under<Buffer_T>(rb_mRice, klassName);
+    }
+    else
+    {
+      Data_Type<Buffer_T> klass = define_class_under<Buffer_T>(rb_mRice, klassName).
+        define_constructor(Constructor<Buffer_T, VALUE>(), Arg("value").setValue()).
+        define_method("size", &Buffer_T::size).
+        define_method("size=", &Buffer_T::setSize).
+        define_method("ptr", &Buffer_T::ptr).
+        template define_method<VALUE(Buffer_T::*)(size_t) const>("to_str", &Buffer_T::toString, Return().setValue()).
+        template define_method<VALUE(Buffer_T::*)() const>("to_str", &Buffer_T::toString, Return().setValue()).
+        template define_method<Array(Buffer_T::*)(size_t) const>("to_ary", &Buffer_T::toArray, Return().setValue()).
+        template define_method<Array(Buffer_T::*)() const>("to_ary", &Buffer_T::toArray, Return().setValue());
 
-    return result;
+      if constexpr (!std::is_pointer_v<T>)
+      {
+        klass.
+          define_method("[]", [](const Buffer_T& self, size_t index) -> T
+          {
+            return self.get(index);
+          }).
+          define_method("[]=", [](Buffer_T& self, size_t index, T element) -> void
+          {
+            self.set(index, element);
+          });
+      }
+
+      return klass;
+    }
   }
 
   inline void define_fundamental_buffer_types()
@@ -5877,14 +5970,7 @@ namespace Rice::detail
       {
         case RUBY_T_NIL:
         {
-          if (arg && arg->hasDefaultValue())
-          {
-            return arg->defaultValue<T*>();
-          }
-          else
-          {
-            return nullptr;
-          }
+          return nullptr;
         }
         case RUBY_T_DATA:
         {
@@ -5895,7 +5981,7 @@ namespace Rice::detail
             {
               buffer->release();
             }
-            return buffer->get();
+            return buffer->ptr();
           }
           [[fallthrough]];
         }
@@ -5944,14 +6030,7 @@ namespace Rice::detail
       {
         case RUBY_T_NIL:
         {
-          if (arg && arg->hasDefaultValue())
-          {
-            return arg->defaultValue<T**>();
-          }
-          else
-          {
-            return nullptr;
-          }
+          return nullptr;
         }
         case RUBY_T_DATA:
         {
@@ -5962,7 +6041,7 @@ namespace Rice::detail
             {
               buffer->release();
             }
-            return buffer->get();
+            return buffer->ptr();
           }
           [[fallthrough]];
         }
@@ -5995,14 +6074,7 @@ namespace Rice::detail
 
     bool convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<bool>();
-      }
-      else
-      {
-        return FromRubyFundamental<bool>::convert(value);
-      }
+      return FromRubyFundamental<bool>::convert(value);
     }
 
   private:
@@ -6013,6 +6085,8 @@ namespace Rice::detail
   class From_Ruby<bool&>
   {
   public:
+    using Buffer_T = Buffer<bool>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -6021,14 +6095,22 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<bool>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<bool>::is_convertible(value);
+      }
     }
 
     bool& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
       {
-        return this->arg_->defaultValue<bool>();
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -6084,14 +6166,7 @@ namespace Rice::detail
 
     char convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<char>();
-      }
-      else
-      {
-        return FromRubyFundamental<char>::convert(value);
-      }
+      return FromRubyFundamental<char>::convert(value);
     }
 
   private:
@@ -6102,6 +6177,8 @@ namespace Rice::detail
   class From_Ruby<char&>
   {
   public:
+    using Buffer_T = Buffer<char>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -6110,14 +6187,22 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<char>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<char>::is_convertible(value);
+      }
     }
 
     char& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
       {
-        return this->arg_->defaultValue<char>();
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -6237,14 +6322,7 @@ namespace Rice::detail
 
     unsigned char convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<unsigned char>();
-      }
-      else
-      {
-        return FromRubyFundamental<unsigned char>::convert(value);
-      }
+      return FromRubyFundamental<unsigned char>::convert(value);
     }
 
   private:
@@ -6255,6 +6333,8 @@ namespace Rice::detail
   class From_Ruby<unsigned char&>
   {
   public:
+    using Buffer_T = Buffer<unsigned char>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -6263,14 +6343,22 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<unsigned char>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned char>::is_convertible(value);
+      }
     }
 
     unsigned char& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
       {
-        return this->arg_->defaultValue<unsigned char>();
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -6354,14 +6442,7 @@ namespace Rice::detail
 
     signed char convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<signed char>();
-      }
-      else
-      {
-        return FromRubyFundamental<signed char>::convert(value);
-      }
+      return FromRubyFundamental<signed char>::convert(value);
     }
 
   private:
@@ -6438,14 +6519,7 @@ namespace Rice::detail
 
     double convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<double>();
-      }
-      else
-      {
-        return FromRubyFundamental<double>::convert(value);
-      }
+      return FromRubyFundamental<double>::convert(value);
     }
 
   private:
@@ -6456,6 +6530,8 @@ namespace Rice::detail
   class From_Ruby<double&>
   {
   public:
+    using Buffer_T = Buffer<double>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -6464,14 +6540,22 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<double>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<double>::is_convertible(value);
+      }
     }
 
     double& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
       {
-        return this->arg_->defaultValue<double>();
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -6555,14 +6639,7 @@ namespace Rice::detail
 
     float convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<float>();
-      }
-      else
-      {
-        return FromRubyFundamental<float>::convert(value);
-      }
+      return FromRubyFundamental<float>::convert(value);
     }
 
   private:
@@ -6573,6 +6650,8 @@ namespace Rice::detail
   class From_Ruby<float&>
   {
   public:
+    using Buffer_T = Buffer<float>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -6581,14 +6660,22 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<float>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<float>::is_convertible(value);
+      }
     }
 
     float& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
       {
-        return this->arg_->defaultValue<float>();
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -6683,14 +6770,7 @@ namespace Rice::detail
 
     int convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<int>();
-      }
-      else
-      {
-        return FromRubyFundamental<int>::convert(value);
-      }
+      return FromRubyFundamental<int>::convert(value);
     }
   
   private:
@@ -6701,6 +6781,8 @@ namespace Rice::detail
   class From_Ruby<int&>
   {
   public:
+    using Buffer_T = Buffer<int>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -6709,14 +6791,22 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<int>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<int>::is_convertible(value);
+      }
     }
 
     int& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
       {
-        return this->arg_->defaultValue<int>();
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -6800,14 +6890,7 @@ namespace Rice::detail
 
     unsigned int convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<unsigned int>();
-      }
-      else
-      {
-        return FromRubyFundamental<unsigned int>::convert(value);
-      }
+      return FromRubyFundamental<unsigned int>::convert(value);
     }
 
   private:
@@ -6818,6 +6901,8 @@ namespace Rice::detail
   class From_Ruby<unsigned int&>
   {
   public:
+    using Buffer_T = Buffer<unsigned int>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -6826,14 +6911,22 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<unsigned int>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned int>::is_convertible(value);
+      }
     }
 
     unsigned int& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
       {
-        return this->arg_->defaultValue<unsigned int>();
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -6917,14 +7010,7 @@ namespace Rice::detail
 
     long convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<long>();
-      }
-      else
-      {
-        return FromRubyFundamental<long>::convert(value);
-      }
+      return FromRubyFundamental<long>::convert(value);
     }
   
   private:
@@ -6935,6 +7021,8 @@ namespace Rice::detail
   class From_Ruby<long&>
   {
   public:
+    using Buffer_T = Buffer<long>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -6943,14 +7031,22 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<long>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<long>::is_convertible(value);
+      }
     }
 
     long& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
       {
-        return this->arg_->defaultValue<long>();
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -7038,10 +7134,6 @@ namespace Rice::detail
       {
         return (unsigned long)value;
       }
-      else if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<unsigned long>();
-      }
       else
       {
         return FromRubyFundamental<unsigned long>::convert(value);
@@ -7056,6 +7148,8 @@ namespace Rice::detail
   class From_Ruby<unsigned long&>
   {
   public:
+    using Buffer_T = Buffer<unsigned long>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -7064,14 +7158,22 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<unsigned long>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned long>::is_convertible(value);
+      }
     }
 
     unsigned long& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
       {
-        return this->arg_->defaultValue<unsigned long>();
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -7159,10 +7261,6 @@ namespace Rice::detail
       {
         return value;
       }
-      else if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<unsigned long long>();
-      }
       else
       {
         return FromRubyFundamental<unsigned long long>::convert(value);
@@ -7177,6 +7275,8 @@ namespace Rice::detail
   class From_Ruby<unsigned long long&>
   {
   public:
+    using Buffer_T = Buffer<unsigned long long>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -7185,14 +7285,22 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<unsigned long long>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned long long>::is_convertible(value);
+      }
     }
 
     unsigned long long& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
       {
-        return this->arg_->defaultValue<unsigned long long>();
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -7276,14 +7384,7 @@ namespace Rice::detail
 
     long long convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<long long>();
-      }
-      else
-      {
-        return FromRubyFundamental<long long>::convert(value);
-      }
+      return FromRubyFundamental<long long>::convert(value);
     }
   
   private:
@@ -7294,6 +7395,8 @@ namespace Rice::detail
   class From_Ruby<long long&>
   {
   public:
+    using Buffer_T = Buffer<long long>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -7302,14 +7405,22 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<long long>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<long long>::is_convertible(value);
+      }
     }
 
     long long& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
       {
-        return this->arg_->defaultValue<long long>();
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -7393,14 +7504,7 @@ namespace Rice::detail
 
     short convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<short>();
-      }
-      else
-      {
-        return FromRubyFundamental<short>::convert(value);
-      }
+      return FromRubyFundamental<short>::convert(value);
     }
 
   private:
@@ -7411,6 +7515,8 @@ namespace Rice::detail
   class From_Ruby<short&>
   {
   public:
+    using Buffer_T = Buffer<short>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -7419,14 +7525,22 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<short>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<short>::is_convertible(value);
+      }
     }
 
     short& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
       {
-        return this->arg_->defaultValue<short>();
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -7509,14 +7623,7 @@ namespace Rice::detail
 
     unsigned short convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<unsigned short>();
-      }
-      else
-      {
-        return FromRubyFundamental<unsigned short>::convert(value);
-      }
+      return FromRubyFundamental<unsigned short>::convert(value);
     }
   
   private:
@@ -7527,6 +7634,8 @@ namespace Rice::detail
   class From_Ruby<unsigned short&>
   {
   public:
+    using Buffer_T = Buffer<unsigned short>;
+
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -7535,14 +7644,22 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      return FromRubyFundamental<unsigned short>::is_convertible(value);
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<unsigned short>::is_convertible(value);
+      }
     }
 
     unsigned short& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
       {
-        return this->arg_->defaultValue<unsigned short>();
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
       }
       else
       {
@@ -7705,7 +7822,7 @@ namespace Rice::detail
       {
         case RUBY_T_DATA:
         {
-          return Convertible::Exact;
+          return Convertible::Cast;
           break;
         }
         case RUBY_T_STRING:
@@ -7753,7 +7870,7 @@ namespace Rice::detail
           if (rb_type == Data_Type<Buffer<void>>::ruby_data_type())
           {
             Data_Object<Buffer<void>> buffer(value);
-            return buffer->get();
+            return buffer->ptr();
           }
           else 
           {
@@ -8558,6 +8675,11 @@ namespace Rice::detail
 
 namespace Rice::detail
 {
+  inline bool WrapperBase::isConst()
+  {
+    return this->isConst_;
+  }
+
   inline void WrapperBase::ruby_mark()
   {
     for (VALUE value : this->keepAlive_)
@@ -8603,6 +8725,7 @@ namespace Rice::detail
   template <typename T>
   inline Wrapper<T&>::Wrapper(T& data): data_(data)
   {
+    this->isConst_ = std::is_const_v<std::remove_reference_t<T>>;
   }
 
   template <typename T>
@@ -8622,6 +8745,7 @@ namespace Rice::detail
   inline Wrapper<T*>::Wrapper(T* data, bool isOwner) : data_(data)
   {
     this->isOwner_ = isOwner;
+    this->isConst_ = std::is_const_v<std::remove_pointer_t<T>>;
   }
 
   template <typename T>
@@ -8810,78 +8934,9 @@ namespace Rice
     this->args_.push_back(arg);
   }
 
-  inline int MethodInfo::requiredArgCount()
+  inline int MethodInfo::argCount()
   {
-    int result = 0;
-
-    for (const Arg& arg : this->args_)
-    {
-      if (!arg.hasDefaultValue())
-      {
-        result++;
-      }
-    }
-
-    return result;
-  }
-
-  inline int MethodInfo::optionalArgCount()
-  {
-    int result = 0;
-
-    for (const Arg& arg : this->args_)
-    {
-      if (arg.hasDefaultValue())
-      {
-        result++;
-      }
-    }
-
-    return result;
-  }
-
-  inline void MethodInfo::verifyArgCount(size_t argc)
-  {
-    int requiredArgCount = this->requiredArgCount();
-    int optionalArgCount = this->optionalArgCount();
-
-    if (argc < requiredArgCount || argc > requiredArgCount + optionalArgCount)
-    {
-      std::string message;
-
-      if (optionalArgCount > 0)
-      {
-        message = "wrong number of arguments (given " +
-          std::to_string(argc) + ", expected " +
-          std::to_string(requiredArgCount) + ".." + std::to_string(requiredArgCount + optionalArgCount) + ")";
-      }
-      else
-      {
-        message = "wrong number of arguments (given " +
-          std::to_string(argc) + ", expected " + std::to_string(requiredArgCount) + ")";
-      }
-      throw std::invalid_argument(message);
-    }
-  }
-
-  inline std::string MethodInfo::formatString()
-  {
-    size_t required = 0;
-    size_t optional = 0;
-
-    for (const Arg& arg : this->args_)
-    {
-      if (arg.hasDefaultValue())
-      {
-        optional++;
-      }
-      else
-      {
-        required++;
-      }
-    }
-
-    return std::to_string(required) + std::to_string(optional);
+    return this->args_.size();
   }
 
   inline Arg* MethodInfo::arg(size_t pos)
@@ -9302,6 +9357,12 @@ namespace Rice::detail
   protected:
 
   private:
+    template<int I>
+    Convertible matchParameter(std::vector<std::optional<VALUE>>& value);
+
+    template<std::size_t...I>
+    Convertible matchParameters(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
+
     template<std::size_t...I>
     std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);
 
@@ -9316,14 +9377,14 @@ namespace Rice::detail
     To_Ruby<To_Ruby_T> createToRuby();
       
     // Convert Ruby argv pointer to Ruby values
-    std::vector<VALUE> getRubyValues(int argc, const VALUE* argv, bool validate);
+    std::vector<std::optional<VALUE>> getRubyValues(int argc, const VALUE* argv, bool validate);
 
     template<typename Arg_T, int I>
-    Arg_T getNativeValue(std::vector<VALUE>& values);
+    Arg_T getNativeValue(std::vector<std::optional<VALUE>>& values);
 
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
-    Arg_Ts getNativeValues(std::vector<VALUE>& values, std::index_sequence<I...>& indices);
+    Arg_Ts getNativeValues(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
 
     // Figure out what self is
     Receiver_T getReceiver(VALUE self);
@@ -9332,7 +9393,7 @@ namespace Rice::detail
     [[noreturn]] void noWrapper(const VALUE klass, const std::string& wrapper);
 
     // Do we need to keep alive any arguments?
-    void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues);
+    void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues);
 
     // Call the underlying C++ function
     VALUE invokeNativeFunction(Arg_Ts&& nativeArgs);
@@ -9350,8 +9411,8 @@ namespace Rice::detail
 
 
 // =========   NativeFunction.ipp   =========
-#include <array>
 #include <algorithm>
+#include <array>
 #include <stdexcept>
 #include <sstream>
 
@@ -9491,6 +9552,70 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
+  template<int I>
+  Convertible NativeFunction<Class_T, Function_T, IsMethod>::matchParameter(std::vector<std::optional<VALUE>>& values)
+  {
+    Convertible result = Convertible::None;
+    MethodInfo* methodInfo = this->methodInfo_.get();
+    const Arg* arg = methodInfo->arg(I);
+    std::optional<VALUE> value = values[I];
+
+    // Is a VALUE being passed directly to C++ ?
+    if (value.has_value())
+    {
+      if (arg->isValue())
+      {
+        result = Convertible::Exact;
+      }
+      // If index is less than argc then check with FromRuby if the VALUE is convertible
+      // to C++.
+      else
+      {
+        VALUE value = values[I].value();
+        auto fromRuby = std::get<I>(this->fromRubys_);
+        result = fromRuby.is_convertible(value);
+
+        // If this is an exact match check if the const-ness of the value and the parameter match
+        if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA)
+        {
+          // Check the constness of the Ruby wrapped value and the parameter
+          WrapperBase* wrapper = getWrapper(value);
+          using Parameter_T = std::tuple_element_t<I, Arg_Ts>;
+
+          // Do not send a const value to a non-const parameter
+          if (wrapper->isConst() && !is_const_any_v<Parameter_T>)
+          {
+            result = Convertible::None;
+          }
+          // It is ok to send a non-const value to a const parameter but
+          // prefer non-const to non-const by slighly decreasing the convertible value
+          else if (!wrapper->isConst() && is_const_any_v<Parameter_T>)
+          {
+            result = Convertible::Const;
+          }
+        }
+      }
+    }
+    // Last check if a default value has been set
+    else if (arg->hasDefaultValue())
+    {
+      result = Convertible::Exact;
+    }
+
+    return result;
+  }
+
+  template<typename Class_T, typename Function_T, bool IsMethod>
+  template<std::size_t... I>
+  Convertible NativeFunction<Class_T, Function_T, IsMethod>::matchParameters(std::vector<std::optional<VALUE>>& values,
+    std::index_sequence<I...>& indices)
+  {
+    Convertible result = Convertible::Exact;
+    ((result = result & this->matchParameter<I>(values)), ...);
+    return result;
+  }
+
+  template<typename Class_T, typename Function_T, bool IsMethod>
   Resolved NativeFunction<Class_T, Function_T, IsMethod>::matches(int argc, const VALUE* argv, VALUE self)
   {
     // Return false if Ruby provided more arguments than the C++ method takes
@@ -9502,49 +9627,28 @@ namespace Rice::detail
     MethodInfo* methodInfo = this->methodInfo_.get();
     int index = 0;
 
-    std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv, false);
-
-    // Loop over each FromRuby instance
-    for_each_tuple(this->fromRubys_,
-      [&](auto& fromRuby)
-      {
-        Convertible convertible = Convertible::None;
-
-        const Arg* arg = methodInfo->arg(index);
-
-        // Is a VALUE being passed directly to C++ ?
-        if (arg->isValue() && index < rubyValues.size())
-        {
-          convertible = Convertible::Exact;
-        }
-        // If index is less than argc then check with FromRuby if the VALUE is convertible
-        // to C++.
-        else if (index < rubyValues.size())
-        {
-          VALUE value = rubyValues[index];
-          convertible = fromRuby.is_convertible(value);
-        }
-        // Last check if a default value has been set
-        else if (arg->hasDefaultValue())
-        {
-          convertible = Convertible::Exact;
-        }
-
-        result.convertible = result.convertible & convertible;
-
-        index++;
-      });
+    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, false);
+    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+    result.convertible = this->matchParameters(rubyValues, indices);
 
     if constexpr (arity > 0)
-      result.parameterMatch = rubyValues.size() / (double)arity;
+    {
+      int providedValues = std::count_if(rubyValues.begin(), rubyValues.end(), [](std::optional<VALUE>& value)
+        {
+          return value.has_value();
+        });
 
+      result.parameterMatch = providedValues / (double)arity;
+    }
     return result;
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  std::vector<VALUE> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(int argc, const VALUE* argv, bool validate)
+  std::vector<std::optional<VALUE>> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(int argc, const VALUE* argv, bool validate)
   {
-    std::vector<VALUE> result;
+#undef max
+    int size = std::max((size_t)arity, (size_t)argc);
+    std::vector<std::optional<VALUE>> result(size);
 
     // Keyword handling
     if (rb_keyword_given_p())
@@ -9555,9 +9659,7 @@ namespace Rice::detail
       VALUE value = argv[actualArgc];
       Hash keywords(value);
 
-      result.resize(actualArgc + keywords.size());
-
-      // Copy over leading arguments
+      // Copy over leading non-keyword arguments
       for (int i = 0; i < actualArgc; i++)
       {
         result[i] = argv[i];
@@ -9577,20 +9679,39 @@ namespace Rice::detail
     }
     else
     {
-      std::copy(argv, argv + argc, std::back_inserter(result));
+      std::copy(argv, argv + argc, result.begin());
     }
      
     // Block handling. If we find a block and the last parameter is missing then
     // set it to the block
-    if (rb_block_given_p() && result.size() < std::tuple_size_v<Arg_Ts>)
+    if (rb_block_given_p() && result.size() > 0 && !result.back().has_value())
     {
       VALUE proc = rb_block_proc();
-      result.push_back(proc);
+      result.back() = proc;
     }
 
     if (validate)
     {
-      this->methodInfo_->verifyArgCount(result.size());
+      // Protect against user sending too many arguments
+      if (argc > arity)
+      {
+        std::string message = "wrong number of arguments (given " +
+          std::to_string(argc) + ", expected " + std::to_string(arity) + ")";
+        throw std::invalid_argument(message);
+      }
+
+      for (int i=0; i<result.size(); i++)
+      {
+        std::optional<VALUE> value = result[i];
+        Arg* arg = this->methodInfo_->arg(i);
+
+        if (!arg->hasDefaultValue() && !value.has_value())
+        {
+          std::string message;
+          message = "Missing argument. Name: " + arg->name + ". Index: " + std::to_string(arg->position) + ".";
+          throw std::invalid_argument(message);
+        }
+      }
     }
     
     return result;
@@ -9598,7 +9719,7 @@ namespace Rice::detail
 
   template<typename Class_T, typename Function_T, bool IsMethod>
   template<typename Arg_T, int I>
-  Arg_T NativeFunction<Class_T, Function_T, IsMethod>::getNativeValue(std::vector<VALUE>& values)
+  Arg_T NativeFunction<Class_T, Function_T, IsMethod>::getNativeValue(std::vector<std::optional<VALUE>>& values)
   {
     /* In general the compiler will convert T to const T, but that does not work for converting
        T** to const T** (see see https://isocpp.org/wiki/faq/const-correctness#constptrptr-conversion)
@@ -9608,22 +9729,31 @@ namespace Rice::detail
        the return type. That works but requires a lot more code changes for this one case and is not 
        backwards compatible. */
 
-    // If the user did provide a value assume Qnil
-    VALUE value = I < values.size() ? values[I] : Qnil;
+    std::optional<VALUE> value = values[I];
+    Arg* arg = this->methodInfo_->arg(I);
 
     if constexpr (is_pointer_pointer_v<Arg_T> && !std::is_convertible_v<remove_cv_recursive_t<Arg_T>, Arg_T>)
     {
-      return (Arg_T)std::get<I>(this->fromRubys_).convert(value);
+      return (Arg_T)std::get<I>(this->fromRubys_).convert(value.value());
     }
-    else
+    else if (value.has_value())
     {
-      return std::get<I>(this->fromRubys_).convert(value);
+      return std::get<I>(this->fromRubys_).convert(value.value());
     }
+    else if constexpr (std::is_constructible_v<std::remove_cv_t<Arg_T>, std::remove_cv_t<std::remove_reference_t<Arg_T>>&>)
+    {
+      if (arg->hasDefaultValue())
+      {
+        return arg->defaultValue<Arg_T>();
+      }
+    }
+
+    throw std::invalid_argument("Could not convert Rubyy value");
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
   template<std::size_t... I>
-  typename NativeFunction<Class_T, Function_T, IsMethod>::Arg_Ts NativeFunction<Class_T, Function_T, IsMethod>::getNativeValues(std::vector<VALUE>& values,
+  typename NativeFunction<Class_T, Function_T, IsMethod>::Arg_Ts NativeFunction<Class_T, Function_T, IsMethod>::getNativeValues(std::vector<std::optional<VALUE>>& values,
      std::index_sequence<I...>& indices)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
@@ -9754,7 +9884,7 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  void NativeFunction<Class_T, Function_T, IsMethod>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues)
+  void NativeFunction<Class_T, Function_T, IsMethod>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues)
   {
     // Self will be Qnil for wrapped procs
     if (self == Qnil)
@@ -9773,7 +9903,7 @@ namespace Rice::detail
         {
           noWrapper(self, "self");
         }
-        selfWrapper->addKeepAlive(rubyValues[arg.position]);
+        selfWrapper->addKeepAlive(rubyValues[arg.position].value());
       }
     }
 
@@ -9799,7 +9929,7 @@ namespace Rice::detail
   VALUE NativeFunction<Class_T, Function_T, IsMethod>::operator()(int argc, const VALUE* argv, VALUE self)
   {
     // Get the ruby values and make sure we have the correct number
-    std::vector<VALUE> rubyValues = this->getRubyValues(argc, argv, true);
+    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, true);
 
     auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
 
@@ -10889,14 +11019,16 @@ namespace Rice
   template<typename T>
   std::vector<T> Array::to_vector()
   {
-    long size = this->size();
     std::vector<T> result;
+
+    long size = this->size();
     result.reserve(size);
 
+    detail::From_Ruby<T> fromRuby;
     for (long i = 0; i < size; i++)
     {
       VALUE element = detail::protect(rb_ary_entry, this->value(), i);
-      result.push_back(detail::From_Ruby<T>().convert(element));
+      result.push_back(fromRuby.convert(element));
     }
 
     return result;
@@ -12689,7 +12821,8 @@ namespace Rice::detail
                   "Please include rice/stl.hpp header for STL support");
 
   public:
-    VALUE convert(const T& data)
+    template<typename U>
+    VALUE convert(U& data)
     {
       // Get the ruby typeinfo
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
@@ -12699,7 +12832,8 @@ namespace Rice::detail
       return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
 
-    VALUE convert(T&& data)
+    template<typename U>
+    VALUE convert(U&& data)
     {
       // Get the ruby typeinfo
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
@@ -12730,7 +12864,8 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(T& data)
+    template<typename U>
+    VALUE convert(U& data)
     {
       // Note that T could be a pointer or reference to a base class while data is in fact a
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
@@ -12739,17 +12874,6 @@ namespace Rice::detail
       bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
       return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
     }
-
-    VALUE convert(const T& data)
-    {
-      // Note that T could be a pointer or reference to a base class while data is in fact a
-      // child class. Lookup the correct type so we return an instance of the correct Ruby class
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
-
-      bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
-      return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
-    }
-
   private:
     Return* returnInfo_ = nullptr;
   };
@@ -12774,7 +12898,8 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const T* data)
+    template<typename U>
+    VALUE convert(U* data)
     {
       bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
 
@@ -12822,7 +12947,8 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const T* data)
+    template<typename U>
+    VALUE convert(U* data)
     {
       bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
 
@@ -12870,30 +12996,15 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(T** data)
+    template<typename U>
+    VALUE convert(U** data)
     {
       if (data)
       {
-        using Buffer_T = Buffer<intrinsic_type<T>*>;
         bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
-        Buffer_T buffer(data);
+        Buffer<T*> buffer((T**)data);
         buffer.setOwner(isOwner);
-        return detail::wrap(Data_Type<Buffer_T>::klass(), Data_Type<Buffer_T>::ruby_data_type(), buffer, true);
-      }
-      else
-      {
-        return Qnil;
-      }
-    }
-
-    VALUE convert(const T** data)
-    {
-      if (data)
-      {
         using Buffer_T = Buffer<intrinsic_type<T>*>;
-        bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
-        Buffer_T buffer((T**)data);
-        buffer.setOwner(isOwner);
         return detail::wrap(Data_Type<Buffer_T>::klass(), Data_Type<Buffer_T>::ruby_data_type(), buffer, true);
       }
       else
@@ -12950,35 +13061,16 @@ namespace Rice::detail
 
     T convert(VALUE value)
     {
-      // This expression checks to see if T has an explicit copy constructor
-      // If it does then we have to call it directly. Not sure if this end ups
-      // with an extra copy or not?
-      // 
-      // std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      using Intrinsic_T = intrinsic_type<T>;
+      Intrinsic_T* instance = detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
+
+      if constexpr (std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>)
       {
-        if constexpr (std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>)
-        {
-          return T(this->arg_->template defaultValue<T>());
-        }
-        else
-        {
-          return this->arg_->template defaultValue<T>();
-        }
+        return T(*instance);
       }
       else
       {
-        using Intrinsic_T = intrinsic_type<T>;
-        Intrinsic_T* instance = detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
-
-        if constexpr (std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>)
-        {
-          return T(*instance);
-        }
-        else
-        {
-          return *instance;
-        }
+        return *instance;
       }
     }
 
@@ -13022,14 +13114,7 @@ namespace Rice::detail
     {
       using Intrinsic_T = intrinsic_type<T>;
 
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->template defaultValue<Intrinsic_T>();
-      }
-      else
-      {
-        return *detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner()); 
-      }
+      return *detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner()); 
     }
 
   private:
@@ -13072,15 +13157,8 @@ namespace Rice::detail
     {
       using Intrinsic_T = intrinsic_type<T>;
 
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return std::move(this->arg_->template defaultValue<Intrinsic_T>());
-      }
-      else
-      {
-        Intrinsic_T* object = detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
-        return std::move(*object);
-      }
+      Intrinsic_T* object = detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
+      return std::move(*object);
     }
 
   private:
@@ -13152,7 +13230,7 @@ namespace Rice::detail
           {
             using Buffer_T = Buffer<Intrinsic_T>;
             Buffer_T* buffer = detail::unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
-            return buffer->get();
+            return buffer->ptr();
           }
           else
           {
@@ -13266,7 +13344,7 @@ namespace Rice::detail
         case RUBY_T_DATA:
         {
           Buffer<Intrinsic_T*>* buffer = detail::unwrap<Buffer<Intrinsic_T*>>(value, Data_Type<Buffer<Intrinsic_T*>>::ruby_data_type(), false);
-          return buffer->get();
+          return buffer->ptr();
           break;
         }
         case RUBY_T_NIL:
@@ -13713,26 +13791,16 @@ namespace Rice::detail
 
 namespace Rice
 {
-  // This class is used to initialize Rice when a Rice extension is loaded.
-  // It defines template instantiations for the Buffer and RubyTypes classes.
-  // To use it add the following code to your Init_ function when loading a 
-  // Rice extension:
-  //
-  //    static Rice::Init init;
-  class Init
-  {
-  public:
-    Init();
-  };
+  void init();
 }
 
 // =========   Init.ipp   =========
 namespace Rice
 {
-  inline Init::Init()
+  inline void init()
   {
-    define_fundamental_buffer_types();
     detail::define_ruby_types();
+    define_fundamental_buffer_types();
   };
 }
 #endif // Rice__hpp_

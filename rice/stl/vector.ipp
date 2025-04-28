@@ -449,13 +449,6 @@ namespace Rice
               return Array(value).to_vector<T>();
             }
           }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::vector<T>>();
-            }
-          }
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
@@ -511,13 +504,6 @@ namespace Rice
             {
               this->converted_ = Array(value).to_vector<T>();
               return this->converted_;
-            }
-          }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::vector<T>>();
             }
           }
           default:

@@ -21,9 +21,9 @@ namespace Rice
   /*! \return the type saved to this Arg
     */
   template<typename Arg_Type>
-  inline Arg_Type& Arg::defaultValue()
+  inline Arg_Type Arg::defaultValue()
   {
-    return std::any_cast<Arg_Type&>(this->defaultValue_);
+    return std::any_cast<Arg_Type>(this->defaultValue_);
   }
 
   inline Arg& Arg::keepAlive()
