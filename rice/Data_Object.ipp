@@ -342,35 +342,16 @@ namespace Rice::detail
 
     T convert(VALUE value)
     {
-      // This expression checks to see if T has an explicit copy constructor
-      // If it does then we have to call it directly. Not sure if this end ups
-      // with an extra copy or not?
-      // 
-      // std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
+      using Intrinsic_T = intrinsic_type<T>;
+      Intrinsic_T* instance = detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
+
+      if constexpr (std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>)
       {
-        if constexpr (std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>)
-        {
-          return T(this->arg_->template defaultValue<T>());
-        }
-        else
-        {
-          return this->arg_->template defaultValue<T>();
-        }
+        return T(*instance);
       }
       else
       {
-        using Intrinsic_T = intrinsic_type<T>;
-        Intrinsic_T* instance = detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
-
-        if constexpr (std::is_constructible_v<T, T> && !std::is_convertible_v<T, T>)
-        {
-          return T(*instance);
-        }
-        else
-        {
-          return *instance;
-        }
+        return *instance;
       }
     }
 
@@ -414,14 +395,7 @@ namespace Rice::detail
     {
       using Intrinsic_T = intrinsic_type<T>;
 
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->template defaultValue<Intrinsic_T>();
-      }
-      else
-      {
-        return *detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner()); 
-      }
+      return *detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner()); 
     }
 
   private:
@@ -464,15 +438,8 @@ namespace Rice::detail
     {
       using Intrinsic_T = intrinsic_type<T>;
 
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return std::move(this->arg_->template defaultValue<Intrinsic_T>());
-      }
-      else
-      {
-        Intrinsic_T* object = detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
-        return std::move(*object);
-      }
+      Intrinsic_T* object = detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
+      return std::move(*object);
     }
 
   private:

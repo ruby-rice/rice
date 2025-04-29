@@ -122,11 +122,6 @@ namespace Rice::detail
 
     std::shared_ptr<T> convert(VALUE value)
     {
-      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->template defaultValue<std::shared_ptr<T>>();
-      }
-
       // Get the wrapper
       WrapperBase* wrapperBase = detail::getWrapper(value);
 
@@ -197,11 +192,6 @@ namespace Rice::detail
 
     std::shared_ptr<T>& convert(VALUE value)
     {
-      if(value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->template defaultValue<std::shared_ptr<T>>();
-      }
-
       // Get the wrapper
       WrapperBase* wrapperBase = detail::getWrapper(value);
 

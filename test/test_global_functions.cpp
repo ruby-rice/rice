@@ -16,8 +16,8 @@ TEARDOWN(GlobalFunctions)
   rb_gc_start();
 }
 
-namespace {
-
+namespace
+{
   bool no_args()
   {
     return true;
@@ -136,8 +136,8 @@ TESTCASE(default_arguments_for_define_global_function)
 
 TESTCASE(default_arguments_kw)
 {
-  define_global_function("defaults_method_one_kw", &defaults_method_one, 
-    Arg("arg1"), Arg("arg2"), Arg("arg3") = true);
+  define_global_function("defaults_method_one_kw", &defaults_method_one,
+    Arg("arg1"), Arg("arg2") = 3, Arg("arg3") = true);
   Module m = Module(rb_mKernel);
 
   std::string code = R"(defaults_method_one_kw(4, arg2: 5))";
@@ -151,6 +151,19 @@ TESTCASE(default_arguments_kw)
   ASSERT_EQUAL(9, defaults_method_one_arg1);
   ASSERT_EQUAL(11, defaults_method_one_arg2);
   ASSERT(!defaults_method_one_arg3);
+
+  code = R"(defaults_method_one_kw(4, arg3: false))";
+  m.instance_eval(code);
+  ASSERT_EQUAL(4, defaults_method_one_arg1);
+  ASSERT_EQUAL(3, defaults_method_one_arg2);
+  ASSERT_EQUAL(false, defaults_method_one_arg3);
+
+  code = R"(defaults_method_one_kw(arg2: 5))";
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.instance_eval(code),
+    ASSERT_EQUAL("Missing argument. Name: arg1. Index: 0.", ex.what())
+  );
 }
 
 TESTCASE(default_arguments_and_returning)

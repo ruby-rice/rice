@@ -87,15 +87,8 @@ namespace Rice::detail
 
     std::string convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<std::string>();
-      }
-      else
-      {
-        detail::protect(rb_check_type, value, (int)T_STRING);
-        return std::string(RSTRING_PTR(value), RSTRING_LEN(value));
-      }
+      detail::protect(rb_check_type, value, (int)T_STRING);
+      return std::string(RSTRING_PTR(value), RSTRING_LEN(value));
     }
 
   private:
@@ -126,16 +119,9 @@ namespace Rice::detail
 
     std::string& convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<std::string>();
-      }
-      else
-      {
-        detail::protect(rb_check_type, value, (int)T_STRING);
-        this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
-        return this->converted_;
-      }
+      detail::protect(rb_check_type, value, (int)T_STRING);
+      this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      return this->converted_;
     }
 
   private:

@@ -75,10 +75,10 @@ namespace Rice::detail
 
   private:
     template<int I>
-    Convertible matchParameter(std::vector<VALUE>& values, size_t index);
+    Convertible matchParameter(std::vector<std::optional<VALUE>>& value);
 
     template<std::size_t...I>
-    Convertible matchParameters(std::vector<VALUE>& values, std::index_sequence<I...>& indices);
+    Convertible matchParameters(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
 
     template<std::size_t...I>
     std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);
@@ -94,14 +94,14 @@ namespace Rice::detail
     To_Ruby<To_Ruby_T> createToRuby();
       
     // Convert Ruby argv pointer to Ruby values
-    std::vector<VALUE> getRubyValues(int argc, const VALUE* argv, bool validate);
+    std::vector<std::optional<VALUE>> getRubyValues(int argc, const VALUE* argv, bool validate);
 
     template<typename Arg_T, int I>
-    Arg_T getNativeValue(std::vector<VALUE>& values);
+    Arg_T getNativeValue(std::vector<std::optional<VALUE>>& values);
 
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
-    Arg_Ts getNativeValues(std::vector<VALUE>& values, std::index_sequence<I...>& indices);
+    Arg_Ts getNativeValues(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
 
     // Figure out what self is
     Receiver_T getReceiver(VALUE self);
@@ -110,7 +110,7 @@ namespace Rice::detail
     [[noreturn]] void noWrapper(const VALUE klass, const std::string& wrapper);
 
     // Do we need to keep alive any arguments?
-    void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<VALUE>& rubyValues);
+    void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues);
 
     // Call the underlying C++ function
     VALUE invokeNativeFunction(Arg_Ts&& nativeArgs);

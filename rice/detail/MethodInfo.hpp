@@ -14,12 +14,6 @@ namespace Rice
     MethodInfo(size_t argCount, const Arg_Ts&...args);
 
     /**
-      * Get the rb_scan_args format string for this
-      * list of arguments.
-      */
-    std::string formatString();
-
-    /**
       * Add a defined Arg to this list of Arguments
       */
     void addArg(const Arg& arg);
@@ -34,9 +28,7 @@ namespace Rice
       */
     Arg* arg(std::string name);
 
-    int requiredArgCount();
-    int optionalArgCount();
-    void verifyArgCount(size_t argc);
+    int argCount();
 
     // Iterator support
     std::vector<Arg>::iterator begin();

@@ -325,13 +325,6 @@ namespace Rice
               return toMultimap<T, U>(value);
             }
           }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::multimap<T, U>>();
-            }
-          }
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
@@ -385,13 +378,6 @@ namespace Rice
             {
               this->converted_ = toMultimap<T, U>(value);
               return this->converted_;
-            }
-          }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::multimap<T, U>>();
             }
           }
           default:

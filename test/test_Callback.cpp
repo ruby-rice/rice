@@ -139,7 +139,7 @@ namespace
   using Callback_T2 = char*(*)();
   std::vector<Callback_T2> callbacks;
 
-  void registerCallback(Callback_T2 callback1, Callback_T2 callback2)
+  void registerTwoCallbacks(Callback_T2 callback1, Callback_T2 callback2)
   {
     callbacks.push_back(callback1);
     callbacks.push_back(callback2);
@@ -156,7 +156,7 @@ namespace
 TESTCASE(MultipleCallbacks)
 {
   Module m = define_module("TestingMultipleCallbacks");
-  m.define_module_function<void(*)(Callback_T2, Callback_T2)>("register_callback", registerCallback).
+  m.define_module_function<void(*)(Callback_T2, Callback_T2)>("register_callback", registerTwoCallbacks).
     define_module_function<char*(*)(int)>("trigger_callback", triggerCallback);
 
   std::string code = R"(proc1 = Proc.new do 

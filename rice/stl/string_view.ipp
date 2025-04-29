@@ -55,15 +55,8 @@ namespace Rice::detail
 
     std::string_view convert(VALUE value)
     {
-      if (value == Qnil && this->arg_ && this->arg_->hasDefaultValue())
-      {
-        return this->arg_->defaultValue<std::string_view>();
-      }
-      else
-      {
-        detail::protect(rb_check_type, value, (int)T_STRING);
-        return std::string_view(RSTRING_PTR(value), RSTRING_LEN(value));
-      }
+      detail::protect(rb_check_type, value, (int)T_STRING);
+      return std::string_view(RSTRING_PTR(value), RSTRING_LEN(value));
     }
 
   private:

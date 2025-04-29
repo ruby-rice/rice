@@ -345,13 +345,6 @@ namespace Rice
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::set<T>>();
-            }
-          }
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
@@ -420,13 +413,6 @@ namespace Rice
             }
             throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
               detail::protect(rb_obj_classname, value), "std::set");
-          }
-          case RUBY_T_NIL:
-          {
-            if (this->arg_ && this->arg_->hasDefaultValue())
-            {
-              return this->arg_->template defaultValue<std::set<T>>();
-            }
           }
           default:
           {
