@@ -86,25 +86,6 @@ Hints
     or that the ``RBENV_ROOT`` environment variable is defined.
 #]=======================================================================]
 
-cmake_policy(GET CMP0185 _Ruby_CMP0185)
-
-if(NOT _Ruby_CMP0185 STREQUAL "NEW")
-  # Backwards compatibility
-  # Define camel case versions of input variables
-  foreach (UPPER
-           RUBY_EXECUTABLE
-           RUBY_LIBRARY
-           RUBY_INCLUDE_DIR
-           RUBY_CONFIG_INCLUDE_DIR)
-    if (DEFINED ${UPPER})
-      string(REPLACE "RUBY_" "Ruby_" Camel ${UPPER})
-      if (NOT DEFINED ${Camel})
-        set(${Camel} ${${UPPER}})
-      endif ()
-    endif ()
-  endforeach ()
-endif()
-
 # Uncomment the following line to get debug output for this file
 # set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 
@@ -452,35 +433,3 @@ mark_as_advanced(
     Ruby_INCLUDE_DIR
     Ruby_CONFIG_INCLUDE_DIR
     )
-
-if(NOT _Ruby_CMP0185 STREQUAL "NEW")
-  # Set some variables for compatibility with previous version of this file (no need to provide a CamelCase version of that...)
-  set(RUBY_POSSIBLE_LIB_PATH ${_Ruby_POSSIBLE_LIB_DIR})
-  set(RUBY_RUBY_LIB_PATH ${Ruby_RUBY_LIB_DIR})
-  set(RUBY_INCLUDE_PATH ${Ruby_INCLUDE_DIRS})
-
-  # Backwards compatibility
-  # Define upper case versions of output variables
-  foreach (Camel
-           Ruby_EXECUTABLE
-           Ruby_INCLUDE_DIRS
-           Ruby_LIBRARY
-           Ruby_VERSION
-           Ruby_VERSION_MAJOR
-           Ruby_VERSION_MINOR
-           Ruby_VERSION_PATCH
-
-           Ruby_ARCH_DIR
-           Ruby_ARCH
-           Ruby_HDR_DIR
-           Ruby_ARCHHDR_DIR
-           Ruby_RUBY_LIB_DIR
-           Ruby_SITEARCH_DIR
-           Ruby_SITELIB_DIR
-           Ruby_HAS_VENDOR_RUBY
-           Ruby_VENDORARCH_DIR
-           Ruby_VENDORLIB_DIR)
-    string(TOUPPER ${Camel} UPPER)
-    set(${UPPER} ${${Camel}})
-  endforeach ()
-endif()
