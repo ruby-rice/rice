@@ -175,9 +175,7 @@ namespace Rice
     // Typed Data support
     static inline rb_data_type_t* rb_data_type_ = nullptr;
 
-    // Track unbound instances (ie, declared variables of type Data_Type<T>
-    // before define_class is called)
-    static inline std::set<Data_Type<T>*>unbound_instances_;
+    static inline std::set<Data_Type<T>*>& unbound_instances();
   };
 
   //! Define a new data class in the namespace given by module.

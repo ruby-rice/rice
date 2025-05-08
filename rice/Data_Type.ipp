@@ -59,12 +59,12 @@ namespace Rice
     // Now register with the type registry
     detail::Registries::instance.types.add<T>(klass_, rb_data_type_);
 
-    auto iter = Data_Type<T>::unbound_instances_.begin();
-    while (iter != Data_Type<T>::unbound_instances_.end())
+    auto instances = unbound_instances();
+    for (auto instance: instances)
     { 
-      (*iter)->set_value(klass);
-      iter = Data_Type<T>::unbound_instances_.erase(iter);
+      instance->set_value(klass);
     }
+    instances.clear();
 
     return Data_Type<T>();
   }
@@ -84,12 +84,22 @@ namespace Rice
     rb_data_type_ = nullptr;
   }
 
+  // Track unbound instances (ie, declared variables of type Data_Type<T>
+  // before define_class is called). We can't simply use a static inline
+  // member because it sometimes crashes clang and gcc (msvc seems fine)
+  template<typename T>
+  inline std::set<Data_Type<T>*>& Data_Type<T>::unbound_instances()
+  {
+    static std::set<Data_Type<T>*> unbound_instances;
+    return unbound_instances;
+  }
+
   template<typename T>
   inline Data_Type<T>::Data_Type() : Class(klass_ == Qnil ? rb_cObject : klass_)
   {
     if (!is_bound())
     {
-      this->unbound_instances_.insert(this);
+      unbound_instances().insert(this);
     }
   }
 
