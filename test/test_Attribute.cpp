@@ -119,6 +119,7 @@ TESTCASE(attributes)
 
 TESTCASE(vector)
 {
+  // See https ://github.com/ruby-rice/rice/issues/283
   Module m = define_module("Testing");
 
   define_class<VecStruct>("VecStruct")
@@ -128,8 +129,7 @@ TESTCASE(vector)
 
   std::string code = R"(struct = VecStruct.new([1, 2])
                         # Access the attribute
-                        vec =  struct.vector
-                        # Return size - see https://github.com/ruby-rice/rice/issues/283
+                        array =  struct.vector.to_a
                         struct.vector_size)";
 
   Object result = m.module_eval(code);
