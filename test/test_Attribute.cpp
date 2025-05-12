@@ -53,6 +53,21 @@ namespace
   bool globalBool = true;
   const DataStruct* globalStruct = new DataStruct();
 
+  class VecStruct
+  {
+  public:
+    std::vector<double> vector;
+
+    VecStruct(std::vector<double> aVector) : vector(aVector)
+    {
+    }
+
+    size_t vecSize()
+    {
+      return this->vector.size();
+    }
+  };
+
 } // namespace
 
 TESTCASE(attributes)
@@ -100,6 +115,25 @@ TESTCASE(attributes)
 
   result = o.call("read_write_string");
   ASSERT_EQUAL("Set a string", detail::From_Ruby<std::string>().convert(result.value()));
+}
+
+TESTCASE(vector)
+{
+  // See https ://github.com/ruby-rice/rice/issues/283
+  Module m = define_module("Testing");
+
+  define_class<VecStruct>("VecStruct")
+    .define_constructor(Constructor<VecStruct, std::vector<double>>())
+    .define_attr("vector", &VecStruct::vector, Rice::AttrAccess::Read)
+    .define_method("vector_size", &VecStruct::vecSize);
+
+  std::string code = R"(struct = VecStruct.new([1, 2])
+                        # Access the attribute
+                        array =  struct.vector.to_a
+                        struct.vector_size)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(2, detail::From_Ruby<size_t>().convert(result));
 }
 
 TESTCASE(const_attribute)

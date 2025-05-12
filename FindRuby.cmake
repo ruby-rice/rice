@@ -378,7 +378,7 @@ set(_Ruby_POSSIBLE_LIB_NAMES
 )
 
 if (WIN32 OR MSYS)
-  set(_Ruby_POSSIBLE_RUNTIMES "ucrt;msvcrt;vcruntime140;vcruntime140_1;msvcr${MSVC_TOOLSET_VERSION}")
+  set(_Ruby_POSSIBLE_RUNTIMES "ucrt;msvcrt;vcruntime140;vcruntime140_1;vcruntime${MSVC_TOOLSET_VERSION}")
   set(_Ruby_POSSIBLE_VERSION_SUFFIXES "${_Ruby_VERSION_NODOT};${_Ruby_VERSION_NODOT_ZERO_PATCH}")
   # Under MSYS CMAKE_SIZEOF_VOID_P is unset so add prefixes for 32 and 64 architectures
   set(_Ruby_POSSIBLE_ARCH_PREFIXES "lib;libx64-;x64-")
