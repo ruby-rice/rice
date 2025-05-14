@@ -95,9 +95,13 @@ namespace Rice
   }
 
   template<typename T>
-  inline Data_Type<T>::Data_Type() : Class(klass_ == Qnil ? rb_cObject : klass_)
+  inline Data_Type<T>::Data_Type()
   {
-    if (!is_bound())
+    if (is_bound())
+    {
+      this->set_value(klass_);
+    }
+    else
     {
       unbound_instances().insert(this);
     }
