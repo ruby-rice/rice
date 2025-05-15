@@ -306,7 +306,7 @@ if (Ruby_EXECUTABLE AND NOT Ruby_EXECUTABLE STREQUAL "${_Ruby_EXECUTABLE_LAST_QU
       Ruby_VERSION_MAJOR
       Ruby_VERSION_MINOR
       Ruby_VERSION_PATCH
-  )
+      )
 endif ()
 
 # In case Ruby_EXECUTABLE could not be executed (e.g. cross compiling)
@@ -349,7 +349,7 @@ find_path(Ruby_INCLUDE_DIR
           ${Ruby_HDR_DIR}
           ${Ruby_ARCH_DIR}
           /usr/lib/ruby/${_Ruby_VERSION_SHORT}/i586-linux-gnu/
-)
+          )
 
 set(Ruby_INCLUDE_DIRS ${Ruby_INCLUDE_DIR})
 
@@ -361,27 +361,32 @@ if (Ruby_FIND_VERSION VERSION_GREATER_EQUAL "1.9" OR Ruby_VERSION VERSION_GREATE
             ${Ruby_HDR_DIR}/${Ruby_ARCH}
             ${Ruby_ARCH_DIR}
             ${Ruby_ARCHHDR_DIR}
-  )
+            )
 
   set(Ruby_INCLUDE_DIRS ${Ruby_INCLUDE_DIRS} ${Ruby_CONFIG_INCLUDE_DIR})
 endif ()
 
 # Determine the list of possible names for the ruby library
 set(_Ruby_POSSIBLE_LIB_NAMES
-  ruby
-  ruby-static
-  ruby-${Ruby_VERSION}
-  ruby${_Ruby_VERSION_NODOT}
-  ruby${_Ruby_VERSION_NODOT_ZERO_PATCH}
-  ruby${_Ruby_VERSION_SHORT}
-  ruby${_Ruby_VERSION_SHORT_NODOT}
-)
+    ruby
+    ruby-static
+    ruby-${Ruby_VERSION}
+    ruby${_Ruby_VERSION_NODOT}
+    ruby${_Ruby_VERSION_NODOT_ZERO_PATCH}
+    ruby-${_Ruby_VERSION_SHORT}
+    ruby${_Ruby_VERSION_SHORT}
+    ruby${_Ruby_VERSION_SHORT_NODOT}
+    )
 
-if (WIN32 OR MSYS)
+if (WIN32)
   set(_Ruby_POSSIBLE_RUNTIMES "ucrt;msvcrt;vcruntime140;vcruntime140_1;vcruntime${MSVC_TOOLSET_VERSION}")
   set(_Ruby_POSSIBLE_VERSION_SUFFIXES "${_Ruby_VERSION_NODOT};${_Ruby_VERSION_NODOT_ZERO_PATCH}")
-  # Under MSYS CMAKE_SIZEOF_VOID_P is unset so add prefixes for 32 and 64 architectures
-  set(_Ruby_POSSIBLE_ARCH_PREFIXES "lib;libx64-;x64-")
+
+  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(_Ruby_POSSIBLE_ARCH_PREFIXES "libx64-;x64-")
+  else ()
+    set(_Ruby_POSSIBLE_ARCH_PREFIXES "lib")
+  endif ()
 
   foreach (_Ruby_RUNTIME ${_Ruby_POSSIBLE_RUNTIMES})
     foreach (_Ruby_VERSION_SUFFIX ${_Ruby_POSSIBLE_VERSION_SUFFIXES})
@@ -429,4 +434,4 @@ mark_as_advanced(
     Ruby_LIBRARY
     Ruby_INCLUDE_DIR
     Ruby_CONFIG_INCLUDE_DIR
-)
+    )
