@@ -1,15 +1,19 @@
 ﻿cmake_minimum_required(VERSION 3.26)
+set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 
 project(RiceUnitTest)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# For older versions of CMake can use include("./FindRuby.cmake")
-find_package("Ruby")
+#find_package("Ruby")
+include("../FindRuby.cmake")
 
-# For older versions of CMake can use include("./FindRuby.cmake")
-find_package("Ruby")
+target_include_directories(unittest PRIVATE ..)
+target_compile_definitions(unittest PRIVATE -DHAVE_LIBFFI)
+target_link_libraries(unittest ${Ruby_LIBRARY} ffi)
+target_include_directories(unittest PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})
+target_include_directories(unittest PRIVATE ${PROJECT_SOURCE_DIR})
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
@@ -88,10 +92,3 @@ add_executable(unittest
                "test_Stl_Unordered_Map.cpp"
                "test_Stl_Variant.cpp"
                "test_Stl_Vector.cpp")
-
-target_include_directories(unittest PRIVATE ..)
-#target_compile_definitions(unittest PRIVATE -DHAVE_LIBFFI)
-target_include_directories(unittest PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})
-target_include_directories(unittest PRIVATE ${PROJECT_SOURCE_DIR})
-target_link_directories(unittest PRIVATE c:/msys64/ucrt64/lib)
-target_link_libraries(unittest ${Ruby_LIBRARY} ffi)
