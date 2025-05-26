@@ -5,4 +5,5 @@ Gem.pre_install do |installer|
     require_relative 'rubygems/builder'
     require_relative 'rubygems/cmake_builder'
   end
+  true
 end
