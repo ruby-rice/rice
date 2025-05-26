@@ -33,7 +33,7 @@ require "fileutils"
 require 'open3'
 
 class Gem::Ext::CmakeBuilder
-  attr_accessor :spec, :runner, :profile
+  attr_accessor :runner, :profile
 
   def initialize
     @runner = self.class.method(:run)
