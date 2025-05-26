@@ -29,7 +29,7 @@ TESTCASE(Char)
   Object result = m.instance_eval(code);
 
   ASSERT_EQUAL(u8"Rice::Buffer≺char≻", result.class_name().c_str());
-  ASSERT_EQUAL(u8"my string", String(result.call("to_str")).c_str());
+  ASSERT_EQUAL(u8"my string", String(result.call("bytes")).c_str());
 
   Array array = result.call("to_ary");
   ASSERT_EQUAL("109, 121, 32, 115, 116, 114, 105, 110, 103", array.join(", ").c_str());

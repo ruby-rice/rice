@@ -205,8 +205,16 @@ namespace Rice
     this->m_owner = false;
   }
 
+ /* template<typename T>
+  inline VALUE Buffer<T>::toString() const
+  {
+    std::string name = detail::typeName(typeid(T));
+    std::string result = "Buffer<type: " + detail::cppClassName(name) + ", size: " + std::to_string(this->m_size) + ">";
+    return detail::To_Ruby<std::string>().convert(result);
+  }*/
+
   template<typename T>
-  inline VALUE Buffer<T>::toString(size_t count) const
+  inline VALUE Buffer<T>::bytes(size_t count) const
   {
     if (!this->m_buffer)
     {
@@ -220,9 +228,9 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T>::toString() const
+  inline VALUE Buffer<T>::bytes() const
   {
-    return this->toString(this->m_size);
+    return this->bytes(this->m_size);
   }
 
   template<typename T>
@@ -234,7 +242,7 @@ namespace Rice
     }
     else if constexpr (std::is_fundamental_v<T>)
     {
-      VALUE string = this->toString(count);
+      VALUE string = this->bytes(count);
       return String(string).unpack<T>();
     }
     else
@@ -412,8 +420,16 @@ namespace Rice
     this->m_owner = false;
   }
 
+  /*template<typename T>
+  inline VALUE Buffer<T*>::toString() const
+  {
+    std::string name = detail::typeName(typeid(T*));
+    std::string result = "Buffer<type: " + detail::cppClassName(name) + ", size: " + std::to_string(this->m_size) + ">";
+    return detail::To_Ruby<std::string>().convert(result);
+  }*/
+
   template<typename T>
-  inline VALUE Buffer<T*>::toString(size_t count) const
+  inline VALUE Buffer<T*>::bytes(size_t count) const
   {
     if (!this->m_outer)
     {
@@ -428,9 +444,9 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T*>::toString() const
+  inline VALUE Buffer<T*>::bytes() const
   {
-    return this->toString(this->m_size);
+    return this->bytes(this->m_size);
   }
 
   template<typename T>
@@ -510,8 +526,9 @@ namespace Rice
         define_method("size", &Buffer_T::size).
         define_method("size=", &Buffer_T::setSize).
         define_method("ptr", &Buffer_T::ptr).
-        template define_method<VALUE(Buffer_T::*)(size_t) const>("to_str", &Buffer_T::toString, Return().setValue()).
-        template define_method<VALUE(Buffer_T::*)() const>("to_str", &Buffer_T::toString, Return().setValue()).
+       // template define_method<VALUE(Buffer_T::*)() const>("to_s", &Buffer_T::toString, Return().setValue()).
+        template define_method<VALUE(Buffer_T::*)(size_t) const>("bytes", &Buffer_T::bytes, Return().setValue()).
+        template define_method<VALUE(Buffer_T::*)() const>("bytes", &Buffer_T::bytes, Return().setValue()).
         template define_method<Array(Buffer_T::*)(size_t) const>("to_ary", &Buffer_T::toArray, Return().setValue()).
         template define_method<Array(Buffer_T::*)() const>("to_ary", &Buffer_T::toArray, Return().setValue());
 

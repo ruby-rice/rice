@@ -211,19 +211,19 @@ TESTCASE(unsigned_char_ptr_buffer)
 
   std::string code = R"(matrix = Matrix2UnsignedChar.new
                         buffer = matrix.ptr
-                        buffer.to_str(5))";
+                        buffer.bytes(5))";
   String buffer = m.module_eval(code);
   ASSERT_EQUAL("\x1\x2\x3\x4\x5", buffer.str());
 
   code = R"(matrix = Matrix2UnsignedChar.new
             buffer = matrix.ptr
-            buffer.to_str(0))";
+            buffer.bytes(0))";
   buffer = m.module_eval(code);
   ASSERT_EQUAL("", buffer.str());
 
   code = R"(matrix = Matrix2UnsignedChar.new
             buffer = matrix.data
-            buffer.to_str)";
+            buffer.bytes)";
 
   buffer = m.module_eval(code);
   ASSERT_EQUAL("\x1\x2\x3\x4\x5", buffer.str());
@@ -313,7 +313,7 @@ TESTCASE(short_ptr_buffer)
 
   std::string code = R"(matrix = Matrix2Short.new
                         buffer = matrix.ptr
-                        buffer.to_str(5))";
+                        buffer.bytes(5))";
 
   std::string expected = "\x1\0\x2\0\x3\0\x4\0\x5\0"s;
   String buffer = m.module_eval(code);
@@ -321,7 +321,7 @@ TESTCASE(short_ptr_buffer)
 
   code = R"(matrix = Matrix2Short.new
                         buffer = matrix.ptr
-                        buffer.to_str(0))";
+                        buffer.bytes(0))";
   expected = ""s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
@@ -355,7 +355,7 @@ TESTCASE(unsigned_short_ptr_buffer)
 
   std::string code = R"(matrix = Matrix2UnsignedShort.new
                         buffer = matrix.ptr
-                        buffer.to_str(5))";
+                        buffer.bytes(5))";
 
   std::string expected = "\x1\0\x2\0\x3\0\x4\0\x5\0"s;
   String buffer = m.module_eval(code);
@@ -363,7 +363,7 @@ TESTCASE(unsigned_short_ptr_buffer)
 
   code = R"(matrix = Matrix2UnsignedShort.new
             buffer = matrix.ptr
-            buffer.to_str(0))";
+            buffer.bytes(0))";
   expected = ""s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
@@ -397,7 +397,7 @@ TESTCASE(int_ptr_buffer)
 
   std::string code = R"(matrix = Matrix2Int.new
                         buffer = matrix.ptr
-                        buffer.to_str(5))";
+                        buffer.bytes(5))";
 
   std::string expected = "\x1\0\0\0\x2\0\0\0\x3\0\0\0\x4\0\0\0\x5\0\0\0"s;
   String buffer = m.module_eval(code);
@@ -405,7 +405,7 @@ TESTCASE(int_ptr_buffer)
 
   code = R"(matrix = Matrix2Int.new
             buffer = matrix.ptr
-            buffer.to_str(0))";
+            buffer.bytes(0))";
   expected = ""s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
@@ -439,7 +439,7 @@ TESTCASE(float_ptr_buffer)
 
   std::string code = R"(matrix = Matrix2Float.new
                         buffer = matrix.ptr
-                        buffer.to_str(5))";
+                        buffer.bytes(5))";
 
   std::string expected = "\0\0\x80\x3f\0\0\0\x40\0\0\x40\x40\0\0\x80\x40\0\0\xa0\x40"s;
   String buffer = m.module_eval(code);
@@ -447,7 +447,7 @@ TESTCASE(float_ptr_buffer)
 
  code = R"(matrix = Matrix2Float.new
             buffer = matrix.ptr
-            buffer.to_str(0))";
+            buffer.bytes(0))";
   expected = ""s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
@@ -481,7 +481,7 @@ TESTCASE(double_ptr_buffer)
 
   std::string code = R"(matrix = Matrix2Double.new
                         buffer = matrix.ptr
-                        buffer.to_str(5))";
+                        buffer.bytes(5))";
 
   std::string expected = "\0\0\0\0\0\0\xf0\x3f\0\0\0\0\0\0\0\x40\0\0\0\0\0\0\x08\x40\0\0\0\0\0\0\x10\x40\0\0\0\0\0\0\x14\x40"s;
   String buffer = m.module_eval(code);
@@ -490,7 +490,7 @@ TESTCASE(double_ptr_buffer)
 
   code = R"(matrix = Matrix2Double.new
             buffer = matrix.ptr
-            buffer.to_str(0))";
+            buffer.bytes(0))";
   expected = ""s;
   buffer = m.module_eval(code);
   ASSERT_EQUAL(expected, buffer.str());
