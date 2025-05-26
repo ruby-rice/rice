@@ -525,7 +525,6 @@ namespace Rice
         define_constructor(Constructor<Buffer_T, VALUE>(), Arg("value").setValue()).
         define_method("size", &Buffer_T::size).
         define_method("size=", &Buffer_T::setSize).
-        define_method("ptr", &Buffer_T::ptr).
        // template define_method<VALUE(Buffer_T::*)() const>("to_s", &Buffer_T::toString, Return().setValue()).
         template define_method<VALUE(Buffer_T::*)(size_t) const>("bytes", &Buffer_T::bytes, Return().setValue()).
         template define_method<VALUE(Buffer_T::*)() const>("bytes", &Buffer_T::bytes, Return().setValue()).
