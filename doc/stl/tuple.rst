@@ -8,7 +8,7 @@ Ruby does not have the concept of a tuple, but it can be mapped to a fixed size 
 
 Rice also support passing a Ruby array to C++ api that takes tuples.
 
-.. _out_parameters:
+.. _out_parameters_tuple:
 
 Out Parameters
 --------------
@@ -27,9 +27,9 @@ For example, the `minMaxLoc <https://docs.opencv.org/4.x/d2/de8/group__core__arr
 
 All of ``minVal``, ``maxVal``, ``minLoc`` and ``maxLoc`` are out parameters designed to return values.
 
-Ruby does not support this type of method definition because it passes function parameters by value. Python is the same as Ruby, and has a nice explanation in its `documentation <https://docs.python.org/3/faq/programming.html#how-do-i-write-a-function-with-output-parameters-call-by-reference>`_.
+One way to wrap this function is to use :ref:`_out_parameters<Buffers>`.
 
-Tuples can be used to wrap this function in Rice:
+An alterantive apporach is to use ``std::tuple``.
 
 .. code-block:: cpp
 
@@ -52,6 +52,4 @@ Then to call the method from Ruby:
    mat = Cv::Mat.new(2, 2, CV_8UC4, cv::Scalar.new(10, 20, 30, 40))
    min_val = 10
    min_val, max_val, min_loc, max_loc = min_max_loc(mat.input_array, min_val)
-
-
 

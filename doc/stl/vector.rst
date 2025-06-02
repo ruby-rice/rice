@@ -11,30 +11,10 @@ There are multiple reasons for this:
 * ``std::vector`` instances commonly contain C++ classes that have complex copy or move semantics
 * having two disconnected copies of data, one in C++ and one in Ruby, is usually undesirable
 
-Rice will automatically define Ruby classes for each instantiation of ``std::vector`` it finds. You may also manually define Ruby classes via the use of ``define_vector`` or ``define_vector_under`` methods. But make sure to define them *before* Rice automatically creates them.
+Rice will automatically define Ruby classes for each instantiation of ``std::vector`` it finds. You may also manually define Ruby classes via the use of the ``define_vector`` method. Vector classes are added to the ``Std`` module.
 
-Example:
-
-.. code-block:: cpp
-
-  std::vector<std::string> makeStringVector()
-  {
-     return std::vector {"one", "two", "three"};
-  }
-
-  define_vector<std::string>("StringVector");
-  define_global_function("make_string_vector", &makeStringVector);
-
-Once you have defined this Ruby class, you can create a new instance like this:
-
-.. code-block:: ruby
-
-  vector = StringVector.new
-  vector.push("value 1")
-  vector.push("value 2")
-
-Array to Vector
-^^^^^^^^^^^^^^^
+Usage
+^^^^^
 For C++ methods that take vector arguments, you can instantiate a new vector from Ruby (see :ref:`stl_class_names`).
 
 For example, assume this C++ code:

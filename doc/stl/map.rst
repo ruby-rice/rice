@@ -11,56 +11,33 @@ There are multiple reasons for this:
 * ``std::map`` instances commonly contain C++ classes that have complex copy or move semantics
 * having two disconnected copies of data, one in C++ and one in Ruby, is usually undesirable
 
-Rice will automatically define Ruby classes for each instantiation of ``std::map`` it finds. You may also manually define Ruby classes via the use of ``define_map`` or ``define_map_under`` methods. But make sure to define them *before* Rice automatically creates them.
+Rice will automatically define Ruby classes for each instantiation of ``std::map`` it finds. You may also manually define Ruby classes via the use of the ``define_map`` method. Map classes are added to the ``Std`` module.
 
-Example:
-
-.. code-block:: cpp
-
-  std::map<std::string, int> makeStringIntMap()
-  {
-     return std::map {{"one", 1}, {"two", 2}, {"three", 3}};
-  }
-
-  define_map<std::map<std::string>>("StringIntMap");
-  define_global_function("make_string_int_map", &makeStringIntMap);
-
-Once you have defined this Ruby class, you can create a new instance like this:
-
-.. code-block:: ruby
-
-  map = StringMap.new
-  map["value 1"] = 1
-  map["value 2"] = 2
-
-Hash to Map
-^^^^^^^^^^^^^^^
+Usage
+^^^^^
 For C++ methods that take map arguments, you can instantiate a new map from Ruby (see :ref:`stl_class_names`).
 
 For example, assume this C++ code:
 
 .. code-block:: cpp
 
-  void passMap(std::map<std::string, int> stringIntMap)
+  void passMap(std::map<std::string, int> map)
   {
   }
 
-  define_map<std::map<std::string, std::int>>("StringIntMap");
   define_global_function("pass_map", &passMap);
 
 One way to call it from Ruby is like this:
 
 .. code-block:: ruby
 
-  map = StringIntMap.new
-  map["thrity seven"] = 37
+  map = Std::Map≺string‚ int≻.new
+  map["thirty seven"] = 37
   pass_map(map)
 
 In this case, Ruby is wrapping a C++ map. Therefore any changes made to the map in C++ will be visible to Ruby.
 
-However, it is often more convenient to pass a Ruby hash instead. This is especially true if you are using Rice's :ref:`automatic <stl_class_names>` stl classes. 
-
-Therefore Rice also supports this usage:
+A second way to call the method is to pass a Ruby Hash:
 
 .. code-block:: ruby
 

@@ -63,7 +63,7 @@ The unicode characters are:
 +-------------+-------------+-----------------------------+
 | ,           | U+066C      | Arabic Thousands Separator  |
 +-------------+-------------+-----------------------------+
-|          | U+u00A0     | Non breaking Space          |
+|             | U+u00A0     | Non breaking Space          |
 +-------------+-------------+-----------------------------+
 
 To use this class in Ruby:
