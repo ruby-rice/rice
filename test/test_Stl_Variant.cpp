@@ -134,9 +134,9 @@ namespace
     }
   };
 
-  using Class_Variant_T = std::variant<std::monostate, MyClass1, MyClass2>;
+  using Variant_T = std::variant<std::monostate, MyClass1, MyClass2>;
 
-  Class_Variant_T variantClass(bool myClass1)
+  Variant_T variant(bool myClass1)
   {
     if (myClass1)
     {
@@ -148,12 +148,17 @@ namespace
     }
   }
 
-  Class_Variant_T roundTripVariantClass(Class_Variant_T variant)
+  Variant_T roundTripVariant(Variant_T variant)
   {
     return variant;
   }
 
-  Class_Variant_T& roundTripVariantClassRef(Class_Variant_T& variant)
+  Variant_T& roundTripVariantRef(Variant_T& variant)
+  {
+    return variant;
+  }
+
+  const Variant_T& roundTripConstVariantRef(const Variant_T& variant)
   {
     return variant;
   }
@@ -169,9 +174,10 @@ void makeClassVariant()
     define_constructor(Constructor<MyClass2>()).
     define_method("say_hello", &MyClass2::sayHello);
 
-  define_global_function("variant_class", &variantClass);
-  define_global_function("roundtrip_variant_class", &roundTripVariantClass);
-  define_global_function("roundtrip_variant_class_ref", &roundTripVariantClassRef);
+  define_global_function("variant_class", &variant);
+  define_global_function("roundtrip_variant", &roundTripVariant);
+  define_global_function("roundtrip_variant_ref", &roundTripVariantRef);
+  define_global_function("roundtrip_const_variant_ref", &roundTripConstVariantRef);
 }
 
 SETUP(Variant)
@@ -307,17 +313,17 @@ TESTCASE(ClassReturns)
   ASSERT_EQUAL("Hi from MyClass2", detail::From_Ruby<std::string>().convert(hello));
 }
 
-TESTCASE(ClassRoundtrip)
+TESTCASE(Roundtrip)
 {
   Module m = define_module("Testing");
 
   Object instance = m.module_eval("MyClass1.new");
-  Object instance2 = m.call("roundtrip_variant_class", instance);
+  Object instance2 = m.call("roundtrip_variant", instance);
   String hello = instance2.call("say_hello");
   ASSERT_EQUAL("Hi from MyClass1", detail::From_Ruby<std::string>().convert(hello));
 
   instance = m.module_eval("MyClass2.new");
-  instance2 = m.call("roundtrip_variant_class", instance);
+  instance2 = m.call("roundtrip_variant", instance);
   hello = instance2.call("say_hello");
   ASSERT_EQUAL("Hi from MyClass2", detail::From_Ruby<std::string>().convert(hello));
 }
@@ -334,22 +340,36 @@ TESTCASE(ClassRoundtrip)
  a reference to a variant in a tuple? */
 
 #ifdef _MSC_VER
-TESTCASE(ClassRoundtripRef)
+TESTCASE(RoundtripRef)
 {
   Module m = define_module("Testing");
 
   Object instance = m.module_eval("MyClass1.new");
-  Object instance2 = m.call("roundtrip_variant_class_ref", instance);
+  Object instance2 = m.call("roundtrip_variant_ref", instance);
   String hello = instance2.call("say_hello");
   ASSERT_EQUAL("Hi from MyClass1", detail::From_Ruby<std::string>().convert(hello));
 
   instance = m.module_eval("MyClass2.new");
-  instance2 = m.call("roundtrip_variant_class_ref", instance);
+  instance2 = m.call("roundtrip_variant_ref", instance);
   hello = instance2.call("say_hello");
   ASSERT_EQUAL("Hi from MyClass2", detail::From_Ruby<std::string>().convert(hello));
 }
 #endif
 
+TESTCASE(RoundtripConstRef)
+{
+  Module m = define_module("Testing");
+
+  Object instance = m.module_eval("MyClass1.new");
+  Object instance2 = m.call("roundtrip_const_variant_ref", instance);
+  String hello = instance2.call("say_hello");
+  ASSERT_EQUAL("Hi from MyClass1", detail::From_Ruby<std::string>().convert(hello));
+
+  instance = m.module_eval("MyClass2.new");
+  instance2 = m.call("roundtrip_variant_ref", instance);
+  hello = instance2.call("say_hello");
+  ASSERT_EQUAL("Hi from MyClass2", detail::From_Ruby<std::string>().convert(hello));
+}
 
 namespace
 {

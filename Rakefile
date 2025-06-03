@@ -98,9 +98,10 @@ end
 # ---------  Documentation  --------------
 desc "Build the documentation"
 task :doc do
-  cd "doc" do
-    sh "make clean html"
-  end
+  build_dir = File.expand_path(File.join("doc", "_build"))
+  FileUtils.rm_r(build_dir, secure: true)
+  cmd = ["sphinx-build", "--builder", "html", "doc", build_dir]
+  sh *cmd
 end
 
 task :default => :test

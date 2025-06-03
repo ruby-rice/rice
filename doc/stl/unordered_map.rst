@@ -11,30 +11,10 @@ There are multiple reasons for this:
 * ``std::unordered_map`` instances commonly contain C++ classes that have complex copy or move semantics
 * having two disconnected copies of data, one in C++ and one in Ruby, is usually undesirable
 
-Rice will automatically define Ruby classes for each instantiation of ``std::unordered_map`` it finds. You may also manually define Ruby classes via the use of ``define_unordered_map`` or ``define_unordered_map_under`` methods. But make sure to define them *before* Rice automatically creates them.
+Rice will automatically define Ruby classes for each instantiation of ``std::unordered_map`` it finds. You may also manually define Ruby classes via the use of the ``define_unordered_map`` method. Unordered Map classes are added to the ``Std`` module.
 
-Example:
-
-.. code-block:: cpp
-
-  std::unordered_map<std::string, int> makeStringIntMap()
-  {
-     return std::unordered_map {{"one", 1}, {"two", 2}, {"three", 3}};
-  }
-
-  define_unordered_map<std::unordered_map<std::string>>("StringIntMap");
-  define_global_function("make_string_int_map", &makeStringIntMap);
-
-Once you have defined this Ruby class, you can create a new instance like this:
-
-.. code-block:: ruby
-
-  map = StringMap.new
-  map["value 1"] = 1
-  map["value 2"] = 2
-
-Hash to Map
-^^^^^^^^^^^^^^^
+Usage
+^^^^^
 For C++ methods that take map arguments, you can instantiate a new map from Ruby (see :ref:`stl_class_names`).
 
 For example, assume this C++ code:
@@ -52,7 +32,7 @@ One way to call it from Ruby is like this:
 
 .. code-block:: ruby
 
-  map = StringIntMap.new
+  map = Std::UnorderedMap≺string‚ int≻.new
   map["thrity seven"] = 37
   pass_map(map)
 
