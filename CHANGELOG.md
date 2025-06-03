@@ -1,14 +1,24 @@
-## 4.5.1 (in progress)
+## 4.6.0 (2025-xx-xx)
+
+* Add new Buffer class to provide Ruby API to raw pointers returned by C++
+* Support C style out parameters
+* Support C style arrays
+* Rewrite keyword arguments
+* Rewrite default value handling allowing the removal of a lot of boilerplate
 * Add support for std::multimap
 * Add support for std::set
 * Add support for std::tuple
-* Add new Buffer class to provide Ruby API to raw pointers returned by C++
 * Add support for pointers to arrays
 * Add support for smart pointers (shared_ptr, unique_ptr) to fundamental types (void, int, etc)
 * Update is_convertible documentation
 * Fix missing version.rb file in gemspec
 * Add C++ preprocessor defines for Rice version
+* Include Rice::VERSION in published gem
 * Moved auto-generated C++ STL classes (std::vector, std::map, etc.) from the module Rice::Std module to Std module
+* Make Rice const aware to improve overload method support
+* Improve error messages when Rice cannot determine what overloaded method to call
+* Improve handling of unbound Data_Type instances to avoid crashes when initializing global static variables of type Data_Type<T>
+* Make Enums more useful by adding coerce method to enable stringing together bitwise operators - for example Season::Winter | Season::Spring | Season::Summer.
 
 ## 4.5 (2025-02-09)
 Rice 4.5 is a major release that adds significant new functionality, including:
