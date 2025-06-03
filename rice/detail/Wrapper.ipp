@@ -96,7 +96,7 @@ namespace Rice::detail
 
   // ---- Helper Functions -------
   template <typename T>
-  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner)
+  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner)
   {
     VALUE result = Registries::instance.instances.lookup(&data);
 
@@ -109,21 +109,21 @@ namespace Rice::detail
     if (!isOwner)
     {
       wrapper = new Wrapper<T&>(data);
-      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
     // Ruby is the owner so copy data
     else if constexpr (std::is_copy_constructible_v<T>)
     {
       wrapper = new Wrapper<T>(data);
-      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
     // Ruby is the owner so move data
     else if constexpr (std::is_move_constructible_v<T>)
     {
       wrapper = new Wrapper<T>(std::forward<T>(data));
-      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
     else
@@ -139,7 +139,7 @@ namespace Rice::detail
   };
 
   template <typename T>
-  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner)
+  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T* data, bool isOwner)
   {
     VALUE result = Registries::instance.instances.lookup(data);
 
@@ -147,16 +147,22 @@ namespace Rice::detail
       return result;
 
     WrapperBase* wrapper = new Wrapper<T*>(data, isOwner);
-    result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+    result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
 
     Registries::instance.instances.add(wrapper->get(), result);
     return result;
   };
 
   template <typename T>
-  inline T* unwrap(VALUE value, rb_data_type_t* rb_type, bool takeOwnership)
+  inline T* unwrap(VALUE value, rb_data_type_t* rb_data_type, bool takeOwnership)
   {
-    WrapperBase* wrapper = getWrapper(value, rb_type);
+    if (rb_type(value) != RUBY_T_DATA)
+    {
+      std::string message = "The provided Ruby object does not wrap a C++ object";
+      throw std::runtime_error(message);
+    }
+
+    WrapperBase* wrapper = getWrapper(value, rb_data_type);
 
     if (wrapper == nullptr)
     {
@@ -174,10 +180,10 @@ namespace Rice::detail
   }
     
   template <typename Wrapper_T>
-  inline Wrapper_T* getWrapper(VALUE value, rb_data_type_t* rb_type)
+  inline Wrapper_T* getWrapper(VALUE value, rb_data_type_t* rb_data_type)
   {
     WrapperBase* wrapper = nullptr;
-    TypedData_Get_Struct(value, WrapperBase, rb_type, wrapper);
+    TypedData_Get_Struct(value, WrapperBase, rb_data_type, wrapper);
     return dynamic_cast<Wrapper_T*>(wrapper);
   }
 
@@ -197,12 +203,12 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void wrapConstructed(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner)
+  inline void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, bool isOwner)
   {
     using Wrapper_T = Wrapper<T*>;
     
     Wrapper_T* wrapper = nullptr;
-    TypedData_Get_Struct(value, Wrapper_T, rb_type, wrapper);
+    TypedData_Get_Struct(value, Wrapper_T, rb_data_type, wrapper);
     if (wrapper)
     {
       Registries::instance.instances.remove(wrapper->get());
