@@ -42,7 +42,7 @@ namespace Rice
     return RARRAY_LEN(this->value());
   }
 
-  inline String Array::join(char* separator)
+  inline String Array::join(const char* separator)
   {
     return this->call("join", separator);
   }
