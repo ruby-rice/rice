@@ -107,47 +107,47 @@ TESTCASE(RubyClassName)
 {
   std::string typeName = detail::typeName(typeid(std::string));
   std::string className = detail::rubyClassName(typeName);
-  ASSERT_EQUAL(u8"String", className.c_str());
+  ASSERT_EQUAL("String", className.c_str());
 
   typeName = detail::typeName(typeid(std::wstring));
   className = detail::rubyClassName(typeName);
-  ASSERT_EQUAL(u8"Wstring", className.c_str());
+  ASSERT_EQUAL("Wstring", className.c_str());
 
   typeName = detail::typeName(typeid(std::vector<std::string>));
   className = detail::rubyClassName(typeName);
-  ASSERT_EQUAL(u8"Vector≺string≻", className.c_str());
+  ASSERT_EQUAL("Vector≺string≻", className.c_str());
 
   typeName = detail::typeName(typeid(std::vector<std::wstring>));
   className = detail::rubyClassName(typeName);
-  ASSERT_EQUAL(u8"Vector≺wstring≻", className.c_str());
+  ASSERT_EQUAL("Vector≺wstring≻", className.c_str());
 
   typeName = detail::typeName(typeid(std::vector<double*>));
   className = detail::rubyClassName(typeName);
-  ASSERT_EQUAL(u8"Vector≺double∗≻", className.c_str());
+  ASSERT_EQUAL("Vector≺double∗≻", className.c_str());
 
   typeName = detail::typeName(typeid(std::vector<double**>));
   className = detail::rubyClassName(typeName);
-  ASSERT_EQUAL(u8"Vector≺double∗∗≻", className.c_str());
+  ASSERT_EQUAL("Vector≺double∗∗≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::Vec1));
   className = detail::rubyClassName(typeName);
-  ASSERT_EQUAL(u8"Vector≺complex≺float≻≻", className.c_str());
+  ASSERT_EQUAL("Vector≺complex≺float≻≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::Vec2));
   className = detail::rubyClassName(typeName);
-  ASSERT_EQUAL(u8"Vector≺unsigned char∗≻", className.c_str());
+  ASSERT_EQUAL("Vector≺unsigned char∗≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::Vec3));
   className = detail::rubyClassName(typeName);
-  ASSERT_EQUAL(u8"Vector≺Outer꞉꞉Inner꞉꞉SomeClass≻", className.c_str());
+  ASSERT_EQUAL("Vector≺Outer꞉꞉Inner꞉꞉SomeClass≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::Map1));
   className = detail::rubyClassName(typeName);
-  ASSERT_EQUAL(u8"Map≺string‚ vector≺complex≺float≻≻≻", className.c_str());
+  ASSERT_EQUAL("Map≺string‚ vector≺complex≺float≻≻≻", className.c_str());
 
   typeName = detail::typeName(typeid(Outer::Inner::UnorderedMap1));
   className = detail::rubyClassName(typeName);
-  ASSERT_EQUAL(u8"UnorderedMap≺string‚ complex≺float≻≻", className.c_str());
+  ASSERT_EQUAL("UnorderedMap≺string‚ complex≺float≻≻", className.c_str());
 }
 
 TESTCASE(MakeRubyClass)
@@ -167,5 +167,5 @@ TESTCASE(MakeRubyClass)
 
   // FIXME - fails compilation on GCC
   // Symbol element = result[0];
-  // ASSERT_EQUAL(u8"Vector≺complex≺float≻≻", element.c_str());
+  // ASSERT_EQUAL("Vector≺complex≺float≻≻", element.c_str());
 }

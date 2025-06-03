@@ -265,7 +265,7 @@ TESTCASE(unsigned_char_ptr_ptr_buffer)
     .define_method("ptr", &Matrix3UnsignedChar::ptr)
     .define_attr("data", &Matrix3UnsignedChar::data, Rice::AttrAccess::Read);
 
-  std::string code = u8R"(matrix = Matrix3UnsignedChar.new
+  std::string code = R"(matrix = Matrix3UnsignedChar.new
                           buffer = matrix.ptr
                           buffer2 = buffer.to_ary(1).first
                           buffer2.to_ary(5))";

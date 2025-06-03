@@ -502,7 +502,7 @@ TESTCASE(pointers)
   define_global_function("with_pointers", &withPointers);
 
   Module m = define_module("TestingModule");
-  std::string code = u8R"(int_buffer = Rice::Buffer≺int≻.new(32)
+  std::string code = R"(int_buffer = Rice::Buffer≺int≻.new(32)
                           bool_buffer = Rice::Buffer≺bool≻.new(true)
                           double_buffer = Rice::Buffer≺float≻.new(33.0)
                           float_buffer = Rice::Buffer≺double≻.new(34.0)

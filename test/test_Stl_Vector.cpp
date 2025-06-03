@@ -616,7 +616,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object vec = m.module_eval("return_complex_vector");
-  ASSERT_EQUAL(u8"Std::Vector≺complex≺double≻≻", vec.class_name().str());
+  ASSERT_EQUAL("Std::Vector≺complex≺double≻≻", vec.class_name().str());
 
   std::string code = R"(vector = return_complex_vector
                         complex = vector.last
@@ -636,7 +636,7 @@ TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_complex_vector", &passComplexVector);
 
-  std::string code = u8R"(vector = Std::Vector≺complex≺double≻≻.new
+  std::string code = R"(vector = Std::Vector≺complex≺double≻≻.new
                           vector << Complex(4.0, 4.0)
                           vector << Complex(5.0, 5.0)
                           pass_complex_vector(vector))";
@@ -645,7 +645,7 @@ TESTCASE(AutoRegisterParameter)
   Object vec = m.module_eval(code);
 
   Object result = vec.call("size");
-  ASSERT_EQUAL(u8"Std::Vector≺complex≺double≻≻", vec.class_name().str());
+  ASSERT_EQUAL("Std::Vector≺complex≺double≻≻", vec.class_name().str());
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
   std::vector<std::complex<double>> complexes = detail::From_Ruby<std::vector<std::complex<double>>>().convert(vec);

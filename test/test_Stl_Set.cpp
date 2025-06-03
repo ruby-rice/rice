@@ -245,7 +245,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object set = m.module_eval("return_float_set");
-  ASSERT_EQUAL(u8"Std::Set≺float≻", set.class_name().str());
+  ASSERT_EQUAL("Std::Set≺float≻", set.class_name().str());
 
   std::string code = R"(set = return_float_set
                         set.size == 3)";
@@ -270,7 +270,7 @@ TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_float_set", &passFloatSet);
 
-  std::string code = u8R"(set = Std::Set≺float≻.new
+  std::string code = R"(set = Std::Set≺float≻.new
                           set << 4.0
                           set << 5.0
                           pass_float_set(set))";
@@ -279,7 +279,7 @@ TESTCASE(AutoRegisterParameter)
   Object set = m.module_eval(code);
 
   Object result = set.call("size");
-  ASSERT_EQUAL(u8"Std::Set≺float≻", set.class_name().str());
+  ASSERT_EQUAL("Std::Set≺float≻", set.class_name().str());
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 }
 

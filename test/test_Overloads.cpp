@@ -651,7 +651,7 @@ TESTCASE(int_conversion_6)
 
   Module m = define_module("Testing");
 
-  std::string code = u8R"(my_class = MyClass3.new
+  std::string code = R"(my_class = MyClass3.new
                           buffer = Rice::Buffer≺unsigned char≻.new("54")
                           my_class.run(buffer))";
   String result = m.module_eval(code);
@@ -706,7 +706,7 @@ TESTCASE(NonConstRef)
 
   Module m = define_module("Testing");
 
-  std::string code = u8R"(my_class4 = MyClass4.new
+  std::string code = R"(my_class4 = MyClass4.new
                           my_class5 = MyClass5.new(my_class4)
                           my_class5.result)";
   String result = m.module_eval(code);
@@ -725,7 +725,7 @@ TESTCASE(ConstRef)
 
   Module m = define_module("Testing");
 
-  std::string code = u8R"(my_class4 = MyClass4.const_instance
+  std::string code = R"(my_class4 = MyClass4.const_instance
                           my_class5 = MyClass5.new(my_class4)
                           my_class5.result)";
   String result = m.module_eval(code);
@@ -779,7 +779,7 @@ TESTCASE(NonConstPointer)
 
   Module m = define_module("Testing");
 
-  std::string code = u8R"(my_class6 = MyClass6.new
+  std::string code = R"(my_class6 = MyClass6.new
                           my_class7 = MyClass7.new(my_class6)
                           my_class7.result)";
   String result = m.module_eval(code);
@@ -798,7 +798,7 @@ TESTCASE(ConstPointer)
 
   Module m = define_module("Testing");
 
-  std::string code = u8R"(my_class6 = MyClass6.const_instance
+  std::string code = R"(my_class6 = MyClass6.const_instance
                           my_class7 = MyClass7.new(my_class6)
                           my_class7.result)";
   String result = m.module_eval(code);
