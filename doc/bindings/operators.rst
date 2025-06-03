@@ -45,7 +45,7 @@ C++ supports overriding assignment operators while Ruby does not. Thus these ope
 +---------+------------------+------------------+
 |  -=     | Not overridable  |  assign_minus    |
 +---------+------------------+------------------+
-|  *=     | Not overridable  |  assign_multiply |
+|  \*=    | Not overridable  |  assign_multiply |
 +---------+------------------+------------------+
 |  /=     | Not overridable  |  assign_divide   |
 +---------+------------------+------------------+

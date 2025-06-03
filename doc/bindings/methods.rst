@@ -70,7 +70,7 @@ This also works with Constructors:
 
 Output Parameters
 -----------------
-Some C/C++ APIs use output parameter to return multiple values from a functiom. To wrap these functions please see the :ref:`_out_parameters` section.
+Some C/C++ APIs use output parameter to return multiple values from a functiom. To wrap these functions you can use :ref:`Buffers<out_parameters>` or :ref:`Tuples<out_parameters_tuple>`.
 
 Return
 -------

@@ -4,9 +4,17 @@
 Migration
 =====================
 
+Version 4.5 to 4.6
+------------------
+Verison 4.6 has a couple of breaking changes.
+
+First, all C++ STL classes are now defined in the ``Std`` module. Therefore the following methods wree removed - ``define_vector_under``, ``define_map_under`` and ``define_unordered_map_under``.
+
+Second, Rice used to automatically convert Ruby Arrays of fundamental types to std::vectors (and similarly Hashes to std::map). Now you must use :ref:Buffers<buffer>` instead.
+
 Version 4.* to 4.5
 ------------------
-Rice version 4.5 is significantly more powerful that previous versions. For the most part it is backwards compatible. The exception is if you defined a custom ``From_Ruby`` instantiation. In that case, you will need to add a ``convertible`` method. See the :ref:`from_ruby_specialization` documentation for an example.
+Version 4.5 is significantly more powerful that previous Rice versions. For the most part it is backwards compatible. The exception is if you defined a custom ``From_Ruby`` instantiation. In that case, you will need to add a ``convertible`` method. See the :ref:`from_ruby_specialization` documentation for an example.
 
 Version 3 to 4
 --------------

@@ -10,9 +10,11 @@ STL
   stl/exception
   stl/exception_ptr
   stl/map
+  stl/multimap
   stl/optional
   stl/pair
   stl/reference_wrapper
+  stl/set
   stl/smart_pointers
   stl/string
   stl/string_view
