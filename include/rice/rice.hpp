@@ -1549,7 +1549,7 @@ namespace Rice
     String pack();
 
     // Join elements together
-    String join(char* separator);
+    String join(const char* separator);
 
   private:
     //! A helper class so array[index]=value can work.
@@ -2720,9 +2720,7 @@ inline auto& define_constant(std::string name, Constant_T value)
     // Typed Data support
     static inline rb_data_type_t* rb_data_type_ = nullptr;
 
-    // Track unbound instances (ie, declared variables of type Data_Type<T>
-    // before define_class is called)
-    static inline std::set<Data_Type<T>*>unbound_instances_;
+    static inline std::set<Data_Type<T>*>& unbound_instances();
   };
 
   //! Define a new data class in the namespace given by module.
@@ -3156,19 +3154,19 @@ namespace Rice::detail
 
   // ---- Helper Functions ---------
   template <typename T>
-  void wrapConstructed(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner);
+  void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, bool isOwner);
 
   template <typename T>
-  VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner);
+  VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner);
 
   template <typename T>
-  VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner);
+  VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T* data, bool isOwner);
 
   template <typename T>
-  T* unwrap(VALUE value, rb_data_type_t* rb_type, bool takeOwnership);
+  T* unwrap(VALUE value, rb_data_type_t* rb_data_type, bool takeOwnership);
 
   template <typename Wrapper_T = WrapperBase>
-  Wrapper_T* getWrapper(VALUE value, rb_data_type_t* rb_type);
+  Wrapper_T* getWrapper(VALUE value, rb_data_type_t* rb_data_type);
 
   WrapperBase* getWrapper(VALUE value);
 }
@@ -3523,8 +3521,10 @@ namespace Rice
     void setSize(size_t value);
 
     // Ruby API
-    VALUE toString() const;
-    VALUE toString(size_t count) const;
+  //  VALUE toString() const;
+
+    VALUE bytes() const;
+    VALUE bytes(size_t count) const;
 
     Array toArray() const;
     Array toArray(size_t count) const;
@@ -3572,8 +3572,10 @@ namespace Rice
     void setSize(size_t value);
 
     // Ruby API
-    VALUE toString() const;
-    VALUE toString(size_t count) const;
+   // VALUE toString() const;
+
+    VALUE bytes() const;
+    VALUE bytes(size_t count) const;
 
     Array toArray() const;
     Array toArray(size_t count) const;
@@ -3819,8 +3821,16 @@ namespace Rice
     this->m_owner = false;
   }
 
+ /* template<typename T>
+  inline VALUE Buffer<T>::toString() const
+  {
+    std::string name = detail::typeName(typeid(T));
+    std::string result = "Buffer<type: " + detail::cppClassName(name) + ", size: " + std::to_string(this->m_size) + ">";
+    return detail::To_Ruby<std::string>().convert(result);
+  }*/
+
   template<typename T>
-  inline VALUE Buffer<T>::toString(size_t count) const
+  inline VALUE Buffer<T>::bytes(size_t count) const
   {
     if (!this->m_buffer)
     {
@@ -3834,9 +3844,9 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T>::toString() const
+  inline VALUE Buffer<T>::bytes() const
   {
-    return this->toString(this->m_size);
+    return this->bytes(this->m_size);
   }
 
   template<typename T>
@@ -3848,7 +3858,7 @@ namespace Rice
     }
     else if constexpr (std::is_fundamental_v<T>)
     {
-      VALUE string = this->toString(count);
+      VALUE string = this->bytes(count);
       return String(string).unpack<T>();
     }
     else
@@ -4026,8 +4036,16 @@ namespace Rice
     this->m_owner = false;
   }
 
+  /*template<typename T>
+  inline VALUE Buffer<T*>::toString() const
+  {
+    std::string name = detail::typeName(typeid(T*));
+    std::string result = "Buffer<type: " + detail::cppClassName(name) + ", size: " + std::to_string(this->m_size) + ">";
+    return detail::To_Ruby<std::string>().convert(result);
+  }*/
+
   template<typename T>
-  inline VALUE Buffer<T*>::toString(size_t count) const
+  inline VALUE Buffer<T*>::bytes(size_t count) const
   {
     if (!this->m_outer)
     {
@@ -4042,9 +4060,9 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T*>::toString() const
+  inline VALUE Buffer<T*>::bytes() const
   {
-    return this->toString(this->m_size);
+    return this->bytes(this->m_size);
   }
 
   template<typename T>
@@ -4123,9 +4141,9 @@ namespace Rice
         define_constructor(Constructor<Buffer_T, VALUE>(), Arg("value").setValue()).
         define_method("size", &Buffer_T::size).
         define_method("size=", &Buffer_T::setSize).
-        define_method("ptr", &Buffer_T::ptr).
-        template define_method<VALUE(Buffer_T::*)(size_t) const>("to_str", &Buffer_T::toString, Return().setValue()).
-        template define_method<VALUE(Buffer_T::*)() const>("to_str", &Buffer_T::toString, Return().setValue()).
+       // template define_method<VALUE(Buffer_T::*)() const>("to_s", &Buffer_T::toString, Return().setValue()).
+        template define_method<VALUE(Buffer_T::*)(size_t) const>("bytes", &Buffer_T::bytes, Return().setValue()).
+        template define_method<VALUE(Buffer_T::*)() const>("bytes", &Buffer_T::bytes, Return().setValue()).
         template define_method<Array(Buffer_T::*)(size_t) const>("to_ary", &Buffer_T::toArray, Return().setValue()).
         template define_method<Array(Buffer_T::*)() const>("to_ary", &Buffer_T::toArray, Return().setValue());
 
@@ -5989,7 +6007,7 @@ namespace Rice::detail
         {
           std::string name = typeName(typeid(Buffer<intrinsic_type<T>>));
           std::string expected = rubyClassName(name);
-          throw Exception(rb_eTypeError, u8"wrong argument type %s (expected % s)",
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }
       }
@@ -6049,7 +6067,7 @@ namespace Rice::detail
         {
           std::string name = typeName(typeid(Buffer<intrinsic_type<T>*>));
           std::string expected = rubyClassName(name);
-          throw Exception(rb_eTypeError, u8"wrong argument type %s (expected % s)",
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }
       }
@@ -8487,12 +8505,12 @@ namespace Rice::detail
 
     // Replace < with unicode U+227A (Precedes)
     auto lessThanRegex = std::regex("<");
-    //replaceAll(base, lessThanRegex, u8"≺");
+    //replaceAll(base, lessThanRegex, "≺");
     replaceAll(base, lessThanRegex, "\u227A");
 
     // Replace > with unicode U+227B (Succeeds)
     auto greaterThanRegex = std::regex(">");
-    //replaceAll(base, greaterThanRegex, u8"≻");
+    //replaceAll(base, greaterThanRegex, "≻");
     replaceAll(base, greaterThanRegex, "\u227B");
 
     // Replace , with Unicode Character (U+066C) - Arabic Thousands Separator
@@ -8769,7 +8787,7 @@ namespace Rice::detail
 
   // ---- Helper Functions -------
   template <typename T>
-  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner)
+  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner)
   {
     VALUE result = Registries::instance.instances.lookup(&data);
 
@@ -8782,21 +8800,21 @@ namespace Rice::detail
     if (!isOwner)
     {
       wrapper = new Wrapper<T&>(data);
-      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
     // Ruby is the owner so copy data
     else if constexpr (std::is_copy_constructible_v<T>)
     {
       wrapper = new Wrapper<T>(data);
-      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
     // Ruby is the owner so move data
     else if constexpr (std::is_move_constructible_v<T>)
     {
       wrapper = new Wrapper<T>(std::forward<T>(data));
-      result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
     else
@@ -8812,7 +8830,7 @@ namespace Rice::detail
   };
 
   template <typename T>
-  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner)
+  inline VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T* data, bool isOwner)
   {
     VALUE result = Registries::instance.instances.lookup(data);
 
@@ -8820,16 +8838,22 @@ namespace Rice::detail
       return result;
 
     WrapperBase* wrapper = new Wrapper<T*>(data, isOwner);
-    result = TypedData_Wrap_Struct(klass, rb_type, wrapper);
+    result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
 
     Registries::instance.instances.add(wrapper->get(), result);
     return result;
   };
 
   template <typename T>
-  inline T* unwrap(VALUE value, rb_data_type_t* rb_type, bool takeOwnership)
+  inline T* unwrap(VALUE value, rb_data_type_t* rb_data_type, bool takeOwnership)
   {
-    WrapperBase* wrapper = getWrapper(value, rb_type);
+    if (rb_type(value) != RUBY_T_DATA)
+    {
+      std::string message = "The provided Ruby object does not wrap a C++ object";
+      throw std::runtime_error(message);
+    }
+
+    WrapperBase* wrapper = getWrapper(value, rb_data_type);
 
     if (wrapper == nullptr)
     {
@@ -8847,10 +8871,10 @@ namespace Rice::detail
   }
     
   template <typename Wrapper_T>
-  inline Wrapper_T* getWrapper(VALUE value, rb_data_type_t* rb_type)
+  inline Wrapper_T* getWrapper(VALUE value, rb_data_type_t* rb_data_type)
   {
     WrapperBase* wrapper = nullptr;
-    TypedData_Get_Struct(value, WrapperBase, rb_type, wrapper);
+    TypedData_Get_Struct(value, WrapperBase, rb_data_type, wrapper);
     return dynamic_cast<Wrapper_T*>(wrapper);
   }
 
@@ -8870,12 +8894,12 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void wrapConstructed(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner)
+  inline void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, bool isOwner)
   {
     using Wrapper_T = Wrapper<T*>;
     
     Wrapper_T* wrapper = nullptr;
-    TypedData_Get_Struct(value, Wrapper_T, rb_type, wrapper);
+    TypedData_Get_Struct(value, Wrapper_T, rb_data_type, wrapper);
     if (wrapper)
     {
       Registries::instance.instances.remove(wrapper->get());
@@ -10960,7 +10984,7 @@ namespace Rice
     return RARRAY_LEN(this->value());
   }
 
-  inline String Array::join(char* separator)
+  inline String Array::join(const char* separator)
   {
     return this->call("join", separator);
   }
@@ -12296,12 +12320,12 @@ namespace Rice
     // Now register with the type registry
     detail::Registries::instance.types.add<T>(klass_, rb_data_type_);
 
-    auto iter = Data_Type<T>::unbound_instances_.begin();
-    while (iter != Data_Type<T>::unbound_instances_.end())
+    auto instances = unbound_instances();
+    for (auto instance: instances)
     { 
-      (*iter)->set_value(klass);
-      iter = Data_Type<T>::unbound_instances_.erase(iter);
+      instance->set_value(klass);
     }
+    instances.clear();
 
     return Data_Type<T>();
   }
@@ -12321,12 +12345,26 @@ namespace Rice
     rb_data_type_ = nullptr;
   }
 
+  // Track unbound instances (ie, declared variables of type Data_Type<T>
+  // before define_class is called). We can't simply use a static inline
+  // member because it sometimes crashes clang and gcc (msvc seems fine)
   template<typename T>
-  inline Data_Type<T>::Data_Type() : Class(klass_ == Qnil ? rb_cObject : klass_)
+  inline std::set<Data_Type<T>*>& Data_Type<T>::unbound_instances()
   {
-    if (!is_bound())
+    static std::set<Data_Type<T>*> unbound_instances;
+    return unbound_instances;
+  }
+
+  template<typename T>
+  inline Data_Type<T>::Data_Type()
+  {
+    if (is_bound())
     {
-      this->unbound_instances_.insert(this);
+      this->set_value(klass_);
+    }
+    else
+    {
+      unbound_instances().insert(this);
     }
   }
 
