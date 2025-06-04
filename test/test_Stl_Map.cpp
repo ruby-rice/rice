@@ -1,4 +1,4 @@
-﻿#include <complex>
+#include <complex>
 #include <memory>
 
 #include "unittest.hpp"
@@ -376,7 +376,7 @@ namespace
     {
     };
 
-    bool operator==(const Comparable& other)
+    bool operator==(const Comparable& other) const
     {
       return this->value_ == other.value_;
     }

@@ -1,4 +1,4 @@
-﻿#include <complex>
+#include <complex>
 
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
