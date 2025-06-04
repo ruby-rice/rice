@@ -393,7 +393,7 @@ TESTCASE(VariantWithTwoVectors)
 
   Module m = define_module("Testing");
 
-  std::string code = u8R"(vector = Std::Vector≺string≻.new
+  std::string code = R"(vector = Std::Vector≺string≻.new
                           vector << "a" << "b" << "c"
                           my_class = MyClass4.new
                           my_class.variant_index(vector))";
@@ -401,19 +401,19 @@ TESTCASE(VariantWithTwoVectors)
   Object result = m.module_eval(code);
   ASSERT_EQUAL(0, detail::From_Ruby<size_t>().convert(result));
 
-  code = u8R"(vector = Std::Vector≺int≻.new
+  code = R"(vector = Std::Vector≺int≻.new
               vector.push_back(4)
               my_class = MyClass4.new
               my_class.variant_index(vector))";
   result = m.module_eval(code);
   ASSERT_EQUAL(1, detail::From_Ruby<size_t>().convert(result));
 
-  code = u8R"(my_class = MyClass4.new
+  code = R"(my_class = MyClass4.new
               my_class.variant_index(["x", "y", "z"]))";
   result = m.module_eval(code);
   ASSERT_EQUAL(0, detail::From_Ruby<size_t>().convert(result));
 
-  code = u8R"(my_class = MyClass4.new
+  code = R"(my_class = MyClass4.new
               my_class.variant_index([5, 6]))";
 
   ASSERT_EXCEPTION_CHECK(
@@ -457,13 +457,13 @@ TESTCASE(Buffer)
 
   Module m = define_module("Testing");
 
-  std::string code = u8R"(myclass = MyClass5.new
+  std::string code = R"(myclass = MyClass5.new
                           myclass.buffer(0).to_ary(1).first)";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(result));
 
-  code = u8R"(myclass = MyClass5.new
+  code = R"(myclass = MyClass5.new
               myclass.buffer(1).to_ary(1).first)";
   result = m.module_eval(code);
   ASSERT_EQUAL(11.0, detail::From_Ruby<float>().convert(result));

@@ -138,13 +138,13 @@ TESTCASE(char_pointer)
   char* data = fromRuby.convert(Qnil);
   ASSERT_EQUAL(expected, data);
 
-  std::string code = u8R"(Rice::Buffer≺char≻.new("my string"))";
+  std::string code = R"(Rice::Buffer≺char≻.new("my string"))";
   Object result = m.instance_eval(code);
   data = fromRuby.convert(result.value());
   //expected = "my string";
  // ASSERT_EQUAL(*expected, *data);
 
-  code = u8R"(Rice::Buffer≺char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  code = R"(Rice::Buffer≺char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   result = m.instance_eval(code);
   data = fromRuby.convert(result.value());
 
@@ -173,13 +173,13 @@ TESTCASE(signed_char_pointer)
   signed char* data = fromRuby.convert(Qnil);
   ASSERT_EQUAL(expected, data);
 
-  std::string code = u8R"(Rice::Buffer≺signed char≻.new("my string"))";
+  std::string code = R"(Rice::Buffer≺signed char≻.new("my string"))";
   Object result = m.instance_eval(code);
   data = fromRuby.convert(result.value());
   expected = (signed char*)"my string";
   ASSERT_EQUAL(*expected, *data);
 
-  code = u8R"(Rice::Buffer≺signed char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  code = R"(Rice::Buffer≺signed char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   result = m.instance_eval(code);
   data = fromRuby.convert(result.value());
 
@@ -203,7 +203,7 @@ TESTCASE(char_pointer_const)
 {
   Module m = define_module("Testing");
 
-  std::string code = u8R"(Rice::Buffer≺char≻.new("my string"))";
+  std::string code = R"(Rice::Buffer≺char≻.new("my string"))";
   Object result = m.instance_eval(code);
   const char* expected = "my string";
   const char* data = detail::From_Ruby<const char*>().convert(result.value());
@@ -241,7 +241,7 @@ TESTCASE(unsigned_char_pointer)
   unsigned char* data = fromRuby.convert(Qnil);
   ASSERT_EQUAL(expected, data);
 
-  std::string code = u8R"(Rice::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  std::string code = R"(Rice::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   Object result = m.instance_eval(code);
   data = fromRuby.convert(result.value());
 
@@ -254,7 +254,7 @@ TESTCASE(unsigned_char_pointer)
   ASSERT_EQUAL(data[6], 0x7F);
   ASSERT_EQUAL(data[7], 0x01);
 
-  code = u8R"(array = [0, 127, 128, 255, 256, -128, -129, -255]
+  code = R"(array = [0, 127, 128, 255, 256, -128, -129, -255]
               packed = array.pack("C*")
               Rice::Buffer≺unsigned char≻.new(packed))";
   result = m.instance_eval(code);

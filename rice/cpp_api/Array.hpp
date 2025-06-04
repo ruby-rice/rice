@@ -72,7 +72,7 @@ namespace Rice
     String pack();
 
     // Join elements together
-    String join(char* separator);
+    String join(const char* separator);
 
   private:
     //! A helper class so array[index]=value can work.

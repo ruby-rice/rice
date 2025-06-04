@@ -65,19 +65,19 @@ namespace Rice::detail
 
   // ---- Helper Functions ---------
   template <typename T>
-  void wrapConstructed(VALUE value, rb_data_type_t* rb_type, T* data, bool isOwner);
+  void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, bool isOwner);
 
   template <typename T>
-  VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T& data, bool isOwner);
+  VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner);
 
   template <typename T>
-  VALUE wrap(VALUE klass, rb_data_type_t* rb_type, T* data, bool isOwner);
+  VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T* data, bool isOwner);
 
   template <typename T>
-  T* unwrap(VALUE value, rb_data_type_t* rb_type, bool takeOwnership);
+  T* unwrap(VALUE value, rb_data_type_t* rb_data_type, bool takeOwnership);
 
   template <typename Wrapper_T = WrapperBase>
-  Wrapper_T* getWrapper(VALUE value, rb_data_type_t* rb_type);
+  Wrapper_T* getWrapper(VALUE value, rb_data_type_t* rb_data_type);
 
   WrapperBase* getWrapper(VALUE value);
 }

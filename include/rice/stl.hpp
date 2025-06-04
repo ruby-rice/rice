@@ -2755,10 +2755,10 @@ namespace Rice::detail
   {
   public:
 
-    template<typename T>
-    static VALUE convertElement(std::variant<Types...>& data, bool takeOwnership)
+    template<typename U, typename V>
+    static VALUE convertElement(U& data, bool takeOwnership)
     {
-      return To_Ruby<T>().convert(std::forward<T>(std::get<T>(data)));
+      return To_Ruby<V>().convert(std::forward<V>(std::get<V>(data)));
     }
 
     template<typename U, std::size_t... I>
@@ -2795,7 +2795,7 @@ namespace Rice::detail
       #endif
 
       ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
-               (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
+               (result = convertElement<U, std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
       
       #if defined(__GNUC__) || defined(__clang__)
       #pragma GCC diagnostic pop
@@ -2823,14 +2823,21 @@ namespace Rice::detail
   class To_Ruby<std::variant<Types...>&>
   {
   public:
-    template<typename T>
-    static VALUE convertElement(std::variant<Types...>& data, bool takeOwnership)
+    template<typename U, typename V>
+    static VALUE convertElement(U& data, bool takeOwnership)
     {
-      return To_Ruby<T>().convert(std::forward<T>(std::get<T>(data)));
+      if constexpr (std::is_const_v<U>)
+      {
+        return To_Ruby<V>().convert(std::get<V>(data));
+      }
+      else
+      {
+        return To_Ruby<V>().convert(std::forward<V>(std::get<V>(data)));
+      }
     }
 
-    template<std::size_t... I>
-    static VALUE convertIterator(std::variant<Types...>& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    template<typename U, std::size_t... I>
+    static VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
     {
       // Create a tuple of the variant types so we can look over the tuple's types
       using Tuple_T = std::tuple<Types...>;
@@ -2844,7 +2851,7 @@ namespace Rice::detail
       #endif
 
       ((std::holds_alternative<std::tuple_element_t<I, Tuple_T>>(data) ?
-        (result = convertElement<std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
+        (result = convertElement<U, std::tuple_element_t<I, Tuple_T>>(data, takeOwnership), true) : false) || ...);
 
       #if defined(__GNUC__) || defined(__clang__)
       #pragma GCC diagnostic pop
@@ -2853,7 +2860,8 @@ namespace Rice::detail
       return result;
     }
 
-    static VALUE convert(std::variant<Types...>& data, bool takeOwnership = false)
+    template<typename U>
+    static VALUE convert(U& data, bool takeOwnership = false)
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return convertIterator(data, takeOwnership, indices);
@@ -3816,7 +3824,7 @@ namespace Rice
       // Methods that require Value_T to support operator==
       void define_comparable_methods()
       {
-        if constexpr (detail::is_comparable_v<Value_T>)
+        if constexpr (detail::is_comparable_v<T>)
         {
           klass_.define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
             {

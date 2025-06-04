@@ -109,7 +109,7 @@ namespace Rice::detail
         {
           std::string name = typeName(typeid(Buffer<intrinsic_type<T>>));
           std::string expected = rubyClassName(name);
-          throw Exception(rb_eTypeError, u8"wrong argument type %s (expected % s)",
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }
       }
@@ -169,7 +169,7 @@ namespace Rice::detail
         {
           std::string name = typeName(typeid(Buffer<intrinsic_type<T>*>));
           std::string expected = rubyClassName(name);
-          throw Exception(rb_eTypeError, u8"wrong argument type %s (expected % s)",
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }
       }

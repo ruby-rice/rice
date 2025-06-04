@@ -668,7 +668,7 @@ TESTCASE(pointerToPointer)
     .define_method("sum_const", &Processor::sumBigObjectsConst,
                                 Arg("bigObjects").setArray(), Arg("size"));
 
-  std::string code = u8R"(count = 2
+  std::string code = R"(count = 2
                           processor = ProcessorClass.new
                           big_objects = processor.create(count)
                           processor.sum(big_objects, count))";
@@ -676,7 +676,7 @@ TESTCASE(pointerToPointer)
   Object result = m.module_eval(code);
   ASSERT_EQUAL(11, detail::From_Ruby<int>().convert(result));
 
-  code = u8R"(count = 2
+  code = R"(count = 2
               processor = ProcessorClass.new
               big_objects = processor.create(count)
               processor.sum_const(big_objects, count))";

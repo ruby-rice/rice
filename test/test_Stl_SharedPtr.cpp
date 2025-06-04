@@ -447,7 +447,7 @@ TESTCASE(ReadPointerToInt)
   Module m = define_module("ReadPointerToInt").
       define_module_function("create_pointer", &createPointer);
 
-  std::string code = u8R"(ptr = create_pointer(50)
+  std::string code = R"(ptr = create_pointer(50)
                           buffer = Rice::Buffer≺int≻.new(ptr)
                           buffer.to_ary(1))";
 

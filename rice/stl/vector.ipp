@@ -200,7 +200,7 @@ namespace Rice
       // Methods that require Value_T to support operator==
       void define_comparable_methods()
       {
-        if constexpr (detail::is_comparable_v<Value_T>)
+        if constexpr (detail::is_comparable_v<T>)
         {
           klass_.define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
             {

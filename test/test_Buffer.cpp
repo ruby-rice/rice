@@ -25,11 +25,11 @@ TESTCASE(Char)
 
   Module m = define_module("BufferTesting");
 
-  std::string code = u8R"(Rice::Buffer≺char≻.new("my string"))";
+  std::string code = R"(Rice::Buffer≺char≻.new("my string"))";
   Object result = m.instance_eval(code);
 
-  ASSERT_EQUAL(u8"Rice::Buffer≺char≻", result.class_name().c_str());
-  ASSERT_EQUAL(u8"my string", String(result.call("bytes")).c_str());
+  ASSERT_EQUAL("Rice::Buffer≺char≻", result.class_name().c_str());
+  ASSERT_EQUAL("my string", String(result.call("bytes")).c_str());
 
   Array array = result.call("to_ary");
   ASSERT_EQUAL("109, 121, 32, 115, 116, 114, 105, 110, 103", array.join(", ").c_str());
@@ -49,7 +49,7 @@ TESTCASE(CharArray)
 
   Module m = define_module("BufferTesting");
 
-  std::string code = u8R"(Rice::Buffer≺char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  std::string code = R"(Rice::Buffer≺char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   Data_Object<Buffer<char>> result = m.instance_eval(code);
   Buffer<char> buffer = std::move(*result);
   char* data = buffer.ptr();
@@ -69,7 +69,7 @@ TESTCASE(signed_char_pointer)
   define_buffer<signed char>();
   Module m = define_module("Testing");
 
-  std::string code = u8R"(Rice::Buffer≺signed char≻.new("my string"))";
+  std::string code = R"(Rice::Buffer≺signed char≻.new("my string"))";
   Data_Object<Buffer<signed char>> result = m.instance_eval(code);
   Buffer<signed char> buffer = std::move(*result);
   signed char* data = buffer.ptr();
@@ -77,7 +77,7 @@ TESTCASE(signed_char_pointer)
   signed char* expected = (signed char*)"my string";
   ASSERT_EQUAL(*expected, *data);
 
-  code = u8R"(Rice::Buffer≺signed char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  code = R"(Rice::Buffer≺signed char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   result = m.instance_eval(code);
   buffer = std::move(*result);
   data = buffer.ptr();
@@ -97,7 +97,7 @@ TESTCASE(char_pointer_const)
   define_buffer<char>();
   Module m = define_module("Testing");
 
-  std::string code = u8R"(Rice::Buffer≺char≻.new("my string"))";
+  std::string code = R"(Rice::Buffer≺char≻.new("my string"))";
 
   Data_Object<Buffer<char>> result = m.instance_eval(code);
   Buffer<char> buffer = std::move(*result);
@@ -120,7 +120,7 @@ TESTCASE(unsigned_char_pointer)
   define_buffer<unsigned char>();
   Module m = define_module("Testing");
 
-  std::string code = u8R"(Rice::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  std::string code = R"(Rice::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   Data_Object<Buffer<unsigned char>> result = m.instance_eval(code);
   Buffer<unsigned char> buffer = std::move(*result);
   unsigned char* data = buffer.ptr();
@@ -134,7 +134,7 @@ TESTCASE(unsigned_char_pointer)
   ASSERT_EQUAL(data[6], 0x7F);
   ASSERT_EQUAL(data[7], 0x01);
 
-  code = u8R"(array = [0, 127, 128, 255, 256, -128, -129, -255]
+  code = R"(array = [0, 127, 128, 255, 256, -128, -129, -255]
               packed = array.pack("C*")
               Rice::Buffer≺unsigned char≻.new(packed))";
   result = m.instance_eval(code);

@@ -25,7 +25,7 @@ namespace
   FILE* openFile()
   {
     std::filesystem::path path = __FILE__;
-    FILE* fptr = fopen(path.u8string().c_str(), "rb");
+    FILE* fptr = fopen(path.string().c_str(), "rb");
     return fptr;
   }
 

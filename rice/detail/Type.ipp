@@ -265,12 +265,12 @@ namespace Rice::detail
 
     // Replace < with unicode U+227A (Precedes)
     auto lessThanRegex = std::regex("<");
-    //replaceAll(base, lessThanRegex, u8"≺");
+    //replaceAll(base, lessThanRegex, "≺");
     replaceAll(base, lessThanRegex, "\u227A");
 
     // Replace > with unicode U+227B (Succeeds)
     auto greaterThanRegex = std::regex(">");
-    //replaceAll(base, greaterThanRegex, u8"≻");
+    //replaceAll(base, greaterThanRegex, "≻");
     replaceAll(base, greaterThanRegex, "\u227B");
 
     // Replace , with Unicode Character (U+066C) - Arabic Thousands Separator
