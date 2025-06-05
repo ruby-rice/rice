@@ -55,13 +55,12 @@ Rice tries to make ``std::unordered_map`` look like a Ruby Hash by giving it an 
 
 First, the following methods only work if the map type is copyable (copying is done in C++):
 
-* Map#copy(other)
+* UnorderedMap#copy(other)
 
 Second, the following methods only work if the map type implements C++'s equal operator, ``operator==``:
 
-* Map#value?
+* UnorderedMap#value?
 
 Third, if the map type supports C++ streams, then the following method will work, otherwise it will return "Not Printable"
 
-* Map#to_s
-
+* UnorderedMap#to_s

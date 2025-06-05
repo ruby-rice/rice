@@ -7,15 +7,19 @@ Rice supports both C enums and newer C++ enum classes.
 .. code-block:: cpp
 
   enum Color
-  { RED,
+  {
+    RED,
     BLACK,
-    GREEN };
+    GREEN
+  };
 
   enum class Season
-  { Spring,
+  {
+    Spring,
     Summer,
     Fall,
-    Winter };
+    Winter
+  };
 
 To expose an enum to Ruby, use ``define_enum`` like this:
 
@@ -50,10 +54,12 @@ C/C++ supports the concept of anonymous enums. They used to be used as hack to d
       static const int SOME_CONSTANT = 42;
 
       enum class Season
-      { Spring,
+      {
+        Spring,
         Summer,
         Fall,
-        Winter };
+        Winter
+      };
 
       // Enum hack that used to be needed by compilers
       enum

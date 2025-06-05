@@ -5,56 +5,14 @@ Constructors
 
 In the :ref:`tutorial` we touched upon how to wrap C++ constructors. Now let's go into more depth.
 
-C++ supports several types of constructors, including:
+Unlike Ruby, C++ supports several types of constructors, including:
 
 * Default constructors
+* Custom constructors
 * Copy constructors
 * Move constructors
-* Custom constructors
 
-In addition, unlike a Ruby class, a C++ class may include many constructors.
-
-.. _example:
-
-Example
--------
-For example, consider this simplified version of `OpenCV's Mat <https://docs.opencv.org/4.x/d3/d63/classcv_1_1Mat.html>`_ class:
-
-.. code-block:: cpp
-
-    class Mat
-    {
-    public:
-        Mat();
-        Mat(int rows, int cols, int type);
-        Mat(const std::vector<int>& sizes, int type);
-        Mat(const Mat& m);
-        Mat(Mat&& m);
-    }
-
-The Rice binding for the above example is:
-
-.. code-block:: cpp
-
-  #include <rice/rice.hpp>
-  #include <rice/stl.hpp>
-
-  using namespace Rice;
-
-  extern "C"
-  void Init_Mat()
-  {
-    Data_Type<Test> rb_cMat = define_class<Mat>("Mat")
-      .define_constructor(Constructor<Mat>())
-      .define_constructor(Constructor<Mat, int, int, int>())
-      .define_constructor(Constructor<Mat, const std::vector<int>&, int>())
-      .define_constructor(Constructor<const Mat&>())
-      .define_constructor(Constructor<Mat&&>());
-  }
-
-Notice that the Constructor template requires the full list of argument types needed by the constructor.
-
-For more information on how Rice decides which constructor to call, please see the :ref:`overloaded methods <overloaded_methods>` section.
+In addition, a C++ class may have multiple constructors.
 
 .. _default_constructor:
 
@@ -138,4 +96,46 @@ Under the hood, the ``define_constructor`` call creates a new ``initialize_copy`
 
 Move Constructors
 -------------------
-Rice does not currently support move constructors. Of course, you can roll your own support as needed.
+Rice does not support move constructors because there is no clean mapping of them to Ruby.
+
+.. _multiple_constructors:
+
+Multiple Constructors
+---------------------
+As seen in the examples above, a C++ clas can have multiple constructors. For example, consider this simplified version of `OpenCV's Mat <https://docs.opencv.org/4.x/d3/d63/classcv_1_1Mat.html>`_ class:
+
+.. code-block:: cpp
+
+    class Mat
+    {
+    public:
+        Mat();
+        Mat(int rows, int cols, int type);
+        Mat(const std::vector<int>& sizes, int type);
+        Mat(const Mat& m);
+        Mat(Mat&& m);
+    }
+
+The Rice binding for the above example is:
+
+.. code-block:: cpp
+
+  #include <rice/rice.hpp>
+  #include <rice/stl.hpp>
+
+  using namespace Rice;
+
+  extern "C"
+  void Init_Mat()
+  {
+    Data_Type<Test> rb_cMat = define_class<Mat>("Mat")
+      .define_constructor(Constructor<Mat>())
+      .define_constructor(Constructor<Mat, int, int, int>())
+      .define_constructor(Constructor<Mat, const std::vector<int>&, int>())
+      .define_constructor(Constructor<const Mat&>())
+      .define_constructor(Constructor<Mat&&>());
+  }
+
+Notice that the Constructor template requires the full list of argument types needed by the constructor.
+
+For more information on how Rice decides which constructor to call, please see the :ref:`overloaded methods <overloaded_methods>` section.

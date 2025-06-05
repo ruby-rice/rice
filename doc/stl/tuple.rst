@@ -12,7 +12,7 @@ Rice also support passing a Ruby array to C++ api that takes tuples.
 
 Out Parameters
 --------------
-Prior to the introduction of tuples, C and C++ did not have a good way of returning multiple values from a function. One workaround was to return values via function parameters that are pointers. These are known as ``out`` parameters.
+Prior to the introduction of tuples, C++ did not have a good way of returning multiple values from a function. One workaround was to return values via function parameters that are pointers. These are known as ``out`` parameters.
 
 For example, the `minMaxLoc <https://docs.opencv.org/4.x/d2/de8/group__core__array.html#gab473bf2eb6d14ff97e89b355dac20707>`_ function in OpenCV is defined as:
 
@@ -27,9 +27,9 @@ For example, the `minMaxLoc <https://docs.opencv.org/4.x/d2/de8/group__core__arr
 
 All of ``minVal``, ``maxVal``, ``minLoc`` and ``maxLoc`` are out parameters designed to return values.
 
-One way to wrap this function is to use :ref:`_out_parameters<Buffers>`.
+One way to wrap this function is to use :ref:`Buffers<out_parameters>`.
 
-An alterantive apporach is to use ``std::tuple``.
+An alternative approach is to use ``std::tuple``.
 
 .. code-block:: cpp
 

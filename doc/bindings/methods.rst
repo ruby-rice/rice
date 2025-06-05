@@ -40,7 +40,7 @@ Since default parameter values are not available through templates, it is necess
       );
   }
 
-The syntax is ``Arg(nameOfParameter)[ = defaultValue]``. The name of the parameter is not important here (it is for readability), but the value set via ``operator=`` must match the type of the parameter. As such it may be necessary to explicitly cast the default value.
+The syntax is ``Arg(nameOfParameter)[ = defaultValue]``. If using :ref:`keyword_arguments`, then the name of the parameter must match the name of the Ruby parameter. Otherwise it is not important. In either case, the value set by the ``operator=`` must match the type of the parameter. As such it may be necessary to explicitly cast the default value.
 
 .. code-block:: cpp
 
@@ -66,19 +66,19 @@ This also works with Constructors:
   .define_constructor(Constructor<SomeClass, int, int>(),
       Arg("arg1") = 1, Arg("otherArg") = 12);
 
-.. _return:
-
 Output Parameters
 -----------------
-Some C/C++ APIs use output parameter to return multiple values from a functiom. To wrap these functions you can use :ref:`Buffers<out_parameters>` or :ref:`Tuples<out_parameters_tuple>`.
+Some C/C++ APIs use output parameter to return multiple values from a functiom. To wrap these functions you can use either :ref:`Buffers<out_parameters>` or :ref:`Tuples<out_parameters_tuple>`.
+
+.. _return:
 
 Return
 -------
 Similarly to the ``Arg`` class, Rice also supports a ``Return`` class that let's you tell Rice how to handle returned values from C++. This is particularly important in correctly managing memory (see :ref:`cpp_to_ruby`).
 
-It is also helpful in dealing with Ruby's VALUE type which represent Ruby objects. Most of the time Rice will automatically handle VALUE instances, but if a native method takes a VALUE argument or returns a VALUE instance then you have tell Rice about it.
+It is also helpful in dealing with Ruby's VALUE type which represent Ruby objects. Most of the time Rice will automatically handle VALUE instances, but if a native method takes a VALUE argument or returns a VALUE instance then you have tell Rice.
 
-This is because VALUE is a typedef for ``unsigned long long`` - under the hood it is really a pointer to a Ruby object. However, to Rice it is just an integer that needs to be converted to a Ruby numeric value. As a result, if a method takes a VALUE parameter then Rice will convert it to a C++ unsigned long long value instead of  passing it through. Similarly, if a method returns a VALUE then Rice will also convert it to a numeric Ruby object as opposed to simply returning it.
+This is because VALUE is a typedef for ``unsigned long long`` - but under the hood it is really a pointer to a Ruby object. However, to Rice it is just an integer that needs to be converted to a Ruby numeric value. As a result, if a method takes a VALUE parameter then Rice will convert it to a C++ unsigned long long value instead of  passing it through. Similarly, if a method returns a VALUE then Rice will also convert it to a numeric Ruby object as opposed to simply returning it.
 
 To avoid this incorrect conversion, use the ``setValue()`` method on the ``Arg`` and ``Return`` classes. For example:
 
@@ -130,7 +130,7 @@ And it can also be called in the traditional manner like this:
   test.hello("Hello", "World")
   test.hello("Hello")
 
-The ability to call the function in two different ways (position and keyword) could cause problems in the future. Imagine that you decide to move the code to Ruby - you will need to chose one of the two forms. That could result in breaking someone else's code. This risk seems low though, so for the moment Rice only supports defining arguments using the ``Arg`` class. In the future Rice may introduce a ``KeyArg`` class to avoid this issue.
+The ability to call the function in two different ways (position and keyword) could cause problems in your extensions if you change its API in the future. Imagine that you decide to move some code from C++ to Ruby - you will need to chose one of the two forms. That could result in breaking code that uses your extension because some users may have used positional arguments and others keyword arguments. However, this seems quite low risk though so Rice only supports defining arguments using the ``Arg`` class. In the future Rice may introduce a ``KeyArg`` class to avoid this issue.
 
 .. _return_self:
 

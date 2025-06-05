@@ -45,7 +45,7 @@ Once the iterator is defined you can write standard Ruby code such as:
     value * 2
   end
 
-Where result will be ``[2, 4, 6]``.
+Where the result will be ``[2, 4, 6]``.
 
 Let's say you also want to expose std::vector's reverse iterator to Ruby using the method name ``reach``. This is done by adding a third parameter to the ``define_iterator`` call, in this case it is set to ``"reach"``:
 
@@ -68,13 +68,10 @@ Example Ruby code is then:
   intVector.push_back(3)
 
   result = intVector.reach do |value|
-
-  result = Array.new
-  intVector.map do |value|
     result << value * 2
   end
 
-Where result will be ``[6, 4, 2]``.
+Where the result will be ``[6, 4, 2]``.
 
 Enumerator Support (External Iterators)
 ---------------------------------------

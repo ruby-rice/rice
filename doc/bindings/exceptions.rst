@@ -2,7 +2,7 @@
 
 Exceptions
 ===========
-Rice automatically handles exceptions - making sure that C++ exceptions do not propagate to Ruby code and Ruby exceptions do not propagate to C++. If that happens then your program will crash.
+Rice automatically handles exceptions - making sure that C++ exceptions do not propagate to Ruby code and Ruby exceptions do not propagate to C++. If either happen then your program will crash.
 
 It may be necessary, however, for your C++ code to call Ruby code. And that Ruby code, in turn, may call into C++ code. Rice makes it easy to handle that situation as explained below.
 
@@ -87,14 +87,13 @@ Perhaps more useful though is to translate a C++ exception to a Ruby exception. 
 
 Handler Order
 -------------
-Exception handlers are applied in order in which they are registered. Thus if you register handlers A, B and C then A will be checked first, then B and then C.
+Previous versions of Rice allowed you to install multiple exception handlers. That support was removed in version 4.5.
 
 Exception handlers are global, meaning they are used when Ruby calls C++ functions or reads/writes attributes. They are also applied if you use cpp_protect (see :ref:`c++_exceptions`).
 
 
 Ruby Exceptions
 ---------------
-
 If your C++ code calls a Ruby API it must protect the call to catch any Ruby exceptions. Rice provides a ``protect`` method do this. For example, assume you have implemented an ``each`` method to add enumerable support to a custom C++ class. The ``each`` method should yield values to a user specified block using ``rb_yield``. However if you directly call ``rb_yield`` and the Ruby code raises an exception, your program will crash. Instead, use the ``protect`` function:
 
 .. code-block:: cpp
@@ -109,7 +108,7 @@ If your C++ code calls a Ruby API it must protect the call to catch any Ruby exc
 
             return vector;
 
-In almost all cases, the ``protect`` method will correctly maps its function parameters to the Ruby API being called. However, in rare instances you must help it deduce the correct parameter types. See the C++ Exceptions section below for an example.
+In almost all cases, the ``protect`` method will correctly map its function parameters to the Ruby API being called. However, in rare instances you must help it deduce the correct parameter types. See the C++ Exceptions section below for an example.
 
 Rice uses a similar class called ``Jump_Tag`` to handle symbols thrown by
 Ruby's ``throw``/``catch`` or other non-local jumps from inside the Ruby VM.

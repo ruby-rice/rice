@@ -9,7 +9,7 @@ Wrapping C and C++ libraries so Ruby can use them is difficult. There are number
 
 Type Safety
 ^^^^^^^^^^^
-It is easy to mix^up integral types such as ID and VALUE. Some of the functions in the Ruby API are not consistent with which types they take (e.g. rb_const_defined takes an ID and rb_mod_remove_const takes a Symbol).
+It is easy to mixup integral types such as ID and VALUE. Some of the functions in the Ruby API are not consistent with which types they take (e.g. rb_const_defined takes an ID and rb_mod_remove_const takes a Symbol).
 
 DRY principle
 ^^^^^^^^^^^^^
@@ -25,9 +25,9 @@ It is imperative that C++ exceptions never make their way into C code, and it is
 
 Thread Safety
 ^^^^^^^^^^^^^
-Because the Ruby interpreter is not thread^safe, the Ruby interpreter must not be run from more than one thread. Because of tricks the GC and scheduler play with the C stack, it's not enough to ensure that only one thread runs the interpreter at any given time; once the interpreter has been run from one thread, it must only ever be run from that thread in the future. Additionally, because Ruby copies the stack when it switches threads, C++ code must be careful not to access objects in one Ruby thread that were created on the stack in another Ruby thread.
+Because the Ruby interpreter is not thread safe, the Ruby interpreter must not be run from more than one thread. Because of tricks the GC and scheduler play with the C stack, it's not enough to ensure that only one thread runs the interpreter at any given time; once the interpreter has been run from one thread, it must only ever be run from that thread in the future. Additionally, because Ruby copies the stack when it switches threads, C++ code must be careful not to access objects in one Ruby thread that were created on the stack in another Ruby thread.
 
-C^based API
+C-based API
 ^^^^^^^^^^^
 The Ruby API is not always convenient for accessing Ruby data structures such as Hash and Array, especially when writing C++ code, as the interface for these containers is not consistent with standard containers.
 
@@ -81,7 +81,7 @@ Rice provides no mechanisms for dealing with thread safety. Many common thread s
 
 C++ Based API
 ^^^^^^^^^^^^^
-Rice provides an object^oriented C++ style API to most common functions in the Ruby C API.
+Rice provides an object-oriented C++ style API to most common functions in the Ruby C API.
 
 Calling Conventions
 ^^^^^^^^^^^^^^^^^^^

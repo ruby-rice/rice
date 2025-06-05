@@ -2,7 +2,7 @@
 
 Class Templates
 ===============
-C++ libraries often times make heavy use of class templates. A class template is not a type, nor an object, but instead is used to create classes. Examples include STL containers such as ``std::vector`` or ``std::map``. In addition, many libraries define their own custom class templates.
+Some C++ libraries make heavy use of class templates. A class template is not a type, nor an object, but instead is blueprint used to create classes. Examples include STL containers such as ``std::vector`` or ``std::map``. In addition, many libraries define their own custom class templates.
 
 Since class templates are not types and cannot be instantiated, they cannot be wrapped by Rice. Instead class templates must be turned into classes so that they can be wrapped. For example, ``std::vector<int>`` is a class type that Rice can wrap.
 
@@ -108,4 +108,4 @@ Fourth, the ``operator()`` is mapped to two Ruby methods, ``[]`` and ``[]=``.
           self(row, column) = value;
         });
 
-Once you have created a class builder function it then becomes easy to create new C++ classes from class templates and wrap them in Ruby.
+Once you have created a class builder function it is easy to create new C++ classes from class templates and wrap them in Ruby.

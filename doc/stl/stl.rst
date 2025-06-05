@@ -4,7 +4,7 @@
 Overview
 ========
 
-Rice supports the C++ standard template library (STL). To enable STL support include the ``rice/stl.hpp`` header file after the ``rice/rice.hpp`` header file.
+Rice supports the C++ standard template library (STL). To enable STL support you MUST include the ``rice/stl.hpp`` header file after the ``rice/rice.hpp`` header file.
 
 .. _stl_wrapped_builtin:
 
@@ -17,7 +17,9 @@ A wrapped class means that Rice creates a Ruby wrapper object for each C++ objec
 * std::exception
 * std::exception_ptr
 * std::map
+* std::multimap
 * std::pair
+* std::set
 * std::shared_ptr
 * std::type_index
 * std::type_info
@@ -78,3 +80,7 @@ Note manual class names can be defined *after* auto generated class names. Rice 
 
     Std::Pair≺string‚ double≻
     Object::StringDoublePair
+
+However, the name of the class itself will be defined by however it was first defined. In the case above, the class name will be ``Std::Pair≺string‚ double≻``.
+
+In general, it is recommended to use auto-defined STL class names.

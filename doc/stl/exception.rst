@@ -22,7 +22,7 @@ Thus Rice provides access to creating new C++ exception instances:
 
    exception = Std::Exception.new
 
-Note currently only supports creating instances of ``std::exception`` and none of its subtypes.
+Rice currently only supports creating instances of ``std::exception`` and not any of its subtypes.
 
 Ruby API
 ^^^^^^^^

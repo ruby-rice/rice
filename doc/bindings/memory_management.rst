@@ -35,7 +35,7 @@ Pointer (T*)           No copy          Ruby frees the C++ instance
 
 .. _ownership:
 
-Use :ref:`return` to tell Rice that Ruby should take ownership of a returned value. Let's look at an example:
+Let's look at an example:
 
 .. code-block:: cpp
 
@@ -60,7 +60,6 @@ Use :ref:`return` to tell Rice that Ruby should take ownership of a returned val
     Data_Type<Factory> rb_cFactory = define_class<Factory>("Factory")
         .define_function("create", &Factory::create); <--- WRONG, results in memory leak
   }
-
 
 Each time ``Factory#create`` is called from Ruby, a new C++ instance of MyClass will be created. Using Rice's default rules, this will result in a memory leak because those instance will never be freed.
 
@@ -198,12 +197,12 @@ Obviously this code could be rewritten to make sure the database object remains 
   define_class<Database>("Database")
     .define_method("get_column", &Database::getColumn, Return().keepAlive())
 
-Note that ``Return().keepAlive()`` will work with external types only. An attempt to use it with builtin type will result in runtime exception.
+Note that ``Return().keepAlive()`` will work with external types only. An attempt to use it with builtin type will result in a runtime exception.
 
 C++ Referencing Ruby Objects
 ----------------------------
 
-When reference Ruby objects from C++, you need to let Ruby know about them so they are not prematurely garbage collected.
+When referencing Ruby objects from C++, you need to let Ruby know about them so they are not prematurely garbage collected.
 
 There are several ways this can happen:
 

@@ -2,7 +2,7 @@
 
 C++ Operators
 =============
-C++ supports a lot of operators! These include operators that you likely think of, such as arithmetic and logical operators, as well as `conversion <https://en.cppreference.com/w/cpp/language/cast_operator>`_ operators.
+C++ supports a lot of operators! These include operators that easily come to mind such as arithmetic and logical operators, as well as `conversion <https://en.cppreference.com/w/cpp/language/cast_operator>`_ operators. It also includes obscure operators you probably do not use much (comma operator?).
 
 Both C++ and Ruby support operator overriding, although C++ supports more of them. The sections below describe how to map C++ operators to Ruby operators.
 
@@ -94,15 +94,16 @@ Logical Operators
 -----------------
 Ruby allows the ``!`` operator to be overridden but not ``&&`` or ``||``.
 
-+---------+------------------+------------- +
-| C++     |        Ruby      | Ruby Method  |
-+=========+==================+==============+
-|  &&     |  Not overridable | logical_and  |
-+---------+------------------+------------- +
-| \|\|    |  Not overridable | logical_or   |
-+---------+------------------+------------- +
-|  !      |        !         |              |
-+---------+------------------+------------- +
+
++---------+------------------+----------------+
+| C++     |        Ruby      | Ruby Method    |
++=========+==================+================+
+|  &&     |  Not overridable | logical_and    |
++---------+------------------+----------------+
+|  \|\|   |  Not overridable | logical_or     |
++---------+------------------+----------------+
+|  !      |  !               | decrement_pre  |
++---------+------------------+----------------+
 
 Increment / Decrement Operators
 -------------------------------
@@ -133,7 +134,7 @@ C++ and Ruby support overriding an additional set of operators. The comma operat
 +---------+----------------------+--------------+
 | ()      | Not Overridable      |  call        |
 +---------+----------------------+--------------+
-| *       | Not Overridable      |  dereference |
+| \*      | Not Overridable      |  dereference |
 +---------+----------------------+--------------+
 | <<      |   <<                 |              |
 +---------+----------------------+--------------+

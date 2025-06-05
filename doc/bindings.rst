@@ -17,11 +17,11 @@ Bindings
   bindings/buffers
   bindings/class_templates
   bindings/operators
-  bindings/memory_management
   bindings/exceptions
   bindings/types_overview
   bindings/type_conversions
   bindings/type_verification
+  bindings/memory_management
   bindings/inheritance
   bindings/callbacks
   bindings/instance_registry

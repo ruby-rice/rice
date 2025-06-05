@@ -19,7 +19,7 @@ Next, create an extconf.rb file:
 Note that we use ``mkmf-rice`` instead of ``mkmf``. This ensures that the extension will be linked with the standard C++ library and allows access to the Rice header files.
 
 .. note::
-  For advanced users - instead of using mkmf-rice you can use your own build system such as CMake. In this case you may prefer to download the Rice header file, `rice.hpp <https://github.com/ruby-rice/rice/blob/master/include/rice/rice.hpp>`_, from github and directly include it in your source tree. See the :ref:cmake section for more information.
+  For advanced users - instead of using mkmf-rice you can use your own build system such as CMake. In this case you may prefer to download the Rice header file, `rice.hpp <https://github.com/ruby-rice/rice/blob/master/include/rice/rice.hpp>`_, from github and directly include it in your source tree. See the :ref:`cmake` section for more information.
   
 Next we create our extension and save it to ``test.cpp``:
 
@@ -75,7 +75,7 @@ Note the prefix ``rb_c`` on the name of the class. This is a convention that the
 * ``rb_*_s_`` indicates the function is a singleton function
 * ``*_m`` suffix to indicate the function takes variable number of arguments
 
-Also note that we don't include "ruby.h" directly. Rice has a wrapper for ruby.h that handles some compatibility issues across platforms and Ruby versions. Always include Rice headers before including anything that might include "ruby.h".
+Also note that we don't include "ruby.h" directly. Rice has a wrapper for ruby.h that handles some compatibility issues across platforms and Ruby versions. Always include the Rice headers before including anything that might include "ruby.h".
 
 .. _Defining Methods:
 

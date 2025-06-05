@@ -15,7 +15,6 @@ Getting started with CMake is easy. An example CMakeLists.txt file is shown belo
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-    # For older versions of CMake can use include("./FindRuby.cmake")
     find_package("Ruby")
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -41,7 +40,16 @@ Getting started with CMake is easy. An example CMakeLists.txt file is shown belo
 
     target_include_directories(sample_callbacks PRIVATE rice)
 
-Note that Rice requires C++17. Then it search for Ruby, sets various compiler settings and finally defines a new library called MyExtension which is a Ruby extension.
+The different parts of this ``CMakeLists.txt`` file are explained below.
+
+C++17
+-----
+Rice requires C++17 or higher. Thus you must specify that like this:
+
+.. code-block:: cmake
+
+    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 FindRuby
 --------
@@ -49,8 +57,15 @@ After creating a CMake project, you will want to locate Ruby. This is done like 
 
 .. code-block:: cmake
 
-    # For older versions of CMake can use include("./FindRuby.cmake")
     find_package("Ruby")
+
+This will find a locally installed Ruby, whether it be the system Ruby or a RVM installed Ruby or RbENV installed Ruby.
+
+If you are using an older version of CMake, you can use the `FindRuby.cmake <https://github.com/ruby-rice/rice/blob/master/FindRuby.cmake>`_) script included in Rice. In that case, the syntax would be:
+
+.. code-block:: cmake
+
+     include("./FindRuby.cmake")
 
 This sets the following CMake CACHE variables:
 
@@ -75,5 +90,11 @@ Ruby_INCLUDE_DIRS          Include and config directories
 
 Compiler Settings
 -----------------
-On Windows, for both GCC (MinGW) and MSVC you have to turn on big object support. For MSVC, you will want to turn on UTF-8 since there are UTF-8 characters in the comments of the source code. See :ref:`stl_class_names`.
+The next section sets various compiler variables. On Windows, for both GCC (MinGW) and MSVC you have to turn on big object support. For MSVC, you will want to turn on UTF-8 since there are UTF-8 characters in the comments of the source code. See :ref:`stl_class_names`.
+
+Headers and Libraries
+---------------------
+Finally you will want to include any headers files required by the C++ library you are wrapping as well as its shared libraries.
+
+
 

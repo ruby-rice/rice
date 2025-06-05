@@ -1,6 +1,6 @@
 ## 4.6.0 (2025-xx-xx)
 
-* Add new Buffer class to provide Ruby API to raw pointers returned by C++
+* Add new Buffer class to provide Ruby API support for pointers sent to or returned by C++
 * Support C style out parameters
 * Support C style arrays
 * Rewrite keyword arguments
@@ -8,7 +8,6 @@
 * Add support for std::multimap
 * Add support for std::set
 * Add support for std::tuple
-* Add support for pointers to arrays
 * Add support for smart pointers (shared_ptr, unique_ptr) to fundamental types (void, int, etc)
 * Update is_convertible documentation
 * Fix missing version.rb file in gemspec

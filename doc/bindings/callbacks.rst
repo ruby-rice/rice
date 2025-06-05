@@ -2,11 +2,7 @@
 
 Callbacks
 =========
-Starting with version 4.5, Rice supports callbacks.
-
-C Style Callbacks
------------------
-C++ libraries sometimes implement C style callbacks, which are pointers to functions. Rice enables Ruby methods, lambdas and procs to serve as callback functions.
+Starting with version 4.5, Rice supports C style callbacks which are pointers to functions. Rice enables Ruby methods, lambdas and procs to serve as callback functions.
 
 As an example, OpenCV defines a ``MouseCallback`` signature:
 
@@ -20,7 +16,7 @@ It then provides a function to register a callback:
 
   void setMouseCallback(const String& winname, MouseCallback onMouse, void* userdata = 0);
 
-Once clients register a callback, then it will be called whenever the user performs an action with the mouse.
+Once a client registers a callback, it will be called whenever the user performs an action with the mouse.
 
 To wrap this code in Rice, first expose the register function to Ruby:
 
@@ -47,7 +43,7 @@ Next, in Ruby, define a Proc to handle the callback and then call the register e
   # Register the proc
   Cv::set_mouse_callback("Starry", on_mouse_event)
 
-You can also use ``lambdas`` in addition to ``Procs``
+You can also use Ruby ``lambdas`` in addition to ``Procs``
 
 User Data
 ^^^^^^^^^

@@ -3,7 +3,7 @@
 Overloaded Methods
 ====================
 
-C++ supports overloading constructors, methods and functions. Starting with version 4.5, Rice fully supports C++ overloaded methods.
+C++ supports overloading constructors, methods and functions. Starting with version 4.5, Rice fully supports C++ method overloading.
 
 When you try to wrap an overloaded function the C++ compiler will throw an error message that says something like "no matching overloaded function found."
 
@@ -124,15 +124,17 @@ As explained above, the easiest way to wrap this class is specify the correct te
 
 Method Resolution
 -----------------
-Ruby does not natively support method overloading. Thus Rice must implement overloading support itself. It does this by maintaining a global registry (see `NativeRegistry <https://github.com/ruby-rice/rice/blob/master/rice/detail/NativeRegistry.hpp>`_) of methods keyed on class  and method name. Thus for the example above, the key is ``Shape::intersects`` and the value is an array of three `NativeFunction <https://github.com/ruby-rice/rice/blob/master/rice/detail/NativeFunction.hpp>`_ instances, where each ``NativeFunction`` instance maps to one C++ member function.
+Ruby does not natively support method overloading. Thus Rice must implement overloading support itself. It does this by maintaining a global registry (see `NativeRegistry <https://github.com/ruby-rice/rice/blob/master/rice/detail/NativeRegistry.hpp>`_) of methods keyed on class  and method name. For the example above, the key is ``Shape::intersects`` and the value is an array of three `NativeFunction <https://github.com/ruby-rice/rice/blob/master/rice/detail/NativeFunction.hpp>`_ instances, where each ``NativeFunction`` instance maps to one C++ member function.
 
 At runtime, Rice evaluates the method parameters sent to the ``intersects`` method and determines the best match. It does this by looping over the three ``NativeFunction`` instances and calls their ``matches`` method. The matches method, in turn, loops over the passed-in parameters and sends them to its array of ``From_Ruby`` instances (for more information see the :ref:`type conversion <type_conversions>` section).
 
-Each ``From_Ruby`` instance defines a ``convertible`` method that returns one of three results:
+Each ``From_Ruby`` instance defines a ``convertible`` method that returns one of five results:
 
 * Exact - The types match exactly
-* Typecast - The types match but require conversion (for example an integer to a double)
-* None - The type cannot be converted (for example a string to an integer)
+* Const - The types only differ by ``const``
+* Cast - The types do not match but can be coverted to each other (for example an integer to a double)
+* Narrow - The types do not match but can be converted using a narrowing cast (for example a long to an int)
+* None - The types do not match and cannot be converted (for example a string to an integer)
 
 Based on the results for each parameter, each overloaded C++ method is sorted from best match to worst match. The best matching function is then called.
 
