@@ -133,7 +133,7 @@ TESTCASE(vector)
                         struct.vector_size)";
 
   Object result = m.module_eval(code);
-  ASSERT_EQUAL(2, detail::From_Ruby<size_t>().convert(result));
+  ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(const_attribute)
@@ -143,7 +143,6 @@ TESTCASE(const_attribute)
     .define_attr("const_int", &DataStruct::constInt);
 
   Data_Object<DataStruct> o = c.call("new");
-  const DataStruct* dataStruct = o.get();
 
   if constexpr (!oldRuby)
   {

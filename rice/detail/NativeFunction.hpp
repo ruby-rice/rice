@@ -64,8 +64,8 @@ namespace Rice::detail
     void operator=(const NativeFunction_T&) = delete;
     void operator=(NativeFunction_T&&) = delete;
 
-    Resolved matches(int argc, const VALUE* argv, VALUE self) override;
-    VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
+    Resolved matches(size_t argc, const VALUE* argv, VALUE self) override;
+    VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
 
     NativeFunction(Function_T function);
@@ -94,7 +94,7 @@ namespace Rice::detail
     To_Ruby<To_Ruby_T> createToRuby();
       
     // Convert Ruby argv pointer to Ruby values
-    std::vector<std::optional<VALUE>> getRubyValues(int argc, const VALUE* argv, bool validate);
+    std::vector<std::optional<VALUE>> getRubyValues(size_t argc, const VALUE* argv, bool validate);
 
     template<typename Arg_T, int I>
     Arg_T getNativeValue(std::vector<std::optional<VALUE>>& values);

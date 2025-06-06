@@ -43,7 +43,7 @@ namespace Rice
      *  bound.
      *  \return *this
      */
-    virtual Data_Type & operator=(Module const & klass);
+    Data_Type& operator=(Module const & klass);
 
     /*! Creates a singleton method allocate and an instance method called
      *  initialize which together create a new instance of the class.  The

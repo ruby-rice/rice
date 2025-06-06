@@ -2310,8 +2310,8 @@ namespace Rice::detail
     virtual ~Native() = default;
     VALUE call(int argc, VALUE* argv, VALUE self);
 
-    virtual Resolved matches(int argc, const VALUE* argv, VALUE self) = 0;
-    virtual VALUE operator()(int argc, const VALUE* argv, VALUE self) = 0;
+    virtual Resolved matches(size_t argc, const VALUE* argv, VALUE self) = 0;
+    virtual VALUE operator()(size_t argc, const VALUE* argv, VALUE self) = 0;
     virtual std::string toString() = 0;
   };
 }
@@ -2352,8 +2352,8 @@ namespace Rice
       void operator=(const NativeAttribute_T&) = delete;
       void operator=(NativeAttribute_T&&) = delete;
 
-      Resolved matches(int argc, const VALUE* argv, VALUE self) override;
-      VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
+      Resolved matches(size_t argc, const VALUE* argv, VALUE self) override;
+      VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
       std::string toString() override;
 
     protected:
@@ -2395,8 +2395,8 @@ namespace Rice
       void operator=(const NativeAttribute_T&) = delete;
       void operator=(NativeAttribute_T&&) = delete;
 
-      Resolved matches(int argc, const VALUE* argv, VALUE self) override;
-      VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
+      Resolved matches(size_t argc, const VALUE* argv, VALUE self) override;
+      VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
       std::string toString() override;
 
     protected:
@@ -3623,7 +3623,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline Buffer<T>::Buffer(T* pointer, size_t size) : m_buffer(pointer), m_size(size)
+  inline Buffer<T>::Buffer(T* pointer, size_t size) : m_size(size), m_buffer(pointer)
   {
   }
 
@@ -3757,7 +3757,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T>::Buffer(Buffer<T>&& other) : m_buffer(other.m_buffer), m_size(other.m_size), m_owner(other.m_owner)
+  inline Buffer<T>::Buffer(Buffer<T>&& other) : m_owner(other.m_owner), m_size(other.m_size), m_buffer(other.m_buffer)
   {
     other.m_buffer = nullptr;
     other.m_size = 0;
@@ -3918,8 +3918,6 @@ namespace Rice
   template <typename T>
   inline Buffer<T*>::Buffer(VALUE value)
   {
-    using Intrinsic_T = typename detail::intrinsic_type<T>;
-    using RubyType_T = typename detail::RubyType<Intrinsic_T>;
     ruby_value_type valueType = rb_type(value);
 
     switch (valueType)
@@ -3930,7 +3928,7 @@ namespace Rice
         this->m_size = outer.size();
         this->m_outer = new T * [this->m_size]();
 
-        for (int i = 0; i < this->m_size; i++)
+        for (size_t i = 0; i < this->m_size; i++)
         {
           // Check the inner value is also an array
           Array inner(outer[i].value());
@@ -3967,8 +3965,8 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T*>::Buffer(Buffer<T*>&& other) : m_outer(other.m_outer), m_inner(std::move(other.m_inner)),
-    m_size(other.m_size), m_owner(other.m_owner)
+  inline Buffer<T*>::Buffer(Buffer<T*>&& other) : m_owner(other.m_owner), m_size(other.m_size),
+                                                  m_outer(other.m_outer), m_inner(std::move(other.m_inner))
   {
     other.m_outer = nullptr;
     other.m_inner.clear();
@@ -9145,13 +9143,13 @@ namespace Rice::detail
         Resolved resolved = resolves.front();
 
         // Was there more than one match?
-        size_t count = std::count_if(resolves.begin(), resolves.end(),
+        /*size_t count = std::count_if(resolves.begin(), resolves.end(),
           [&resolved](Resolved& element)
           {
             return resolved.convertible == element.convertible;
           });
 
-        /*if (count > 1)
+        if (count > 1)
         {
           std::ostringstream message;
           message << "Could not resolve method call for %s#%s" << "\n"
@@ -9224,7 +9222,7 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline Resolved NativeAttributeGet<Attribute_T>::matches(int argc, const VALUE* argv, VALUE self)
+  inline Resolved NativeAttributeGet<Attribute_T>::matches(size_t argc, const VALUE* argv, VALUE self)
   {
     if (argc == 0)
       return Resolved { Convertible::Exact, 1, this };
@@ -9239,7 +9237,7 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline VALUE NativeAttributeGet<Attribute_T>::operator()(int argc, const VALUE* argv, VALUE self)
+  inline VALUE NativeAttributeGet<Attribute_T>::operator()(size_t argc, const VALUE* argv, VALUE self)
   {
     if constexpr (std::is_member_object_pointer_v<Attribute_T>)
     {
@@ -9293,7 +9291,7 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline Resolved NativeAttributeSet<Attribute_T>::matches(int argc, const VALUE* argv, VALUE self)
+  inline Resolved NativeAttributeSet<Attribute_T>::matches(size_t argc, const VALUE* argv, VALUE self)
   {
     if (argc == 1)
       return Resolved{ Convertible::Exact, 1, this };
@@ -9302,7 +9300,7 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline VALUE NativeAttributeSet<Attribute_T>::operator()(int argc, const VALUE* argv, VALUE self)
+  inline VALUE NativeAttributeSet<Attribute_T>::operator()(size_t argc, const VALUE* argv, VALUE self)
   {
     if constexpr (std::is_fundamental_v<intrinsic_type<Attr_T>> && std::is_pointer_v<Attr_T>)
     {
@@ -9414,8 +9412,8 @@ namespace Rice::detail
     void operator=(const NativeFunction_T&) = delete;
     void operator=(NativeFunction_T&&) = delete;
 
-    Resolved matches(int argc, const VALUE* argv, VALUE self) override;
-    VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
+    Resolved matches(size_t argc, const VALUE* argv, VALUE self) override;
+    VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
 
     NativeFunction(Function_T function);
@@ -9444,7 +9442,7 @@ namespace Rice::detail
     To_Ruby<To_Ruby_T> createToRuby();
       
     // Convert Ruby argv pointer to Ruby values
-    std::vector<std::optional<VALUE>> getRubyValues(int argc, const VALUE* argv, bool validate);
+    std::vector<std::optional<VALUE>> getRubyValues(size_t argc, const VALUE* argv, bool validate);
 
     template<typename Arg_T, int I>
     Arg_T getNativeValue(std::vector<std::optional<VALUE>>& values);
@@ -9572,7 +9570,7 @@ namespace Rice::detail
 
     auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
     std::vector<std::string> argTypeNames = this->argTypeNames(result, indices);
-    for (int i = 0; i < argTypeNames.size(); i++)
+    for (size_t i = 0; i < argTypeNames.size(); i++)
     {
       result << argTypeNames[i];
       if (i < argTypeNames.size() - 1)
@@ -9683,16 +9681,13 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  Resolved NativeFunction<Class_T, Function_T, IsMethod>::matches(int argc, const VALUE* argv, VALUE self)
+  Resolved NativeFunction<Class_T, Function_T, IsMethod>::matches(size_t argc, const VALUE* argv, VALUE self)
   {
     // Return false if Ruby provided more arguments than the C++ method takes
     if (argc > arity)
       return Resolved{ Convertible::None, 0, this };
 
     Resolved result { Convertible::Exact, 1, this };
-
-    MethodInfo* methodInfo = this->methodInfo_.get();
-    int index = 0;
 
     std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, false);
     auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
@@ -9711,7 +9706,7 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  std::vector<std::optional<VALUE>> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(int argc, const VALUE* argv, bool validate)
+  std::vector<std::optional<VALUE>> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(size_t argc, const VALUE* argv, bool validate)
   {
 #undef max
     int size = std::max((size_t)arity, (size_t)argc);
@@ -9767,7 +9762,7 @@ namespace Rice::detail
         throw std::invalid_argument(message);
       }
 
-      for (int i=0; i<result.size(); i++)
+      for (size_t i=0; i<result.size(); i++)
       {
         std::optional<VALUE> value = result[i];
         Arg* arg = this->methodInfo_->arg(i);
@@ -9993,7 +9988,7 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<Class_T, Function_T, IsMethod>::operator()(int argc, const VALUE* argv, VALUE self)
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::operator()(size_t argc, const VALUE* argv, VALUE self)
   {
     // Get the ruby values and make sure we have the correct number
     std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, true);
@@ -10048,8 +10043,8 @@ namespace Rice::detail
     void operator=(const NativeIterator_T&) = delete;
     void operator=(NativeIterator_T&&) = delete;
 
-    Resolved matches(int argc, const VALUE* argv, VALUE self) override;
-    VALUE operator()(int argc, const VALUE* argv, VALUE self) override;
+    Resolved matches(size_t argc, const VALUE* argv, VALUE self) override;
+    VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
 
   protected:
@@ -10096,7 +10091,7 @@ namespace Rice::detail
   }
 
   template<typename T, typename Iterator_Func_T>
-  inline Resolved NativeIterator<T, Iterator_Func_T>::matches(int argc, const VALUE* argv, VALUE self)
+  inline Resolved NativeIterator<T, Iterator_Func_T>::matches(size_t argc, const VALUE* argv, VALUE self)
   {
     return Resolved{ Convertible::Exact, 1.0, this };
   }
@@ -10142,7 +10137,7 @@ namespace Rice::detail
   }
 
   template<typename T, typename Iterator_Func_T>
-  inline VALUE NativeIterator<T, Iterator_Func_T>::operator()(int argc, const VALUE* argv, VALUE self)
+  inline VALUE NativeIterator<T, Iterator_Func_T>::operator()(size_t argc, const VALUE* argv, VALUE self)
   {
     if (!protect(rb_block_given_p))
     {

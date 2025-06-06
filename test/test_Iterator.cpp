@@ -352,7 +352,7 @@ TESTCASE(IterateNoCopy)
 
   ASSERT_EQUAL(container.data_.size(), a.size());
 
-  for (int i = 0; i < container.data_.size(); i++)
+  for (size_t i = 0; i < container.data_.size(); i++)
   {
     Data& expected = container.data_[i];
     Data_Object<Data> actual(a[i]);

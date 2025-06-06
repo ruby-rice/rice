@@ -40,7 +40,7 @@ TESTCASE(Char)
   Data_Object<Buffer<char>> dataObject(result);
   Buffer<char> buffer = std::move(*dataObject);
   ASSERT_EQUAL("my string", buffer.ptr());
-  ASSERT_EQUAL(9, buffer.size());
+  ASSERT_EQUAL(9, (int)buffer.size());
 }
 
 TESTCASE(CharArray)
@@ -160,16 +160,16 @@ TESTCASE(float_array_array)
   Data_Object<Buffer<float*>> result = m.instance_eval(code);
   Buffer<float*> buffer = std::move(*result);
 
-  ASSERT_EQUAL(3, buffer.size());
+  ASSERT_EQUAL(3, (int)buffer.size());
 
   const Buffer<float>& bufferInner1 = buffer[0];
-  ASSERT_EQUAL(2, bufferInner1.size());
+  ASSERT_EQUAL(2, (int)bufferInner1.size());
 
   const Buffer<float>& bufferInner2 = buffer[1];
-  ASSERT_EQUAL(2, bufferInner2.size());
+  ASSERT_EQUAL(2, (int)bufferInner2.size());
 
   const Buffer<float>& bufferInner3 = buffer[2];
-  ASSERT_EQUAL(2, bufferInner3.size());
+  ASSERT_EQUAL(2, (int)bufferInner3.size());
 }
 
 TESTCASE(wrong_type)

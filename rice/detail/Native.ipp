@@ -101,13 +101,13 @@ namespace Rice::detail
         Resolved resolved = resolves.front();
 
         // Was there more than one match?
-        size_t count = std::count_if(resolves.begin(), resolves.end(),
+        /*size_t count = std::count_if(resolves.begin(), resolves.end(),
           [&resolved](Resolved& element)
           {
             return resolved.convertible == element.convertible;
           });
 
-        /*if (count > 1)
+        if (count > 1)
         {
           std::ostringstream message;
           message << "Could not resolve method call for %s#%s" << "\n"

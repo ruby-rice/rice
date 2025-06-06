@@ -92,7 +92,7 @@ namespace Rice::detail
 
     auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
     std::vector<std::string> argTypeNames = this->argTypeNames(result, indices);
-    for (int i = 0; i < argTypeNames.size(); i++)
+    for (size_t i = 0; i < argTypeNames.size(); i++)
     {
       result << argTypeNames[i];
       if (i < argTypeNames.size() - 1)
@@ -203,16 +203,13 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  Resolved NativeFunction<Class_T, Function_T, IsMethod>::matches(int argc, const VALUE* argv, VALUE self)
+  Resolved NativeFunction<Class_T, Function_T, IsMethod>::matches(size_t argc, const VALUE* argv, VALUE self)
   {
     // Return false if Ruby provided more arguments than the C++ method takes
     if (argc > arity)
       return Resolved{ Convertible::None, 0, this };
 
     Resolved result { Convertible::Exact, 1, this };
-
-    MethodInfo* methodInfo = this->methodInfo_.get();
-    int index = 0;
 
     std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, false);
     auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
@@ -231,7 +228,7 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  std::vector<std::optional<VALUE>> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(int argc, const VALUE* argv, bool validate)
+  std::vector<std::optional<VALUE>> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(size_t argc, const VALUE* argv, bool validate)
   {
 #undef max
     int size = std::max((size_t)arity, (size_t)argc);
@@ -287,7 +284,7 @@ namespace Rice::detail
         throw std::invalid_argument(message);
       }
 
-      for (int i=0; i<result.size(); i++)
+      for (size_t i=0; i<result.size(); i++)
       {
         std::optional<VALUE> value = result[i];
         Arg* arg = this->methodInfo_->arg(i);
@@ -513,7 +510,7 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<Class_T, Function_T, IsMethod>::operator()(int argc, const VALUE* argv, VALUE self)
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::operator()(size_t argc, const VALUE* argv, VALUE self)
   {
     // Get the ruby values and make sure we have the correct number
     std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, true);

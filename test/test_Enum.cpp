@@ -20,7 +20,6 @@ TEARDOWN(Enum)
   rb_gc_start();
 }
 
-
 namespace
 {
   enum Color { RED, BLACK, GREEN };

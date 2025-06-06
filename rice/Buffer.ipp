@@ -7,7 +7,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline Buffer<T>::Buffer(T* pointer, size_t size) : m_buffer(pointer), m_size(size)
+  inline Buffer<T>::Buffer(T* pointer, size_t size) : m_size(size), m_buffer(pointer)
   {
   }
 
@@ -113,7 +113,7 @@ namespace Rice
 
         detail::From_Ruby<Intrinsic_T> fromRuby;
 
-        for (int i = 0; i < this->m_size; i++)
+        for (size_t i = 0; i < this->m_size; i++)
         {
           this->m_buffer[i] = fromRuby.convert(array[i].value());
         }
@@ -141,7 +141,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T>::Buffer(Buffer<T>&& other) : m_buffer(other.m_buffer), m_size(other.m_size), m_owner(other.m_owner)
+  inline Buffer<T>::Buffer(Buffer<T>&& other) : m_owner(other.m_owner), m_size(other.m_size), m_buffer(other.m_buffer)
   {
     other.m_buffer = nullptr;
     other.m_size = 0;
@@ -302,8 +302,6 @@ namespace Rice
   template <typename T>
   inline Buffer<T*>::Buffer(VALUE value)
   {
-    using Intrinsic_T = typename detail::intrinsic_type<T>;
-    using RubyType_T = typename detail::RubyType<Intrinsic_T>;
     ruby_value_type valueType = rb_type(value);
 
     switch (valueType)
@@ -314,7 +312,7 @@ namespace Rice
         this->m_size = outer.size();
         this->m_outer = new T * [this->m_size]();
 
-        for (int i = 0; i < this->m_size; i++)
+        for (size_t i = 0; i < this->m_size; i++)
         {
           // Check the inner value is also an array
           Array inner(outer[i].value());
@@ -351,8 +349,8 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T*>::Buffer(Buffer<T*>&& other) : m_outer(other.m_outer), m_inner(std::move(other.m_inner)),
-    m_size(other.m_size), m_owner(other.m_owner)
+  inline Buffer<T*>::Buffer(Buffer<T*>&& other) : m_owner(other.m_owner), m_size(other.m_size),
+                                                  m_outer(other.m_outer), m_inner(std::move(other.m_inner))
   {
     other.m_outer = nullptr;
     other.m_inner.clear();

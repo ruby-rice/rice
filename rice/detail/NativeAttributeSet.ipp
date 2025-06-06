@@ -31,7 +31,7 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline Resolved NativeAttributeSet<Attribute_T>::matches(int argc, const VALUE* argv, VALUE self)
+  inline Resolved NativeAttributeSet<Attribute_T>::matches(size_t argc, const VALUE* argv, VALUE self)
   {
     if (argc == 1)
       return Resolved{ Convertible::Exact, 1, this };
@@ -40,7 +40,7 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline VALUE NativeAttributeSet<Attribute_T>::operator()(int argc, const VALUE* argv, VALUE self)
+  inline VALUE NativeAttributeSet<Attribute_T>::operator()(size_t argc, const VALUE* argv, VALUE self)
   {
     if constexpr (std::is_fundamental_v<intrinsic_type<Attr_T>> && std::is_pointer_v<Attr_T>)
     {
