@@ -21,16 +21,15 @@
 #
 # Useful options to know are:
 #
-#  -G to specicy a generator (-G Ninja is recommended)
+#  -G to specify a generator (-G Ninja is recommended)
 #  -D<CMAKE_VARIABLE> to set a CMake variable (for example -DCMAKE_BUILD_TYPE=Release)
 #  --preset <preset_name> to use a preset
 #
 # If the Gem author provides presets, via CMakePresets.json file, you will likely want to us use one of them.
-# If not, then you may wish to specify a generator (Ninja is recommened since it can builds projects in parallel
-# versus a Make generator which is much slower).
+# If not, then you may wish to specify a generator (Ninja is recommended since it can build projects in parallel
+# versus a Make generator which build ins serial and thus is *much* slower).
 
 require "fileutils"
-require 'open3'
 
 class Gem::Ext::CmakeBuilder
   attr_accessor :runner, :profile
@@ -40,12 +39,13 @@ class Gem::Ext::CmakeBuilder
     @profile = :release
   end
 
-  def build(extension, gem_dir, results, args = [], lib_dir = nil, cmake_dir = Dir.pwd,
-            target_rbconfig = Gem.target_rbconfig)
-
+  def build(extension, gem_dir, results, args = [], lib_dir = nil, cmake_dir = Dir.pwd, target_rbconfig = Gem.target_rbconfig)
     if target_rbconfig.path
       warn "--target-rbconfig is not yet supported for CMake extensions. Ignoring"
     end
+
+    # Make sure lib dir is set
+    lib_dir ||= File.join(gem_dir, "lib")
 
     # Figure the build dir
     build_dir = File.join(cmake_dir, "build")
@@ -77,9 +77,9 @@ class Gem::Ext::CmakeBuilder
   def compile(cmake_dir, build_dir, args, results)
     cmd = ["cmake",
            "--build",
-           "#{build_dir}",
+           build_dir.to_s,
            "--config",
-           "#{@profile}"]
+           @profile.to_s]
     runner.call(cmd, results, "cmake", cmake_dir)
   end
 
@@ -93,11 +93,12 @@ class Gem::Ext::CmakeBuilder
            "--list-presets"]
 
     begin
+      require "open3"
       build_env = { "SOURCE_DATE_EPOCH" => Gem.source_date_epoch_string }
-      stdout, stderr, status = Open3.capture3(build_env, *cmd, chdir: cmake_dir)
+      stdout, _, _ = Open3.capture3(build_env, *cmd, chdir: cmake_dir)
       message = <<~EOS
         The gem author provided a list of presets that can be used to build the gem. To use a preset specify it on the command line:
-          
+
           gem install <gem_name> -- --preset <preset_name>
 
         #{stdout}
@@ -105,7 +106,7 @@ class Gem::Ext::CmakeBuilder
 
       STDOUT << message << "\n"
       STDOUT.flush
-    rescue Gem::InstallError => exception
+    rescue Gem::InstallError
       # Do nothing, CMakePresets.json was not included in the Gem
     end
   end
