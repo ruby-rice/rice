@@ -32,25 +32,27 @@ Ruby extensions with C++ easier.
     'CHANGELOG.md',
     'CONTRIBUTORS.md',
     'COPYING',
-    'README',
-    'README.mingw',
+    'README.md',
 
-    # Other files
+    # Ruby files
     'Gemfile',
     'Rakefile',
+    'rice.gemspec',
+
+    # CMake Files
+    'CMakeLists.txt',
+    'CMakePresets.json',
+    'FindRuby.cmake',
 
     # rice.hpp
     'include/rice/rice.hpp',
     'include/rice/stl.hpp',
 
     # Source files
-    'rice/*.?pp',
-    'rice/detail/*.?pp',
+    'rice/**/*.?pp',
 
     # Ruby files
-    'lib/mkmf-rice.rb',
-    'lib/rice.rb',
-    'lib/rice/version.rb',
+    'lib/**/*.rb',
 
     # Samples
     'sample/enum/extconf.rb',
@@ -75,7 +77,7 @@ Ruby extensions with C++ easier.
     'test/ext/t2/*.*pp'
   ]
 
-  s.required_ruby_version = ">= 3.0"
+  s.required_ruby_version = ">= 3.1"
 
   s.add_development_dependency "bundler"
   s.add_development_dependency "rake"
