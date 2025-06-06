@@ -6468,6 +6468,49 @@ namespace Rice::detail
   };
 
   template<>
+  class From_Ruby<signed char&>
+  {
+  public:
+    using Buffer_T = Buffer<signed char>;
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        return Convertible::Exact;
+      }
+      else
+      {
+        return FromRubyFundamental<signed char>::is_convertible(value);
+      }
+    }
+
+    signed char& convert(VALUE value)
+    {
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      {
+        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
+        return buffer->reference();
+      }
+      else
+      {
+        this->converted_ = FromRubyFundamental<signed char>::convert(value);
+        return this->converted_;
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    signed char converted_ = 0;
+  };
+
+  template<>
   class From_Ruby<signed char*>
   {
   public:
