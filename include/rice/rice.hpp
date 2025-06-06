@@ -2455,7 +2455,7 @@ namespace Rice
      *  bound.
      *  \return *this
      */
-    virtual Data_Type & operator=(Module const & klass);
+    Data_Type& operator=(Module const & klass);
 
     /*! Creates a singleton method allocate and an instance method called
      *  initialize which together create a new instance of the class.  The
@@ -3729,7 +3729,7 @@ namespace Rice
 
         detail::From_Ruby<Intrinsic_T> fromRuby;
 
-        for (int i = 0; i < this->m_size; i++)
+        for (size_t i = 0; i < this->m_size; i++)
         {
           this->m_buffer[i] = fromRuby.convert(array[i].value());
         }
@@ -10342,7 +10342,7 @@ namespace Rice::detail
 
     // Create FFI closure
     this->closure_ = (ffi_closure *)ffi_closure_alloc(sizeof(ffi_closure) + sizeof(void*), (void**)(&this->callback_));
-    ffi_status status = ffi_prep_closure_loc(this->closure_, &cif_, ffiCallback, (void*)this, (void*)this->callback_);
+    ffi_prep_closure_loc(this->closure_, &cif_, ffiCallback, (void*)this, (void*)this->callback_);
   }
 
   template<typename Return_T, typename ...Arg_Ts>
