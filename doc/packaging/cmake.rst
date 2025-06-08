@@ -2,9 +2,36 @@
 
 CMake
 =====
-Since Rice is header library, it is easy to use alternative build systems instead of Ruby and mkmf-rice. Rice itself uses CMake for building its test suite.
+For more complex C++ extensions, it is often better to use ``CMake`` to build your extension> This is because ``CMake``:
 
-Getting started with CMake is easy. An example CMakeLists.txt file is shown below:
+* Is likely already used to build the C++ library you are wrapping
+* Provides built-in functionality for finding installed modules (like Ruby!)
+* Provides much more control over the build process
+* Parallelizes builds resulting in *much* faster compilation times compared to ``make``
+
+Enabling
+--------
+To build your extension using ``CMake``, add the following to your Gemspec (assuming the extension directory is ``ext``):
+
+.. code-block:: ruby
+
+    Gem::Specification.new do |spec|
+      spec.extensions = ["ext/CMakeLists.txt"]
+    end
+
+Unfortunately, ``RubyGems`` support for CMake is fairly poor. Therefore, Rice includes an improved RubyGem `CMakeBuilder <https://github.com/ruby-rice/rice/blob/master/lib/rubygems/cmake_builder.rb>`_. This updated code has been submitted `upstream <https://github.com/rubygems/rubygems/pull/8753>`_.
+
+Rice uses RubyGem's `plugin <https://guides.rubygems.org/plugins/>`_ system to install the updated ``CMakeBuilder`` code. To use the improved builder include ``Rice`` in your gemspec like this:
+
+.. code-block:: ruby
+
+    Gem::Specification.new do |spec|
+      spec.add_runtime_dependency('rice')
+    end
+
+Example
+--------
+Below is an example ``CMakeLists.txt`` file to build a Ruby C++ extension:
 
 .. code-block:: cmake
 
@@ -40,26 +67,21 @@ Getting started with CMake is easy. An example CMakeLists.txt file is shown belo
 
     target_include_directories(sample_callbacks PRIVATE rice)
 
-The different parts of this ``CMakeLists.txt`` file are explained below.
+You will likely also need to add include files and shared libraries from the C++ library you are wrapping.
 
-C++17
------
-Rice requires C++17 or higher. Thus you must specify that like this:
-
-.. code-block:: cmake
-
-    set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+Compiler Settings
+-----------------
+See :ref:`compiler_settings` for details about compiler settings.
 
 FindRuby
 --------
-After creating a CMake project, you will want to locate Ruby. This is done like this:
+Notice the inclusion of the following line in the above ``CMakeLists.txt`` file:
 
 .. code-block:: cmake
 
     find_package("Ruby")
 
-This will find a locally installed Ruby, whether it be the system Ruby or a RVM installed Ruby or RbENV installed Ruby.
+This will find a locally installed Ruby, whether it is the system Ruby or a `RVM <https://rvm.io/>`_ or `RbENV <https://rbenv.org/>`_ installed Ruby.
 
 If you are using an older version of CMake, you can use the `FindRuby.cmake <https://github.com/ruby-rice/rice/blob/master/FindRuby.cmake>`_) script included in Rice. In that case, the syntax would be:
 
@@ -87,14 +109,6 @@ Ruby_INCLUDE_DIR           Ruby include directory
 Ruby_CONFIG_INCLUDE_DIR    Ruby config include directory
 Ruby_INCLUDE_DIRS          Include and config directories
 ========================== ================
-
-Compiler Settings
------------------
-The next section sets various compiler variables. On Windows, for both GCC (MinGW) and MSVC you have to turn on big object support. For MSVC, you will want to turn on UTF-8 since there are UTF-8 characters in the comments of the source code. See :ref:`stl_class_names`.
-
-Headers and Libraries
----------------------
-Finally you will want to include any headers files required by the C++ library you are wrapping as well as its shared libraries.
 
 
 
