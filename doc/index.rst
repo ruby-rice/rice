@@ -1,6 +1,6 @@
-========================================
-Rice - Ruby Interface for C++ Extensions
-========================================
+=============================
+Rice - Ruby Interface for C++
+=============================
 
 .. toctree::
   :maxdepth: 2
@@ -11,7 +11,7 @@ Rice - Ruby Interface for C++ Extensions
   bindings
   stl
   api
-  cmake
+  packaging
   migration
   history
   architecture
