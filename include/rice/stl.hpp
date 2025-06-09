@@ -1269,12 +1269,19 @@ namespace Rice::detail
   public:
     Convertible is_convertible(VALUE value)
     {
-      return Convertible::None;
+      return value == Qnil ? Convertible::Exact : Convertible::None;
     }
 
     std::monostate convert(VALUE value)
     {
-      return std::monostate();
+      if (value == Qnil)
+      {
+        return std::monostate();
+      }
+      else
+      {
+        throw std::runtime_error("Can only convert nil values to std::monostate");
+      }
     }
   };
 
@@ -1284,12 +1291,19 @@ namespace Rice::detail
   public:
     Convertible is_convertible(VALUE value)
     {
-      return Convertible::None;
+      return value == Qnil ? Convertible::Exact : Convertible::None;
     }
 
     std::monostate& convert(VALUE value)
     {
-      return this->converted_;
+      if (value == Qnil)
+      {
+        return std::monostate();
+      }
+      else
+      {
+        throw std::runtime_error("Can only convert nil values to std::monostate");
+      }
     }
     
   private:
