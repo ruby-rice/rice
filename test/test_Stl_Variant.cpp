@@ -1,4 +1,4 @@
-﻿#include "unittest.hpp"
+#include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
@@ -326,6 +326,9 @@ TESTCASE(Roundtrip)
   instance2 = m.call("roundtrip_variant", instance);
   hello = instance2.call("say_hello");
   ASSERT_EQUAL("Hi from MyClass2", detail::From_Ruby<std::string>().convert(hello));
+
+  instance2 = m.call("roundtrip_variant", nullptr);
+  ASSERT_EQUAL(Qnil, instance2.value());
 }
 
 /* This test case runs successfully on MSVC but not g++. Having stepped through the code with
@@ -353,6 +356,9 @@ TESTCASE(RoundtripRef)
   instance2 = m.call("roundtrip_variant_ref", instance);
   hello = instance2.call("say_hello");
   ASSERT_EQUAL("Hi from MyClass2", detail::From_Ruby<std::string>().convert(hello));
+
+  instance2 = m.call("roundtrip_variant_ref", nullptr);
+  ASSERT_EQUAL(Qnil, instance2.value());
 }
 #endif
 
@@ -366,9 +372,12 @@ TESTCASE(RoundtripConstRef)
   ASSERT_EQUAL("Hi from MyClass1", detail::From_Ruby<std::string>().convert(hello));
 
   instance = m.module_eval("MyClass2.new");
-  instance2 = m.call("roundtrip_variant_ref", instance);
+  instance2 = m.call("roundtrip_const_variant_ref", instance);
   hello = instance2.call("say_hello");
   ASSERT_EQUAL("Hi from MyClass2", detail::From_Ruby<std::string>().convert(hello));
+
+  instance2 = m.call("roundtrip_const_variant_ref", nullptr);
+  ASSERT_EQUAL(Qnil, instance2.value());
 }
 
 namespace
