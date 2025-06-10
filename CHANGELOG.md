@@ -1,6 +1,7 @@
-## 4.6.0 (2025-xx-xx)
+## 4.6.0 (2025-06-09)
+Rice 4.6 is a major release that adds significant new functionality based on wrapping the OpenCV library, including:
 
-* Add new Buffer class to provide Ruby API support for pointers sent to or returned by C++
+* Add a new Buffer class to provide Ruby API support for pointers sent to or returned by C++
 * Support C style out parameters
 * Support C style arrays
 * Rewrite keyword arguments
@@ -9,6 +10,7 @@
 * Add support for std::set
 * Add support for std::tuple
 * Add support for smart pointers (shared_ptr, unique_ptr) to fundamental types (void, int, etc)
+* Improve std::variant support
 * Update is_convertible documentation
 * Fix missing version.rb file in gemspec
 * Add C++ preprocessor defines for Rice version
