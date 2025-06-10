@@ -2,9 +2,9 @@
 
 CMake
 =====
-For more complex C++ extensions, it is often better to use ``CMake`` to build your extension> This is because ``CMake``:
+For more complex C++ extensions, you may wish to use ``CMake`` to build your extension. ``CMake`` has a lot of advantages over ``extconf.rb``:
 
-* Is likely already used to build the C++ library you are wrapping
+* Is is likely the build system the library you are wrapping uses
 * Provides built-in functionality for finding installed modules (like Ruby!)
 * Provides much more control over the build process
 * Parallelizes builds resulting in *much* faster compilation times compared to ``make``
@@ -61,13 +61,18 @@ Below is an example ``CMakeLists.txt`` file to build a Ruby C++ extension:
     add_library (MyExtension SHARED
                  "MyExtension.cpp")
 
-    target_include_directories(sample_callbacks PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})
-    target_include_directories(sample_callbacks PRIVATE ${PROJECT_SOURCE_DIR})
-    target_link_libraries(sample_callbacks ${Ruby_LIBRARY})
+    target_include_directories(MyExtensionLibrary PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})
+    target_include_directories(MyExtensionLibrary PRIVATE ${PROJECT_SOURCE_DIR})
+    target_link_libraries(MyExtensionLibrary ${Ruby_LIBRARY})
 
-    target_include_directories(sample_callbacks PRIVATE rice)
+    # Add in Rice headers
+    target_include_directories(MyExtensionLibrary PRIVATE <path>)
 
-You will likely also need to add include files and shared libraries from the C++ library you are wrapping.
+    # Add in the library you are wrapping headers and libraries
+    target_include_directories(MyExtensionLibrary PRIVATE <path>)
+    target_link_libraries(MyExtensionLibrary <path>})
+
+Currently you will need to manually specify where the Rice :ref:`header_files` header files are located.
 
 Compiler Settings
 -----------------

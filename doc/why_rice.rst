@@ -2,9 +2,6 @@
 
 Why Rice?
 =========
-
-Common Problems
----------------
 Wrapping C and C++ libraries so Ruby can use them is difficult. There are number of common problems that need to solved, including:
 
 Type Safety

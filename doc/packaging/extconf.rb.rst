@@ -2,10 +2,10 @@
 
 extconf.rb
 ==========
-The default way to build ``RubyGem`` extensions is to use ``extconf.rb``. Keep in mind, however, that ``extconf.rb`` is designed for ``C`` extensions and not `C++`. Thus, Rice provides a file called ``mkmf-rice`` that add additional functionality to ``mkmf`` including:
+The default way to build ``RubyGem`` extensions is to use ``extconf.rb``. However, ``extconf.rb`` was designed for ``C`` and not `C++`. Thus, Rice provides a file called ``mkmf-rice`` that adds additional functionality to ``mkmf`` including:
 
 * Uses a C++ compiler instead of a C compiler
-* Includes Rice header files
+* Includes Rice header files automatically
 * Sets required :ref:`compiler_settings`
 * Links to the standard C++ library
 

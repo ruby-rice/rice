@@ -25,9 +25,27 @@ In general, for simple extensions uses ``extconf.rb`` but otherwise use ``CMake`
 
 It is also possible to use a custom build system, but in that case you will need to create a RubyGem `plugin <https://guides.rubygems.org/plugins/>`_ to tell ``RubyGems`` how to make the build.
 
-Header Library
+.. _header_files:
+Header Files
 ==============
 Rice is packaged as `header-only <https://en.wikipedia.org/wiki/Header-only>`_ library. That means you do not have to worry about linking a shared Rice library with your extension.
+
+The two headers are:
+
+* rice/rice.hpp
+* rice/stl.hpp
+
+There are two ways to incorporate the headers into your build.
+
+The first option is to install them by installing Rice - thus make Rice a required dependency of your Gem like this:
+
+.. code-block:: ruby
+
+    Gem::Specification.new do |spec|
+      spec.add_runtime_dependency('rice')
+    end
+
+The second option is to simply copy them from `github <https://github.com/ruby-rice/rice/tree/master/include/rice>`_  and copy them into your repo. Remember the provided link points to the master branch - you should pick a specific release tag and use those instead.
 
 .. _compiler_settings:
 

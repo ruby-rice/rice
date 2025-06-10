@@ -9,7 +9,7 @@ Getting started
 
 First :ref:`install <installation>` Rice.
 
-Next, create an extconf.rb file:
+Next, create an :ref:`extconf.rb` file:
 
 .. code-block:: ruby
 
@@ -19,9 +19,9 @@ Next, create an extconf.rb file:
 Note that we use ``mkmf-rice`` instead of ``mkmf``. This ensures that the extension will be linked with the standard C++ library and allows access to the Rice header files.
 
 .. note::
-  For advanced users - instead of using mkmf-rice you can use CMake. In this case you may prefer to download the Rice header file, `rice.hpp <https://github.com/ruby-rice/rice/blob/master/include/rice/rice.hpp>`_, from github and directly include it in your source tree. See the :ref:`cmake` section for more information.
-  
-Next we create our extension and save it to ``test.cpp``:
+  Advanced users may wish to use :ref:`cmake` instead.
+
+Next we create an extension and save it to ``test.cpp``:
 
 .. code-block:: cpp
 
@@ -142,6 +142,8 @@ Note that we're chaining calls on the ``Class`` object. Most member functions in
 .. note::
    If your compiler complains about "no matching overloaded function found" followed by "could not deduce template argument for 'Function_T" then that means you are working with an overloaded C++ function or method. As a result, you'll need to give Rice some help as explained in the :ref:`overloaded_methods` section.
 
+For more information refer to the :ref:`methods` section.
+
 Defining methods with lambdas
 -----------------------------
 
@@ -156,6 +158,8 @@ It is also possible to define_methods using C++ lambdas. Similar to define_metho
     });
 
 Note that we pass self as a reference since we do not want to copy it!
+
+For more information refer to the :ref:`methods` section.
 
 Defining functions
 ------------------
@@ -181,9 +185,10 @@ or lambdas:
       });
   }
 
+For more information refer to the :ref:`methods` section.
+
 Wrapping C++ Types
 ------------------
-
 It's useful to be able to define Ruby classes in a C++ style rather than using the Ruby API directly, but the real power Rice is in wrapping already-defined C++ types.
 
 Let's assume we have the following C++ class that we want to wrap:
@@ -285,10 +290,10 @@ These attributes can then be accessed in the expected way in Ruby:
   MyStruct.read_write = 10
   b = MyStruct.read_write
 
+For more information refer to the :ref:`Attributes` section.
 
 Type conversions
 ----------------
-
 Rice is smart enough to convert between most Ruby and C++ objects. Let's look again at our example class:
 
 .. code-block:: cpp
@@ -403,4 +408,4 @@ When we call the ``error`` function from Ruby, C++ will raise an exception. Rice
     ..
   end
 
-For more information about exceptions please refer to the :ref:`Exceptions` section.
+3 information refer to the :ref:`Exceptions` section.
