@@ -73,6 +73,7 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 // =========   rice_traits.hpp   =========
 
 #include <ostream>
+#include <tuple>
 #include <type_traits>
 #include <variant>
 #include <vector>
@@ -588,6 +589,7 @@ namespace Rice::detail
 // =========   RubyFunction.ipp   =========
 
 #include <any>
+#include <tuple>
 
 namespace Rice::detail
 {
@@ -9480,6 +9482,7 @@ namespace Rice::detail
 #include <array>
 #include <stdexcept>
 #include <sstream>
+#include <tuple>
 
 namespace Rice::detail
 {
@@ -10223,6 +10226,7 @@ namespace Rice::detail
 
 // =========   NativeCallbackFFI.ipp   =========
 #ifdef HAVE_LIBFFI
+#include <tuple>
 #include <ffi.h>
 
 namespace Rice::detail
