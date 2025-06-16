@@ -1,5 +1,6 @@
 
 #include <any>
+#include <tuple>
 
 namespace Rice::detail
 {

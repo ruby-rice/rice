@@ -2,6 +2,7 @@
 #include <array>
 #include <stdexcept>
 #include <sstream>
+#include <tuple>
 
 namespace Rice::detail
 {

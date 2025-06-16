@@ -1,4 +1,5 @@
 #ifdef HAVE_LIBFFI
+#include <tuple>
 #include <ffi.h>
 
 namespace Rice::detail
