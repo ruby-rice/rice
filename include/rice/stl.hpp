@@ -1298,7 +1298,7 @@ namespace Rice::detail
     {
       if (value == Qnil)
       {
-        return std::monostate();
+        return this->converted_;
       }
       else
       {
