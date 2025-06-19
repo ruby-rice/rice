@@ -29,7 +29,7 @@ namespace Rice
     void setSize(size_t value);
 
     // Ruby API
-  //  VALUE toString() const;
+    VALUE toString() const;
 
     VALUE bytes() const;
     VALUE bytes(size_t count) const;
@@ -80,7 +80,7 @@ namespace Rice
     void setSize(size_t value);
 
     // Ruby API
-   // VALUE toString() const;
+    VALUE toString() const;
 
     VALUE bytes() const;
     VALUE bytes(size_t count) const;
