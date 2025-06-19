@@ -283,3 +283,19 @@ TESTCASE(update_buffer)
     ASSERT_EQUAL("index 1 outside of bounds: 0..1", ex.what())
   );
 }
+
+TESTCASE(to_s)
+{
+  define_buffer<unsigned char>();
+  Module m = define_module("Testing");
+
+  std::string code = R"(buffer = Rice::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255])
+                        buffer.to_s)";
+  String result = m.instance_eval(code);
+  ASSERT_EQUAL("Buffer<type: unsigned char*, size: 8>", result.c_str());
+
+  Buffer<unsigned char> buffer(nullptr);
+  result = buffer.toString();
+  ASSERT_EQUAL("Buffer<type: unsigned char*, size: 0>", result.c_str());
+}
+
