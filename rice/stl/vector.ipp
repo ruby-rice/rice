@@ -133,68 +133,68 @@ namespace Rice
           }
         })
         .define_method("last", [](const T& vector) -> std::optional<Value_T>
+        {
+          if (vector.size() > 0)
           {
-            if (vector.size() > 0)
-            {
-              return vector.back();
-            }
-            else
-            {
-              return std::nullopt;
-            }
-          })
-        .define_method("[]", [this](const T& vector, Difference_T index) -> std::optional<Value_T>
-          {
-            index = normalizeIndex(vector.size(), index);
-            if (index < 0 || index >= (Difference_T)vector.size())
-            {
-              return std::nullopt;
-            }
-            else
-            {
-              return vector[index];
-            }
-          })
-        .define_method("[]", [this](const T& vector, Difference_T start, Difference_T length) -> VALUE
-          {
-            start = normalizeIndex(vector.size(), start);
-            if (start < 0 || start >= (Difference_T)vector.size())
-            {
-              return rb_ary_new();
-            }
-            else
-            {
-              auto begin = vector.begin() + start;
-
-              // Ruby does not throw an exception when the length is too long
-              Difference_T size = (Difference_T)vector.size();
-              if (start + length > size)
-              {
-                length = size - start;
-              }
-
-              auto finish = vector.begin() + start + length;
-              T slice(begin, finish);
-
-              VALUE result = rb_ary_new();
-              std::for_each(slice.begin(), slice.end(), [&result](const Reference_T element)
-              {
-                VALUE value = detail::To_Ruby<Parameter_T>().convert(element);
-                rb_ary_push(result, value);
-              });
-
-              return result;
-            }
-          }, Return().setValue());
-
-          if constexpr (!std::is_same_v<Value_T, bool>)
-          {
-            define_buffer<Value_T>();
-            define_buffer<Value_T*>();
-            klass_.template define_method<Value_T*(T::*)()>("data", &T::data);
+            return vector.back();
           }
+          else
+          {
+            return std::nullopt;
+          }
+        })
+        .define_method("[]", [this](const T& vector, Difference_T index) -> std::optional<Value_T>
+        {
+          index = normalizeIndex(vector.size(), index);
+          if (index < 0 || index >= (Difference_T)vector.size())
+          {
+            return std::nullopt;
+          }
+          else
+          {
+            return vector[index];
+          }
+        })
+        .define_method("[]", [this](const T& vector, Difference_T start, Difference_T length) -> VALUE
+        {
+          start = normalizeIndex(vector.size(), start);
+          if (start < 0 || start >= (Difference_T)vector.size())
+          {
+            return rb_ary_new();
+          }
+          else
+          {
+            auto begin = vector.begin() + start;
 
-          rb_define_alias(klass_, "at", "[]");
+            // Ruby does not throw an exception when the length is too long
+            Difference_T size = (Difference_T)vector.size();
+            if (start + length > size)
+            {
+              length = size - start;
+            }
+
+            auto finish = vector.begin() + start + length;
+            T slice(begin, finish);
+
+            VALUE result = rb_ary_new();
+            std::for_each(slice.begin(), slice.end(), [&result](const Reference_T element)
+            {
+              VALUE value = detail::To_Ruby<Parameter_T>().convert(element);
+              rb_ary_push(result, value);
+            });
+
+            return result;
+          }
+        }, Return().setValue());
+
+        if constexpr (!std::is_same_v<Value_T, bool>)
+        {
+          define_buffer<Value_T>();
+          define_buffer<Value_T*>();
+          klass_.template define_method<Value_T*(T::*)()>("data", &T::data);
+        }
+
+        rb_define_alias(klass_, "at", "[]");
       }
 
       // Methods that require Value_T to support operator==
