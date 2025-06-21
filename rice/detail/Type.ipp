@@ -228,7 +228,6 @@ namespace Rice::detail
     return base;
   }
 
-
   inline std::string rubyClassName(const std::string& typeInfoName)
   {
     std::string base = cppClassName(typeInfoName);

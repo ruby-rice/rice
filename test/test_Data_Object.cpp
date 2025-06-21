@@ -244,7 +244,7 @@ TESTCASE(data_object_update_buffer)
   Object result = m.module_eval(code);
   Data_Object<Buffer<MyDataType>> dataObject(result);
   Buffer<MyDataType>* buffer = dataObject.get();
-  MyDataType myDataType = buffer->get(2);
+  MyDataType myDataType = buffer->operator[](2);
   ASSERT_EQUAL(100, myDataType.x);
 }
 
