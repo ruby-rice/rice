@@ -155,6 +155,17 @@ namespace Rice
           (callable(std::forward<decltype(args)>(args)), ...);
         }, std::forward<Tuple_T>(tuple));
     }
+
+    template<typename T, typename = void>
+    struct is_wrapped : std::true_type {};
+
+    template<typename T>
+    struct is_wrapped<T, std::enable_if_t<std::is_fundamental_v<detail::intrinsic_type<T>> ||
+                                          std::is_same_v<detail::intrinsic_type<T>, std::string>>
+                     >: std::false_type {};
+
+    template<typename T>
+    constexpr bool is_wrapped_v = is_wrapped<T>::value;
   } // detail
 } // Rice
 

@@ -2,30 +2,42 @@ namespace Rice
 {
   // ----  Buffer<T> ------- 
   template<typename T>
-  inline Buffer<T>::Buffer(T* pointer) : m_buffer(pointer)
+  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::Buffer(T* pointer) : m_buffer(pointer)
   {
   }
 
   template<typename T>
-  inline Buffer<T>::Buffer(T* pointer, size_t size) : m_size(size), m_buffer(pointer)
+  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::Buffer(T* pointer, size_t size) : m_size(size), m_buffer(pointer)
   {
   }
 
   template <typename T>
-  inline Buffer<T>::Buffer(VALUE value)
+  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::Buffer(VALUE value)
   {
     if constexpr (std::is_fundamental_v<T>)
     {
-      this->fromRubyType(value);
+      this->fromBuiltinType(value);
     }
     else
     {
-      this->fromDataType(value);
+      this->fromWrappedType(value);
     }
   }
 
   template <typename T>
-  inline void Buffer<T>::fromRubyType(VALUE value)
+  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::~Buffer()
+  {
+    if constexpr (std::is_destructible_v<T>)
+    {
+      if (this->m_owner)
+      {
+        delete[] this->m_buffer;
+      }
+    }
+  }
+
+  template <typename T>
+  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::fromBuiltinType(VALUE value)
   {
     using Intrinsic_T = typename detail::intrinsic_type<T>;
     using RubyType_T = typename detail::RubyType<Intrinsic_T>;
@@ -97,7 +109,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline void Buffer<T>::fromDataType(VALUE value)
+  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::fromWrappedType(VALUE value)
   {
     using Intrinsic_T = typename detail::intrinsic_type<T>;
 
@@ -129,19 +141,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T>::~Buffer()
-  {
-    if constexpr (std::is_destructible_v<T>)
-    {
-      if (this->m_owner)
-      {
-        delete[] this->m_buffer;
-      }
-    }
-  }
-
-  template <typename T>
-  inline Buffer<T>::Buffer(Buffer<T>&& other) : m_owner(other.m_owner), m_size(other.m_size), m_buffer(other.m_buffer)
+  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::Buffer(Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>&& other) : m_owner(other.m_owner), m_size(other.m_size), m_buffer(other.m_buffer)
   {
     other.m_buffer = nullptr;
     other.m_size = 0;
@@ -149,7 +149,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T>& Buffer<T>::operator=(Buffer<T>&& other)
+  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>& Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::operator=(Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>&& other)
   {
     this->m_buffer = other.m_buffer;
     other.m_buffer = nullptr;
@@ -164,49 +164,49 @@ namespace Rice
   }
 
   template <typename T>
-  inline size_t Buffer<T>::size() const
+  inline size_t Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::size() const
   {
     return this->m_size;
   }
 
   template <typename T>
-  void  Buffer<T>::setSize(size_t value)
+  void  Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::setSize(size_t value)
   {
     this->m_size = value;
   }
 
   template <typename T>
-  inline T* Buffer<T>::ptr()
+  inline T* Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::ptr()
   {
     return this->m_buffer;
   }
 
   template <typename T>
-  inline T& Buffer<T>::reference()
+  inline T& Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::reference()
   {
     return *this->m_buffer;
   }
 
   template <typename T>
-  inline bool Buffer<T>::isOwner() const
+  inline bool Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::isOwner() const
   {
     return this->m_owner;
   }
 
   template <typename T>
-  inline void Buffer<T>::setOwner(bool value)
+  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::setOwner(bool value)
   {
     this->m_owner = value;
   }
 
   template <typename T>
-  inline void Buffer<T>::release()
+  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::release()
   {
     this->m_owner = false;
   }
 
   template<typename T>
-  inline VALUE Buffer<T>::toString() const
+  inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::toString() const
   {
     std::string name = detail::typeName(typeid(T*));
     std::string description = "Buffer<type: " + detail::cppClassName(name) + ", size: " + std::to_string(this->m_size) + ">";
@@ -216,7 +216,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T>::bytes(size_t count) const
+  inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::bytes(size_t count) const
   {
     if (!this->m_buffer)
     {
@@ -230,13 +230,13 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T>::bytes() const
+  inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::bytes() const
   {
     return this->bytes(this->m_size);
   }
 
   template<typename T>
-  inline Array Buffer<T>::toArray(size_t count) const
+  inline Array Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::toArray(size_t count) const
   {
     if (!this->m_buffer)
     {
@@ -263,13 +263,13 @@ namespace Rice
   }
 
   template<typename T>
-  inline Array Buffer<T>::toArray() const
+  inline Array Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::toArray() const
   {
     return this->toArray(this->m_size);
   }
 
   template<typename T>
-  inline T Buffer<T>::get(size_t index) const
+  inline typename Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::Element_T& Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::operator[](size_t index)
   {
     if (index >= this->m_size)
     {
@@ -279,30 +279,19 @@ namespace Rice
     return this->m_buffer[index];
   }
 
+  // ----  Buffer<T*> - Builtin ------- 
   template<typename T>
-  inline void Buffer<T>::set(size_t index, T element)
-  {
-    if (index >= this->m_size)
-    {
-      throw Exception(rb_eIndexError, "index %ld outside of bounds: 0..%ld", index, this->m_size);
-    }
-
-    this->m_buffer[index] = element;
-  }
-
-  // ----  Buffer<T*> ------- 
-  template<typename T>
-  inline Buffer<T*>::Buffer(T** pointer) : m_outer(pointer)
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Buffer(T** pointer) : m_outer(pointer)
   {
   }
 
   template<typename T>
-  inline Buffer<T*>::Buffer(T** pointer, size_t size) : m_outer(pointer), m_size(size)
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Buffer(T** pointer, size_t size) : m_outer(pointer), m_size(size)
   {
   }
 
   template <typename T>
-  inline Buffer<T*>::Buffer(VALUE value)
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Buffer(VALUE value)
   {
     ruby_value_type valueType = rb_type(value);
 
@@ -342,7 +331,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T*>::~Buffer()
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::~Buffer()
   {
     if (this->m_owner)
     {
@@ -351,7 +340,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T*>::Buffer(Buffer<T*>&& other) : m_owner(other.m_owner), m_size(other.m_size),
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Buffer(Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>&& other) : m_owner(other.m_owner), m_size(other.m_size),
                                                   m_outer(other.m_outer), m_inner(std::move(other.m_inner))
   {
     other.m_outer = nullptr;
@@ -361,7 +350,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T*>& Buffer<T*>::operator=(Buffer<T*>&& other)
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>& Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::operator=(Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>&& other)
   {
     this->m_outer = other.m_outer;
     other.m_outer = nullptr;
@@ -379,49 +368,49 @@ namespace Rice
   }
 
   template <typename T>
-  inline const Buffer<T>& Buffer<T*>::operator[](size_t index)
+  inline typename Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Element_T& Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::operator[](size_t index)
   {
     return this->m_inner[index];
   }
 
   template <typename T>
-  inline size_t Buffer<T*>::size() const
+  inline size_t Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::size() const
   {
     return this->m_size;
   }
 
   template <typename T>
-  void  Buffer<T*>::setSize(size_t value)
+  void  Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::setSize(size_t value)
   {
     this->m_size = value;
   }
 
   template <typename T>
-  inline T** Buffer<T*>::ptr()
+  inline T** Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::ptr()
   {
     return this->m_outer;
   }
 
   template <typename T>
-  inline bool Buffer<T*>::isOwner() const
+  inline bool Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::isOwner() const
   {
     return this->m_owner;
   }
 
   template <typename T>
-  inline void Buffer<T*>::setOwner(bool value)
+  inline void Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::setOwner(bool value)
   {
     this->m_owner = value;
   }
 
   template <typename T>
-  inline void Buffer<T*>::release()
+  inline void Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::release()
   {
     this->m_owner = false;
   }
 
   template<typename T>
-  inline VALUE Buffer<T*>::toString() const
+  inline VALUE Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::toString() const
   {
     std::string name = detail::typeName(typeid(T*));
     std::string description = "Buffer<type: " + detail::cppClassName(name) + ", size: " + std::to_string(this->m_size) + ">";
@@ -431,7 +420,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T*>::bytes(size_t count) const
+  inline VALUE Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::bytes(size_t count) const
   {
     if (!this->m_outer)
     {
@@ -446,13 +435,13 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T*>::bytes() const
+  inline VALUE Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::bytes() const
   {
     return this->bytes(this->m_size);
   }
 
   template<typename T>
-  inline Array Buffer<T*>::toArray(size_t count) const
+  inline Array Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::toArray(size_t count) const
   {
     if (!this->m_outer)
     {
@@ -475,7 +464,188 @@ namespace Rice
   }
 
   template<typename T>
-  inline Array Buffer<T*>::toArray() const
+  inline Array Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::toArray() const
+  {
+    return this->toArray(this->m_size);
+  }
+
+  // ----  Buffer<T*> - Wrapped ------- 
+  template<typename T>
+  inline Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::Buffer(T** pointer) : m_buffer(pointer)
+  {
+  }
+
+  template<typename T>
+  inline Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::Buffer(T** pointer, size_t size) : m_buffer(pointer), m_size(size)
+  {
+  }
+
+  template <typename T>
+  inline Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::Buffer(VALUE value)
+  {
+    ruby_value_type valueType = rb_type(value);
+
+    switch (valueType)
+    {
+      case RUBY_T_ARRAY:
+      {
+        Array array(value);
+        this->m_size = array.size();
+        this->m_buffer = new T * [this->m_size]();
+
+        detail::From_Ruby<T> fromRuby;
+        for (size_t i = 0; i < this->m_size; i++)
+        {
+          Data_Object<detail::intrinsic_type<T>> dataObject(array[i].value());
+          this->m_buffer[i] = dataObject.get();
+        }
+
+        this->m_owner = true;
+        break;
+      }
+      default:
+      {
+        std::string typeName = detail::typeName(typeid(T));
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+          detail::protect(rb_obj_classname, value), typeName.c_str());
+      }
+    }
+  }
+
+  template <typename T>
+  inline Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::~Buffer()
+  {
+    if (this->m_owner)
+    {
+      delete[] this->m_buffer;
+    }
+  }
+
+  template <typename T>
+  inline Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::Buffer(Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>&& other) : m_owner(other.m_owner), m_size(other.m_size),
+    m_buffer(other.m_buffer)
+  {
+    other.m_buffer = nullptr;
+    other.m_size = 0;
+    other.m_owner = false;
+  }
+
+  template <typename T>
+  inline Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>& Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::operator=(Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>&& other)
+  {
+    this->m_buffer = other.m_buffer;
+    other.m_buffer = nullptr;
+
+    this->m_size = other.m_size;
+    other.m_size = 0;
+
+    this->m_owner = other.m_owner;
+    other.m_owner = false;
+
+    return *this;
+  }
+
+  template <typename T>
+  inline typename Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::Element_T& Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::operator[](size_t index)
+  {
+    if (index >= this->m_size)
+    {
+      throw Exception(rb_eIndexError, "index %ld outside of bounds: 0..%ld", index, this->m_size);
+    }
+    return this->m_buffer[index];
+  }
+
+  template <typename T>
+  inline size_t Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::size() const
+  {
+    return this->m_size;
+  }
+
+  template <typename T>
+  void  Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::setSize(size_t value)
+  {
+    this->m_size = value;
+  }
+
+  template <typename T>
+  inline T** Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::ptr()
+  {
+    return this->m_buffer;
+  }
+
+  template <typename T>
+  inline bool Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::isOwner() const
+  {
+    return this->m_owner;
+  }
+
+  template <typename T>
+  inline void Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::setOwner(bool value)
+  {
+    this->m_owner = value;
+  }
+
+  template <typename T>
+  inline void Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::release()
+  {
+    this->m_owner = false;
+  }
+
+  template<typename T>
+  inline VALUE Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::toString() const
+  {
+    std::string name = detail::typeName(typeid(T*));
+    std::string description = "Buffer<type: " + detail::cppClassName(name) + ", size: " + std::to_string(this->m_size) + ">";
+
+    // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
+    return detail::protect(rb_utf8_str_new_cstr, description.c_str());
+  }
+
+  template<typename T>
+  inline VALUE Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::bytes(size_t count) const
+  {
+    if (!this->m_buffer)
+    {
+      return Qnil;
+    }
+    else
+    {
+      T** begin = this->m_buffer;
+      long length = (long)(count * sizeof(T*));
+      return detail::protect(rb_str_new_static, (const char*)*begin, length);
+    }
+  }
+
+  template<typename T>
+  inline VALUE Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::bytes() const
+  {
+    return this->bytes(this->m_size);
+  }
+
+  template<typename T>
+  inline Array Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::toArray(size_t count) const
+  {
+    if (!this->m_buffer)
+    {
+      return Qnil;
+    }
+    else
+    {
+      Array result;
+
+      T** ptr = this->m_buffer;
+      T** end = this->m_buffer + count;
+
+      for (; ptr < end; ptr++)
+      {
+        result.push(*ptr);
+      }
+      return result;
+    }
+  }
+
+  template<typename T>
+  inline Array Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::toArray() const
   {
     return this->toArray(this->m_size);
   }
@@ -512,6 +682,9 @@ namespace Rice
     if (klassName.empty())
     {
       std::string typeName = detail::typeName(typeid(Buffer_T));
+      // This will end up as Buffer<T,void>. We want to remove the ,void part.
+      auto removeVoidRegex = std::regex(",\\s?void");
+      typeName = std::regex_replace(typeName, removeVoidRegex, "");
       klassName = detail::rubyClassName(typeName);
     }
 
@@ -533,17 +706,29 @@ namespace Rice
         template define_method<Array(Buffer_T::*)(size_t) const>("to_ary", &Buffer_T::toArray, Return().setValue()).
         template define_method<Array(Buffer_T::*)() const>("to_ary", &Buffer_T::toArray, Return().setValue());
 
-      if constexpr (!std::is_pointer_v<T>)
+      klass.
+        define_method("[]", &Buffer_T::operator[], Arg("index"));
+
+      if constexpr (std::is_pointer_v<T> && detail::is_wrapped_v<T>)
       {
-        klass.
-          define_method("[]", [](const Buffer_T& self, size_t index) -> T
-          {
-            return self.get(index);
-          }).
-          define_method("[]=", [](Buffer_T& self, size_t index, T element) -> void
-          {
-            self.set(index, element);
-          });
+        klass.define_method("[]=", [](Buffer_T& self, size_t index, typename Buffer_T::Element_T element) -> void
+        {
+          self[index] = element;
+        });
+      }
+      else if constexpr (std::is_pointer_v<T> && !detail::is_wrapped_v<T>)
+      {
+        klass.define_method("[]=", [](Buffer_T& self, size_t index, typename Buffer_T::Element_T& element) -> void
+        {
+          self[index] = std::move(element);
+        });
+      }
+      else
+      {
+        klass.define_method("[]=", [](Buffer_T& self, size_t index, typename Buffer_T::Element_T& element) -> void
+        {
+          self[index] = element;
+        });
       }
 
       return klass;
