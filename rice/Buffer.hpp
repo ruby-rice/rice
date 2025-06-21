@@ -3,11 +3,14 @@
 
 namespace Rice
 {
+  template<typename T, typename = void>
+  class Buffer;
+    
   template<typename T>
-  class Buffer
+  class Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>
   {
   public:
-    using type = T;
+    using Element_T = T;
 
     Buffer(T* pointer);
     Buffer(T* pointer, size_t size);
@@ -20,6 +23,7 @@ namespace Rice
 
     Buffer& operator=(const Buffer& other) = delete;
     Buffer& operator=(Buffer&& other);
+    T& operator[](size_t index);
 
     T* ptr();
     T& reference();
@@ -37,15 +41,12 @@ namespace Rice
     Array toArray() const;
     Array toArray(size_t count) const;
 
-    T get(size_t index) const;
-    void set(size_t index, T value);
-
     bool isOwner() const;
     void setOwner(bool value);
 
   private:
-    void fromRubyType(VALUE value);
-    void fromDataType(VALUE value);
+    void fromBuiltinType(VALUE value);
+    void fromWrappedType(VALUE value);
 
     bool m_owner = false;
     size_t m_size = 0;
@@ -54,10 +55,10 @@ namespace Rice
   };
 
   template<typename T>
-  class Buffer<T*>
+  class Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>
   {
   public:
-    using type = T*;
+    using Element_T = Buffer<T>;
 
     Buffer(T** pointer);
     Buffer(T** pointer, size_t size);
@@ -71,7 +72,7 @@ namespace Rice
     Buffer& operator=(const Buffer& other) = delete;
     Buffer& operator=(Buffer&& other);
 
-    const Buffer<T>& operator[](size_t index);
+    Element_T& operator[](size_t index);
 
     T** ptr();
     void release();
@@ -96,6 +97,50 @@ namespace Rice
     size_t m_size = 0;
     T** m_outer = nullptr;
     std::vector<Buffer<T>> m_inner;
+  };
+
+  template<typename T>
+  class Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>
+  {
+  public:
+    using Element_T = T*;
+
+    Buffer(T** pointer);
+    Buffer(T** pointer, size_t size);
+    Buffer(VALUE value);
+
+    ~Buffer();
+
+    Buffer(const Buffer& other) = delete;
+    Buffer(Buffer&& other);
+
+    Buffer& operator=(const Buffer& other) = delete;
+    Buffer& operator=(Buffer&& other);
+
+    Element_T& operator[](size_t index);
+
+    T** ptr();
+    void release();
+
+    size_t size() const;
+    void setSize(size_t value);
+
+    // Ruby API
+    VALUE toString() const;
+
+    VALUE bytes() const;
+    VALUE bytes(size_t count) const;
+
+    Array toArray() const;
+    Array toArray(size_t count) const;
+
+    void setOwner(bool value);
+    bool isOwner() const;
+
+  private:
+    bool m_owner = false;
+    size_t m_size = 0;
+    T** m_buffer = nullptr;
   };
 
   template<>
