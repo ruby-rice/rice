@@ -1,4 +1,4 @@
-﻿#include "unittest.hpp"
+#include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
@@ -299,3 +299,42 @@ TESTCASE(to_s)
   ASSERT_EQUAL("Buffer<type: unsigned char*, size: 0>", result.c_str());
 }
 
+namespace
+{
+  class MyClass
+  {
+  public:
+    MyClass(int id) : id(id)
+    {
+    }
+
+    MyClass& operator=(const MyClass&) = delete;
+
+    int id;
+  };
+}
+
+TESTCASE(array_of_objects)
+{
+  define_buffer<MyClass*>();
+
+  define_class<MyClass>("MyClass").
+    define_constructor(Constructor<MyClass, int>()).
+    define_attr("id", &MyClass::id);
+
+  std::string code = R"(array = [MyClass.new(0), MyClass.new(1)]
+                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClass∗≻.new(array)
+                        buffer[1].id)";
+
+  Module m = define_module("Testing");
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result));
+
+  code = R"(array = [MyClass.new(0), MyClass.new(1)]
+            buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClass∗≻.new(array)
+            buffer[1] = MyClass.new(2)
+            buffer[1].id)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(result));
+}
