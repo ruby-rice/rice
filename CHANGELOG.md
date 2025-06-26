@@ -1,3 +1,13 @@
+## 4.6.1 (2025-06-25)
+* Improve attribute handling. Correctly deal with non-copyable/assignable attributes and return references instead of copies of objects
+* Improve Buffer implementation to deal with 4 cases:
+	- array of fundamental types (int*)
+	- array of pointers fundamental types (char**)
+	- array of objects (someInstance*)
+	- array of pointers of objects (someInstance**)
+* Implement Buffer#to_s
+* Fix header check on Ubuntu 22.04
+
 ## 4.6.0 (2025-06-09)
 Rice 4.6 is a major release that adds significant new functionality based on wrapping the OpenCV library, including:
 
