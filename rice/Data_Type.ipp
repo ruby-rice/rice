@@ -61,7 +61,7 @@ namespace Rice
 
     auto instances = unbound_instances();
     for (auto instance: instances)
-    { 
+    {
       instance->set_value(klass);
     }
     instances.clear();
@@ -240,7 +240,7 @@ namespace Rice
       return false;
     }
   }
-   
+
   template<typename Base_T>
   inline Class get_superklass()
   {
@@ -280,7 +280,7 @@ namespace Rice
     Class superKlass = get_superklass<Base_T>();
     return define_class_under<T, Base_T>(parent, id, superKlass);
   }
-  
+
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class(char const* name)
   {
@@ -314,42 +314,53 @@ namespace Rice
   template <typename Attribute_T>
   inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attribute_T attribute, AttrAccess access)
   {
-    // Make sure the Attribute type has been previously seen by Rice
-    detail::verifyType<typename detail::attribute_traits<Attribute_T>::attr_type>();
-
-    // Define native attribute getter
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
-      detail::NativeAttributeGet<Attribute_T>::define(klass_, name, std::forward<Attribute_T>(attribute));
-
-    using Attr_T = typename detail::NativeAttributeSet<Attribute_T>::Attr_T;
-    if constexpr (!std::is_const_v<Attr_T> &&
-                  (std::is_fundamental_v<Attr_T> || std::is_assignable_v<Attr_T, Attr_T>))
-    {
-      // Define native attribute setter
-      if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
-        detail::NativeAttributeSet<Attribute_T>::define(klass_, name, std::forward<Attribute_T>(attribute));
-    }
-
-    return *this;
+    return this->define_attr_internal<Attribute_T>(this->klass_, name, std::forward<Attribute_T>(attribute), access);
   }
 
   template <typename T>
   template <typename Attribute_T>
   inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access)
   {
-    // Make sure the Attribute type has been previously seen by Rice
-    detail::verifyType<typename detail::attribute_traits<Attribute_T>::attr_type>();
-
-    // Define native attribute
     VALUE singleton = detail::protect(rb_singleton_class, this->value());
+    return this->define_attr_internal<Attribute_T>(singleton, name, std::forward<Attribute_T>(attribute), access);
+  }
 
-    // Define native attribute getter
+  template <typename T>
+  template <typename Attribute_T>
+  inline Data_Type<T>& Data_Type<T>::define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access)
+  {
+    using Attr_T = typename detail::attribute_traits<Attribute_T>::attr_type;
+
+    // Make sure the Attribute type has been previously seen by Rice
+    detail::verifyType<Attr_T>();
+
+    // Define attribute getter
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
-      detail::NativeAttributeGet<Attribute_T>::define(singleton, name, std::forward<Attribute_T>(attribute));
+    {
+      detail::NativeAttributeGet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute));
+    }
 
-    // Define native attribute setter
+    // Define attribute setter
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
-      detail::NativeAttributeSet<Attribute_T>::define(singleton, name, std::forward<Attribute_T>(attribute));
+    {
+      if constexpr (std::is_const_v<Attr_T>)
+      {
+        throw std::runtime_error("Cannot define attribute writer for a const attribute: " + name);
+      }
+      else if constexpr (!std::is_fundamental_v<Attr_T> && !std::is_assignable_v<Attr_T, Attr_T>)
+      {
+        throw std::runtime_error("Cannot define attribute writer for a non assignable attribute: " + name);
+      }
+      else if constexpr (!std::is_fundamental_v<Attr_T> && !std::is_copy_constructible_v<Attr_T>)
+      {
+        throw std::runtime_error("Cannot define attribute writer for a non copy constructible attribute: " + name);
+      }
+      else
+      {
+        // Define native attribute setter
+        detail::NativeAttributeSet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute));
+      }
+    }
 
     return *this;
   }
