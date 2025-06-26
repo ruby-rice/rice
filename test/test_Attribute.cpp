@@ -31,6 +31,13 @@ namespace
     NotAssignable& operator=(const NotAssignable&) = delete;
   };
 
+  class NotCopyable
+  {
+  public:
+    NotCopyable() = default;
+    NotCopyable(const NotCopyable& other) = delete;
+  };
+
   struct DataStruct
   {
     static inline float staticFloat = 1.0;
@@ -43,6 +50,7 @@ namespace
     const int constInt = 5;
     SomeClass someClass;
     NotAssignable notAssignable;
+    NotCopyable notCopyable;
 
     std::string inspect()
     {
@@ -138,12 +146,18 @@ TESTCASE(vector)
 
 TESTCASE(const_attribute)
 {
-  Class c = define_class<DataStruct>("DataStruct")
-    .define_constructor(Constructor<DataStruct>())
-    .define_attr("const_int", &DataStruct::constInt);
+  Data_Type<DataStruct> c = define_class<DataStruct>("DataStruct")
+    .define_constructor(Constructor<DataStruct>());
 
+  ASSERT_EXCEPTION_CHECK(
+    std::exception,
+    c.define_attr("const_int", &DataStruct::constInt),
+    ASSERT_EQUAL(ex.what(), "Cannot define attribute writer for a const attribute: const_int")
+  );
+
+  c.define_attr("const_int", &DataStruct::constInt, AttrAccess::Read);
   Data_Object<DataStruct> o = c.call("new");
-
+    
   if constexpr (!oldRuby)
   {
     ASSERT_EXCEPTION_CHECK(
@@ -154,15 +168,21 @@ TESTCASE(const_attribute)
   }
 }
 
-TESTCASE(not_copyable_attribute)
+TESTCASE(not_assignable)
 {
   Class notAssignableClass = define_class<NotAssignable>("NotAssignable")
     .define_constructor(Constructor<NotAssignable>());
     
-  Class c = define_class<DataStruct>("DataStruct")
-    .define_constructor(Constructor<DataStruct>())
-    .define_attr("not_assignable", &DataStruct::notAssignable);
+  Data_Type<DataStruct> c = define_class<DataStruct>("DataStruct")
+    .define_constructor(Constructor<DataStruct>());
 
+  ASSERT_EXCEPTION_CHECK(
+    std::exception,
+    c.define_attr("not_assignable", &DataStruct::notAssignable),
+    ASSERT_EQUAL(ex.what(), "Cannot define attribute writer for a non assignable attribute: not_assignable")
+  );
+
+  c.define_attr("not_assignable", &DataStruct::notAssignable, AttrAccess::Read);
   Data_Object<NotAssignable> notAssignable = notAssignableClass.call("new");
 
   Data_Object<DataStruct> o = c.call("new");
@@ -173,6 +193,35 @@ TESTCASE(not_copyable_attribute)
       Exception,
       o.call("not_assignable=", notAssignable),
       ASSERT(std::string(ex.what()).find("undefined method `not_assignable='") == 0)
+    );
+  }
+}
+
+TESTCASE(not_copyable)
+{
+  Class notCopyableClass = define_class<NotCopyable>("NotCopyable")
+    .define_constructor(Constructor<NotCopyable>());
+
+  Data_Type<DataStruct> c = define_class<DataStruct>("DataStruct")
+    .define_constructor(Constructor<DataStruct>());
+
+  ASSERT_EXCEPTION_CHECK(
+    std::exception,
+    c.define_attr("not_copyable", &DataStruct::notCopyable),
+    ASSERT_EQUAL(ex.what(), "Cannot define attribute writer for a non copy constructible attribute: not_copyable")
+  );
+
+  c.define_attr("not_copyable", &DataStruct::notCopyable, AttrAccess::Read);
+  Data_Object<NotCopyable> notCopyable = notCopyableClass.call("new");
+
+  Data_Object<DataStruct> o = c.call("new");
+
+  if constexpr (!oldRuby)
+  {
+    ASSERT_EXCEPTION_CHECK(
+      Exception,
+      o.call("not_assignable=", notCopyable),
+      ASSERT(std::string(ex.what()).find("undefined method `not_copyable='") == 0)
     );
   }
 }

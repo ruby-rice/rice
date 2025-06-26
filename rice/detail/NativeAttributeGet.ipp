@@ -41,7 +41,18 @@ namespace Rice::detail
     if constexpr (std::is_member_object_pointer_v<Attribute_T>)
     {
       Receiver_T* nativeSelf = From_Ruby<Receiver_T*>().convert(self);
-      return To_Ruby<To_Ruby_T>().convert(nativeSelf->*attribute_);
+
+      if constexpr (std::is_fundamental_v<detail::intrinsic_type<To_Ruby_T>> ||
+                    (std::is_array_v<To_Ruby_T> && std::is_fundamental_v<std::remove_extent_t<To_Ruby_T>>))
+      {
+        return To_Ruby<To_Ruby_T>().convert(nativeSelf->*attribute_);
+      }
+      else
+      {
+        // If the attribute is an object return a reference to avoid a copy (and avoid issues with
+        // attributes that are not assignable, copy constructible or move constructible)
+        return To_Ruby<To_Ruby_T&>().convert(nativeSelf->*attribute_);
+      }
     }
     else
     {
