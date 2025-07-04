@@ -1,3 +1,3 @@
-project(BitMapPlusPlus)
+project(BitmapPlusPlus)
 
 add_subdirectory ("cpp")

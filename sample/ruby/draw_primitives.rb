@@ -1,4 +1,4 @@
-require_relative '../cpp/BitMapPlusPlus'
+require_relative '../cpp/BitmapPlusPlus'
 
 def draw_primitives
   pixel = Bmp::Pixel.new(0x25292e)

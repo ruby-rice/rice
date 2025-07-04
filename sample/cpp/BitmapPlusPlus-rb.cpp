@@ -196,7 +196,7 @@ void initialize()
 }
 
 extern "C"
-void Init_BitMapPlusPlus()
+void Init_BitmapPlusPlus()
 {
   return Rice::detail::cpp_protect([]
   {

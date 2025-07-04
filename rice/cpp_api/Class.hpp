@@ -1,11 +1,6 @@
 #ifndef Rice__Class__hpp_
 #define Rice__Class__hpp_
 
-/*!
- *  \example inheritance/animals.cpp
- *  \example callbacks/sample_callbacks.cpp
- */
-
 namespace Rice
 {
   //! A helper for defining a Class and its methods.

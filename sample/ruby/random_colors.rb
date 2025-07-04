@@ -1,4 +1,4 @@
-require_relative '../cpp/BitMapPlusPlus'
+require_relative '../cpp/BitmapPlusPlus'
 
 def random_pixel
   color = Bmp::Pixel.new

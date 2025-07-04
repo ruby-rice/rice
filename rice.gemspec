@@ -54,19 +54,12 @@ Ruby extensions with C++ easier.
     # Ruby files
     'lib/**/*.rb',
 
-    # Samples
-    'sample/enum/extconf.rb',
-    'sample/enum/*.?pp',
-    'sample/enum/*.rb',
-    'sample/map/extconf.rb',
-    'sample/map/*.?pp',
-    'sample/map/*.rb',
-    'sample/inheritance/extconf.rb',
-    'sample/inheritance/*.?pp',
-    'sample/inheritance/*.rb',
-    'sample/callbacks/extconf.rb',
-    'sample/callbacks/*.?pp',
-    'sample/callbacks/*.rb',
+    # Sample
+    'sample/cpp/*.?pp',
+    'sample/cpp/*.def',
+    'sample/cpp/CMakeLists.txt',
+    'sample/images/*.bmp',
+    'sample/ruby/*.rb',
 
     # Test source files
     'test/*.?pp',

@@ -1,4 +1,4 @@
-require_relative '../cpp/BitMapPlusPlus'
+require_relative '../cpp/BitmapPlusPlus'
 require_relative './colormaps'
 
 MAX_ITERATIONS = 500
