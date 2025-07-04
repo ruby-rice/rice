@@ -25,7 +25,4 @@ endif ()
 
 # Include sub-projects.
 add_subdirectory ("test")
-add_subdirectory ("sample/callbacks")
-add_subdirectory ("sample/enum")
-add_subdirectory ("sample/inheritance")
-add_subdirectory ("sample/map")
+add_subdirectory ("sample")
