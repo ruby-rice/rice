@@ -6,6 +6,7 @@
 #include "stl/string.hpp"
 #include "stl/string_view.hpp"
 #include "stl/complex.hpp"
+#include "stl/filesystem.hpp"
 #include "stl/optional.hpp"
 #include "stl/reference_wrapper.hpp"
 #include "stl/pair.hpp"

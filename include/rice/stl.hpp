@@ -17,14 +17,17 @@ namespace Rice::stl
 // so define it for Ruby if necessary
 namespace Rice::stl
 {
-  inline Class rb_cStlException;
-
-  inline void define_stl_exception()
+  inline void define_stl_exceptions()
   {
     Module rb_mStd = define_module("Std");
-    rb_cStlException = define_class_under<std::exception>(rb_mStd, "Exception", rb_eStandardError).
-                        define_constructor(Constructor<std::exception>()).
-                        define_method("message", &std::exception::what);
+
+    define_class_under<std::exception>(rb_mStd, "Exception", rb_eStandardError).
+      define_constructor(Constructor<std::exception>()).
+      define_method("message", &std::exception::what);
+
+    define_class_under<std::runtime_error>(rb_mStd, "RuntimeError", rb_eRuntimeError).
+      define_constructor(Constructor<std::runtime_error, const char*>()).
+      define_method("message", &std::runtime_error::what);
   }
 }
 
@@ -35,7 +38,17 @@ namespace Rice::detail
   {
     static bool verify()
     {
-      Rice::stl::define_stl_exception();
+      Rice::stl::define_stl_exceptions();
+      return true;
+    }
+  };
+
+  template<>
+  struct Type<std::runtime_error>
+  {
+    static bool verify()
+    {
+      Rice::stl::define_stl_exceptions();
       return true;
     }
   };
@@ -403,6 +416,46 @@ namespace Rice::detail
 
   private:
     std::complex<T> converted_;
+  };
+}
+
+
+// =========   filesystem.hpp   =========
+
+
+// ---------   filesystem.ipp   ---------
+#include <filesystem>
+
+namespace Rice
+{
+  namespace stl
+  {
+    inline void define_filesystem_path()
+    {
+      Module rb_mStd = define_module("Std");
+      Module rb_mFileSystem = define_module_under(rb_mStd, "Filesystem");
+
+      define_class_under<std::filesystem::path>(rb_mFileSystem, "Path").
+        define_constructor(Constructor<std::filesystem::path>()).
+        define_constructor(Constructor<std::filesystem::path, std::string>());
+    }
+  }
+}
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<std::filesystem::path>
+  {
+    static bool verify()
+    {
+      if (!Data_Type<std::filesystem::path>::is_defined())
+      {
+        Rice::stl::define_filesystem_path();
+      }
+
+      return true;
+    }
   };
 }
 
