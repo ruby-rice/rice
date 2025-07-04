@@ -13,5 +13,6 @@ target_include_directories(BitMapPlusPlus PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CON
 target_include_directories(BitMapPlusPlus PRIVATE ${PROJECT_SOURCE_DIR})
 target_link_libraries(BitMapPlusPlus ${Ruby_LIBRARY})
 
+# Output directory
 set_target_properties(BitMapPlusPlus PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 set_target_properties(BitMapPlusPlus PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
