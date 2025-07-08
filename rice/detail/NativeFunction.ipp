@@ -36,7 +36,7 @@ namespace Rice::detail
     });
   }
 
-  // Ruby calls this method if an instance f a NativeFunction is owned by a Ruby proc. That happens when C++
+  // Ruby calls this method if an instance of a NativeFunction is owned by a Ruby proc. That happens when C++
   // returns a function back to Ruby
   template<typename Class_T, typename Function_T, bool IsMethod>
   VALUE NativeFunction<Class_T, Function_T, IsMethod>::finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
