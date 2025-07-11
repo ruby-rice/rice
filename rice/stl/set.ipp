@@ -433,6 +433,12 @@ namespace Rice
     private:
       static inline std::string setName = "Set";
     public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
       Convertible is_convertible(VALUE value)
       {
         switch (rb_type(value))
@@ -489,6 +495,7 @@ namespace Rice
       }
 
     private:
+      Arg* arg_;
       std::set<T> converted_;
     };
   }

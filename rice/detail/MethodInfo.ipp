@@ -29,7 +29,7 @@ namespace Rice
 
     if constexpr (std::is_same_v<Arg_T, Return>)
     {
-      this->returnInfo = arg;
+      this->returnInfo_ = arg;
     }
     else if constexpr (std::is_same_v<Arg_T, Arg>)
     {
@@ -71,6 +71,11 @@ namespace Rice
     return nullptr;
   }
 
+  inline Return* MethodInfo::returnInfo()
+  {
+    return &this->returnInfo_;
+  }
+  
   inline std::vector<Arg>::iterator MethodInfo::begin()
   {
     return this->args_.begin();

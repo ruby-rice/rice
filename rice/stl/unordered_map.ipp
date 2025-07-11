@@ -418,6 +418,12 @@ namespace Rice
     class From_Ruby<std::unordered_map<T, U>*>
     {
     public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
       Convertible is_convertible(VALUE value)
       {
         switch (rb_type(value))
@@ -463,6 +469,7 @@ namespace Rice
       }
 
     private:
+      Arg* arg_;
       std::unordered_map<T, U> converted_;
     };
   }

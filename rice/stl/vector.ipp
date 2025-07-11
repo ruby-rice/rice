@@ -522,6 +522,12 @@ namespace Rice
     class From_Ruby<std::vector<T>*>
     {
     public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
       Convertible is_convertible(VALUE value)
       {
         switch (rb_type(value))
@@ -569,6 +575,7 @@ namespace Rice
       }
 
     private:
+      Arg* arg_;
       std::vector<T> converted_;
     };
   }
@@ -580,6 +587,12 @@ namespace Rice
     class To_Ruby<std::vector<bool>::reference>
     {
     public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Return* returnInfo)
+      {
+      }
+
       VALUE convert(const std::vector<bool>::reference& value)
       {
         return value ? Qtrue : Qfalse;

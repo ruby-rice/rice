@@ -48,16 +48,9 @@ namespace Rice::detail
 
   template<typename Class_T, typename Function_T, bool IsMethod>
   NativeFunction<Class_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
-    : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo)
+    : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo), 
+      parameters_(make_parameters_tuple<Arg_Ts>(methodInfo)), toRuby_(methodInfo->returnInfo())
   {
-    // Create a tuple of NativeArgs that will convert the Ruby values to native values. For 
-    // builtin types NativeArgs will keep a copy of the native value so that it 
-    // can be passed by reference or pointer to the native function. For non-builtin types
-    // it will just pass the value through.
-    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
-    this->fromRubys_ = this->createFromRuby(indices);
-
-    this->toRuby_ = this->createToRuby();
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
@@ -71,7 +64,7 @@ namespace Rice::detail
   std::vector<std::string> NativeFunction<Class_T, Function_T, IsMethod>::argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices)
   {
     std::vector<std::string> typeNames;
-    (typeNames.push_back(cppClassName(typeName(typeid(typename std::tuple_element<I, Arg_Ts>::type)))), ...);
+    (typeNames.push_back(std::get<I>(this->parameters_).cppType()), ...);
     return typeNames;
   }
 
@@ -104,102 +97,12 @@ namespace Rice::detail
   }
     
   template<typename Class_T, typename Function_T, bool IsMethod>
-  To_Ruby<typename NativeFunction<Class_T, Function_T, IsMethod>::To_Ruby_T> NativeFunction<Class_T, Function_T, IsMethod>::createToRuby()
-  {
-    // Does the From_Ruby instantiation work with ReturnInfo?
-    if constexpr (std::is_constructible_v<To_Ruby<To_Ruby_T>, Return*>)
-    {
-      return To_Ruby<To_Ruby_T>(&this->methodInfo_->returnInfo);
-    }
-    else
-    {
-      return To_Ruby<To_Ruby_T>();
-    }
-  }
-
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  template<typename T, std::size_t I>
-  From_Ruby<T> NativeFunction<Class_T, Function_T, IsMethod>::createFromRuby()
-  {
-    // Does the From_Ruby instantiation work with Arg?
-    if constexpr (std::is_constructible_v<From_Ruby<T>, Arg*>)
-    {
-      return From_Ruby<T>(this->methodInfo_->arg(I));
-    }
-    else
-    {
-      return From_Ruby<T>();
-    }
-  }
-
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  template<std::size_t... I>
-  typename NativeFunction<Class_T, Function_T, IsMethod>::From_Ruby_Args_Ts NativeFunction<Class_T, Function_T, IsMethod>::createFromRuby(std::index_sequence<I...>& indices)
-  {
-    return std::make_tuple(createFromRuby<remove_cv_recursive_t<typename std::tuple_element<I, Arg_Ts>::type>, I>()...);
-  }
-
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  template<int I>
-  Convertible NativeFunction<Class_T, Function_T, IsMethod>::matchParameter(std::vector<std::optional<VALUE>>& values)
-  {
-    Convertible result = Convertible::None;
-    MethodInfo* methodInfo = this->methodInfo_.get();
-    const Arg* arg = methodInfo->arg(I);
-    std::optional<VALUE> value = values[I];
-
-    // Is a VALUE being passed directly to C++ ?
-    if (value.has_value())
-    {
-      if (arg->isValue())
-      {
-        result = Convertible::Exact;
-      }
-      // If index is less than argc then check with FromRuby if the VALUE is convertible
-      // to C++.
-      else
-      {
-        VALUE value = values[I].value();
-        auto fromRuby = std::get<I>(this->fromRubys_);
-        result = fromRuby.is_convertible(value);
-
-        // If this is an exact match check if the const-ness of the value and the parameter match
-        if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA)
-        {
-          // Check the constness of the Ruby wrapped value and the parameter
-          WrapperBase* wrapper = getWrapper(value);
-          using Parameter_T = std::tuple_element_t<I, Arg_Ts>;
-
-          // Do not send a const value to a non-const parameter
-          if (wrapper->isConst() && !is_const_any_v<Parameter_T>)
-          {
-            result = Convertible::None;
-          }
-          // It is ok to send a non-const value to a const parameter but
-          // prefer non-const to non-const by slighly decreasing the convertible value
-          else if (!wrapper->isConst() && is_const_any_v<Parameter_T>)
-          {
-            result = Convertible::Const;
-          }
-        }
-      }
-    }
-    // Last check if a default value has been set
-    else if (arg->hasDefaultValue())
-    {
-      result = Convertible::Exact;
-    }
-
-    return result;
-  }
-
-  template<typename Class_T, typename Function_T, bool IsMethod>
   template<std::size_t... I>
   Convertible NativeFunction<Class_T, Function_T, IsMethod>::matchParameters(std::vector<std::optional<VALUE>>& values,
     std::index_sequence<I...>& indices)
   {
     Convertible result = Convertible::Exact;
-    ((result = result & this->matchParameter<I>(values)), ...);
+    ((result = result & std::get<I>(this->parameters_).matches(values[I])), ...);
     return result;
   }
 
@@ -303,40 +206,6 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  template<typename Arg_T, int I>
-  Arg_T NativeFunction<Class_T, Function_T, IsMethod>::getNativeValue(std::vector<std::optional<VALUE>>& values)
-  {
-    /* In general the compiler will convert T to const T, but that does not work for converting
-       T** to const T** (see see https://isocpp.org/wiki/faq/const-correctness#constptrptr-conversion)
-       which comes up in the OpenCV bindings.
-     
-       An alternative solution is updating From_Ruby#convert to become a templated function that specifies
-       the return type. That works but requires a lot more code changes for this one case and is not 
-       backwards compatible. */
-
-    std::optional<VALUE> value = values[I];
-    Arg* arg = this->methodInfo_->arg(I);
-
-    if constexpr (is_pointer_pointer_v<Arg_T> && !std::is_convertible_v<remove_cv_recursive_t<Arg_T>, Arg_T>)
-    {
-      return (Arg_T)std::get<I>(this->fromRubys_).convert(value.value());
-    }
-    else if (value.has_value())
-    {
-      return std::get<I>(this->fromRubys_).convert(value.value());
-    }
-    else if constexpr (std::is_constructible_v<std::remove_cv_t<Arg_T>, std::remove_cv_t<std::remove_reference_t<Arg_T>>&>)
-    {
-      if (arg->hasDefaultValue())
-      {
-        return arg->defaultValue<Arg_T>();
-      }
-    }
-
-    throw std::invalid_argument("Could not convert Rubyy value");
-  }
-
-  template<typename Class_T, typename Function_T, bool IsMethod>
   template<std::size_t... I>
   typename NativeFunction<Class_T, Function_T, IsMethod>::Arg_Ts NativeFunction<Class_T, Function_T, IsMethod>::getNativeValues(std::vector<std::optional<VALUE>>& values,
      std::index_sequence<I...>& indices)
@@ -346,7 +215,8 @@ namespace Rice::detail
        the associated From_Ruby<T> template parameter will not. Thus From_Ruby produces non-const values 
        which we let the compiler convert to const values as needed. This works except for 
        T** -> const T**, see comment in getNativeValue method. */
-    return std::forward_as_tuple(this->getNativeValue<std::tuple_element_t<I, Arg_Ts>, I>(values)...);
+    //return std::forward_as_tuple(this->getNativeValue<std::tuple_element_t<I, Arg_Ts>, I>(values)...);
+    return std::forward_as_tuple(std::get<I>(this->parameters_).convertToNative(values[I])...);
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
@@ -493,7 +363,7 @@ namespace Rice::detail
     }
 
     // Check return value
-    if (this->methodInfo_->returnInfo.isKeepAlive())
+    if (this->methodInfo_->returnInfo()->isKeepAlive())
     {
       if (selfWrapper == nullptr)
       {

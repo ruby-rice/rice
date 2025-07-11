@@ -19,6 +19,12 @@ namespace Rice::detail
   public:
     using Proc_T = Return_T(*)(Arg_Ts...);
 
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg)
+    {
+    }
+
     VALUE convert(Proc_T proc)
     {
       using NativeFunction_T = NativeFunction<void, Proc_T, false>;

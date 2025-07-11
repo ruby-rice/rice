@@ -25,15 +25,20 @@ namespace Rice::detail
   class To_Ruby<std::variant<Types...>>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
 
     template<typename U, typename V>
-    static VALUE convertElement(U& data, bool takeOwnership)
+    VALUE convertElement(U& data, bool takeOwnership)
     {
       return To_Ruby<V>().convert(std::forward<V>(std::get<V>(data)));
     }
 
     template<typename U, std::size_t... I>
-    static VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
     {
       // Create a tuple of the variant types so we can look over the tuple's types
       using Tuple_T = std::tuple<Types...>;
@@ -76,14 +81,14 @@ namespace Rice::detail
     }
 
     template<typename U>
-    static VALUE convert(U& data, bool takeOwnership = false)
+    VALUE convert(U& data, bool takeOwnership = false)
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return convertIterator(data, takeOwnership, indices);
     }
 
     template<typename U>
-    static VALUE convert(U&& data, bool takeOwnership = false)
+    VALUE convert(U&& data, bool takeOwnership = false)
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return convertIterator(data, takeOwnership, indices);
@@ -94,8 +99,14 @@ namespace Rice::detail
   class To_Ruby<std::variant<Types...>&>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     template<typename U, typename V>
-    static VALUE convertElement(U& data, bool takeOwnership)
+    VALUE convertElement(U& data, bool takeOwnership)
     {
       if constexpr (std::is_const_v<U>)
       {
@@ -108,7 +119,7 @@ namespace Rice::detail
     }
 
     template<typename U, std::size_t... I>
-    static VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
     {
       // Create a tuple of the variant types so we can look over the tuple's types
       using Tuple_T = std::tuple<Types...>;
@@ -132,7 +143,7 @@ namespace Rice::detail
     }
 
     template<typename U>
-    static VALUE convert(U& data, bool takeOwnership = false)
+    VALUE convert(U& data, bool takeOwnership = false)
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return convertIterator(data, takeOwnership, indices);
@@ -143,6 +154,12 @@ namespace Rice::detail
   class From_Ruby<std::variant<Types...>>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       Convertible result = Convertible::None;
@@ -229,6 +246,12 @@ namespace Rice::detail
   class From_Ruby<std::variant<Types...>&> : public From_Ruby<std::variant<Types...>>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     std::variant<Types...>& convert(VALUE value)
     {
       int index = this->figureIndex(value);

@@ -47,8 +47,8 @@ namespace Rice::detail
     using Receiver_T = typename method_traits<Function_T, IsMethod>::Class_T;
     using Arg_Ts = typename method_traits<Function_T, IsMethod>::Arg_Ts;
     static constexpr std::size_t arity = method_traits<Function_T, IsMethod>::arity;
-    using From_Ruby_Args_Ts = typename tuple_map<From_Ruby, Arg_Ts>::type;
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
+    using ParametersTuple = typename tuple_map<Parameter, Arg_Ts>::type;
 
     // Register function with Ruby
     static void define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
@@ -71,33 +71,18 @@ namespace Rice::detail
     NativeFunction(Function_T function);
     NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
 
-  protected:
-
   private:
-    template<int I>
-    Convertible matchParameter(std::vector<std::optional<VALUE>>& value);
-
     template<std::size_t...I>
     Convertible matchParameters(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
 
     template<std::size_t...I>
     std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);
 
-    template<typename T, std::size_t I>
-    From_Ruby<T> createFromRuby();
-      
-    // Create NativeArgs which are used to convert values from Ruby to C++
-    template<std::size_t...I>
-    From_Ruby_Args_Ts createFromRuby(std::index_sequence<I...>& indices);
-
     // Convert C++ value to Ruby
     To_Ruby<To_Ruby_T> createToRuby();
       
     // Convert Ruby argv pointer to Ruby values
     std::vector<std::optional<VALUE>> getRubyValues(size_t argc, const VALUE* argv, bool validate);
-
-    template<typename Arg_T, int I>
-    Arg_T getNativeValue(std::vector<std::optional<VALUE>>& values);
 
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
@@ -120,7 +105,7 @@ namespace Rice::detail
     VALUE klass_;
     std::string method_name_;
     Function_T function_;
-    From_Ruby_Args_Ts fromRubys_;
+    ParametersTuple parameters_;
     To_Ruby<To_Ruby_T> toRuby_;
     std::unique_ptr<MethodInfo> methodInfo_;
   };

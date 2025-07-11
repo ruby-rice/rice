@@ -137,7 +137,7 @@ namespace Rice::detail
     VALUE result = detail::protect(rb_funcallv, this->proc_, id.id(), (int)sizeof...(Arg_Ts), values.data());
     if constexpr (!std::is_void_v<Return_T>)
     {
-      static From_Ruby<Return_T> fromRuby(dynamic_cast<Arg*>(&methodInfo_->returnInfo));
+      static From_Ruby<Return_T> fromRuby(dynamic_cast<Arg*>(methodInfo_->returnInfo()));
       return fromRuby.convert(result);
     }
   }

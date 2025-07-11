@@ -116,8 +116,9 @@ namespace Rice
     template<template<typename, typename...> typename T, typename...Arg_Ts>
     struct tuple_map<T, std::tuple<Arg_Ts...>>
     {
-      using type = std::tuple<T<remove_cv_recursive_t<Arg_Ts>>...>;
+      using type = std::tuple<T<Arg_Ts>...>;
     };
+
 
     template<typename...Arg_Ts>
     struct tuple_to_variant;

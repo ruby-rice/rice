@@ -33,6 +33,33 @@ namespace Rice::detail
     }
   }
   
+  inline const std::vector<Native*> NativeRegistry::lookup(VALUE klass)
+  {
+    std::vector<Native*> result;
+
+    if (rb_type(klass) == T_ICLASS)
+    {
+      klass = detail::protect(rb_class_of, klass);
+    }
+
+    for (auto& pair : this->natives_)
+    {
+      const std::pair<VALUE, ID>& key = pair.first;
+
+      if (klass == key.first)
+      {
+        const std::vector<std::unique_ptr<Native>>& value = pair.second;
+        for (auto& native : value)
+        {
+          result.push_back(native.get());
+        }
+      }
+    }
+
+    return result;
+  }
+
+
   inline const std::vector<std::unique_ptr<Native>>& NativeRegistry::lookup(VALUE klass, ID methodId)
   {
     if (rb_type(klass) == T_ICLASS)

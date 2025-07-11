@@ -25,7 +25,13 @@ namespace Rice::detail
   class To_Ruby<std::tuple<Types...>>
   {
   public:
-    static VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+    VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
     {
       Array result;
 
@@ -43,7 +49,13 @@ namespace Rice::detail
   class To_Ruby<std::tuple<Types...>&>
   {
   public:
-    static VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+    VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
     {
       Array result;
 
@@ -67,6 +79,12 @@ namespace Rice::detail
     constexpr static bool verifyTypes(Array& array, std::index_sequence<I...>& indices)
     {
       return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
+    }
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
     }
 
     Convertible is_convertible(VALUE value)

@@ -34,6 +34,8 @@
 #include "Return.hpp"
 #include "detail/MethodInfo.hpp"
 #include "detail/from_ruby.hpp"
+#include "detail/Parameter.hpp"
+#include "detail/Parameter.ipp"
 
 // C++ API declarations
 #include "detail/Type.hpp"
