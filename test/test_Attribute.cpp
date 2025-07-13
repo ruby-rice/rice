@@ -38,6 +38,18 @@ namespace
     NotCopyable(const NotCopyable& other) = delete;
   };
 
+  enum OldEnum
+  {
+    OldValue1,
+    OldValue2
+  };
+
+  enum class NewEnum
+  {
+    NewValue1,
+    NewValue2
+  };
+
   struct DataStruct
   {
     static inline float staticFloat = 1.0;
@@ -52,6 +64,8 @@ namespace
     SomeClass someClass;
     NotAssignable notAssignable;
     NotCopyable notCopyable;
+    OldEnum oldEnum = OldValue1;
+    NewEnum newEnum = NewEnum::NewValue1;
 
     std::string inspect()
     {
@@ -132,6 +146,40 @@ TESTCASE(attributes)
 
   result = o.call("read_write_string");
   ASSERT_EQUAL("Set a string", detail::From_Ruby<std::string>().convert(result.value()));
+}
+
+
+TESTCASE(Enums)
+{
+  static Enum<OldEnum> oldEnum = define_enum<OldEnum>("OldEnum")
+    .define_value("OldValue1", OldValue1)
+    .define_value("OldValue2", OldValue2);
+
+  static Enum<NewEnum> newEnum = define_enum<NewEnum>("NewEnum")
+    .define_value("NewValue1", NewEnum::NewValue1)
+    .define_value("NewValue2", NewEnum::NewValue2);
+
+  Class c = define_class<DataStruct>("DataStruct")
+    .define_constructor(Constructor<DataStruct>())
+    .define_attr("oldEnum", &DataStruct::oldEnum)
+    .define_attr("newEnum", &DataStruct::newEnum);
+
+  Object o = c.call("new");
+  DataStruct* dataStruct = detail::From_Ruby<DataStruct*>().convert(o);
+
+  Object result = o.call("oldEnum");
+  ASSERT_EQUAL(OldValue1, detail::From_Ruby<OldEnum>().convert(result));
+
+  o.call("oldEnum=", OldValue2);
+  result = o.call("oldEnum");
+  ASSERT_EQUAL(OldValue2, detail::From_Ruby<OldEnum>().convert(result));
+
+  result = o.call("newEnum");
+  ASSERT_EQUAL(NewEnum::NewValue1, detail::From_Ruby<NewEnum>().convert(result));
+
+  o.call("newEnum=", NewEnum::NewValue2);
+  result = o.call("newEnum");
+  ASSERT_EQUAL(NewEnum::NewValue2, detail::From_Ruby<NewEnum>().convert(result));
 }
 
 TESTCASE(vector)
