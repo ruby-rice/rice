@@ -46,6 +46,7 @@ namespace
 
     std::string readWriteString = "Read Write";
     int writeInt = 0;
+    const char* chars = "Some chars!";
     const char* readChars = "Read some chars!";
     const int constInt = 5;
     SomeClass someClass;
@@ -83,6 +84,7 @@ TESTCASE(attributes)
   Class c = define_class<DataStruct>("DataStruct")
     .define_constructor(Constructor<DataStruct>())
     .define_method("inspect", &DataStruct::inspect)
+    .define_attr("chars", &DataStruct::chars)
     .define_attr("read_chars", &DataStruct::readChars, Rice::AttrAccess::Read)
     .define_attr("write_int", &DataStruct::writeInt, Rice::AttrAccess::Write)
     .define_attr("read_write_string", &DataStruct::readWriteString);
@@ -90,8 +92,15 @@ TESTCASE(attributes)
   Object o = c.call("new");
   DataStruct* dataStruct = detail::From_Ruby<DataStruct*>().convert(o);
 
+  Object result = o.call("chars");
+  ASSERT_EQUAL("Some chars!", detail::From_Ruby<char*>().convert(result));
+  
+  o.call("chars=", "New chars!");
+  result = o.call("chars");
+  ASSERT_EQUAL("New chars!", detail::From_Ruby<char*>().convert(result));
+
   // Test readonly attribute
-  Object result = o.call("read_chars");
+  result = o.call("read_chars");
   ASSERT_EQUAL("Read some chars!", detail::From_Ruby<char*>().convert(result));
 
   if constexpr (!oldRuby)

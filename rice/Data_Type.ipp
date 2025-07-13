@@ -347,11 +347,11 @@ namespace Rice
       {
         throw std::runtime_error("Cannot define attribute writer for a const attribute: " + name);
       }
-      else if constexpr (!std::is_fundamental_v<Attr_T> && !std::is_assignable_v<Attr_T, Attr_T>)
+      else if constexpr (!std::is_fundamental_v<detail::intrinsic_type<Attr_T>> && !std::is_assignable_v<Attr_T, Attr_T>)
       {
         throw std::runtime_error("Cannot define attribute writer for a non assignable attribute: " + name);
       }
-      else if constexpr (!std::is_fundamental_v<Attr_T> && !std::is_copy_constructible_v<Attr_T>)
+      else if constexpr (!std::is_fundamental_v<detail::intrinsic_type<Attr_T>> && !std::is_copy_constructible_v<Attr_T>)
       {
         throw std::runtime_error("Cannot define attribute writer for a non copy constructible attribute: " + name);
       }
