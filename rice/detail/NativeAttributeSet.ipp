@@ -52,7 +52,16 @@ namespace Rice::detail
     if constexpr (!std::is_null_pointer_v<Receiver_T>)
     {
       Receiver_T* nativeSelf = From_Ruby<Receiver_T*>().convert(self);
-      nativeSelf->*attribute_ = From_Ruby<T_Unqualified>().convert(value);
+
+      // Deal with pointers to pointes, see Parameter::convertToNative commment
+      if constexpr (is_pointer_pointer_v<Attr_T> && !std::is_convertible_v<remove_cv_recursive_t<Attr_T>, Attr_T>)
+      {
+        nativeSelf->*attribute_ = (Attr_T)From_Ruby<T_Unqualified>().convert(value);
+      }
+      else
+      {
+        nativeSelf->*attribute_ = From_Ruby<T_Unqualified>().convert(value);
+      }
     }
     else
     {

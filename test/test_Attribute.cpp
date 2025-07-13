@@ -64,6 +64,7 @@ namespace
     SomeClass someClass;
     NotAssignable notAssignable;
     NotCopyable notCopyable;
+    char buf[2] = { '0', '1' };
     OldEnum oldEnum = OldValue1;
     NewEnum newEnum = NewEnum::NewValue1;
 
@@ -148,7 +149,6 @@ TESTCASE(attributes)
   ASSERT_EQUAL("Set a string", detail::From_Ruby<std::string>().convert(result.value()));
 }
 
-
 TESTCASE(Enums)
 {
   static Enum<OldEnum> oldEnum = define_enum<OldEnum>("OldEnum")
@@ -180,6 +180,21 @@ TESTCASE(Enums)
   o.call("newEnum=", NewEnum::NewValue2);
   result = o.call("newEnum");
   ASSERT_EQUAL(NewEnum::NewValue2, detail::From_Ruby<NewEnum>().convert(result));
+}
+
+TESTCASE(Array)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_class<DataStruct>("DataStruct")
+    .define_constructor(Constructor<DataStruct>())
+    .define_attr("buf", &DataStruct::buf, Rice::AttrAccess::Read);
+
+  Object o = c.call("new");
+  DataStruct* dataStruct = detail::From_Ruby<DataStruct*>().convert(o);
+
+  Object result = o.call("buf");
+  ASSERT_EQUAL("01", detail::From_Ruby<std::string>().convert(result));
 }
 
 TESTCASE(vector)

@@ -343,21 +343,29 @@ namespace Rice
     // Define attribute setter
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
     {
+      // This seems super hacky - must be a better way?
+      constexpr bool checkWriteAccess = !std::is_reference_v<Attr_T> && 
+                                        !std::is_pointer_v<Attr_T> &&
+                                        !std::is_fundamental_v<Attr_T> &&
+                                        !std::is_enum_v<Attr_T>;
+      
       if constexpr (std::is_const_v<Attr_T>)
       {
         throw std::runtime_error("Cannot define attribute writer for a const attribute: " + name);
       }
-      else if constexpr (!std::is_fundamental_v<detail::intrinsic_type<Attr_T>> && !std::is_enum_v<Attr_T> && !std::is_assignable_v<Attr_T, Attr_T>)
+      // Attributes are set using assignment operator like this:
+      //   myInstance.attribute = newvalue
+      else if constexpr (checkWriteAccess && !std::is_assignable_v<Attr_T, Attr_T>)
       {
         throw std::runtime_error("Cannot define attribute writer for a non assignable attribute: " + name);
       }
-      else if constexpr (!std::is_fundamental_v<detail::intrinsic_type<Attr_T>> && !std::is_enum_v<Attr_T> && !std::is_copy_constructible_v<Attr_T>)
+      // From_Ruby returns a copy of the value for non-reference and non-pointers, thus needs to be copy constructable
+      else if constexpr (checkWriteAccess && !std::is_copy_constructible_v<Attr_T>)
       {
         throw std::runtime_error("Cannot define attribute writer for a non copy constructible attribute: " + name);
       }
       else
       {
-        // Define native attribute setter
         detail::NativeAttributeSet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute));
       }
     }
