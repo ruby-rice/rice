@@ -51,19 +51,13 @@ namespace Rice::detail
     // Register function with Ruby
     static void define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
 
-    // Proc entry
-    static VALUE procEntry(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
-    static VALUE finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
- 
   public:
-    NativeFunction(Function_T function);
     NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
 
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
 
   private:
-
     template<std::size_t...I>
     std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);
 

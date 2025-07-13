@@ -27,15 +27,8 @@ namespace Rice::detail
 
     VALUE convert(Proc_T proc)
     {
-      using NativeFunction_T = NativeFunction<void, Proc_T, false>;
-      auto native = new NativeFunction_T(proc);
-      VALUE result = rb_proc_new(NativeFunction_T::procEntry, (VALUE)native);
-
-      // Tie the lifetime of the NativeCallback C++ instance to the lifetime of the Ruby proc object
-      VALUE finalizer = rb_proc_new(NativeFunction_T::finalizerCallback, (VALUE)native);
-      rb_define_finalizer(result, finalizer);
-
-      return result;
+      // Wrap the C+++ function pointer as a Ruby Proc
+      return NativeProc<Proc_T>::createRubyProc(std::forward<Proc_T>(proc));
     }
   };
 

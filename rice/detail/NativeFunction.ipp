@@ -25,37 +25,10 @@ namespace Rice::detail
     detail::Registries::instance.natives.add(klass, identifier.id(), native);
   }
 
-  // Ruby calls this method when invoking a proc that was defined as a C++ function
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<Class_T, Function_T, IsMethod>::procEntry(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
-  {
-    return cpp_protect([&]
-    {
-      NativeFunction_T * native = (NativeFunction_T*)callback_arg;
-      return (*native)(argc, argv, Qnil);
-    });
-  }
-
-  // Ruby calls this method if an instance of a NativeFunction is owned by a Ruby proc. That happens when C++
-  // returns a function back to Ruby
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<Class_T, Function_T, IsMethod>::finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
-  {
-    NativeFunction_T* native = (NativeFunction_T*)callback_arg;
-    delete native;
-    return Qnil;
-  }
-
   template<typename Class_T, typename Function_T, bool IsMethod>
   NativeFunction<Class_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
     : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo), 
       toRuby_(methodInfo->returnInfo()), Native(Native::create_parameters<Arg_Ts>(methodInfo))
-  {
-  }
-
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  NativeFunction<Class_T, Function_T, IsMethod>::NativeFunction(Function_T function)
-    : NativeFunction(Qnil, "", function, new MethodInfo(arity))
   {
   }
 
