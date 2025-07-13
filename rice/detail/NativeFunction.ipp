@@ -6,8 +6,8 @@
 
 namespace Rice::detail
 {
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  void NativeFunction<Class_T, Function_T, IsMethod>::define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
+  template<typename Function_T>
+  void NativeFunction<Function_T>::define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
   {
     // Have we defined this method yet in Ruby?
     Identifier identifier(method_name);
@@ -25,16 +25,16 @@ namespace Rice::detail
     detail::Registries::instance.natives.add(klass, identifier.id(), native);
   }
 
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  NativeFunction<Class_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
+  template<typename Function_T>
+  NativeFunction<Function_T>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
     : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo), 
       toRuby_(methodInfo->returnInfo()), Native(Native::create_parameters<Arg_Ts>(methodInfo))
   {
   }
 
-  template<typename Class_T, typename Function_T, bool IsMethod>
+  template<typename Function_T>
   template<std::size_t... I>
-  std::vector<std::string> NativeFunction<Class_T, Function_T, IsMethod>::argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices)
+  std::vector<std::string> NativeFunction<Function_T>::argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices)
   {
     std::vector<std::string> result;
     for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)
@@ -44,8 +44,8 @@ namespace Rice::detail
     return result;
   }
 
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  std::string NativeFunction<Class_T, Function_T, IsMethod>::toString()
+  template<typename Function_T>
+  std::string NativeFunction<Function_T>::toString()
   {
     std::ostringstream result;
 
@@ -66,9 +66,9 @@ namespace Rice::detail
     return result.str();
   }
     
-  template<typename Class_T, typename Function_T, bool IsMethod>
+  template<typename Function_T>
   template<std::size_t... I>
-  typename NativeFunction<Class_T, Function_T, IsMethod>::Arg_Ts NativeFunction<Class_T, Function_T, IsMethod>::getNativeValues(std::vector<std::optional<VALUE>>& values,
+  typename NativeFunction<Function_T>::Arg_Ts NativeFunction<Function_T>::getNativeValues(std::vector<std::optional<VALUE>>& values,
      std::index_sequence<I...>& indices)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
@@ -82,8 +82,8 @@ namespace Rice::detail
                convertToNative(values[I])...);
   }
 
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<Class_T, Function_T, IsMethod>::invoke(Arg_Ts&& nativeArgs)
+  template<typename Function_T>
+  VALUE NativeFunction<Function_T>::invoke(Arg_Ts&& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
@@ -100,8 +100,8 @@ namespace Rice::detail
     }
   }
 
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  void NativeFunction<Class_T, Function_T, IsMethod>::noWrapper(const VALUE klass, const std::string& wrapper)
+  template<typename Function_T>
+  void NativeFunction<Function_T>::noWrapper(const VALUE klass, const std::string& wrapper)
   {
     std::stringstream message;
 
@@ -116,8 +116,8 @@ namespace Rice::detail
     throw std::runtime_error(message.str());
   }
 
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  void NativeFunction<Class_T, Function_T, IsMethod>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues)
+  template<typename Function_T>
+  void NativeFunction<Function_T>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues)
   {
     // Self will be Qnil for wrapped procs
     if (self == Qnil)
@@ -158,8 +158,8 @@ namespace Rice::detail
     }
   }
 
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<Class_T, Function_T, IsMethod>::operator()(size_t argc, const VALUE* argv, VALUE self)
+  template<typename Function_T>
+  VALUE NativeFunction<Function_T>::operator()(size_t argc, const VALUE* argv, VALUE self)
   {
     // Get the ruby values and make sure we have the correct number
     std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, true);

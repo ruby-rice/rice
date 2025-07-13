@@ -35,17 +35,16 @@ namespace Rice::detail
    *    calling them methods (self) or functions (no self).
    */
 
-  template<typename Class_T, typename Function_T, bool IsMethod>
+  template<typename Function_T>
   class NativeFunction: Native
   {
   public:
-    using NativeFunction_T = NativeFunction<Class_T, Function_T, IsMethod>;
+    using NativeFunction_T = NativeFunction<Function_T>;
 
     // We remove const to avoid an explosion of To_Ruby specializations and Ruby doesn't
     // have the concept of constants anyways
     using Return_T = typename function_traits<Function_T>::return_type;
     using Arg_Ts = typename function_traits<Function_T>::arg_types;
-    static constexpr std::size_t arity = function_traits<Function_T>::arity;
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
 
     // Register function with Ruby
@@ -61,9 +60,6 @@ namespace Rice::detail
     template<std::size_t...I>
     std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);
 
-    // Convert C++ value to Ruby
-    To_Ruby<To_Ruby_T> createToRuby();
-      
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
     Arg_Ts getNativeValues(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);

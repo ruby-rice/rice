@@ -46,7 +46,6 @@ namespace Rice::detail
     using Return_T = typename method_traits<Method_T>::Return_T;
     using Receiver_T = typename method_traits<Method_T>::Class_T;
     using Arg_Ts = typename method_traits<Method_T>::Arg_Ts;
-    static constexpr std::size_t arity = method_traits<Method_T>::arity;
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
 
     // Register method with Ruby
@@ -63,9 +62,6 @@ namespace Rice::detail
     template<std::size_t...I>
     std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);
 
-    // Convert C++ value to Ruby
-    To_Ruby<To_Ruby_T> createToRuby();
-      
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
     Arg_Ts getNativeValues(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);

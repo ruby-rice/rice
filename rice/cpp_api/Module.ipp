@@ -41,7 +41,7 @@ namespace Rice
     detail::verifyTypes<typename traits::arg_types>();
 
     // Define a NativeFunction to bridge Ruby to C++
-    detail::NativeFunction<VALUE, Function_T, false>::define(klass, name, std::forward<Function_T>(function), methodInfo);
+    detail::NativeFunction<Function_T>::define(klass, name, std::forward<Function_T>(function), methodInfo);
   }
 
   template<typename Class_T, typename Method_T>
