@@ -21,6 +21,9 @@
 #include "traits/method_traits.hpp"
 #include "traits/attribute_traits.hpp"
 
+// Wrap C++ objects as Ruby objects
+#include "detail/Wrapper.hpp"
+
 // Code for C++ to call Ruby
 #include "Exception.hpp"
 #include "JumpException.hpp"
@@ -61,7 +64,6 @@
 // Type Conversion declarations
 #include "detail/RubyType.hpp"
 #include "detail/RubyType.ipp"
-#include "detail/Wrapper.hpp"
 
 // Registries
 #include "detail/TypeRegistry.hpp"
