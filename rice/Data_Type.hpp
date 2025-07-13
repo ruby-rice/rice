@@ -163,8 +163,8 @@ namespace Rice
     template<typename T_, typename Base_T>
     friend Rice::Data_Type<T_> define_class(char const * name);
 
-    template<bool IsMethod, typename Function_T>
-    void wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo);
+    template<typename Method_T>
+    void wrap_native_method(VALUE klass, std::string name, Method_T&& function, MethodInfo* methodInfo);
 
     template <typename Attribute_T>
     Data_Type<T>& define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access);

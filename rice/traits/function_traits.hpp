@@ -32,7 +32,7 @@ namespace Rice::detail
 
   public:
     using arg_types = typename functor_t::arg_types;
-    static constexpr std::size_t arity = functor_t::arity - 1;
+    static constexpr std::size_t arity = functor_t::arity;
     using class_type = std::nullptr_t;
   };
 

@@ -77,12 +77,6 @@ namespace Rice::detail
     std::ostringstream result;
 
     result << cppClassName(typeName(typeid(Return_T))) << " ";
-    
-    if (!std::is_null_pointer_v<Receiver_T>)
-    {
-      result << cppClassName(typeName(typeid(Receiver_T))) << "::";
-    }
-    
     result << this->method_name_;
 
     result << "(";
@@ -116,47 +110,7 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
-  typename NativeFunction<Class_T, Function_T, IsMethod>::Receiver_T NativeFunction<Class_T, Function_T, IsMethod>::getReceiver(VALUE self)
-  {
-    // There is no self parameter
-    if constexpr (std::is_same_v<Receiver_T, std::nullptr_t>)
-    {
-      return nullptr;
-    }
-    // Self parameter is a Ruby VALUE so no conversion is needed
-    else if constexpr (std::is_same_v<Receiver_T, VALUE>)
-    {
-      return self;
-    }
-    /* This case happens when a class wrapped by Rice is calling a method
-       defined on an ancestor class. For example, the std::map size method
-       is defined on _Tree not map. Rice needs to know the actual type
-       that was wrapped so it can correctly extract the C++ object from 
-       the Ruby object. */
-    else if constexpr (!std::is_same_v<intrinsic_type<Receiver_T>, Class_T> && 
-                        std::is_base_of_v<intrinsic_type<Receiver_T>, Class_T> &&
-                        std::is_pointer_v<Receiver_T>)
-    {
-      Class_T* instance = From_Ruby<Class_T*>().convert(self);
-      return dynamic_cast<Receiver_T>(instance);
-    }
-    else if constexpr (!std::is_same_v<intrinsic_type<Receiver_T>, Class_T> &&
-                        std::is_base_of_v<intrinsic_type<Receiver_T>, Class_T> &&
-                        std::is_reference_v<Receiver_T>)
-    {
-      Class_T& instance = From_Ruby<Class_T&>().convert(self);
-      return dynamic_cast<Receiver_T>(instance);
-    }
-    // Self parameter could be derived from Object or it is an C++ instance and
-    // needs to be unwrapped from Ruby
-    else
-    {
-      return From_Ruby<Receiver_T>().convert(self);
-    }
-  }
-
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<Class_T, Function_T, IsMethod>::invokeNativeFunction(Arg_Ts&& nativeArgs)
+  VALUE NativeFunction<Class_T, Function_T, IsMethod>::invoke(Arg_Ts&& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
@@ -169,51 +123,6 @@ namespace Rice::detail
       Return_T nativeResult = std::apply(this->function_, std::forward<Arg_Ts>(nativeArgs));
 
       // Return the result
-      return this->toRuby_.convert(std::forward<Return_T>(nativeResult));
-    }
-  }
-
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  VALUE NativeFunction<Class_T, Function_T, IsMethod>::invokeNativeMethod(VALUE self, Arg_Ts&& nativeArgs)
-  {
-    Receiver_T receiver = this->getReceiver(self);
-    auto selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), std::forward<Arg_Ts>(nativeArgs));
-
-    if constexpr (std::is_void_v<Return_T>)
-    {
-      std::apply(this->function_, std::forward<decltype(selfAndNativeArgs)>(selfAndNativeArgs));
-      return Qnil;
-    }
-    else
-    {
-      Return_T nativeResult = std::apply(this->function_, std::forward<decltype(selfAndNativeArgs)>(selfAndNativeArgs));
-
-      // Special handling if the method returns self. If so we do not want
-      // to create a new Ruby wrapper object and instead return self.
-      if constexpr (std::is_same_v<intrinsic_type<Return_T>, intrinsic_type<Receiver_T>>)
-      {
-        if constexpr (std::is_pointer_v<Return_T> && std::is_pointer_v<Receiver_T>)
-        {
-          if (nativeResult == receiver)
-            return self;
-        }
-        else if constexpr (std::is_pointer_v<Return_T> && std::is_reference_v<Receiver_T>)
-        {
-          if (nativeResult == &receiver)
-            return self;
-        }
-        else if constexpr (std::is_reference_v<Return_T> && std::is_pointer_v<Receiver_T>)
-        {
-          if (&nativeResult == receiver)
-            return self;
-        }
-        else if constexpr (std::is_reference_v<Return_T> && std::is_reference_v<Receiver_T>)
-        {
-          if (&nativeResult == &receiver)
-            return self;
-        }
-      }
-
       return this->toRuby_.convert(std::forward<Return_T>(nativeResult));
     }
   }
@@ -288,15 +197,7 @@ namespace Rice::detail
     Arg_Ts nativeValues = this->getNativeValues(rubyValues, indices);
 
     // Now call the native method
-    VALUE result = Qnil;
-    if constexpr (std::is_same_v<Receiver_T, std::nullptr_t>)
-    {
-      result = this->invokeNativeFunction(std::forward<Arg_Ts>(nativeValues));
-    }
-    else
-    {
-      result = this->invokeNativeMethod(self, std::forward<Arg_Ts>(nativeValues));
-    }
+    VALUE result = this->invoke(std::forward<Arg_Ts>(nativeValues));
 
     // Check if any function arguments or return values need to have their lifetimes tied to the receiver
     this->checkKeepAlive(self, result, rubyValues);

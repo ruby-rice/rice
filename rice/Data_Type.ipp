@@ -366,15 +366,9 @@ namespace Rice
   }
 
   template <typename T>
-  template<bool IsMethod, typename Function_T>
-  inline void Data_Type<T>::wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo)
+  template<typename Method_T>
+  inline void Data_Type<T>::wrap_native_method(VALUE klass, std::string name, Method_T&& method, MethodInfo* methodInfo)
   {
-    // Make sure the return type and arguments have been previously seen by Rice
-    using traits = detail::method_traits<Function_T, IsMethod>;
-    detail::verifyType<typename traits::Return_T>();
-    detail::verifyTypes<typename traits::Arg_Ts>();
-
-    // Define a NativeFunction to bridge Ruby to C++
-    detail::NativeFunction<T, Function_T, IsMethod>::define(klass, name, std::forward<Function_T>(function), methodInfo);
+    Module::wrap_native_method<T, Method_T>(klass, name, std::forward<Method_T>(method), methodInfo);
   }
 }
