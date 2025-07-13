@@ -49,7 +49,7 @@ namespace Rice::detail
   template<typename Class_T, typename Function_T, bool IsMethod>
   NativeFunction<Class_T, Function_T, IsMethod>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
     : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo), 
-      parameters_(make_parameters_tuple<Arg_Ts>(methodInfo)), toRuby_(methodInfo->returnInfo())
+      toRuby_(methodInfo->returnInfo()), Native(Native::create_parameters<Arg_Ts>(methodInfo))
   {
   }
 
@@ -63,9 +63,12 @@ namespace Rice::detail
   template<std::size_t... I>
   std::vector<std::string> NativeFunction<Class_T, Function_T, IsMethod>::argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices)
   {
-    std::vector<std::string> typeNames;
-    (typeNames.push_back(std::get<I>(this->parameters_).cppType()), ...);
-    return typeNames;
+    std::vector<std::string> result;
+    for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)
+    {
+      result.push_back(parameter->cppType());
+    }
+    return result;
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>
@@ -98,115 +101,6 @@ namespace Rice::detail
     
   template<typename Class_T, typename Function_T, bool IsMethod>
   template<std::size_t... I>
-  Convertible NativeFunction<Class_T, Function_T, IsMethod>::matchParameters(std::vector<std::optional<VALUE>>& values,
-    std::index_sequence<I...>& indices)
-  {
-    Convertible result = Convertible::Exact;
-    ((result = result & std::get<I>(this->parameters_).matches(values[I])), ...);
-    return result;
-  }
-
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  Resolved NativeFunction<Class_T, Function_T, IsMethod>::matches(size_t argc, const VALUE* argv, VALUE self)
-  {
-    // Return false if Ruby provided more arguments than the C++ method takes
-    if (argc > arity)
-      return Resolved{ Convertible::None, 0, this };
-
-    Resolved result { Convertible::Exact, 1, this };
-
-    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, false);
-    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
-    result.convertible = this->matchParameters(rubyValues, indices);
-
-    if constexpr (arity > 0)
-    {
-      int providedValues = std::count_if(rubyValues.begin(), rubyValues.end(), [](std::optional<VALUE>& value)
-        {
-          return value.has_value();
-        });
-
-      result.parameterMatch = providedValues / (double)arity;
-    }
-    return result;
-  }
-
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  std::vector<std::optional<VALUE>> NativeFunction<Class_T, Function_T, IsMethod>::getRubyValues(size_t argc, const VALUE* argv, bool validate)
-  {
-#undef max
-    int size = std::max((size_t)arity, (size_t)argc);
-    std::vector<std::optional<VALUE>> result(size);
-
-    // Keyword handling
-    if (rb_keyword_given_p())
-    {
-      // Keywords are stored in the last element in a hash
-      int actualArgc = argc - 1;
-
-      VALUE value = argv[actualArgc];
-      Hash keywords(value);
-
-      // Copy over leading non-keyword arguments
-      for (int i = 0; i < actualArgc; i++)
-      {
-        result[i] = argv[i];
-      }
-
-      // Copy over keyword arguments
-      for (auto pair : keywords)
-      {
-        Symbol key(pair.first);
-        const Arg* arg = this->methodInfo_->arg(key.str());
-        if (!arg)
-        {
-          throw std::invalid_argument("Unknown keyword: " + key.str());
-        }
-        result[arg->position] = pair.second.value();
-      }
-    }
-    else
-    {
-      std::copy(argv, argv + argc, result.begin());
-    }
-     
-    // Block handling. If we find a block and the last parameter is missing then
-    // set it to the block
-    if (rb_block_given_p() && result.size() > 0 && !result.back().has_value())
-    {
-      VALUE proc = rb_block_proc();
-      result.back() = proc;
-    }
-
-    if (validate)
-    {
-      // Protect against user sending too many arguments
-      if (argc > arity)
-      {
-        std::string message = "wrong number of arguments (given " +
-          std::to_string(argc) + ", expected " + std::to_string(arity) + ")";
-        throw std::invalid_argument(message);
-      }
-
-      for (size_t i=0; i<result.size(); i++)
-      {
-        std::optional<VALUE> value = result[i];
-        Arg* arg = this->methodInfo_->arg(i);
-
-        if (!arg->hasDefaultValue() && !value.has_value())
-        {
-          std::string message;
-          message = "Missing argument. Name: " + arg->name + ". Index: " + std::to_string(arg->position) + ".";
-          throw std::invalid_argument(message);
-        }
-      }
-    }
-    
-    return result;
-  }
-
-  template<typename Class_T, typename Function_T, bool IsMethod>
-  template<std::size_t... I>
   typename NativeFunction<Class_T, Function_T, IsMethod>::Arg_Ts NativeFunction<Class_T, Function_T, IsMethod>::getNativeValues(std::vector<std::optional<VALUE>>& values,
      std::index_sequence<I...>& indices)
   {
@@ -216,7 +110,9 @@ namespace Rice::detail
        which we let the compiler convert to const values as needed. This works except for 
        T** -> const T**, see comment in getNativeValue method. */
     //return std::forward_as_tuple(this->getNativeValue<std::tuple_element_t<I, Arg_Ts>, I>(values)...);
-    return std::forward_as_tuple(std::get<I>(this->parameters_).convertToNative(values[I])...);
+    return std::forward_as_tuple(
+      (dynamic_cast<Parameter<std::tuple_element_t<I, Arg_Ts>>*>(this->parameters_[I].get()))->
+               convertToNative(values[I])...);
   }
 
   template<typename Class_T, typename Function_T, bool IsMethod>

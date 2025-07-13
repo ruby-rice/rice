@@ -48,7 +48,6 @@ namespace Rice::detail
     using Arg_Ts = typename method_traits<Function_T, IsMethod>::Arg_Ts;
     static constexpr std::size_t arity = method_traits<Function_T, IsMethod>::arity;
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
-    using ParametersTuple = typename tuple_map<Parameter, Arg_Ts>::type;
 
     // Register function with Ruby
     static void define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
@@ -56,24 +55,15 @@ namespace Rice::detail
     // Proc entry
     static VALUE procEntry(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
     static VALUE finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
+ 
   public:
-    // Disallow creating/copying/moving
-    NativeFunction() = delete;
-    NativeFunction(const NativeFunction_T&) = delete;
-    NativeFunction(NativeFunction_T&&) = delete;
-    void operator=(const NativeFunction_T&) = delete;
-    void operator=(NativeFunction_T&&) = delete;
-
-    Resolved matches(size_t argc, const VALUE* argv, VALUE self) override;
-    VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
-    std::string toString() override;
-
     NativeFunction(Function_T function);
     NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
 
+    VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
+    std::string toString() override;
+
   private:
-    template<std::size_t...I>
-    Convertible matchParameters(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
 
     template<std::size_t...I>
     std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);
@@ -81,9 +71,6 @@ namespace Rice::detail
     // Convert C++ value to Ruby
     To_Ruby<To_Ruby_T> createToRuby();
       
-    // Convert Ruby argv pointer to Ruby values
-    std::vector<std::optional<VALUE>> getRubyValues(size_t argc, const VALUE* argv, bool validate);
-
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
     Arg_Ts getNativeValues(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
@@ -105,7 +92,6 @@ namespace Rice::detail
     VALUE klass_;
     std::string method_name_;
     Function_T function_;
-    ParametersTuple parameters_;
     To_Ruby<To_Ruby_T> toRuby_;
     std::unique_ptr<MethodInfo> methodInfo_;
   };

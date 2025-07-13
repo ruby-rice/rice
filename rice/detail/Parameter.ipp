@@ -1,7 +1,7 @@
 namespace Rice::detail
 {
   // -----------  ParameterAbstract ----------------
-  inline ParameterAbstract::ParameterAbstract(Arg* arg) : arg_(arg)
+  inline ParameterAbstract::ParameterAbstract(Arg* arg) : arg(arg)
   {
   }
 
@@ -20,7 +20,7 @@ namespace Rice::detail
     if (valueOpt.has_value())
     {
       VALUE value = valueOpt.value();
-      if (this->arg_->isValue())
+      if (this->arg->isValue())
       {
         result = Convertible::Exact;
       }
@@ -51,7 +51,7 @@ namespace Rice::detail
       }
     }
     // Last check if a default value has been set
-    else if (this->arg_->hasDefaultValue())
+    else if (this->arg->hasDefaultValue())
     {
       result = Convertible::Exact;
     }
@@ -80,9 +80,9 @@ namespace Rice::detail
     }
     else if constexpr (std::is_constructible_v<std::remove_cv_t<T>, std::remove_cv_t<std::remove_reference_t<T>>&>)
     {
-      if (this->arg_->hasDefaultValue())
+      if (this->arg->hasDefaultValue())
       {
-        return this->arg_->defaultValue<T>();
+        return this->arg->defaultValue<T>();
       }
     }
 
@@ -93,19 +93,5 @@ namespace Rice::detail
   inline std::string Parameter<T>::cppType()
   {
     return cppClassName(typeName(typeid(T)));
-  }
-
-  // -----------  Helpers ----------------
-  template<typename Tuple_T, std::size_t ...Indices>
-  inline auto make_parameters_tuple_impl(MethodInfo* methodInfo, std::index_sequence<Indices...> indices)
-  {
-    return std::tuple<Parameter<std::tuple_element_t<Indices, Tuple_T>>...>{Parameter<std::tuple_element_t<Indices, Tuple_T>>{methodInfo->arg(Indices)}...};
-  }
-
-  template<typename Tuple_T>
-  inline auto make_parameters_tuple(MethodInfo* methodInfo)
-  {
-    auto indices = std::make_index_sequence<std::tuple_size_v<Tuple_T>>{};
-    return make_parameters_tuple_impl<Tuple_T>(methodInfo, indices);
   }
 }
