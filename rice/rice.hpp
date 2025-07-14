@@ -23,6 +23,7 @@
 
 // Wrap C++ objects as Ruby objects
 #include "detail/Wrapper.hpp"
+#include "detail/Type.hpp"
 
 // Code for C++ to call Ruby
 #include "Exception.hpp"
@@ -41,7 +42,6 @@
 #include "detail/Parameter.ipp"
 
 // C++ API declarations
-#include "detail/Type.hpp"
 #include "cpp_api/Encoding.hpp"
 #include "cpp_api/Identifier.hpp"
 #include "cpp_api/Identifier.ipp"
