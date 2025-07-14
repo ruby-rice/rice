@@ -82,7 +82,7 @@ namespace Rice::detail
     {
       if (this->arg->hasDefaultValue())
       {
-        return this->arg->defaultValue<T>();
+        return this->arg->template defaultValue<T>();
       }
     }
 
