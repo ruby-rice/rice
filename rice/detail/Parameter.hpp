@@ -10,6 +10,8 @@ namespace Rice::detail
   public:
     ParameterAbstract() = default;
     ParameterAbstract(Arg* arg);
+    virtual ~ParameterAbstract() = default;
+
     ParameterAbstract(ParameterAbstract&& other) = default;
     ParameterAbstract& operator=(ParameterAbstract&& other) = default;
 
