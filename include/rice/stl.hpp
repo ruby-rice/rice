@@ -109,6 +109,12 @@ namespace Rice::detail
   class To_Ruby<std::string>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(const std::string& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
@@ -119,6 +125,13 @@ namespace Rice::detail
   class To_Ruby<std::string&>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+
     VALUE convert(const std::string& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
@@ -129,6 +142,13 @@ namespace Rice::detail
   class To_Ruby<std::string*>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+
     VALUE convert(const std::string* x)
     {
       return detail::protect(rb_external_str_new, x->data(), (long)x->size());
@@ -139,6 +159,13 @@ namespace Rice::detail
   class To_Ruby<std::string*&>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+
     VALUE convert(const std::string* x)
     {
       return detail::protect(rb_external_str_new, x->data(), (long)x->size());
@@ -149,6 +176,12 @@ namespace Rice::detail
   class To_Ruby<std::string**>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(std::string** data)
     {
       Buffer<std::string*> buffer(data);
@@ -227,6 +260,12 @@ namespace Rice::detail
   class From_Ruby<std::string*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -247,6 +286,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::string converted_;
   };
 }
@@ -342,6 +382,12 @@ namespace Rice::detail
   class To_Ruby<std::complex<T>>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(const std::complex<T>& data)
     {
       std::vector<VALUE> args(2);
@@ -355,6 +401,12 @@ namespace Rice::detail
   class To_Ruby<std::complex<T>&>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(const std::complex<T>& data)
     {
       std::vector<VALUE> args(2);
@@ -368,6 +420,12 @@ namespace Rice::detail
   class From_Ruby<std::complex<T>>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -393,6 +451,12 @@ namespace Rice::detail
   class From_Ruby<std::complex<T>&>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -481,6 +545,12 @@ namespace Rice::detail
   class To_Ruby<std::nullopt_t>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(const std::nullopt_t& _)
     {
       return Qnil;
@@ -491,7 +561,13 @@ namespace Rice::detail
   class To_Ruby<std::optional<T>>
   {
   public:
-    static VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+    VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
     {
       if (data.has_value())
       {
@@ -508,7 +584,13 @@ namespace Rice::detail
   class To_Ruby<std::optional<T>&>
   {
   public:
-    static VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+    VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
     {
       if (data.has_value())
       {
@@ -525,6 +607,12 @@ namespace Rice::detail
   class From_Ruby<std::optional<T>>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -554,6 +642,12 @@ namespace Rice::detail
   class From_Ruby<std::optional<T>&>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -605,6 +699,12 @@ namespace Rice::detail
   class To_Ruby<std::reference_wrapper<T>>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(const std::reference_wrapper<T>& data, bool takeOwnership = false)
     {
       return To_Ruby<T&>().convert(data.get());
@@ -615,6 +715,12 @@ namespace Rice::detail
   class From_Ruby<std::reference_wrapper<T>>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return this->converter_.is_convertible(value);
@@ -1229,6 +1335,12 @@ namespace Rice
     class From_Ruby<std::map<T, U>*>
     {
     public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
       Convertible is_convertible(VALUE value)
       {
         switch (rb_type(value))
@@ -1274,6 +1386,7 @@ namespace Rice
       }
 
     private:
+      Arg* arg_;
       std::map<T, U> converted_;
     };
   }
@@ -1320,6 +1433,12 @@ namespace Rice::detail
   class From_Ruby<std::monostate>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return value == Qnil ? Convertible::Exact : Convertible::None;
@@ -1342,6 +1461,12 @@ namespace Rice::detail
   class From_Ruby<std::monostate&>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return value == Qnil ? Convertible::Exact : Convertible::None;
@@ -1776,6 +1901,12 @@ namespace Rice
     class From_Ruby<std::multimap<T, U>*>
     {
     public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
       Convertible is_convertible(VALUE value)
       {
         switch (rb_type(value))
@@ -1821,6 +1952,7 @@ namespace Rice
       }
 
     private:
+      Arg* arg_;
       std::multimap<T, U> converted_;
     };
   }
@@ -2106,11 +2238,11 @@ namespace Rice
         return Qnil;
       };
       
-      using NativeFunction_T = NativeFunction<void, decltype(block), false>;
+      using Proc_T = decltype(block);
+      using NativeProc_T = NativeProc<Proc_T>;
+      std::unique_ptr<NativeProc_T> proc(NativeProc_T::define(std::forward<Proc_T>(block)));
 
-      // It is ok to use the address of native because it will remain valid while we iterate the set
-      NativeFunction_T native(block);
-      detail::protect<Function_T>(rb_block_call, rubySet, identifier.id(), 0, nullptr, NativeFunction_T::procEntry, (VALUE)&native);
+      detail::protect<Function_T>(rb_block_call, rubySet, identifier.id(), 0, nullptr, NativeProc_T::resolve, (VALUE)proc.get());
       
       return result;
     }
@@ -2271,6 +2403,12 @@ namespace Rice
     private:
       static inline std::string setName = "Set";
     public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
       Convertible is_convertible(VALUE value)
       {
         switch (rb_type(value))
@@ -2327,6 +2465,7 @@ namespace Rice
       }
 
     private:
+      Arg* arg_;
       std::set<T> converted_;
     };
   }
@@ -2434,6 +2573,12 @@ namespace Rice::detail
   class To_Ruby<std::shared_ptr<T>>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arv)
+    {
+    }
+
     VALUE convert(std::shared_ptr<T>& data)
     {
       if constexpr (std::is_fundamental_v<T>)
@@ -2516,6 +2661,12 @@ namespace Rice::detail
   class To_Ruby<std::shared_ptr<T>&>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg)
+    {
+    }
+
     VALUE convert(std::shared_ptr<T>& data)
     {
       if constexpr (std::is_fundamental_v<T>)
@@ -2616,7 +2767,13 @@ namespace Rice::detail
   class To_Ruby<std::tuple<Types...>>
   {
   public:
-    static VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+    VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
     {
       Array result;
 
@@ -2634,7 +2791,13 @@ namespace Rice::detail
   class To_Ruby<std::tuple<Types...>&>
   {
   public:
-    static VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+    VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
     {
       Array result;
 
@@ -2658,6 +2821,12 @@ namespace Rice::detail
     constexpr static bool verifyTypes(Array& array, std::index_sequence<I...>& indices)
     {
       return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
+    }
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
     }
 
     Convertible is_convertible(VALUE value)
@@ -2821,15 +2990,20 @@ namespace Rice::detail
   class To_Ruby<std::variant<Types...>>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
 
     template<typename U, typename V>
-    static VALUE convertElement(U& data, bool takeOwnership)
+    VALUE convertElement(U& data, bool takeOwnership)
     {
       return To_Ruby<V>().convert(std::forward<V>(std::get<V>(data)));
     }
 
     template<typename U, std::size_t... I>
-    static VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
     {
       // Create a tuple of the variant types so we can look over the tuple's types
       using Tuple_T = std::tuple<Types...>;
@@ -2872,14 +3046,14 @@ namespace Rice::detail
     }
 
     template<typename U>
-    static VALUE convert(U& data, bool takeOwnership = false)
+    VALUE convert(U& data, bool takeOwnership = false)
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return convertIterator(data, takeOwnership, indices);
     }
 
     template<typename U>
-    static VALUE convert(U&& data, bool takeOwnership = false)
+    VALUE convert(U&& data, bool takeOwnership = false)
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return convertIterator(data, takeOwnership, indices);
@@ -2890,8 +3064,14 @@ namespace Rice::detail
   class To_Ruby<std::variant<Types...>&>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     template<typename U, typename V>
-    static VALUE convertElement(U& data, bool takeOwnership)
+    VALUE convertElement(U& data, bool takeOwnership)
     {
       if constexpr (std::is_const_v<U>)
       {
@@ -2904,7 +3084,7 @@ namespace Rice::detail
     }
 
     template<typename U, std::size_t... I>
-    static VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
     {
       // Create a tuple of the variant types so we can look over the tuple's types
       using Tuple_T = std::tuple<Types...>;
@@ -2928,7 +3108,7 @@ namespace Rice::detail
     }
 
     template<typename U>
-    static VALUE convert(U& data, bool takeOwnership = false)
+    VALUE convert(U& data, bool takeOwnership = false)
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return convertIterator(data, takeOwnership, indices);
@@ -2939,6 +3119,12 @@ namespace Rice::detail
   class From_Ruby<std::variant<Types...>>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       Convertible result = Convertible::None;
@@ -3025,6 +3211,12 @@ namespace Rice::detail
   class From_Ruby<std::variant<Types...>&> : public From_Ruby<std::variant<Types...>>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     std::variant<Types...>& convert(VALUE value)
     {
       int index = this->figureIndex(value);
@@ -3090,6 +3282,12 @@ namespace Rice::detail
   class To_Ruby<std::unique_ptr<T>>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(std::unique_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
@@ -3107,6 +3305,12 @@ namespace Rice::detail
   class To_Ruby<std::unique_ptr<T>&>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(std::unique_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
@@ -3122,6 +3326,12 @@ namespace Rice::detail
     {
       WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
       return dynamic_cast<Wrapper<std::unique_ptr<T>>*>(wrapper);
+    }
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
     }
 
     Convertible is_convertible(VALUE value)
@@ -3159,6 +3369,12 @@ namespace Rice::detail
     {
       WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
       return dynamic_cast<Wrapper<std::unique_ptr<T>>*>(wrapper);
+    }
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
     }
 
     Convertible is_convertible(VALUE value)
@@ -3629,6 +3845,12 @@ namespace Rice
     class From_Ruby<std::unordered_map<T, U>*>
     {
     public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
       Convertible is_convertible(VALUE value)
       {
         switch (rb_type(value))
@@ -3674,6 +3896,7 @@ namespace Rice
       }
 
     private:
+      Arg* arg_;
       std::unordered_map<T, U> converted_;
     };
   }
@@ -4213,6 +4436,12 @@ namespace Rice
     class From_Ruby<std::vector<T>*>
     {
     public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
       Convertible is_convertible(VALUE value)
       {
         switch (rb_type(value))
@@ -4260,6 +4489,7 @@ namespace Rice
       }
 
     private:
+      Arg* arg_;
       std::vector<T> converted_;
     };
   }
@@ -4271,6 +4501,12 @@ namespace Rice
     class To_Ruby<std::vector<bool>::reference>
     {
     public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Return* returnInfo)
+      {
+      }
+
       VALUE convert(const std::vector<bool>::reference& value)
       {
         return value ? Qtrue : Qfalse;
