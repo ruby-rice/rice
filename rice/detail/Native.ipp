@@ -155,7 +155,7 @@ namespace Rice::detail
     });
   }
 
-  inline Native::Native(std::vector<std::unique_ptr<ParameterAbstract>>& parameters) : parameters_(std::move(parameters))
+  inline Native::Native(std::vector<std::unique_ptr<ParameterAbstract>>&& parameters) : parameters_(std::move(parameters))
   {
   }
 

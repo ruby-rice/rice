@@ -31,7 +31,7 @@ namespace Rice::detail
     static VALUE resolve(int argc, VALUE* argv, VALUE self);
   public:
     Native() = default;
-    Native(std::vector<std::unique_ptr<ParameterAbstract>>& parameters);
+    Native(std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
     virtual ~Native() = default;
 
     Native(const Native&) = delete;
