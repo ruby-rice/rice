@@ -48,7 +48,7 @@ namespace Rice::detail
   protected:
     std::vector<std::optional<VALUE>> getRubyValues(size_t argc, const VALUE* argv, bool validate);
     ParameterAbstract* getParameterByName(std::string name);
-    Convertible Native::matchParameters(std::vector<std::optional<VALUE>>& values);
+    Convertible matchParameters(std::vector<std::optional<VALUE>>& values);
 
     template<typename Tuple_T>
     static std::vector<std::unique_ptr<ParameterAbstract>> create_parameters(MethodInfo* methodInfo);
