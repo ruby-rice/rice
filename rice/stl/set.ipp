@@ -268,11 +268,11 @@ namespace Rice
         return Qnil;
       };
       
-      using NativeFunction_T = NativeFunction<void, decltype(block), false>;
+      using Proc_T = decltype(block);
+      using NativeProc_T = NativeProc<Proc_T>;
+      std::unique_ptr<NativeProc_T> proc(NativeProc_T::define(std::forward<Proc_T>(block)));
 
-      // It is ok to use the address of native because it will remain valid while we iterate the set
-      NativeFunction_T native(block);
-      detail::protect<Function_T>(rb_block_call, rubySet, identifier.id(), 0, nullptr, NativeFunction_T::procEntry, (VALUE)&native);
+      detail::protect<Function_T>(rb_block_call, rubySet, identifier.id(), 0, nullptr, NativeProc_T::resolve, (VALUE)proc.get());
       
       return result;
     }
@@ -433,6 +433,12 @@ namespace Rice
     private:
       static inline std::string setName = "Set";
     public:
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
       Convertible is_convertible(VALUE value)
       {
         switch (rb_type(value))
@@ -489,6 +495,7 @@ namespace Rice
       }
 
     private:
+      Arg* arg_;
       std::set<T> converted_;
     };
   }

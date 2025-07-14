@@ -15,6 +15,12 @@ namespace Rice::detail
   class To_Ruby<std::nullopt_t>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(const std::nullopt_t& _)
     {
       return Qnil;
@@ -25,7 +31,13 @@ namespace Rice::detail
   class To_Ruby<std::optional<T>>
   {
   public:
-    static VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+    VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
     {
       if (data.has_value())
       {
@@ -42,7 +54,13 @@ namespace Rice::detail
   class To_Ruby<std::optional<T>&>
   {
   public:
-    static VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+    VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
     {
       if (data.has_value())
       {
@@ -59,6 +77,12 @@ namespace Rice::detail
   class From_Ruby<std::optional<T>>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -88,6 +112,12 @@ namespace Rice::detail
   class From_Ruby<std::optional<T>&>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))

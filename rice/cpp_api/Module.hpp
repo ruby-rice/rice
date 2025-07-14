@@ -49,8 +49,11 @@ namespace Rice
 
     #include "shared_methods.hpp"
   protected:
-    template<bool IsMethod, typename Function_T>
-    void wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo);
+    template<typename Function_T>
+    void wrap_native_function(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo);
+
+    template<typename Class_T = VALUE, typename Method_T>
+    void wrap_native_method(VALUE klass, std::string name, Method_T&& method, MethodInfo* methodInfo);
   };
 
   //! Define a new module in the namespace given by module.

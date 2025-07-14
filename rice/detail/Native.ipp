@@ -154,4 +154,149 @@ namespace Rice::detail
       return (*native)(argc, argv, self);
     });
   }
+
+  inline Native::Native(std::vector<std::unique_ptr<ParameterAbstract>>&& parameters) : parameters_(std::move(parameters))
+  {
+  }
+
+  inline ParameterAbstract* Native::getParameterByName(std::string name)
+  {
+    for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)
+    {
+      if (parameter->arg->name == name)
+      {
+        return parameter.get();
+      }
+    }
+
+    return nullptr;
+  }
+
+  // -----------  Helpers ----------------
+  template<typename Tuple_T, std::size_t ...Indices>
+  inline void Native::create_parameters_impl(std::vector<std::unique_ptr<ParameterAbstract>>& parameters, MethodInfo* methodInfo, std::index_sequence<Indices...> indices)
+  {
+    (parameters.push_back(std::move(std::make_unique<Parameter<std::tuple_element_t<Indices, Tuple_T>>>(methodInfo->arg(Indices)))), ...);
+  }
+
+  template<typename Tuple_T>
+  inline std::vector<std::unique_ptr<ParameterAbstract>> Native::create_parameters(MethodInfo* methodInfo)
+  {
+    std::vector<std::unique_ptr<ParameterAbstract>> result;
+    auto indices = std::make_index_sequence<std::tuple_size_v<Tuple_T>>{};
+    Native::create_parameters_impl<Tuple_T>(result, methodInfo, indices);
+    return result;
+  }
+
+
+  inline std::vector<std::optional<VALUE>> Native::getRubyValues(size_t argc, const VALUE* argv, bool validate)
+  {
+#undef max
+    int size = std::max(this->parameters_.size(), argc);
+    std::vector<std::optional<VALUE>> result(size);
+
+    // Keyword handling
+    if (rb_keyword_given_p())
+    {
+      // Keywords are stored in the last element in a hash
+      int actualArgc = argc - 1;
+
+      VALUE value = argv[actualArgc];
+      Hash keywords(value);
+
+      // Copy over leading non-keyword arguments
+      for (int i = 0; i < actualArgc; i++)
+      {
+        result[i] = argv[i];
+      }
+
+      // Copy over keyword arguments
+      for (auto pair : keywords)
+      {
+        Symbol key(pair.first);
+        ParameterAbstract* parameter = this->getParameterByName(key.str());
+        if (!parameter)
+        {
+          throw std::invalid_argument("Unknown keyword: " + key.str());
+        }
+
+        const Arg* arg = parameter->arg;
+
+        result[arg->position] = pair.second.value();
+      }
+    }
+    else
+    {
+      std::copy(argv, argv + argc, result.begin());
+    }
+
+    // Block handling. If we find a block and the last parameter is missing then
+    // set it to the block
+    if (rb_block_given_p() && result.size() > 0 && !result.back().has_value())
+    {
+      VALUE proc = rb_block_proc();
+      result.back() = proc;
+    }
+
+    if (validate)
+    {
+      // Protect against user sending too many arguments
+      if (argc > this->parameters_.size())
+      {
+        std::string message = "wrong number of arguments (given " +
+          std::to_string(argc) + ", expected " + std::to_string(this->parameters_.size()) + ")";
+        throw std::invalid_argument(message);
+      }
+
+      for (size_t i = 0; i < result.size(); i++)
+      {
+        std::optional<VALUE> value = result[i];
+        ParameterAbstract* parameter = this->parameters_[i].get();
+
+        if (!parameter->arg->hasDefaultValue() && !value.has_value())
+        {
+          std::string message;
+          message = "Missing argument. Name: " + parameter->arg->name + ". Index: " + std::to_string(parameter->arg->position) + ".";
+          throw std::invalid_argument(message);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  inline Convertible Native::matchParameters(std::vector<std::optional<VALUE>>& values)
+  {
+    Convertible result = Convertible::Exact;
+    for (size_t i = 0; i < this->parameters_.size(); i++)
+    {
+      ParameterAbstract* parameter = this->parameters_[i].get();
+      std::optional<VALUE>& value = values[i];
+      result = result & parameter->matches(value);
+    }
+    return result;
+  }
+
+  inline Resolved Native::matches(size_t argc, const VALUE* argv, VALUE self)
+  {
+    // Return false if Ruby provided more arguments than the C++ method takes
+    if (argc > this->parameters_.size())
+      return Resolved{ Convertible::None, 0, this };
+
+    Resolved result{ Convertible::Exact, 1, this };
+
+    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, false);
+    result.convertible = this->matchParameters(rubyValues);
+
+    if (this->parameters_.size() > 0)
+    {
+      int providedValues = std::count_if(rubyValues.begin(), rubyValues.end(), [](std::optional<VALUE>& value)
+        {
+          return value.has_value();
+        });
+
+      result.parameterMatch = providedValues / (double)this->parameters_.size();
+    }
+    return result;
+  }
 }

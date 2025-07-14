@@ -29,18 +29,18 @@ namespace Rice
     Arg* arg(std::string name);
 
     int argCount();
+    Return* returnInfo();
 
     // Iterator support
     std::vector<Arg>::iterator begin();
     std::vector<Arg>::iterator end();
-
-    Return returnInfo;
 
   private:
     template <typename Arg_T>
     void processArg(const Arg_T& arg);
 
     std::vector<Arg> args_;
+    Return returnInfo_;
   };
 }
 #endif // Rice__MethodInfo__hpp_

@@ -15,6 +15,12 @@ namespace Rice::detail
   class To_Ruby<std::string>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(const std::string& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
@@ -25,6 +31,13 @@ namespace Rice::detail
   class To_Ruby<std::string&>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+
     VALUE convert(const std::string& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
@@ -35,6 +48,13 @@ namespace Rice::detail
   class To_Ruby<std::string*>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+
     VALUE convert(const std::string* x)
     {
       return detail::protect(rb_external_str_new, x->data(), (long)x->size());
@@ -45,6 +65,13 @@ namespace Rice::detail
   class To_Ruby<std::string*&>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
+
     VALUE convert(const std::string* x)
     {
       return detail::protect(rb_external_str_new, x->data(), (long)x->size());
@@ -55,6 +82,12 @@ namespace Rice::detail
   class To_Ruby<std::string**>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(std::string** data)
     {
       Buffer<std::string*> buffer(data);
@@ -133,6 +166,12 @@ namespace Rice::detail
   class From_Ruby<std::string*>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -153,6 +192,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::string converted_;
   };
 }

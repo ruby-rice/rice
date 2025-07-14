@@ -38,6 +38,18 @@ namespace
     NotCopyable(const NotCopyable& other) = delete;
   };
 
+  enum OldEnum
+  {
+    OldValue1,
+    OldValue2
+  };
+
+  enum class NewEnum
+  {
+    NewValue1,
+    NewValue2
+  };
+
   struct DataStruct
   {
     static inline float staticFloat = 1.0;
@@ -46,11 +58,15 @@ namespace
 
     std::string readWriteString = "Read Write";
     int writeInt = 0;
+    const char* chars = "Some chars!";
     const char* readChars = "Read some chars!";
     const int constInt = 5;
     SomeClass someClass;
     NotAssignable notAssignable;
     NotCopyable notCopyable;
+    char buf[2] = { '0', '1' };
+    OldEnum oldEnum = OldValue1;
+    NewEnum newEnum = NewEnum::NewValue1;
 
     std::string inspect()
     {
@@ -83,6 +99,7 @@ TESTCASE(attributes)
   Class c = define_class<DataStruct>("DataStruct")
     .define_constructor(Constructor<DataStruct>())
     .define_method("inspect", &DataStruct::inspect)
+    .define_attr("chars", &DataStruct::chars)
     .define_attr("read_chars", &DataStruct::readChars, Rice::AttrAccess::Read)
     .define_attr("write_int", &DataStruct::writeInt, Rice::AttrAccess::Write)
     .define_attr("read_write_string", &DataStruct::readWriteString);
@@ -90,8 +107,15 @@ TESTCASE(attributes)
   Object o = c.call("new");
   DataStruct* dataStruct = detail::From_Ruby<DataStruct*>().convert(o);
 
+  Object result = o.call("chars");
+  ASSERT_EQUAL("Some chars!", detail::From_Ruby<char*>().convert(result));
+  
+  o.call("chars=", "New chars!");
+  result = o.call("chars");
+  ASSERT_EQUAL("New chars!", detail::From_Ruby<char*>().convert(result));
+
   // Test readonly attribute
-  Object result = o.call("read_chars");
+  result = o.call("read_chars");
   ASSERT_EQUAL("Read some chars!", detail::From_Ruby<char*>().convert(result));
 
   if constexpr (!oldRuby)
@@ -123,6 +147,54 @@ TESTCASE(attributes)
 
   result = o.call("read_write_string");
   ASSERT_EQUAL("Set a string", detail::From_Ruby<std::string>().convert(result.value()));
+}
+
+TESTCASE(Enums)
+{
+  static Enum<OldEnum> oldEnum = define_enum<OldEnum>("OldEnum")
+    .define_value("OldValue1", OldValue1)
+    .define_value("OldValue2", OldValue2);
+
+  static Enum<NewEnum> newEnum = define_enum<NewEnum>("NewEnum")
+    .define_value("NewValue1", NewEnum::NewValue1)
+    .define_value("NewValue2", NewEnum::NewValue2);
+
+  Class c = define_class<DataStruct>("DataStruct")
+    .define_constructor(Constructor<DataStruct>())
+    .define_attr("oldEnum", &DataStruct::oldEnum)
+    .define_attr("newEnum", &DataStruct::newEnum);
+
+  Object o = c.call("new");
+  DataStruct* dataStruct = detail::From_Ruby<DataStruct*>().convert(o);
+
+  Object result = o.call("oldEnum");
+  ASSERT_EQUAL(OldValue1, detail::From_Ruby<OldEnum>().convert(result));
+
+  o.call("oldEnum=", OldValue2);
+  result = o.call("oldEnum");
+  ASSERT_EQUAL(OldValue2, detail::From_Ruby<OldEnum>().convert(result));
+
+  result = o.call("newEnum");
+  ASSERT_EQUAL(NewEnum::NewValue1, detail::From_Ruby<NewEnum>().convert(result));
+
+  o.call("newEnum=", NewEnum::NewValue2);
+  result = o.call("newEnum");
+  ASSERT_EQUAL(NewEnum::NewValue2, detail::From_Ruby<NewEnum>().convert(result));
+}
+
+TESTCASE(Array)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_class<DataStruct>("DataStruct")
+    .define_constructor(Constructor<DataStruct>())
+    .define_attr("buf", &DataStruct::buf, Rice::AttrAccess::Read);
+
+  Object o = c.call("new");
+  DataStruct* dataStruct = detail::From_Ruby<DataStruct*>().convert(o);
+
+  Object result = o.call("buf");
+  ASSERT_EQUAL("01", detail::From_Ruby<std::string>().convert(result));
 }
 
 TESTCASE(vector)

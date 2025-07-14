@@ -21,6 +21,10 @@
 #include "traits/method_traits.hpp"
 #include "traits/attribute_traits.hpp"
 
+// Wrap C++ objects as Ruby objects
+#include "detail/Wrapper.hpp"
+#include "detail/Type.hpp"
+
 // Code for C++ to call Ruby
 #include "Exception.hpp"
 #include "JumpException.hpp"
@@ -34,9 +38,10 @@
 #include "Return.hpp"
 #include "detail/MethodInfo.hpp"
 #include "detail/from_ruby.hpp"
+#include "detail/Parameter.hpp"
+#include "detail/Parameter.ipp"
 
 // C++ API declarations
-#include "detail/Type.hpp"
 #include "cpp_api/Encoding.hpp"
 #include "cpp_api/Identifier.hpp"
 #include "cpp_api/Identifier.ipp"
@@ -59,7 +64,6 @@
 // Type Conversion declarations
 #include "detail/RubyType.hpp"
 #include "detail/RubyType.ipp"
-#include "detail/Wrapper.hpp"
 
 // Registries
 #include "detail/TypeRegistry.hpp"
@@ -101,6 +105,10 @@
 #include "detail/NativeFunction.ipp"
 #include "detail/NativeIterator.hpp"
 #include "detail/NativeIterator.ipp"
+#include "detail/NativeMethod.hpp"
+#include "detail/NativeMethod.ipp"
+#include "detail/NativeProc.hpp"
+#include "detail/NativeProc.ipp"
 #include "detail/NativeCallbackFFI.hpp"
 #include "detail/NativeCallbackFFI.ipp"
 #include "detail/NativeCallbackSimple.hpp"

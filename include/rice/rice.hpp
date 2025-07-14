@@ -1975,7 +1975,7 @@ template<typename Function_T, typename...Arg_Ts>
 inline auto& define_method(std::string name, Function_T&& func, const Arg_Ts&...args)
 {
   MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
-  this->wrap_native_call<true>(this->value(), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function<true>(this->value(), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 
@@ -1994,7 +1994,7 @@ template<typename Function_T, typename...Arg_Ts>
 inline auto& define_function(std::string name, Function_T&& func, const Arg_Ts&...args)
 {
   MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
-  this->wrap_native_call<false>(this->value(), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function(this->value(), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 
@@ -2017,7 +2017,7 @@ template<typename Function_T, typename...Arg_Ts>
 inline auto& define_singleton_method(std::string name, Function_T&& func, const Arg_Ts&...args)
 {
   MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
-  this->wrap_native_call<true>(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function<true>(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 
@@ -2036,7 +2036,7 @@ template<typename Function_T, typename...Arg_Ts>
 inline auto& define_singleton_function(std::string name, Function_T&& func, const Arg_Ts& ...args)
 {
   MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
-  this->wrap_native_call<false>(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 
@@ -2075,7 +2075,7 @@ inline auto& define_constant(std::string name, Constant_T value)
 }
   protected:
     template<bool IsMethod, typename Function_T>
-    void wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo);
+    void wrap_native_function(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo);
   };
 
   //! Define a new module in the namespace given by module.
@@ -2174,7 +2174,7 @@ template<typename Function_T, typename...Arg_Ts>
 inline auto& define_method(std::string name, Function_T&& func, const Arg_Ts&...args)
 {
   MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
-  this->wrap_native_call<true>(this->value(), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function<true>(this->value(), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 
@@ -2193,7 +2193,7 @@ template<typename Function_T, typename...Arg_Ts>
 inline auto& define_function(std::string name, Function_T&& func, const Arg_Ts&...args)
 {
   MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
-  this->wrap_native_call<false>(this->value(), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function(this->value(), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 
@@ -2216,7 +2216,7 @@ template<typename Function_T, typename...Arg_Ts>
 inline auto& define_singleton_method(std::string name, Function_T&& func, const Arg_Ts&...args)
 {
   MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
-  this->wrap_native_call<true>(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function<true>(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 
@@ -2235,7 +2235,7 @@ template<typename Function_T, typename...Arg_Ts>
 inline auto& define_singleton_function(std::string name, Function_T&& func, const Arg_Ts& ...args)
 {
   MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
-  this->wrap_native_call<false>(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 
@@ -2603,7 +2603,7 @@ template<typename Function_T, typename...Arg_Ts>
 inline auto& define_method(std::string name, Function_T&& func, const Arg_Ts&...args)
 {
   MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
-  this->wrap_native_call<true>(this->value(), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function<true>(this->value(), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 
@@ -2622,7 +2622,7 @@ template<typename Function_T, typename...Arg_Ts>
 inline auto& define_function(std::string name, Function_T&& func, const Arg_Ts&...args)
 {
   MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
-  this->wrap_native_call<false>(this->value(), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function(this->value(), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 
@@ -2645,7 +2645,7 @@ template<typename Function_T, typename...Arg_Ts>
 inline auto& define_singleton_method(std::string name, Function_T&& func, const Arg_Ts&...args)
 {
   MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
-  this->wrap_native_call<true>(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function<true>(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 
@@ -2664,7 +2664,7 @@ template<typename Function_T, typename...Arg_Ts>
 inline auto& define_singleton_function(std::string name, Function_T&& func, const Arg_Ts& ...args)
 {
   MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
-  this->wrap_native_call<false>(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 
@@ -2722,7 +2722,7 @@ inline auto& define_constant(std::string name, Constant_T value)
     friend Rice::Data_Type<T_> define_class(char const * name);
 
     template<bool IsMethod, typename Function_T>
-    void wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo);
+    void wrap_native_function(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo);
 
     template <typename Attribute_T>
     Data_Type<T>& define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access);
@@ -11917,7 +11917,7 @@ namespace Rice
   }
 
   template<bool IsMethod, typename Function_T>
-  inline void Module::wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo)
+  inline void Module::wrap_native_function(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo)
   {
     // Make sure the return type and arguments have been previously seen by Rice
     using traits = detail::method_traits<Function_T, IsMethod>;
@@ -12910,7 +12910,7 @@ namespace Rice
 
   template <typename T>
   template<bool IsMethod, typename Function_T>
-  inline void Data_Type<T>::wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo)
+  inline void Data_Type<T>::wrap_native_function(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo)
   {
     // Make sure the return type and arguments have been previously seen by Rice
     using traits = detail::method_traits<Function_T, IsMethod>;

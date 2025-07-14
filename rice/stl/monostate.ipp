@@ -35,6 +35,12 @@ namespace Rice::detail
   class From_Ruby<std::monostate>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return value == Qnil ? Convertible::Exact : Convertible::None;
@@ -57,6 +63,12 @@ namespace Rice::detail
   class From_Ruby<std::monostate&>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       return value == Qnil ? Convertible::Exact : Convertible::None;

@@ -64,7 +64,7 @@ namespace Rice::detail
        on the arguments (Arg_Ts) required by the C++ function. Arg_T may have const/volatile while
        the associated From_Ruby<T> template parameter will not. Thus From_Ruby produces non-const values
        which we let the compiler convert to const values as needed. This works except for
-       T** -> const T**, see comment in getNativeValue method. */
+       T** -> const T**, see comment in convertToNative method. */
     return std::forward_as_tuple(*(std::tuple_element_t<I, Tuple_T>*)(args[I])...);
   }
 
@@ -137,7 +137,7 @@ namespace Rice::detail
     VALUE result = detail::protect(rb_funcallv, this->proc_, id.id(), (int)sizeof...(Arg_Ts), values.data());
     if constexpr (!std::is_void_v<Return_T>)
     {
-      static From_Ruby<Return_T> fromRuby(dynamic_cast<Arg*>(&methodInfo_->returnInfo));
+      static From_Ruby<Return_T> fromRuby(dynamic_cast<Arg*>(methodInfo_->returnInfo()));
       return fromRuby.convert(result);
     }
   }

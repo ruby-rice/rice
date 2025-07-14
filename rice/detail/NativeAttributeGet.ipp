@@ -47,6 +47,10 @@ namespace Rice::detail
       {
         return To_Ruby<To_Ruby_T>().convert(nativeSelf->*attribute_);
       }
+      else if constexpr (std::is_pointer_v<To_Ruby_T>)
+      {
+        return To_Ruby<To_Ruby_T>().convert(nativeSelf->*attribute_);
+      }
       else
       {
         // If the attribute is an object return a reference to avoid a copy (and avoid issues with
@@ -56,7 +60,21 @@ namespace Rice::detail
     }
     else
     {
-      return To_Ruby<To_Ruby_T>().convert(*attribute_);
+      if constexpr (std::is_fundamental_v<detail::intrinsic_type<To_Ruby_T>> ||
+        (std::is_array_v<To_Ruby_T> && std::is_fundamental_v<std::remove_extent_t<To_Ruby_T>>))
+      {
+        return To_Ruby<To_Ruby_T>().convert(*attribute_);
+      }
+      else if constexpr (std::is_pointer_v<To_Ruby_T>)
+      {
+        return To_Ruby<To_Ruby_T>().convert(*attribute_);
+      }
+      else
+      {
+        // If the attribute is an object return a reference to avoid a copy (and avoid issues with
+        // attributes that are not assignable, copy constructible or move constructible)
+        return To_Ruby<To_Ruby_T&>().convert(*attribute_);
+      }
     }
   }
 

@@ -102,6 +102,12 @@ namespace Rice::detail
                   "Please include rice/stl.hpp header for STL support");
 
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo): returnInfo_(returnInfo)
+    {
+    }
+
     template<typename U>
     VALUE convert(U& data)
     {
@@ -123,6 +129,9 @@ namespace Rice::detail
       // matched <typename T> thus we have to tell wrap to copy the reference we are sending to it
       return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template <typename T>

@@ -30,11 +30,11 @@ inline auto& include_module(Module const& inc)
  *  \param args a list of Arg instance used to define default parameters.
  *  \return *this
  */
-template<typename Function_T, typename...Arg_Ts>
-inline auto& define_method(std::string name, Function_T&& func, const Arg_Ts&...args)
+template<typename Method_T, typename...Arg_Ts>
+inline auto& define_method(std::string name, Method_T&& method, const Arg_Ts&...args)
 {
-  MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
-  this->wrap_native_call<true>(this->value(), name, std::forward<Function_T>(func), methodInfo);
+  MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Method_T>::arity, args...);
+  this->wrap_native_method(this->value(), name, std::forward<Method_T>(method), methodInfo);
   return *this;
 }
 
@@ -52,8 +52,8 @@ inline auto& define_method(std::string name, Function_T&& func, const Arg_Ts&...
 template<typename Function_T, typename...Arg_Ts>
 inline auto& define_function(std::string name, Function_T&& func, const Arg_Ts&...args)
 {
-  MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
-  this->wrap_native_call<false>(this->value(), name, std::forward<Function_T>(func), methodInfo);
+  MethodInfo* methodInfo = new MethodInfo(detail::function_traits<Function_T>::arity, args...);
+  this->wrap_native_function(this->value(), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 
@@ -72,11 +72,11 @@ inline auto& define_function(std::string name, Function_T&& func, const Arg_Ts&.
  *  \param args a list of Arg instance used to define default parameters (optional)
  *  \return *this
  */
-template<typename Function_T, typename...Arg_Ts>
-inline auto& define_singleton_method(std::string name, Function_T&& func, const Arg_Ts&...args)
+template<typename Method_T, typename...Arg_Ts>
+inline auto& define_singleton_method(std::string name, Method_T&& method, const Arg_Ts&...args)
 {
-  MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, true>::arity, args...);
-  this->wrap_native_call<true>(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
+  MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Method_T>::arity, args...);
+  this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Method_T>(method), methodInfo);
   return *this;
 }
 
@@ -94,8 +94,8 @@ inline auto& define_singleton_method(std::string name, Function_T&& func, const 
 template<typename Function_T, typename...Arg_Ts>
 inline auto& define_singleton_function(std::string name, Function_T&& func, const Arg_Ts& ...args)
 {
-  MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Function_T, false>::arity, args...);
-  this->wrap_native_call<false>(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
+  MethodInfo* methodInfo = new MethodInfo(detail::function_traits<Function_T>::arity, args...);
+  this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
   return *this;
 }
 

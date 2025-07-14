@@ -30,6 +30,12 @@ namespace Rice::detail
   class To_Ruby<std::unique_ptr<T>>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(std::unique_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
@@ -47,6 +53,12 @@ namespace Rice::detail
   class To_Ruby<std::unique_ptr<T>&>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(std::unique_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
@@ -62,6 +74,12 @@ namespace Rice::detail
     {
       WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
       return dynamic_cast<Wrapper<std::unique_ptr<T>>*>(wrapper);
+    }
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
     }
 
     Convertible is_convertible(VALUE value)
@@ -99,6 +117,12 @@ namespace Rice::detail
     {
       WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
       return dynamic_cast<Wrapper<std::unique_ptr<T>>*>(wrapper);
+    }
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
     }
 
     Convertible is_convertible(VALUE value)

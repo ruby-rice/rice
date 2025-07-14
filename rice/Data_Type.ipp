@@ -343,21 +343,29 @@ namespace Rice
     // Define attribute setter
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
     {
+      // This seems super hacky - must be a better way?
+      constexpr bool checkWriteAccess = !std::is_reference_v<Attr_T> && 
+                                        !std::is_pointer_v<Attr_T> &&
+                                        !std::is_fundamental_v<Attr_T> &&
+                                        !std::is_enum_v<Attr_T>;
+      
       if constexpr (std::is_const_v<Attr_T>)
       {
         throw std::runtime_error("Cannot define attribute writer for a const attribute: " + name);
       }
-      else if constexpr (!std::is_fundamental_v<Attr_T> && !std::is_assignable_v<Attr_T, Attr_T>)
+      // Attributes are set using assignment operator like this:
+      //   myInstance.attribute = newvalue
+      else if constexpr (checkWriteAccess && !std::is_assignable_v<Attr_T, Attr_T>)
       {
         throw std::runtime_error("Cannot define attribute writer for a non assignable attribute: " + name);
       }
-      else if constexpr (!std::is_fundamental_v<Attr_T> && !std::is_copy_constructible_v<Attr_T>)
+      // From_Ruby returns a copy of the value for non-reference and non-pointers, thus needs to be copy constructable
+      else if constexpr (checkWriteAccess && !std::is_copy_constructible_v<Attr_T>)
       {
         throw std::runtime_error("Cannot define attribute writer for a non copy constructible attribute: " + name);
       }
       else
       {
-        // Define native attribute setter
         detail::NativeAttributeSet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute));
       }
     }
@@ -366,15 +374,9 @@ namespace Rice
   }
 
   template <typename T>
-  template<bool IsMethod, typename Function_T>
-  inline void Data_Type<T>::wrap_native_call(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo)
+  template<typename Method_T>
+  inline void Data_Type<T>::wrap_native_method(VALUE klass, std::string name, Method_T&& method, MethodInfo* methodInfo)
   {
-    // Make sure the return type and arguments have been previously seen by Rice
-    using traits = detail::method_traits<Function_T, IsMethod>;
-    detail::verifyType<typename traits::Return_T>();
-    detail::verifyTypes<typename traits::Arg_Ts>();
-
-    // Define a NativeFunction to bridge Ruby to C++
-    detail::NativeFunction<T, Function_T, IsMethod>::define(klass, name, std::forward<Function_T>(function), methodInfo);
+    Module::wrap_native_method<T, Method_T>(klass, name, std::forward<Method_T>(method), methodInfo);
   }
 }

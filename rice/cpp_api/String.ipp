@@ -90,6 +90,12 @@ namespace Rice::detail
   class To_Ruby<String>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(String const& x)
     {
       return x.value();
@@ -100,6 +106,12 @@ namespace Rice::detail
   class From_Ruby<String>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))

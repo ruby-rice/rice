@@ -43,6 +43,9 @@ namespace Rice::detail
     // Clear unverified types. This is mostly for unit tests
     void clearUnverifiedTypes();
 
+    // API for access from Ruby
+    VALUE types();
+
   private:
     std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
     void raiseUnverifiedType(const std::string& typeName);

@@ -171,4 +171,16 @@ namespace Rice::detail
     std::string message = "Type is not registered with Rice: " + typeName;
     throw std::invalid_argument(message);
   }
+
+  inline VALUE TypeRegistry::types()
+  {
+    Array result;
+    for (auto& pair : this->registry_)
+    {
+      std::pair<VALUE, rb_data_type_t*>& value = pair.second;
+      Class klass = value.first;
+      result.push(klass);
+    }
+    return result;
+  }
 }

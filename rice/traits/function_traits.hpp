@@ -17,7 +17,7 @@ namespace Rice::detail
     static constexpr std::size_t arity = sizeof...(Arg_Ts);
 
     template<std::size_t N>
-    using nth_arg = typename std::tuple_element<N, arg_types>::type;
+    using nth_arg = typename std::tuple_element_t<N, arg_types>;
 
     using return_type = Return_T;
     using class_type = Class_T;
@@ -32,7 +32,7 @@ namespace Rice::detail
 
   public:
     using arg_types = typename functor_t::arg_types;
-    static constexpr std::size_t arity = functor_t::arity - 1;
+    static constexpr std::size_t arity = functor_t::arity;
     using class_type = std::nullptr_t;
   };
 

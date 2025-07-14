@@ -73,6 +73,12 @@ namespace Rice::detail
   class To_Ruby<std::shared_ptr<T>>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arv)
+    {
+    }
+
     VALUE convert(std::shared_ptr<T>& data)
     {
       if constexpr (std::is_fundamental_v<T>)
@@ -155,6 +161,12 @@ namespace Rice::detail
   class To_Ruby<std::shared_ptr<T>&>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg)
+    {
+    }
+
     VALUE convert(std::shared_ptr<T>& data)
     {
       if constexpr (std::is_fundamental_v<T>)

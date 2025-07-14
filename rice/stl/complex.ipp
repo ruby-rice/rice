@@ -15,6 +15,12 @@ namespace Rice::detail
   class To_Ruby<std::complex<T>>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(const std::complex<T>& data)
     {
       std::vector<VALUE> args(2);
@@ -28,6 +34,12 @@ namespace Rice::detail
   class To_Ruby<std::complex<T>&>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo)
+    {
+    }
+
     VALUE convert(const std::complex<T>& data)
     {
       std::vector<VALUE> args(2);
@@ -41,6 +53,12 @@ namespace Rice::detail
   class From_Ruby<std::complex<T>>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -66,6 +84,12 @@ namespace Rice::detail
   class From_Ruby<std::complex<T>&>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))

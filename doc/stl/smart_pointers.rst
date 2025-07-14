@@ -178,7 +178,7 @@ Let's start by telling Rice how to wrap the smart pointer. Here is how that is d
     template <typename T>
     struct To_Ruby<std::unique_ptr<T>>
     {
-      static VALUE convert(std::unique_ptr<T>& data, bool takeOwnership = true)
+      VALUE convert(std::unique_ptr<T>& data, bool takeOwnership = true)
       {
         std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
 
