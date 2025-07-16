@@ -161,7 +161,7 @@ namespace Rice
               return vector[index];
             }
           })
-          .define_method<Value_T*(T::*)()>("data", &T::data);
+          .template define_method<Value_T*(T::*)()>("data", &T::data);
 
           define_buffer<Value_T>();
         }
