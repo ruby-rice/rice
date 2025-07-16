@@ -723,7 +723,7 @@ namespace Rice
           self[index] = std::move(element);
         });
       }
-      else
+      else if constexpr (std::is_copy_assignable_v<typename Buffer_T::Element_T>)
       {
         klass.define_method("[]=", [](Buffer_T& self, size_t index, typename Buffer_T::Element_T& element) -> void
         {

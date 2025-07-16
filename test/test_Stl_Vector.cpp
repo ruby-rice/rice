@@ -171,6 +171,7 @@ TESTCASE(BoolVector)
   ASSERT_EQUAL(Qtrue, result.value());
 
   result = vec.call("[]=", 1, false);
+  result = vec.call("[]", 1);
   ASSERT_EQUAL(Qfalse, result.value());
 
   std::string code = R"(array = self.each.to_a
@@ -312,8 +313,7 @@ TESTCASE(Update)
   Object result = vec.call("size");
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
-  result = vec.call("[]=", 1, "new 2");
-  ASSERT_EQUAL("new 2", detail::From_Ruby<std::string>().convert(result));
+  vec.call("[]=", 1, "new 2");
 
   result = vec.call("[]", 1);
   ASSERT_EQUAL("new 2", detail::From_Ruby<std::string>().convert(result));
@@ -388,6 +388,44 @@ TESTCASE(Clone)
 
   vecClone.push_back(33.3);
   ASSERT_NOT_EQUAL(vec.size(), vecClone.size());
+}
+
+
+namespace
+{
+  class SomeClass
+  {
+  public:
+    SomeClass(int value) : value(value)
+    {
+    }
+    int value;
+  };
+
+  std::vector<std::unique_ptr<SomeClass>> uniqueVector()
+  {
+    std::vector<std::unique_ptr<SomeClass>> result;
+    result.push_back(std::make_unique<SomeClass>(1));
+    result.push_back(std::make_unique<SomeClass>(2));
+    return result;
+  }
+}
+
+TESTCASE(UniqueVector)
+{
+  Module m(anonymous_module());
+
+  Class c = define_class<SomeClass>("SomeClass").
+    define_constructor(Constructor<SomeClass, int>()).
+    define_attr("value", &SomeClass::value);
+
+  m.define_module_function("unique_vector", &uniqueVector);
+
+  std::string code = R"(vector = unique_vector
+                        vector.size)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 }
 
 namespace
@@ -637,9 +675,9 @@ TESTCASE(AutoRegisterParameter)
   define_global_function("pass_complex_vector", &passComplexVector);
 
   std::string code = R"(vector = Std::Vector≺complex≺double≻≻.new
-                          vector << Complex(4.0, 4.0)
-                          vector << Complex(5.0, 5.0)
-                          pass_complex_vector(vector))";
+                        vector << Complex(4.0, 4.0)
+                        vector << Complex(5.0, 5.0)
+                        pass_complex_vector(vector))";
 
   Module m = define_module("Testing");
   Object vec = m.module_eval(code);
