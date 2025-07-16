@@ -164,7 +164,7 @@ namespace Rice::detail
         }
       }
 
-      return this->toRuby_.convert(std::forward<Return_T>(nativeResult));
+      return this->toRuby_.convert(nativeResult);
     }
   }
 

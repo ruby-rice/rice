@@ -65,7 +65,7 @@ namespace Rice::detail
     VALUE convert(std::unique_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-      return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, std::move(data), true);
+      return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
 
   private:

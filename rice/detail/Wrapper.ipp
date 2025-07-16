@@ -112,6 +112,21 @@ namespace Rice::detail
       result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
+    // std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> return true. Sigh.
+    else if constexpr (detail::is_std_vector_v<T>)
+    {
+      if constexpr (std::is_copy_constructible_v<typename T::value_type>)
+      {
+        wrapper = new Wrapper<T>(data);
+        result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+      }
+      else
+      {
+        wrapper = new Wrapper<T>(std::move(data));
+        result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+      }
+    }
+
     // Ruby is the owner so copy data
     else if constexpr (std::is_copy_constructible_v<T>)
     {
@@ -122,7 +137,7 @@ namespace Rice::detail
     // Ruby is the owner so move data
     else if constexpr (std::is_move_constructible_v<T>)
     {
-      wrapper = new Wrapper<T>(std::forward<T>(data));
+      wrapper = new Wrapper<T>(std::move(data));
       result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 

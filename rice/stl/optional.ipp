@@ -40,7 +40,7 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::optional<T>& data)
+    VALUE convert(std::optional<T>& data)
     {
       if (data.has_value())
       {

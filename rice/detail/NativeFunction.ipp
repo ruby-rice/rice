@@ -96,7 +96,7 @@ namespace Rice::detail
       Return_T nativeResult = std::apply(this->function_, std::forward<Arg_Ts>(nativeArgs));
 
       // Return the result
-      return this->toRuby_.convert(std::forward<Return_T>(nativeResult));
+      return this->toRuby_.convert(nativeResult);
     }
   }
 
