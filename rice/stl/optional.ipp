@@ -17,7 +17,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -25,6 +25,9 @@ namespace Rice::detail
     {
       return Qnil;
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>
@@ -33,11 +36,11 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
-    VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
+    VALUE convert(const std::optional<T>& data)
     {
       if (data.has_value())
       {
@@ -48,6 +51,9 @@ namespace Rice::detail
         return Qnil;
       }
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>
@@ -56,11 +62,11 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
-    VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
+    VALUE convert(const std::optional<T>& data)
     {
       if (data.has_value())
       {
@@ -71,6 +77,9 @@ namespace Rice::detail
         return Qnil;
       }
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>

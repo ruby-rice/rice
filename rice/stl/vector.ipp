@@ -589,7 +589,7 @@ namespace Rice
     public:
       To_Ruby() = default;
 
-      explicit To_Ruby(Return* returnInfo)
+      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
       {
       }
 
@@ -597,6 +597,9 @@ namespace Rice
       {
         return value ? Qtrue : Qfalse;
       }
+
+    private:
+      Return* returnInfo_ = nullptr;
     };
   }
 }

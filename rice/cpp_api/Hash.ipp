@@ -229,7 +229,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -237,6 +237,9 @@ namespace Rice::detail
     {
       return x.value();
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>

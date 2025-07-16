@@ -17,7 +17,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -28,6 +28,9 @@ namespace Rice::detail
       args[1] = To_Ruby<T>().convert(data.imag());
       return protect(rb_funcallv, rb_mKernel, rb_intern("Complex"), (int)args.size(), (const VALUE*)args.data());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>
@@ -36,7 +39,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -47,6 +50,9 @@ namespace Rice::detail
       args[1] = To_Ruby<T>().convert(data.imag());
       return protect(rb_funcallv, rb_mKernel, rb_intern("Complex"), (int)args.size(), (const VALUE*)args.data());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>

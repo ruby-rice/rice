@@ -17,14 +17,17 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
-    VALUE convert(const std::reference_wrapper<T>& data, bool takeOwnership = false)
+    VALUE convert(const std::reference_wrapper<T>& data)
     {
       return To_Ruby<T&>().convert(data.get());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>

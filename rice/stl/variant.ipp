@@ -27,7 +27,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -81,18 +81,22 @@ namespace Rice::detail
     }
 
     template<typename U>
-    VALUE convert(U& data, bool takeOwnership = false)
+    VALUE convert(U& data)
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
-      return convertIterator(data, takeOwnership, indices);
+      return convertIterator(data, true, indices);
     }
 
     template<typename U>
-    VALUE convert(U&& data, bool takeOwnership = false)
+    VALUE convert(U&& data)
     {
+      bool isOwner = true;
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
-      return convertIterator(data, takeOwnership, indices);
+      return convertIterator(data, isOwner, indices);
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename...Types>
@@ -101,7 +105,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -143,11 +147,15 @@ namespace Rice::detail
     }
 
     template<typename U>
-    VALUE convert(U& data, bool takeOwnership = false)
+    VALUE convert(U& data)
     {
+      bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
-      return convertIterator(data, takeOwnership, indices);
+      return convertIterator(data, isOwner, indices);
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename...Types>

@@ -197,14 +197,17 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
-    static VALUE convert(Object const& x)
+    VALUE convert(Object const& x)
     {
       return x.value();
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>
@@ -213,14 +216,17 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
-    static VALUE convert(Object const& x)
+    VALUE convert(Object const& x)
     {
       return x.value();
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>

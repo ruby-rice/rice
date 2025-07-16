@@ -15,20 +15,39 @@ namespace Rice::detail
   class To_Ruby<std::monostate>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    {
+    }
+
     VALUE convert(const std::monostate& _)
     {
       return Qnil;
     }
+
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>
   class To_Ruby<std::monostate&>
   {
   public:
-    static VALUE convert(const std::monostate& data, bool takeOwnership = false)
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    {
+    }
+
+    VALUE convert(const std::monostate& data)
     {
       return Qnil;
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>

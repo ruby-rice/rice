@@ -17,7 +17,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -25,6 +25,9 @@ namespace Rice::detail
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>
@@ -33,7 +36,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -42,6 +45,9 @@ namespace Rice::detail
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>
@@ -50,7 +56,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -59,6 +65,9 @@ namespace Rice::detail
     {
       return detail::protect(rb_external_str_new, x->data(), (long)x->size());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>
@@ -67,7 +76,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -76,6 +85,9 @@ namespace Rice::detail
     {
       return detail::protect(rb_external_str_new, x->data(), (long)x->size());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>
@@ -84,7 +96,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -94,6 +106,9 @@ namespace Rice::detail
       Data_Object<Buffer<std::string*>> dataObject(std::move(buffer));
       return dataObject.value();
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>

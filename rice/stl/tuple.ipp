@@ -27,11 +27,11 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
-    VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
+    VALUE convert(const std::tuple<Types...>& data)
     {
       Array result;
 
@@ -43,6 +43,9 @@ namespace Rice::detail
 
       return result.value();
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename...Types>
@@ -51,11 +54,11 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
-    VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
+    VALUE convert(const std::tuple<Types...>& data)
     {
       Array result;
 
@@ -67,6 +70,9 @@ namespace Rice::detail
 
       return result.value();
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename...Types>
