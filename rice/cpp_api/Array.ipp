@@ -24,16 +24,16 @@ namespace Rice
   {
     for (; it != end; ++it)
     {
-      push(*it);
+      push(*it, false);
     }
   }
 
   template<typename T, long n>
-  inline Array::Array(T const (&a)[n]) : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
+  inline Array::Array(T (&a)[n]) : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
   {
     for (long j = 0; j < n; ++j)
     {
-      push(a[j]);
+      push(a[j], false);
     }
   }
 
@@ -65,9 +65,16 @@ namespace Rice
   }
 
   template<typename T>
-  inline Object Array::push(T obj)
+  inline Object Array::push(T&& obj, bool takeOwnership)
   {
-    return detail::protect(rb_ary_push, value(), detail::To_Ruby<T>().convert(std::forward<T>(obj)));
+    Return returnInfo;
+    if (takeOwnership)
+    {
+      returnInfo.takeOwnership();
+    }
+
+    detail::To_Ruby<detail::remove_cv_recursive_t<T>> toRuby(&returnInfo);
+    return detail::protect(rb_ary_push, value(), toRuby.convert(std::forward<T>(obj)));
   }
 
   inline Object Array::pop()

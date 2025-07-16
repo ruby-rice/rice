@@ -176,9 +176,9 @@ namespace Rice
         klass_.define_method("to_a", [](T& self) -> VALUE
         {
           Array array;
-          for (const Value_T& element: self)
+          for (auto element: self)
           {
-            array.push(element);
+            array.push(element, false);
           }
 
           return array.value();

@@ -178,6 +178,40 @@ namespace Rice::detail
   };
 
   template<>
+  class From_Ruby<std::string&&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_STRING:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
+    std::string&& convert(VALUE value)
+    {
+      detail::protect(rb_check_type, value, (int)T_STRING);
+      this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      return std::move(this->converted_);
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::string converted_ = "";
+  };
+
+  template<>
   class From_Ruby<std::string*>
   {
   public:

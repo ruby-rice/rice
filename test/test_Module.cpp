@@ -1,4 +1,4 @@
-﻿#include "unittest.hpp"
+#include "unittest.hpp"
 #include "embed_ruby.hpp"
 
 #include <rice/rice.hpp>
@@ -208,8 +208,8 @@ TESTCASE(include_module)
   ASSERT_EQUAL(&m, &m2);
   Array ancestors(m.ancestors());
   Array expected_ancestors;
-  expected_ancestors.push(m);
-  expected_ancestors.push(Module(rb_mEnumerable));
+  expected_ancestors.push(m, false);
+  expected_ancestors.push(Module(rb_mEnumerable), false);
   ASSERT_EQUAL(expected_ancestors, ancestors);
 }
 

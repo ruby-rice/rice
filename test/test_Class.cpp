@@ -41,12 +41,12 @@ TESTCASE(include_module)
   ASSERT_EQUAL(&c, &c2);
   Array ancestors(c.ancestors());
   Array expected_ancestors;
-  expected_ancestors.push(c);
-  expected_ancestors.push(Module(rb_mEnumerable));
-  expected_ancestors.push(Module(rb_cObject));
-  expected_ancestors.push(Module(rb_mKernel));
+  expected_ancestors.push(c, false);
+  expected_ancestors.push(Module(rb_mEnumerable), false);
+  expected_ancestors.push(Module(rb_cObject), false);
+  expected_ancestors.push(Module(rb_mKernel), false);
 #ifdef RUBY_VM
-  expected_ancestors.push(Module(rb_cBasicObject));
+  expected_ancestors.push(Module(rb_cBasicObject), false);
 #endif
   ASSERT_EQUAL(expected_ancestors, ancestors);
 }

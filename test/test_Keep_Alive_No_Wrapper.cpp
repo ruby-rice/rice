@@ -37,10 +37,12 @@ namespace
         pets_.clear();
       }
 
-    Object getPets(void)    {
+    Object getPets(void)
+    {
       Array pets;
-      for(auto p: pets_) {
-        pets.push(p);
+      for(auto p: pets_)
+      {
+        pets.push(p, false);
       }
       return pets;
     }

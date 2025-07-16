@@ -47,7 +47,7 @@ namespace Rice
     /*! \param a a C array of type T and size n.
      */
     template<typename T, long n>
-    Array(T const (&a)[n]);
+    Array(T (&a)[n]);
 
   public:
     //! Return the size of the array.
@@ -92,7 +92,7 @@ namespace Rice
      *  \return the object which was pushed onto the array.
      */
     template<typename T>
-    Object push(T obj);
+    Object push(T&& obj, bool takeOwnership);
 
     //! Pop an element from the end of the array
     /*! \return the object which was popped from the array, or Qnil if
