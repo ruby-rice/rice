@@ -17,7 +17,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -28,6 +28,9 @@ namespace Rice::detail
       args[1] = To_Ruby<T>().convert(data.imag());
       return protect(rb_funcallv, rb_mKernel, rb_intern("Complex"), (int)args.size(), (const VALUE*)args.data());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>
@@ -36,7 +39,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
@@ -47,6 +50,9 @@ namespace Rice::detail
       args[1] = To_Ruby<T>().convert(data.imag());
       return protect(rb_funcallv, rb_mKernel, rb_intern("Complex"), (int)args.size(), (const VALUE*)args.data());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>
@@ -109,6 +115,41 @@ namespace Rice::detail
       this->converted_ = std::complex<T>(From_Ruby<T>().convert(real), From_Ruby<T>().convert(imaginary));
 
       return this->converted_;
+    }
+
+  private:
+    std::complex<T> converted_;
+  };
+
+  template<typename T>
+  class From_Ruby<std::complex<T>&&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_COMPLEX:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
+    std::complex<T>&& convert(VALUE value)
+    {
+      VALUE real = protect(rb_funcallv, value, rb_intern("real"), 0, (const VALUE*)nullptr);
+      VALUE imaginary = protect(rb_funcallv, value, rb_intern("imaginary"), 0, (const VALUE*)nullptr);
+      this->converted_ = std::complex<T>(From_Ruby<T>().convert(real), From_Ruby<T>().convert(imaginary));
+
+      return std::forward<std::complex<T>>(this->converted_);
     }
 
   private:

@@ -95,10 +95,39 @@ namespace Rice::detail
   class To_Ruby<Module>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    {
+    }
+
     VALUE convert(Module const& x)
     {
       return x.value();
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
+  };
+
+
+  template<>
+  class To_Ruby<Module&>
+  {
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    {
+    }
+
+    VALUE convert(Module const& x)
+    {
+      return x.value();
+    }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>

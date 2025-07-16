@@ -179,7 +179,7 @@ namespace Rice::detail
     {
       std::pair<VALUE, rb_data_type_t*>& value = pair.second;
       Class klass = value.first;
-      result.push(klass);
+      result.push(klass, false);
     }
     return result;
   }

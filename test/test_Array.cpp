@@ -74,7 +74,7 @@ TESTCASE(push_no_items)
 TESTCASE(push_one_item)
 {
   Array a;
-  a.push(Rice::True);
+  a.push(Rice::True, false);
   ASSERT_EQUAL(1, a.size());
   ASSERT_EQUAL(Qtrue, a[0]);
 }
@@ -82,8 +82,8 @@ TESTCASE(push_one_item)
 TESTCASE(push_two_items)
 {
   Array a;
-  a.push(42);
-  a.push(43);
+  a.push(42, false);
+  a.push(43, false);
   ASSERT_EQUAL(2, a.size());
   ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(a[0].value()));
   ASSERT_EQUAL(43, detail::From_Ruby<int>().convert(a[1].value()));
@@ -92,9 +92,9 @@ TESTCASE(push_two_items)
 TESTCASE(push_three_items)
 {
   Array a;
-  a.push(42);
-  a.push(43);
-  a.push(44);
+  a.push(42, false);
+  a.push(43, false);
+  a.push(44, false);
   ASSERT_EQUAL(3, a.size());
   ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(a[0].value()));
   ASSERT_EQUAL(43, detail::From_Ruby<int>().convert(a[1].value()));
@@ -104,7 +104,7 @@ TESTCASE(push_three_items)
 TESTCASE(push_int)
 {
   Array a;
-  a.push(42);
+  a.push(42, false);
   ASSERT_EQUAL(1, a.size());
   ASSERT(rb_equal(detail::to_ruby(42), a[0].value()));
 }
@@ -112,9 +112,9 @@ TESTCASE(push_int)
 TESTCASE(bracket_equals)
 {
   Array a;
-  a.push(42);
-  a.push(43);
-  a.push(44);
+  a.push(42, false);
+  a.push(43, false);
+  a.push(44, false);
   a[1] = 10;
   ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(a[1].value()));
 }
@@ -122,9 +122,9 @@ TESTCASE(bracket_equals)
 TESTCASE(to_s)
 {
   Array a;
-  a.push(42);
-  a.push(43);
-  a.push(44);
+  a.push(42, false);
+  a.push(43, false);
+  a.push(44, false);
   String s1(a.call("to_s"));
   String s2(a.to_s());
   ASSERT_EQUAL(s1.str(), s2.str());
@@ -133,9 +133,9 @@ TESTCASE(to_s)
 TESTCASE(pop)
 {
   Array a;
-  a.push(42);
-  a.push(43);
-  a.push(44);
+  a.push(42, false);
+  a.push(43, false);
+  a.push(44, false);
   VALUE result = a.pop();
   ASSERT_EQUAL(2, a.size());
   ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(a[0].value()));
@@ -146,9 +146,9 @@ TESTCASE(pop)
 TESTCASE(unshift)
 {
   Array a;
-  a.push(42);
-  a.push(43);
-  a.push(44);
+  a.push(42, false);
+  a.push(43, false);
+  a.push(44, false);
   a.unshift(10);
   ASSERT_EQUAL(4, a.size());
   ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(a[0].value()));
@@ -168,9 +168,9 @@ TESTCASE(unshift_int)
 TESTCASE(shift)
 {
   Array a;
-  a.push(42);
-  a.push(43);
-  a.push(44);
+  a.push(42, false);
+  a.push(43, false);
+  a.push(44, false);
   VALUE result = a.shift();
   ASSERT_EQUAL(2, a.size());
   ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
@@ -181,9 +181,9 @@ TESTCASE(shift)
 TESTCASE(iterate)
 {
   Array a;
-  a.push(42);
-  a.push(43);
-  a.push(44);
+  a.push(42, false);
+  a.push(43, false);
+  a.push(44, false);
   int ca[] = { 42, 43, 44 };
   Array::iterator it = a.begin();
   Array::iterator end = a.end();
@@ -196,9 +196,9 @@ TESTCASE(iterate)
 TESTCASE(const_iterate)
 {
   Array a;
-  a.push(42);
-  a.push(43);
-  a.push(44);
+  a.push(42, false);
+  a.push(43, false);
+  a.push(44, false);
   int ca[] = { 42, 43, 44 };
   Array::const_iterator it = a.begin();
   Array::const_iterator end = a.end();
@@ -211,9 +211,9 @@ TESTCASE(const_iterate)
 TESTCASE(iterate_and_change)
 {
   Array a;
-  a.push(42);
-  a.push(43);
-  a.push(44);
+  a.push(42, false);
+  a.push(43, false);
+  a.push(44, false);
   Array::iterator it = a.begin();
   Array::iterator end = a.end();
   for(int j = 0; it != end; ++j, ++it)
@@ -229,9 +229,9 @@ TESTCASE(iterate_and_change)
 TESTCASE(iterate_and_call_member)
 {
   Array a;
-  a.push(42);
-  a.push(43);
-  a.push(44);
+  a.push(42, false);
+  a.push(43, false);
+  a.push(44, false);
   Array::iterator it = a.begin();
   Array::iterator end = a.end();
   std::vector<Object> v;
@@ -251,9 +251,9 @@ TESTCASE(iterate_and_call_member)
 TESTCASE(find_if)
 {
   Array rubyValues;
-  rubyValues.push(42);
-  rubyValues.push(43);
-  rubyValues.push(44);
+  rubyValues.push(42, false);
+  rubyValues.push(43, false);
+  rubyValues.push(44, false);
 
   auto iter = std::find_if(rubyValues.begin(), rubyValues.end(),
     [&rubyValues](const Object& object)
@@ -267,7 +267,7 @@ TESTCASE(find_if)
 TESTCASE(assign_int)
 {
   Array a;
-  a.push(42);
+  a.push(42, false);
   a[0] = 10;
   ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(a[0].value()));
 }

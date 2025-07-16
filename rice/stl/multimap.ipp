@@ -74,14 +74,14 @@ namespace Rice
       {
         // Access methods
         klass_.
-          define_method("[]", [](const T& multimap, const Key_T& key) -> Array
+          define_method("[]", [](T& multimap, const Key_T& key) -> Array
           {
             Array result;
             auto range = multimap.equal_range(key);
 
             for (auto iter = range.first; iter != range.second; iter++)
             {
-              result.push<Mapped_T>(iter->second);
+              result.push(iter->second, false);
             }
 
             return result;

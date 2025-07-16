@@ -27,22 +27,24 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
-    VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
+    VALUE convert(const std::tuple<Types...>& data)
     {
       Array result;
 
       for_each_tuple(data, [&](auto element)
       {
-        using Element_T = decltype(element);
-        result.push<Element_T>((Element_T)element);
+        result.push(element, true);
       });
 
       return result.value();
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename...Types>
@@ -51,22 +53,26 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo)
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
 
-    VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
+    VALUE convert(const std::tuple<Types...>& data)
     {
       Array result;
 
-      for_each_tuple(data, [&](auto& value)
-        {
-          VALUE element = detail::To_Ruby<decltype(value)>().convert(value);
-          result.push(element);
-        });
+      bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
+
+      for_each_tuple(data, [&](auto& element)
+      {
+        result.push(element, isOwner);
+      });
 
       return result.value();
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename...Types>

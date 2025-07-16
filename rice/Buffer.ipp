@@ -256,7 +256,7 @@ namespace Rice
 
       for (; ptr < end; ptr++)
       {
-        result.push(*ptr);
+        result.push(*ptr, false);
       }
       return result;
     }
@@ -457,7 +457,7 @@ namespace Rice
       for (; ptr < end; ptr++)
       {
         Buffer<T> buffer(*ptr);
-        result.push(std::move(buffer));
+        result.push(std::move(buffer), true);
       }
       return result;
     }
@@ -638,7 +638,7 @@ namespace Rice
 
       for (; ptr < end; ptr++)
       {
-        result.push(*ptr);
+        result.push(*ptr, false);
       }
       return result;
     }
