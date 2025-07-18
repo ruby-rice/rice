@@ -1,0 +1,22 @@
+module Bmp
+  class BitmapHeader
+    attr_accessor bits_per_pixel: Integer
+    attr_accessor clr_important: Integer
+    attr_accessor clr_used: Integer
+    attr_accessor compression: Integer
+    attr_accessor file_size: Integer
+    attr_accessor height: Integer
+    attr_accessor magic: Integer
+    attr_accessor offset_bits: Integer
+    attr_accessor planes: Integer
+    attr_accessor reserved1: Integer
+    attr_accessor reserved2: Integer
+    attr_accessor size: Integer
+    attr_accessor size_image: Integer
+    attr_accessor width: Integer
+    attr_accessor x_pixels_per_meter: Integer
+    attr_accessor y_pixels_per_meter: Integer
+
+    def initialize: () -> void
+  end
+end
