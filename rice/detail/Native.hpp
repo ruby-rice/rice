@@ -20,8 +20,9 @@ namespace Rice::detail
   {
     Function,
     Method,
-    Attribute_Read,
-    Attribute_Write,
+    Iterator,
+    AttributeReader,
+    AttributeWriter,
     Proc
   };
 
@@ -42,9 +43,13 @@ namespace Rice::detail
     virtual Resolved matches(size_t argc, const VALUE* argv, VALUE self);
     virtual VALUE operator()(size_t argc, const VALUE* argv, VALUE self) = 0;
     virtual std::string toString() = 0;
-    //virtual NativeKind nativeKind() = 0;
-    //virtual std::vector<Parameter*> params() = 0;
-    //virtual std::string name() = 0;
+
+    // Ruby API access
+    virtual std::string name() = 0;
+    virtual NativeKind kind() = 0;
+    virtual std::string rubyReturnType() = 0;
+    std::vector<const ParameterAbstract*> parameters();
+
   protected:
     std::vector<std::optional<VALUE>> getRubyValues(size_t argc, const VALUE* argv, bool validate);
     ParameterAbstract* getParameterByName(std::string name);

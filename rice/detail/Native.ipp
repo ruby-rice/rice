@@ -188,7 +188,6 @@ namespace Rice::detail
     return result;
   }
 
-
   inline std::vector<std::optional<VALUE>> Native::getRubyValues(size_t argc, const VALUE* argv, bool validate)
   {
 #undef max
@@ -297,6 +296,19 @@ namespace Rice::detail
 
       result.parameterMatch = providedValues / (double)this->parameters_.size();
     }
+    return result;
+  }
+
+  inline std::vector<const ParameterAbstract*> Native::parameters()
+  {
+    std::vector<const ParameterAbstract*> result;
+
+    std::transform(this->parameters_.begin(), this->parameters_.end(), std::back_inserter(result),
+      [](std::unique_ptr<ParameterAbstract>& parameter) -> ParameterAbstract*
+      {
+        return parameter.get();
+      });
+      
     return result;
   }
 }

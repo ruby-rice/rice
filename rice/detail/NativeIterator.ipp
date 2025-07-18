@@ -101,4 +101,22 @@ namespace Rice::detail
   {
     return "";
   }
+
+  template<typename T, typename Iterator_Func_T>
+  inline std::string NativeIterator<T, Iterator_Func_T>::name()
+  {
+    return this->method_name_;
+  }
+
+  template<typename T, typename Iterator_Func_T>
+  inline NativeKind NativeIterator<T, Iterator_Func_T>::kind()
+  {
+    return NativeKind::Iterator;
+  }
+
+  template<typename T, typename Iterator_Func_T>
+  inline std::string NativeIterator<T, Iterator_Func_T>::rubyReturnType()
+  {
+    return rubyClassName(typeName(typeid(Value_T)));
+  }
 }

@@ -90,8 +90,21 @@ namespace Rice::detail
   }
 
   template<typename T>
-  inline std::string Parameter<T>::cppType()
+  inline std::string Parameter<T>::cppTypeName()
   {
     return cppClassName(typeName(typeid(T)));
+  }
+
+  template<typename T>
+  inline std::string Parameter<T>::rubyTypeName()
+  {
+    if constexpr (std::is_fundamental_v<T>)
+    {
+      return RubyType<T>::name;
+    }
+    else
+    {
+      return rubyClassName(typeName(typeid(T)));
+    }
   }
 }

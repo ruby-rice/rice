@@ -177,4 +177,29 @@ namespace Rice::detail
 
     return result;
   }
+
+  template<typename Function_T>
+  inline std::string NativeFunction<Function_T>::name()
+  {
+    return this->method_name_;
+  }
+
+  template<typename Function_T>
+  inline NativeKind NativeFunction<Function_T>::kind()
+  {
+    return NativeKind::Function;
+  }
+
+  template<typename Function_T>
+  inline std::string NativeFunction<Function_T>::rubyReturnType()
+  {
+    if constexpr (std::is_fundamental_v<Return_T>)
+    {
+      return RubyType<Return_T>::name;
+    }
+    else
+    {
+      return rubyClassName(typeName(typeid(Return_T)));
+    }
+  }
 }

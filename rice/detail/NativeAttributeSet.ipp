@@ -76,4 +76,29 @@ namespace Rice::detail
   {
     return "";
   }
+
+  template<typename Attribute_T>
+  inline std::string NativeAttributeSet<Attribute_T>::name()
+  {
+    return this->name_;
+  }
+
+  template<typename Attribute_T>
+  inline NativeKind NativeAttributeSet<Attribute_T>::kind()
+  {
+    return NativeKind::AttributeWriter;
+  }
+
+  template<typename Attribute_T>
+  inline std::string NativeAttributeSet<Attribute_T>::rubyReturnType()
+  {
+    if constexpr (std::is_fundamental_v<Attr_T>)
+    {
+      return RubyType<Attr_T>::name;
+    }
+    else
+    {
+      return rubyClassName(typeName(typeid(Attr_T)));
+    }
+  }
 } // Rice
