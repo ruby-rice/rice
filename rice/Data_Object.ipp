@@ -246,6 +246,12 @@ namespace Rice::detail
       {
         return Qnil;
       }
+      // Buffer_T buffer((T*)data); fails for const U
+      else if constexpr (std::is_const_v<U>)
+      {
+        std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
+        return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
+      }
       else if (this->returnInfo_ && this->returnInfo_->isArray())
       {
         using Buffer_T = Buffer<intrinsic_type<T>>;
