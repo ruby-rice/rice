@@ -114,7 +114,7 @@ namespace Rice::detail
   template<typename Proc_T>
   inline std::string NativeProc< Proc_T>::name()
   {
-    return this->method_name_;
+    return "proc";
   }
 
   template<typename Proc_T>
@@ -128,7 +128,7 @@ namespace Rice::detail
   {
     if constexpr (std::is_fundamental_v<Return_T>)
     {
-      return RubyType<Return_T>::name;
+      return RubyType< detail::remove_cv_recursive_t<Return_T>>::name;
     }
     else
     {

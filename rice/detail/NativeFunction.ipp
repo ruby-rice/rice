@@ -39,7 +39,7 @@ namespace Rice::detail
     std::vector<std::string> result;
     for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)
     {
-      result.push_back(parameter->cppType());
+      result.push_back(parameter->cppTypeName());
     }
     return result;
   }
@@ -195,7 +195,7 @@ namespace Rice::detail
   {
     if constexpr (std::is_fundamental_v<Return_T>)
     {
-      return RubyType<Return_T>::name;
+      return RubyType< detail::remove_cv_recursive_t<Return_T>>::name;
     }
     else
     {

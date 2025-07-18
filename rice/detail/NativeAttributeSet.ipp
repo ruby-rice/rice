@@ -94,7 +94,7 @@ namespace Rice::detail
   {
     if constexpr (std::is_fundamental_v<Attr_T>)
     {
-      return RubyType<Attr_T>::name;
+      return RubyType<detail::remove_cv_recursive_t<Attr_T>>::name;
     }
     else
     {
