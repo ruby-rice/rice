@@ -1,7 +1,6 @@
 using namespace Rice;
 
 #include <ostream>
-#include <rice/detail/Native.hpp>
 
 extern "C"
 inline void Init_Native()

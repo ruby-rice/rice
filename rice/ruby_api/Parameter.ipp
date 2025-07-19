@@ -1,5 +1,3 @@
-#include <rice/detail/Parameter.hpp>
-
 using namespace Rice;
 
 inline void Init_Parameter()

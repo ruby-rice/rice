@@ -1,6 +1,3 @@
-#include <rice/detail/Native.hpp>
-#include <rice/detail/NativeRegistry.hpp>
-
 using namespace Rice;
 
 extern "C"

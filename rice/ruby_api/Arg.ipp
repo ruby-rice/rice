@@ -1,5 +1,3 @@
-#include <rice/Arg.hpp>
-
 using namespace Rice;
 
 inline void Init_Arg()
