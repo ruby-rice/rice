@@ -110,4 +110,29 @@ namespace Rice::detail
 
     return result;
   }
+
+  template<typename Proc_T>
+  inline std::string NativeProc< Proc_T>::name()
+  {
+    return "proc";
+  }
+
+  template<typename Proc_T>
+  inline NativeKind NativeProc< Proc_T>::kind()
+  {
+    return NativeKind::Proc;
+  }
+
+  template<typename Proc_T>
+  inline std::string NativeProc< Proc_T>::rubyReturnType()
+  {
+    if constexpr (std::is_fundamental_v<Return_T>)
+    {
+      return RubyType< detail::remove_cv_recursive_t<Return_T>>::name;
+    }
+    else
+    {
+      return rubyClassName(typeName(typeid(Return_T)));
+    }
+  }
 }

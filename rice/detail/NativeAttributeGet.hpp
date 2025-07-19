@@ -18,9 +18,9 @@ namespace Rice
     public:
       using NativeAttribute_T = NativeAttributeGet<Attribute_T>;
 
-      using T = typename attribute_traits<Attribute_T>::attr_type;
+      using Attr_T = typename attribute_traits<Attribute_T>::attr_type;
       using Receiver_T = typename attribute_traits<Attribute_T>::class_type;
-      using To_Ruby_T = remove_cv_recursive_t<T>;
+      using To_Ruby_T = remove_cv_recursive_t<Attr_T>;
 
     public:
       // Register attribute getter with Ruby
@@ -37,6 +37,10 @@ namespace Rice
       Resolved matches(size_t argc, const VALUE* argv, VALUE self) override;
       VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
       std::string toString() override;
+
+      std::string name() override;
+      NativeKind kind() override;
+      std::string rubyReturnType() override;
 
     protected:
       NativeAttributeGet(VALUE klass, std::string name, Attribute_T attr);

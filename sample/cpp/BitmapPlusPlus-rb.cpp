@@ -201,6 +201,6 @@ void Init_BitmapPlusPlus()
   return Rice::detail::cpp_protect([]
   {
       initialize();
-      //Init_Ruby_Api();
+      Init_Ruby_Api();
   });
 }

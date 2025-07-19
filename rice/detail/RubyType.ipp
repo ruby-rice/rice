@@ -11,6 +11,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_NIL };
     static inline std::set<ruby_value_type> Narrowable = {  };
     static inline std::string packTemplate = "not supported";
+    static inline std::string name = "bool";
   };
 
   template<>
@@ -24,6 +25,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = CHAR_MIN < 0 ? "c*" : "C*";
+    static inline std::string name = "String";
   };
 
   template<>
@@ -38,6 +40,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "c*";
+    static inline std::string name = "String";
   };
 
   template<>
@@ -52,6 +55,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "C*";
+    static inline std::string name = "String";
   };
 
   template<>
@@ -65,6 +69,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "s*";
+    static inline std::string name = "Integer";
   };
 
   template<>
@@ -78,6 +83,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "S*";
+    static inline std::string name = "Integer";
   };
 
   template<>
@@ -93,6 +99,7 @@ namespace Rice::detail
     // while int can go up to 4 billion
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "i*";
+    static inline std::string name = "Integer";
   };
 
   template<>
@@ -108,6 +115,7 @@ namespace Rice::detail
     // while int can go up to 4 billion
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "I*";
+    static inline std::string name = "Integer";
   };
 
   template<>
@@ -121,6 +129,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "l_*";
+    static inline std::string name = "Integer";
   };
 
   template<>
@@ -134,6 +143,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM};
     static inline std::string packTemplate = "L_*";
+    static inline std::string name = "Integer";
   };
 
   template<>
@@ -147,6 +157,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "q_*";
+    static inline std::string name = "Integer";
   };
 
   template<>
@@ -160,6 +171,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "Q_*";
+    static inline std::string name = "Integer";
   };
 
   template<>
@@ -173,6 +185,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_FIXNUM };
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FLOAT };
     static inline std::string packTemplate = "f*";
+    static inline std::string name = "Float";
   };
 
   template<>
@@ -186,6 +199,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { RUBY_T_FIXNUM, RUBY_T_BIGNUM };
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "d*";
+    static inline std::string name = "Float";
   };
 
   template<>
@@ -195,6 +209,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Exact = { };
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { };
+    static inline std::string name = "void";
   };
 }
 

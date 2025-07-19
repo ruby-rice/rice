@@ -172,9 +172,10 @@ namespace Rice::detail
     throw std::invalid_argument(message);
   }
 
-  inline VALUE TypeRegistry::types()
+  inline VALUE TypeRegistry::klasses()
   {
     Array result;
+
     for (auto& pair : this->registry_)
     {
       std::pair<VALUE, rb_data_type_t*>& value = pair.second;

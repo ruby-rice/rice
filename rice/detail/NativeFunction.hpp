@@ -56,6 +56,10 @@ namespace Rice::detail
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
 
+    std::string name() override;
+    NativeKind kind() override;
+    std::string rubyReturnType() override;
+
   private:
     template<std::size_t...I>
     std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);

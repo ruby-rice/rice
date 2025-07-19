@@ -16,7 +16,8 @@ namespace Rice::detail
     ParameterAbstract& operator=(ParameterAbstract&& other) = default;
 
     virtual Convertible matches(std::optional<VALUE>& valueOpt) = 0;
-    virtual std::string cppType() = 0;
+    virtual std::string cppTypeName() = 0;
+    virtual std::string rubyTypeName() = 0;
 
   public:
     Arg* arg = nullptr;
@@ -35,7 +36,8 @@ namespace Rice::detail
 
      T convertToNative(std::optional<VALUE>& valueOpt);
      Convertible matches(std::optional<VALUE>& valueOpt) override;
-     std::string cppType() override;
+     std::string cppTypeName() override;
+     std::string rubyTypeName() override;
 
     // std::string typeName() override;
   private:

@@ -26,6 +26,10 @@ namespace Rice::detail
     NativeProc(Proc_T proc, MethodInfo* methodInfo);
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
+    
+    std::string name() override;
+    NativeKind kind() override;
+    std::string rubyReturnType() override;
 
   private:
     static VALUE finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);

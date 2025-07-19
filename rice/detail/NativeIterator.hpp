@@ -30,6 +30,10 @@ namespace Rice::detail
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
 
+    std::string name() override;
+    NativeKind kind() override;
+    std::string rubyReturnType() override;
+
   protected:
     NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end);
 

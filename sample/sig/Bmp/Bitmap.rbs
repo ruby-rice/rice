@@ -1,0 +1,39 @@
+module Bmp
+  class Bitmap
+    def initialize: () -> void
+               | (filename: String) -> void
+               | (width: Integer, height: Integer) -> void
+    def !: () -> bool
+    def !=: (image: Bitmap) -> bool
+    def ==: (image: Bitmap) -> bool
+    def []: (i: Integer) -> Pixel
+       | (i: Integer) -> Pixel
+    def []=: (arg_0: Integer, arg_1: Pixel) -> void
+    def assign: (image: Bitmap) -> Bitmap
+           | (image: Bitmap) -> Bitmap
+    def cbegin: () -> VectorConstIterator≺VectorVal≺SimpleTypes≺bmp꞉꞉Pixel≻≻≻
+    def cend: () -> VectorConstIterator≺VectorVal≺SimpleTypes≺bmp꞉꞉Pixel≻≻≻
+    def clear: (pixel: Pixel) -> void
+    def crbegin: () -> ReverseIterator≺VectorConstIterator≺VectorVal≺SimpleTypes≺bmp꞉꞉Pixel≻≻≻≻
+    def crend: () -> ReverseIterator≺VectorConstIterator≺VectorVal≺SimpleTypes≺bmp꞉꞉Pixel≻≻≻≻
+    def draw_circle: (center_x: Integer, center_y: Integer, radius: Integer, color: Pixel) -> void
+    def draw_line: (x1: Integer, y1: Integer, x2: Integer, y2: Integer, color: Pixel) -> void
+    def draw_rect: (x: Integer, y: Integer, width: Integer, height: Integer, color: Pixel) -> void
+    def draw_triangle: (x1: Integer, y1: Integer, x2: Integer, y2: Integer, x3: Integer, y3: Integer, color: Pixel) -> void
+    def fill_circle: (center_x: Integer, center_y: Integer, radius: Integer, color: Pixel) -> void
+    def fill_rect: (x: Integer, y: Integer, width: Integer, height: Integer, color: Pixel) -> void
+    def fill_triangle: (x1: Integer, y1: Integer, x2: Integer, y2: Integer, x3: Integer, y3: Integer, color: Pixel) -> void
+    def flip_h: () -> Bitmap
+    def flip_v: () -> Bitmap
+    def get: (x: Integer, y: Integer) -> Pixel
+        | (x: Integer, y: Integer) -> Pixel
+    def height: () -> Integer
+    def initialize_copy: (other: Bitmap) -> void
+    def load: (filename: Path) -> void
+    def rotate_90_left: () -> Bitmap
+    def rotate_90_right: () -> Bitmap
+    def save: (filename: Path) -> void
+    def set: (x: Integer, y: Integer, color: Pixel) -> void
+    def width: () -> Integer
+  end
+end
