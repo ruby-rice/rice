@@ -12,9 +12,6 @@ void Init_Native_Registry();
 #endif
 
 // =========   NativeRegistry.ipp   =========
-#include <rice/detail/Native.hpp>
-#include <rice/detail/NativeRegistry.hpp>
-
 using namespace Rice;
 
 extern "C"
@@ -40,8 +37,6 @@ inline void Init_Native_Registry()
 // =========   TypeRegistry.hpp   =========
 #ifndef Rice_Ruby_Api_Type_Registry_hpp
 #define Rice_Ruby_Api_Type_Registry_hpp
-
-#include <rice/rice.hpp>
 
 extern "C"
 void Init_Type_Registry();
@@ -86,16 +81,12 @@ inline void Init_Registries()
 #ifndef Rice_Ruby_Api_Arg_hpp
 #define Rice_Ruby_Api_Arg_hpp
 
-#include <rice/rice.hpp>
-
 extern "C"
 void Init_Arg();
 
 #endif
 
 // =========   Arg.ipp   =========
-#include <rice/Arg.hpp>
-
 using namespace Rice;
 
 inline void Init_Arg()
@@ -110,16 +101,12 @@ inline void Init_Arg()
 #ifndef Rice_Ruby_Api_Parameter_hpp
 #define Rice_Ruby_Api_Parameter_hpp
 
-#include <rice/rice.hpp>
-
 extern "C"
 void Init_Parameter();
 
 #endif
 
 // =========   Parameter.ipp   =========
-#include <rice/detail/Parameter.hpp>
-
 using namespace Rice;
 
 inline void Init_Parameter()
@@ -144,7 +131,6 @@ void Init_Native();
 using namespace Rice;
 
 #include <ostream>
-#include <rice/detail/Native.hpp>
 
 extern "C"
 inline void Init_Native()
