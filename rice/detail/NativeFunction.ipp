@@ -39,7 +39,7 @@ namespace Rice::detail
     std::vector<std::string> result;
     for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)
     {
-      result.push_back(parameter->cppType());
+      result.push_back(parameter->cppTypeName());
     }
     return result;
   }
@@ -176,5 +176,30 @@ namespace Rice::detail
     this->checkKeepAlive(self, result, rubyValues);
 
     return result;
+  }
+
+  template<typename Function_T>
+  inline std::string NativeFunction<Function_T>::name()
+  {
+    return this->method_name_;
+  }
+
+  template<typename Function_T>
+  inline NativeKind NativeFunction<Function_T>::kind()
+  {
+    return NativeKind::Function;
+  }
+
+  template<typename Function_T>
+  inline std::string NativeFunction<Function_T>::rubyReturnType()
+  {
+    if constexpr (std::is_fundamental_v<Return_T>)
+    {
+      return RubyType< detail::remove_cv_recursive_t<Return_T>>::name;
+    }
+    else
+    {
+      return rubyClassName(typeName(typeid(Return_T)));
+    }
   }
 }

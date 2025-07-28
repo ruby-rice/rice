@@ -44,7 +44,7 @@ namespace Rice::detail
     void clearUnverifiedTypes();
 
     // API for access from Ruby
-    VALUE types();
+    VALUE klasses();
 
   private:
     std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);

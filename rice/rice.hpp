@@ -38,6 +38,7 @@
 #include "Return.hpp"
 #include "detail/MethodInfo.hpp"
 #include "detail/from_ruby.hpp"
+#include "detail/RubyType.hpp"
 #include "detail/Parameter.hpp"
 #include "detail/Parameter.ipp"
 
@@ -60,9 +61,6 @@
 #include "detail/NativeAttributeSet.hpp"
 #include "Data_Type.hpp"
 #include "Data_Object.hpp"
-
-// Type Conversion declarations
-#include "detail/RubyType.hpp"
 #include "detail/RubyType.ipp"
 
 // Registries

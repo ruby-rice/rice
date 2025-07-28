@@ -119,6 +119,9 @@ namespace Rice::detail
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>
@@ -136,6 +139,9 @@ namespace Rice::detail
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>
@@ -153,6 +159,9 @@ namespace Rice::detail
     {
       return detail::protect(rb_external_str_new, x->data(), (long)x->size());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>
@@ -170,6 +179,9 @@ namespace Rice::detail
     {
       return detail::protect(rb_external_str_new, x->data(), (long)x->size());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>
@@ -188,6 +200,9 @@ namespace Rice::detail
       Data_Object<Buffer<std::string*>> dataObject(std::move(buffer));
       return dataObject.value();
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>
@@ -249,6 +264,40 @@ namespace Rice::detail
       detail::protect(rb_check_type, value, (int)T_STRING);
       this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
       return this->converted_;
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    std::string converted_ = "";
+  };
+
+  template<>
+  class From_Ruby<std::string&&>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_STRING:
+          return Convertible::Exact;
+          break;
+        default:
+          return Convertible::None;
+      }
+    }
+
+    std::string&& convert(VALUE value)
+    {
+      detail::protect(rb_check_type, value, (int)T_STRING);
+      this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
+      return std::move(this->converted_);
     }
 
   private:
@@ -395,6 +444,9 @@ namespace Rice::detail
       args[1] = To_Ruby<T>().convert(data.imag());
       return protect(rb_funcallv, rb_mKernel, rb_intern("Complex"), (int)args.size(), (const VALUE*)args.data());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>
@@ -414,6 +466,9 @@ namespace Rice::detail
       args[1] = To_Ruby<T>().convert(data.imag());
       return protect(rb_funcallv, rb_mKernel, rb_intern("Complex"), (int)args.size(), (const VALUE*)args.data());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>
@@ -555,6 +610,9 @@ namespace Rice::detail
     {
       return Qnil;
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>
@@ -567,7 +625,7 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
+    VALUE convert(std::optional<T>& data)
     {
       if (data.has_value())
       {
@@ -578,6 +636,9 @@ namespace Rice::detail
         return Qnil;
       }
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>
@@ -590,7 +651,7 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::optional<T>& data, bool takeOwnership = false)
+    VALUE convert(const std::optional<T>& data)
     {
       if (data.has_value())
       {
@@ -601,6 +662,9 @@ namespace Rice::detail
         return Qnil;
       }
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>
@@ -705,10 +769,13 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::reference_wrapper<T>& data, bool takeOwnership = false)
+    VALUE convert(const std::reference_wrapper<T>& data)
     {
       return To_Ruby<T&>().convert(data.get());
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename T>
@@ -1413,20 +1480,39 @@ namespace Rice::detail
   class To_Ruby<std::monostate>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    {
+    }
+
     VALUE convert(const std::monostate& _)
     {
       return Qnil;
     }
+
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>
   class To_Ruby<std::monostate&>
   {
   public:
-    static VALUE convert(const std::monostate& data, bool takeOwnership = false)
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    {
+    }
+
+    VALUE convert(const std::monostate& data)
     {
       return Qnil;
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<>
@@ -1578,14 +1664,14 @@ namespace Rice
       {
         // Access methods
         klass_.
-          define_method("[]", [](const T& multimap, const Key_T& key) -> Array
+          define_method("[]", [](T& multimap, const Key_T& key) -> Array
           {
             Array result;
             auto range = multimap.equal_range(key);
 
             for (auto iter = range.first; iter != range.second; iter++)
             {
-              result.push<Mapped_T>(iter->second);
+              result.push(iter->second, false);
             }
 
             return result;
@@ -2146,9 +2232,9 @@ namespace Rice
         klass_.define_method("to_a", [](T& self) -> VALUE
         {
           Array array;
-          for (const Value_T& element: self)
+          for (auto element: self)
           {
-            array.push(element);
+            array.push(element, false);
           }
 
           return array.value();
@@ -2773,18 +2859,20 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
+    VALUE convert(const std::tuple<Types...>& data)
     {
       Array result;
 
       for_each_tuple(data, [&](auto element)
       {
-        using Element_T = decltype(element);
-        result.push<Element_T>((Element_T)element);
+        result.push(element, true);
       });
 
       return result.value();
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename...Types>
@@ -2797,18 +2885,22 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::tuple<Types...>& data, bool takeOwnership = false)
+    VALUE convert(const std::tuple<Types...>& data)
     {
       Array result;
 
-      for_each_tuple(data, [&](auto& value)
-        {
-          VALUE element = detail::To_Ruby<decltype(value)>().convert(value);
-          result.push(element);
-        });
+      bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
+
+      for_each_tuple(data, [&](auto& element)
+      {
+        result.push(element, isOwner);
+      });
 
       return result.value();
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename...Types>
@@ -3046,18 +3138,22 @@ namespace Rice::detail
     }
 
     template<typename U>
-    VALUE convert(U& data, bool takeOwnership = false)
+    VALUE convert(U& data)
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
-      return convertIterator(data, takeOwnership, indices);
+      return convertIterator(data, true, indices);
     }
 
     template<typename U>
-    VALUE convert(U&& data, bool takeOwnership = false)
+    VALUE convert(U&& data)
     {
+      bool isOwner = true;
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
-      return convertIterator(data, takeOwnership, indices);
+      return convertIterator(data, isOwner, indices);
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename...Types>
@@ -3108,11 +3204,15 @@ namespace Rice::detail
     }
 
     template<typename U>
-    VALUE convert(U& data, bool takeOwnership = false)
+    VALUE convert(U& data)
     {
+      bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
-      return convertIterator(data, takeOwnership, indices);
+      return convertIterator(data, isOwner, indices);
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template<typename...Types>
@@ -3299,6 +3399,9 @@ namespace Rice::detail
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
       return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template <typename T>
@@ -3314,8 +3417,11 @@ namespace Rice::detail
     VALUE convert(std::unique_ptr<T>& data)
     {
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-      return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, std::move(data), true);
+      return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
     }
+
+  private:
+    Return* returnInfo_ = nullptr;
   };
 
   template <typename T>
@@ -3970,9 +4076,13 @@ namespace Rice
 
       void define_constructors()
       {
-        klass_.define_constructor(Constructor<T>())
-              .define_constructor(Constructor<T, Size_T, const Parameter_T>())
-              .define_constructor(Constructor<T, const T&>());
+        klass_.define_constructor(Constructor<T>());
+
+        if constexpr (std::is_copy_constructible_v<Value_T>)
+        {
+          klass_.define_constructor(Constructor<T, const T&>())
+                .define_constructor(Constructor<T, Size_T, const Parameter_T>());
+        }
 
         if constexpr (std::is_default_constructible_v<Value_T>)
         {
@@ -4034,42 +4144,87 @@ namespace Rice
 
       void define_access_methods()
       {
-        // Access methods
-        klass_.define_method("first", [](const T& vector) -> std::optional<Value_T>
+        if constexpr (!std::is_same_v<Value_T, bool>)
         {
-          if (vector.size() > 0)
+          // Access methods
+          klass_.define_method("first", [](T& vector) -> std::optional<std::reference_wrapper<Value_T>>
           {
-            return vector.front();
-          }
-          else
+            if (vector.size() > 0)
+            {
+              return vector.front();
+            }
+            else
+            {
+              return std::nullopt;
+            }
+          })
+          .define_method("last", [](T& vector) -> std::optional<std::reference_wrapper<Value_T>>
           {
-            return std::nullopt;
-          }
-        })
-        .define_method("last", [](const T& vector) -> std::optional<Value_T>
+            if (vector.size() > 0)
+            {
+              return vector.back();
+            }
+            else
+            {
+              return std::nullopt;
+            }
+          })
+          .define_method("[]", [this](T& vector, Difference_T index) -> std::optional<std::reference_wrapper<Value_T>>
+          {
+            index = normalizeIndex(vector.size(), index);
+            if (index < 0 || index >= (Difference_T)vector.size())
+            {
+              return std::nullopt;
+            }
+            else
+            {
+              return vector[index];
+            }
+          })
+          .template define_method<Value_T*(T::*)()>("data", &T::data);
+
+          define_buffer<Value_T>();
+        }
+        else
         {
-          if (vector.size() > 0)
+          // Access methods
+          klass_.define_method("first", [](T& vector) -> std::optional<Value_T>
           {
-            return vector.back();
-          }
-          else
+            if (vector.size() > 0)
+            {
+              return vector.front();
+            }
+            else
+            {
+              return std::nullopt;
+            }
+          })
+          .define_method("last", [](T& vector) -> std::optional<Value_T>
           {
-            return std::nullopt;
-          }
-        })
-        .define_method("[]", [this](const T& vector, Difference_T index) -> std::optional<Value_T>
-        {
-          index = normalizeIndex(vector.size(), index);
-          if (index < 0 || index >= (Difference_T)vector.size())
+            if (vector.size() > 0)
+            {
+              return vector.back();
+            }
+            else
+            {
+              return std::nullopt;
+            }
+          })
+          .define_method("[]", [this](T& vector, Difference_T index) -> std::optional<Value_T>
           {
-            return std::nullopt;
-          }
-          else
-          {
-            return vector[index];
-          }
-        })
-        .define_method("[]", [this](const T& vector, Difference_T start, Difference_T length) -> VALUE
+            index = normalizeIndex(vector.size(), index);
+            if (index < 0 || index >= (Difference_T)vector.size())
+            {
+              return std::nullopt;
+            }
+            else
+            {
+              return vector[index];
+            }
+          });
+        }
+
+        klass_.define_method("[]", [this](T& vector, Difference_T start, Difference_T length) -> VALUE
         {
           start = normalizeIndex(vector.size(), start);
           if (start < 0 || start >= (Difference_T)vector.size())
@@ -4088,24 +4243,18 @@ namespace Rice
             }
 
             auto finish = vector.begin() + start + length;
-            T slice(begin, finish);
 
             VALUE result = rb_ary_new();
-            std::for_each(slice.begin(), slice.end(), [&result](const Reference_T element)
+            for (auto iter = begin; iter != finish; iter++)
             {
-              VALUE value = detail::To_Ruby<Parameter_T>().convert(element);
+              const Reference_T element = *iter;
+              VALUE value = detail::To_Ruby<Reference_T>().convert(element);
               rb_ary_push(result, value);
-            });
+            }
 
             return result;
           }
         }, Return().setValue());
-
-        if constexpr (!std::is_same_v<Value_T, bool>)
-        {
-          define_buffer<Value_T>();
-          klass_.template define_method<Value_T*(T::*)()>("data", &T::data);
-        }
 
         rb_define_alias(klass_, "at", "[]");
       }
@@ -4116,35 +4265,39 @@ namespace Rice
         if constexpr (detail::is_comparable_v<T>)
         {
           klass_.define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
+          {
+            auto iter = std::find(vector.begin(), vector.end(), element);
+            if (iter == vector.end())
             {
-              auto iter = std::find(vector.begin(), vector.end(), element);
-              if (iter == vector.end())
-              {
-                return std::nullopt;
-              }
-              else
-              {
-                Value_T result = *iter;
-                vector.erase(iter);
-                return result;
-              }
-            })
+              return std::nullopt;
+            }
+            else if constexpr (std::is_copy_assignable_v<Value_T>)
+            {
+              Value_T result = *iter;
+              vector.erase(iter);
+              return result;
+            }
+            else
+            {
+              return std::nullopt;
+            }
+          })
           .define_method("include?", [](T& vector, Parameter_T element)
-            {
-              return std::find(vector.begin(), vector.end(), element) != vector.end();
-            })
+          {
+            return std::find(vector.begin(), vector.end(), element) != vector.end();
+          })
           .define_method("index", [](T& vector, Parameter_T element) -> std::optional<Difference_T>
+          {
+            auto iter = std::find(vector.begin(), vector.end(), element);
+            if (iter == vector.end())
             {
-              auto iter = std::find(vector.begin(), vector.end(), element);
-              if (iter == vector.end())
-              {
-                return std::nullopt;
-              }
-              else
-              {
-                return iter - vector.begin();
-              }
-            });
+              return std::nullopt;
+            }
+            else
+            {
+              return iter - vector.begin();
+            }
+          });
         }
         else
         {
@@ -4166,45 +4319,58 @@ namespace Rice
       void define_modify_methods()
       {
         klass_.define_method("clear", &T::clear)
-          .define_method("delete_at", [](T& vector, const size_t& pos)
+          .define_method("delete_at", [](T& vector, const size_t& pos) -> std::optional<Value_T>
+          {
+            auto iter = vector.begin() + pos;
+
+            if constexpr (std::is_copy_assignable_v<Value_T>)
             {
-              auto iter = vector.begin() + pos;
               Value_T result = *iter;
               vector.erase(iter);
               return result;
-            })
+            }
+            else
+            {
+              vector.erase(iter);
+              return std::nullopt;
+            }
+          })
           .define_method("insert", [this](T& vector, Difference_T index, Parameter_T element) -> T&
-            {
-              index = normalizeIndex(vector.size(), index, true);
-              auto iter = vector.begin() + index;
-              vector.insert(iter, element);
-              return vector;
-            })
+          {
+            index = normalizeIndex(vector.size(), index, true);
+            auto iter = vector.begin() + index;
+            vector.insert(iter, std::move(element));
+            return vector;
+          })
           .define_method("pop", [](T& vector) -> std::optional<Value_T>
+          {
+            if constexpr (!std::is_copy_assignable_v<Value_T>)
             {
-              if (vector.size() > 0)
-              {
-                Value_T result = vector.back();
-                vector.pop_back();
-                return result;
-              }
-              else
-              {
-                return std::nullopt;
-              }
-            })
+              vector.pop_back();
+              return std::nullopt;
+            }
+            else if (vector.empty())
+            {
+              return std::nullopt;
+            }
+            else
+            {
+              Value_T result = vector.back();
+              vector.pop_back();
+              return result;
+            }
+          })
           .define_method("push", [](T& vector, Parameter_T element) -> T&
-            {
-              vector.push_back(element);
-              return vector;
-            })
-          .define_method("shrink_to_fit", &T::shrink_to_fit)
-          .define_method("[]=", [this](T& vector, Difference_T index, Parameter_T element) -> Parameter_T
-            {
-              index = normalizeIndex(vector.size(), index, true);
-              vector[index] = element;
-              return element;
-            });
+          {
+            vector.push_back(std::move(element));
+            return vector;
+          })
+        .define_method("shrink_to_fit", &T::shrink_to_fit)
+        .define_method("[]=", [this](T& vector, Difference_T index, Parameter_T element) -> void
+          {
+            index = normalizeIndex(vector.size(), index, true);
+            vector[index] = std::move(element);
+          });
 
         rb_define_alias(klass_, "push_back", "push");
         rb_define_alias(klass_, "<<", "push");
@@ -4225,7 +4391,7 @@ namespace Rice
           VALUE result = rb_ary_new();
           std::for_each(vector.begin(), vector.end(), [&result](const Reference_T element)
           {
-            VALUE value = detail::To_Ruby<Parameter_T>().convert(element);
+            VALUE value = detail::To_Ruby<Reference_T>().convert(element);
             rb_ary_push(result, value);
           });
 
@@ -4511,6 +4677,9 @@ namespace Rice
       {
         return value ? Qtrue : Qfalse;
       }
+
+    private:
+      Return* returnInfo_ = nullptr;
     };
   }
 }

@@ -1,0 +1,14 @@
+module Bmp
+  class Pixel
+    attr_accessor b: String
+    attr_accessor g: String
+    attr_accessor r: String
+
+    def !=: (other: Pixel) -> bool
+    def initialize: () -> void
+               | (rgb: Integer) -> void
+               | (red: String, green: String, blue: String) -> void
+    def ==: (other: Pixel) -> bool
+    def assign: (arg_0: Pixel) -> void
+  end
+end
