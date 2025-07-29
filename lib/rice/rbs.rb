@@ -11,6 +11,7 @@ module Rice
 		end
 
 		def generate
+			STDOUT << "Writing rbs files to #{@output}" << "\n"
 			require self.extension
 			types = Registries.instance.types
 			types.klasses.each do |klass|
@@ -23,13 +24,15 @@ module Rice
 				return
 			end
 
+			STDOUT << "  " << klass << "\n"
+
 			native_attributes = Registries.instance.natives.native_attributes(klass).sort.group_by(&:name)
 			native_functions = Registries.instance.natives.native_functions(klass).sort.group_by(&:name)
 			native_methods = Registries.instance.natives.native_methods(klass).sort.group_by(&:name)
 			content = render_template("class", :klass => klass,
 													      :native_attributes => native_attributes,
-    													 :native_functions => native_functions,
-		    											 :native_methods => native_methods)
+    													  :native_functions => native_functions,
+		    											  :native_methods => native_methods)
 			write_file(klass, content)
 		end
 

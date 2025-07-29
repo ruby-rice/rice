@@ -18,7 +18,6 @@ pkg
 doc/_build
 mkinstalldirs
 out
-sample/**/Makefile
 test/**/Makefile
 README.doxygen
 

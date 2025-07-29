@@ -65,10 +65,6 @@ add_executable(unittest
                "test_Stl_Variant.cpp"
                "test_Stl_Vector.cpp")
 
-# Include sub-directories.
-add_subdirectory("ext/t1")
-add_subdirectory("ext/t2")
-
 #find_package("Ruby")
 include("../FindRuby.cmake")
 

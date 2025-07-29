@@ -1,4 +1,0 @@
-LIBRARY BitmapPlusPlus
-
-EXPORTS
-  Init_BitmapPlusPlus
