@@ -29,7 +29,7 @@ module Rice
 		def option_parser
 			OptionParser.new do |opts|
 				opts.banner = "rice-rbs #{Rice::VERSION}\n" +
-											"Usage: rice-rbs [options] <rice_extension_library>"
+											"Usage: rice-rbs [options] <rice_extension_library_path>"
 
 				opts.separator ""
 				opts.separator "Options:"
@@ -67,7 +67,7 @@ module Rice
 			self.option_parser.parse! ARGV
 
 			if options.output.nil?
-				puts "Must specify an output directory with -d/--dir option"
+				puts "Must specify an output directory with -o/--outpu option"
 				exit(-1)
 			elsif !Dir.exist?(options.output)
 				puts "Creating output directory '#{options.output}'"

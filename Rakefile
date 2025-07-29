@@ -17,11 +17,7 @@ is_mswin = !RbConfig::CONFIG['host_os'].match(/mswin/).nil?
 MAKE = is_mswin ? 'nmake' : 'make'
 
 unittest = File.join(__dir__, "test", "unittest#{RbConfig::CONFIG['EXEEXT']}")
-sample = File.join(__dir__, "sample", "cpp", "BitmapPlusPlus.so")
-sample_map = File.join(__dir__, "sample", "map", "map.so")
-test_ext1 = File.join(__dir__, "test", "ext", "t1", "t1.so")
-test_ext2 = File.join(__dir__, "test", "ext", "t2", "t2.so")
-binaries = [unittest, sample, test_ext1, test_ext2]
+binaries = [unittest]
 
 binaries.each do |asset|
   file asset  do
