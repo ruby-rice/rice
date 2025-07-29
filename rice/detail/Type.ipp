@@ -236,7 +236,7 @@ namespace Rice::detail
 
     if constexpr (std::is_fundamental_v<T>)
     {
-      return RubyType<T>::name;
+      return RubyType<intrinsic_type<T>>::name;
     }
     else if constexpr (std::is_same_v<std::remove_cv_t<T>, char*>)
     {
@@ -249,7 +249,7 @@ namespace Rice::detail
     }
     else
     {
-      base = cppClassName<T>();
+      base = cppClassName<intrinsic_type<T>>();
     }
 
     // Remove std:: these could be embedded in template types
@@ -277,10 +277,6 @@ namespace Rice::detail
       std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
       base.replace(namespaceMatch.position(), namespaceMatch.length(), replacement);
     }
-
-    // Remove pointers at end
-    std::regex ptrEndRegex(R"(\*$)");
-    base = std::regex_replace(base, ptrEndRegex, "");
 
     // Replace spaces with unicode U+u00A0 (Non breaking Space)
     auto spaceRegex = std::regex(R"(\s+)");

@@ -109,6 +109,12 @@ TESTCASE(RubyClassName)
   std::string className = detail::rubyClassName<char*>();
   ASSERT_EQUAL("String", className.c_str());
 
+  className = detail::rubyClassName<const unsigned char>();
+  ASSERT_EQUAL("String", className.c_str());
+
+  className = detail::rubyClassName<const unsigned char*>();
+  ASSERT_EQUAL("Buffer≺unsigned char const∗≻", className.c_str());
+
   className = detail::rubyClassName<char**>();
   ASSERT_EQUAL("Buffer≺char∗∗≻", className.c_str());
 
