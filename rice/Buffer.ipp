@@ -208,8 +208,7 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::toString() const
   {
-    std::string name = detail::typeName(typeid(T*));
-    std::string description = "Buffer<type: " + detail::cppClassName(name) + ", size: " + std::to_string(this->m_size) + ">";
+    std::string description = "Buffer<type: " + detail::cppClassName<T*>() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -412,8 +411,7 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::toString() const
   {
-    std::string name = detail::typeName(typeid(T*));
-    std::string description = "Buffer<type: " + detail::cppClassName(name) + ", size: " + std::to_string(this->m_size) + ">";
+    std::string description = "Buffer<type: " + detail::cppClassName<T*>() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -594,8 +592,7 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::toString() const
   {
-    std::string name = detail::typeName(typeid(T*));
-    std::string description = "Buffer<type: " + detail::cppClassName(name) + ", size: " + std::to_string(this->m_size) + ">";
+    std::string description = "Buffer<type: " + detail::cppClassName<T*>() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -681,11 +678,7 @@ namespace Rice
 
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(Buffer_T));
-      // This will end up as Buffer<T,void>. We want to remove the ,void part.
-      auto removeVoidRegex = std::regex(",\\s?void");
-      typeName = std::regex_replace(typeName, removeVoidRegex, "");
-      klassName = detail::rubyClassName(typeName);
+      klassName = detail::rubyClassName<Buffer<T>>();
     }
 
     Module rb_mRice = define_module("Rice");

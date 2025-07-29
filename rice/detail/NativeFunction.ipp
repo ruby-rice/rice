@@ -49,7 +49,7 @@ namespace Rice::detail
   {
     std::ostringstream result;
 
-    result << cppClassName(typeName(typeid(Return_T))) << " ";
+    result << cppClassName<Return_T>() << " ";
     result << this->method_name_;
 
     result << "(";
@@ -199,7 +199,7 @@ namespace Rice::detail
     }
     else
     {
-      return rubyClassName(typeName(typeid(Return_T)));
+      return rubyClassName<Return_T>();
     }
   }
 }
