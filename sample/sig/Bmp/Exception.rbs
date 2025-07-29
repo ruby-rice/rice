@@ -1,5 +1,0 @@
-module Bmp
-  class Exception
-    def initialize: (message: String) -> void
-  end
-end
