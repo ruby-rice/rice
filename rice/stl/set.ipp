@@ -195,7 +195,7 @@ namespace Rice
             auto finish = self.end();
 
             std::stringstream stream;
-            stream << "<" << detail::rubyClassName(detail::typeName(typeid(T))) << ":";
+            stream << "<" << detail::rubyClassName<T>() << ":";
             stream << "{";
 
             for (; iter != finish; iter++)
@@ -236,8 +236,7 @@ namespace Rice
 
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(Set_T));
-      klassName = detail::rubyClassName(typeName);
+      klassName = detail::rubyClassName<Set_T>();
     }
 
     Module rb_mStd = define_module("Std");

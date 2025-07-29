@@ -132,7 +132,7 @@ namespace Rice::detail
     }
     else
     {
-      return rubyClassName(typeName(typeid(Return_T)));
+      return rubyClassName<Return_T>();
     }
   }
 }

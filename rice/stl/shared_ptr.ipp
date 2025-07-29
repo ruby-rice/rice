@@ -11,8 +11,7 @@ namespace Rice
 
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(SharedPtr_T));
-      klassName = detail::rubyClassName(typeName);
+      klassName = detail::rubyClassName<SharedPtr_T>();
     }
 
     Module rb_mStd = define_module("Std");

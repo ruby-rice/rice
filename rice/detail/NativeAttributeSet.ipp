@@ -98,7 +98,7 @@ namespace Rice::detail
     }
     else
     {
-      return rubyClassName(typeName(typeid(Attr_T)));
+      return rubyClassName<Attr_T>();
     }
   }
 } // Rice

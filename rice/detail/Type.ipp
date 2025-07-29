@@ -81,11 +81,6 @@ namespace Rice::detail
 #endif
   }
 
-  inline std::string typeName(const std::type_info& typeInfo)
-  {
-    return demangle(typeInfo.name());
-  }
-
   inline std::string typeName(const std::type_index& typeIndex)
   {
     return demangle(typeIndex.name());
@@ -160,13 +155,19 @@ namespace Rice::detail
     }
   }
 
-  inline std::string cppClassName(const std::string& typeInfoName)
+  template<typename T>
+  inline std::string cppClassName()
   {
-    std::string base = typeInfoName;
+    const std::type_info& typeInfo = typeid(T);
+    std::string base = typeName(typeInfo);
+
+    // Remove void from Buffer<T, void> - the void comes from SFINAE
+    auto fixBuffer = std::regex("(Buffer<[^,]*),\\s?void>");
+    base = std::regex_replace(base, fixBuffer, "$1>");
 
     // Remove class keyword
     auto classRegex = std::regex("class +");
-    base = std::regex_replace(typeInfoName, classRegex, "");
+    base = std::regex_replace(base, classRegex, "");
 
     // Remove struct keyword
     auto structRegex = std::regex("struct +");
@@ -228,9 +229,28 @@ namespace Rice::detail
     return base;
   }
 
-  inline std::string rubyClassName(const std::string& typeInfoName)
+  template<typename T>
+  inline std::string rubyClassName()
   {
-    std::string base = cppClassName(typeInfoName);
+    std::string base;
+
+    if constexpr (std::is_fundamental_v<T>)
+    {
+      return RubyType<T>::name;
+    }
+    else if constexpr (std::is_same_v<std::remove_cv_t<T>, char*>)
+    {
+      return "String";
+    }
+    else if constexpr (std::is_pointer_v<T> && std::is_fundamental_v<detail::intrinsic_type<T>>)
+    {
+      const std::type_info& typeInfo = typeid(Buffer<T>);
+      base = cppClassName<Buffer<T>>();
+    }
+    else
+    {
+      base = cppClassName<T>();
+    }
 
     // Remove std:: these could be embedded in template types
     auto stdRegex = std::regex("std::");
@@ -257,6 +277,10 @@ namespace Rice::detail
       std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
       base.replace(namespaceMatch.position(), namespaceMatch.length(), replacement);
     }
+
+    // Remove pointers at end
+    std::regex ptrEndRegex(R"(\*$)");
+    base = std::regex_replace(base, ptrEndRegex, "");
 
     // Replace spaces with unicode U+u00A0 (Non breaking Space)
     auto spaceRegex = std::regex(R"(\s+)");

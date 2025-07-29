@@ -92,7 +92,7 @@ namespace Rice::detail
   template<typename T>
   inline std::string Parameter<T>::cppTypeName()
   {
-    return cppClassName(typeName(typeid(T)));
+    return cppClassName<T>();
   }
 
   template<typename T>
@@ -104,7 +104,7 @@ namespace Rice::detail
     }
     else
     {
-      return rubyClassName(typeName(typeid(T)));
+      return rubyClassName<T>();
     }
   }
 }

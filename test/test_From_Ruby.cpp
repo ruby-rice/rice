@@ -160,7 +160,7 @@ TESTCASE(char_pointer)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     fromRuby.convert(rb_float_new(11.11)),
-    ASSERT_EQUAL("wrong argument type Float (expected Buffer≺char‚ void≻)", ex.what())
+    ASSERT_EQUAL("wrong argument type Float (expected Buffer≺char≻)", ex.what())
   );
 }
 
@@ -195,7 +195,7 @@ TESTCASE(signed_char_pointer)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     fromRuby.convert(rb_float_new(11.11)),
-    ASSERT_EQUAL("wrong argument type Float (expected Buffer≺signed char‚ void≻)", ex.what())
+    ASSERT_EQUAL("wrong argument type Float (expected Buffer≺signed char≻)", ex.what())
   );
 }
 
@@ -218,7 +218,7 @@ TESTCASE(char_pointer_const)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     detail::From_Ruby<char const*>().convert(rb_float_new(32.3)),
-    ASSERT_EQUAL("wrong argument type Float (expected Buffer≺char‚ void≻)", ex.what())
+    ASSERT_EQUAL("wrong argument type Float (expected Buffer≺char≻)", ex.what())
   );
 }
 
@@ -272,7 +272,7 @@ TESTCASE(unsigned_char_pointer)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     detail::From_Ruby<const char*>().convert(rb_float_new(11.11)),
-    ASSERT_EQUAL("wrong argument type Float (expected Buffer≺char‚ void≻)", ex.what())
+    ASSERT_EQUAL("wrong argument type Float (expected Buffer≺char≻)", ex.what())
   );
 }
 
@@ -434,7 +434,7 @@ TESTCASE(float_array_array)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Array (expected Buffer≺float∗‚ void≻)", ex.what())
+    ASSERT_EQUAL("wrong argument type Array (expected Buffer≺float∗≻)", ex.what())
   );
 }
 

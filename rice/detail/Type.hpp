@@ -12,10 +12,14 @@ namespace Rice::detail
   };
 
   // Return the name of a type
-  std::string typeName(const std::type_info& typeInfo);
   std::string typeName(const std::type_index& typeIndex);
-  std::string cppClassName(const std::string& typeInfoName);
-  std::string rubyClassName(const std::string& typeInfoName);
+
+  template<typename T>
+  std::string cppClassName();
+
+  template<typename T>
+  std::string rubyClassName();
+
   std::string findGroup(std::string& string, size_t start = 0);
   void replaceGroup(std::string& string, std::regex regex, std::string replacement);
   void replaceAll(std::string& string, std::regex regex, std::string replacement);
