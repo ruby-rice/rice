@@ -105,7 +105,15 @@ namespace Rice::detail
     }
     else
     {
-      return rubyClassName<Attr_T>();
+      std::string module = rubyModuleName<Attr_T>();
+      if (module.empty())
+      {
+        return rubyClassName<Attr_T>();
+      }
+      else
+      {
+        return module + "::" + rubyClassName<Attr_T>();
+      }
     }
   }
 }

@@ -20,6 +20,9 @@ namespace Rice::detail
   template<typename T>
   std::string rubyClassName();
 
+  template<typename T>
+  inline std::string rubyModuleName();
+
   std::string findGroup(std::string& string, size_t start = 0);
   void replaceGroup(std::string& string, std::regex regex, std::string replacement);
   void replaceAll(std::string& string, std::regex regex, std::string replacement);
