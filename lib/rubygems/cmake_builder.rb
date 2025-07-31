@@ -25,11 +25,9 @@
 #  -D<CMAKE_VARIABLE> to set a CMake variable (for example -DCMAKE_BUILD_TYPE=Release)
 #  --preset <preset_name> to use a preset
 #
-# If the Gem author provides presets, via CMakePresets.json file, you will likely want to us use one of them.
-# If not, then you may wish to specify a generator (Ninja is recommended since it can build projects in parallel
-# versus a Make generator which build ins serial and thus is *much* slower).
-
-require "fileutils"
+# If the Gem author provides presets, via CMakePresets.json file, you will likely want to use one of them.
+# If not, you may wish to specify a generator. Ninja is recommended because it can build projects in parallel
+# and thus much faster than building them serially like Make does.
 
 class Gem::Ext::CmakeBuilder
   attr_accessor :runner, :profile
@@ -39,19 +37,21 @@ class Gem::Ext::CmakeBuilder
     @profile = :release
   end
 
-  def build(extension, gem_dir, results, args = [], lib_dir = nil, cmake_dir = Dir.pwd, target_rbconfig = Gem.target_rbconfig)
+  def build(extension, dest_path, results, args = [], lib_dir = nil, cmake_dir = Dir.pwd, target_rbconfig = Gem.target_rbconfig)
     if target_rbconfig.path
       warn "--target-rbconfig is not yet supported for CMake extensions. Ignoring"
     end
 
     # Make sure lib dir is set
-    lib_dir ||= File.join(gem_dir, "lib")
+    unless lib_dir
+      lib_dir ||= File.join(dest_path, "lib")
+    end
 
     # Figure the build dir
     build_dir = File.join(cmake_dir, "build")
 
     # Check if the gem defined presets
-    check_presets(cmake_dir, args)
+    check_presets(cmake_dir, args, results)
 
     # Configure
     configure(cmake_dir, build_dir, lib_dir, args, results)
@@ -65,13 +65,14 @@ class Gem::Ext::CmakeBuilder
   def configure(cmake_dir, build_dir, lib_dir, args, results)
     cmd = ["cmake",
            cmake_dir,
-           "-B #{build_dir}",
+           "-B",
+           build_dir,
            "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=#{lib_dir}", # Windows
            "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=#{lib_dir}", # Not Windows
            *Gem::Command.build_args,
            *args]
 
-    runner.call(cmd, results, "cmake", cmake_dir)
+    runner.call(cmd, results, "cmake_configure", cmake_dir)
   end
 
   def compile(cmake_dir, build_dir, args, results)
@@ -80,32 +81,33 @@ class Gem::Ext::CmakeBuilder
            build_dir.to_s,
            "--config",
            @profile.to_s]
-    runner.call(cmd, results, "cmake", cmake_dir)
+
+    runner.call(cmd, results, "cmake_compile", cmake_dir)
   end
 
   private
 
-  def check_presets(cmake_dir, args)
+  def check_presets(cmake_dir, args, results)
     # Return if the user specified a preset
     return unless args.grep(/--preset/i).empty?
 
     cmd = ["cmake",
            "--list-presets"]
 
+    presets = Array.new
     begin
-      require "open3"
-      build_env = { "SOURCE_DATE_EPOCH" => Gem.source_date_epoch_string }
-      stdout, _, _ = Open3.capture3(build_env, *cmd, chdir: cmake_dir)
-      message = <<~EOS
+      runner.call(cmd, presets, "cmake_presets", cmake_dir)
+
+      # Remove the first two lines of the array which is the current_directory and the command
+      # that was run
+      presets = presets[2..].join
+      results << <<~EOS
         The gem author provided a list of presets that can be used to build the gem. To use a preset specify it on the command line:
 
           gem install <gem_name> -- --preset <preset_name>
 
-        #{stdout}
+        #{presets}
       EOS
-
-      STDOUT << message << "\n"
-      STDOUT.flush
     rescue Gem::InstallError
       # Do nothing, CMakePresets.json was not included in the Gem
     end
