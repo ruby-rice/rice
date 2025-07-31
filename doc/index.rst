@@ -10,7 +10,8 @@ Rice - Ruby Interface for C++
   tutorial
   bindings
   stl
-  api
+  cpp_api
+  introspection_api
   packaging
   migration
   history

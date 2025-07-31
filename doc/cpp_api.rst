@@ -5,4 +5,4 @@ C++ API
 .. toctree::
   :maxdepth: 2
 
-  api/overview
+  cpp_api/overview

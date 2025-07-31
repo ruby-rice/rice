@@ -26,6 +26,7 @@ In general, for simple extensions uses ``extconf.rb`` but otherwise use ``CMake`
 It is also possible to use a custom build system, but in that case you will need to create a RubyGem `plugin <https://guides.rubygems.org/plugins/>`_ to tell ``RubyGems`` how to make the build.
 
 .. _header_files:
+
 Header Files
 ==============
 Rice is packaged as `header-only <https://en.wikipedia.org/wiki/Header-only>`_ library. That means you do not have to worry about linking a shared Rice library with your extension.
