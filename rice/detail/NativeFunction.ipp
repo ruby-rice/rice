@@ -199,7 +199,15 @@ namespace Rice::detail
     }
     else
     {
-      return rubyClassName<Return_T>();
+      std::string module = rubyModuleName<Return_T>();
+      if (module.empty())
+      {
+        return rubyClassName<Return_T>();
+      }
+      else
+      {
+        return module + "::" + rubyClassName<Return_T>();
+      }
     }
   }
 }

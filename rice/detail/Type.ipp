@@ -229,14 +229,23 @@ namespace Rice::detail
     return base;
   }
 
-  template<typename T>
-  inline std::string rubyClassName()
+  inline void capitalizeHelper(std::string& content, std::regex& regex)
   {
-    std::string base;
+    std::smatch match;
+    while (std::regex_search(content, match, regex))
+    {
+      std::string replacement = match[1];
+      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
+      content.replace(match.position(), match.length(), replacement);
+    }
+  }
 
+  template<typename T>
+  inline std::string rubyTypeName()
+  {
     if constexpr (std::is_fundamental_v<T>)
     {
-      return RubyType<T>::name;
+      return RubyType<intrinsic_type<T>>::name;
     }
     else if constexpr (std::is_same_v<std::remove_cv_t<T>, char*>)
     {
@@ -245,12 +254,18 @@ namespace Rice::detail
     else if constexpr (std::is_pointer_v<T> && std::is_fundamental_v<detail::intrinsic_type<T>>)
     {
       const std::type_info& typeInfo = typeid(Buffer<T>);
-      base = cppClassName<Buffer<T>>();
+      return cppClassName<Buffer<T>>();
     }
     else
     {
-      base = cppClassName<T>();
+      return cppClassName<intrinsic_type<T>>();
     }
+  }
+
+  template<typename T>
+  inline std::string rubyClassName()
+  {
+    std::string base = rubyTypeName<T>();
 
     // Remove std:: these could be embedded in template types
     auto stdRegex = std::regex("std::");
@@ -269,18 +284,8 @@ namespace Rice::detail
     replaceAll(base, colonRegex, "\uA789");
 
     // Replace _ and capitalize the next letter
-    std::regex namespaceRegex(R"(_(\w))");
-    std::smatch namespaceMatch;
-    while (std::regex_search(base, namespaceMatch, namespaceRegex))
-    {
-      std::string replacement = namespaceMatch[1];
-      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
-      base.replace(namespaceMatch.position(), namespaceMatch.length(), replacement);
-    }
-
-    // Remove pointers at end
-    std::regex ptrEndRegex(R"(\*$)");
-    base = std::regex_replace(base, ptrEndRegex, "");
+    std::regex underscoreRegex(R"(_(\w))");
+    capitalizeHelper(base, underscoreRegex);
 
     // Replace spaces with unicode U+u00A0 (Non breaking Space)
     auto spaceRegex = std::regex(R"(\s+)");
@@ -305,5 +310,26 @@ namespace Rice::detail
     replaceAll(base, asteriskRegex, "\u2217");
 
     return base;
+  }
+
+  template<typename T>
+  inline std::string rubyModuleName()
+  {
+    // Find leading namespaces
+    std::string fullName = rubyTypeName<T>();
+    auto leadingNamespacesRegex = std::regex("^([^<]*)::");
+    std::smatch match;
+    if (std::regex_search(fullName, match, leadingNamespacesRegex))
+    {
+      std::string namespaces = match[1];
+      auto capitalizeRegex = std::regex(R"((?=::)(\w))");
+      capitalizeHelper(namespaces, capitalizeRegex);
+      namespaces[0] = std::toupper(namespaces[0]);
+      return namespaces;
+    }
+    else
+    {
+      return "";
+    }
   }
 }

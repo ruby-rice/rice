@@ -8,3 +8,4 @@ Packaging
   packaging/packaging
   packaging/extconf.rb
   packaging/cmake
+  packaging/rbs

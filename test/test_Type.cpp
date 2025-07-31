@@ -109,6 +109,12 @@ TESTCASE(RubyClassName)
   std::string className = detail::rubyClassName<char*>();
   ASSERT_EQUAL("String", className.c_str());
 
+  className = detail::rubyClassName<const unsigned char>();
+  ASSERT_EQUAL("String", className.c_str());
+
+  className = detail::rubyClassName<const unsigned char*>();
+  ASSERT_EQUAL("Buffer≺unsigned char const∗≻", className.c_str());
+
   className = detail::rubyClassName<char**>();
   ASSERT_EQUAL("Buffer≺char∗∗≻", className.c_str());
 
@@ -153,6 +159,48 @@ TESTCASE(RubyClassName)
 
   className = detail::rubyClassName<Outer::Inner::SomeClass*>();
   ASSERT_EQUAL("SomeClass", className.c_str());
+}
+
+TESTCASE(RubyModuleName)
+{
+  std::string moduleName = detail::rubyModuleName<char*>();
+  ASSERT_EQUAL("", moduleName.c_str());
+
+  moduleName = detail::rubyModuleName<const unsigned char>();
+  ASSERT_EQUAL("", moduleName.c_str());
+
+  moduleName = detail::rubyModuleName<const unsigned char*>();
+  ASSERT_EQUAL("Rice", moduleName.c_str());
+
+  moduleName = detail::rubyModuleName<char**>();
+  ASSERT_EQUAL("Rice", moduleName.c_str());
+
+  moduleName = detail::rubyModuleName<double>();
+  ASSERT_EQUAL("", moduleName.c_str());
+
+  moduleName = detail::rubyModuleName<double*>();
+  ASSERT_EQUAL("Rice", moduleName.c_str());
+
+  moduleName = detail::rubyModuleName<std::string>();
+  ASSERT_EQUAL("Std", moduleName.c_str());
+
+  moduleName = detail::rubyModuleName<std::wstring>();
+  ASSERT_EQUAL("Std", moduleName.c_str());
+
+  moduleName = detail::rubyModuleName<std::vector<std::string>>();
+  ASSERT_EQUAL("Std", moduleName.c_str());
+
+  moduleName = detail::rubyModuleName<Outer::Inner::Vec1>();
+  ASSERT_EQUAL("Std", moduleName.c_str());
+
+  moduleName = detail::rubyModuleName<Outer::Inner::Map1>();
+  ASSERT_EQUAL("Std", moduleName.c_str());
+
+  moduleName = detail::rubyModuleName<Outer::Inner::UnorderedMap1>();
+  ASSERT_EQUAL("Std", moduleName.c_str());
+
+  moduleName = detail::rubyModuleName<Outer::Inner::SomeClass*>();
+  ASSERT_EQUAL("Outer::Inner", moduleName.c_str());
 }
 
 TESTCASE(MakeRubyClass)

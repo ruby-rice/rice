@@ -13,8 +13,8 @@ module Rice
 		end
 
 		def native_by_kind(klass, kinds)
-			self.lookup(klass).find_all do |native_method|
-				kinds.include?(native_method.kind)
+			self.lookup(klass).find_all do |native|
+				kinds.include?(native.kind)
 			end
 		end
 	end
