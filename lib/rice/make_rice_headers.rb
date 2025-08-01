@@ -76,7 +76,7 @@ combine_headers('rice.hpp')
 puts "Building stl.hpp"
 combine_headers('stl.hpp')
 
-puts "Building ruby_api.hpp"
-combine_headers('ruby_api.hpp')
+puts "Building api.hpp"
+combine_headers('api.hpp')
 
 puts "Success"

@@ -69,22 +69,22 @@ Next, we need to write C++ code that converts the ``std::deque<int>`` to a Ruby 
     class To_Ruby<std::deque<int>>
     {
     public:
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
       VALUE convert(const std::deque<int>& deque)
       {
-        // Notice we wrap Ruby API calls with protect in case Ruby throws an exception.
-        // If you do not  use protect and Ruby throws an exception then your program 
-        // *will* crash.
-        VALUE result = protect(rb_ary_new2, deque.size());
+        Array result;
 
         for (int element : deque)
         {
-          // Convert the C++ int to a Ruby integer
-          VALUE value = To_Ruby<int>::convert(element, takeOwnership);
-          // Now add it to the Ruby array
-          detail::protect(rb_ary_push, result, value));
+          result.push(element, true);
         }
         return result;
       }
+    private:
+      Arg* arg_ = nullptr;
     };
   }
 
@@ -106,6 +106,10 @@ Last, if we want to convert a Ruby array to a  ``std::deque<int>``, then we need
     class From_Ruby<std::deque<int>>
     {
     public:
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
       Convertible is_convertible(VALUE value)
       {
         switch (rb_type(value))
@@ -120,20 +124,13 @@ Last, if we want to convert a Ruby array to a  ``std::deque<int>``, then we need
 
       std::deque<int> convert(VALUE value)
       {
-        // Make sure array is really an array - if not this call will
-        // throw a Ruby exception so we need to protect it
-        detail::protect(rb_check_type, array, (int)T_ARRAY);
-
-        long size = protect(rb_array_len, value);
-        std::deque<int> result(size);
+        Array array(value);
+        std::deque<int> result(array.size());
 
         for (long i=0; i<size; i++)
         {
-          // Get the array element
-          VALUE value = protect(rb_ary_entry, value, i);
-
           // Convert the Ruby int to a C++ int
-          int element = From_Ruby<int>::convert(value);
+          int element = From_Ruby<int>::convert(array[i]);
 
           // Add it to our deque
           result[i] = element;
@@ -141,6 +138,8 @@ Last, if we want to convert a Ruby array to a  ``std::deque<int>``, then we need
 
         return result;
       }
+    private:
+      Arg* arg_ = nullptr;
     };
   }
 
@@ -164,8 +163,6 @@ Expanding on our example above:
       class From_Ruby<std::deque<int>>
       {
       public:
-        From_Ruby() = default;
-
         explicit From_Ruby(Arg* arg) : arg_(arg)
         {
         }

@@ -84,7 +84,7 @@ FileUtils.mkdir_p(include_dir) #unless File.exists?('include')
 desc "Update rice header files"
 task :headers do
   FileUtils.rm_rf(File.join(include_dir, "rice", "*"))
-  path = File.join(__dir__, 'lib', 'make_rice_headers.rb')
+  path = File.join(__dir__, 'lib', 'rice', 'make_rice_headers.rb')
   # Execute make_rice_headers.rb
   run_command(Gem.ruby, path)
 end

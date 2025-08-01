@@ -23,6 +23,9 @@ Ruby extensions with C++ easier.
     "source_code_uri"   => "https://github.com/ruby-rice/rice",
   }
 
+  s.bindir = "bin"
+  s.executables = ["rice-rbs"]
+
   s.test_files = Dir['test/ruby/*.rb']
   s.extra_rdoc_files = ['README.md']
   s.require_paths = ['lib']
@@ -44,30 +47,23 @@ Ruby extensions with C++ easier.
     'CMakePresets.json',
     'FindRuby.cmake',
 
-    # rice.hpp
+    # Include files
     'include/rice/rice.hpp',
     'include/rice/stl.hpp',
+    'include/rice/ruby-api.hpp',
+
+    # Bin files
+    'bin/rice-rbs.rb',
 
     # Source files
     'rice/**/*.?pp',
 
-    # Ruby files
+    # Library files
     'lib/**/*.rb',
-
-    # Sample
-    'sample/cpp/*.?pp',
-    'sample/cpp/*.def',
-    'sample/cpp/CMakeLists.txt',
-    'sample/images/*.bmp',
-    'sample/ruby/*.rb',
 
     # Test source files
     'test/*.?pp',
-    'test/extconf.rb',
-    'test/ext/t1/extconf.rb',
-    'test/ext/t1/*.*pp',
-    'test/ext/t2/extconf.rb',
-    'test/ext/t2/*.*pp'
+    'test/extconf.rb'
   ]
 
   s.required_ruby_version = ">= 3.1"

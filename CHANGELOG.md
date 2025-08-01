@@ -1,13 +1,13 @@
-## 4.6.2 (2025-07-29)
+## 4.6.2 (2025-07-31)
 Updates:
 * Refactor Native wrappers - functions, methods, attributes and procs - to enable introspection API
-* Add a new Ruby Introspection API that exposes Rice internals to Ruby
-* Using the new API, add support for generating RBS files
+* Add a new Introspection API that exposes Rice internals to Ruby
+* Using the new API, add support for generating RBS files from extensions
 * Don't create attribute writers for const attributes
 * Support attribute setters for Enums
 * Support wrapping std::vector<std::unique_ptr<T>>
-* Update Array#push to not always copy C++ values. This lays the foundation for extracting references and pointers and from tuples, variants and optionals.
-* Add most basic support for creating std::filesystem::path instances
+* Update Array#push to not always copy C++ instances. This lays the foundation for extracting references and pointers and from tuples, variants and optionals.
+* Add very basic support for creating std::filesystem::path instances
 * Remove toy samples and test libraries. These are replaced by a new gem that wraps the BitMapPlusPlus library (https://github.com/baderouaich/BitmapPlusPlus)
 * Add support for std::runtime_error since some libraries use that as a base exception class (thus when Rice wraps custom exceptions it also needs to wrap the base class)
 

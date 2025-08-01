@@ -503,10 +503,17 @@ namespace Rice::detail
   };
 
   // Return the name of a type
-  std::string typeName(const std::type_info& typeInfo);
   std::string typeName(const std::type_index& typeIndex);
-  std::string cppClassName(const std::string& typeInfoName);
-  std::string rubyClassName(const std::string& typeInfoName);
+
+  template<typename T>
+  std::string cppClassName();
+
+  template<typename T>
+  std::string rubyClassName();
+
+  template<typename T>
+  inline std::string rubyModuleName();
+
   std::string findGroup(std::string& string, size_t start = 0);
   void replaceGroup(std::string& string, std::regex regex, std::string replacement);
   void replaceAll(std::string& string, std::regex regex, std::string replacement);
@@ -1200,7 +1207,7 @@ namespace Rice::detail
   template<typename T>
   inline std::string Parameter<T>::cppTypeName()
   {
-    return cppClassName(typeName(typeid(T)));
+    return cppClassName<T>();
   }
 
   template<typename T>
@@ -1212,7 +1219,15 @@ namespace Rice::detail
     }
     else
     {
-      return rubyClassName(typeName(typeid(T)));
+      std::string module = rubyModuleName<T>();
+      if (module.empty())
+      {
+        return rubyClassName<T>();
+      }
+      else
+      {
+        return module + "::" + rubyClassName<T>();
+      }
     }
   }
 }
@@ -3375,8 +3390,7 @@ namespace Rice::detail
   template<typename T>
   inline Data_Type<T> define_ruby_type()
   {
-    std::string name = detail::typeName(typeid(T*));
-    std::string klassName = detail::rubyClassName(name);
+    std::string klassName = detail::rubyClassName<T*>();
     Identifier id(klassName);
 
     Module rb_mRice = define_module("Rice");
@@ -4111,8 +4125,7 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::toString() const
   {
-    std::string name = detail::typeName(typeid(T*));
-    std::string description = "Buffer<type: " + detail::cppClassName(name) + ", size: " + std::to_string(this->m_size) + ">";
+    std::string description = "Buffer<type: " + detail::cppClassName<T*>() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -4315,8 +4328,7 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::toString() const
   {
-    std::string name = detail::typeName(typeid(T*));
-    std::string description = "Buffer<type: " + detail::cppClassName(name) + ", size: " + std::to_string(this->m_size) + ">";
+    std::string description = "Buffer<type: " + detail::cppClassName<T*>() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -4497,8 +4509,7 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::toString() const
   {
-    std::string name = detail::typeName(typeid(T*));
-    std::string description = "Buffer<type: " + detail::cppClassName(name) + ", size: " + std::to_string(this->m_size) + ">";
+    std::string description = "Buffer<type: " + detail::cppClassName<T*>() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -4584,11 +4595,7 @@ namespace Rice
 
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(Buffer_T));
-      // This will end up as Buffer<T,void>. We want to remove the ,void part.
-      auto removeVoidRegex = std::regex(",\\s?void");
-      typeName = std::regex_replace(typeName, removeVoidRegex, "");
-      klassName = detail::rubyClassName(typeName);
+      klassName = detail::rubyClassName<Buffer<T>>();
     }
 
     Module rb_mRice = define_module("Rice");
@@ -6479,8 +6486,7 @@ namespace Rice::detail
         }
         default:
         {
-          std::string name = typeName(typeid(Buffer<intrinsic_type<T>>));
-          std::string expected = rubyClassName(name);
+          std::string expected = rubyClassName<Buffer<intrinsic_type<T>>>();
           throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }
@@ -6539,8 +6545,7 @@ namespace Rice::detail
         }
         default:
         {
-          std::string name = typeName(typeid(Buffer<intrinsic_type<T>*>));
-          std::string expected = rubyClassName(name);
+          std::string expected = rubyClassName<Buffer<intrinsic_type<T>*>>();
           throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }
@@ -8878,11 +8883,6 @@ namespace Rice::detail
 #endif
   }
 
-  inline std::string typeName(const std::type_info& typeInfo)
-  {
-    return demangle(typeInfo.name());
-  }
-
   inline std::string typeName(const std::type_index& typeIndex)
   {
     return demangle(typeIndex.name());
@@ -8957,13 +8957,19 @@ namespace Rice::detail
     }
   }
 
-  inline std::string cppClassName(const std::string& typeInfoName)
+  template<typename T>
+  inline std::string cppClassName()
   {
-    std::string base = typeInfoName;
+    const std::type_info& typeInfo = typeid(T);
+    std::string base = typeName(typeInfo);
+
+    // Remove void from Buffer<T, void> - the void comes from SFINAE
+    auto fixBuffer = std::regex("(Buffer<[^,]*),\\s?void>");
+    base = std::regex_replace(base, fixBuffer, "$1>");
 
     // Remove class keyword
     auto classRegex = std::regex("class +");
-    base = std::regex_replace(typeInfoName, classRegex, "");
+    base = std::regex_replace(base, classRegex, "");
 
     // Remove struct keyword
     auto structRegex = std::regex("struct +");
@@ -9025,9 +9031,43 @@ namespace Rice::detail
     return base;
   }
 
-  inline std::string rubyClassName(const std::string& typeInfoName)
+  inline void capitalizeHelper(std::string& content, std::regex& regex)
   {
-    std::string base = cppClassName(typeInfoName);
+    std::smatch match;
+    while (std::regex_search(content, match, regex))
+    {
+      std::string replacement = match[1];
+      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
+      content.replace(match.position(), match.length(), replacement);
+    }
+  }
+
+  template<typename T>
+  inline std::string rubyTypeName()
+  {
+    if constexpr (std::is_fundamental_v<T>)
+    {
+      return RubyType<intrinsic_type<T>>::name;
+    }
+    else if constexpr (std::is_same_v<std::remove_cv_t<T>, char*>)
+    {
+      return "String";
+    }
+    else if constexpr (std::is_pointer_v<T> && std::is_fundamental_v<detail::intrinsic_type<T>>)
+    {
+      const std::type_info& typeInfo = typeid(Buffer<T>);
+      return cppClassName<Buffer<T>>();
+    }
+    else
+    {
+      return cppClassName<intrinsic_type<T>>();
+    }
+  }
+
+  template<typename T>
+  inline std::string rubyClassName()
+  {
+    std::string base = rubyTypeName<T>();
 
     // Remove std:: these could be embedded in template types
     auto stdRegex = std::regex("std::");
@@ -9046,14 +9086,8 @@ namespace Rice::detail
     replaceAll(base, colonRegex, "\uA789");
 
     // Replace _ and capitalize the next letter
-    std::regex namespaceRegex(R"(_(\w))");
-    std::smatch namespaceMatch;
-    while (std::regex_search(base, namespaceMatch, namespaceRegex))
-    {
-      std::string replacement = namespaceMatch[1];
-      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
-      base.replace(namespaceMatch.position(), namespaceMatch.length(), replacement);
-    }
+    std::regex underscoreRegex(R"(_(\w))");
+    capitalizeHelper(base, underscoreRegex);
 
     // Replace spaces with unicode U+u00A0 (Non breaking Space)
     auto spaceRegex = std::regex(R"(\s+)");
@@ -9079,8 +9113,28 @@ namespace Rice::detail
 
     return base;
   }
-}
 
+  template<typename T>
+  inline std::string rubyModuleName()
+  {
+    // Find leading namespaces
+    std::string fullName = rubyTypeName<T>();
+    auto leadingNamespacesRegex = std::regex("^([^<]*)::");
+    std::smatch match;
+    if (std::regex_search(fullName, match, leadingNamespacesRegex))
+    {
+      std::string namespaces = match[1];
+      auto capitalizeRegex = std::regex(R"((?=::)(\w))");
+      capitalizeHelper(namespaces, capitalizeRegex);
+      namespaces[0] = std::toupper(namespaces[0]);
+      return namespaces;
+    }
+    else
+    {
+      return "";
+    }
+  }
+}
 // Code for Ruby to call C++
 
 // =========   Exception.ipp   =========
@@ -9998,7 +10052,15 @@ namespace Rice::detail
     }
     else
     {
-      return rubyClassName(typeName(typeid(Attr_T)));
+      std::string module = rubyModuleName<Attr_T>();
+      if (module.empty())
+      {
+        return rubyClassName<Attr_T>();
+      }
+      else
+      {
+        return module + "::" + rubyClassName<Attr_T>();
+      }
     }
   }
 }
@@ -10103,7 +10165,15 @@ namespace Rice::detail
     }
     else
     {
-      return rubyClassName(typeName(typeid(Attr_T)));
+      std::string module = rubyModuleName<Attr_T>();
+      if (module.empty())
+      {
+        return rubyClassName<Attr_T>();
+      }
+      else
+      {
+        return module + "::" + rubyClassName<Attr_T>();
+      }
     }
   }
 } // Rice
@@ -10248,7 +10318,7 @@ namespace Rice::detail
   {
     std::ostringstream result;
 
-    result << cppClassName(typeName(typeid(Return_T))) << " ";
+    result << cppClassName<Return_T>() << " ";
     result << this->method_name_;
 
     result << "(";
@@ -10398,7 +10468,15 @@ namespace Rice::detail
     }
     else
     {
-      return rubyClassName(typeName(typeid(Return_T)));
+      std::string module = rubyModuleName<Return_T>();
+      if (module.empty())
+      {
+        return rubyClassName<Return_T>();
+      }
+      else
+      {
+        return module + "::" + rubyClassName<Return_T>();
+      }
     }
   }
 }
@@ -10573,7 +10651,7 @@ namespace Rice::detail
   template<typename T, typename Iterator_Func_T>
   inline std::string NativeIterator<T, Iterator_Func_T>::rubyReturnType()
   {
-    return rubyClassName(typeName(typeid(Value_T)));
+    return rubyClassName<Value_T>();
   }
 }
 // =========   NativeMethod.hpp   =========
@@ -10721,11 +10799,11 @@ namespace Rice::detail
   {
     std::ostringstream result;
 
-    result << cppClassName(typeName(typeid(Return_T))) << " ";
+    result << cppClassName<Return_T>() << " ";
     
     if (!std::is_null_pointer_v<Receiver_T>)
     {
-      result << cppClassName(typeName(typeid(Receiver_T))) << "::";
+      result << cppClassName<Receiver_T>() << "::";
     }
     
     result << this->method_name_;
@@ -10939,7 +11017,15 @@ namespace Rice::detail
     }
     else
     {
-      return rubyClassName(typeName(typeid(Return_T)));
+      std::string module = rubyModuleName<Return_T>();
+      if (module.empty())
+      {
+        return rubyClassName<Return_T>();
+      }
+      else
+      {
+        return module + "::" + rubyClassName<Return_T>();
+      }
     }
   }
 }
@@ -11129,7 +11215,7 @@ namespace Rice::detail
     }
     else
     {
-      return rubyClassName(typeName(typeid(Return_T)));
+      return rubyClassName<Return_T>();
     }
   }
 }
