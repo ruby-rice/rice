@@ -8,7 +8,7 @@ Rice exposes its internals to Ruby via an introspection API. This API is used by
 
 Enabling
 --------
-The introspection API is an opt-in feature and therefore must be enabled. To do this requires adding the ``<rice/api.hpp>`` header file to your extension and then calling ``Init_Api``:
+The introspection API is an opt-in feature and therefore must be enabled. To do this requires adding the ``<rice/api.hpp>`` header file to your extension and then calling ``Init_Rice_Api``:
 
 .. code-block:: cpp
 
@@ -18,7 +18,7 @@ The introspection API is an opt-in feature and therefore must be enabled. To do 
   void Init_My_Exgtension()
   {
     // Enable Introspection API
-    Init_Api();
+    Init_Rice_Api();
 
     <Add Rice Binding Code>
   }

@@ -181,7 +181,7 @@ inline void Init_Native()
 }
 
 extern "C"
-inline void Init_Api()
+inline void Init_Rice_Api()
 {
   Init_Registries();
   Init_Native_Registry();

@@ -1,21 +1,21 @@
 #ifndef Rice__Api_hpp_
 #define Rice__Api_hpp_
 
-#include "ruby_api/NativeRegistry.hpp"
-#include "ruby_api/NativeRegistry.ipp"
-#include "ruby_api/TypeRegistry.hpp"
-#include "ruby_api/TypeRegistry.ipp"
-#include "ruby_api/Registries.hpp"
-#include "ruby_api/Registries.ipp"
-#include "ruby_api/Arg.hpp"
-#include "ruby_api/Arg.ipp"
-#include "ruby_api/Parameter.hpp"
-#include "ruby_api/Parameter.ipp"
-#include "ruby_api/Native.hpp"
-#include "ruby_api/Native.ipp"
+#include "rice_api/NativeRegistry.hpp"
+#include "rice_api/NativeRegistry.ipp"
+#include "rice_api/TypeRegistry.hpp"
+#include "rice_api/TypeRegistry.ipp"
+#include "rice_api/Registries.hpp"
+#include "rice_api/Registries.ipp"
+#include "rice_api/Arg.hpp"
+#include "rice_api/Arg.ipp"
+#include "rice_api/Parameter.hpp"
+#include "rice_api/Parameter.ipp"
+#include "rice_api/Native.hpp"
+#include "rice_api/Native.ipp"
 
 extern "C"
-inline void Init_Api()
+inline void Init_Rice_Api()
 {
   Init_Registries();
   Init_Native_Registry();
