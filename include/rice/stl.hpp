@@ -933,8 +933,7 @@ namespace Rice
 
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(Pair_T));
-      klassName = detail::rubyClassName(typeName);
+      klassName = detail::rubyClassName<Pair_T>();
     }
 
     Module rb_mStd = define_module("Std");
@@ -1224,8 +1223,7 @@ namespace Rice
 
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(Map_T));
-      klassName = detail::rubyClassName(typeName);
+      klassName = detail::rubyClassName<Map_T>();
     }
 
     Module rb_mStd = define_module("Std");
@@ -1774,7 +1772,7 @@ namespace Rice
               auto iter = multimap.begin();
 
               std::stringstream stream;
-              stream << "<" << detail::rubyClassName(detail::typeName(typeid(T))) << ":";
+              stream << "<" << detail::rubyClassName<T>() << ":";
               stream << "{";
 
               for (; iter != multimap.end(); iter++)
@@ -1812,8 +1810,7 @@ namespace Rice
 
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(MultiMap_T));
-      klassName = detail::rubyClassName(typeName);
+      klassName = detail::rubyClassName<MultiMap_T>();
     }
 
     Module rb_mStd = define_module("Std");
@@ -2251,7 +2248,7 @@ namespace Rice
             auto finish = self.end();
 
             std::stringstream stream;
-            stream << "<" << detail::rubyClassName(detail::typeName(typeid(T))) << ":";
+            stream << "<" << detail::rubyClassName<T>() << ":";
             stream << "{";
 
             for (; iter != finish; iter++)
@@ -2292,8 +2289,7 @@ namespace Rice
 
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(Set_T));
-      klassName = detail::rubyClassName(typeName);
+      klassName = detail::rubyClassName<Set_T>();
     }
 
     Module rb_mStd = define_module("Std");
@@ -2597,8 +2593,7 @@ namespace Rice
 
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(SharedPtr_T));
-      klassName = detail::rubyClassName(typeName);
+      klassName = detail::rubyClassName<SharedPtr_T>();
     }
 
     Module rb_mStd = define_module("Std");
@@ -3773,8 +3768,7 @@ namespace Rice
 
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(UnorderedMap_T));
-      klassName = detail::rubyClassName(typeName);
+      klassName = detail::rubyClassName<UnorderedMap_T>();
     }
 
     Module rb_mStd = define_module("Std");
@@ -4449,8 +4443,7 @@ namespace Rice
 
     if (klassName.empty())
     {
-      std::string typeName = detail::typeName(typeid(Vector_T));
-      klassName = detail::rubyClassName(typeName);
+      klassName = detail::rubyClassName<Vector_T>();
     }
 
     Module rb_mStd = define_module("Std");

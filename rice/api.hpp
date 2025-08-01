@@ -1,5 +1,5 @@
-#ifndef Rice__Ruby_Api_hpp_
-#define Rice__Ruby_Api_hpp_
+#ifndef Rice__Api_hpp_
+#define Rice__Api_hpp_
 
 #include "ruby_api/NativeRegistry.hpp"
 #include "ruby_api/NativeRegistry.ipp"
@@ -15,7 +15,7 @@
 #include "ruby_api/Native.ipp"
 
 extern "C"
-inline void Init_Ruby_Api()
+inline void Init_Api()
 {
   Init_Registries();
   Init_Native_Registry();
@@ -24,5 +24,4 @@ inline void Init_Ruby_Api()
   Init_Parameter();
   Init_Native();
 }
-
 #endif
