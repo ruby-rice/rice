@@ -109,4 +109,4 @@ namespace Rice::detail
       }
     }
   }
-} // Rice
+}
