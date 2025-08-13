@@ -52,7 +52,7 @@ namespace Rice
         this->m_buffer = new T[this->m_size]();
 
         String packed = array.pack<Intrinsic_T>();
-        memcpy(this->m_buffer, RSTRING_PTR(packed.value()), RSTRING_LEN(packed.value()));
+        memcpy((void*)this->m_buffer, RSTRING_PTR(packed.value()), RSTRING_LEN(packed.value()));
 
         this->m_owner = true;
         break;
@@ -69,18 +69,18 @@ namespace Rice
         {
           this->m_buffer = new T[this->m_size]();
         }
-        memcpy(this->m_buffer, RSTRING_PTR(value), this->m_size);
+        memcpy((void*)this->m_buffer, RSTRING_PTR(value), this->m_size);
 
         this->m_owner = true;
         break;
       }
       case RUBY_T_DATA:
       {
-        if (Data_Type<T>::is_descendant(value))
+        if (Data_Type<std::remove_cv_t<T>>::is_descendant(value))
         {
           this->m_size = 1;
           this->m_buffer = new T[this->m_size]();
-          this->m_buffer[0] = *detail::unwrap<T>(value, Data_Type<T>::ruby_data_type(), false);
+          (std::remove_cv_t<T>)this->m_buffer[0] = *detail::unwrap<T>(value, Data_Type<std::remove_cv_t<T>>::ruby_data_type(), false);
           this->m_owner = false;
           break;
         }
@@ -94,7 +94,7 @@ namespace Rice
           T data = detail::protect(RubyType_T::fromRuby, value);
           this->m_size = 1;
           this->m_buffer = new T[this->m_size]();
-          memcpy(this->m_buffer, &data, sizeof(T));
+          memcpy((void*)this->m_buffer, &data, sizeof(T));
           this->m_owner = true;
           break;
         }

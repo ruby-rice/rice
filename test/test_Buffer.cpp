@@ -64,6 +64,31 @@ TESTCASE(CharArray)
   ASSERT_EQUAL(data[7], 1);
 }
 
+TESTCASE(ConstChar)
+{
+  define_buffer<const char>();
+
+  Module m = define_module("BufferTesting");
+
+  std::string code = R"(Rice::Buffer≺char const≻.new("my string"))";
+  Object object = m.instance_eval(code);
+  ASSERT_EQUAL("Rice::Buffer≺char const≻", object.class_name().c_str());
+
+  String bytes = object.call("bytes");
+  ASSERT_EQUAL(std::string("my string"), bytes.str());
+
+  Array array = object.call("to_ary");
+  ASSERT_EQUAL("109, 121, 32, 115, 116, 114, 105, 110, 103", array.join(", ").c_str());
+
+  Object size = object.call("size");
+  ASSERT_EQUAL(9, detail::From_Ruby<int>().convert(size));
+
+  Data_Object<Buffer<const char>> dataObject(object);
+  Buffer<const char> buffer = std::move(*dataObject);
+  ASSERT_EQUAL(std::string("my string"), std::string(buffer.ptr(), buffer.size()));
+  ASSERT_EQUAL(9, (int)buffer.size());
+}
+
 TESTCASE(signed_char_pointer)
 {
   define_buffer<signed char>();
@@ -317,6 +342,31 @@ namespace
 TESTCASE(array_of_objects)
 {
   define_buffer<MyClass*>();
+
+  define_class<MyClass>("MyClass").
+    define_constructor(Constructor<MyClass, int>()).
+    define_attr("id", &MyClass::id);
+
+  std::string code = R"(array = [MyClass.new(0), MyClass.new(1)]
+                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClass∗≻.new(array)
+                        buffer[1].id)";
+
+  Module m = define_module("Testing");
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result));
+
+  code = R"(array = [MyClass.new(0), MyClass.new(1)]
+            buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClass∗≻.new(array)
+            buffer[1] = MyClass.new(2)
+            buffer[1].id)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(array_of_const_objects)
+{
+  define_buffer<const MyClass*>();
 
   define_class<MyClass>("MyClass").
     define_constructor(Constructor<MyClass, int>()).
