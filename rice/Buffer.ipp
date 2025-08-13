@@ -100,7 +100,8 @@ namespace Rice
         }
         else
         {
-          std::string typeName = detail::typeName(typeid(T));
+          detail::TypeMapper<T> typeMapper;
+          std::string typeName = typeMapper.name();
           throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
             detail::protect(rb_obj_classname, value), typeName.c_str());
         }
@@ -133,7 +134,8 @@ namespace Rice
       }
       default:
       {
-        std::string typeName = detail::typeName(typeid(T));
+        detail::TypeMapper<T> typeMapper;
+        std::string typeName = typeMapper.name();
         throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
@@ -208,7 +210,8 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::toString() const
   {
-    std::string description = "Buffer<type: " + detail::cppClassName<T*>() + ", size: " + std::to_string(this->m_size) + ">";
+    detail::TypeMapper<T*> typeMapper;
+    std::string description = "Buffer<type: " + typeMapper.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -322,7 +325,8 @@ namespace Rice
       }
       default:
       {
-        std::string typeName = detail::typeName(typeid(T));
+        detail::TypeMapper<T> typeMapper;
+        std::string typeName = typeMapper.name();
         throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
@@ -411,7 +415,8 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::toString() const
   {
-    std::string description = "Buffer<type: " + detail::cppClassName<T*>() + ", size: " + std::to_string(this->m_size) + ">";
+    detail::TypeMapper<T*> typeMapper;
+    std::string description = "Buffer<type: " + typeMapper.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -503,7 +508,8 @@ namespace Rice
       }
       default:
       {
-        std::string typeName = detail::typeName(typeid(T));
+        detail::TypeMapper<T> typeMapper;
+        std::string typeName = typeMapper.name();
         throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
@@ -592,7 +598,8 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::toString() const
   {
-    std::string description = "Buffer<type: " + detail::cppClassName<T*>() + ", size: " + std::to_string(this->m_size) + ">";
+    detail::TypeMapper<T*> typeMapper;
+    std::string description = "Buffer<type: " + typeMapper.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -678,7 +685,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      klassName = detail::rubyClassName<Buffer<T>>();
+      detail::TypeMapper<Buffer<T>> typeMapper;
+      klassName = typeMapper.rubyName();
     }
 
     Module rb_mRice = define_module("Rice");

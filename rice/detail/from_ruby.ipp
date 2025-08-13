@@ -107,7 +107,8 @@ namespace Rice::detail
         }
         default:
         {
-          std::string expected = rubyClassName<Buffer<intrinsic_type<T>>>();
+          detail::TypeMapper<Buffer<intrinsic_type<T>>> typeMapper;
+          std::string expected = typeMapper.rubyName();
           throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }
@@ -166,7 +167,8 @@ namespace Rice::detail
         }
         default:
         {
-          std::string expected = rubyClassName<Buffer<intrinsic_type<T>*>>();
+          detail::TypeMapper<Buffer<intrinsic_type<T>*>> typeMapper;
+          std::string expected = typeMapper.rubyName();
           throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }

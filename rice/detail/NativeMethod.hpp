@@ -59,7 +59,7 @@ namespace Rice::detail
 
     std::string name() override;
     NativeKind kind() override;
-    std::string rubyReturnType() override;
+    VALUE returnKlass() override;
 
   private:
 

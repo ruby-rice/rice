@@ -143,8 +143,9 @@ namespace Rice::detail
 
     else
     {
+      detail::TypeMapper<T> typeMapper;
       std::string message = "Rice was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: " +
-        typeName(typeid(T));
+        typeMapper.name();
       throw std::runtime_error(message);
     }
 

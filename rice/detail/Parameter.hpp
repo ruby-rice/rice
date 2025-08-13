@@ -17,7 +17,7 @@ namespace Rice::detail
 
     virtual Convertible matches(std::optional<VALUE>& valueOpt) = 0;
     virtual std::string cppTypeName() = 0;
-    virtual std::string rubyTypeName() = 0;
+    virtual VALUE rubyKlass() = 0;
 
   public:
     Arg* arg = nullptr;
@@ -37,7 +37,7 @@ namespace Rice::detail
      T convertToNative(std::optional<VALUE>& valueOpt);
      Convertible matches(std::optional<VALUE>& valueOpt) override;
      std::string cppTypeName() override;
-     std::string rubyTypeName() override;
+     VALUE rubyKlass() override;
 
     // std::string typeName() override;
   private:

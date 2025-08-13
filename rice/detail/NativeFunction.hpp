@@ -44,6 +44,7 @@ namespace Rice::detail
     // We remove const to avoid an explosion of To_Ruby specializations and Ruby doesn't
     // have the concept of constants anyways
     using Return_T = typename function_traits<Function_T>::return_type;
+    using Class_T = typename function_traits<Function_T>::class_type;
     using Arg_Ts = typename function_traits<Function_T>::arg_types;
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
 
@@ -58,7 +59,7 @@ namespace Rice::detail
 
     std::string name() override;
     NativeKind kind() override;
-    std::string rubyReturnType() override;
+    VALUE returnKlass() override;
 
   private:
     template<std::size_t...I>

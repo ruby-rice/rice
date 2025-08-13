@@ -12,6 +12,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = {  };
     static inline std::string packTemplate = "not supported";
     static inline std::string name = "bool";
+    static inline VALUE klass = rb_cTrueClass;
   };
 
   template<>
@@ -26,6 +27,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = CHAR_MIN < 0 ? "c*" : "C*";
     static inline std::string name = "String";
+    static inline VALUE klass = rb_cString;
   };
 
   template<>
@@ -41,6 +43,7 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "c*";
     static inline std::string name = "String";
+    static inline VALUE klass = rb_cString;
   };
 
   template<>
@@ -56,6 +59,10 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "C*";
     static inline std::string name = "String";
+    static inline VALUE klass()
+    {
+      return rb_cString;
+    }
   };
 
   template<>
@@ -70,6 +77,10 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "s*";
     static inline std::string name = "Integer";
+    static inline VALUE klass()
+    {
+      return rb_cInteger;
+    }
   };
 
   template<>
@@ -84,6 +95,10 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "S*";
     static inline std::string name = "Integer";
+    static inline VALUE klass()
+    {
+      return rb_cInteger;
+    }
   };
 
   template<>
@@ -100,6 +115,10 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "i*";
     static inline std::string name = "Integer";
+    static inline VALUE klass()
+    {
+      return rb_cInteger;
+    }
   };
 
   template<>
@@ -116,6 +135,10 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "I*";
     static inline std::string name = "Integer";
+    static inline VALUE klass()
+    {
+      return rb_cInteger;
+    }
   };
 
   template<>
@@ -130,6 +153,10 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "l_*";
     static inline std::string name = "Integer";
+    static inline VALUE klass()
+    {
+      return rb_cInteger;
+    }
   };
 
   template<>
@@ -144,6 +171,10 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM};
     static inline std::string packTemplate = "L_*";
     static inline std::string name = "Integer";
+    static inline VALUE klass()
+    {
+      return rb_cInteger;
+    }
   };
 
   template<>
@@ -158,6 +189,10 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "q_*";
     static inline std::string name = "Integer";
+    static inline VALUE klass()
+    {
+      return rb_cInteger;
+    }
   };
 
   template<>
@@ -172,6 +207,10 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "Q_*";
     static inline std::string name = "Integer";
+    static inline VALUE klass()
+    {
+      return rb_cInteger;
+    }
   };
 
   template<>
@@ -186,6 +225,10 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FLOAT };
     static inline std::string packTemplate = "f*";
     static inline std::string name = "Float";
+    static inline VALUE klass()
+    {
+      return rb_cFloat;
+    }
   };
 
   template<>
@@ -200,6 +243,10 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "d*";
     static inline std::string name = "Float";
+    static inline VALUE klass()
+    {
+      return rb_cFloat;
+    }
   };
 
   template<>
@@ -210,6 +257,10 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Castable = { };
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string name = "void";
+    static inline VALUE klass()
+    {
+      return rb_cNilClass;
+    }
   };
 }
 
@@ -218,7 +269,8 @@ namespace Rice::detail
   template<typename T>
   inline Data_Type<T> define_ruby_type()
   {
-    std::string klassName = detail::rubyClassName<T*>();
+    TypeMapper<T*> typeMapper;
+    std::string klassName = typeMapper.rubyName();
     Identifier id(klassName);
 
     Module rb_mRice = define_module("Rice");

@@ -11,21 +11,26 @@ namespace Rice::detail
     static bool verify();
   };
 
-  // Return the name of a type
-  std::string typeName(const std::type_index& typeIndex);
-
   template<typename T>
-  std::string cppClassName();
+  class TypeMapper
+  {
+  public:
+    std::string name();
+    std::string name(const std::type_index& typeIndex);
+    std::string simplifiedName();
+    std::string rubyName();
+    VALUE rubyKlass();
 
-  template<typename T>
-  std::string rubyClassName();
-
-  template<typename T>
-  inline std::string rubyModuleName();
-
-  std::string findGroup(std::string& string, size_t start = 0);
-  void replaceGroup(std::string& string, std::regex regex, std::string replacement);
-  void replaceAll(std::string& string, std::regex regex, std::string replacement);
+    // public only for testing
+    std::string findGroup(std::string& string, size_t start = 0);
+  private:
+    std::string demangle(char const* mangled_name);
+    std::string rubyTypeName();
+    void removeGroup(std::string& string, std::regex regex);
+    void replaceGroup(std::string& string, std::regex regex, std::string replacement);
+    void replaceAll(std::string& string, std::regex regex, std::string replacement);
+    void capitalizeHelper(std::string& content, std::regex& regex);
+  };
 
   template<typename T>
   void verifyType();

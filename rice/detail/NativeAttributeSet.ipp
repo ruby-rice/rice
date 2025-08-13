@@ -90,23 +90,9 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline std::string NativeAttributeSet<Attribute_T>::rubyReturnType()
+  inline VALUE NativeAttributeSet<Attribute_T>::returnKlass()
   {
-    if constexpr (std::is_fundamental_v<Attr_T>)
-    {
-      return RubyType<detail::remove_cv_recursive_t<Attr_T>>::name;
-    }
-    else
-    {
-      std::string module = rubyModuleName<Attr_T>();
-      if (module.empty())
-      {
-        return rubyClassName<Attr_T>();
-      }
-      else
-      {
-        return module + "::" + rubyClassName<Attr_T>();
-      }
-    }
+    TypeMapper<Attr_T> typeMapper;
+    return typeMapper.rubyKlass();
   }
 }

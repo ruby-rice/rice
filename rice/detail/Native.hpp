@@ -47,7 +47,7 @@ namespace Rice::detail
     // Ruby API access
     virtual std::string name() = 0;
     virtual NativeKind kind() = 0;
-    virtual std::string rubyReturnType() = 0;
+    virtual VALUE returnKlass() = 0;
 
     std::vector<const ParameterAbstract*> parameters();
 

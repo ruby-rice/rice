@@ -124,15 +124,9 @@ namespace Rice::detail
   }
 
   template<typename Proc_T>
-  inline std::string NativeProc< Proc_T>::rubyReturnType()
+  inline VALUE NativeProc<Proc_T>::returnKlass()
   {
-    if constexpr (std::is_fundamental_v<Return_T>)
-    {
-      return RubyType< detail::remove_cv_recursive_t<Return_T>>::name;
-    }
-    else
-    {
-      return rubyClassName<Return_T>();
-    }
+    TypeMapper<Return_T> typeMapper;
+    return typeMapper.rubyKlass();
   }
 }

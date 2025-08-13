@@ -37,7 +37,8 @@ namespace Rice
   {
     if (is_bound())
     {
-      std::string message = "Type " + detail::typeName(typeid(T)) + " is already bound to a different type";
+      detail::TypeMapper<T> typeMapper;
+      std::string message = "Type " + typeMapper.name() + " is already bound to a different type";
       throw std::runtime_error(message.c_str());
     }
 
@@ -56,9 +57,6 @@ namespace Rice
       rb_data_type_->parent = Data_Type<Base_T>::ruby_data_type();
     }
 
-    // Now register with the type registry
-    detail::Registries::instance.types.add<T>(klass_, rb_data_type_);
-
     auto instances = unbound_instances();
     for (auto instance: instances)
     {
@@ -66,7 +64,21 @@ namespace Rice
     }
     instances.clear();
 
-    return Data_Type<T>();
+    // Register with the type registry
+    detail::Registries::instance.types.add<T>(klass_, rb_data_type_);
+
+    // Add a method to get the source C++ class name from Ruby
+    Data_Type<T> dataType;
+    dataType.define_singleton_method("cpp_class", [](VALUE klass) -> VALUE
+    {
+      detail::TypeMapper<T> typeMapper;
+      std::string cppClassName = typeMapper.simplifiedName();
+      Return returnInfo;
+      returnInfo.takeOwnership();
+      return detail::To_Ruby<char*>(&returnInfo).convert(cppClassName.c_str());
+    }, Arg("klass").setValue(), Return().setValue());
+
+    return dataType;
   }
 
   template<typename T>
@@ -215,7 +227,8 @@ namespace Rice
   {
     if (!is_bound())
     {
-      std::string message = "Type is not defined with Rice: " + detail::typeName(typeid(T));
+      detail::TypeMapper<T> typeMapper;
+      std::string message = "Type is not defined with Rice: " + typeMapper.name();
       throw std::invalid_argument(message.c_str());
     }
   }

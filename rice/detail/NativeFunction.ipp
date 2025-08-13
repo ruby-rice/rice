@@ -49,7 +49,8 @@ namespace Rice::detail
   {
     std::ostringstream result;
 
-    result << cppClassName<Return_T>() << " ";
+    detail::TypeMapper<Return_T> typeMapper;
+    result << typeMapper.simplifiedName() << " ";
     result << this->method_name_;
 
     result << "(";
@@ -191,23 +192,9 @@ namespace Rice::detail
   }
 
   template<typename Function_T>
-  inline std::string NativeFunction<Function_T>::rubyReturnType()
+  inline VALUE NativeFunction<Function_T>::returnKlass()
   {
-    if constexpr (std::is_fundamental_v<Return_T>)
-    {
-      return RubyType< detail::remove_cv_recursive_t<Return_T>>::name;
-    }
-    else
-    {
-      std::string module = rubyModuleName<Return_T>();
-      if (module.empty())
-      {
-        return rubyClassName<Return_T>();
-      }
-      else
-      {
-        return module + "::" + rubyClassName<Return_T>();
-      }
-    }
+    TypeMapper<Return_T> typeMapper;
+    return typeMapper.rubyKlass();
   }
 }

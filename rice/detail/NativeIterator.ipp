@@ -115,8 +115,9 @@ namespace Rice::detail
   }
 
   template<typename T, typename Iterator_Func_T>
-  inline std::string NativeIterator<T, Iterator_Func_T>::rubyReturnType()
+  inline VALUE NativeIterator<T, Iterator_Func_T>::returnKlass()
   {
-    return rubyClassName<Value_T>();
+    TypeMapper<Value_T> typeMapper;
+    return typeMapper.rubyKlass();
   }
 }
