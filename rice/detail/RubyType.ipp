@@ -218,7 +218,8 @@ namespace Rice::detail
   template<typename T>
   inline Data_Type<T> define_ruby_type()
   {
-    std::string klassName = detail::rubyClassName<T*>();
+    TypeMapper<T*> typeMapper;
+    std::string klassName = typeMapper.rubyName();
     Identifier id(klassName);
 
     Module rb_mRice = define_module("Rice");

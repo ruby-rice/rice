@@ -29,7 +29,7 @@ namespace Rice::detail
     
     std::string name() override;
     NativeKind kind() override;
-    std::string rubyReturnType() override;
+    VALUE returnKlass() override;
 
   private:
     static VALUE finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);

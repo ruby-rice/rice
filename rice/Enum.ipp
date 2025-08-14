@@ -95,25 +95,19 @@ namespace Rice
         }
       });
 
-    // Add enumerable support
-    klass.include_module(rb_mEnumerable)
-      .define_singleton_method("each", [](VALUE ruby_klass) -> VALUE
-        {
-          if (!rb_block_given_p())
-          {
-            return rb_enumeratorize_with_size(ruby_klass, Identifier("each").to_sym(),
-              0, nullptr, 0);
-          }
+    // Add ability to get enum values
+    klass.define_singleton_method("values", [](VALUE ruby_klass) -> VALUE
+    {
+      Array result;
 
-          for (auto& pair : valuesToNames_)
-          {
-            Enum_T enumValue = pair.first;
-            VALUE value = detail::To_Ruby<Enum_T>().convert(enumValue);
-            detail::protect(rb_yield, value);
-          }
+      for (auto& pair : valuesToNames_)
+      {
+        Object enumValue = Class(ruby_klass).const_get(pair.second);
+        result.push(enumValue, false);
+      }
 
-          return ruby_klass;
-        }, Return().setValue());
+      return result;
+    }, Return().setValue());
 
     // Add bitwise operators
     klass.define_method("&", [](Enum_T& self, Enum_T& other) -> Underlying_T

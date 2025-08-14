@@ -1,10 +1,10 @@
-#ifndef Rice__Ruby_Api_hpp_
-#define Rice__Ruby_Api_hpp_
+#ifndef Rice__Api_hpp_
+#define Rice__Api_hpp_
 
 
 // =========   NativeRegistry.hpp   =========
-#ifndef Rice_Ruby_Api_Native_Registry_hpp
-#define Rice_Ruby_Api_Native_Registry_hpp
+#ifndef Rice_Api_Native_Registry_hpp
+#define Rice_Api_Native_Registry_hpp
 
 extern "C"
 void Init_Native_Registry();
@@ -35,8 +35,8 @@ inline void Init_Native_Registry()
 }
 
 // =========   TypeRegistry.hpp   =========
-#ifndef Rice_Ruby_Api_Type_Registry_hpp
-#define Rice_Ruby_Api_Type_Registry_hpp
+#ifndef Rice_Api_Type_Registry_hpp
+#define Rice_Api_Type_Registry_hpp
 
 extern "C"
 void Init_Type_Registry();
@@ -56,8 +56,8 @@ void Init_Type_Registry()
 }
 
 // =========   Registries.hpp   =========
-#ifndef Rice_Ruby_Api_Registries_hpp
-#define Rice_Ruby_Api_Registries_hpp
+#ifndef Rice_Api_Registries_hpp
+#define Rice_Api_Registries_hpp
 
 void Init_Registries();
 
@@ -72,14 +72,13 @@ inline void Init_Registries()
 
   define_class_under<detail::Registries>(rb_mRice, "Registries").
     define_singleton_attr("instance", &detail::Registries::instance, AttrAccess::Read).
-    define_attr("instances", &detail::Registries::instances, AttrAccess::Read).
     define_attr("natives", &detail::Registries::natives, AttrAccess::Read).
     define_attr("types", &detail::Registries::types, AttrAccess::Read);
 }
 
 // =========   Arg.hpp   =========
-#ifndef Rice_Ruby_Api_Arg_hpp
-#define Rice_Ruby_Api_Arg_hpp
+#ifndef Rice_Api_Arg_hpp
+#define Rice_Api_Arg_hpp
 
 extern "C"
 void Init_Arg();
@@ -98,8 +97,8 @@ inline void Init_Arg()
 }
 
 // =========   Parameter.hpp   =========
-#ifndef Rice_Ruby_Api_Parameter_hpp
-#define Rice_Ruby_Api_Parameter_hpp
+#ifndef Rice_Api_Parameter_hpp
+#define Rice_Api_Parameter_hpp
 
 extern "C"
 void Init_Parameter();
@@ -115,12 +114,13 @@ inline void Init_Parameter()
 
   define_class_under<detail::ParameterAbstract>(rb_mRice, "Parameter").
     define_attr("arg", &detail::ParameterAbstract::arg).
-    define_method("klass", &detail::ParameterAbstract::rubyTypeName);
+    define_method("klass", &detail::ParameterAbstract::rubyKlass, Return().setValue()).
+    define_method("cpp_klass", &detail::ParameterAbstract::cppTypeName);
 }
 
 // =========   Native.hpp   =========
-#ifndef Rice_Ruby_Api_Native_Function_hpp
-#define Rice_Ruby_Api_Native_Function_hpp
+#ifndef Rice_Api_Native_Function_hpp
+#define Rice_Api_Native_Function_hpp
 
 extern "C"
 void Init_Native();
@@ -147,7 +147,7 @@ inline void Init_Native()
   define_class_under<detail::Native>(rb_mRice, "Native").
     define_method("name", &detail::Native::name).
     define_method("kind", &detail::Native::kind).
-    define_method("return_type", &detail::Native::rubyReturnType).
+    define_method("return_klass", &detail::Native::returnKlass).
     define_method("parameters", &detail::Native::parameters).
     define_method("to_s", [](detail::Native& self) -> std::string
       {
@@ -182,7 +182,7 @@ inline void Init_Native()
 }
 
 extern "C"
-inline void Init_Ruby_Api()
+inline void Init_Rice_Api()
 {
   Init_Registries();
   Init_Native_Registry();
@@ -191,5 +191,4 @@ inline void Init_Ruby_Api()
   Init_Parameter();
   Init_Native();
 }
-
 #endif

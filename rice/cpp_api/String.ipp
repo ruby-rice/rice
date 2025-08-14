@@ -66,7 +66,7 @@ namespace Rice
   template<typename T>
   inline Array String::unpack() const
   {
-    return this->call("unpack", detail::RubyType<T>::packTemplate.c_str());
+    return this->call("unpack", detail::RubyType<detail::remove_cv_recursive_t<T>>::packTemplate.c_str());
   }
 
   inline Identifier String::intern() const

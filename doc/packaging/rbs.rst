@@ -8,13 +8,13 @@ Rice of course knows a lot about your extension's types! Starting with Rice 4.7,
 
 Generating RBS Files
 --------------------
-Use the ``rice_rbs`` script in the bin folder to generate RBS files for your extension.
+Use the ``rice-rbs`` script in the bin folder to generate RBS files for your extension.
 
 To run it:
 
 .. code-block:: bash
 
-  rice_rbs [options] <rice_extension_library>
+  rice-rbs [options] <rice_extension_library>
 
   Options:
     -o, --output=path                Output directory

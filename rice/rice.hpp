@@ -40,7 +40,6 @@
 #include "detail/from_ruby.hpp"
 #include "detail/RubyType.hpp"
 #include "detail/Parameter.hpp"
-#include "detail/Parameter.ipp"
 
 // C++ API declarations
 #include "cpp_api/Encoding.hpp"
@@ -73,6 +72,7 @@
 
 // To / From Ruby
 #include "Arg.ipp"
+#include "detail/Parameter.ipp"
 #include "Return.ipp"
 #include "Constructor.hpp"
 #include "Buffer.hpp"

@@ -50,8 +50,9 @@ namespace Rice
 
     bool m_owner = false;
     size_t m_size = 0;
-    // std::unique_ptr would be greate but std::unique_ptr<void> isn't allowed
-    T* m_buffer = nullptr;
+    // std::unique_ptr would be great but std::unique_ptr<void> isn't allowed. Mutable is needed to
+    // support const T* buffers
+    mutable T* m_buffer = nullptr;
   };
 
   template<typename T>

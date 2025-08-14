@@ -2,6 +2,7 @@
 #include "embed_ruby.hpp"
 
 #include <rice/rice.hpp>
+#include <rice/stl.hpp>
 
 #include <complex>
 
@@ -40,172 +41,238 @@ TESTCASE(FindGroup)
 {
   std::string name = "class std::vector<class cv::Vec<unsigned char, 2>, class std::allocator<class cv::Vec<unsigned char, 2> > >";
 
-  std::string group = detail::findGroup(name, 0);
+  detail::TypeMapper<int> typeMapper;
+  std::string group = typeMapper.findGroup(name, 0);
   ASSERT_EQUAL("<class cv::Vec<unsigned char, 2>, class std::allocator<class cv::Vec<unsigned char, 2> > >", group.c_str());
 
-  group = detail::findGroup(name, 18);
+  group = typeMapper.findGroup(name, 18);
   ASSERT_EQUAL("<unsigned char, 2>", group.c_str());
   
-  group = detail::findGroup(name, 49);
+  group = typeMapper.findGroup(name, 49);
   ASSERT_EQUAL("<class cv::Vec<unsigned char, 2> >", group.c_str());
 
   ASSERT_EXCEPTION_CHECK(
     std::runtime_error,
-    detail::findGroup(name, 48),
+    typeMapper.findGroup(name, 48),
       ASSERT_EQUAL("Unbalanced Group", ex.what())
   );
 }
 
-TESTCASE(CppClassName)
+TESTCASE(SimplifiedName)
 {
-  std::string className = detail::cppClassName<char*>();
+  detail::TypeMapper<char*> typeMapper1;
+  std::string className = typeMapper1.simplifiedName();
   ASSERT_EQUAL("char*", className.c_str());
 
-  className = detail::cppClassName<char**>();
+  detail::TypeMapper<char**> typeMapper2;
+  className = typeMapper2.simplifiedName();
   ASSERT_EQUAL("char**", className.c_str());
 
-  className = detail::cppClassName<double>();
+  detail::TypeMapper<double> typeMapper3;
+  className = typeMapper3.simplifiedName();
   ASSERT_EQUAL("double", className.c_str());
 
-  className = detail::cppClassName<double*>();
+  detail::TypeMapper<double*> typeMapper4;
+  className = typeMapper4.simplifiedName();
   ASSERT_EQUAL("double*", className.c_str());
 
-  className = detail::cppClassName<std::string>();
+  detail::TypeMapper<std::string> typeMapper5;
+  className = typeMapper5.simplifiedName();
   ASSERT_EQUAL("std::string", className.c_str());
 
-  className = detail::cppClassName<std::wstring>();
+  detail::TypeMapper<std::wstring> typeMapper6;
+  className = typeMapper6.simplifiedName();
   ASSERT_EQUAL("std::wstring", className.c_str());
 
-  className = detail::cppClassName<std::vector<std::string>>();
+  detail::TypeMapper<std::vector<std::string>> typeMapper7;
+  className = typeMapper7.simplifiedName();
   ASSERT_EQUAL("std::vector<std::string>", className.c_str());
 
-  className = detail::cppClassName<std::vector<std::wstring>>();
+  detail::TypeMapper<std::vector<std::wstring>> typeMapper8;
+  className = typeMapper8.simplifiedName();
   ASSERT_EQUAL("std::vector<std::wstring>", className.c_str());
 
-  className = detail::cppClassName<std::vector<double*>>();
+  detail::TypeMapper<std::vector<double*>> typeMapper9;
+  className = typeMapper9.simplifiedName();
   ASSERT_EQUAL("std::vector<double*>", className.c_str());
 
-  className = detail::cppClassName<std::vector<double**>>();
+  detail::TypeMapper<std::vector<double**>> typeMapper10;
+  className = typeMapper10.simplifiedName();
   ASSERT_EQUAL("std::vector<double**>", className.c_str());
 
-  className = detail::cppClassName<Outer::Inner::Vec1>();
+  detail::TypeMapper<Outer::Inner::Vec1> typeMapper11;
+  className = typeMapper11.simplifiedName();
   ASSERT_EQUAL("std::vector<std::complex<float>>", className.c_str());
 
-  className = detail::cppClassName<Outer::Inner::Vec2>();
+  detail::TypeMapper<Outer::Inner::Vec2> typeMapper12;
+  className = typeMapper12.simplifiedName();
   ASSERT_EQUAL("std::vector<unsigned char*>", className.c_str());
 
-  className = detail::cppClassName<Outer::Inner::Vec3>();
+  detail::TypeMapper<Outer::Inner::Vec3> typeMapper13;
+  className = typeMapper13.simplifiedName();
   ASSERT_EQUAL("std::vector<Outer::Inner::SomeClass>", className.c_str());
 
-  className = detail::cppClassName<Outer::Inner::Map1>();
+  detail::TypeMapper<Outer::Inner::Map1> typeMapper14;
+  className = typeMapper14.simplifiedName();
   ASSERT_EQUAL("std::map<std::string, std::vector<std::complex<float>>>", className.c_str());
 
-  className = detail::cppClassName<Outer::Inner::UnorderedMap1>();
+  detail::TypeMapper<Outer::Inner::UnorderedMap1> typeMapper15;
+  className = typeMapper15.simplifiedName();
   ASSERT_EQUAL("std::unordered_map<std::string, std::complex<float>>", className.c_str());
 }
 
-TESTCASE(RubyClassName)
+TESTCASE(RubyName)
 {
-  std::string className = detail::rubyClassName<char*>();
+  detail::TypeMapper<char*> typeMapper1;
+  std::string className = typeMapper1.rubyName();
   ASSERT_EQUAL("String", className.c_str());
 
-  className = detail::rubyClassName<const unsigned char>();
+  detail::TypeMapper<const unsigned char> typeMapper2;
+  className = typeMapper2.rubyName();
   ASSERT_EQUAL("String", className.c_str());
 
-  className = detail::rubyClassName<const unsigned char*>();
+  detail::TypeMapper<const unsigned char*> typeMapper3;
+  className = typeMapper3.rubyName();
   ASSERT_EQUAL("Buffer≺unsigned char const∗≻", className.c_str());
 
-  className = detail::rubyClassName<char**>();
+  detail::TypeMapper<char**> typeMapper4;
+  className = typeMapper4.rubyName();
   ASSERT_EQUAL("Buffer≺char∗∗≻", className.c_str());
 
-  className = detail::rubyClassName<double>();
+  detail::TypeMapper<double> typeMapper5;
+  className = typeMapper5.rubyName();
   ASSERT_EQUAL("Float", className.c_str());
 
-  className = detail::rubyClassName<double*>();
+  detail::TypeMapper<double*> typeMapper6;
+  className = typeMapper6.rubyName();
   ASSERT_EQUAL("Buffer≺double∗≻", className.c_str());
 
-  className = detail::rubyClassName<std::string>();
+  detail::TypeMapper<std::string> typeMapper7;
+  className = typeMapper7.rubyName();
   ASSERT_EQUAL("String", className.c_str());
 
-  className = detail::rubyClassName<std::wstring>();
+  detail::TypeMapper<std::wstring> typeMapper8;
+  className = typeMapper8.rubyName();
   ASSERT_EQUAL("Wstring", className.c_str());
 
-  className = detail::rubyClassName<std::vector<std::string>>();
+  detail::TypeMapper<std::vector<std::string>> typeMapper9;
+  className = typeMapper9.rubyName();
   ASSERT_EQUAL("Vector≺string≻", className.c_str());
 
-  className = detail::rubyClassName<std::vector<std::wstring>>();
+  detail::TypeMapper<std::vector<std::wstring>> typeMapper10;
+  className = typeMapper10.rubyName();
   ASSERT_EQUAL("Vector≺wstring≻", className.c_str());
 
-  className = detail::rubyClassName<std::vector<double*>>();
+  detail::TypeMapper<std::vector<double*>> typeMapper11;
+  className = typeMapper11.rubyName();
   ASSERT_EQUAL("Vector≺double∗≻", className.c_str());
 
-  className = detail::rubyClassName<std::vector<double**>>();
+  detail::TypeMapper<std::vector<double**>> typeMapper12;
+  className = typeMapper12.rubyName();
   ASSERT_EQUAL("Vector≺double∗∗≻", className.c_str());
 
-  className = detail::rubyClassName<Outer::Inner::Vec1>();
+  detail::TypeMapper<Outer::Inner::Vec1> typeMapper13;
+  className = typeMapper13.rubyName();
   ASSERT_EQUAL("Vector≺complex≺float≻≻", className.c_str());
 
-  className = detail::rubyClassName<Outer::Inner::Vec2>();
+  detail::TypeMapper<Outer::Inner::Vec2> typeMapper14;
+  className = typeMapper14.rubyName();
   ASSERT_EQUAL("Vector≺unsigned char∗≻", className.c_str());
 
-  className = detail::rubyClassName<Outer::Inner::Vec3>();
+  detail::TypeMapper<Outer::Inner::Vec3> typeMapper15;
+  className = typeMapper15.rubyName();
   ASSERT_EQUAL("Vector≺Outer꞉꞉Inner꞉꞉SomeClass≻", className.c_str());
 
-  className = detail::rubyClassName<Outer::Inner::Map1>();
+  detail::TypeMapper<Outer::Inner::Map1> typeMapper16;
+  className = typeMapper16.rubyName();
   ASSERT_EQUAL("Map≺string‚ vector≺complex≺float≻≻≻", className.c_str());
 
-  className = detail::rubyClassName<Outer::Inner::UnorderedMap1>();
+  detail::TypeMapper<Outer::Inner::UnorderedMap1> typeMapper17;
+  className = typeMapper17.rubyName();
   ASSERT_EQUAL("UnorderedMap≺string‚ complex≺float≻≻", className.c_str());
 
-  className = detail::rubyClassName<Outer::Inner::SomeClass*>();
+  detail::TypeMapper<Outer::Inner::SomeClass*> typeMapper18;
+  className = typeMapper18.rubyName();
   ASSERT_EQUAL("SomeClass", className.c_str());
 }
 
-TESTCASE(RubyModuleName)
+TESTCASE(RubyKlass)
 {
-  std::string moduleName = detail::rubyModuleName<char*>();
-  ASSERT_EQUAL("", moduleName.c_str());
+  Module riceModule("Rice");
 
-  moduleName = detail::rubyModuleName<const unsigned char>();
-  ASSERT_EQUAL("", moduleName.c_str());
+  detail::TypeMapper<char*> typeMapper1;
+  VALUE actual = typeMapper1.rubyKlass();
+  ASSERT_EQUAL(rb_cString, actual);
 
-  moduleName = detail::rubyModuleName<const unsigned char*>();
-  ASSERT_EQUAL("Rice", moduleName.c_str());
+  detail::TypeMapper<const unsigned char> typeMapper2;
+  actual = typeMapper2.rubyKlass();
+  ASSERT_EQUAL(rb_cString, actual);
 
-  moduleName = detail::rubyModuleName<char**>();
-  ASSERT_EQUAL("Rice", moduleName.c_str());
+  define_buffer<unsigned char>();
+  Object expected = riceModule.const_get("Buffer≺unsigned char≻");
+  detail::TypeMapper<unsigned char*> typeMapper3;
+  actual = typeMapper3.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
 
-  moduleName = detail::rubyModuleName<double>();
-  ASSERT_EQUAL("", moduleName.c_str());
+  define_buffer<char*>(); 
+  expected = riceModule.const_get("Buffer≺char∗≻");
+  detail::TypeMapper<char**> typeMapper4;
+  actual = typeMapper4.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
 
-  moduleName = detail::rubyModuleName<double*>();
-  ASSERT_EQUAL("Rice", moduleName.c_str());
+  detail::TypeMapper<double> typeMapper5;
+  actual = typeMapper5.rubyKlass();
+  ASSERT_EQUAL(rb_cFloat, actual);
 
-  moduleName = detail::rubyModuleName<std::string>();
-  ASSERT_EQUAL("Std", moduleName.c_str());
+  define_buffer<double>();
+  expected = riceModule.const_get("Buffer≺double≻");
+  detail::TypeMapper<double*> typeMapper6;
+  actual = typeMapper6.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
 
-  moduleName = detail::rubyModuleName<std::wstring>();
-  ASSERT_EQUAL("Std", moduleName.c_str());
+  detail::TypeMapper<std::string> typeMapper7;
+  actual = typeMapper7.rubyKlass();
+  ASSERT_EQUAL(rb_cString, actual);
 
-  moduleName = detail::rubyModuleName<std::vector<std::string>>();
-  ASSERT_EQUAL("Std", moduleName.c_str());
+  define_vector<std::string>();
 
-  moduleName = detail::rubyModuleName<Outer::Inner::Vec1>();
-  ASSERT_EQUAL("Std", moduleName.c_str());
+  Module stdModule("Std");
 
-  moduleName = detail::rubyModuleName<Outer::Inner::Map1>();
-  ASSERT_EQUAL("Std", moduleName.c_str());
+  detail::TypeMapper<std::vector<std::string>> typeMapper9;
+  expected = stdModule.const_get("Vector≺string≻");
+  actual = typeMapper9.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
 
-  moduleName = detail::rubyModuleName<Outer::Inner::UnorderedMap1>();
-  ASSERT_EQUAL("Std", moduleName.c_str());
+  define_class<Outer::Inner::Vec1>("Vec1");
+  detail::TypeMapper<Outer::Inner::Vec1> typeMapper10;
+  expected = Object(rb_cObject).const_get("Vec1");
+  actual = typeMapper10.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
 
-  moduleName = detail::rubyModuleName<Outer::Inner::SomeClass*>();
-  ASSERT_EQUAL("Outer::Inner", moduleName.c_str());
+  define_class<Outer::Inner::Map1>("Map1");
+  detail::TypeMapper<Outer::Inner::Map1> typeMapper11;
+  expected = Object(rb_cObject).const_get("Map1");
+  actual = typeMapper11.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+
+  define_class<Outer::Inner::UnorderedMap1>("UnorderedMap1");
+  detail::TypeMapper<Outer::Inner::UnorderedMap1> typeMapper12;
+  expected = Object(rb_cObject).const_get("UnorderedMap1");
+  actual = typeMapper12.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+ 
+  define_class<Outer::Inner::SomeClass>("SomeClass");
+  define_buffer<Outer::Inner::SomeClass*>();
+  detail::TypeMapper<Outer::Inner::SomeClass*> typeMapper13;
+  expected = riceModule.const_get("Buffer≺Outer꞉꞉Inner꞉꞉SomeClass∗≻");
+  actual = typeMapper13.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
 }
 
 TESTCASE(MakeRubyClass)
 {
-  std::string rubyClassName = detail::rubyClassName<Outer::Inner::Vec1>();
+  detail::TypeMapper<Outer::Inner::Vec1> typeMapper;
+  std::string rubyClassName = typeMapper.rubyName();
 
   Module module = define_module("Testing");
 

@@ -122,7 +122,8 @@ namespace Rice::detail
       return result.value();
     }
 
-    raiseUnverifiedType(detail::typeName(typeInfo));
+    detail::TypeMapper<T> typeMapper;
+    raiseUnverifiedType(typeMapper.name());
     // Make the compiler happy
     return std::pair<VALUE, rb_data_type_t*>(Qnil, nullptr);
   }
@@ -155,7 +156,8 @@ namespace Rice::detail
 
     for (const std::type_index& typeIndex : this->unverified_)
     {
-      stream << "  " << typeName(typeIndex) << "\n";
+      detail::TypeMapper<int> typeMapper;
+      stream << "  " << typeMapper.name(typeIndex) << "\n";
     }
 
     throw std::invalid_argument(stream.str());

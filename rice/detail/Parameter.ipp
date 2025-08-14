@@ -92,27 +92,14 @@ namespace Rice::detail
   template<typename T>
   inline std::string Parameter<T>::cppTypeName()
   {
-    return cppClassName<T>();
+    detail::TypeMapper<T> typeMapper;
+    return typeMapper.simplifiedName();
   }
 
   template<typename T>
-  inline std::string Parameter<T>::rubyTypeName()
+  inline VALUE Parameter<T>::klass()
   {
-    if constexpr (std::is_fundamental_v<T>)
-    {
-      return RubyType<T>::name;
-    }
-    else
-    {
-      std::string module = rubyModuleName<T>();
-      if (module.empty())
-      {
-        return rubyClassName<T>();
-      }
-      else
-      {
-        return module + "::" + rubyClassName<T>();
-      }
-    }
+    TypeMapper<T> typeMapper;
+    return typeMapper.rubyKlass();
   }
 }

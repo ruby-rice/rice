@@ -6,8 +6,9 @@
 
 namespace Rice::detail
 {
+  // ------ Type ----------------
   template<typename T>
-  bool Type<T>::verify()
+  inline bool Type<T>::verify()
   {
     if constexpr (std::is_fundamental_v<T>)
     {
@@ -42,7 +43,245 @@ namespace Rice::detail
     verifyTypesImpl<Tuple_T>(indexes);
   }
 
-  inline std::string demangle(char const* mangled_name)
+  // ---------- Type Speciaizations ------------
+  // Helper template to see if rubyKlass is defined on a Type specialization
+  template<typename, typename = std::void_t<>>
+  struct has_ruby_klass : std::false_type
+  {
+  };
+
+  template<typename T>
+  struct has_ruby_klass<T, std::void_t<decltype(T::rubyKlass())>> : std::true_type
+  {
+  };
+
+  template<>
+  struct Type<bool>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cTrueClass;
+    }
+  };
+
+  template<>
+  struct Type<char>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
+  template<>
+  struct Type<signed char>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+  
+  template<>
+  struct Type<unsigned char>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
+  template<>
+  struct Type<short>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<unsigned short>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<int>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<unsigned int>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<long>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<unsigned long>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<long long>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<unsigned long long>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<float>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cFloat;
+    }
+  };
+
+  template<>
+  struct Type<double>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cFloat;
+    }
+  };
+
+  template<>
+  struct Type<void>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cNilClass;
+    }
+  };
+
+  template<>
+  struct Type<char*>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
+  // ---------- TypeMapper ------------
+  template<typename T>
+  inline std::string TypeMapper<T>::demangle(char const* mangled_name)
   {
 #ifdef __GNUC__
     struct Helper
@@ -81,7 +320,15 @@ namespace Rice::detail
 #endif
   }
 
-  inline std::string typeName(const std::type_index& typeIndex)
+  template<typename T>
+  inline std::string TypeMapper<T>::name()
+  {
+    const std::type_index& typeIndex = typeid(T);
+    return demangle(typeIndex.name());
+  }
+
+  template<typename T>
+  inline std::string TypeMapper<T>::name(const std::type_index& typeIndex)
   {
     return demangle(typeIndex.name());
   }
@@ -91,7 +338,8 @@ namespace Rice::detail
   // Example:
   //  
   //   std::vector<std::vector<int>, std::allocator<std::vector, std::allocator<int>>>
-  inline std::string findGroup(std::string& string, size_t offset)
+  template<typename T>
+  inline std::string TypeMapper<T>::findGroup(std::string& string, size_t offset)
   {
     int depth = 0;
 
@@ -124,7 +372,8 @@ namespace Rice::detail
     throw std::runtime_error("Unbalanced Group");
   }
 
-  inline void replaceAll(std::string& string, std::regex regex, std::string replacement)
+  template<typename T>
+  inline void TypeMapper<T>::replaceAll(std::string& string, std::regex regex, std::string replacement)
   {
     std::smatch match;
     while (std::regex_search(string, match, regex))
@@ -133,7 +382,8 @@ namespace Rice::detail
     }
   }
 
-  inline void removeGroup(std::string& string, std::regex regex)
+  template<typename T>
+  inline void TypeMapper<T>::removeGroup(std::string& string, std::regex regex)
   {
     std::smatch match;
     while (std::regex_search(string, match, regex))
@@ -144,7 +394,8 @@ namespace Rice::detail
     }
   }
 
-  inline void replaceGroup(std::string& string, std::regex regex, std::string replacement)
+  template<typename T>
+  inline void TypeMapper<T>::replaceGroup(std::string& string, std::regex regex, std::string replacement)
   {
     std::smatch match;
     while (std::regex_search(string, match, regex))
@@ -156,10 +407,9 @@ namespace Rice::detail
   }
 
   template<typename T>
-  inline std::string cppClassName()
+  inline std::string TypeMapper<T>::simplifiedName()
   {
-    const std::type_info& typeInfo = typeid(T);
-    std::string base = typeName(typeInfo);
+    std::string base = this->name();
 
     // Remove void from Buffer<T, void> - the void comes from SFINAE
     auto fixBuffer = std::regex("(Buffer<[^,]*),\\s?void>");
@@ -229,7 +479,8 @@ namespace Rice::detail
     return base;
   }
 
-  inline void capitalizeHelper(std::string& content, std::regex& regex)
+  template<typename T>
+  inline void TypeMapper<T>::capitalizeHelper(std::string& content, std::regex& regex)
   {
     std::smatch match;
     while (std::regex_search(content, match, regex))
@@ -241,31 +492,34 @@ namespace Rice::detail
   }
 
   template<typename T>
-  inline std::string rubyTypeName()
+  inline std::string TypeMapper<T>::rubyTypeName()
   {
+    using Intrinsic_T = detail::intrinsic_type<T>;
+
     if constexpr (std::is_fundamental_v<T>)
     {
-      return RubyType<intrinsic_type<T>>::name;
+      return RubyType<Intrinsic_T>::name;
     }
     else if constexpr (std::is_same_v<std::remove_cv_t<T>, char*>)
     {
       return "String";
     }
-    else if constexpr (std::is_pointer_v<T> && std::is_fundamental_v<detail::intrinsic_type<T>>)
+    else if constexpr (std::is_pointer_v<T> && std::is_fundamental_v<Intrinsic_T>)
     {
-      const std::type_info& typeInfo = typeid(Buffer<T>);
-      return cppClassName<Buffer<T>>();
+      detail::TypeMapper<Buffer<T>> typeMapper;
+      return typeMapper.simplifiedName();
     }
     else
     {
-      return cppClassName<intrinsic_type<T>>();
+      detail::TypeMapper<Intrinsic_T> typeIntrinsicMapper;
+      return typeIntrinsicMapper.simplifiedName();
     }
   }
 
   template<typename T>
-  inline std::string rubyClassName()
+  inline std::string TypeMapper<T>::rubyName()
   {
-    std::string base = rubyTypeName<T>();
+    std::string base = this->rubyTypeName();
 
     // Remove std:: these could be embedded in template types
     auto stdRegex = std::regex("std::");
@@ -313,23 +567,31 @@ namespace Rice::detail
   }
 
   template<typename T>
-  inline std::string rubyModuleName()
+  inline VALUE TypeMapper<T>::rubyKlass()
   {
-    // Find leading namespaces
-    std::string fullName = rubyTypeName<T>();
-    auto leadingNamespacesRegex = std::regex("^([^<]*)::");
-    std::smatch match;
-    if (std::regex_search(fullName, match, leadingNamespacesRegex))
+    using Simplified_T = detail::remove_cv_recursive_t<T>;
+
+    if constexpr (has_ruby_klass<Type<Simplified_T>>::value)
     {
-      std::string namespaces = match[1];
-      auto capitalizeRegex = std::regex(R"((?=::)(\w))");
-      capitalizeHelper(namespaces, capitalizeRegex);
-      namespaces[0] = std::toupper(namespaces[0]);
-      return namespaces;
+      return Type<Simplified_T>::rubyKlass();
+    }
+    else if constexpr (!std::is_pointer_v<T>)
+    {
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<T>();
+      return pair.first;
+    }
+    else if constexpr (std::is_fundamental_v<intrinsic_type<T>>)
+    {
+      using Buffer_T = Buffer<std::remove_pointer_t<T>>;
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Buffer_T>();
+      return pair.first;
     }
     else
     {
-      return "";
+      using Buffer_T = Buffer<T>;
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Buffer_T>();
+      return pair.first;
     }
+    return Qnil;
   }
 }

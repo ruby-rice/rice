@@ -240,7 +240,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      klassName = detail::rubyClassName<UnorderedMap_T>();
+      detail::TypeMapper<UnorderedMap_T> typeMapper;
+      klassName = typeMapper.rubyName();
     }
 
     Module rb_mStd = define_module("Std");

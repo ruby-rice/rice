@@ -9,6 +9,11 @@ namespace Rice::detail
     {
       return true;
     }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
   };
 
   template<>
@@ -80,7 +85,6 @@ namespace Rice::detail
     {
     }
 
-
     VALUE convert(const std::string* x)
     {
       return detail::protect(rb_external_str_new, x->data(), (long)x->size());
@@ -135,7 +139,7 @@ namespace Rice::detail
 
     std::string convert(VALUE value)
     {
-      detail::protect(rb_check_type, value, (int)T_STRING);
+      detail::protect(rb_check_type, value, (int)RUBY_T_STRING);
       return std::string(RSTRING_PTR(value), RSTRING_LEN(value));
     }
 
@@ -167,7 +171,7 @@ namespace Rice::detail
 
     std::string& convert(VALUE value)
     {
-      detail::protect(rb_check_type, value, (int)T_STRING);
+      detail::protect(rb_check_type, value, (int)RUBY_T_STRING);
       this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
       return this->converted_;
     }
@@ -235,7 +239,7 @@ namespace Rice::detail
 
     std::string* convert(VALUE value)
     {
-      detail::protect(rb_check_type, value, (int)T_STRING);
+      detail::protect(rb_check_type, value, (int)RUBY_T_STRING);
       this->converted_ = std::string(RSTRING_PTR(value), RSTRING_LEN(value));
       return &this->converted_;
     }

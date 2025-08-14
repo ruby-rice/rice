@@ -32,7 +32,7 @@ namespace Rice
 
       std::string name() override;
       NativeKind kind() override;
-      std::string rubyReturnType() override;
+      VALUE returnKlass() override;
 
     protected:
       NativeAttributeSet(VALUE klass, std::string name, Attribute_T attr);
