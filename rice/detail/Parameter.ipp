@@ -97,7 +97,7 @@ namespace Rice::detail
   }
 
   template<typename T>
-  inline VALUE Parameter<T>::rubyKlass()
+  inline VALUE Parameter<T>::klass()
   {
     TypeMapper<T> typeMapper;
     return typeMapper.rubyKlass();

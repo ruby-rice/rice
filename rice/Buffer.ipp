@@ -79,8 +79,8 @@ namespace Rice
         if (Data_Type<std::remove_cv_t<T>>::is_descendant(value))
         {
           this->m_size = 1;
-          this->m_buffer = new T[this->m_size]();
-          (std::remove_cv_t<T>)this->m_buffer[0] = *detail::unwrap<T>(value, Data_Type<std::remove_cv_t<T>>::ruby_data_type(), false);
+          T* instance = detail::unwrap<T>(value, Data_Type<std::remove_cv_t<T>>::ruby_data_type(), false);
+          this->m_buffer = new T[this->m_size]{*instance};
           this->m_owner = false;
           break;
         }

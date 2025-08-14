@@ -43,6 +43,242 @@ namespace Rice::detail
     verifyTypesImpl<Tuple_T>(indexes);
   }
 
+  // ---------- Type Speciaizations ------------
+  // Helper template to see if rubyKlass is defined on a Type specialization
+  template<typename, typename = std::void_t<>>
+  struct has_ruby_klass : std::false_type
+  {
+  };
+
+  template<typename T>
+  struct has_ruby_klass<T, std::void_t<decltype(T::rubyKlass())>> : std::true_type
+  {
+  };
+
+  template<>
+  struct Type<bool>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cTrueClass;
+    }
+  };
+
+  template<>
+  struct Type<char>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
+  template<>
+  struct Type<signed char>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+  
+  template<>
+  struct Type<unsigned char>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
+  template<>
+  struct Type<short>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<unsigned short>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<int>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<unsigned int>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<long>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<unsigned long>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<long long>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<unsigned long long>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cInteger;
+    }
+  };
+
+  template<>
+  struct Type<float>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cFloat;
+    }
+  };
+
+  template<>
+  struct Type<double>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cFloat;
+    }
+  };
+
+  template<>
+  struct Type<void>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cNilClass;
+    }
+  };
+
+  template<>
+  struct Type<char*>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
   // ---------- TypeMapper ------------
   template<typename T>
   inline std::string TypeMapper<T>::demangle(char const* mangled_name)
@@ -330,44 +566,32 @@ namespace Rice::detail
     return base;
   }
 
-  // primary template
-  template<typename, typename = std::void_t<>>
-  struct has_ruby_klass : std::false_type
-  {
-  };
-
-  template<typename T>
-  struct has_ruby_klass<T, std::void_t<decltype(T::rubyKlass())>> : std::true_type
-  {
-  };
-
   template<typename T>
   inline VALUE TypeMapper<T>::rubyKlass()
   {
     using Simplified_T = detail::remove_cv_recursive_t<T>;
 
-    if constexpr (std::is_fundamental_v<Simplified_T>)
+    if constexpr (has_ruby_klass<Type<Simplified_T>>::value)
     {
-      return RubyType<Simplified_T>::klass();
+      return Type<Simplified_T>::rubyKlass();
     }
-    else if constexpr (std::is_same_v<Simplified_T, char*>)
+    else if constexpr (!std::is_pointer_v<T>)
     {
-      return rb_cString;
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<T>();
+      return pair.first;
     }
-    else if constexpr (std::is_fundamental_v<std::remove_pointer_t<T>> || std::is_fundamental_v<std::remove_pointer_t<std::remove_pointer_t<T>>>)
+    else if constexpr (std::is_fundamental_v<intrinsic_type<T>>)
     {
       using Buffer_T = Buffer<std::remove_pointer_t<T>>;
       std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Buffer_T>();
       return pair.first;
     }
-    else if constexpr (has_ruby_klass<Type<T>>::value)
-    {
-      return Type<T>::rubyKlass();
-    }
     else
     {
-      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Simplified_T>();
+      using Buffer_T = Buffer<T>;
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Buffer_T>();
       return pair.first;
     }
+    return Qnil;
   }
 }
