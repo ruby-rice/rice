@@ -355,22 +355,10 @@ namespace Rice::detail
     {
       return Type<Simplified_T>::rubyKlass();
     }
-    else //if constexpr (!std::is_pointer_v<T>)
+    else
     {
       std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<T>();
       return pair.first;
     }
-/*    else if constexpr (std::is_fundamental_v<intrinsic_type<T>>)
-    {
-      using Buffer_T = Buffer<std::remove_pointer_t<T>>;
-      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Buffer_T>();
-      return pair.first;
-    }
-    else
-    {
-      using Buffer_T = Buffer<T>;
-      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Buffer_T>();
-      return pair.first;
-    }*/
   }
 }
