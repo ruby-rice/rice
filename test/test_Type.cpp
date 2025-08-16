@@ -200,78 +200,100 @@ TESTCASE(RubyKlass)
 {
   Module riceModule("Rice");
 
-  detail::TypeMapper<char*> typeMapper1;
+  detail::TypeMapper<int> typeMapper1;
   VALUE actual = typeMapper1.rubyKlass();
+  ASSERT_EQUAL(rb_cInteger, actual);
+
+  detail::TypeMapper<const int> typeMapper2;
+  actual = typeMapper2.rubyKlass();
+  ASSERT_EQUAL(rb_cInteger, actual);
+
+  detail::TypeMapper<int&> typeMapper3;
+  actual = typeMapper3.rubyKlass();
+  ASSERT_EQUAL(rb_cInteger, actual);
+
+  detail::TypeMapper<const int&> typeMapper4;
+  actual = typeMapper4.rubyKlass();
+  ASSERT_EQUAL(rb_cInteger, actual);
+
+  detail::TypeMapper<char*> typeMapper5;
+  actual = typeMapper5.rubyKlass();
   ASSERT_EQUAL(rb_cString, actual);
 
-  detail::TypeMapper<const unsigned char> typeMapper2;
-  actual = typeMapper2.rubyKlass();
+  detail::TypeMapper<const unsigned char> typeMapper6;
+  actual = typeMapper6.rubyKlass();
   ASSERT_EQUAL(rb_cString, actual);
 
   define_buffer<unsigned char>();
   Object expected = riceModule.const_get("Buffer≺unsigned char≻");
-  detail::TypeMapper<unsigned char*> typeMapper3;
-  actual = typeMapper3.rubyKlass();
+  detail::TypeMapper<unsigned char*> typeMapper7;
+  actual = typeMapper7.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
   define_buffer<char*>(); 
   expected = riceModule.const_get("Buffer≺char∗≻");
-  detail::TypeMapper<char**> typeMapper4;
-  actual = typeMapper4.rubyKlass();
+  detail::TypeMapper<char**> typeMapper8;
+  actual = typeMapper8.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
-  detail::TypeMapper<double> typeMapper5;
-  actual = typeMapper5.rubyKlass();
+  detail::TypeMapper<double> typeMapper9;
+  actual = typeMapper9.rubyKlass();
   ASSERT_EQUAL(rb_cFloat, actual);
 
   define_buffer<double>();
   expected = riceModule.const_get("Buffer≺double≻");
-  detail::TypeMapper<double*> typeMapper6;
-  actual = typeMapper6.rubyKlass();
+  detail::TypeMapper<double*> typeMapper10;
+  actual = typeMapper10.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
-  detail::TypeMapper<std::string> typeMapper7;
-  actual = typeMapper7.rubyKlass();
+  detail::TypeMapper<std::string> typeMapper11;
+  actual = typeMapper11.rubyKlass();
   ASSERT_EQUAL(rb_cString, actual);
 
   define_vector<std::string>();
 
   Module stdModule("Std");
 
-  detail::TypeMapper<std::vector<std::string>> typeMapper9;
+  detail::TypeMapper<std::vector<std::string>> typeMapper12;
   expected = stdModule.const_get("Vector≺string≻");
-  actual = typeMapper9.rubyKlass();
+  actual = typeMapper12.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
   define_class<Outer::Inner::Vec1>("Vec1");
-  detail::TypeMapper<Outer::Inner::Vec1> typeMapper10;
+  detail::TypeMapper<Outer::Inner::Vec1> typeMapper13;
   expected = Object(rb_cObject).const_get("Vec1");
-  actual = typeMapper10.rubyKlass();
+  actual = typeMapper13.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
   define_class<Outer::Inner::Map1>("Map1");
-  detail::TypeMapper<Outer::Inner::Map1> typeMapper11;
+  detail::TypeMapper<Outer::Inner::Map1> typeMapper14;
   expected = Object(rb_cObject).const_get("Map1");
-  actual = typeMapper11.rubyKlass();
+  actual = typeMapper14.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
   define_class<Outer::Inner::UnorderedMap1>("UnorderedMap1");
-  detail::TypeMapper<Outer::Inner::UnorderedMap1> typeMapper12;
+  detail::TypeMapper<Outer::Inner::UnorderedMap1> typeMapper15;
   expected = Object(rb_cObject).const_get("UnorderedMap1");
-  actual = typeMapper12.rubyKlass();
+  actual = typeMapper15.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
  
   define_class<Outer::Inner::SomeClass>("SomeClass");
   define_buffer<Outer::Inner::SomeClass*>();
-  detail::TypeMapper<Outer::Inner::SomeClass**> typeMapper13;
+  detail::TypeMapper<Outer::Inner::SomeClass**> typeMapper16;
   expected = riceModule.const_get("Buffer≺Outer꞉꞉Inner꞉꞉SomeClass∗≻");
-  actual = typeMapper13.rubyKlass();
+  actual = typeMapper16.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
   define_buffer<void>();
-  detail::TypeMapper<void*> typeMapper14;
+  detail::TypeMapper<void*> typeMapper17;
   expected = riceModule.const_get("Buffer≺void≻");
-  actual = typeMapper14.rubyKlass();
+  actual = typeMapper17.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+
+  using Callback_T = char*(*)(int, double, bool, char*);
+  detail::TypeMapper<Callback_T> typeMapper18;
+  expected = Object(rb_cObject).const_get("Proc");
+  actual = typeMapper18.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 }
 

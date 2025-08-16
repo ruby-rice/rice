@@ -13,11 +13,16 @@ namespace Rice::detail
       return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
     }
 
-    template<std::size_t... I>
     constexpr static bool verify()
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return verifyTypes(indices);
+    }
+
+    static VALUE rubyKlass()
+    {
+      // There is no direct mapping to Ruby, so just return Object
+      return rb_cObject;
     }
   };
 

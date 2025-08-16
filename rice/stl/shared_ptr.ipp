@@ -67,6 +67,20 @@ namespace Rice::detail
     {
       return Type<T>::verify();
     }
+
+    static VALUE rubyKlass()
+    {
+      if (Data_Type<std::shared_ptr<T>>::is_defined())
+      {
+        std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<std::shared_ptr<T>>();
+        return pair.first;
+      }
+      else
+      {
+        TypeMapper<T> typeMapper;
+        return typeMapper.rubyKlass();
+      }
+    }
   };
 
   template <typename T>

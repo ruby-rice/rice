@@ -1,4 +1,4 @@
-﻿#include "unittest.hpp"
+#include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
@@ -347,12 +347,29 @@ TESTCASE(Update)
   ASSERT_EQUAL(14, detail::From_Ruby<long>().convert(result.value()));
 }
 
+TESTCASE(Klass)
+{
+  detail::TypeMapper<std::shared_ptr<MyClass>> typeMapper;
+  Object expected = Object(rb_cObject).const_get("MyClass");
+  VALUE actual = typeMapper.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+}
+
+TESTCASE(KlassSharedPtr)
+{
+  define_shared_ptr<MyClass>();
+  detail::TypeMapper<std::shared_ptr<MyClass>> typeMapper;
+
+  Module stdModule("Std");
+  Object expected = stdModule.const_get("SharedPtr≺AnonymousNamespace꞉꞉MyClass≻");
+  VALUE actual = typeMapper.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+}
+
 TESTCASE(Void)
 {
   MyClass::reset();
   Factory::reset();
-
-  detail::Type<Buffer<void>>::verify();
 
   Module m = define_module("TestingModule");
 
@@ -397,8 +414,6 @@ namespace
 
 TESTCASE(PointerToInt)
 {
-  detail::Type<Buffer<int>>::verify();
-
   Module m = define_module("SharedPtrInt").
     define_module_function("create_pointer", &createPointer).
     define_module_function("get_pointer_value", &getPointerValue);
@@ -442,8 +457,6 @@ TESTCASE(UpdatePointerToInt)
 
 TESTCASE(ReadPointerToInt)
 {
-  detail::Type<Buffer<int>>::verify();
-
   Module m = define_module("ReadPointerToInt").
       define_module_function("create_pointer", &createPointer);
 

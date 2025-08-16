@@ -4,15 +4,15 @@
 #include <cstring>
 #endif
 
+// Rice saves types either as the intrinsic type (MyObject) or pointer (MyObject*).
+// It strips out references, const and volatile to avoid an explosion of template classes.
+// Pointers are used for C function pointers used in callbacks and for the Buffer class.
 namespace Rice::detail
 {
   // ------ Type ----------------
   template<typename T>
   inline bool Type<T>::verify()
   {
-    // Rice saves types either as the intrinsic type (MyObject) or pointer (MyObject*).
-    // It strips out references, const and volatile to avoid an explosion of template classes.
-    // Pointers a kept to support the Buffer class.
     if constexpr (std::is_reference_v<T>)
     {
       return Type<std::remove_reference_t<T>>::verify();
@@ -349,15 +349,20 @@ namespace Rice::detail
   template<typename T>
   inline VALUE TypeMapper<T>::rubyKlass()
   {
-    using Simplified_T = detail::remove_cv_recursive_t<T>;
+    using Intrinsic_T = detail::intrinsic_type<T>;
 
-    if constexpr (has_ruby_klass<Type<Simplified_T>>::value)
+    // This checks for pointers like int*
+    if constexpr (has_ruby_klass<Type<detail::remove_cv_recursive_t<T>>>::value)
     {
-      return Type<Simplified_T>::rubyKlass();
+      return Type<detail::remove_cv_recursive_t<T>>::rubyKlass();
+    }
+    else if constexpr (has_ruby_klass<Type<Intrinsic_T>>::value)
+    {
+      return Type<Intrinsic_T>::rubyKlass();
     }
     else
     {
-      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<T>();
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Intrinsic_T>();
       return pair.first;
     }
   }

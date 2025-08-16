@@ -165,5 +165,11 @@ namespace Rice::detail
     {
       return Type<T>::verify();
     }
+
+    static VALUE rubyKlass()
+    {
+      TypeMapper<T> typeMapper;
+      return typeMapper.rubyKlass();
+    }
   };
 }
