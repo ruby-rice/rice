@@ -56,6 +56,20 @@ namespace Rice::detail
     }
   };
   
+  template<int N>
+  struct Type<signed char[N]>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
   template<>
   struct Type<unsigned char>
   {
@@ -70,6 +84,20 @@ namespace Rice::detail
     }
   };
 
+  template<int N>
+  struct Type<unsigned char[N]>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+  
   template<>
   struct Type<short>
   {
@@ -84,6 +112,20 @@ namespace Rice::detail
     }
   };
 
+  template<int N>
+  struct Type<short[N]>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+  
   template<>
   struct Type<unsigned short>
   {
@@ -95,6 +137,20 @@ namespace Rice::detail
     static VALUE rubyKlass()
     {
       return rb_cInteger;
+    }
+  };
+
+  template<int N>
+  struct Type<unsigned short[N]>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
     }
   };
 
@@ -112,6 +168,20 @@ namespace Rice::detail
     }
   };
 
+  template<int N>
+  struct Type<int[N]>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
   template<>
   struct Type<unsigned int>
   {
@@ -123,6 +193,20 @@ namespace Rice::detail
     static VALUE rubyKlass()
     {
       return rb_cInteger;
+    }
+  };
+
+  template<int N>
+  struct Type<unsigned int[N]>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
     }
   };
 
@@ -140,6 +224,20 @@ namespace Rice::detail
     }
   };
 
+  template<int N>
+  struct Type<long[N]>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
   template<>
   struct Type<unsigned long>
   {
@@ -154,6 +252,20 @@ namespace Rice::detail
     }
   };
 
+  template<int N>
+  struct Type<unsigned long[N]>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+  
   template<>
   struct Type<long long>
   {
@@ -165,6 +277,20 @@ namespace Rice::detail
     static VALUE rubyKlass()
     {
       return rb_cInteger;
+    }
+  };
+
+  template<int N>
+  struct Type<long long[N]>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
     }
   };
 
@@ -182,6 +308,20 @@ namespace Rice::detail
     }
   };
 
+  template<int N>
+  struct Type<unsigned long long[N]>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
   template<>
   struct Type<float>
   {
@@ -196,6 +336,20 @@ namespace Rice::detail
     }
   };
 
+  template<int N>
+  struct Type<float[N]>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
   template<>
   struct Type<double>
   {
@@ -207,6 +361,20 @@ namespace Rice::detail
     static VALUE rubyKlass()
     {
       return rb_cFloat;
+    }
+  };
+
+  template<int N>
+  struct Type<double[N]>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
     }
   };
 
