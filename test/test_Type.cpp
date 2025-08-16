@@ -263,9 +263,15 @@ TESTCASE(RubyKlass)
  
   define_class<Outer::Inner::SomeClass>("SomeClass");
   define_buffer<Outer::Inner::SomeClass*>();
-  detail::TypeMapper<Outer::Inner::SomeClass*> typeMapper13;
+  detail::TypeMapper<Outer::Inner::SomeClass**> typeMapper13;
   expected = riceModule.const_get("Buffer≺Outer꞉꞉Inner꞉꞉SomeClass∗≻");
   actual = typeMapper13.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+
+  define_buffer<void>();
+  detail::TypeMapper<void*> typeMapper14;
+  expected = riceModule.const_get("Buffer≺void≻");
+  actual = typeMapper14.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 }
 

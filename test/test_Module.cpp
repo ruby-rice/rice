@@ -11,7 +11,6 @@ TESTSUITE(Module);
 SETUP(Module)
 {
   embed_ruby();
-  define_fundamental_buffer_types();
 }
 
 TEARDOWN(Module)
@@ -503,10 +502,10 @@ TESTCASE(pointers)
 
   Module m = define_module("TestingModule");
   std::string code = R"(int_buffer = Rice::Buffer≺int≻.new(32)
-                          bool_buffer = Rice::Buffer≺bool≻.new(true)
-                          double_buffer = Rice::Buffer≺float≻.new(33.0)
-                          float_buffer = Rice::Buffer≺double≻.new(34.0)
-                          with_pointers(int_buffer, bool_buffer, double_buffer, float_buffer))";
+                        bool_buffer = Rice::Buffer≺bool≻.new(true)
+                        double_buffer = Rice::Buffer≺float≻.new(33.0)
+                        float_buffer = Rice::Buffer≺double≻.new(34.0)
+                        with_pointers(int_buffer, bool_buffer, double_buffer, float_buffer))";
 
   m.module_eval(code);
 

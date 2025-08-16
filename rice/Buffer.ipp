@@ -2,17 +2,17 @@ namespace Rice
 {
   // ----  Buffer<T> ------- 
   template<typename T>
-  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::Buffer(T* pointer) : m_buffer(pointer)
+  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::Buffer(T* pointer) : m_buffer(pointer)
   {
   }
 
   template<typename T>
-  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::Buffer(T* pointer, size_t size) : m_size(size), m_buffer(pointer)
+  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::Buffer(T* pointer, size_t size) : m_size(size), m_buffer(pointer)
   {
   }
 
   template <typename T>
-  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::Buffer(VALUE value)
+  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::Buffer(VALUE value)
   {
     if constexpr (std::is_fundamental_v<T>)
     {
@@ -25,7 +25,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::~Buffer()
+  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::~Buffer()
   {
     if constexpr (std::is_destructible_v<T>)
     {
@@ -37,7 +37,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::fromBuiltinType(VALUE value)
+  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::fromBuiltinType(VALUE value)
   {
     using Intrinsic_T = typename detail::intrinsic_type<T>;
     using RubyType_T = typename detail::RubyType<Intrinsic_T>;
@@ -110,7 +110,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::fromWrappedType(VALUE value)
+  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::fromWrappedType(VALUE value)
   {
     using Intrinsic_T = typename detail::intrinsic_type<T>;
 
@@ -143,7 +143,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::Buffer(Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>&& other) : m_owner(other.m_owner), m_size(other.m_size), m_buffer(other.m_buffer)
+  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::Buffer(Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>&& other) : m_owner(other.m_owner), m_size(other.m_size), m_buffer(other.m_buffer)
   {
     other.m_buffer = nullptr;
     other.m_size = 0;
@@ -151,7 +151,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>& Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::operator=(Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>&& other)
+  inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>& Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::operator=(Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>&& other)
   {
     this->m_buffer = other.m_buffer;
     other.m_buffer = nullptr;
@@ -166,49 +166,49 @@ namespace Rice
   }
 
   template <typename T>
-  inline size_t Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::size() const
+  inline size_t Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::size() const
   {
     return this->m_size;
   }
 
   template <typename T>
-  void  Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::setSize(size_t value)
+  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::setSize(size_t value)
   {
     this->m_size = value;
   }
 
   template <typename T>
-  inline T* Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::ptr()
+  inline T* Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::ptr()
   {
     return this->m_buffer;
   }
 
   template <typename T>
-  inline T& Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::reference()
+  inline T& Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::reference()
   {
     return *this->m_buffer;
   }
 
   template <typename T>
-  inline bool Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::isOwner() const
+  inline bool Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::isOwner() const
   {
     return this->m_owner;
   }
 
   template <typename T>
-  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::setOwner(bool value)
+  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::setOwner(bool value)
   {
     this->m_owner = value;
   }
 
   template <typename T>
-  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::release()
+  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::release()
   {
     this->m_owner = false;
   }
 
   template<typename T>
-  inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::toString() const
+  inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::toString() const
   {
     detail::TypeMapper<T*> typeMapper;
     std::string description = "Buffer<type: " + typeMapper.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
@@ -218,7 +218,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::bytes(size_t count) const
+  inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::bytes(size_t count) const
   {
     if (!this->m_buffer)
     {
@@ -232,13 +232,13 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::bytes() const
+  inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::bytes() const
   {
     return this->bytes(this->m_size);
   }
 
   template<typename T>
-  inline Array Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::toArray(size_t count) const
+  inline Array Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::toArray(size_t count) const
   {
     if (!this->m_buffer)
     {
@@ -265,13 +265,13 @@ namespace Rice
   }
 
   template<typename T>
-  inline Array Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::toArray() const
+  inline Array Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::toArray() const
   {
     return this->toArray(this->m_size);
   }
 
   template<typename T>
-  inline typename Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::Element_T& Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>::operator[](size_t index)
+  inline typename Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::Element_T& Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::operator[](size_t index)
   {
     if (index >= this->m_size)
     {
@@ -383,7 +383,7 @@ namespace Rice
   }
 
   template <typename T>
-  void  Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::setSize(size_t value)
+  inline void Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::setSize(size_t value)
   {
     this->m_size = value;
   }
@@ -566,7 +566,7 @@ namespace Rice
   }
 
   template <typename T>
-  void  Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::setSize(size_t value)
+  inline void Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::setSize(size_t value)
   {
     this->m_size = value;
   }
@@ -655,16 +655,56 @@ namespace Rice
   }
 
   // ----  Buffer<void> ------- 
-  inline Buffer<void>::Buffer(void* pointer) : m_buffer(pointer)
+  template<typename T>
+  inline Buffer<T, std::enable_if_t<std::is_void_v<T>>>::Buffer(VALUE value)
+  {
+    ruby_value_type valueType = rb_type(value);
+
+    switch (valueType)
+    {
+      case RUBY_T_STRING:
+      {
+        this->m_size = RSTRING_LEN(value);
+        this->m_buffer = ::operator new(this->m_size);
+        memcpy((void*)this->m_buffer, RSTRING_PTR(value), this->m_size);
+
+        this->m_owner = true;
+        break;
+      }
+      default:
+      {
+        detail::TypeMapper<void> typeMapper;
+        std::string typeName = typeMapper.name();
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+          detail::protect(rb_obj_classname, value), typeName.c_str());
+      }
+    }
+  }
+
+  template<typename T>
+  inline Buffer<T, std::enable_if_t<std::is_void_v<T>>>::Buffer(T* pointer) : m_buffer(pointer)
   {
   }
 
-  inline Buffer<void>::Buffer(Buffer<void>&& other) : m_buffer(other.m_buffer)
+  template<typename T>
+  inline Buffer<T, std::enable_if_t<std::is_void_v<T>>>::Buffer(Buffer<T, std::enable_if_t<std::is_void_v<T>>>&& other) : m_owner(other.m_owner), m_size(other.m_size), m_buffer(other.m_buffer)
   {
     other.m_buffer = nullptr;
+    other.m_size = 0;
+    other.m_owner = false;
   }
 
-  inline Buffer<void>& Buffer<void>::operator=(Buffer<void>&& other)
+  template<typename T>
+  inline Buffer<T, std::enable_if_t<std::is_void_v<T>>>::~Buffer()
+  {
+    if (this->m_owner)
+    {
+      delete this->m_buffer;
+    }
+  }
+
+  template<typename T>
+  inline Buffer<T, std::enable_if_t<std::is_void_v<T>>>& Buffer<T, std::enable_if_t<std::is_void_v<T>>>::operator=(Buffer<T, std::enable_if_t<std::is_void_v<T>>>&& other)
   {
     this->m_buffer = other.m_buffer;
     other.m_buffer = nullptr;
@@ -672,9 +712,41 @@ namespace Rice
     return *this;
   }
 
-  inline void* Buffer<void>::ptr()
+  template<typename T>
+  inline size_t Buffer<T, std::enable_if_t<std::is_void_v<T>>>::size() const
+  {
+    return this->m_size;
+  }
+
+  template<typename T>
+  inline void Buffer<T, std::enable_if_t<std::is_void_v<T>>>::setSize(size_t value)
+  {
+    this->m_size = value;
+  }
+  
+  template<typename T>
+  inline T* Buffer<T, std::enable_if_t<std::is_void_v<T>>>::ptr()
   {
     return this->m_buffer;
+  }
+
+  template<typename T>
+  inline VALUE Buffer<T, std::enable_if_t<std::is_void_v<T>>>::bytes(size_t count) const
+  {
+    if (!this->m_buffer)
+    {
+      return Qnil;
+    }
+    else
+    {
+      return detail::protect(rb_usascii_str_new, (const char*)this->m_buffer, (long)count);
+    }
+  }
+
+  template<typename T>
+  inline VALUE Buffer<T, std::enable_if_t<std::is_void_v<T>>>::bytes() const
+  {
+    return this->bytes(this->m_size);
   }
 
   // ------  define_buffer ----------
@@ -693,7 +765,12 @@ namespace Rice
 
     if constexpr (std::is_void_v<T>)
     {
-      return define_class_under<Buffer_T>(rb_mRice, klassName);
+      return define_class_under<Buffer_T>(rb_mRice, klassName).
+        define_constructor(Constructor<Buffer_T, VALUE>(), Arg("value").setValue()).
+        define_method("size", &Buffer_T::size).
+        define_method("size=", &Buffer_T::setSize).
+        template define_method<VALUE(Buffer_T::*)(size_t) const>("bytes", &Buffer_T::bytes, Return().setValue()).
+        template define_method<VALUE(Buffer_T::*)() const>("bytes", &Buffer_T::bytes, Return().setValue());
     }
     else
     {
@@ -705,9 +782,7 @@ namespace Rice
         template define_method<VALUE(Buffer_T::*)(size_t) const>("bytes", &Buffer_T::bytes, Return().setValue()).
         template define_method<VALUE(Buffer_T::*)() const>("bytes", &Buffer_T::bytes, Return().setValue()).
         template define_method<Array(Buffer_T::*)(size_t) const>("to_ary", &Buffer_T::toArray, Return().setValue()).
-        template define_method<Array(Buffer_T::*)() const>("to_ary", &Buffer_T::toArray, Return().setValue());
-
-      klass.
+        template define_method<Array(Buffer_T::*)() const>("to_ary", &Buffer_T::toArray, Return().setValue()).
         define_method("[]", &Buffer_T::operator[], Arg("index"));
 
       if constexpr (std::is_pointer_v<T> && detail::is_wrapped_v<T>)
@@ -735,41 +810,9 @@ namespace Rice
       return klass;
     }
   }
-
-  inline void define_fundamental_buffer_types()
-  {
-    define_buffer<bool>();
-    define_buffer<int>();
-    define_buffer<int*>();
-    define_buffer<unsigned int>();
-    define_buffer<unsigned int*>();
-    define_buffer<char>();
-    define_buffer<char*>();
-    define_buffer<unsigned char>();
-    define_buffer<unsigned char*>();
-    define_buffer<signed char>();
-    define_buffer<signed char*>();
-    define_buffer<double>();
-    define_buffer<double*>();
-    define_buffer<float>();
-    define_buffer<float*>();
-    define_buffer<long>();
-    define_buffer<long*>();
-    define_buffer<unsigned long>();
-    define_buffer<unsigned long*>();
-    define_buffer<long long>();
-    define_buffer<long long*>();
-    define_buffer<unsigned long long>();
-    define_buffer<unsigned long long*>();
-    define_buffer<short>();
-    define_buffer<short*>();
-    define_buffer<unsigned short>();
-    define_buffer<unsigned short*>();
-    define_buffer<void>();
-  }
 }
 
-namespace Rice::detail
+/*namespace Rice::detail
 {
   template<typename T>
   struct Type<Buffer<T>>
@@ -786,4 +829,4 @@ namespace Rice::detail
       return true;
     }
   };
-}
+}*/

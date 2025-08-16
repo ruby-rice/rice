@@ -6,6 +6,6 @@ inline void Init_Parameter()
 
   define_class_under<detail::ParameterAbstract>(rb_mRice, "Parameter").
     define_attr("arg", &detail::ParameterAbstract::arg).
-    define_method("klass", &detail::ParameterAbstract::rubyKlass, Return().setValue()).
+    define_method("klass", &detail::ParameterAbstract::klass, Return().setValue()).
     define_method("cpp_klass", &detail::ParameterAbstract::cppTypeName);
 }

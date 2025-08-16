@@ -1,4 +1,4 @@
-﻿#include "unittest.hpp"
+#include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
@@ -13,7 +13,6 @@ TESTSUITE(ToRuby);
 SETUP(ToRuby)
 {
   embed_ruby();
-  define_fundamental_buffer_types();
 }
 
 TEARDOWN(ToRuby)
