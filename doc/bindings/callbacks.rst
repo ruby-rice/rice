@@ -29,7 +29,7 @@ To wrap this code in Rice, first expose the register function to Ruby:
   rb_mCv.define_module_function("set_mouse_callback", &cv::setMouseCallback,
     Arg("winname"), Arg("on_mouse"), Arg("userdata") = static_cast<void *>(0));
 
-Next, in Ruby, define a Proc to handle the callback and then call the register exposed register function:
+Next, in Ruby, define a Proc to handle the callback and then call the register function:
 
 .. code-block:: ruby
 
@@ -43,7 +43,7 @@ Next, in Ruby, define a Proc to handle the callback and then call the register e
   # Register the proc
   Cv::set_mouse_callback("Starry", on_mouse_event)
 
-You can also use Ruby ``lambdas`` in addition to ``Procs``
+You can also use Ruby ``blocks`` and ``lambdas`` in addition to ``Procs``
 
 User Data
 ^^^^^^^^^
