@@ -31,6 +31,7 @@
 #include "JumpException.ipp"
 #include "detail/RubyFunction.hpp"
 #include "detail/RubyFunction.ipp"
+#include "detail/gvl.hpp"
 #include "detail/to_ruby.hpp"
 
 // Code for Ruby to call C++
