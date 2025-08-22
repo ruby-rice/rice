@@ -118,6 +118,7 @@ We can also add an ``#initialize`` method to our class:
   Object test_initialize(Object self)
   {
     self.iv_set("@foo", 42);
+    return self;
   }
 
   Object test_hello(Object /* self */)
