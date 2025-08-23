@@ -15,7 +15,7 @@ module Rice
 	# Generates rbs files for a Rice extension
 	#
 	# == Usage
-	# rice_rbs [options] <rice_extension_library>
+	# rice-rbs [options] <rice_extension_library>
 	#
 	# Options:
 	#    -o, --output=path                Output directory
@@ -60,14 +60,14 @@ module Rice
 			if ARGV.length < 1 and not options.exec
 				puts self.option_parser
 				puts ""
-				puts "Must specify a rice library"
+				puts "Must specify a rice extension"
 				exit(-1)
 			end
 
 			self.option_parser.parse! ARGV
 
 			if options.output.nil?
-				puts "Must specify an output directory with -o/--outpu option"
+				puts "Must specify an output directory with -o/--output option"
 				exit(-1)
 			elsif !Dir.exist?(options.output)
 				puts "Creating output directory '#{options.output}'"
@@ -91,4 +91,3 @@ options = cmd.parse_args
 
 rbs = Rice::Rbs.new(options.extension, options.output)
 rbs.generate
-
