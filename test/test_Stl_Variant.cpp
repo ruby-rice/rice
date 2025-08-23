@@ -380,6 +380,14 @@ TESTCASE(RoundtripConstRef)
   ASSERT_EQUAL(Qnil, instance2.value());
 }
 
+TESTCASE(Klass)
+{
+  detail::TypeMapper<Variant_T> typeMapper;
+  Object expected = Object(rb_cObject).const_get("Object");
+  VALUE actual = typeMapper.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+}
+
 namespace
 {
   class MyClass4

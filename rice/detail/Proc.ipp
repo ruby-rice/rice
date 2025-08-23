@@ -1,14 +1,16 @@
 namespace Rice::detail
 {
-  // Note Return_T(Arg_Ts...) is intentional versus Return_T(*)(Arg_Ts...). That is
-  // because the Type machinery strips all pointers/references/const/val etc to avoid
-  // having an explosion of Type definitions
   template<typename Return_T, typename ...Arg_Ts>
-  struct Type<Return_T(Arg_Ts...)>
+  struct Type<Return_T(*)(Arg_Ts...)>
   {
     static bool verify()
     {
       return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cProc;
     }
   };
 

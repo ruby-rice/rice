@@ -4,30 +4,34 @@
 #include <cstring>
 #endif
 
+// Rice saves types either as the intrinsic type (MyObject) or pointer (MyObject*).
+// It strips out references, const and volatile to avoid an explosion of template classes.
+// Pointers are used for C function pointers used in callbacks and for the Buffer class.
 namespace Rice::detail
 {
   // ------ Type ----------------
   template<typename T>
   inline bool Type<T>::verify()
   {
-    if constexpr (std::is_fundamental_v<T>)
+    if constexpr (std::is_reference_v<T>)
     {
-      return true;
+      return Type<std::remove_reference_t<T>>::verify();
     }
-    else if constexpr (std::is_array_v<T> && std::is_fundamental_v<std::remove_extent_t<T>>)
+    // If we get here no buffer was defined
+    else if constexpr (std::is_pointer_v<T>)
     {
-      return true;
+      return Type<std::remove_pointer_t<T>>::verify();
     }
     else
     {
-      return Registries::instance.types.verify<T>();
+      return Registries::instance.types.verify<intrinsic_type<T>>();
     }
   }
 
   template<typename T>
   void verifyType()
   {
-    Type<intrinsic_type<T>>::verify();
+    Type<remove_cv_recursive_t<T>>::verify();
   }
 
   template<typename Tuple_T, size_t...Is>
@@ -53,230 +57,6 @@ namespace Rice::detail
   template<typename T>
   struct has_ruby_klass<T, std::void_t<decltype(T::rubyKlass())>> : std::true_type
   {
-  };
-
-  template<>
-  struct Type<bool>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cTrueClass;
-    }
-  };
-
-  template<>
-  struct Type<char>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cString;
-    }
-  };
-
-  template<>
-  struct Type<signed char>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cString;
-    }
-  };
-  
-  template<>
-  struct Type<unsigned char>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cString;
-    }
-  };
-
-  template<>
-  struct Type<short>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cInteger;
-    }
-  };
-
-  template<>
-  struct Type<unsigned short>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cInteger;
-    }
-  };
-
-  template<>
-  struct Type<int>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cInteger;
-    }
-  };
-
-  template<>
-  struct Type<unsigned int>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cInteger;
-    }
-  };
-
-  template<>
-  struct Type<long>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cInteger;
-    }
-  };
-
-  template<>
-  struct Type<unsigned long>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cInteger;
-    }
-  };
-
-  template<>
-  struct Type<long long>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cInteger;
-    }
-  };
-
-  template<>
-  struct Type<unsigned long long>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cInteger;
-    }
-  };
-
-  template<>
-  struct Type<float>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cFloat;
-    }
-  };
-
-  template<>
-  struct Type<double>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cFloat;
-    }
-  };
-
-  template<>
-  struct Type<void>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cNilClass;
-    }
-  };
-
-  template<>
-  struct Type<char*>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cString;
-    }
   };
 
   // ---------- TypeMapper ------------
@@ -569,29 +349,21 @@ namespace Rice::detail
   template<typename T>
   inline VALUE TypeMapper<T>::rubyKlass()
   {
-    using Simplified_T = detail::remove_cv_recursive_t<T>;
+    using Intrinsic_T = detail::intrinsic_type<T>;
 
-    if constexpr (has_ruby_klass<Type<Simplified_T>>::value)
+    // This checks for pointers like int*
+    if constexpr (has_ruby_klass<Type<detail::remove_cv_recursive_t<T>>>::value)
     {
-      return Type<Simplified_T>::rubyKlass();
+      return Type<detail::remove_cv_recursive_t<T>>::rubyKlass();
     }
-    else if constexpr (!std::is_pointer_v<T>)
+    else if constexpr (has_ruby_klass<Type<Intrinsic_T>>::value)
     {
-      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<T>();
-      return pair.first;
-    }
-    else if constexpr (std::is_fundamental_v<intrinsic_type<T>>)
-    {
-      using Buffer_T = Buffer<std::remove_pointer_t<T>>;
-      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Buffer_T>();
-      return pair.first;
+      return Type<Intrinsic_T>::rubyKlass();
     }
     else
     {
-      using Buffer_T = Buffer<T>;
-      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Buffer_T>();
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Intrinsic_T>();
       return pair.first;
     }
-    return Qnil;
   }
 }

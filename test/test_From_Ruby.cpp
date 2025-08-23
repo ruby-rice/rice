@@ -13,7 +13,6 @@ TESTSUITE(FromRuby);
 SETUP(FromRuby)
 {
   embed_ruby();
-  define_fundamental_buffer_types();
 }
 
 TEARDOWN(FromRuby)

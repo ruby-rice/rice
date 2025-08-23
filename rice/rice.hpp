@@ -77,6 +77,7 @@
 #include "Constructor.hpp"
 #include "Buffer.hpp"
 #include "Buffer.ipp"
+#include "detail/Types.ipp"
 #include "detail/to_ruby.ipp"
 #include "detail/from_ruby.ipp"
 #include "detail/Proc.hpp"

@@ -47,11 +47,10 @@ TESTCASE(LambdaCallBack)
   ASSERT_EQUAL(globalCallback, nullptr);
 
   std::string code = R"(callback = lambda do |an_int, a_double, a_bool, a_string|
-                                      values = [an_int, a_double, a_bool, a_string]
-                                      values.map {|value| value.to_s}.join(" - ")
+                                     values = [an_int, a_double, a_bool, a_string]
+                                     values.map {|value| value.to_s}.join(" - ")
                                    end
                         register_callback(callback))";
-
 
   m.module_eval(code);
   ASSERT((globalCallback != nullptr));

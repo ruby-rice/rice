@@ -200,3 +200,11 @@ TESTCASE(Update)
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(11, detail::From_Ruby<long>().convert(result.value()));
 }
+
+TESTCASE(Klass)
+{
+  detail::TypeMapper<std::unique_ptr<MyClass>> typeMapper;
+  Object expected = Object(rb_cObject).const_get("MyClass");
+  VALUE actual = typeMapper.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+}

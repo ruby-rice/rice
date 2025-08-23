@@ -1,4 +1,4 @@
-﻿#include <assert.h> 
+#include <assert.h> 
 
 #include "unittest.hpp"
 #include "embed_ruby.hpp"

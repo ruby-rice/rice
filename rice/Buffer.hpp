@@ -7,7 +7,7 @@ namespace Rice
   class Buffer;
     
   template<typename T>
-  class Buffer<T, std::enable_if_t<!std::is_pointer_v<T>>>
+  class Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>
   {
   public:
     using Element_T = T;
@@ -144,26 +144,34 @@ namespace Rice
     T** m_buffer = nullptr;
   };
 
-  template<>
-  class Buffer<void>
+  template<typename T>
+  class Buffer<T, std::enable_if_t<std::is_void_v<T>>>
   {
   public:
-    Buffer(void* pointer);
+    Buffer(T* pointer);
+    Buffer(VALUE value);
     Buffer(const Buffer& other) = delete;
     Buffer(Buffer&& other);
+    ~Buffer();
 
     Buffer& operator=(const Buffer& other) = delete;
     Buffer& operator=(Buffer&& other);
 
-    void* ptr();
+    size_t size() const;
+    void setSize(size_t value);
+      
+    VALUE bytes(size_t count) const;
+    VALUE bytes() const;
+
+    T* ptr();
 
   private:
-    void* m_buffer = nullptr;
+    bool m_owner = false;
+    size_t m_size = 0;
+    T* m_buffer = nullptr;
   };
 
   template<typename T>
   Data_Type<Buffer<T>> define_buffer(std::string klassName = "");
-
-  void define_fundamental_buffer_types();
 }
 #endif // Rice__Buffer__hpp_
