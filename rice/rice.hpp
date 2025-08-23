@@ -67,6 +67,7 @@
 #include "detail/InstanceRegistry.hpp"
 #include "detail/DefaultHandler.hpp"
 #include "detail/HandlerRegistry.hpp"
+#include "detail/ModuleRegistry.hpp"
 #include "detail/NativeRegistry.hpp"
 #include "detail/Registries.hpp"
 
@@ -87,6 +88,7 @@
 #include "detail/InstanceRegistry.ipp"
 #include "detail/DefaultHandler.ipp"
 #include "detail/HandlerRegistry.ipp"
+#include "detail/ModuleRegistry.ipp"
 #include "detail/NativeRegistry.ipp"
 #include "detail/Registries.ipp"
 

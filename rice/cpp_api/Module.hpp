@@ -60,7 +60,7 @@ namespace Rice
   /*! \param module the module in which to define the new module.
    *  \param name the name of the new module.
    */
-  Module define_module_under(Object module, char const * name);
+  Module define_module_under(Object parent, char const * name);
 
   //! Define a new module in the default namespace.
   /*! \param name the name of the new module.
