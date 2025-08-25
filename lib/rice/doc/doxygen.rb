@@ -4,7 +4,15 @@ require 'libxml-ruby'
 module Rice
 	module Doc
 		class Doxygen
-			OPERATORS = {"call" => "operator()",
+			OPERATORS = {"assign" => "operator=",
+									 "assign_plus" => "operator+=",
+									 "assign_minus" => "operator-=",
+									 "assign_multiply" => "operator*=",
+									 "assign_divide" => "operator/=",
+									 "call" => "operator()",
+									 "decrement" => "operator--",
+									 "dereference" => "operator*",
+									 "increment" => "operator++",
 									 "==" => "operator==",
 									 "!=" => "operator!=",
 									 "+" => "operator+",
@@ -13,23 +21,32 @@ module Rice
 									 "/" => "operator/",
 									 "&" => "operator&",
 									 "|" => "operator|",
+									 "<" => "operator<",
+									 ">" => "operator>",
 									 "<=" => "operator<=",
-									 "<<" => "operator<<"}
+									 "<<" => "operator<<",
+									 "[]" => "operator[]",
+									 "[]=" => "operator[]"}
 
-			def initialize(root, index)
+			def initialize(root, index, type_mappings = Hash.new, method_mappings = Hash.new)
 				@root = root
+				@type_mappings = type_mappings
+				@method_mappings = method_mappings
+				@cache = Hash.new
+				@typedefs = Hash.new(Hash.new)
+
 				data = URI.open(index).read
 				parser = LibXML::XML::Parser.string(data)
 				@doc = parser.parse
-				@cache = Hash.new
 			end
 
-			def camelize(content, first_letter_in_uppercase = true)
-				if first_letter_in_uppercase
-					content.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
-				else
-					content.to_s[0].chr.downcase + camelize(content)[1..-1]
-				end
+			def camelize(content, capitalize = true)
+				result = content.gsub(/(?:_)(.)/) do |matched|
+					         $1.capitalize
+								 end
+
+				result[0] = capitalize ? result[0].upcase : result[0].downcase
+				result
 			end
 
 			def url(member_node)
@@ -40,17 +57,11 @@ module Rice
 			end
 
 			def cpp_name(klass)
-				case klass.cpp_class
-					when /^enum/i
-						klass.cpp_class.gsub(/enum\s+/i, '')
-					when /^union/i
-						klass.cpp_class.gsub(/union\s+/i, '')
-					when /<.*>/
-						pos = klass.cpp_class.index('<')
-						klass.cpp_class[0..pos-1]
-					else
-						klass.cpp_class
+				result = klass.cpp_class
+				@type_mappings.each do |key, value|
+					result = result.gsub(key, value)
 				end
+				result
 			end
 
 			def get_node(klass, xpath)
@@ -63,11 +74,26 @@ module Rice
 
 			def module_node(a_module)
 				xpath = "//tagfile/compound[@kind='namespace'][name='#{a_module.name.downcase}']"
-				get_node(a_module, xpath)
+				result = get_node(a_module, xpath)
+				if result
+					read_typedefs(a_module, result)
+				end
+				result
 			end
 
 			def class_node(klass)
-				xpath = "//tagfile/compound[@kind='class' or @kind='struct' or @kind='union'][name='#{cpp_name(klass)}']"
+				native_name = cpp_name(klass)
+				typedef_parts = native_name.split("::")
+				typedef_name = typedef_parts.pop
+
+				typedefs = @typedefs[klass.name.split("::").first]
+
+				if typedef_type = typedefs[typedef_name]
+					typedef_parts.push(typedef_type)
+					native_name = typedef_parts.join("::")
+				end
+
+				xpath = "//tagfile/compound[@kind='class' or @kind='struct' or @kind='union'][name='#{native_name}']"
 				get_node(klass, xpath)
 			end
 
@@ -83,6 +109,16 @@ module Rice
 									"//tagfile/compound[@kind='#{enum_kind(klass)}'][name='#{parent_name}']/member[@kind='enumeration'][name='#{cpp_parts.last}']"
 								end
 				get_node(klass, xpath)
+			end
+
+			def read_typedefs(klass, node)
+				typedefs = @typedefs[klass.name.split("::").first]
+				node.find("member[@kind='typedef']").each do |typedef|
+					name = typedef.find_first("name").content
+					type = typedef.find_first("type").content
+					type.gsub!(/(const|volatile|&|\*| )/, "")
+					typedefs[name] = type
+				end
 			end
 
 			def class_url(klass)
@@ -214,23 +250,29 @@ module Rice
 			end
 
 			def method_url(klass, native)
-				node = 	if klass.instance_of?(Module)
-									module_node(klass)
-								else
-									class_node(klass)
-								end
+				node = if klass.instance_of?(Module)
+								 module_node(klass)
+							 else
+								 class_node(klass)
+							 end
 
+				ruby_name = native.name
 				method_names = Array.new
-				if native.name == "initialize"
+				if ruby_name == "initialize" || ruby_name == "initialize_copy"
 					method_names << cpp_name(klass).split('::').last
-				elsif OPERATORS[native.name]
-					method_names << OPERATORS[native.name]
-				elsif native.name.match(/\?$/)
-					method_name = native.name.gsub(/\?$/, "")
-					method_names << camelize(method_name, false)
-					method_names << "is#{camelize(method_name, true)}"
+				elsif native_name = OPERATORS[ruby_name]
+					method_names << native_name
+				elsif native_name = @method_mappings.dig(klass.name, ruby_name)
+					method_names << native_name
+				elsif ruby_name.match(/\?$/)
+					native_name = ruby_name.gsub(/\?$/, "")
+					method_names << camelize(native_name, false)
+					method_names << camelize(native_name, true)
+					method_names << "is#{camelize(native_name, true)}"
 				else
-					method_names << camelize(native.name, false)
+					method_names << ruby_name
+					method_names << camelize(ruby_name, false)
+					method_names << camelize(ruby_name, true)
 				end
 
 				pattern = method_names.map do |method_name|
@@ -243,6 +285,8 @@ module Rice
 					url(member_node)
 				elsif native.name == "initialize"
 					class_url(klass)
+				#else
+				#STDERR << "'#{native.name}' => '#{camelize(native.name, false)}'," << "\n"
 				end
 			end
 		end

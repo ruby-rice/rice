@@ -1,3 +1,5 @@
+require 'fileutils'
+
 module Rice
 	module Doc
 		class Mkdocs
@@ -15,9 +17,6 @@ module Rice
 				FileUtils.mkdir_p(@output)
 
 				klasses.sort_by(&:name).each.with_index do |klass, i|
-					#next unless ["Affine3D"].include?(klass.name)
-					next unless klass.name == "Cv"
-
 					STDOUT << klass.name << " (" << i << "/" << klasses.count << ")" << "\n"
 					if klass.instance_of?(Module)
 						write_module(klass)
@@ -116,7 +115,7 @@ module Rice
 
 					url = if parameter.klass.instance_of?(Module)
 									resolver&.module_url(parameter.klass)
-								elsif parameter.klass.methods(:cpp_class)
+								elsif !parameter.klass.respond_to?(:cpp_class)
 									resolver&.class_url(parameter.klass)
 								elsif parameter.klass.cpp_class.match(/^enum/i)
 									resolver&.enum_url(parameter.klass)

@@ -8,11 +8,7 @@ require 'ostruct'
 require 'optparse'
 
 # Load needed files
-require_relative '../lib/rice/doc/cpp_reference'
-require_relative '../lib/rice/doc/doxygen'
-require_relative '../lib/rice/doc/rice'
-require_relative '../lib/rice/doc/ruby'
-require_relative '../lib/rice/doc/mkdocs'
+require 'rice/doc'
 
 module Rice
 	# == Synopsis
@@ -101,15 +97,8 @@ require options.extension
 modules = Rice::Registries.instance.modules.modules
 klasses = Rice::Registries.instance.types.klasses
 
-# Doxygen documentation
-doxygen_root = "https://docs.opencv.org/4.x"
-doxygen_index = "https://docs.opencv.org/4.x/opencv.tag"
-doxygen_index = "c:/Users/cfis/Downloads/opencv.tag"
-doxygen_resolver = Rice::Doc::Doxygen.new(doxygen_root, doxygen_index)
-
 # Setup resolvers per namespace
 resolvers = {nil => Rice::Doc::Ruby.new,
-						 'Cv' => doxygen_resolver,
 						 'Rice' => Rice::Doc::Rice.new,
 						 'Std' => Rice::Doc::CppReference.new}
 
