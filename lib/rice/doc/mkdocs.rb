@@ -1,7 +1,16 @@
+require 'fileutils'
+
 module Rice
 	module Doc
 		class Mkdocs
-			ESCAPE_METHODS = ["*", "+", "-", ".", "!", "|"]
+			ESCAPE_METHODS = {'*' => '\*',
+												'+' => '\+',
+												'-' => '\-',
+												'.' => '\.',
+												'!' => '\!',
+												'|' => '\|',
+												'[]' => '\[\]',
+			                  '[]=' => '\[\]='}
 
 			attr_reader :klasses, :output
 
@@ -15,8 +24,8 @@ module Rice
 				FileUtils.mkdir_p(@output)
 
 				klasses.sort_by(&:name).each.with_index do |klass, i|
-					#next unless ["Affine3D"].include?(klass.name)
-					next unless klass.name == "Cv"
+					#next unless klass.name == "Std::Vector≺Cv꞉꞉Point2l≻"
+					next unless klass.name.match(/^Std::Pair/)
 
 					STDOUT << klass.name << " (" << i << "/" << klasses.count << ")" << "\n"
 					if klass.instance_of?(Module)
@@ -43,13 +52,6 @@ module Rice
 					FileUtils.mkdir_p((File.dirname(path)))
 				end
 				path
-			end
-
-			def cross_reference_url(klass)
-				parts = Array.new
-				parts << "cfis/opencv-ruby/reference"
-				parts += klass.name.split("::")
-				"/" + parts.join("/")
 			end
 
 			def resolver(klass)
@@ -110,22 +112,26 @@ module Rice
 				end.join("\n\n")
 			end
 
+			def type_url(klass)
+				resolver = resolver(klass)
+
+				if klass.instance_of?(Module)
+					resolver&.module_url(klass)
+				elsif !klass.respond_to?(:cpp_class)
+					resolver&.class_url(klass)
+				elsif klass.cpp_class.match(/^enum/i)
+					resolver&.enum_url(klass)
+				elsif klass.cpp_class.match(/^union/i)
+					resolver&.union_url(klass)
+				else
+					resolver&.class_url(klass)
+				end
+			end
+
 			def parameters_sig(klass, native)
 				native.parameters.map do |parameter|
 					resolver = resolver(parameter.klass)
-
-					url = if parameter.klass.instance_of?(Module)
-									resolver&.module_url(parameter.klass)
-								elsif parameter.klass.methods(:cpp_class)
-									resolver&.class_url(parameter.klass)
-								elsif parameter.klass.cpp_class.match(/^enum/i)
-									resolver&.enum_url(parameter.klass)
-								elsif parameter.klass.cpp_class.match(/^union/i)
-									resolver&.union_url(parameter.klass)
-								else
-									resolver&.class_url(parameter.klass)
-								end
-
+					url = type_url(parameter.klass)
 					if url
 						"#{parameter.arg.name}: [#{parameter.klass}](#{url})"
 					else
@@ -151,11 +157,7 @@ module Rice
 								resolver(klass)&.method_url(klass, native)
 							end
 
-				name = if ESCAPE_METHODS.include?(native.name)
-								"\\#{native.name}"
-							else
-								native.name
-							end
+				name = ESCAPE_METHODS[native.name] || native.name
 
 				if url
 					"[#{name}](#{url})(#{parameters_sig(klass, native)})"
@@ -174,12 +176,17 @@ module Rice
 										end
 
 				native_attribute = native_attributes.first
-				url = resolver(klass)&.attribute_url(klass, native_attribute)
 
-				if url
-					"[#{native_attribute.name}](#{url}): [#{native_attribute.klass}](#{cross_reference_url(native_attribute.klass)}) (#{attr_type})"
+				attribute_resolver = resolver(klass)
+				attribute_url = attribute_resolver&.attribute_url(klass, native_attribute)
+
+				type_resolver = resolver(native_attribute.klass)
+				type_url = type_url(native_attribute.klass)
+
+				if attribute_url
+					"[#{native_attribute.name}](#{attribute_url}): [#{native_attribute.klass}](#{type_url}) (#{attr_type})"
 				else
-					"#{native_attribute.name}: [#{native_attribute.klass}](#{cross_reference_url(native_attribute.klass)}) (#{attr_type})"
+					"#{native_attribute.name}: [#{native_attribute.klass}](#{type_url}) (#{attr_type})"
 				end
 			end
 

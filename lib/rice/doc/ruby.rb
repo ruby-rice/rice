@@ -1,13 +1,13 @@
 module Rice
 	module Doc
 		class Ruby
-			ROOT = "https://rubyapi.org"
+			ROOT = "https://docs.ruby-lang.org/en/master"
 
 			def initialize
 			end
 
 			def class_url(klass)
-				"#{ROOT}/o/#{klass.name.split('::').last.capitalize}"
+				"#{ROOT}/#{klass.name.split('::').last.capitalize}.html"
 			end
 
 			def module_url(klass)

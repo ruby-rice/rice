@@ -1,0 +1,5 @@
+require_relative 'doc/cpp_reference'
+require_relative 'doc/doxygen'
+require_relative 'doc/rice'
+require_relative 'doc/ruby'
+require_relative 'doc/mkdocs'
