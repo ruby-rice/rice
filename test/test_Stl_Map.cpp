@@ -220,7 +220,7 @@ TESTCASE(keysAndValues)
   ASSERT_EQUAL(expected_values[2], values->operator[](2));
 }
 
-TESTCASE(Copy)
+TESTCASE(CLone)
 {
   Module m = define_module("Testing");
 
@@ -231,15 +231,15 @@ TESTCASE(Copy)
   object.call("[]=", "two", 22.2);
   std::map<std::string, double>& map = detail::From_Ruby<std::map<std::string, double>&>().convert(object);
 
-  Object result = object.call("copy");
-  std::map<std::string, double>& mapCopy = detail::From_Ruby<std::map<std::string, double>&>().convert(result);
+  Object result = object.call("clone");
+  std::map<std::string, double>& mapClone = detail::From_Ruby<std::map<std::string, double>&>().convert(result);
 
-  ASSERT_EQUAL(map.size(), mapCopy.size());
-  ASSERT_EQUAL(map["one"], mapCopy["one"]);
-  ASSERT_EQUAL(map["two"], mapCopy["two"]);
+  ASSERT_EQUAL(map.size(), mapClone.size());
+  ASSERT_EQUAL(map["one"], mapClone["one"]);
+  ASSERT_EQUAL(map["two"], mapClone["two"]);
 
-  mapCopy["three"] = 33.3;
-  ASSERT_NOT_EQUAL(map.size(), mapCopy.size());
+  mapClone["three"] = 33.3;
+  ASSERT_NOT_EQUAL(map.size(), mapClone.size());
 }
 
 TESTCASE(Iterate)

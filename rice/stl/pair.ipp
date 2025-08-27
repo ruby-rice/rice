@@ -10,35 +10,21 @@ namespace Rice
     public:
       PairHelper(Data_Type<T> klass) : klass_(klass)
       {
-        this->define_constructor();
-        this->define_copyable_methods();
+        this->define_constructors();
         this->define_access_methods();
         this->define_modify_methods();
         this->define_to_s();
       }
 
     private:
-      void define_constructor()
+      void define_constructors()
       {
-        klass_.define_constructor(Constructor<T, typename T::first_type&, typename T::second_type&>());
-      }
-
-      void define_copyable_methods()
-      {
+        klass_.define_constructor(Constructor<T>())
+              .define_constructor(Constructor<T, typename T::first_type&, typename T::second_type&>());
+      
         if constexpr (std::is_copy_constructible_v<typename T::first_type> && std::is_copy_constructible_v<typename T::second_type>)
         {
-          klass_.define_method("copy", [](T& pair) -> T
-            {
-              return pair;
-            });
-        }
-        else
-        {
-          klass_.define_method("copy", [](T& pair) -> T
-            {
-              throw std::runtime_error("Cannot copy pair with non-copy constructible types");
-              return pair;
-            });
+          klass_.define_constructor(Constructor<T, const T&>());
         }
       }
 

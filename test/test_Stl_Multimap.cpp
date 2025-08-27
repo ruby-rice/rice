@@ -218,7 +218,7 @@ TESTCASE(keysAndValues)
   ASSERT_EQUAL(expected_values[2], values->operator[](2));
 }
 
-TESTCASE(Copy)
+TESTCASE(Clone)
 {
   Module m = define_module("Testing");
 
@@ -229,10 +229,10 @@ TESTCASE(Copy)
   object.call("insert", "two", 22.2);
   std::multimap<std::string, double>& multimap = detail::From_Ruby<std::multimap<std::string, double>&>().convert(object);
 
-  Object result = object.call("copy");
-  std::multimap<std::string, double>& multimapCopy = detail::From_Ruby<std::multimap<std::string, double>&>().convert(result);
+  Object result = object.call("clone");
+  std::multimap<std::string, double>& multimapClone = detail::From_Ruby<std::multimap<std::string, double>&>().convert(result);
 
-  ASSERT_EQUAL(multimap, multimapCopy);
+  ASSERT_EQUAL(multimap, multimapClone);
 }
 
 TESTCASE(Iterate)

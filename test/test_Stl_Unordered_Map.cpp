@@ -1,4 +1,4 @@
-﻿#include <complex>
+#include <complex>
 #include <memory>
 
 #include "unittest.hpp"
@@ -216,7 +216,7 @@ TESTCASE(KeysAndValues)
   ASSERT_EQUAL(3, values->operator[](2));
 }
 
-TESTCASE(Copy)
+TESTCASE(Clone)
 {
   Module m = define_module("Testing");
 
@@ -227,15 +227,15 @@ TESTCASE(Copy)
   object.call("[]=", "two", 22.2);
   std::unordered_map<std::string, double>& unordered_map = detail::From_Ruby<std::unordered_map<std::string, double>&>().convert(object);
 
-  Object result = object.call("copy");
-  std::unordered_map<std::string, double>& unordered_mapCopy = detail::From_Ruby<std::unordered_map<std::string, double>&>().convert(result);
+  Object result = object.call("clone");
+  std::unordered_map<std::string, double>& unordered_mapClone = detail::From_Ruby<std::unordered_map<std::string, double>&>().convert(result);
 
-  ASSERT_EQUAL(unordered_map.size(), unordered_mapCopy.size());
-  ASSERT_EQUAL(unordered_map["one"], unordered_mapCopy["one"]);
-  ASSERT_EQUAL(unordered_map["two"], unordered_mapCopy["two"]);
+  ASSERT_EQUAL(unordered_map.size(), unordered_mapClone.size());
+  ASSERT_EQUAL(unordered_map["one"], unordered_mapClone["one"]);
+  ASSERT_EQUAL(unordered_map["two"], unordered_mapClone["two"]);
 
-  unordered_mapCopy["three"] = 33.3;
-  ASSERT_NOT_EQUAL(unordered_map.size(), unordered_mapCopy.size());
+  unordered_mapClone["three"] = 33.3;
+  ASSERT_NOT_EQUAL(unordered_map.size(), unordered_mapClone.size());
 }
 
 TESTCASE(Iterate)
