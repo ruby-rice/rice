@@ -1,4 +1,4 @@
-﻿#include <utility>
+#include <utility>
 
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
@@ -62,13 +62,13 @@ TESTCASE(CreatePairConst)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     pair.call("first=", "A second value"),
-    ASSERT_EQUAL("Cannot set pair.first since it is a constant", ex.what())
+    ASSERT_EQUAL("undefined method 'first=' for an instance of Std::ConstStringPair", ex.what())
   );
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
     pair.call("second=", "A second value"),
-    ASSERT_EQUAL("Cannot set pair.second since it is a constant", ex.what())
+    ASSERT_EQUAL("undefined method 'second=' for an instance of Std::ConstStringPair", ex.what())
   );
 }
 
