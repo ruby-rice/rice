@@ -754,6 +754,7 @@ namespace Rice
   inline Data_Type<Buffer<T>> define_buffer(std::string klassName)
   {
     using Buffer_T = Buffer<T>;
+    using Data_Type_T = Data_Type<Buffer_T>;
 
     if (klassName.empty())
     {
@@ -762,6 +763,11 @@ namespace Rice
     }
 
     Module rb_mRice = define_module("Rice");
+
+    if (Data_Type_T::check_defined(klassName, rb_mRice))
+    {
+      return Data_Type_T();
+    }
 
     if constexpr (std::is_void_v<T>)
     {
