@@ -10,78 +10,43 @@ namespace Rice
     public:
       PairHelper(Data_Type<T> klass) : klass_(klass)
       {
-        this->define_constructor();
-        this->define_copyable_methods();
-        this->define_access_methods();
-        this->define_modify_methods();
+        this->define_constructors();
+        this->define_attributes();
         this->define_to_s();
       }
 
     private:
-      void define_constructor()
+      void define_constructors()
       {
-        klass_.define_constructor(Constructor<T, typename T::first_type&, typename T::second_type&>());
-      }
-
-      void define_copyable_methods()
-      {
+        klass_.define_constructor(Constructor<T>())
+              .define_constructor(Constructor<T, typename T::first_type&, typename T::second_type&>());
+      
         if constexpr (std::is_copy_constructible_v<typename T::first_type> && std::is_copy_constructible_v<typename T::second_type>)
         {
-          klass_.define_method("copy", [](T& pair) -> T
-            {
-              return pair;
-            });
+          klass_.define_constructor(Constructor<T, const T&>());
+        }
+      }
+
+      void define_attributes()
+      {
+        // Access methods
+        if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::first_type>>>)
+        {
+          klass_.define_attr("first", &T::first, Rice::AttrAccess::Read);
         }
         else
         {
-          klass_.define_method("copy", [](T& pair) -> T
-            {
-              throw std::runtime_error("Cannot copy pair with non-copy constructible types");
-              return pair;
-            });
+          klass_.define_attr("first", &T::first, Rice::AttrAccess::ReadWrite);
         }
-      }
 
-      void define_access_methods()
-      {
-        // Access methods
-        klass_.define_method("first", [](T& pair) -> typename T::first_type&
-          {
-            return pair.first;
-          })
-        .define_method("second", [](T& pair) -> typename T::second_type&
-          {
-            return pair.second;
-          });
-      }
-
-      void define_modify_methods()
-      {
-        // Access methods
-        klass_.define_method("first=", [](T& pair, typename T::first_type& value) -> typename T::first_type&
+        if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::second_type>>>)
         {
-          if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::first_type>>>)
-          {
-            throw std::runtime_error("Cannot set pair.first since it is a constant");
-          }
-          else
-          {
-            pair.first = value;
-            return pair.first;
-          }
-        })
-        .define_method("second=", [](T& pair, typename T::second_type& value) -> typename T::second_type&
+          klass_.define_attr("second", &T::second, Rice::AttrAccess::Read);
+        }
+        else
         {
-          if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::second_type>>>)
-          {
-            throw std::runtime_error("Cannot set pair.second since it is a constant");
-          }
-          else
-          {
-            pair.second = value;
-            return pair.second;
-          }
-        });
+          klass_.define_attr("second", &T::second, Rice::AttrAccess::ReadWrite);
+        }
       }
 
       void define_to_s()

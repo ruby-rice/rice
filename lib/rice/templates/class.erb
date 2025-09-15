@@ -1,7 +1,0 @@
-module <%= klass.name.split("::")[0..-2].join("::") %>
-  class <%= klass.name.split("::").last %>
-  <%- native_methods.each do |name, native_methods| -%>
-    def <%= name %>: <%= method_sigs(native_methods, name.length + 5) %>
-<%- end -%>
-  end
-end

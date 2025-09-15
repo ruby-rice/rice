@@ -43,6 +43,28 @@ TESTCASE(Char)
   ASSERT_EQUAL(9, (int)buffer.size());
 }
 
+TESTCASE(CharMethods)
+{
+  define_buffer<char>();
+  std::vector<detail::Native*> natives = detail::Registries::instance.natives.lookup(Data_Type<Buffer<char>>::klass());
+  ASSERT_EQUAL(10, natives.size());
+
+  define_buffer<char>();
+  natives = detail::Registries::instance.natives.lookup(Data_Type<Buffer<char>>::klass());
+  ASSERT_EQUAL(10, natives.size());
+}
+
+TESTCASE(CharPointerMethods)
+{
+  define_buffer<char*>();
+  std::vector<detail::Native*> natives = detail::Registries::instance.natives.lookup(Data_Type<Buffer<char*>>::klass());
+  ASSERT_EQUAL(10, natives.size());
+
+  define_buffer<char*>();
+  natives = detail::Registries::instance.natives.lookup(Data_Type<Buffer<char*>>::klass());
+  ASSERT_EQUAL(10, natives.size());
+}
+
 TESTCASE(CharArray)
 {
   define_buffer<char>();

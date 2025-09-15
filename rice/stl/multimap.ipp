@@ -19,8 +19,7 @@ namespace Rice
       MultimapHelper(Data_Type<T> klass) : klass_(klass)
       {
         this->register_pair();
-        this->define_constructor();
-        this->define_copyable_methods();
+        this->define_constructors();
         this->define_capacity_methods();
         this->define_access_methods();
         this->define_comparable_methods();
@@ -36,27 +35,13 @@ namespace Rice
         define_pair<const Key_T, Mapped_T>();
       }
 
-      void define_constructor()
+      void define_constructors()
       {
         klass_.define_constructor(Constructor<T>());
-      }
 
-      void define_copyable_methods()
-      {
-        if constexpr (std::is_copy_constructible_v<Value_T>)
+        if constexpr (std::is_copy_constructible_v<Key_T> && std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_method("copy", [](T& multimap) -> T
-            {
-              return multimap;
-            });
-        }
-        else
-        {
-          klass_.define_method("copy", [](T& multimap) -> T
-            {
-              throw std::runtime_error("Cannot copy multimaps with non-copy constructible types");
-              return multimap;
-            });
+          klass_.define_constructor(Constructor<T, const T&>());
         }
       }
 

@@ -11,6 +11,7 @@ namespace Rice::detail
   public:
     HandlerRegistry handlers;
     InstanceRegistry instances;
+    ModuleRegistry modules;
     NativeRegistry natives;
     TypeRegistry types;
   };

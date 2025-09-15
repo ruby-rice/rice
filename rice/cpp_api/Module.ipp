@@ -56,14 +56,18 @@ namespace Rice
     detail::NativeMethod<Class_T, Method_T>::define(klass, name, std::forward<Method_T>(method), methodInfo);
   }
 
-  inline Module define_module_under(Object module, char const* name)
+  inline Module define_module_under(Object parent, char const* name)
   {
-    return detail::protect(rb_define_module_under, module.value(), name);
+    VALUE module = detail::protect(rb_define_module_under, parent.value(), name);
+    detail::Registries::instance.modules.add(module);
+    return module;
   }
 
   inline Module define_module(char const* name)
   {
-    return detail::protect(rb_define_module, name);
+    VALUE module = detail::protect(rb_define_module, name);
+    detail::Registries::instance.modules.add(module);
+    return module;
   }
 
   inline Module anonymous_module()
