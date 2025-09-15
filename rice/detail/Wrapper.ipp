@@ -94,6 +94,33 @@ namespace Rice::detail
     return (void*)this->data_;
   }
 
+  // ----  Wrapper** -----
+  template <typename T>
+  inline Wrapper<T**>::Wrapper(T** data, bool isOwner) : data_(data)
+  {
+    this->isOwner_ = isOwner;
+    this->isConst_ = std::is_const_v<std::remove_pointer_t<std::remove_pointer_t<T>>>;
+  }
+
+  template <typename T>
+  inline Wrapper<T**>::~Wrapper()
+  {
+    Registries::instance.instances.remove(this->get());
+    if constexpr (std::is_destructible_v<T>)
+    {
+      if (this->isOwner_)
+      {
+        delete this->data_;
+      }
+    }
+  }
+
+  template <typename T>
+  inline void* Wrapper<T**>::get()
+  {
+    return (void*)this->data_;
+  }
+
   // ---- Helper Functions -------
   template <typename T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner)

@@ -4,8 +4,9 @@
 // Ruby
 #include "detail/ruby.hpp"
 
-// C++ headers -h has to come after Ruby on MacOS for reasons I do not understand
+// C++ headers have to come after Ruby on MacOS for reasons I do not understand
 #include <cstdio>
+#include <cstring> // For std::memset
 #include <string>
 #include <typeinfo>
 #include <typeindex>
@@ -77,7 +78,9 @@
 #include "Return.ipp"
 #include "Constructor.hpp"
 #include "Buffer.hpp"
+#include "Pointer.hpp"
 #include "Buffer.ipp"
+#include "Pointer.ipp"
 #include "detail/Types.ipp"
 #include "detail/to_ruby.ipp"
 #include "detail/from_ruby.ipp"
@@ -155,9 +158,5 @@
 
 // For now include libc support - maybe should be separate header file someday
 #include "libc/file.hpp"
-
-// Initialize Rice
-#include "Init.hpp"
-#include "Init.ipp"
 
 #endif // Rice__hpp_

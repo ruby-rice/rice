@@ -47,8 +47,8 @@ namespace Rice::detail
     verifyTypesImpl<Tuple_T>(indexes);
   }
 
-  // ---------- Type Speciaizations ------------
-  // Helper template to see if rubyKlass is defined on a Type specialization
+  // ---------- RubyKlass ------------
+  // Helper template to see if the method rubyKlass is defined on a Type specialization
   template<typename, typename = std::void_t<>>
   struct has_ruby_klass : std::false_type
   {
@@ -192,19 +192,19 @@ namespace Rice::detail
     std::string base = this->name();
 
     // Remove void from Buffer<T, void> - the void comes from SFINAE
-    auto fixBuffer = std::regex("(Buffer<[^,]*),\\s?void>");
+    std::regex fixBuffer = std::regex("(Buffer<.*),\\s?void>");
     base = std::regex_replace(base, fixBuffer, "$1>");
 
     // Remove class keyword
-    auto classRegex = std::regex("class +");
+    std::regex classRegex = std::regex("class +");
     base = std::regex_replace(base, classRegex, "");
 
     // Remove struct keyword
-    auto structRegex = std::regex("struct +");
+    std::regex structRegex = std::regex("struct +");
     base = std::regex_replace(base, structRegex, "");
 
     // Remove std::__[^:]*::
-    auto stdClangRegex = std::regex("std::__[^:]+::");
+    std::regex stdClangRegex = std::regex("std::__[^:]+::");
     base = std::regex_replace(base, stdClangRegex, "std::");
 
     // Remove allocators
@@ -228,7 +228,7 @@ namespace Rice::detail
     removeGroup(base, equalRegex);
 
     // Remove spaces before pointers
-    auto ptrRegex = std::regex(R"(\s+\*)");
+    std::regex ptrRegex = std::regex(R"(\s+\*)");
     base = std::regex_replace(base, ptrRegex, "*");
 
     // Remove __ptr64
@@ -236,24 +236,24 @@ namespace Rice::detail
     base = std::regex_replace(base, ptr64Regex, "");
 
     // Replace " >" with ">"
-    auto trailingAngleBracketSpaceRegex = std::regex(R"(\s+>)");
+    std::regex trailingAngleBracketSpaceRegex = std::regex(R"(\s+>)");
     replaceAll(base, trailingAngleBracketSpaceRegex, ">");
 
     // One space after a comma (MSVC has no spaces, GCC one space)
-    auto commaSpaceRegex = std::regex(R"(,(\S))");
+    std::regex commaSpaceRegex = std::regex(R"(,(\S))");
     replaceAll(base, commaSpaceRegex, ", $1");
 
     // Fix strings
-    auto stringRegex = std::regex(R"(basic_string<char>)");
+    std::regex stringRegex = std::regex(R"(basic_string<char>)");
     replaceAll(base, stringRegex, "string");
 
-    auto wstringRegex = std::regex(R"(basic_string<wchar_t>)");
+    std::regex wstringRegex = std::regex(R"(basic_string<wchar_t>)");
     replaceAll(base, wstringRegex, "wstring");
 
     // Normalize Anonymous namespace
-    auto anonymousNamespaceGcc = std::regex(R"(\(anonymous namespace\))");
+    std::regex anonymousNamespaceGcc = std::regex(R"(\(anonymous namespace\))");
     replaceAll(base, anonymousNamespaceGcc, "AnonymousNamespace");
-    auto anonymousNamespaceMsvc = std::regex(R"(`anonymous namespace')");
+    std::regex anonymousNamespaceMsvc = std::regex(R"(`anonymous namespace')");
     replaceAll(base, anonymousNamespaceMsvc, "AnonymousNamespace");
 
     return base;
@@ -283,11 +283,6 @@ namespace Rice::detail
     else if constexpr (std::is_same_v<std::remove_cv_t<T>, char*>)
     {
       return "String";
-    }
-    else if constexpr (std::is_pointer_v<T> && std::is_fundamental_v<Intrinsic_T>)
-    {
-      detail::TypeMapper<Buffer<T>> typeMapper;
-      return typeMapper.simplifiedName();
     }
     else
     {
@@ -321,9 +316,18 @@ namespace Rice::detail
     std::regex underscoreRegex(R"(_(\w))");
     capitalizeHelper(base, underscoreRegex);
 
-    // Replace spaces with unicode U+u00A0 (Non breaking Space)
-    auto spaceRegex = std::regex(R"(\s+)");
-    replaceAll(base, spaceRegex, "\u00A0");
+    if constexpr (std::is_fundamental_v<intrinsic_type<T>>)
+    {
+      // Replace space and capitalize the next letter
+      std::regex spaceRegex(R"(\s+(\w))");
+      capitalizeHelper(base, spaceRegex);
+    }
+    else
+    {
+      // Replace spaces with unicode U+u00A0 (Non breaking Space)
+      std::regex spaceRegex = std::regex(R"(\s+)");
+      replaceAll(base, spaceRegex, "\u00A0");
+    }
 
     // Replace < with unicode U+227A (Precedes)
     auto lessThanRegex = std::regex("<");
@@ -349,16 +353,13 @@ namespace Rice::detail
   template<typename T>
   inline VALUE TypeMapper<T>::rubyKlass()
   {
+    using Type_T = Type<std::remove_reference_t<detail::remove_cv_recursive_t<T>>>;
     using Intrinsic_T = detail::intrinsic_type<T>;
 
     // This checks for pointers like int*
-    if constexpr (has_ruby_klass<Type<detail::remove_cv_recursive_t<T>>>::value)
+    if constexpr (has_ruby_klass<Type_T>::value)
     {
-      return Type<detail::remove_cv_recursive_t<T>>::rubyKlass();
-    }
-    else if constexpr (has_ruby_klass<Type<Intrinsic_T>>::value)
-    {
-      return Type<Intrinsic_T>::rubyKlass();
+      return Type_T::rubyKlass();
     }
     else
     {

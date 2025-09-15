@@ -466,7 +466,7 @@ TESTCASE(define_method_works_with_pointers)
 
   int anInt = 3;
   Buffer<int> buffer(&anInt, 1);
-  m.call("bar", std::move(buffer), "testing");
+  m.call("bar", buffer.ptr(), "testing");
 
   ASSERT_EQUAL(3, with_pointers_x);
   ASSERT_EQUAL("testing", with_pointers_str);
@@ -505,7 +505,7 @@ TESTCASE(pointers)
                         bool_buffer = Rice::Buffer≺bool≻.new(true)
                         double_buffer = Rice::Buffer≺float≻.new(33.0)
                         float_buffer = Rice::Buffer≺double≻.new(34.0)
-                        with_pointers(int_buffer, bool_buffer, double_buffer, float_buffer))";
+                        with_pointers(int_buffer.data, bool_buffer.data, double_buffer.data, float_buffer.data))";
 
   m.module_eval(code);
 

@@ -263,6 +263,33 @@ void assert_not_equal(
   }
 }
 
+template<typename T, typename U, typename V>
+void assert_in_delta(
+  T const& expected,
+  U const& actual,
+  V const& delta,
+  std::string const& s_t,
+  std::string const& s_u,
+  std::string const& s_delta,
+  std::string const& file,
+  size_t line)
+{
+  // Negative deltas don't make sense; treat as failure for clarity.
+  if (delta < 0)
+  {
+    throw Assertion_Failed("assert_in_delta failed: negative delta");
+  }
+  
+  T diff = std::abs(expected - actual);
+  if (!(diff <= delta))
+  {
+    std::stringstream strm;
+    strm << "assert_in_delta failed: |" << actual << " - " << expected << "| = "
+         << diff << " > " << delta;
+    throw Assertion_Failed(strm.str());
+  }
+}
+
 #define FAIL(message, expect, got) \
   do \
   { \
@@ -284,6 +311,14 @@ void assert_not_equal(
     ++assertions; \
     assert_not_equal((x), (y), #x, #y, __FILE__, __LINE__); \
   } while(0)
+
+#define ASSERT_IN_DELTA(x, y, delta) \
+  do \
+  { \
+    ++assertions; \
+    assert_in_delta((x), (y), (delta), #x, #y, #delta, __FILE__, __LINE__); \
+  } while(0)
+
 
 #define ASSERT(x) \
   ASSERT_EQUAL(true, !!x);

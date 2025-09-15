@@ -6,9 +6,18 @@ namespace Rice
   template <typename T>
   Exception create_type_exception(VALUE value)
   {
-    return Exception(rb_eTypeError, "Wrong argument type. Expected: %s. Received: %s.",
-      detail::protect(rb_class2name, Data_Type<T>::klass().value()),
-      detail::protect(rb_obj_classname, value));
+    if constexpr (std::is_pointer_v<T>)
+    {
+      return Exception(rb_eTypeError, "Wrong argument type. Expected: %s. Received: %s.",
+        detail::protect(rb_class2name, Data_Type<Pointer<std::remove_cv_t<std::remove_pointer_t<T>>>>::klass().value()),
+        detail::protect(rb_obj_classname, value));
+    }
+    else
+    {
+      return Exception(rb_eTypeError, "Wrong argument type. Expected: %s. Received: %s.",
+        detail::protect(rb_class2name, Data_Type<detail::intrinsic_type<T>>::klass().value()),
+        detail::protect(rb_obj_classname, value));
+    }
   }
 
   template<typename T>
@@ -104,7 +113,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -131,7 +140,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template <typename T>
@@ -150,7 +159,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return * returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -161,19 +170,16 @@ namespace Rice::detail
       // child class. Lookup the correct type so we return an instance of the correct Ruby class
       std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(data);
 
-      bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
+      bool isOwner = (this->arg_ && this->arg_->isOwner());
       return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
     }
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template <typename T>
   class To_Ruby<T*>
   {
-    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
-                  "Data_Object cannot be used with fundamental types");
-
     static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
                   !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
                   !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
@@ -184,25 +190,23 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     template<typename U>
     VALUE convert(U* data)
     {
-      bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+      bool isOwner = this->arg_ && this->arg_->isOwner();
 
       if (data == nullptr)
       {
         return Qnil;
       }
-      else if (this->returnInfo_ && this->returnInfo_->isArray())
+      else if (std::is_fundamental_v<std::remove_pointer_t<T>> || (this->arg_ && this->arg_->isArray()))
       {
-        using Buffer_T = Buffer<T>;
-        Buffer_T buffer((T*)data);
-        buffer.setOwner(isOwner);
-        return detail::wrap(Data_Type<Buffer_T>::klass(), Data_Type<Buffer_T>::ruby_data_type(), buffer, true);
+        using Pointer_T = Pointer<U>;
+        return detail::wrap(Data_Type<Pointer_T>::klass(), Data_Type<Pointer_T>::ruby_data_type(), data, isOwner);
       }
       else
       {
@@ -214,15 +218,12 @@ namespace Rice::detail
     }
     
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template <typename T>
   class To_Ruby<T*&>
   {
-    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
-                  "Data_Object cannot be used with fundamental types");
-
     static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
                   !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
                   !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
@@ -233,31 +234,28 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     template<typename U>
     VALUE convert(U* data)
     {
-      bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+      bool isOwner = this->arg_ && this->arg_->isOwner();
 
       if (data == nullptr)
       {
         return Qnil;
       }
-      // Buffer_T buffer((T*)data); fails for const U
       else if constexpr (std::is_const_v<U>)
       {
         std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
         return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
       }
-      else if (this->returnInfo_ && this->returnInfo_->isArray())
+      else if (std::is_fundamental_v<T> || (this->arg_ && this->arg_->isArray()))
       {
-        using Buffer_T = Buffer<intrinsic_type<T>>;
-        Buffer_T buffer((T*)data);
-        buffer.setOwner(isOwner);
-        return detail::wrap(Data_Type<Buffer_T>::klass(), Data_Type<Buffer_T>::ruby_data_type(), buffer, true);
+        using Pointer_T = Pointer<U>;
+        return detail::wrap(Data_Type<Pointer_T>::klass(), Data_Type<Pointer_T>::ruby_data_type(), data, isOwner);
       }
       else
       {
@@ -269,26 +267,16 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template <typename T>
   class To_Ruby<T**>
   {
-    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
-                  "Data_Object cannot be used with fundamental types");
-
-    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
-                  !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
-                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
-                  !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
-                  !std::is_same_v<T, std::vector<T>>,
-                  "Please include rice/stl.hpp header for STL support");
-
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -297,11 +285,9 @@ namespace Rice::detail
     {
       if (data)
       {
-        bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
-        Buffer<T*> buffer((T**)data);
-        buffer.setOwner(isOwner);
-        using Buffer_T = Buffer<intrinsic_type<T>*>;
-        return detail::wrap(Data_Type<Buffer_T>::klass(), Data_Type<Buffer_T>::ruby_data_type(), buffer, true);
+        bool isOwner = this->arg_ && this->arg_->isOwner();
+        using Pointer_T = Pointer<U*>;
+        return detail::wrap(Data_Type<Pointer_T>::klass(), Data_Type<Pointer_T>::ruby_data_type(), data, isOwner);
       }
       else
       {
@@ -310,7 +296,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -463,13 +449,9 @@ namespace Rice::detail
 
   // 99% of the time a T* represents a wrapped C++ object that we want to call methods on. However, T* 
   // could also be a pointer to an array of T objects, so T[]. OpenCV for example has API calls like this.
-  // In that case, the Ruby VALUE will be a Buffer<T> instance
   template<typename T>
   class From_Ruby<T*>
   {
-    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
-                  "Data_Object cannot be used with fundamental types");
-
     static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
                   !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
                   !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
@@ -488,12 +470,14 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
+      bool isArray = this->arg_ && this->arg_->isArray();
+
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
-          if (this->arg_ && this->arg_->isArray())
+          if (std::is_fundamental_v<std::remove_pointer_t<T>> || isArray)
           {
-            return Data_Type<Buffer<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+            return Data_Type<Pointer<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
           }
           else
           {
@@ -503,9 +487,6 @@ namespace Rice::detail
         case RUBY_T_NIL:
           return Convertible::Exact;
           break;
-        case RUBY_T_ARRAY:
-          return Convertible::Exact;
-          break;
         default:
           return Convertible::None;
       }
@@ -513,6 +494,9 @@ namespace Rice::detail
 
     T* convert(VALUE value)
     {
+      bool isOwner = this->arg_ && this->arg_->isOwner();
+      bool isArray = this->arg_ && this->arg_->isArray();
+
       switch (rb_type(value))
       {
         case RUBY_T_NIL:
@@ -522,20 +506,18 @@ namespace Rice::detail
         }
         case RUBY_T_DATA:
         {
-          if (this->arg_ && this->arg_->isArray())
+          if (std::is_fundamental_v<T> || isArray)
           {
-            using Buffer_T = Buffer<Intrinsic_T>;
-            Buffer_T* buffer = detail::unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
-            return buffer->ptr();
+            return detail::unwrap<T>(value, Data_Type<Pointer<T>>::ruby_data_type(), isOwner);
           }
           else
           {
-            return detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
+            return detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), isOwner);
           }
         }
         default:
         {
-          throw create_type_exception<Intrinsic_T>(value);
+          throw create_type_exception<T*>(value);
         }
       }
     }
@@ -547,9 +529,6 @@ namespace Rice::detail
   template<typename T>
   class From_Ruby<T*&>
   {
-    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
-                  "Data_Object cannot be used with fundamental types");
-
     static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
                   !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
                   !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
@@ -597,9 +576,6 @@ namespace Rice::detail
   template<typename T>
   class From_Ruby<T**>
   {
-    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
-                  "Data_Object cannot be used with fundamental types");
-
     static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
                   !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
                   !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
@@ -620,12 +596,9 @@ namespace Rice::detail
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
-          return Data_Type<Buffer<T*>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          return Data_Type<Pointer<T*>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
           break;
         case RUBY_T_NIL:
-          return Convertible::Exact;
-          break;
-        case RUBY_T_ARRAY:
           return Convertible::Exact;
           break;
         default:
@@ -635,12 +608,14 @@ namespace Rice::detail
 
     T** convert(VALUE value)
     {
+      bool isOwner = this->arg_ && this->arg_->isOwner();
+
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
         {
-          Buffer<Intrinsic_T*>* buffer = detail::unwrap<Buffer<Intrinsic_T*>>(value, Data_Type<Buffer<Intrinsic_T*>>::ruby_data_type(), false);
-          return buffer->ptr();
+          T** result = detail::unwrap<Intrinsic_T*>(value, Data_Type<Pointer<T*>>::ruby_data_type(), isOwner);
+          return result;
           break;
         }
         case RUBY_T_NIL:
@@ -650,7 +625,7 @@ namespace Rice::detail
         }
         default:
         {
-          throw create_type_exception<Intrinsic_T>(value);
+          throw create_type_exception<T**>(value);
         }
       }
     }

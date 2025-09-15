@@ -47,22 +47,22 @@ TESTCASE(CharMethods)
 {
   define_buffer<char>();
   std::vector<detail::Native*> natives = detail::Registries::instance.natives.lookup(Data_Type<Buffer<char>>::klass());
-  ASSERT_EQUAL(10, natives.size());
+  ASSERT_EQUAL(11, natives.size());
 
   define_buffer<char>();
   natives = detail::Registries::instance.natives.lookup(Data_Type<Buffer<char>>::klass());
-  ASSERT_EQUAL(10, natives.size());
+  ASSERT_EQUAL(11, natives.size());
 }
 
 TESTCASE(CharPointerMethods)
 {
   define_buffer<char*>();
   std::vector<detail::Native*> natives = detail::Registries::instance.natives.lookup(Data_Type<Buffer<char*>>::klass());
-  ASSERT_EQUAL(10, natives.size());
+  ASSERT_EQUAL(11, natives.size());
 
   define_buffer<char*>();
   natives = detail::Registries::instance.natives.lookup(Data_Type<Buffer<char*>>::klass());
-  ASSERT_EQUAL(10, natives.size());
+  ASSERT_EQUAL(11, natives.size());
 }
 
 TESTCASE(CharArray)
@@ -209,14 +209,17 @@ TESTCASE(float_array_array)
 
   ASSERT_EQUAL(3, (int)buffer.size());
 
-  const Buffer<float>& bufferInner1 = buffer[0];
-  ASSERT_EQUAL(2, (int)bufferInner1.size());
+  float* values = buffer[0];
+  ASSERT_IN_DELTA(1.1, values[0], 0.1);
+  ASSERT_IN_DELTA(2.2, values[1], 0.1);
 
-  const Buffer<float>& bufferInner2 = buffer[1];
-  ASSERT_EQUAL(2, (int)bufferInner2.size());
+  values = buffer[1];
+  ASSERT_IN_DELTA(3.3, values[0], 0.1);
+  ASSERT_IN_DELTA(4.4, values[1], 0.1);
 
-  const Buffer<float>& bufferInner3 = buffer[2];
-  ASSERT_EQUAL(2, (int)bufferInner3.size());
+  values = buffer[2];
+  ASSERT_IN_DELTA(5.5, values[0], 0.1);
+  ASSERT_IN_DELTA(6.6, values[1], 0.1);
 }
 
 TESTCASE(wrong_type)
@@ -231,6 +234,43 @@ TESTCASE(wrong_type)
     m.module_eval(code),
     ASSERT_EQUAL("can't convert String into Float", ex.what())
   );
+}
+
+namespace
+{
+  static double Speeds[] = { 44.0, 55.0, 66.0 };
+  static double* SpeedsPtr[] = { new double(44.0), new double(55.0), new double(66.0) };
+
+  double* speeds()
+  {
+    return Speeds;
+  }
+
+  double** speedsPtr()
+  {
+    return SpeedsPtr;
+  }
+}
+
+TESTCASE(pointer_of_doubles)
+{
+  Module m = define_module("Testing").
+    define_module_function("speeds", &speeds).
+    define_module_function("speeds_ptr", &speedsPtr);
+
+  std::string code = R"(buffer = Rice::Buffer≺double≻.new(speeds, 3)
+                        buffer[2])";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(66.0, detail::From_Ruby<double>().convert(result));
+
+  code = R"(buffer_outer = Rice::Buffer≺double∗≻.new(speeds_ptr, 3)
+            data = buffer_outer[2]
+            buffer_inner = Rice::Buffer≺double≻.new(data, 1)
+            buffer_inner[0])";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(66.0, detail::From_Ruby<double>().convert(result));
 }
 
 namespace
@@ -284,21 +324,21 @@ TESTCASE(update_ptr)
   m.define_module_function("update_pointer", &updatePtr);
 
   std::string code = R"(buffer = Rice::Buffer≺int≻.new(0)
-                        update_pointer(buffer)
+                        update_pointer(buffer.data)
                         buffer.to_ary(1).first)";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result));
 
   code = R"(buffer = Rice::Buffer≺int≻.new(0)
-            update_pointer(buffer)
+            update_pointer(buffer.data)
             buffer[0])";
 
   result = m.module_eval(code);
   ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result));
 
   code = R"(buffer = Rice::Buffer≺int≻.new(0)
-            update_pointer(buffer)
+            update_pointer(buffer.data)
             buffer[1])";
 
   ASSERT_EXCEPTION_CHECK(
@@ -331,6 +371,21 @@ TESTCASE(update_buffer)
   );
 }
 
+TESTCASE(update_buffer_ptr)
+{
+  define_buffer<int*>();
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(buffer = Rice::Buffer≺int∗≻.new([[0, 1], [2, 3]])
+                        inner = Rice::Buffer≺int≻.new(buffer[1], 2)
+                        inner[1] = 9
+                        inner[1])";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(9, detail::From_Ruby<int>().convert(result));
+}
+
 TESTCASE(to_s)
 {
   define_buffer<unsigned char>();
@@ -348,65 +403,218 @@ TESTCASE(to_s)
 
 namespace
 {
-  class MyClass
+  class MyClassBuf
   {
   public:
-    MyClass(int id) : id(id)
+    MyClassBuf(int id) : id(id)
     {
     }
 
-    MyClass& operator=(const MyClass&) = delete;
+   // MyClassBuf& operator=(const MyClassBuf&) = delete;
 
     int id;
   };
+
+  static MyClassBuf myClassBufs[] = { 1,2,3 };
+  static MyClassBuf* myClassBufsPtr[] = { new MyClassBuf(1), new MyClassBuf(2), new MyClassBuf(3) };
+
+  MyClassBuf* classBufs()
+  {
+    return myClassBufs;
+  }
+
+  MyClassBuf** classBufsPtr()
+  {
+    return myClassBufsPtr;
+  }
+
+  size_t sumIds(const MyClassBuf* myClasses, size_t count)
+  {
+    int result = 0;
+    for (int i = 0; i < count; i++)
+    {
+      const MyClassBuf& myClass = myClasses[i];
+      result += myClass.id;
+    }
+    return result;
+  }
+
+  size_t sumIds(const MyClassBuf** myClasses, size_t count)
+  {
+    int result = 0;
+    for (int i = 0; i < count; i++)
+    {
+      const MyClassBuf* myClass = myClasses[i];
+        result += myClass->id;
+    }
+    return result;
+  }
 }
 
 TESTCASE(array_of_objects)
 {
-  define_buffer<MyClass*>();
+  define_buffer<MyClassBuf>();
 
-  define_class<MyClass>("MyClass").
-    define_constructor(Constructor<MyClass, int>()).
-    define_attr("id", &MyClass::id);
+  define_class<MyClassBuf>("MyClassBuf").
+    define_constructor(Constructor<MyClassBuf, int>()).
+    define_attr("id", &MyClassBuf::id);
 
-  std::string code = R"(array = [MyClass.new(0), MyClass.new(1)]
-                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClass∗≻.new(array)
+  std::string code = R"(array = [MyClassBuf.new(0), MyClassBuf.new(1)]
+                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(array)
                         buffer[1].id)";
 
   Module m = define_module("Testing");
   Object result = m.module_eval(code);
   ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result));
+}
 
-  code = R"(array = [MyClass.new(0), MyClass.new(1)]
-            buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClass∗≻.new(array)
-            buffer[1] = MyClass.new(2)
-            buffer[1].id)";
+TESTCASE(update_array_of_objects)
+{
+  define_buffer<MyClassBuf>();
+
+  define_class<MyClassBuf>("MyClassBuf").
+    define_constructor(Constructor<MyClassBuf, int>()).
+    define_attr("id", &MyClassBuf::id);
+
+  std::string code = R"(array = [MyClassBuf.new(0), MyClassBuf.new(1)]
+                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(array)
+                        buffer[1] = MyClassBuf.new(8)
+                        buffer[1].id)";
+
+  Module m = define_module("Testing");
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(8, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(pointer_of_objects)
+{
+  define_buffer<MyClassBuf>();
+  define_buffer<MyClassBuf*>();
+
+  Module m = define_module("Testing").
+    define_module_function("class_buffs", &classBufs).
+    define_module_function("class_buffs_ptr", &classBufsPtr);
+
+  define_class<MyClassBuf>("MyClassBuf").
+    define_constructor(Constructor<MyClassBuf, int>()).
+    define_attr("id", &MyClassBuf::id);
+
+  std::string code = R"(buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(class_buffs, 3)
+                        buffer[1].id)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(result));
+
+  code = R"(buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(class_buffs_ptr, 3)
+            buffer[2].id)";
 
   result = m.module_eval(code);
-  ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(result));
+  ASSERT_EQUAL(3, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(update_pointer_of_objects)
+{
+  define_buffer<MyClassBuf*>();
+
+  Module m = define_module("Testing").
+    define_module_function("class_buffs", &classBufs).
+    define_module_function("class_buffs_ptr", &classBufsPtr);
+
+  define_class<MyClassBuf>("MyClassBuf").
+    define_constructor(Constructor<MyClassBuf, int>()).
+    define_attr("id", &MyClassBuf::id);
+
+  std::string code = R"(buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(class_buffs_ptr, 3)
+                        inner = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(buffer[2], 1)
+                        inner[0] = MyClassBuf.new(7)
+                        inner[0].id)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(7, detail::From_Ruby<int>().convert(result));
+
+  code = R"(buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(class_buffs_ptr, 3)
+            buffer[2] = MyClassBuf.new(9)
+            buffer[2].id)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(9, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(array_of_const_objects)
 {
-  define_buffer<const MyClass*>();
+  define_buffer<const MyClassBuf*>();
 
-  define_class<MyClass>("MyClass").
-    define_constructor(Constructor<MyClass, int>()).
-    define_attr("id", &MyClass::id);
+  define_class<MyClassBuf>("MyClassBuf").
+    define_constructor(Constructor<MyClassBuf, int>()).
+    define_attr("id", &MyClassBuf::id);
 
-  std::string code = R"(array = [MyClass.new(0), MyClass.new(1)]
-                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClass∗≻.new(array)
+  std::string code = R"(array = [MyClassBuf.new(0), MyClassBuf.new(1)]
+                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
                         buffer[1].id)";
 
   Module m = define_module("Testing");
   Object result = m.module_eval(code);
   ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result));
 
-  code = R"(array = [MyClass.new(0), MyClass.new(1)]
-            buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClass∗≻.new(array)
-            buffer[1] = MyClass.new(2)
-            buffer[1].id)";
+  code = R"(array = [MyClassBuf.new(0), MyClassBuf.new(1)]
+            buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
+            my_class = buffer[1]
+            my_class.id)";
 
   result = m.module_eval(code);
-  ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(result));
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(array_of_objects_ptr)
+{
+  define_buffer<MyClassBuf*>();
+
+  define_class<MyClassBuf>("MyClassBuf").
+    define_constructor(Constructor<MyClassBuf, int>()).
+    define_attr("id", &MyClassBuf::id);
+
+  std::string code = R"(array = [MyClassBuf.new(0), MyClassBuf.new(1)]
+                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
+                        buffer[1].id)";
+
+  Module m = define_module("Testing");
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result));
+
+  code = R"(array = [MyClassBuf.new(0), MyClassBuf.new(1)]
+            buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
+            my_class = buffer[1]
+            my_class.id)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(pass_objects)
+{
+  define_pointer<MyClassBuf>();
+  define_buffer<MyClassBuf>();
+  define_buffer<MyClassBuf*>();
+
+  Module m = define_module("Testing");
+  m.define_module_function<size_t(*)(const MyClassBuf*, size_t)>("sum_ids", &sumIds, Arg("myClasses").setArray());
+  m.define_module_function<size_t(*)(const MyClassBuf**, size_t)>("sum_ids_ptr", &sumIds);
+
+  define_class_under<MyClassBuf>(m, "MyClassBuf").
+    define_constructor(Constructor<MyClassBuf, int>()).
+    define_attr("id", &MyClassBuf::id);
+
+  std::string code = R"(array = [MyClassBuf.new(5), MyClassBuf.new(7)]
+                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(array)
+                        sum_ids(buffer.data, buffer.size))";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(12, detail::From_Ruby<int>().convert(result));
+
+  code = R"(array = [MyClassBuf.new(5), MyClassBuf.new(7)]
+            buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
+            sum_ids_ptr(buffer.data, buffer.size))";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(12, detail::From_Ruby<int>().convert(result));
 }

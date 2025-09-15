@@ -42,32 +42,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<bool*>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(bool* data)
-      {
-        Buffer<bool> buffer(data);
-        Data_Object<Buffer<bool>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const bool* data)
-      {
-        return this->convert((bool*)data);
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     template<bool N>
     class To_Ruby<bool[N]>
     {
@@ -144,32 +118,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<int*>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(int* data)
-      {
-        Buffer<int> buffer(data);
-        Data_Object<Buffer<int>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const int* data)
-      {
-        return this->convert((int*)data);
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     template<int N>
     class To_Ruby<int[N]>
     {
@@ -186,32 +134,6 @@ namespace Rice
         Data_Object<Buffer<int>> dataObject(std::move(buffer));
         return dataObject.value();
       }
-    private:
-      Arg* arg_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<int**>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(int** data)
-      {
-        Buffer<int*> buffer(data);
-        Data_Object<Buffer<int*>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const int** data)
-      {
-        return this->convert((int**)data);
-      }
-
     private:
       Arg* arg_ = nullptr;
     };
@@ -263,32 +185,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<unsigned int*>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(unsigned int* data)
-      {
-        Buffer<unsigned int> buffer(data);
-        Data_Object<Buffer<unsigned int>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const unsigned int* data)
-      {
-        return this->convert((unsigned int*)data);
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     template<int N>
     class To_Ruby<unsigned int[N]>
     {
@@ -305,32 +201,6 @@ namespace Rice
         Data_Object<Buffer<unsigned int>> dataObject(std::move(buffer));
         return dataObject.value();
       }
-    private:
-      Arg* arg_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<unsigned int**>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(unsigned int** data)
-      {
-        Buffer<unsigned int*> buffer(data);
-        Data_Object<Buffer<unsigned int*>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const unsigned int** data)
-      {
-        return this->convert((unsigned int**)data);
-      }
-
     private:
       Arg* arg_ = nullptr;
     };
@@ -452,32 +322,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<char**>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(char** data)
-      {
-        Buffer<char*> buffer(data);
-        Data_Object<Buffer<char*>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const char** data)
-      {
-        return this->convert((char**)data);
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     // ===========  unsigned char  ============
     template<>
     class To_Ruby<unsigned char>
@@ -517,32 +361,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<unsigned char*>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(unsigned char* data)
-      {
-        Buffer<unsigned char> buffer(data);
-        Data_Object<Buffer<unsigned char>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const unsigned char* data)
-      {
-        return this->convert((unsigned char*)data);
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     template<int N>
     class To_Ruby<unsigned char[N]>
     {
@@ -553,32 +371,6 @@ namespace Rice
         Data_Object<Buffer<unsigned char>> dataObject(std::move(buffer));
         return dataObject.value();
       }
-    private:
-      Arg* arg_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<unsigned char**>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(unsigned char** data)
-      {
-        Buffer<unsigned char*> buffer(data);
-        Data_Object<Buffer<unsigned char*>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const unsigned char** data)
-      {
-        return this->convert((unsigned char**)data);
-      }
-
     private:
       Arg* arg_ = nullptr;
     };
@@ -622,32 +414,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<signed char*>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(signed char* data)
-      {
-        Buffer<signed char> buffer(data);
-        Data_Object<Buffer<signed char>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const signed char* data)
-      {
-        return this->convert((signed char*)data);
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     template<int N>
     class To_Ruby<signed char[N]>
     {
@@ -664,32 +430,6 @@ namespace Rice
         Data_Object<Buffer<signed char>> dataObject(std::move(buffer));
         return dataObject.value();
       }
-    private:
-      Arg* arg_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<signed char**>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(signed char** data)
-      {
-        Buffer<signed char*> buffer(data);
-        Data_Object<Buffer<signed char*>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const signed char** data)
-      {
-        return this->convert((signed char**)data);
-      }
-
     private:
       Arg* arg_ = nullptr;
     };
@@ -733,27 +473,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<double*>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(double* data)
-      {
-        Buffer<double> buffer(data);
-        Data_Object<Buffer<double>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     template<int N>
     class To_Ruby<double[N]>
     {
@@ -770,32 +489,6 @@ namespace Rice
         Data_Object<Buffer<double>> dataObject(std::move(buffer));
         return dataObject.value();
       }
-    private:
-      Arg* arg_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<double**>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(double** data)
-      {
-        Buffer<double*> buffer(data);
-        Data_Object<Buffer<double*>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const double** data)
-      {
-        return this->convert((double**)data);
-      }
-
     private:
       Arg* arg_ = nullptr;
     };
@@ -839,27 +532,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<float*>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(float* data)
-      {
-        Buffer<float> buffer(data);
-        Data_Object<Buffer<float>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     template<int N>
     class To_Ruby<float[N]>
     {
@@ -876,32 +548,6 @@ namespace Rice
         Data_Object<Buffer<float>> dataObject(std::move(buffer));
         return dataObject.value();
       }
-    private:
-      Arg* arg_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<float**>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(float** data)
-      {
-        Buffer<float*> buffer(data);
-        Data_Object<Buffer<float*>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const float** data)
-      {
-        return this->convert((float**)data);
-      }
-
     private:
       Arg* arg_ = nullptr;
     };
@@ -945,27 +591,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<long*>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(long* data)
-      {
-        Buffer<long> buffer(data);
-        Data_Object<Buffer<long>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     template<int N>
     class To_Ruby<long[N]>
     {
@@ -982,32 +607,6 @@ namespace Rice
         Data_Object<Buffer<long>> dataObject(std::move(buffer));
         return dataObject.value();
       }
-    private:
-      Arg* arg_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<long**>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(long** data)
-      {
-        Buffer<long*> buffer(data);
-        Data_Object<Buffer<long*>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const long** data)
-      {
-        return this->convert((long**)data);
-      }
-
     private:
       Arg* arg_ = nullptr;
     };
@@ -1065,27 +664,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<unsigned long*>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(unsigned long* data)
-      {
-        Buffer<unsigned long> buffer(data);
-        Data_Object<Buffer<unsigned long>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     template<int N>
     class To_Ruby<unsigned long[N]>
     {
@@ -1102,32 +680,6 @@ namespace Rice
         Data_Object<Buffer<unsigned long>> dataObject(std::move(buffer));
         return dataObject.value();
       }
-    private:
-      Arg* arg_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<unsigned long**>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(unsigned long** data)
-      {
-        Buffer<unsigned long*> buffer(data);
-        Data_Object<Buffer<unsigned long*>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const unsigned long** data)
-      {
-        return this->convert((unsigned long**)data);
-      }
-
     private:
       Arg* arg_ = nullptr;
     };
@@ -1171,27 +723,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<long long*>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(long long* data)
-      {
-        Buffer<long long> buffer(data);
-        Data_Object<Buffer<long long>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     template<int N>
     class To_Ruby<long long[N]>
     {
@@ -1208,32 +739,6 @@ namespace Rice
         Data_Object<Buffer<long long>> dataObject(std::move(buffer));
         return dataObject.value();
       }
-    private:
-      Arg* arg_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<long long**>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(long long** data)
-      {
-        Buffer<long long*> buffer(data);
-        Data_Object<Buffer<long long*>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const long long** data)
-      {
-        return this->convert((long long**)data);
-      }
-
     private:
       Arg* arg_ = nullptr;
     };
@@ -1302,27 +807,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<unsigned long long*>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(unsigned long long* data)
-      {
-        Buffer<unsigned long long> buffer(data);
-        Data_Object<Buffer<unsigned long long>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     template<int N>
     class To_Ruby<unsigned long long[N]>
     {
@@ -1339,32 +823,6 @@ namespace Rice
         Data_Object<Buffer<unsigned long long>> dataObject(std::move(buffer));
         return dataObject.value();
       }
-    private:
-      Arg* arg_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<unsigned long long**>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(unsigned long long** data)
-      {
-        Buffer<unsigned long long*> buffer(data);
-        Data_Object<Buffer<unsigned long long*>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const unsigned long long** data)
-      {
-        return this->convert((unsigned long long**)data);
-      }
-
     private:
       Arg* arg_ = nullptr;
     };
@@ -1416,27 +874,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<short*>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(short* data)
-      {
-        Buffer<short> buffer(data);
-        Data_Object<Buffer<short>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     template<int N>
     class To_Ruby<short[N]>
     {
@@ -1453,32 +890,6 @@ namespace Rice
         Data_Object<Buffer<short>> dataObject(std::move(buffer));
         return dataObject.value();
       }
-    private:
-      Arg* arg_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<short**>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(short** data)
-      {
-        Buffer<short*> buffer(data);
-        Data_Object<Buffer<short*>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const short** data)
-      {
-        return this->convert((short**)data);
-      }
-
     private:
       Arg* arg_ = nullptr;
     };
@@ -1530,27 +941,6 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
-    template<>
-    class To_Ruby<unsigned short*>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(unsigned short* data)
-      {
-        Buffer<unsigned short> buffer(data);
-        Data_Object<Buffer<unsigned short>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-    private:
-      Arg* arg_ = nullptr;
-    };
-
     template<int N>
     class To_Ruby<unsigned short[N]>
     {
@@ -1567,32 +957,6 @@ namespace Rice
         Data_Object<Buffer<unsigned short>> dataObject(std::move(buffer));
         return dataObject.value();
       }
-    private:
-      Arg* arg_ = nullptr;
-    };
-
-    template<>
-    class To_Ruby<unsigned short**>
-    {
-    public:
-      To_Ruby() = default;
-
-      explicit To_Ruby(Arg* arg) : arg_(arg)
-      {
-      }
-
-      VALUE convert(unsigned short** data)
-      {
-        Buffer<unsigned short*> buffer(data);
-        Data_Object<Buffer<unsigned short*>> dataObject(std::move(buffer));
-        return dataObject.value();
-      }
-
-      VALUE convert(const unsigned short** data)
-      {
-        return this->convert((unsigned short**)data);
-      }
-
     private:
       Arg* arg_ = nullptr;
     };
@@ -1660,9 +1024,8 @@ namespace Rice
         }
         else
         {
-          Buffer<void> buffer(data);
-          Data_Object<Buffer<void>> dataObject(std::move(buffer));
-          return dataObject.value();
+          bool isOwner = this->arg_ && this->arg_->isOwner();
+          return detail::wrap(Data_Type<Pointer<void>>::klass(), Data_Type<Pointer<void>>::ruby_data_type(), data, isOwner);
         }
       }
 
