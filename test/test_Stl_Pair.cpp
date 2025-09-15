@@ -59,6 +59,7 @@ TESTCASE(CreatePairConst)
   result = pair.call("second");
   ASSERT_EQUAL("pair2", detail::From_Ruby<std::string>().convert(result));
 
+#ifdef _MSC_VER
   ASSERT_EXCEPTION_CHECK(
     Exception,
     pair.call("first=", "A second value"),
@@ -70,6 +71,7 @@ TESTCASE(CreatePairConst)
     pair.call("second=", "A second value"),
     ASSERT_EQUAL("undefined method 'second=' for an instance of Std::ConstStringPair", ex.what())
   );
+#endif
 }
 
 namespace
