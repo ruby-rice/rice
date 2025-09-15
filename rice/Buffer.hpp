@@ -10,11 +10,10 @@ namespace Rice
   class Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>
   {
   public:
-    using Element_T = T;
-
     Buffer(T* pointer);
     Buffer(T* pointer, size_t size);
     Buffer(VALUE value);
+    Buffer(VALUE value, size_t size);
 
     ~Buffer();
 
@@ -30,7 +29,6 @@ namespace Rice
     void release();
 
     size_t size() const;
-    void setSize(size_t value);
 
     // Ruby API
     VALUE toString() const;
@@ -45,8 +43,8 @@ namespace Rice
     void setOwner(bool value);
 
   private:
-    void fromBuiltinType(VALUE value);
-    void fromWrappedType(VALUE value);
+    void fromBuiltinType(VALUE value, size_t size);
+    void fromWrappedType(VALUE value, size_t size);
 
     bool m_owner = false;
     size_t m_size = 0;
@@ -59,11 +57,10 @@ namespace Rice
   class Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>
   {
   public:
-    using Element_T = Buffer<T>;
-
     Buffer(T** pointer);
     Buffer(T** pointer, size_t size);
     Buffer(VALUE value);
+    Buffer(VALUE value, size_t size);
 
     ~Buffer();
 
@@ -73,13 +70,12 @@ namespace Rice
     Buffer& operator=(const Buffer& other) = delete;
     Buffer& operator=(Buffer&& other);
 
-    Element_T& operator[](size_t index);
+    T*& operator[](size_t index);
 
     T** ptr();
     void release();
 
     size_t size() const;
-    void setSize(size_t value);
 
     // Ruby API
     VALUE toString() const;
@@ -96,19 +92,17 @@ namespace Rice
   private:
     bool m_owner = false;
     size_t m_size = 0;
-    T** m_outer = nullptr;
-    std::vector<Buffer<T>> m_inner;
+    T** m_buffer = nullptr;
   };
 
   template<typename T>
   class Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>
   {
   public:
-    using Element_T = T*;
-
     Buffer(T** pointer);
     Buffer(T** pointer, size_t size);
     Buffer(VALUE value);
+    Buffer(VALUE value, size_t size);
 
     ~Buffer();
 
@@ -118,13 +112,12 @@ namespace Rice
     Buffer& operator=(const Buffer& other) = delete;
     Buffer& operator=(Buffer&& other);
 
-    Element_T& operator[](size_t index);
+    T* operator[](size_t index);
 
     T** ptr();
     void release();
 
     size_t size() const;
-    void setSize(size_t value);
 
     // Ruby API
     VALUE toString() const;
@@ -150,15 +143,15 @@ namespace Rice
   public:
     Buffer(T* pointer);
     Buffer(VALUE value);
+    Buffer(VALUE value, size_t size);
+
     Buffer(const Buffer& other) = delete;
     Buffer(Buffer&& other);
-    ~Buffer();
 
     Buffer& operator=(const Buffer& other) = delete;
     Buffer& operator=(Buffer&& other);
 
     size_t size() const;
-    void setSize(size_t value);
       
     VALUE bytes(size_t count) const;
     VALUE bytes() const;
@@ -174,4 +167,5 @@ namespace Rice
   template<typename T>
   Data_Type<Buffer<T>> define_buffer(std::string klassName = "");
 }
+
 #endif // Rice__Buffer__hpp_

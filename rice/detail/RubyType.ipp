@@ -212,36 +212,3 @@ namespace Rice::detail
     static inline std::string name = "void";
   };
 }
-
-namespace Rice::detail
-{
-  template<typename T>
-  inline Data_Type<T> define_ruby_type()
-  {
-    TypeMapper<T*> typeMapper;
-    std::string klassName = typeMapper.rubyName();
-    Identifier id(klassName);
-
-    Module rb_mRice = define_module("Rice");
-    return define_class_under<T>(rb_mRice, id);
-  }
-
-  inline void define_ruby_types()
-  {
-    define_ruby_type<bool>();
-    define_ruby_type<char>();
-    define_ruby_type<signed char>();
-    define_ruby_type<unsigned char>();
-    define_ruby_type<short>();
-    define_ruby_type<unsigned short>();
-    define_ruby_type<int>();
-    define_ruby_type<unsigned int>();
-    define_ruby_type<long>();
-    define_ruby_type<unsigned long>();
-    define_ruby_type<long long>();
-    define_ruby_type<unsigned long long>();
-    define_ruby_type<float>();
-    define_ruby_type<double>();
-    define_ruby_type<void>();
-  }
-}

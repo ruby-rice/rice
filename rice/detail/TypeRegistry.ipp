@@ -13,22 +13,6 @@ namespace Rice::detail
     registry_[key] = std::pair(klass, rbType);
   }
 
-  /* Special case void. Rice defines classes using the class name not a pointer to the
-     class. Thus define_class<void> is more consistent with Rice then 
-     define_class<void*>. However, the types of void and void* are different so we need
-     this special case.
-     
-     It is possible to support define_class<void*>, but it requires changing the static
-     assertions on Data_Type and Data_Object and thus seems less desirable (and less 
-     consistent as mentioned above).*/
-  template <>
-  inline void TypeRegistry::add<void>(VALUE klass, rb_data_type_t* rbType)
-  {
-    // The special case, use void*
-    std::type_index key(typeid(void*));
-    registry_[key] = std::pair(klass, rbType);
-  }
-
   template <typename T>
   inline void TypeRegistry::remove()
   {
@@ -59,15 +43,6 @@ namespace Rice::detail
       // Make compiler happy
       return std::make_pair(Qnil, nullptr);
     }
-  }
-
-  // Special case void. See comment for add above.
-  template <>
-  inline bool TypeRegistry::isDefined<void>()
-  {
-    std::type_index key(typeid(void*));
-    auto iter = registry_.find(key);
-    return iter != registry_.end();
   }
 
   template <typename T>

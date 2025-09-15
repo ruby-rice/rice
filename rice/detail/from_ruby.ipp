@@ -73,7 +73,11 @@ namespace Rice::detail
         }
         case RUBY_T_DATA:
         {
-          return Data_Type<Buffer<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          if (Data_Type<Pointer<T>>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
         }
         default:
         {
@@ -94,20 +98,15 @@ namespace Rice::detail
         }
         case RUBY_T_DATA:
         {
-          if (Data_Type<Buffer<T>>::is_descendant(value))
+          if (Data_Type<Pointer<T>>::is_descendant(value))
           {
-            Buffer<T>* buffer = unwrap<Buffer<T>>(value, Data_Type<Buffer<T>>::ruby_data_type(), false);
-            if (arg && arg->isOwner())
-            {
-              buffer->release();
-            }
-            return buffer->ptr();
+            return unwrap<T>(value, Data_Type<Pointer<T>>::ruby_data_type(), false);
           }
-          [[fallthrough]];
+					[[fallthrough]];
         }
         default:
         {
-          detail::TypeMapper<Buffer<intrinsic_type<T>>> typeMapper;
+          detail::TypeMapper<Pointer<T>> typeMapper;
           std::string expected = typeMapper.rubyName();
           throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
@@ -133,7 +132,11 @@ namespace Rice::detail
         }
         case RUBY_T_DATA:
         {
-          return Data_Type<Buffer<T*>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+          if (Data_Type<Pointer<T*>>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+					[[fallthrough]];
         }
         default:
         {
@@ -154,20 +157,15 @@ namespace Rice::detail
         }
         case RUBY_T_DATA:
         {
-          if (Data_Type<Buffer<T*>>::is_descendant(value))
+          if (Data_Type<Pointer<T*>>::is_descendant(value))
           {
-            Buffer<T*>* buffer = unwrap<Buffer<T*>>(value, Data_Type<Buffer<T*>>::ruby_data_type(), false);
-            if (arg && arg->isOwner())
-            {
-              buffer->release();
-            }
-            return buffer->ptr();
+            return unwrap<T*>(value, Data_Type<Pointer<T*>>::ruby_data_type(), false);
           }
           [[fallthrough]];
         }
         default:
         {
-          detail::TypeMapper<Buffer<intrinsic_type<T>*>> typeMapper;
+          detail::TypeMapper<Pointer<T*>> typeMapper;
           std::string expected = typeMapper.rubyName();
           throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
@@ -396,34 +394,6 @@ namespace Rice::detail
   {
   };
 
-  template<>
-  class From_Ruby<char**>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        throw std::runtime_error("Cannot transfer ownership of an array of pointers to a fundamental type");
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<char**>::is_convertible(value);
-    }
-
-    char** convert(VALUE value)
-    {
-      return FromRubyFundamental<char**>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  unsigned char  ============
   template<>
   class From_Ruby<unsigned char>
@@ -490,58 +460,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     unsigned char converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<unsigned char*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned char*>::is_convertible(value);
-    }
-
-    unsigned char* convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned char*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<>
-  class From_Ruby<unsigned char**>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        throw std::runtime_error("Cannot transfer ownership of an array of pointers to a fundamental type");
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned char**>::is_convertible(value);
-    }
-
-    unsigned char** convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned char**>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  signed char  ============
@@ -630,34 +548,6 @@ namespace Rice::detail
     signed char* convert(VALUE value)
     {
       return FromRubyFundamental<signed char*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<>
-  class From_Ruby<signed char**>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        throw std::runtime_error("Cannot transfer ownership of an array of pointers to a fundamental type");
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<signed char**>::is_convertible(value);
-    }
-
-    signed char** convert(VALUE value)
-    {
-      return FromRubyFundamental<signed char**>::convert(value, this->arg_);
     }
 
   private:
@@ -756,34 +646,6 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 
-  template<>
-  class From_Ruby<double**>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        throw std::runtime_error("Cannot transfer ownership of an array of pointers to a fundamental type");
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<double**>::is_convertible(value);
-    }
-
-    double** convert(VALUE value)
-    {
-      return FromRubyFundamental<double**>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  float  ============
   template<>
   class From_Ruby<float>
@@ -870,34 +732,6 @@ namespace Rice::detail
     float* convert(VALUE value)
     {
       return FromRubyFundamental<float*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<>
-  class From_Ruby<float**>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        throw std::runtime_error("Cannot transfer ownership of an array of pointers to a fundamental type");
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<float**>::is_convertible(value);
-    }
-
-    float** convert(VALUE value)
-    {
-      return FromRubyFundamental<float**>::convert(value, this->arg_);
     }
 
   private:
@@ -1007,34 +841,6 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 
-  template<>
-  class From_Ruby<int**>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        throw std::runtime_error("Cannot transfer ownership of an array of pointers to a fundamental type");
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<int**>::is_convertible(value);
-    }
-
-    int** convert(VALUE value)
-    {
-      return FromRubyFundamental<int**>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  unsigned int  ============
   template<>
   class From_Ruby<unsigned int>
@@ -1127,34 +933,6 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 
-  template<>
-  class From_Ruby<unsigned int**>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        throw std::runtime_error("Cannot transfer ownership of an array of pointers to a fundamental type");
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned int**>::is_convertible(value);
-    }
-
-    unsigned int** convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned int**>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  long  ============
   template<>
   class From_Ruby<long>
@@ -1241,34 +1019,6 @@ namespace Rice::detail
     long* convert(VALUE value)
     {
       return FromRubyFundamental<long*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<>
-  class From_Ruby<long**>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        throw std::runtime_error("Cannot transfer ownership of an array of pointers to a fundamental type");
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<long**>::is_convertible(value);
-    }
-
-    long** convert(VALUE value)
-    {
-      return FromRubyFundamental<long**>::convert(value, this->arg_);
     }
 
   private:
@@ -1374,34 +1124,6 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 
-  template<>
-  class From_Ruby<unsigned long**>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        throw std::runtime_error("Cannot transfer ownership of an array of pointers to a fundamental type");
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned long**>::is_convertible(value);
-    }
-
-    unsigned long** convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned long**>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  unsigned long long  ============
   template<>
   class From_Ruby<unsigned long long>
@@ -1500,35 +1222,7 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-
-  template<>
-  class From_Ruby<unsigned long long**>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        throw std::runtime_error("Cannot transfer ownership of an array of pointers to a fundamental type");
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned long long**>::is_convertible(value);
-    }
-
-    unsigned long long** convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned long long**>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-  
+ 
   // ===========  long long  ============
   template<>
   class From_Ruby<long long>
@@ -1615,34 +1309,6 @@ namespace Rice::detail
     long long* convert(VALUE value)
     {
       return FromRubyFundamental<long long*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<>
-  class From_Ruby<long long**>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        throw std::runtime_error("Cannot transfer ownership of an array of pointers to a fundamental type");
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<long long**>::is_convertible(value);
-    }
-
-    long long** convert(VALUE value)
-    {
-      return FromRubyFundamental<long long**>::convert(value, this->arg_);
     }
 
   private:
@@ -1741,33 +1407,6 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 
-  template<>
-  class From_Ruby<short**>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        throw std::runtime_error("Cannot transfer ownership of an array of pointers to a fundamental type");
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<short**>::is_convertible(value);
-    }
-
-    short** convert(VALUE value)
-    {
-      return FromRubyFundamental<short**>::convert(value, this->arg_);
-    }
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  unsigned short  ============
   template<>
   class From_Ruby<unsigned short>
@@ -1860,34 +1499,6 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 
-  template<>
-  class From_Ruby<unsigned short**>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-      if (this->arg_ && this->arg_->isOwner())
-      {
-        throw std::runtime_error("Cannot transfer ownership of an array of pointers to a fundamental type");
-      }
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned short**>::is_convertible(value);
-    }
-
-    unsigned short** convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned short**>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  std::nullptr_t  ============
   template<>
   class From_Ruby<std::nullptr_t>
@@ -1966,8 +1577,6 @@ namespace Rice::detail
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
     {
-      detail::Type<Buffer<void>>::verify();
-
       if (this->arg_->isOwner())
       {
         throw Exception(rb_eTypeError, "Cannot transfer ownership of C++ void pointer");

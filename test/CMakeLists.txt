@@ -72,7 +72,7 @@ target_include_directories(unittest PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_IN
 target_include_directories(unittest PRIVATE ${PROJECT_SOURCE_DIR})
 target_link_libraries(unittest ${Ruby_LIBRARY} ffi)
 
-target_include_directories(unittest PRIVATE ..)
+target_include_directories(unittest PRIVATE ../include)
 target_compile_definitions(unittest PRIVATE -DHAVE_LIBFFI)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -82,7 +82,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   # The default of /EHsc crashes Ruby when calling longjmp with optimizations on (/O2)
   string(REGEX REPLACE "/EHsc" "/EHs" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  add_compile_definitions(-Wall -D_CRT_SECURE_NO_WARNINGS)
+  add_compile_definitions(-D_CRT_SECURE_NO_WARNINGS)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   add_compile_options(-Wall -ftemplate-backtrace-limit=0)
   # https://github.com/doxygen/doxygen/issues/9269#issuecomment-1094975328

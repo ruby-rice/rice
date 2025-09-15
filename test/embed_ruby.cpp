@@ -25,8 +25,5 @@ void embed_ruby()
 #endif
 
     initialized__ = true;
-
-    // Initialize Rice
-    Rice::init();
   }
 }

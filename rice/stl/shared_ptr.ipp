@@ -65,7 +65,14 @@ namespace Rice::detail
   {
     static bool verify()
     {
-      return Type<T>::verify();
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        return Type<T*>::verify();
+      }
+      else
+      {
+        return Type<T>::verify();
+      }
     }
 
     static VALUE rubyKlass()
@@ -97,7 +104,7 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
+        return detail::wrap<std::shared_ptr<T>>(Data_Type<Pointer<T>>::klass(), Data_Type<Pointer<T>>::ruby_data_type(), data, true);
       }
       else
       {
@@ -109,7 +116,7 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
+        return detail::wrap<std::shared_ptr<T>>(Data_Type<Pointer<T>>::klass(), Data_Type<Pointer<T>>::ruby_data_type(), data, true);
       }
       else
       {
@@ -154,10 +161,10 @@ namespace Rice::detail
         std::shared_ptr<T>* ptr = unwrap<std::shared_ptr<T>>(value, Data_Type<std::shared_ptr<T>>::ruby_data_type(), false);
         return *ptr;
       }
-      else if constexpr (std::is_fundamental_v<T>)
+      else if (std::is_fundamental_v<T>)
       {
         // Get the wrapper again to validate T's type
-        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<Pointer<T>>::ruby_data_type());
         return wrapper->data();
       }
       else
@@ -183,14 +190,7 @@ namespace Rice::detail
 
     VALUE convert(std::shared_ptr<T>& data)
     {
-      if constexpr (std::is_fundamental_v<T>)
-      {
-        return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
-      }
-      else
-      {
-        return detail::wrap<std::shared_ptr<T>>(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
-      }
+      return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
     }
   };
 
@@ -230,10 +230,10 @@ namespace Rice::detail
         std::shared_ptr<T>* ptr = unwrap<std::shared_ptr<T>>(value, Data_Type<std::shared_ptr<T>>::ruby_data_type(), false);
         return *ptr;
       }
-      else if constexpr (std::is_fundamental_v<T>)
+      else if (std::is_fundamental_v<T>)
       {
         // Get the wrapper again to validate T's type
-        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<Pointer<T>>::ruby_data_type());
         return wrapper->data();
       }
       else

@@ -1032,6 +1032,7 @@ namespace
 
 TESTCASE(StringPointerVector)
 {
+  define_buffer<std::string>();
   define_global_function("vector_of_string_pointers", &vectorOfStringPointers);
 
   Module m(rb_mKernel);
@@ -1043,9 +1044,8 @@ TESTCASE(StringPointerVector)
   ASSERT_EQUAL(expected, *actual);
 
   std::string code = R"(vec = vector_of_string_pointers
-                        outer_buffer = vec.data
-                        inner_buffers = outer_buffer.to_ary(2)
-                        inner_buffer = inner_buffers[1]
+                        outer_buffer = vec.data.buffer
+                        inner_buffer = Rice::Buffer≺string≻.new(outer_buffer[1])
                         inner_buffer.to_ary(1))";
   Array array = m.module_eval(code);
   ASSERT_EQUAL(1, array.size());

@@ -1,4 +1,4 @@
-﻿#include "unittest.hpp"
+#include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
@@ -652,8 +652,8 @@ TESTCASE(int_conversion_6)
   Module m = define_module("Testing");
 
   std::string code = R"(my_class = MyClass3.new
-                          buffer = Rice::Buffer≺unsigned char≻.new("54")
-                          my_class.run(buffer))";
+                        buffer = Rice::Buffer≺unsigned char≻.new("54")
+                        my_class.run(buffer.data))";
   String result = m.module_eval(code);
   ASSERT_EQUAL("run<unsigned char*>", result.str());
 }

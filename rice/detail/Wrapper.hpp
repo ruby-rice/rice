@@ -63,6 +63,18 @@ namespace Rice::detail
     T* data_ = nullptr;
   };
 
+  template <typename T>
+  class Wrapper<T**> : public WrapperBase
+  {
+  public:
+    Wrapper(T** data, bool isOwner);
+    ~Wrapper();
+    void* get() override;
+
+  private:
+    T** data_ = nullptr;
+  };
+
   // ---- Helper Functions ---------
   template <typename T>
   void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, bool isOwner);

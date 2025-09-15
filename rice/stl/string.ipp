@@ -17,6 +17,21 @@ namespace Rice::detail
   };
 
   template<>
+  struct Type<std::string*>
+  {
+    static bool verify()
+    {
+      define_buffer<std::string*>();
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
+  template<>
   class To_Ruby<std::string>
   {
   public:
@@ -45,7 +60,6 @@ namespace Rice::detail
     {
     }
 
-
     VALUE convert(const std::string& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
@@ -64,7 +78,6 @@ namespace Rice::detail
     explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
-
 
     VALUE convert(const std::string* x)
     {
@@ -94,7 +107,7 @@ namespace Rice::detail
     Return* returnInfo_ = nullptr;
   };
 
-  template<>
+  /*template<>
   class To_Ruby<std::string**>
   {
   public:
@@ -113,7 +126,7 @@ namespace Rice::detail
 
   private:
     Return* returnInfo_ = nullptr;
-  };
+  };*/
 
   template<>
   class From_Ruby<std::string>

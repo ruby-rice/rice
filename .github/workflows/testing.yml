@@ -34,3 +34,9 @@ jobs:
       run: rake headers
     - name: Build and test
       run: rake test
+    - name: Mkmf.log
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: mkmf-${{ matrix.os }}-${{ matrix.version }}-${{ matrix.ruby }}
+        path: test/mkmf.log

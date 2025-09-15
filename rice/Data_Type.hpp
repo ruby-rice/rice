@@ -12,8 +12,6 @@ namespace Rice
   template<typename T>
   class Data_Type : public Class
   {
-    static_assert(std::is_same_v<detail::intrinsic_type<T>, T>);
-
   public:
     using type = T;
 
