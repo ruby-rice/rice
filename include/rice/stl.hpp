@@ -111,6 +111,21 @@ namespace Rice::detail
   };
 
   template<>
+  struct Type<std::string*>
+  {
+    static bool verify()
+    {
+      define_buffer<std::string*>();
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
+  template<>
   class To_Ruby<std::string>
   {
   public:
@@ -139,7 +154,6 @@ namespace Rice::detail
     {
     }
 
-
     VALUE convert(const std::string& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
@@ -158,7 +172,6 @@ namespace Rice::detail
     explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
     {
     }
-
 
     VALUE convert(const std::string* x)
     {
@@ -188,7 +201,7 @@ namespace Rice::detail
     Return* returnInfo_ = nullptr;
   };
 
-  template<>
+  /*template<>
   class To_Ruby<std::string**>
   {
   public:
@@ -207,7 +220,7 @@ namespace Rice::detail
 
   private:
     Return* returnInfo_ = nullptr;
-  };
+  };*/
 
   template<>
   class From_Ruby<std::string>
@@ -830,78 +843,43 @@ namespace Rice
     public:
       PairHelper(Data_Type<T> klass) : klass_(klass)
       {
-        this->define_constructor();
-        this->define_copyable_methods();
-        this->define_access_methods();
-        this->define_modify_methods();
+        this->define_constructors();
+        this->define_attributes();
         this->define_to_s();
       }
 
     private:
-      void define_constructor()
+      void define_constructors()
       {
-        klass_.define_constructor(Constructor<T, typename T::first_type&, typename T::second_type&>());
-      }
-
-      void define_copyable_methods()
-      {
+        klass_.define_constructor(Constructor<T>())
+              .define_constructor(Constructor<T, typename T::first_type&, typename T::second_type&>());
+      
         if constexpr (std::is_copy_constructible_v<typename T::first_type> && std::is_copy_constructible_v<typename T::second_type>)
         {
-          klass_.define_method("copy", [](T& pair) -> T
-            {
-              return pair;
-            });
+          klass_.define_constructor(Constructor<T, const T&>());
+        }
+      }
+
+      void define_attributes()
+      {
+        // Access methods
+        if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::first_type>>>)
+        {
+          klass_.define_attr("first", &T::first, Rice::AttrAccess::Read);
         }
         else
         {
-          klass_.define_method("copy", [](T& pair) -> T
-            {
-              throw std::runtime_error("Cannot copy pair with non-copy constructible types");
-              return pair;
-            });
+          klass_.define_attr("first", &T::first, Rice::AttrAccess::ReadWrite);
         }
-      }
 
-      void define_access_methods()
-      {
-        // Access methods
-        klass_.define_method("first", [](T& pair) -> typename T::first_type&
-          {
-            return pair.first;
-          })
-        .define_method("second", [](T& pair) -> typename T::second_type&
-          {
-            return pair.second;
-          });
-      }
-
-      void define_modify_methods()
-      {
-        // Access methods
-        klass_.define_method("first=", [](T& pair, typename T::first_type& value) -> typename T::first_type&
+        if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::second_type>>>)
         {
-          if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::first_type>>>)
-          {
-            throw std::runtime_error("Cannot set pair.first since it is a constant");
-          }
-          else
-          {
-            pair.first = value;
-            return pair.first;
-          }
-        })
-        .define_method("second=", [](T& pair, typename T::second_type& value) -> typename T::second_type&
+          klass_.define_attr("second", &T::second, Rice::AttrAccess::Read);
+        }
+        else
         {
-          if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::second_type>>>)
-          {
-            throw std::runtime_error("Cannot set pair.second since it is a constant");
-          }
-          else
-          {
-            pair.second = value;
-            return pair.second;
-          }
-        });
+          klass_.define_attr("second", &T::second, Rice::AttrAccess::ReadWrite);
+        }
       }
 
       void define_to_s()
@@ -1007,8 +985,7 @@ namespace Rice
       MapHelper(Data_Type<T> klass) : klass_(klass)
       {
         this->register_pair();
-        this->define_constructor();
-        this->define_copyable_methods();
+        this->define_constructors();
         this->define_capacity_methods();
         this->define_access_methods();
         this->define_comparable_methods();
@@ -1025,27 +1002,13 @@ namespace Rice
         define_pair<const Key_T, Mapped_T>();
       }
 
-      void define_constructor()
+      void define_constructors()
       {
         klass_.define_constructor(Constructor<T>());
-      }
 
-      void define_copyable_methods()
-      {
-        if constexpr (std::is_copy_constructible_v<Value_T>)
+        if constexpr (std::is_copy_constructible_v<Key_T> && std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_method("copy", [](T& map) -> T
-            {
-              return map;
-            });
-        }
-        else
-        {
-          klass_.define_method("copy", [](T& map) -> T
-            {
-              throw std::runtime_error("Cannot copy maps with non-copy constructible types");
-              return map;
-            });
+          klass_.define_constructor(Constructor<T, const T&>());
         }
       }
 
@@ -1613,8 +1576,7 @@ namespace Rice
       MultimapHelper(Data_Type<T> klass) : klass_(klass)
       {
         this->register_pair();
-        this->define_constructor();
-        this->define_copyable_methods();
+        this->define_constructors();
         this->define_capacity_methods();
         this->define_access_methods();
         this->define_comparable_methods();
@@ -1630,27 +1592,13 @@ namespace Rice
         define_pair<const Key_T, Mapped_T>();
       }
 
-      void define_constructor()
+      void define_constructors()
       {
         klass_.define_constructor(Constructor<T>());
-      }
 
-      void define_copyable_methods()
-      {
-        if constexpr (std::is_copy_constructible_v<Value_T>)
+        if constexpr (std::is_copy_constructible_v<Key_T> && std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_method("copy", [](T& multimap) -> T
-            {
-              return multimap;
-            });
-        }
-        else
-        {
-          klass_.define_method("copy", [](T& multimap) -> T
-            {
-              throw std::runtime_error("Cannot copy multimaps with non-copy constructible types");
-              return multimap;
-            });
+          klass_.define_constructor(Constructor<T, const T&>());
         }
       }
 
@@ -2657,7 +2605,28 @@ namespace Rice::detail
   {
     static bool verify()
     {
-      return Type<T>::verify();
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        return Type<T*>::verify();
+      }
+      else
+      {
+        return Type<T>::verify();
+      }
+    }
+
+    static VALUE rubyKlass()
+    {
+      if (Data_Type<std::shared_ptr<T>>::is_defined())
+      {
+        std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<std::shared_ptr<T>>();
+        return pair.first;
+      }
+      else
+      {
+        TypeMapper<T> typeMapper;
+        return typeMapper.rubyKlass();
+      }
     }
   };
 
@@ -2675,7 +2644,7 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
+        return detail::wrap<std::shared_ptr<T>>(Data_Type<Pointer<T>>::klass(), Data_Type<Pointer<T>>::ruby_data_type(), data, true);
       }
       else
       {
@@ -2687,7 +2656,7 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
+        return detail::wrap<std::shared_ptr<T>>(Data_Type<Pointer<T>>::klass(), Data_Type<Pointer<T>>::ruby_data_type(), data, true);
       }
       else
       {
@@ -2732,10 +2701,10 @@ namespace Rice::detail
         std::shared_ptr<T>* ptr = unwrap<std::shared_ptr<T>>(value, Data_Type<std::shared_ptr<T>>::ruby_data_type(), false);
         return *ptr;
       }
-      else if constexpr (std::is_fundamental_v<T>)
+      else if (std::is_fundamental_v<T>)
       {
         // Get the wrapper again to validate T's type
-        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<Pointer<T>>::ruby_data_type());
         return wrapper->data();
       }
       else
@@ -2761,14 +2730,7 @@ namespace Rice::detail
 
     VALUE convert(std::shared_ptr<T>& data)
     {
-      if constexpr (std::is_fundamental_v<T>)
-      {
-        return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
-      }
-      else
-      {
-        return detail::wrap<std::shared_ptr<T>>(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
-      }
+      return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
     }
   };
 
@@ -2808,10 +2770,10 @@ namespace Rice::detail
         std::shared_ptr<T>* ptr = unwrap<std::shared_ptr<T>>(value, Data_Type<std::shared_ptr<T>>::ruby_data_type(), false);
         return *ptr;
       }
-      else if constexpr (std::is_fundamental_v<T>)
+      else if (std::is_fundamental_v<T>)
       {
         // Get the wrapper again to validate T's type
-        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
+        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<Pointer<T>>::ruby_data_type());
         return wrapper->data();
       }
       else
@@ -3076,11 +3038,16 @@ namespace Rice::detail
       return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
     }
 
-    template<std::size_t... I>
     constexpr static bool verify()
     {
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return verifyTypes(indices);
+    }
+
+    static VALUE rubyKlass()
+    {
+      // There is no direct mapping to Ruby, so just return Object
+      return rb_cObject;
     }
   };
 
@@ -3523,6 +3490,12 @@ namespace Rice::detail
     {
       return Type<T>::verify();
     }
+
+    static VALUE rubyKlass()
+    {
+      TypeMapper<T> typeMapper;
+      return typeMapper.rubyKlass();
+    }
   };
 }
 
@@ -3558,8 +3531,7 @@ namespace Rice
       UnorderedMapHelper(Data_Type<T> klass) : klass_(klass)
       {
         this->register_pair();
-        this->define_constructor();
-        this->define_copyable_methods();
+        this->define_constructors();
         this->define_capacity_methods();
         this->define_access_methods();
         this->define_comparable_methods();
@@ -3576,27 +3548,13 @@ namespace Rice
         define_pair<const Key_T, T>();
       }
 
-      void define_constructor()
+      void define_constructors()
       {
         klass_.define_constructor(Constructor<T>());
-      }
 
-      void define_copyable_methods()
-      {
-        if constexpr (std::is_copy_constructible_v<Value_T>)
+        if constexpr (std::is_copy_constructible_v<Key_T> && std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_method("copy", [](T& unordered_map) -> T
-            {
-              return unordered_map;
-            });
-        }
-        else
-        {
-          klass_.define_method("copy", [](T& unordered_map) -> T
-            {
-              throw std::runtime_error("Cannot copy unordered_maps with non-copy constructible types");
-              return unordered_map;
-            });
+          klass_.define_constructor(Constructor<T, const T&>());
         }
       }
 
@@ -4188,8 +4146,6 @@ namespace Rice
             }
           })
           .template define_method<Value_T*(T::*)()>("data", &T::data);
-
-          define_buffer<Value_T>();
         }
         else
         {

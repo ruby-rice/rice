@@ -2,6 +2,27 @@
 #define Rice__Api_hpp_
 
 
+// =========   ModuleRegistry.hpp   =========
+#ifndef Rice_Api_Module_Registry_hpp
+#define Rice_Api_Module_Registry_hpp
+
+extern "C"
+void Init_Module_Registry();
+
+#endif
+
+// =========   ModuleRegistry.ipp   =========
+using namespace Rice;
+
+extern "C"
+void Init_Module_Registry()
+{
+  Module rb_mRice = define_module("Rice");
+
+  Rice::define_class_under<detail::ModuleRegistry>(rb_mRice, "ModuleRegistry").
+    define_method("modules", &detail::ModuleRegistry::modules, Return().setValue());
+}
+
 // =========   NativeRegistry.hpp   =========
 #ifndef Rice_Api_Native_Registry_hpp
 #define Rice_Api_Native_Registry_hpp
@@ -72,6 +93,7 @@ inline void Init_Registries()
 
   define_class_under<detail::Registries>(rb_mRice, "Registries").
     define_singleton_attr("instance", &detail::Registries::instance, AttrAccess::Read).
+    define_attr("modules", &detail::Registries::modules, AttrAccess::Read).
     define_attr("natives", &detail::Registries::natives, AttrAccess::Read).
     define_attr("types", &detail::Registries::types, AttrAccess::Read);
 }
@@ -114,7 +136,7 @@ inline void Init_Parameter()
 
   define_class_under<detail::ParameterAbstract>(rb_mRice, "Parameter").
     define_attr("arg", &detail::ParameterAbstract::arg).
-    define_method("klass", &detail::ParameterAbstract::rubyKlass, Return().setValue()).
+    define_method("klass", &detail::ParameterAbstract::klass, Return().setValue()).
     define_method("cpp_klass", &detail::ParameterAbstract::cppTypeName);
 }
 
@@ -147,7 +169,7 @@ inline void Init_Native()
   define_class_under<detail::Native>(rb_mRice, "Native").
     define_method("name", &detail::Native::name).
     define_method("kind", &detail::Native::kind).
-    define_method("return_klass", &detail::Native::returnKlass).
+    define_method("klass", &detail::Native::returnKlass, Return().setValue()).
     define_method("parameters", &detail::Native::parameters).
     define_method("to_s", [](detail::Native& self) -> std::string
       {
@@ -185,6 +207,7 @@ extern "C"
 inline void Init_Rice_Api()
 {
   Init_Registries();
+  Init_Module_Registry();
   Init_Native_Registry();
   Init_Type_Registry();
   Init_Arg();
