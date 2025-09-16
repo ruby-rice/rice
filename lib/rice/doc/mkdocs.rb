@@ -24,8 +24,8 @@ module Rice
 				FileUtils.mkdir_p(@output)
 
 				klasses.sort_by(&:name).each.with_index do |klass, i|
-					#next unless klass.name == "Std::Vector≺Cv꞉꞉Point2l≻"
-					next unless klass.name.match(/^Std::Pair/)
+					next unless klass.name == "Rice::Buffer≺int∗≻"
+					#next unless klass.name.match(/^Buffer≺int∗≻/)
 
 					STDOUT << klass.name << " (" << i << "/" << klasses.count << ")" << "\n"
 					if klass.instance_of?(Module)
@@ -224,16 +224,7 @@ module Rice
 						file << "\n"
 					end
 
-					# Attributes
-					unless native_attributes.empty?
-						file << "## Attributes" << "\n"
-						native_attributes.each do |name, natives|
-							file << attribute_sig(klass, natives) << "\n\n"
-						end
-						file << "\n"
-					end
-
-					# Constructor
+					# Constructors
 					constructors = native_methods["initialize"]
 					if constructors
 						file << "## Constructors" << "\n"
@@ -243,6 +234,16 @@ module Rice
 						file << "\n"
 					end
 
+					# Attributes
+					unless native_attributes.empty?
+						file << "## Attributes" << "\n"
+						native_attributes.each do |name, natives|
+							file << attribute_sig(klass, natives) << "\n\n"
+						end
+						file << "\n"
+					end
+
+					# Instance methods
 					unless native_methods.empty?
 						file << "## Methods" << "\n"
 						native_methods.each do |name, natives|

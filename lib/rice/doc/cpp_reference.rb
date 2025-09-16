@@ -37,19 +37,21 @@ module Rice
 													/^union\s*/i => '',
 													/<.*>/ => ''}
 
-				@method_mappings = {'std::vector' => {'delete_at' => 'erase',
+				@method_mappings = {'std::exception' => {'message' => 'what'},
+														'std::map' => {'delete' => 'erase',
+ 																					 'include?' => 'find'},
+														'std::multimap' => {'delete' => 'erase',
+																								'include?' => 'find'},
+														'std::runtime_error' => {'message' => 'what'},
+														'std::unorderedmap' => {'delete' => 'erase',
+																					 					'include?' => 'find'},
+														'std::vector' => {'delete_at' => 'erase',
 																							'first' => 'front',
 																							'last' => 'back',
 																							'pop' => 'pop_back',
-																							'push' => 'push_back'},
-														'std::map' => {'delete' => 'erase',
- 																					 'include?' => 'find'},
-														'std::unorderedmap' => {'delete' => 'erase',
-																					 					'include?' => 'find'},
-														'std::multimap' => {'delete' => 'erase',
-																					 			'include?' => 'find'}}
+																							'push' => 'push_back'}}
 
-				@cache = Hash.new
+														@cache = Hash.new
 				data = URI.open(INDEX).read
 				parser = LibXML::XML::Parser.string(data)
 				@doc = parser.parse
@@ -139,6 +141,24 @@ module Rice
 					elsif member_node
 						"#{class_base(klass)}/#{member_node.attributes['name']}.html"
 					end
+				end
+			end
+
+			def attribute_url(klass, native)
+				node = class_node(klass)
+
+				# Find the member node
+				attribute_name = camelize(native.name, false)
+
+				xpath = "variable[@name='#{attribute_name}']"
+				member_node = node&.find_first(xpath)
+				link = member_node.attributes["link"]
+				if member_node && link && link != "."
+					"#{class_base(klass)}/#{member_node.attributes['link']}.html"
+  			elsif member_node && link && link == "."
+	  			"#{class_base(klass)}.html"
+				elsif member_node
+					"#{class_base(klass)}/#{member_node.attributes['name']}.html"
 				end
 			end
 		end
