@@ -506,7 +506,7 @@ namespace Rice::detail
         }
         case RUBY_T_DATA:
         {
-          if (std::is_fundamental_v<T> || isArray)
+          if (std::is_fundamental_v<intrinsic_type<T>> || isArray)
           {
             return detail::unwrap<T>(value, Data_Type<Pointer<T>>::ruby_data_type(), isOwner);
           }

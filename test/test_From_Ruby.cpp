@@ -135,27 +135,29 @@ TESTCASE(char_pointer)
   define_buffer<char>();
   detail::From_Ruby<char*> fromRuby;
 
-  char* data = fromRuby.convert(Qnil);
-  ASSERT_EQUAL(nullptr, data);
+  char* buffer = fromRuby.convert(Qnil);
+  ASSERT_EQUAL(nullptr, buffer);
 
   std::string code = R"(Rice::Buffer≺char≻.new("my string"))";
   Object result = m.instance_eval(code);
-  data = fromRuby.convert(result.call("data"));
+  Object data = result.call("data");
+  buffer = fromRuby.convert(data);
   const char* expected = "my string";
-  ASSERT_EQUAL(*expected, *data);
+  ASSERT_EQUAL(*expected, *buffer);
 
   code = R"(Rice::Buffer≺char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   result = m.instance_eval(code);
-  data = fromRuby.convert(result.call("data"));
+  data = result.call("data");
+  buffer = fromRuby.convert(data);
 
-  ASSERT_EQUAL(data[0], 0);
-  ASSERT_EQUAL(data[1], 127);
-  ASSERT_EQUAL(data[2], -128);
-  ASSERT_EQUAL(data[3], -1);
-  ASSERT_EQUAL(data[4], 0);
-  ASSERT_EQUAL(data[5], -128);
-  ASSERT_EQUAL(data[6], 127);
-  ASSERT_EQUAL(data[7], 1);
+  ASSERT_EQUAL(buffer[0], 0);
+  ASSERT_EQUAL(buffer[1], 127);
+  ASSERT_EQUAL(buffer[2], -128);
+  ASSERT_EQUAL(buffer[3], -1);
+  ASSERT_EQUAL(buffer[4], 0);
+  ASSERT_EQUAL(buffer[5], -128);
+  ASSERT_EQUAL(buffer[6], 127);
+  ASSERT_EQUAL(buffer[7], 1);
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -171,32 +173,34 @@ TESTCASE(signed_char_pointer)
   detail::From_Ruby<signed char*> fromRuby;
 
   signed char* expected = nullptr;
-  signed char* data = fromRuby.convert(Qnil);
-  ASSERT_EQUAL(expected, data);
+  signed char* buffer = fromRuby.convert(Qnil);
+  ASSERT_EQUAL(expected, buffer);
 
   std::string code = R"(Rice::Buffer≺signed char≻.new("my string"))";
   Object result = m.instance_eval(code);
-  data = fromRuby.convert(result.call("data"));
+  Object data = result.call("data");
+  buffer = fromRuby.convert(data);
   expected = (signed char*)"my string";
-  ASSERT_EQUAL(*expected, *data);
+  ASSERT_EQUAL(*expected, *buffer);
 
   code = R"(Rice::Buffer≺signed char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   result = m.instance_eval(code);
-  data = fromRuby.convert(result.call("data"));
+  data = result.call("data");
+  buffer = fromRuby.convert(data);
 
-  ASSERT_EQUAL(data[0], 0);
-  ASSERT_EQUAL(data[1], 127);
-  ASSERT_EQUAL(data[2], -128);
-  ASSERT_EQUAL(data[3], -1);
-  ASSERT_EQUAL(data[4], 0);
-  ASSERT_EQUAL(data[5], -128);
-  ASSERT_EQUAL(data[6], 127);
-  ASSERT_EQUAL(data[7], 1);
+  ASSERT_EQUAL(buffer[0], 0);
+  ASSERT_EQUAL(buffer[1], 127);
+  ASSERT_EQUAL(buffer[2], -128);
+  ASSERT_EQUAL(buffer[3], -1);
+  ASSERT_EQUAL(buffer[4], 0);
+  ASSERT_EQUAL(buffer[5], -128);
+  ASSERT_EQUAL(buffer[6], 127);
+  ASSERT_EQUAL(buffer[7], 1);
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
     fromRuby.convert(rb_float_new(11.11)),
-    ASSERT_EQUAL("wrong argument type Float (expected Pointer≺signed char≻)", ex.what())
+    ASSERT_EQUAL("Wrong argument type. Expected: Rice::Pointer≺signed char≻. Received: Float.", ex.what())
   );
 }
 
@@ -208,18 +212,18 @@ TESTCASE(char_pointer_const)
   std::string code = R"(Rice::Buffer≺char≻.new("my string"))";
   Object result = m.instance_eval(code);
   const char* expected = "my string";
-  const char* data = detail::From_Ruby<const char*>().convert(result.call("data"));
+  const char* data = detail::From_Ruby<char*>().convert(result.call("data"));
   ASSERT_EQUAL(expected, data);
 
   code = R"(Rice::Buffer≺char≻.new(""))";
   result = m.instance_eval(code);
   expected = "";
-  data = detail::From_Ruby<const char*>().convert(result.call("data"));
+  data = detail::From_Ruby<char*>().convert(result.call("data"));
   ASSERT_EQUAL(expected, data);
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    detail::From_Ruby<char const*>().convert(rb_float_new(32.3)),
+    detail::From_Ruby<char*>().convert(rb_float_new(32.3)),
     ASSERT_EQUAL("wrong argument type Float (expected Pointer≺char≻)", ex.what())
   );
 }
@@ -275,7 +279,7 @@ TESTCASE(unsigned_char_pointer)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     detail::From_Ruby<const char*>().convert(rb_float_new(11.11)),
-    ASSERT_EQUAL("wrong argument type Float (expected Pointer≺char≻)", ex.what())
+    ASSERT_EQUAL("Wrong argument type. Expected: Rice::Pointer≺char≻. Received: Float.", ex.what())
   );
 }
 

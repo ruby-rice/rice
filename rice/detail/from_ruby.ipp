@@ -241,30 +241,6 @@ namespace Rice::detail
     bool converted_ = false;
   };
 
-  template<>
-  class From_Ruby<bool*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<bool>::is_convertible(value);
-    }
-
-    bool* convert(VALUE value)
-    {
-      return FromRubyFundamental<bool*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  char  ============
   template<>
   class From_Ruby<char>
@@ -331,7 +307,7 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     char converted_ = 0;
   };
-
+      
   template<>
   class From_Ruby<char*>
   {
@@ -346,18 +322,18 @@ namespace Rice::detail
     {
       switch (rb_type(value))
       {
-        case RUBY_T_NIL:
-        {
-          return Convertible::Exact;
-        }
-        case RUBY_T_STRING:
-        {
-          return Convertible::Exact;
-        }
-        default:
-        {
-          return FromRubyFundamental<char*>::is_convertible(value);
-        }
+      case RUBY_T_NIL:
+      {
+        return Convertible::Exact;
+      }
+      case RUBY_T_STRING:
+      {
+        return Convertible::Exact;
+      }
+      default:
+      {
+        return FromRubyFundamental<char*>::is_convertible(value);
+      }
       }
     }
 
@@ -365,33 +341,28 @@ namespace Rice::detail
     {
       switch (rb_type(value))
       {
-        case RUBY_T_NIL:
-        {
-          return nullptr;
-        }
-        case RUBY_T_STRING:
-        {
-          // WARNING - this shares the Ruby string memory directly with C++. value really should be frozen.
-          // Maybe we should enforce that? Note the user can always create a Buffer to allocate new memory.
-          return rb_string_value_cstr(&value);
-        }
-        default:
-        {
-          char* rb_string_value_cstr(volatile VALUE * ptr);
-          return FromRubyFundamental<char*>::convert(value, this->arg_);
-        }
+      case RUBY_T_NIL:
+      {
+        return nullptr;
+      }
+      case RUBY_T_STRING:
+      {
+        // WARNING - this shares the Ruby string memory directly with C++. value really should be frozen.
+        // Maybe we should enforce that? Note the user can always create a Buffer to allocate new memory.
+        return rb_string_value_cstr(&value);
+      }
+      default:
+      {
+        char* rb_string_value_cstr(volatile VALUE * ptr);
+        return FromRubyFundamental<char*>::convert(value, this->arg_);
+      }
       }
     }
 
   private:
     Arg* arg_ = nullptr;
   };
-    
-  template<>
-  class From_Ruby<const char*> : public From_Ruby<char*>
-  {
-  };
-
+  
   // ===========  unsigned char  ============
   template<>
   class From_Ruby<unsigned char>
@@ -526,30 +497,6 @@ namespace Rice::detail
     signed char converted_ = 0;
   };
 
-  template<>
-  class From_Ruby<signed char*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<signed char*>::is_convertible(value);
-    }
-
-    signed char* convert(VALUE value)
-    {
-      return FromRubyFundamental<signed char*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  double  ============
   template<>
   class From_Ruby<double>
@@ -617,30 +564,6 @@ namespace Rice::detail
     double converted_;
   };
 
-  template<>
-  class From_Ruby<double*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<double*>::is_convertible(value);
-    }
-
-    double* convert(VALUE value)
-    {
-      return FromRubyFundamental<double*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  float  ============
   template<>
   class From_Ruby<float>
@@ -706,30 +629,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     float converted_;
-  };
-
-  template<>
-  class From_Ruby<float*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<float*>::is_convertible(value);
-    }
-
-    float* convert(VALUE value)
-    {
-      return FromRubyFundamental<float*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  int  ============
@@ -810,30 +709,6 @@ namespace Rice::detail
     int converted_ = 0;
   };
 
-  template<>
-  class From_Ruby<int*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<int*>::is_convertible(value);
-    }
-
-    int* convert(VALUE value)
-    {
-      return FromRubyFundamental<int*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  unsigned int  ============
   template<>
   class From_Ruby<unsigned int>
@@ -901,30 +776,6 @@ namespace Rice::detail
     unsigned int converted_ = 0;
   };
 
-  template<>
-  class From_Ruby<unsigned int*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned int*>::is_convertible(value);
-    }
-
-    unsigned int* convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned int*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  long  ============
   template<>
   class From_Ruby<long>
@@ -990,30 +841,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     long converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<long*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<long*>::is_convertible(value);
-    }
-
-    long* convert(VALUE value)
-    {
-      return FromRubyFundamental<long*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  unsigned long  ============
@@ -1090,30 +917,6 @@ namespace Rice::detail
     unsigned long converted_ = 0;
   };
 
-  template<>
-  class From_Ruby<unsigned long*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned long*>::is_convertible(value);
-    }
-
-    unsigned long* convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned long*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  unsigned long long  ============
   template<>
   class From_Ruby<unsigned long long>
@@ -1187,30 +990,6 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     unsigned long long converted_ = 0;
   };
-
-  template<>
-  class From_Ruby<unsigned long long*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned long long*>::is_convertible(value);
-    }
-
-    unsigned long long* convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned long long*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
  
   // ===========  long long  ============
   template<>
@@ -1277,30 +1056,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     long long converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<long long*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<long long*>::is_convertible(value);
-    }
-
-    long long* convert(VALUE value)
-    {
-      return FromRubyFundamental<long long*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  short  ============
@@ -1370,30 +1125,6 @@ namespace Rice::detail
     short converted_ = 0;
   };
 
-  template<>
-  class From_Ruby<short*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<short*>::is_convertible(value);
-    }
-
-    short* convert(VALUE value)
-    {
-      return FromRubyFundamental<short*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
   // ===========  unsigned short  ============
   template<>
   class From_Ruby<unsigned short>
@@ -1459,30 +1190,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     unsigned short converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<unsigned short*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned short*>::is_convertible(value);
-    }
-
-    unsigned short* convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned short*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  std::nullptr_t  ============
