@@ -1,43 +1,5 @@
 namespace Rice::detail
 {
-  template<typename T>
-  struct Type<T*>
-  {
-    static bool verify()
-    {
-      if constexpr (std::is_fundamental_v<T>)
-      {
-        define_pointer<T>();
-        define_buffer<T>();
-        return true;
-      }
-      else
-      {
-        return Type<T>::verify();
-      }
-    }
-  };
-
-  template<typename T>
-  struct Type<T**>
-  {
-    static bool verify()
-    {
-      define_pointer<T*>();
-      define_buffer<T*>();
-
-      if constexpr (std::is_fundamental_v<T>)
-      {
-        return true;
-      }
-      else
-      {
-        return Type<T>::verify();
-      }
-    }
-  };
-
-
   template<>
   struct Type<bool>
   {

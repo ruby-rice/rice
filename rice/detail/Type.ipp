@@ -13,18 +13,58 @@ namespace Rice::detail
   template<typename T>
   inline bool Type<T>::verify()
   {
-    if constexpr (std::is_reference_v<T>)
+    return Registries::instance.types.verify<intrinsic_type<T>>();
+  }
+
+  template<typename T>
+  inline bool Type<T&>::verify()
+  {
+    if constexpr (std::is_fundamental_v<T>)
     {
-      return Type<std::remove_reference_t<T>>::verify();
-    }
-    // If we get here no buffer was defined
-    else if constexpr (std::is_pointer_v<T>)
-    {
-      return Type<std::remove_pointer_t<T>>::verify();
+      define_pointer<T>();
+      define_buffer<T>();
+      return true;
     }
     else
     {
-      return Registries::instance.types.verify<intrinsic_type<T>>();
+      return Type<T>::verify();
+    }
+  }
+
+  template<typename T>
+  inline bool Type<T&&>::verify()
+  {
+    return Type<T>::verify();
+  }
+
+  template<typename T>
+  inline bool Type<T*>::verify()
+  {
+    if constexpr (std::is_fundamental_v<T>)
+    {
+      define_pointer<T>();
+      define_buffer<T>();
+      return true;
+    }
+    else
+    {
+      return Type<T>::verify();
+    }
+  }
+
+  template<typename T>
+  inline bool Type<T**>::verify()
+  {
+    define_pointer<T*>();
+    define_buffer<T*>();
+
+    if constexpr (std::is_fundamental_v<T>)
+    {
+      return true;
+    }
+    else
+    {
+      return Type<T>::verify();
     }
   }
 
@@ -37,7 +77,7 @@ namespace Rice::detail
   template<typename Tuple_T, size_t...Is>
   void verifyTypesImpl(std::index_sequence<Is...> indexes)
   {
-    (verifyType<typename std::tuple_element<Is, Tuple_T>::type>(), ...);
+    (verifyType<std::tuple_element_t<Is, Tuple_T>>(), ...);
   }
 
   template<typename Tuple_T>

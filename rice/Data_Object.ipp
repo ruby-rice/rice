@@ -205,7 +205,7 @@ namespace Rice::detail
       }
       else if (std::is_fundamental_v<std::remove_pointer_t<T>> || (this->arg_ && this->arg_->isArray()))
       {
-        using Pointer_T = Pointer<U>;
+        using Pointer_T = Pointer<remove_cv_recursive_t<U>>;
         return detail::wrap(Data_Type<Pointer_T>::klass(), Data_Type<Pointer_T>::ruby_data_type(), data, isOwner);
       }
       else
@@ -254,7 +254,7 @@ namespace Rice::detail
       }
       else if (std::is_fundamental_v<T> || (this->arg_ && this->arg_->isArray()))
       {
-        using Pointer_T = Pointer<U>;
+        using Pointer_T = Pointer<remove_cv_recursive_t<U>>;
         return detail::wrap(Data_Type<Pointer_T>::klass(), Data_Type<Pointer_T>::ruby_data_type(), data, isOwner);
       }
       else
@@ -286,7 +286,7 @@ namespace Rice::detail
       if (data)
       {
         bool isOwner = this->arg_ && this->arg_->isOwner();
-        using Pointer_T = Pointer<U*>;
+        using Pointer_T = Pointer<remove_cv_recursive_t<U>*>;
         return detail::wrap(Data_Type<Pointer_T>::klass(), Data_Type<Pointer_T>::ruby_data_type(), data, isOwner);
       }
       else
@@ -506,7 +506,7 @@ namespace Rice::detail
         }
         case RUBY_T_DATA:
         {
-          if (std::is_fundamental_v<T> || isArray)
+          if (std::is_fundamental_v<intrinsic_type<T>> || isArray)
           {
             return detail::unwrap<T>(value, Data_Type<Pointer<T>>::ruby_data_type(), isOwner);
           }

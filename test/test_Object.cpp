@@ -194,7 +194,7 @@ TESTCASE(call_with_keywords)
   Hash keywords;
   keywords[":exception"] = false;
   Object result = m.call_kw("keywords_test", "charlie", keywords);
-  ASSERT_EQUAL("charlie", detail::From_Ruby<const char*>().convert(result.value()));
+  ASSERT_EQUAL("charlie", detail::From_Ruby<char*>().convert(result.value()));
 
   keywords[":exception"] = true;
 

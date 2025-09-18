@@ -102,7 +102,7 @@ namespace Rice::detail
           {
             return unwrap<T>(value, Data_Type<Pointer<T>>::ruby_data_type(), false);
           }
-					[[fallthrough]];
+          [[fallthrough]];
         }
         default:
         {
@@ -136,7 +136,7 @@ namespace Rice::detail
           {
             return Convertible::Exact;
           }
-					[[fallthrough]];
+          [[fallthrough]];
         }
         default:
         {
@@ -203,7 +203,7 @@ namespace Rice::detail
   class From_Ruby<bool&>
   {
   public:
-    using Buffer_T = Buffer<bool>;
+    using Pointer_T = Pointer<bool>;
 
     From_Ruby() = default;
 
@@ -213,22 +213,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<bool>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<bool>::is_convertible(value);
+        }
       }
     }
 
     bool& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (bool&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -240,30 +246,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     bool converted_ = false;
-  };
-
-  template<>
-  class From_Ruby<bool*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<bool>::is_convertible(value);
-    }
-
-    bool* convert(VALUE value)
-    {
-      return FromRubyFundamental<bool*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  char  ============
@@ -295,7 +277,7 @@ namespace Rice::detail
   class From_Ruby<char&>
   {
   public:
-    using Buffer_T = Buffer<char>;
+    using Pointer_T = Pointer<char>;
 
     From_Ruby() = default;
 
@@ -305,22 +287,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<char>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<char>::is_convertible(value);
+        }
       }
     }
 
     char& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (char&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -333,7 +321,7 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     char converted_ = 0;
   };
-
+      
   template<>
   class From_Ruby<char*>
   {
@@ -348,18 +336,18 @@ namespace Rice::detail
     {
       switch (rb_type(value))
       {
-        case RUBY_T_NIL:
-        {
-          return Convertible::Exact;
-        }
-        case RUBY_T_STRING:
-        {
-          return Convertible::Exact;
-        }
-        default:
-        {
-          return FromRubyFundamental<char*>::is_convertible(value);
-        }
+      case RUBY_T_NIL:
+      {
+        return Convertible::Exact;
+      }
+      case RUBY_T_STRING:
+      {
+        return Convertible::Exact;
+      }
+      default:
+      {
+        return FromRubyFundamental<char*>::is_convertible(value);
+      }
       }
     }
 
@@ -367,33 +355,28 @@ namespace Rice::detail
     {
       switch (rb_type(value))
       {
-        case RUBY_T_NIL:
-        {
-          return nullptr;
-        }
-        case RUBY_T_STRING:
-        {
-          // WARNING - this shares the Ruby string memory directly with C++. value really should be frozen.
-          // Maybe we should enforce that? Note the user can always create a Buffer to allocate new memory.
-          return rb_string_value_cstr(&value);
-        }
-        default:
-        {
-          char* rb_string_value_cstr(volatile VALUE * ptr);
-          return FromRubyFundamental<char*>::convert(value, this->arg_);
-        }
+      case RUBY_T_NIL:
+      {
+        return nullptr;
+      }
+      case RUBY_T_STRING:
+      {
+        // WARNING - this shares the Ruby string memory directly with C++. value really should be frozen.
+        // Maybe we should enforce that? Note the user can always create a Buffer to allocate new memory.
+        return rb_string_value_cstr(&value);
+      }
+      default:
+      {
+        char* rb_string_value_cstr(volatile VALUE * ptr);
+        return FromRubyFundamental<char*>::convert(value, this->arg_);
+      }
       }
     }
 
   private:
     Arg* arg_ = nullptr;
   };
-    
-  template<>
-  class From_Ruby<const char*> : public From_Ruby<char*>
-  {
-  };
-
+  
   // ===========  unsigned char  ============
   template<>
   class From_Ruby<unsigned char>
@@ -423,7 +406,7 @@ namespace Rice::detail
   class From_Ruby<unsigned char&>
   {
   public:
-    using Buffer_T = Buffer<unsigned char>;
+    using Pointer_T = Pointer<unsigned char>;
 
     From_Ruby() = default;
 
@@ -433,22 +416,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<unsigned char>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<unsigned char>::is_convertible(value);
+        }
       }
     }
 
     unsigned char& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (unsigned char&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -491,7 +480,7 @@ namespace Rice::detail
   class From_Ruby<signed char&>
   {
   public:
-    using Buffer_T = Buffer<signed char>;
+    using Pointer_T = Pointer<signed char>;
 
     From_Ruby() = default;
 
@@ -501,22 +490,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<signed char>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<signed char>::is_convertible(value);
+        }
       }
     }
 
     signed char& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (signed char&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -528,30 +523,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     signed char converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<signed char*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<signed char*>::is_convertible(value);
-    }
-
-    signed char* convert(VALUE value)
-    {
-      return FromRubyFundamental<signed char*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  double  ============
@@ -583,7 +554,7 @@ namespace Rice::detail
   class From_Ruby<double&>
   {
   public:
-    using Buffer_T = Buffer<double>;
+    using Pointer_T = Pointer<double>;
 
     From_Ruby() = default;
 
@@ -593,22 +564,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<double>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<double>::is_convertible(value);
+        }
       }
     }
 
     double& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (double&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -620,30 +597,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     double converted_;
-  };
-
-  template<>
-  class From_Ruby<double*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<double*>::is_convertible(value);
-    }
-
-    double* convert(VALUE value)
-    {
-      return FromRubyFundamental<double*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  float  ============
@@ -675,7 +628,7 @@ namespace Rice::detail
   class From_Ruby<float&>
   {
   public:
-    using Buffer_T = Buffer<float>;
+    using Pointer_T = Pointer<float>;
 
     From_Ruby() = default;
 
@@ -685,22 +638,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<float>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<float>::is_convertible(value);
+        }
       }
     }
 
     float& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (float&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -712,30 +671,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     float converted_;
-  };
-
-  template<>
-  class From_Ruby<float*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<float*>::is_convertible(value);
-    }
-
-    float* convert(VALUE value)
-    {
-      return FromRubyFundamental<float*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  int  ============
@@ -778,7 +713,7 @@ namespace Rice::detail
   class From_Ruby<int&>
   {
   public:
-    using Buffer_T = Buffer<int>;
+    using Pointer_T = Pointer<int>;
 
     From_Ruby() = default;
 
@@ -788,22 +723,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<int>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<int>::is_convertible(value);
+        }
       }
     }
 
     int& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (int&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -815,30 +756,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     int converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<int*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<int*>::is_convertible(value);
-    }
-
-    int* convert(VALUE value)
-    {
-      return FromRubyFundamental<int*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  unsigned int  ============
@@ -870,7 +787,7 @@ namespace Rice::detail
   class From_Ruby<unsigned int&>
   {
   public:
-    using Buffer_T = Buffer<unsigned int>;
+    using Pointer_T = Pointer<unsigned int>;
 
     From_Ruby() = default;
 
@@ -880,22 +797,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<unsigned int>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<unsigned int>::is_convertible(value);
+        }
       }
     }
 
     unsigned int& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (unsigned int&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -907,30 +830,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     unsigned int converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<unsigned int*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned int*>::is_convertible(value);
-    }
-
-    unsigned int* convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned int*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  long  ============
@@ -962,7 +861,7 @@ namespace Rice::detail
   class From_Ruby<long&>
   {
   public:
-    using Buffer_T = Buffer<long>;
+    using Pointer_T = Pointer<long>;
 
     From_Ruby() = default;
 
@@ -972,22 +871,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<long>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<long>::is_convertible(value);
+        }
       }
     }
 
     long& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (long&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -999,30 +904,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     long converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<long*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<long*>::is_convertible(value);
-    }
-
-    long* convert(VALUE value)
-    {
-      return FromRubyFundamental<long*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  unsigned long  ============
@@ -1061,7 +942,7 @@ namespace Rice::detail
   class From_Ruby<unsigned long&>
   {
   public:
-    using Buffer_T = Buffer<unsigned long>;
+    using Pointer_T = Pointer<unsigned long>;
 
     From_Ruby() = default;
 
@@ -1071,22 +952,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<unsigned long>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<unsigned long>::is_convertible(value);
+        }
       }
     }
 
     unsigned long& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (unsigned long&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -1098,30 +985,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     unsigned long converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<unsigned long*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned long*>::is_convertible(value);
-    }
-
-    unsigned long* convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned long*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  unsigned long long  ============
@@ -1160,7 +1023,7 @@ namespace Rice::detail
   class From_Ruby<unsigned long long&>
   {
   public:
-    using Buffer_T = Buffer<unsigned long long>;
+    using Pointer_T = Pointer<unsigned long long>;
 
     From_Ruby() = default;
 
@@ -1170,22 +1033,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<unsigned long long>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<unsigned long long>::is_convertible(value);
+        }
       }
     }
 
     unsigned long long& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (unsigned long long&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -1197,30 +1066,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     unsigned long long converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<unsigned long long*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned long long*>::is_convertible(value);
-    }
-
-    unsigned long long* convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned long long*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
  
   // ===========  long long  ============
@@ -1252,7 +1097,7 @@ namespace Rice::detail
   class From_Ruby<long long&>
   {
   public:
-    using Buffer_T = Buffer<long long>;
+    using Pointer_T = Pointer<long long>;
 
     From_Ruby() = default;
 
@@ -1262,22 +1107,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<long long>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<long long>::is_convertible(value);
+        }
       }
     }
 
     long long& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (long long&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -1289,30 +1140,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     long long converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<long long*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<long long*>::is_convertible(value);
-    }
-
-    long long* convert(VALUE value)
-    {
-      return FromRubyFundamental<long long*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  short  ============
@@ -1344,7 +1171,7 @@ namespace Rice::detail
   class From_Ruby<short&>
   {
   public:
-    using Buffer_T = Buffer<short>;
+    using Pointer_T = Pointer<short>;
 
     From_Ruby() = default;
 
@@ -1354,22 +1181,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<short>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<short>::is_convertible(value);
+        }
       }
     }
 
     short& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (short&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -1381,30 +1214,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     short converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<short*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<short*>::is_convertible(value);
-    }
-
-    short* convert(VALUE value)
-    {
-      return FromRubyFundamental<short*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  unsigned short  ============
@@ -1436,7 +1245,7 @@ namespace Rice::detail
   class From_Ruby<unsigned short&>
   {
   public:
-    using Buffer_T = Buffer<unsigned short>;
+    using Pointer_T = Pointer<unsigned short>;
 
     From_Ruby() = default;
 
@@ -1446,22 +1255,28 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<unsigned short>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<unsigned short>::is_convertible(value);
+        }
       }
     }
 
     unsigned short& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Buffer_T>::is_descendant(value))
+      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
       {
-        Buffer_T* buffer = unwrap<Buffer_T>(value, Data_Type<Buffer_T>::ruby_data_type(), false);
-        return buffer->reference();
+        return (unsigned short&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
       }
       else
       {
@@ -1473,30 +1288,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     unsigned short converted_ = 0;
-  };
-
-  template<>
-  class From_Ruby<unsigned short*>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    Convertible is_convertible(VALUE value)
-    {
-      return FromRubyFundamental<unsigned short*>::is_convertible(value);
-    }
-
-    unsigned short* convert(VALUE value)
-    {
-      return FromRubyFundamental<unsigned short*>::convert(value, this->arg_);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
   // ===========  std::nullptr_t  ============
@@ -1572,7 +1363,6 @@ namespace Rice::detail
   public:
     From_Ruby()
     {
-      detail::Type<Buffer<void>>::verify();
     };
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -1637,12 +1427,9 @@ namespace Rice::detail
           // from the Ruby object.
           const rb_data_type_t* rb_type = RTYPEDDATA_TYPE(value);
 
-          // Is this a Buffer? It could also be a pointer to any other object being passed to 
-          // a C++ paramter that takes void*
-          if (rb_type == Data_Type<Buffer<void>>::ruby_data_type())
+          if (Data_Type<Pointer<void>>::is_descendant(value))
           {
-            Data_Object<Buffer<void>> buffer(value);
-            return buffer->ptr();
+            return unwrap<void>(value, Data_Type<Pointer<void>>::ruby_data_type(), false);
           }
           else 
           {
