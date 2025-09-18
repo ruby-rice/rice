@@ -102,7 +102,7 @@ namespace Rice::detail
           {
             return unwrap<T>(value, Data_Type<Pointer<T>>::ruby_data_type(), false);
           }
-					[[fallthrough]];
+          [[fallthrough]];
         }
         default:
         {
@@ -136,7 +136,7 @@ namespace Rice::detail
           {
             return Convertible::Exact;
           }
-					[[fallthrough]];
+          [[fallthrough]];
         }
         default:
         {
@@ -213,13 +213,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<bool>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<bool>::is_convertible(value);
+        }
       }
     }
 
@@ -280,13 +287,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<char>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<char>::is_convertible(value);
+        }
       }
     }
 
@@ -402,13 +416,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<unsigned char>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<unsigned char>::is_convertible(value);
+        }
       }
     }
 
@@ -469,13 +490,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<signed char>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<signed char>::is_convertible(value);
+        }
       }
     }
 
@@ -536,13 +564,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<double>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<double>::is_convertible(value);
+        }
       }
     }
 
@@ -603,13 +638,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<float>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<float>::is_convertible(value);
+        }
       }
     }
 
@@ -681,13 +723,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<int>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<int>::is_convertible(value);
+        }
       }
     }
 
@@ -748,13 +797,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<unsigned int>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<unsigned int>::is_convertible(value);
+        }
       }
     }
 
@@ -815,13 +871,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<long>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<long>::is_convertible(value);
+        }
       }
     }
 
@@ -889,13 +952,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<unsigned long>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<unsigned long>::is_convertible(value);
+        }
       }
     }
 
@@ -963,13 +1033,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<unsigned long long>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<unsigned long long>::is_convertible(value);
+        }
       }
     }
 
@@ -1030,13 +1107,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<long long>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<long long>::is_convertible(value);
+        }
       }
     }
 
@@ -1097,13 +1181,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<short>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<short>::is_convertible(value);
+        }
       }
     }
 
@@ -1164,13 +1255,20 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return Convertible::Exact;
-      }
-      else
-      {
-        return FromRubyFundamental<unsigned short>::is_convertible(value);
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<unsigned short>::is_convertible(value);
+        }
       }
     }
 
