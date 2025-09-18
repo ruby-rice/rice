@@ -59,7 +59,7 @@ add_executable(unittest
                "test_Stl_String.cpp"
                "test_Stl_String_View.cpp"
                "test_Stl_Tuple.cpp"
-               "test_Stl_Type.cpp"
+               "test_Stl_Type_Info.cpp"
                "test_Stl_UniquePtr.cpp"
                "test_Stl_Unordered_Map.cpp"
                "test_Stl_Variant.cpp"
@@ -72,7 +72,7 @@ target_include_directories(unittest PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_IN
 target_include_directories(unittest PRIVATE ${PROJECT_SOURCE_DIR})
 target_link_libraries(unittest ${Ruby_LIBRARY} ffi)
 
-target_include_directories(unittest PRIVATE ../include)
+target_include_directories(unittest PRIVATE ..)
 target_compile_definitions(unittest PRIVATE -DHAVE_LIBFFI)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")

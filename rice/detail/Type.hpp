@@ -12,6 +12,30 @@ namespace Rice::detail
   };
 
   template<typename T>
+  struct Type<T&>
+  {
+    static bool verify();
+  };
+
+  template<typename T>
+  struct Type<T&&>
+  {
+    static bool verify();
+  };
+
+  template<typename T>
+  struct Type<T*>
+  {
+    static bool verify();
+  };
+
+  template<typename T>
+  struct Type<T**>
+  {
+    static bool verify();
+  };
+
+  template<typename T>
   class TypeMapper
   {
   public:
