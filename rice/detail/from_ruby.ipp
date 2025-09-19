@@ -86,7 +86,7 @@ namespace Rice::detail
       }
     }
 
-    static T* convert(VALUE value, Arg* arg)
+    static T* convert(VALUE value)
     {
       ruby_value_type valueType = rb_type(value);
 
@@ -145,7 +145,7 @@ namespace Rice::detail
       }
     }
 
-    static T** convert(VALUE value, Arg* arg)
+    static T** convert(VALUE value)
     {
       ruby_value_type valueType = rb_type(value);
 
@@ -232,14 +232,21 @@ namespace Rice::detail
 
     bool& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (bool&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<bool>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (bool&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<bool>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
@@ -306,14 +313,21 @@ namespace Rice::detail
 
     char& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (char&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<char>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (char&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<char>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
@@ -355,21 +369,21 @@ namespace Rice::detail
     {
       switch (rb_type(value))
       {
-      case RUBY_T_NIL:
-      {
-        return nullptr;
-      }
-      case RUBY_T_STRING:
-      {
-        // WARNING - this shares the Ruby string memory directly with C++. value really should be frozen.
-        // Maybe we should enforce that? Note the user can always create a Buffer to allocate new memory.
-        return rb_string_value_cstr(&value);
-      }
-      default:
-      {
-        char* rb_string_value_cstr(volatile VALUE * ptr);
-        return FromRubyFundamental<char*>::convert(value, this->arg_);
-      }
+        case RUBY_T_NIL:
+        {
+          return nullptr;
+        }
+        case RUBY_T_STRING:
+        {
+          // WARNING - this shares the Ruby string memory directly with C++. value really should be frozen.
+          // Maybe we should enforce that? Note the user can always create a Buffer to allocate new memory.
+          return rb_string_value_cstr(&value);
+        }
+        default:
+        {
+          char* rb_string_value_cstr(volatile VALUE * ptr);
+          return FromRubyFundamental<char*>::convert(value);
+        }
       }
     }
 
@@ -435,14 +449,21 @@ namespace Rice::detail
 
     unsigned char& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (unsigned char&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<unsigned char>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (unsigned char&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<unsigned char>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
@@ -509,14 +530,21 @@ namespace Rice::detail
 
     signed char& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (signed char&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<signed char>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (signed char&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<signed char>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
@@ -583,14 +611,21 @@ namespace Rice::detail
 
     double& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (double&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<double>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (double&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<double>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
@@ -657,14 +692,21 @@ namespace Rice::detail
 
     float& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (float&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<float>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (float&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<float>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
@@ -742,14 +784,21 @@ namespace Rice::detail
 
     int& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (int&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<int>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (int&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<int>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
@@ -816,14 +865,21 @@ namespace Rice::detail
 
     unsigned int& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (unsigned int&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<unsigned int>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (unsigned int&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<unsigned int>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
@@ -890,14 +946,21 @@ namespace Rice::detail
 
     long& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (long&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<long>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (long&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<long>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
@@ -971,14 +1034,21 @@ namespace Rice::detail
 
     unsigned long& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (unsigned long&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<unsigned long>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (unsigned long&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<unsigned long>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
@@ -1052,14 +1122,21 @@ namespace Rice::detail
 
     unsigned long long& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (unsigned long long&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<unsigned long long>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (unsigned long long&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<unsigned long long>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
@@ -1126,14 +1203,21 @@ namespace Rice::detail
 
     long long& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (long long&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<long long>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (long long&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<long long>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
@@ -1200,14 +1284,21 @@ namespace Rice::detail
 
     short& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (short&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<short>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (short&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<short>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
@@ -1274,14 +1365,21 @@ namespace Rice::detail
 
     unsigned short& convert(VALUE value)
     {
-      if (rb_type(value) == RUBY_T_DATA && Data_Type<Pointer_T>::is_descendant(value))
+      switch (rb_type(value))
       {
-        return (unsigned short&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
-      }
-      else
-      {
-        this->converted_ = FromRubyFundamental<unsigned short>::convert(value);
-        return this->converted_;
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value))
+          {
+            return (unsigned short&)*unwrap<Pointer_T>(value, Data_Type<Pointer_T>::ruby_data_type(), false);
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->converted_ = FromRubyFundamental<unsigned short>::convert(value);
+          return this->converted_;
+        }
       }
     }
 
