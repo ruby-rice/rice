@@ -228,6 +228,13 @@ namespace Rice
   }
 
   template <typename T>
+  inline T* Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::release()
+  {
+    this->m_owner = false;
+    return this->m_buffer;
+  }
+
+  template <typename T>
   inline bool Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::isOwner() const
   {
     return this->m_owner;
@@ -237,12 +244,6 @@ namespace Rice
   inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::setOwner(bool value)
   {
     this->m_owner = value;
-  }
-
-  template <typename T>
-  inline void Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::release()
-  {
-    this->m_owner = false;
   }
 
   template<typename T>
@@ -455,6 +456,13 @@ namespace Rice
   }
 
   template <typename T>
+  inline T** Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::release()
+  {
+    this->m_owner = false;
+    return this->m_buffer;
+  }
+
+  template <typename T>
   inline bool Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::isOwner() const
   {
     return this->m_owner;
@@ -464,12 +472,6 @@ namespace Rice
   inline void Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::setOwner(bool value)
   {
     this->m_owner = value;
-  }
-
-  template <typename T>
-  inline void Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::release()
-  {
-    this->m_owner = false;
   }
 
   template<typename T>
@@ -648,6 +650,13 @@ namespace Rice
   }
 
   template <typename T>
+  inline T** Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::release()
+  {
+    this->m_owner = false;
+    return this->m_buffer;
+  }
+
+  template <typename T>
   inline bool Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::isOwner() const
   {
     return this->m_owner;
@@ -657,12 +666,6 @@ namespace Rice
   inline void Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::setOwner(bool value)
   {
     this->m_owner = value;
-  }
-
-  template <typename T>
-  inline void Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::release()
-  {
-    this->m_owner = false;
   }
 
   template<typename T>
@@ -790,6 +793,13 @@ namespace Rice
     return this->m_buffer;
   }
 
+  template <typename T>
+  inline T* Buffer<T, std::enable_if_t<std::is_void_v<T>>>::release()
+  {
+    this->m_owner = false;
+    return this->m_buffer;
+  }
+
   template<typename T>
   inline VALUE Buffer<T, std::enable_if_t<std::is_void_v<T>>>::bytes(size_t count) const
   {
@@ -837,7 +847,8 @@ namespace Rice
         define_method("size", &Buffer_T::size).
         template define_method<VALUE(Buffer_T::*)(size_t) const>("bytes", &Buffer_T::bytes, Return().setValue()).
         template define_method<VALUE(Buffer_T::*)() const>("bytes", &Buffer_T::bytes, Return().setValue()).
-        define_method("data", &Buffer_T::ptr, Return().setArray());
+        define_method("data", &Buffer_T::ptr, Return().setArray()).
+        define_method("release", &Buffer_T::release, Return().setArray());
     }
     else
     {
@@ -851,7 +862,8 @@ namespace Rice
         template define_method<Array(Buffer_T::*)(size_t) const>("to_ary", &Buffer_T::toArray, Return().setValue()).
         template define_method<Array(Buffer_T::*)() const>("to_ary", &Buffer_T::toArray, Return().setValue()).
         define_method("[]", &Buffer_T::operator[], Arg("index")).
-        define_method("data", &Buffer_T::ptr, Return().setArray());
+        define_method("data", &Buffer_T::ptr, Return().setArray()).
+        define_method("release", &Buffer_T::release, Return().setArray());
 
       if constexpr (!std::is_pointer_v<T> && !std::is_void_v<T> && !std::is_const_v<T> && std::is_copy_assignable_v<T>)
       {
