@@ -26,7 +26,7 @@ namespace Rice
 
     T* ptr();
     T& reference();
-    void release();
+    T* release();
 
     size_t size() const;
 
@@ -73,7 +73,7 @@ namespace Rice
     T*& operator[](size_t index);
 
     T** ptr();
-    void release();
+    T** release();
 
     size_t size() const;
 
@@ -115,7 +115,7 @@ namespace Rice
     T* operator[](size_t index);
 
     T** ptr();
-    void release();
+    T** release();
 
     size_t size() const;
 
@@ -157,6 +157,7 @@ namespace Rice
     VALUE bytes() const;
 
     T* ptr();
+    T* release();
 
   private:
     bool m_owner = false;
