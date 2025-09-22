@@ -10,6 +10,7 @@
 
 #include <ruby.h>
 #include <ruby/encoding.h>
+#include <ruby/thread.h>
 
 // ruby.h has a few defines that conflict with Visual Studio's STL
 #if defined(_MSC_VER)

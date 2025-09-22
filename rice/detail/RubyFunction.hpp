@@ -14,6 +14,7 @@ namespace Rice::detail
   {
   public:
     using Return_T = typename function_traits<Function_T>::return_type;
+    std::conditional_t<std::is_void_v<Return_T>, int, Return_T> result;
 
   public:
     RubyFunction(Function_T func, const Arg_Ts&... args);
@@ -26,6 +27,9 @@ namespace Rice::detail
 
   template<typename Function_T, typename ...Arg_Ts>
   auto protect(Function_T func, Arg_Ts...args);
+
+  template<typename Function_T, typename ...Arg_Ts>
+  auto no_gvl(Function_T func, Arg_Ts...args);
 }
 
 #endif // Rice__detail__ruby_function__hpp_
