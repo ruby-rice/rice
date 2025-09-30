@@ -948,7 +948,7 @@ namespace Rice::detail
 
     // Create Invoker and call it via ruby
     int state = (int)JumpException::RUBY_TAG_NONE;
-    VALUE result = rb_protect(trampoline, (VALUE)(&invoker), &state);
+    rb_protect(trampoline, (VALUE)(&invoker), &state);
 
     // Did anything go wrong?
     if (state == JumpException::RUBY_TAG_NONE)
@@ -3791,7 +3791,7 @@ namespace Rice::detail
 
   // -----------  Parameter ----------------
   template<typename T>
-  inline Parameter<T>::Parameter(Arg* arg) : fromRuby_(arg), ParameterAbstract(arg)
+  inline Parameter<T>::Parameter(Arg* arg) : ParameterAbstract(arg), fromRuby_(arg)
   {
   }
 
@@ -4288,17 +4288,23 @@ namespace Rice
         Array array(value);
         this->m_size = array.size();
 
-        // Use operator new[] to allocate memory but not call constructors. Memset to 0 so that
-        // if an object implements move assignment it won't blow up.
+        // Use operator new[] to allocate memory but not call constructors.
         size_t size = sizeof(T) * this->m_size;
         this->m_buffer = static_cast<T*>(operator new[](size));
-        std::memset(this->m_buffer, 0, size);
 
         detail::From_Ruby<Intrinsic_T> fromRuby;
 
         for (size_t i = 0; i < this->m_size; i++)
         {
-          this->m_buffer[i] = fromRuby.convert(array[i].value());
+          // Construct objects in allocated memory using move or copy construction
+          if constexpr (std::is_move_constructible_v<T>)
+          {
+            new (&this->m_buffer[i]) T(std::move(fromRuby.convert(array[i].value())));
+          }
+          else
+          {
+            new (&this->m_buffer[i]) T(fromRuby.convert(array[i].value()));
+          }
         }
         break;
       }
@@ -4556,7 +4562,7 @@ namespace Rice
   {
     if (this->m_owner)
     {
-      for (int i = 0; i < this->m_size; i++)
+      for (size_t i = 0; i < this->m_size; i++)
       {
         delete this->m_buffer[i];
       }
@@ -4705,8 +4711,6 @@ namespace Rice
   template <typename T>
   inline Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::Buffer(VALUE value, size_t size)
   {
-    using Intrinsic_T = typename detail::intrinsic_type<T>;
-
     ruby_value_type valueType = rb_type(value);
     switch (valueType)
     {
@@ -9991,8 +9995,8 @@ namespace Rice::detail
     VALUE klass_;
     std::string method_name_;
     Function_T function_;
-    To_Ruby<To_Ruby_T> toRuby_;
     std::unique_ptr<MethodInfo> methodInfo_;
+    To_Ruby<To_Ruby_T> toRuby_;
   };
 }
 
@@ -10027,8 +10031,9 @@ namespace Rice::detail
 
   template<typename Function_T>
   NativeFunction<Function_T>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
-    : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo), 
-      toRuby_(methodInfo->returnInfo()), Native(Native::create_parameters<Arg_Ts>(methodInfo))
+    : Native(Native::create_parameters<Arg_Ts>(methodInfo)),
+      klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo),
+      toRuby_(methodInfo->returnInfo())
   {
   }
 
@@ -10491,8 +10496,8 @@ namespace Rice::detail
     VALUE klass_;
     std::string method_name_;
     Method_T method_;
-    To_Ruby<To_Ruby_T> toRuby_;
     std::unique_ptr<MethodInfo> methodInfo_;
+    To_Ruby<To_Ruby_T> toRuby_;
   };
 }
 
@@ -10527,8 +10532,9 @@ namespace Rice::detail
 
   template<typename Class_T, typename Method_T>
   NativeMethod<Class_T, Method_T>::NativeMethod(VALUE klass, std::string method_name, Method_T method, MethodInfo* methodInfo)
-    : klass_(klass), method_name_(method_name), method_(method), methodInfo_(methodInfo), 
-      toRuby_(methodInfo->returnInfo()), Native(Native::create_parameters<Arg_Ts>(methodInfo))
+    : Native(Native::create_parameters<Arg_Ts>(methodInfo)),
+      klass_(klass), method_name_(method_name), method_(method), methodInfo_(methodInfo),
+      toRuby_(methodInfo->returnInfo())
   {
   }
 
@@ -10860,8 +10866,8 @@ namespace Rice::detail
 
   private:
     Proc_T proc_;
-    To_Ruby<To_Ruby_T> toRuby_;
     std::unique_ptr<MethodInfo> methodInfo_;
+    To_Ruby<To_Ruby_T> toRuby_;
   };
 }
 
@@ -10919,7 +10925,8 @@ namespace Rice::detail
   }
 
   template<typename Proc_T>
-  NativeProc<Proc_T>::NativeProc(Proc_T proc, MethodInfo* methodInfo) : proc_(proc), methodInfo_(methodInfo), Native(Native::create_parameters<Arg_Ts>(methodInfo))
+  NativeProc<Proc_T>::NativeProc(Proc_T proc, MethodInfo* methodInfo) : Native(Native::create_parameters<Arg_Ts>(methodInfo)),
+                                                                        proc_(proc), methodInfo_(methodInfo)
   {
   }
 
