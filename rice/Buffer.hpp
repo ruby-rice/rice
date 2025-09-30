@@ -70,7 +70,7 @@ namespace Rice
     Buffer& operator=(const Buffer& other) = delete;
     Buffer& operator=(Buffer&& other);
 
-    T*& operator[](size_t index);
+    T* operator[](size_t index);
 
     T** ptr();
     T** release();

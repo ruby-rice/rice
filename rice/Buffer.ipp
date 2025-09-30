@@ -438,7 +438,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline T*& Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::operator[](size_t index)
+  inline T* Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::operator[](size_t index)
   {
     return this->m_buffer[index];
   }
