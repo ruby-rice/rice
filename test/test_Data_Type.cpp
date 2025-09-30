@@ -457,7 +457,7 @@ TESTCASE(move_assignment)
 {
   Class c = define_class<RValue>("RValue")
     .define_constructor(Constructor<RValue>())
-    .define_method<RValue&(RValue::*)(RValue && other) noexcept>("=", &RValue::operator=);
+    .define_method<RValue&(RValue::*)(RValue&& other) noexcept>("=", &RValue::operator=);
 
   Module m(anonymous_module());
   std::string code = R"(object1 = RValue.new
