@@ -25,7 +25,7 @@ namespace Rice::detail
   class NativeRegistry
   {
   public:
-    // std::is_copy_constructible returns true for std::vector<std::unique_ptr - so we need
+    // std::is_copy_constructible returns true for std::vector<std::unique_ptr> - so we need
     // to force the issue
     NativeRegistry() = default;
     NativeRegistry(const NativeRegistry& other) = delete;

@@ -77,6 +77,7 @@ namespace Rice::detail
 
     // Call the underlying C++ function
     VALUE invoke(Arg_Ts&& nativeArgs);
+    VALUE invokeNoGVL(Arg_Ts&& nativeArgs);
 
   private:
     VALUE klass_;

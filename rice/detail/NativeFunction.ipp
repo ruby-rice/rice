@@ -102,6 +102,24 @@ namespace Rice::detail
   }
 
   template<typename Function_T>
+  VALUE NativeFunction<Function_T>::invokeNoGVL(Arg_Ts&& nativeArgs)
+  {
+    if constexpr (std::is_void_v<Return_T>)
+    {
+      no_gvl(this->function_, std::forward<Arg_Ts>(nativeArgs));
+      return Qnil;
+    }
+    else
+    {
+      // Call the native method and get the result
+      Return_T nativeResult = no_gvl(this->function_, std::forward<Arg_Ts>(nativeArgs));
+
+      // Return the result
+      return this->toRuby_.convert(nativeResult);
+    }
+  }
+
+  template<typename Function_T>
   void NativeFunction<Function_T>::noWrapper(const VALUE klass, const std::string& wrapper)
   {
     std::stringstream message;
@@ -170,8 +188,18 @@ namespace Rice::detail
     // Convert the Ruby values to native values
     Arg_Ts nativeValues = this->getNativeValues(rubyValues, indices);
 
-    // Now call the native method
-    VALUE result = this->invoke(std::forward<Arg_Ts>(nativeValues));
+    bool noGvl = this->methodInfo_->function()->isNoGvl();
+
+    VALUE result = Qnil;
+
+    if (noGvl)
+    {
+      result = this->invokeNoGVL(std::forward<Arg_Ts>(nativeValues));
+    }
+    else
+    {
+      result = this->invoke(std::forward<Arg_Ts>(nativeValues));
+    }
 
     // Check if any function arguments or return values need to have their lifetimes tied to the receiver
     this->checkKeepAlive(self, result, rubyValues);

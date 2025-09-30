@@ -119,7 +119,16 @@ namespace Rice
     {
       using type = std::tuple<Arg_Ts...>;
     };
-     
+
+    template<typename T, typename...Arg_Ts>
+    struct tuple_unshift;
+      
+    template<typename T, typename...Arg_Ts>
+    struct tuple_unshift<T, std::tuple<Arg_Ts...>>
+    {
+      using type = std::tuple<T, Arg_Ts...>;
+    };
+
     template<template<typename, typename...> typename T, typename...Arg_Ts>
     struct tuple_map;
 
