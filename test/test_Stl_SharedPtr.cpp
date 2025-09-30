@@ -411,7 +411,7 @@ namespace
     return *ptr;
   }
 }
-/*
+
 TESTCASE(PointerToInt)
 {
   Module m = define_module("SharedPtrInt").
@@ -433,7 +433,7 @@ TESTCASE(CreatePointerToInt)
   define_shared_ptr<int>("SharedPtrInt");
 
   std::string code = R"(buffer = Rice::Buffer≺int≻.new(45)
-                        ptr = Std::SharedPtrInt.new(buffer)
+                        ptr = Std::SharedPtrInt.new(buffer.release)
                         get_pointer_value(ptr))";
 
   Object result = m.instance_eval(code);
@@ -448,12 +448,12 @@ TESTCASE(UpdatePointerToInt)
   define_shared_ptr<int>();
 
   std::string code = R"(buffer = Rice::Buffer≺int≻.new(45)
-                        ptr = Std::SharedPtr≺int≻.new(buffer)
+                        ptr = Std::SharedPtr≺int≻.new(buffer.release)
                         update_pointer_value(ptr))";
 
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(46, detail::From_Ruby<int>().convert(result.value()));
-}*/
+}
 
 TESTCASE(ReadPointerToInt)
 {

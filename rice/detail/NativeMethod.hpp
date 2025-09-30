@@ -46,6 +46,8 @@ namespace Rice::detail
     using Return_T = typename method_traits<Method_T>::Return_T;
     using Receiver_T = typename method_traits<Method_T>::Class_T;
     using Arg_Ts = typename method_traits<Method_T>::Arg_Ts;
+    using Apply_Args_T = typename tuple_unshift<Receiver_T, Arg_Ts>::type;
+
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
 
     // Register method with Ruby
@@ -68,7 +70,7 @@ namespace Rice::detail
 
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
-    Arg_Ts getNativeValues(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
+    Apply_Args_T getNativeValues(VALUE self, std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
 
     // Figure out what self is
     Receiver_T getReceiver(VALUE self);
@@ -80,14 +82,15 @@ namespace Rice::detail
     void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues);
 
     // Call the underlying C++ method
-    VALUE invoke(VALUE self, Arg_Ts&& nativeArgs);
+    VALUE invoke(VALUE self, Apply_Args_T&& nativeArgs);
+    VALUE invokeNoGVL(VALUE self, Apply_Args_T&& nativeArgs);
 
   private:
     VALUE klass_;
     std::string method_name_;
     Method_T method_;
-    To_Ruby<To_Ruby_T> toRuby_;
     std::unique_ptr<MethodInfo> methodInfo_;
+    To_Ruby<To_Ruby_T> toRuby_;
   };
 }
 

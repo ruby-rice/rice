@@ -25,15 +25,21 @@ namespace Rice
   template <typename Arg_T>
   inline void MethodInfo::processArg(const Arg_T& arg)
   {
-    static_assert(std::is_same_v<Arg_T, Return> || std::is_same_v<Arg_T, Arg>, "Unknown argument type");
-
     if constexpr (std::is_same_v<Arg_T, Return>)
     {
       this->returnInfo_ = arg;
     }
+    else if constexpr (std::is_same_v<Arg_T, Function>)
+    {
+      this->function_ = arg;
+    }
     else if constexpr (std::is_same_v<Arg_T, Arg>)
     {
       this->addArg(arg);
+    }
+    else
+    {
+      static_assert(true, "Unknown argument type");
     }
   }
 
@@ -76,6 +82,11 @@ namespace Rice
     return &this->returnInfo_;
   }
   
+  inline Function* MethodInfo::function()
+  {
+    return &this->function_;
+  }
+
   inline std::vector<Arg>::iterator MethodInfo::begin()
   {
     return this->args_.begin();

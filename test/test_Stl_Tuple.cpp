@@ -54,7 +54,7 @@ namespace
       ASSERT_EQUAL(3, complex.imag());
        
       std::vector<int> vec = std::get<2>(tuple);
-      ASSERT_EQUAL(3, vec.size());
+      ASSERT_EQUAL((size_t)3, vec.size());
       ASSERT_EQUAL(3, vec[0]);
       ASSERT_EQUAL(4, vec[1]);
       ASSERT_EQUAL(5, vec[2]);

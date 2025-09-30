@@ -27,8 +27,9 @@ namespace Rice::detail
 
   template<typename Function_T>
   NativeFunction<Function_T>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
-    : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo), 
-      toRuby_(methodInfo->returnInfo()), Native(Native::create_parameters<Arg_Ts>(methodInfo))
+    : Native(Native::create_parameters<Arg_Ts>(methodInfo)),
+      klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo),
+      toRuby_(methodInfo->returnInfo())
   {
   }
 
@@ -95,6 +96,24 @@ namespace Rice::detail
     {
       // Call the native method and get the result
       Return_T nativeResult = std::apply(this->function_, std::forward<Arg_Ts>(nativeArgs));
+
+      // Return the result
+      return this->toRuby_.convert(nativeResult);
+    }
+  }
+
+  template<typename Function_T>
+  VALUE NativeFunction<Function_T>::invokeNoGVL(Arg_Ts&& nativeArgs)
+  {
+    if constexpr (std::is_void_v<Return_T>)
+    {
+      no_gvl(this->function_, std::forward<Arg_Ts>(nativeArgs));
+      return Qnil;
+    }
+    else
+    {
+      // Call the native method and get the result
+      Return_T nativeResult = no_gvl(this->function_, std::forward<Arg_Ts>(nativeArgs));
 
       // Return the result
       return this->toRuby_.convert(nativeResult);
@@ -170,8 +189,18 @@ namespace Rice::detail
     // Convert the Ruby values to native values
     Arg_Ts nativeValues = this->getNativeValues(rubyValues, indices);
 
-    // Now call the native method
-    VALUE result = this->invoke(std::forward<Arg_Ts>(nativeValues));
+    bool noGvl = this->methodInfo_->function()->isNoGvl();
+
+    VALUE result = Qnil;
+
+    if (noGvl)
+    {
+      result = this->invokeNoGVL(std::forward<Arg_Ts>(nativeValues));
+    }
+    else
+    {
+      result = this->invoke(std::forward<Arg_Ts>(nativeValues));
+    }
 
     // Check if any function arguments or return values need to have their lifetimes tied to the receiver
     this->checkKeepAlive(self, result, rubyValues);

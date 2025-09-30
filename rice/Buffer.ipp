@@ -136,17 +136,23 @@ namespace Rice
         Array array(value);
         this->m_size = array.size();
 
-        // Use operator new[] to allocate memory but not call constructors. Memset to 0 so that
-        // if an object implements move assignment it won't blow up.
+        // Use operator new[] to allocate memory but not call constructors.
         size_t size = sizeof(T) * this->m_size;
         this->m_buffer = static_cast<T*>(operator new[](size));
-        std::memset(this->m_buffer, 0, size);
 
         detail::From_Ruby<Intrinsic_T> fromRuby;
 
         for (size_t i = 0; i < this->m_size; i++)
         {
-          this->m_buffer[i] = fromRuby.convert(array[i].value());
+          // Construct objects in allocated memory using move or copy construction
+          if constexpr (std::is_move_constructible_v<T>)
+          {
+            new (&this->m_buffer[i]) T(std::move(fromRuby.convert(array[i].value())));
+          }
+          else
+          {
+            new (&this->m_buffer[i]) T(fromRuby.convert(array[i].value()));
+          }
         }
         break;
       }
@@ -404,7 +410,7 @@ namespace Rice
   {
     if (this->m_owner)
     {
-      for (int i = 0; i < this->m_size; i++)
+      for (size_t i = 0; i < this->m_size; i++)
       {
         delete this->m_buffer[i];
       }
@@ -438,7 +444,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline T*& Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::operator[](size_t index)
+  inline T* Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::operator[](size_t index)
   {
     return this->m_buffer[index];
   }
@@ -553,8 +559,6 @@ namespace Rice
   template <typename T>
   inline Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::Buffer(VALUE value, size_t size)
   {
-    using Intrinsic_T = typename detail::intrinsic_type<T>;
-
     ruby_value_type valueType = rb_type(value);
     switch (valueType)
     {

@@ -43,8 +43,8 @@ namespace Rice::detail
 
   private:
     Proc_T proc_;
-    To_Ruby<To_Ruby_T> toRuby_;
     std::unique_ptr<MethodInfo> methodInfo_;
+    To_Ruby<To_Ruby_T> toRuby_;
   };
 }
 

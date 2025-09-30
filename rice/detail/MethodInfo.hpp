@@ -30,6 +30,7 @@ namespace Rice
 
     int argCount();
     Return* returnInfo();
+    Function* function();
 
     // Iterator support
     std::vector<Arg>::iterator begin();
@@ -41,6 +42,7 @@ namespace Rice
 
     std::vector<Arg> args_;
     Return returnInfo_;
+    Function function_;
   };
 }
 #endif // Rice__MethodInfo__hpp_

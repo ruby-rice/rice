@@ -350,7 +350,7 @@ TESTCASE(IterateNoCopy)
   Data_Object<ContainerValues> wrapper(container);
   Array a = wrapper.instance_eval("self.to_a");
 
-  ASSERT_EQUAL(container.data_.size(), a.size());
+  ASSERT_EQUAL(container.data_.size(), (size_t)a.size());
 
   for (size_t i = 0; i < container.data_.size(); i++)
   {

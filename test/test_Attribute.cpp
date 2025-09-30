@@ -166,6 +166,7 @@ TESTCASE(Enums)
 
   Object o = c.call("new");
   DataStruct* dataStruct = detail::From_Ruby<DataStruct*>().convert(o);
+  ASSERT_NOT_EQUAL(nullptr, dataStruct);
 
   Object result = o.call("oldEnum");
   ASSERT_EQUAL(OldValue1, detail::From_Ruby<OldEnum>().convert(result));
@@ -192,6 +193,7 @@ TESTCASE(Array)
 
   Object o = c.call("new");
   DataStruct* dataStruct = detail::From_Ruby<DataStruct*>().convert(o);
+  ASSERT_NOT_EQUAL(nullptr, dataStruct);
 
   Object result = o.call("buf");
   ASSERT_EQUAL("01", detail::From_Ruby<std::string>().convert(result));

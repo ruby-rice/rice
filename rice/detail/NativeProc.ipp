@@ -50,7 +50,8 @@ namespace Rice::detail
   }
 
   template<typename Proc_T>
-  NativeProc<Proc_T>::NativeProc(Proc_T proc, MethodInfo* methodInfo) : proc_(proc), methodInfo_(methodInfo), Native(Native::create_parameters<Arg_Ts>(methodInfo))
+  NativeProc<Proc_T>::NativeProc(Proc_T proc, MethodInfo* methodInfo) : Native(Native::create_parameters<Arg_Ts>(methodInfo)),
+                                                                        proc_(proc), methodInfo_(methodInfo)
   {
   }
 

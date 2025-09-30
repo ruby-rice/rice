@@ -250,7 +250,7 @@ TESTCASE(unsigned_char_pointer)
   Object result = m.instance_eval(code);
   buffer = fromRuby.convert(result.value());
 
-  ASSERT_EQUAL(8, buffer->size());
+  ASSERT_EQUAL((size_t)8, buffer->size());
   ASSERT_EQUAL(buffer->operator[](0), 0x0);
   ASSERT_EQUAL(buffer->operator[](1), 0x7F);
   ASSERT_EQUAL(buffer->operator[](2), 0x80);
@@ -266,7 +266,7 @@ TESTCASE(unsigned_char_pointer)
   result = m.instance_eval(code);
   buffer = fromRuby.convert(result.value());
 
-  ASSERT_EQUAL(8, buffer->size());
+  ASSERT_EQUAL((size_t)8, buffer->size());
   ASSERT_EQUAL(buffer->operator[](0), 0x0);
   ASSERT_EQUAL(buffer->operator[](1), 0x7F);
   ASSERT_EQUAL(buffer->operator[](2), 0x80);

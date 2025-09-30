@@ -27,8 +27,9 @@ namespace Rice::detail
 
   template<typename Class_T, typename Method_T>
   NativeMethod<Class_T, Method_T>::NativeMethod(VALUE klass, std::string method_name, Method_T method, MethodInfo* methodInfo)
-    : klass_(klass), method_name_(method_name), method_(method), methodInfo_(methodInfo), 
-      toRuby_(methodInfo->returnInfo()), Native(Native::create_parameters<Arg_Ts>(methodInfo))
+    : Native(Native::create_parameters<Arg_Ts>(methodInfo)),
+      klass_(klass), method_name_(method_name), method_(method), methodInfo_(methodInfo),
+      toRuby_(methodInfo->returnInfo())
   {
   }
 
@@ -76,16 +77,14 @@ namespace Rice::detail
     
   template<typename Class_T, typename Method_T>
   template<std::size_t... I>
-  typename NativeMethod<Class_T, Method_T>::Arg_Ts NativeMethod<Class_T, Method_T>::getNativeValues(std::vector<std::optional<VALUE>>& values,
-     std::index_sequence<I...>& indices)
+  typename NativeMethod<Class_T, Method_T>::Apply_Args_T NativeMethod<Class_T, Method_T>::getNativeValues(VALUE self, std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
        on the arguments (Arg_Ts) required by the C++ method. Arg_T may have const/volatile while
        the associated From_Ruby<T> template parameter will not. Thus From_Ruby produces non-const values 
        which we let the compiler convert to const values as needed. This works except for 
        T** -> const T**, see comment in convertToNative method. */
-    //return std::forward_as_tuple(this->getNativeValue<std::tuple_element_t<I, Arg_Ts>, I>(values)...);
-    return std::forward_as_tuple(
+    return std::forward_as_tuple(this->getReceiver(self),
       (dynamic_cast<Parameter<std::tuple_element_t<I, Arg_Ts>>*>(this->parameters_[I].get()))->
                convertToNative(values[I])...);
   }
@@ -126,24 +125,23 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Method_T>
-  VALUE NativeMethod<Class_T, Method_T>::invoke(VALUE self, Arg_Ts&& nativeArgs)
+  inline VALUE NativeMethod<Class_T, Method_T>::invoke(VALUE self, Apply_Args_T&& nativeArgs)
   {
-    Receiver_T receiver = this->getReceiver(self);
-    auto selfAndNativeArgs = std::tuple_cat(std::forward_as_tuple(receiver), std::forward<Arg_Ts>(nativeArgs));
-
     if constexpr (std::is_void_v<Return_T>)
     {
-      std::apply(this->method_, std::forward<decltype(selfAndNativeArgs)>(selfAndNativeArgs));
+      std::apply(this->method_, std::forward<Apply_Args_T>(nativeArgs));
       return Qnil;
     }
     else
     {
-      Return_T nativeResult = std::apply(this->method_, std::forward<decltype(selfAndNativeArgs)>(selfAndNativeArgs));
+      Return_T nativeResult = std::apply(this->method_, std::forward<Apply_Args_T>(nativeArgs));
 
       // Special handling if the method returns self. If so we do not want
       // to create a new Ruby wrapper object and instead return self.
       if constexpr (std::is_same_v<intrinsic_type<Return_T>, intrinsic_type<Receiver_T>>)
       {
+				Receiver_T receiver = std::get<0>(nativeArgs);
+
         if constexpr (std::is_pointer_v<Return_T> && std::is_pointer_v<Receiver_T>)
         {
           if (nativeResult == receiver)
@@ -171,7 +169,51 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Method_T>
-  void NativeMethod<Class_T, Method_T>::noWrapper(const VALUE klass, const std::string& wrapper)
+  inline VALUE NativeMethod<Class_T, Method_T>::invokeNoGVL(VALUE self, Apply_Args_T&& nativeArgs)
+  {
+    if constexpr (std::is_void_v<Return_T>)
+    {
+      no_gvl(this->method_, std::forward<Apply_Args_T>(nativeArgs));
+      return Qnil;
+    }
+    else
+    {
+      Return_T nativeResult = no_gvl(this->method_, std::forward<Apply_Args_T>(nativeArgs));
+
+      // Special handling if the method returns self. If so we do not want
+      // to create a new Ruby wrapper object and instead return self.
+      if constexpr (std::is_same_v<intrinsic_type<Return_T>, intrinsic_type<Receiver_T>>)
+      {
+        Receiver_T receiver = std::get<0>(nativeArgs);
+
+        if constexpr (std::is_pointer_v<Return_T> && std::is_pointer_v<Receiver_T>)
+        {
+          if (nativeResult == receiver)
+            return self;
+        }
+        else if constexpr (std::is_pointer_v<Return_T> && std::is_reference_v<Receiver_T>)
+        {
+          if (nativeResult == &receiver)
+            return self;
+        }
+        else if constexpr (std::is_reference_v<Return_T> && std::is_pointer_v<Receiver_T>)
+        {
+          if (&nativeResult == receiver)
+            return self;
+        }
+        else if constexpr (std::is_reference_v<Return_T> && std::is_reference_v<Receiver_T>)
+        {
+          if (&nativeResult == &receiver)
+            return self;
+        }
+      }
+
+      return this->toRuby_.convert(nativeResult);
+    }
+  }
+
+  template<typename Class_T, typename Method_T>
+  inline void NativeMethod<Class_T, Method_T>::noWrapper(const VALUE klass, const std::string& wrapper)
   {
     std::stringstream message;
 
@@ -233,14 +275,21 @@ namespace Rice::detail
   {
     // Get the ruby values and make sure we have the correct number
     std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, true);
-
     auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+    Apply_Args_T nativeArgs = this->getNativeValues(self, rubyValues, indices);
 
-    // Convert the Ruby values to native values
-    Arg_Ts nativeValues = this->getNativeValues(rubyValues, indices);
+    bool noGvl = this->methodInfo_->function()->isNoGvl();
 
-    // Now call the native method
-    VALUE result = this->invoke(self, std::forward<Arg_Ts>(nativeValues));
+    VALUE result = Qnil;
+
+    if (noGvl)
+    {
+      result = this->invokeNoGVL(self, std::forward<Apply_Args_T>(nativeArgs));
+    }
+    else
+    {
+      result = this->invoke(self, std::forward<Apply_Args_T>(nativeArgs));
+    }
 
     // Check if any method arguments or return values need to have their lifetimes tied to the receiver
     this->checkKeepAlive(self, result, rubyValues);

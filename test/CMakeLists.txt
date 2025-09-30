@@ -25,6 +25,7 @@ add_executable(unittest
                "test_Exception.cpp"
                "test_File.cpp"
                "test_From_Ruby.cpp"
+               "test_GVL.cpp"
                "test_Hash.cpp"
                "test_global_functions.cpp"
                "test_Identifier.cpp"
