@@ -27,8 +27,9 @@ namespace Rice::detail
 
   template<typename Class_T, typename Method_T>
   NativeMethod<Class_T, Method_T>::NativeMethod(VALUE klass, std::string method_name, Method_T method, MethodInfo* methodInfo)
-    : klass_(klass), method_name_(method_name), method_(method), methodInfo_(methodInfo), 
-      toRuby_(methodInfo->returnInfo()), Native(Native::create_parameters<Arg_Ts>(methodInfo))
+    : Native(Native::create_parameters<Arg_Ts>(methodInfo)),
+      klass_(klass), method_name_(method_name), method_(method), methodInfo_(methodInfo),
+      toRuby_(methodInfo->returnInfo())
   {
   }
 

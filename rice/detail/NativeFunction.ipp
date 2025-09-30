@@ -27,8 +27,9 @@ namespace Rice::detail
 
   template<typename Function_T>
   NativeFunction<Function_T>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
-    : klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo), 
-      toRuby_(methodInfo->returnInfo()), Native(Native::create_parameters<Arg_Ts>(methodInfo))
+    : Native(Native::create_parameters<Arg_Ts>(methodInfo)),
+      klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo),
+      toRuby_(methodInfo->returnInfo())
   {
   }
 

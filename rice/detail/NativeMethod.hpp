@@ -89,8 +89,8 @@ namespace Rice::detail
     VALUE klass_;
     std::string method_name_;
     Method_T method_;
-    To_Ruby<To_Ruby_T> toRuby_;
     std::unique_ptr<MethodInfo> methodInfo_;
+    To_Ruby<To_Ruby_T> toRuby_;
   };
 }
 

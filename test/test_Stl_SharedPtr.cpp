@@ -411,7 +411,7 @@ namespace
     return *ptr;
   }
 }
-/*
+
 TESTCASE(PointerToInt)
 {
   Module m = define_module("SharedPtrInt").
@@ -453,7 +453,7 @@ TESTCASE(UpdatePointerToInt)
 
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(46, detail::From_Ruby<int>().convert(result.value()));
-}*/
+}
 
 TESTCASE(ReadPointerToInt)
 {

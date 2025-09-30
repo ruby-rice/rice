@@ -47,22 +47,22 @@ TESTCASE(CharMethods)
 {
   define_buffer<char>();
   std::vector<detail::Native*> natives = detail::Registries::instance.natives.lookup(Data_Type<Buffer<char>>::klass());
-  ASSERT_EQUAL(12, natives.size());
+  ASSERT_EQUAL((size_t)12, natives.size());
 
   define_buffer<char>();
   natives = detail::Registries::instance.natives.lookup(Data_Type<Buffer<char>>::klass());
-  ASSERT_EQUAL(12, natives.size());
+  ASSERT_EQUAL((size_t)12, natives.size());
 }
 
 TESTCASE(CharPointerMethods)
 {
   define_buffer<char*>();
   std::vector<detail::Native*> natives = detail::Registries::instance.natives.lookup(Data_Type<Buffer<char*>>::klass());
-  ASSERT_EQUAL(12, natives.size());
+  ASSERT_EQUAL((size_t)12, natives.size());
 
   define_buffer<char*>();
   natives = detail::Registries::instance.natives.lookup(Data_Type<Buffer<char*>>::klass());
-  ASSERT_EQUAL(12, natives.size());
+  ASSERT_EQUAL((size_t)12, natives.size());
 }
 
 TESTCASE(CharArray)
@@ -431,7 +431,7 @@ namespace
   size_t sumIds(const MyClassBuf* myClasses, size_t count)
   {
     int result = 0;
-    for (int i = 0; i < count; i++)
+    for (size_t i = 0; i < count; i++)
     {
       const MyClassBuf& myClass = myClasses[i];
       result += myClass.id;
@@ -442,7 +442,7 @@ namespace
   size_t sumIds(const MyClassBuf** myClasses, size_t count)
   {
     int result = 0;
-    for (int i = 0; i < count; i++)
+    for (size_t i = 0; i < count; i++)
     {
       const MyClassBuf* myClass = myClasses[i];
         result += myClass->id;

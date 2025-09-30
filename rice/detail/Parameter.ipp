@@ -7,7 +7,7 @@ namespace Rice::detail
 
   // -----------  Parameter ----------------
   template<typename T>
-  inline Parameter<T>::Parameter(Arg* arg) : fromRuby_(arg), ParameterAbstract(arg)
+  inline Parameter<T>::Parameter(Arg* arg) : ParameterAbstract(arg), fromRuby_(arg)
   {
   }
 

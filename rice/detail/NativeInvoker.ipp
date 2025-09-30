@@ -132,7 +132,7 @@ namespace Rice::detail
 
     // Create Invoker and call it via ruby
     int state = (int)JumpException::RUBY_TAG_NONE;
-    VALUE result = rb_protect(trampoline, (VALUE)(&invoker), &state);
+    rb_protect(trampoline, (VALUE)(&invoker), &state);
 
     // Did anything go wrong?
     if (state == JumpException::RUBY_TAG_NONE)

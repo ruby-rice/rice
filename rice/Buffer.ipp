@@ -404,7 +404,7 @@ namespace Rice
   {
     if (this->m_owner)
     {
-      for (int i = 0; i < this->m_size; i++)
+      for (size_t i = 0; i < this->m_size; i++)
       {
         delete this->m_buffer[i];
       }
@@ -553,8 +553,6 @@ namespace Rice
   template <typename T>
   inline Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::Buffer(VALUE value, size_t size)
   {
-    using Intrinsic_T = typename detail::intrinsic_type<T>;
-
     ruby_value_type valueType = rb_type(value);
     switch (valueType)
     {
