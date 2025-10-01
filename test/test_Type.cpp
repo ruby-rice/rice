@@ -239,56 +239,80 @@ TESTCASE(RubyKlass)
   actual = typeMapper9.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
-  define_buffer<char**>();
-  expected = riceModule.const_get("Buffer≺char∗≻");
-  detail::TypeMapper<Buffer<char*>> typeMapper10;
+  define_pointer<char*>();
+  expected = riceModule.const_get("Pointer≺char∗≻");
+  detail::TypeMapper<char**> typeMapper10;
   actual = typeMapper10.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
-  detail::TypeMapper<double> typeMapper11;
+  define_pointer<char*>();
+  expected = riceModule.const_get("Pointer≺char∗≻");
+  detail::TypeMapper<const char**> typeMapper11;
   actual = typeMapper11.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+
+  define_buffer<char**>();
+  expected = riceModule.const_get("Buffer≺char∗≻");
+  detail::TypeMapper<Buffer<char*>> typeMapper12;
+  actual = typeMapper12.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+
+  detail::TypeMapper<double> typeMapper13;
+  actual = typeMapper13.rubyKlass();
   ASSERT_EQUAL(rb_cFloat, actual);
 
-  detail::TypeMapper<std::string> typeMapper14;
+  define_pointer<double>();
+  expected = riceModule.const_get("Pointer≺double≻");
+  detail::TypeMapper<volatile double*> typeMapper14;
   actual = typeMapper14.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+
+  define_pointer<double*>();
+  expected = riceModule.const_get("Pointer≺double∗≻");
+  detail::TypeMapper<const volatile double**> typeMapper15;
+  actual = typeMapper15.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+
+  detail::TypeMapper<std::string> typeMapper16;
+  actual = typeMapper16.rubyKlass();
   ASSERT_EQUAL(rb_cString, actual);
 
   define_vector<std::string>();
   Module stdModule("Std");
 
-  detail::TypeMapper<std::vector<std::string>> typeMapper15;
+  detail::TypeMapper<std::vector<std::string>> typeMapper17;
   expected = stdModule.const_get("Vector≺string≻");
-  actual = typeMapper15.rubyKlass();
-  ASSERT_EQUAL(expected.value(), actual);
-
-  define_class<Outer::Inner::Vec1>("Vec1");
-  detail::TypeMapper<Outer::Inner::Vec1> typeMapper16;
-  expected = Object(rb_cObject).const_get("Vec1");
-  actual = typeMapper16.rubyKlass();
-  ASSERT_EQUAL(expected.value(), actual);
-
-  define_class<Outer::Inner::Map1>("Map1");
-  detail::TypeMapper<Outer::Inner::Map1> typeMapper17;
-  expected = Object(rb_cObject).const_get("Map1");
   actual = typeMapper17.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
-  define_class<Outer::Inner::UnorderedMap1>("UnorderedMap1");
-  detail::TypeMapper<Outer::Inner::UnorderedMap1> typeMapper18;
-  expected = Object(rb_cObject).const_get("UnorderedMap1");
+  define_class<Outer::Inner::Vec1>("Vec1");
+  detail::TypeMapper<Outer::Inner::Vec1> typeMapper18;
+  expected = Object(rb_cObject).const_get("Vec1");
   actual = typeMapper18.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
- 
-  define_class<Outer::Inner::SomeClass>("SomeClass");
-  detail::TypeMapper<Outer::Inner::SomeClass**> typeMapper19;
-  expected = Object(rb_cObject).const_get("SomeClass");
+
+  define_class<Outer::Inner::Map1>("Map1");
+  detail::TypeMapper<Outer::Inner::Map1> typeMapper19;
+  expected = Object(rb_cObject).const_get("Map1");
   actual = typeMapper19.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
-  using Callback_T = char*(*)(int, double, bool, char*);
-  detail::TypeMapper<Callback_T> typeMapper21;
-  expected = Object(rb_cObject).const_get("Proc");
+  define_class<Outer::Inner::UnorderedMap1>("UnorderedMap1");
+  detail::TypeMapper<Outer::Inner::UnorderedMap1> typeMapper20;
+  expected = Object(rb_cObject).const_get("UnorderedMap1");
+  actual = typeMapper20.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+ 
+  define_class<Outer::Inner::SomeClass>("SomeClass");
+  detail::TypeMapper<Outer::Inner::SomeClass**> typeMapper21;
+  expected = Object(rb_cObject).const_get("SomeClass");
   actual = typeMapper21.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+
+  using Callback_T = char*(*)(int, double, bool, char*);
+  detail::TypeMapper<Callback_T> typeMapper22;
+  expected = Object(rb_cObject).const_get("Proc");
+  actual = typeMapper22.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 }
 
