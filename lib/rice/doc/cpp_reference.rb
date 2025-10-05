@@ -6,7 +6,7 @@ module Rice
 		class CppReference
 			ROOT = "https://en.cppreference.com/w"
 			INDEX = "https://raw.githubusercontent.com/p12tic/cppreference-doc/refs/heads/master/index-functions-cpp.xml"
-			INDEX = "c:/Users/cfis/Downloads/index-functions-cpp.xml"
+			#INDEX = "c:/Users/cfis/Downloads/index-functions-cpp.xml"
 
 			OPERATORS = {"assign" => "operator=",
 									 "assign_plus" => "operator+=",

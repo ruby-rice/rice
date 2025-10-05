@@ -7,7 +7,9 @@ module Rice
 			end
 
 			def class_url(klass)
-				"#{ROOT}/#{klass.name.split('::').last.capitalize}.html"
+				name = klass.name.split('::').last
+				name[0].upcase! # Can't use capitalize because it lowercases other letters which breaks links like NilClass
+				"#{ROOT}/#{name}.html"
 			end
 
 			def module_url(klass)
