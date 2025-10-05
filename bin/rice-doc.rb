@@ -1,14 +1,12 @@
-require 'bundler/setup'
+require 'libxml-ruby'
 
 # Require rice
-require 'rice'
+require_relative '../lib/rice'
+require_relative '../lib/rice/doc'
 
 # Now setup option parser
 require 'ostruct'
 require 'optparse'
-
-# Load needed files
-require 'rice/doc'
 
 module Rice
 	# == Synopsis
@@ -99,8 +97,8 @@ klasses = Rice::Registries.instance.types.klasses
 
 # Doxygen documentation
 doxygen_root = "https://docs.opencv.org/4.x"
-#doxygen_index = "https://docs.opencv.org/4.x/opencv.tag"
-doxygen_index = "c:/Users/cfis/Downloads/opencv.tag"
+doxygen_index = "https://docs.opencv.org/4.x/opencv.tag"
+#doxygen_index = "c:/Users/cfis/Downloads/opencv.tag"
 type_mappings = {/^enum\s*/i => '',
 								 /^union\s*/i => '',
 								 /<.*>/ => '',

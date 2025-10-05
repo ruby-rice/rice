@@ -10,25 +10,16 @@ Rice is similar to `Boost.Python <https://github.com/boostorg/python>`_ and `pyb
 
 Rice provides:
 
-* A simple C++-based syntax for wrapping and defining classes
+* A C++ based syntax for wrapping and defining classes
 * Automatic type conversions between C++ and Ruby
 * Automatic exception handling between C++ and Ruby
 * Smart pointers for handling garbage collection
-* Support for most builtin types
-
-Version Differences 3.x vs 4.x and later
-----------------------------------------
-
-This documentation and the ``master`` branch are for Rice 4.x and later, which is the header-only version of the library. Use the ``3.x`` branch for the docs and code for that line of releases.
-
-To upgrade a library from Rice 3 to 4, see the :ref:`migration` guide.
-
-The documentation for the 3.x line of Rice is viewable at https://ruby-rice.github.io/3.x.
+* A C++ API to wrap Ruby's C API
 
 Project Details
 ---------------
 
-The source is hosted on GitHub: http://github.com/ruby-rice/rice
+Source code is hosted on GitHub: http://github.com/ruby-rice/rice
 
 Bug tracking is also hosted on github: http://github.com/ruby-rice/rice/issues
 
@@ -43,5 +34,5 @@ Installation
 
   gem install rice
 
-Rice is header-only library and therefore does not need to be built separately. Instead it should be #included in your C++ project. Rice requires C++17 or later and is tested on Windows (MSVC and Mingw64), MacOS (Xcode/clang) and Linux (g++).
+Rice is header-only library and therefore does not need to be built separately. Instead it should be #included in your C++ project. Rice requires C++17 or later and is tested on Windows (MSVC, Clang and Mingw64), MacOS (Xcode/Clang) and Linux (g++, Clang).
 

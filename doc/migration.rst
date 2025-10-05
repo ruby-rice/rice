@@ -4,9 +4,17 @@
 Migration
 =====================
 
+Version 4.6 to 4.7
+------------------
+Version 4.7 has a couple of breaking changes.
+
+The ``Rice_Init`` method has been removed.
+
+``Buffer<T>`` classes can no longer be passed to C++ apis that take references or pointers. Instead use ``Buffer<T>::data`` or ``Buffer<T>::release``.
+
 Version 4.5 to 4.6
 ------------------
-Verison 4.6 has a couple of breaking changes.
+Version 4.6 has a couple of breaking changes.
 
 First, all C++ STL classes are now defined in the ``Std`` module. Therefore the following methods wree removed - ``define_vector_under``, ``define_map_under`` and ``define_unordered_map_under``.
 
@@ -74,7 +82,7 @@ as a ``convert`` function in a struct, and they need to live in the ``Rice::deta
     };
   }
 
-In addition, they work with Ruby's VALUE type as opposed to Rice's Object type. This switch was made to avoid making extra copies of objects when translating between C++ and Ruby. For more information, please refer to the :doc:`type conversion <bindings/type_conversions>` section.
+In addition, they work with Ruby's VALUE type as opposed to Rice's Object type. This switch was made to avoid making extra copies of objects when translating between C++ and Ruby. For more information, please refer to the :doc:`type conversion <../types/conversion>` section.
 
 
 Functions vs Methods
@@ -101,4 +109,4 @@ Notice that the two ``Args`` are surrounded by parentheses. Rice *no* longer sup
 Memory Management
 -----------------
 
-Rice 4 also requires and provides more tools for explicitly defining which objects should and should not be managed by the Ruby garbage collector. Read more in :ref:`Memory Management`.
+Rice 4 also requires and provides more tools for explicitly defining which objects should and should not be managed by the Ruby garbage collector. Read more in :ref:`memory_management`.

@@ -12,13 +12,11 @@ Bindings
   bindings/enums
   bindings/constants
   bindings/iterators
+  bindings/pointers
   bindings/buffers
   bindings/class_templates
   bindings/operators
   bindings/exceptions
-  bindings/types_overview
-  bindings/type_conversions
-  bindings/type_verification
   bindings/memory_management
   bindings/inheritance
   bindings/callbacks

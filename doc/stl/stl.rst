@@ -6,13 +6,28 @@ Overview
 
 Rice supports the C++ standard template library (STL). To enable STL support you MUST include the ``rice/stl.hpp`` header file after the ``rice/rice.hpp`` header file.
 
-.. _stl_wrapped_builtin:
-
-Wrapped Versus BuiltIn Classes
+Type Mapping
 ==============================
-Rice wraps some STL classes and copies others.
+Rice :doc:`converts <../types/conversion>` some STL classes and wraps :doc:`wraps <../types/wrapping>` others.
 
-A wrapped class means that Rice creates a Ruby wrapper object for each C++ object. The Ruby wrapper enables Ruby to call methods and fields on the underlying C++ object. The C++ object is generally not copied, unless a C++ API returns it by value. Wrapped classes include:
+.. _converted_stl:
+
+Converted
+---------
+Converted classes include:
+
+* std::complex (to Complex)
+* std::monostate (to nil)
+* std::optional (to whatever the optional contains)
+* std::string (to String)
+* std::string_view (to String)
+* std::variant (to whatever the variant contains)
+
+.. _wrapped_stl:
+
+Wrapped
+---------
+Wrapped classes include:
 
 * std::exception
 * std::exception_ptr
@@ -29,14 +44,9 @@ A wrapped class means that Rice creates a Ruby wrapper object for each C++ objec
 
 In contrast, a builtin class means that Rice will copy data from a C++ object to an equivalent Ruby object. Changes in one object are *not* reflected in the other. Builtin classes include:
 
-* std::complex (to Complex)
-* std::monostate (to nil)
-* std::optional (to whatever the optional contains)
-* std::string (to String)
-* std::string_view (to String)
-* std::variant (to whatever the variant contains)
 
-For more information see the :ref:`type_conversions` section.
+
+For more information see the :ref:`type_conversion` section.
 
 .. _stl_class_names:
 

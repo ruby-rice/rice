@@ -8,44 +8,7 @@ Buffers are often used in C and C++ APIs. Examples include:
 * Pointers to arrays of fundamental type or C++ objects
 * Pointer to a fundamental type (often used to support function parameters used to return values)
 
-Rice supports these uses cases via its ``Buffer`` class. The following buffer types are provided out of the box:
-
-.. code-block:: cpp
-
-    Buffer≺bool≻
-    Buffer≺unsigned char≻
-    Buffer≺unsigned char*≻
-    Buffer≺signed char≻
-    Buffer≺signed char*≻
-    Buffer≺char≻
-    Buffer≺char*≻
-    Buffer≺unsigned short≻
-    Buffer≺unsigned short*≻
-    Buffer≺short≻
-    Buffer≺short*≻
-    Buffer≺unsigned int≻
-    Buffer≺unsigned int*≻
-    Buffer≺int≻
-    Buffer≺int*≻
-    Buffer≺float≻
-    Buffer≺float*≻
-    Buffer≺double≻
-    Buffer≺double*≻
-    Buffer≺unsigned long≻
-    Buffer≺unsigned long*≻
-    Buffer≺long≻
-    Buffer≺long*≻
-    Buffer≺unsigned long long≻
-    Buffer≺unsigned long long*≻
-    Buffer≺long long≻
-    Buffer≺long long*≻
-    Buffer≺void≻
-
-However, to use them you need to register them. To do that add the following code to your bindings:
-
-.. code-block:: cpp
-
-   Rice::init();
+Rice supports these uses cases via its ``Buffer`` class. By default, Rice will :doc:`auto generate <../types/naming>` Buffer Ruby classes. For example, a Buffer to an int, ``Buffer<T>``, will be wrapped by a Ruby class named ``Rice::Buffer≺int≻``.
 
 Fundamental Types
 -----------------
@@ -63,15 +26,13 @@ To call this API from Ruby, first create a ``Buffer`` from a Ruby array like thi
 
    data = [1, 2, 3, 4]
    buffer = Rice::Buffer≺unsigned char≻.new(data)
-   mat = Matrix.new(2, 2, buffer)
+   mat = Matrix.new(2, 2, buffer.data)
 
-It is your responsibility to manage the memory of the buffer. When the ``buffer`` variable goes out of scope, Ruby will garbage collect it which will free the underlying buffer. In most cases, the target API will immediately use the buffer so this is not a problem. In cases where API takes ownership of the buffer then make sure to use ``takeOwnership`` as explained in the :ref:`Memory Management` section:
+It is your responsibility to manage the memory of the buffer. When the ``buffer`` variable goes out of scope, Ruby will garbage collect it which will free the underlying buffer. In most cases, the target API will immediately use the buffer so this is not a problem. In cases where a C++ API takes ownership of the buffer then make sure to call ``release`` on the buffer.
 
 .. code-block:: cpp
 
-  rb_cMatrix = define_class<Matrix>("Matrix").
-    define_constructor(Constructor<Matrix, int, int, uint8_t*>(),
-      Arg("rows"), Arg("columns"), Arg("data").takeOwnership();
+   mat = Matrix.new(2, 2, buffer.release)
 
 Array of Objects
 ----------------
@@ -91,7 +52,7 @@ To call this from Ruby:
    buffer = Rice::Buffer≺Cv::Range≻.new(data)
 
    matrix = Matrix.new(100, 100)
-   matrix[buffer]
+   matrix[buffer.data]
 
 Array of Pointers
 -----------------
@@ -128,7 +89,25 @@ One way to wrap this code is to return a tuple as explained in :ref:`out_paramet
    max_val = Rice::Buffer≺double≻.new()
    min_loc = Cv::Point.new
    max_loc = Cv::Point.new
-   CV::min_max_loc(min_val, max_val, min_loc, max_loc)
+   CV::min_max_loc(min_val.data, max_val.data, min_loc, max_loc)
 
    # Read the min_val
    puts min_val[0]
+
+Ruby API
+--------------
+Buffer's have the following Ruby API:
+
+* new(value) - Create a new buffer from a Ruby object such as an Array
+* new(value, size) - Create a new buffer from a Ruby object with a specified size
+* size - The size of the buffer in bytes
+* to_s - A user friendly representation of the buffer
+* bytes - A Ruby string with a binary encoding. Buffer#size must be set
+* bytes(count) - A Ruby string with a binary encoding of the specified length
+* to_ary - A Ruby array. Buffer#size must be set
+* to_ary(count) - A Ruby array of the specified length
+* [](index) - Get the item at the specified index
+* []=(index) - Update the item at the specified index
+* data - Get a ``Pointer<T>`` object to the Buffer's managed memory that can be passed to C++ APIs
+* release - Same as #data but tells the buffer to release ownership of its memory
+
