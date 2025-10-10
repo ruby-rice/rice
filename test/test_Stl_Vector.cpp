@@ -148,6 +148,23 @@ TESTCASE(Empty)
 
   result = vec.call("last");
   ASSERT_EQUAL(Qnil, result.value());
+
+  result = vec.call("[]", 0);
+  ASSERT_EQUAL(Qnil, result.value());
+
+  vec.call("insert", 0, 11);
+  result = vec.call("first");
+  ASSERT_EQUAL(11, detail::From_Ruby<int32_t>().convert(result));
+
+  vec.call("insert", 1, 13);
+  result = vec.call("last");
+  ASSERT_EQUAL(13, detail::From_Ruby<int32_t>().convert(result));
+
+  vec.call("clear");
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    result = vec.call("[]=", 0, 7),
+    ASSERT_EQUAL("Invalid index: 0", ex.what()));
 }
 
 TESTCASE(BoolVector)
@@ -199,7 +216,7 @@ TESTCASE(Indexing)
   vec.call("push", 0);
   vec.call("push", 1);
   vec.call("push", 2);
-  
+
   Object result = vec.call("size");
   ASSERT_EQUAL(3, detail::From_Ruby<int32_t>().convert(result));
 
@@ -470,7 +487,7 @@ TESTCASE(NotDefaultConstructable)
 {
   define_class<NotComparable>("NotComparable").
     define_constructor(Constructor<NotComparable, uint32_t>());
-    
+
   Class c = define_vector<NotComparable>("NotComparableVector");
   Object vec = c.call("new");
 
@@ -529,7 +546,7 @@ TESTCASE(Comparable)
   Class c = define_vector<Comparable>("ComparableVector");
 
   Object vec = c.call("new");
-  
+
   Comparable comparable1(1);
   vec.call("push", comparable1);
 
@@ -719,7 +736,7 @@ TESTCASE(DefaultValue)
 TESTCASE(ToArray)
 {
   Module m = define_module("Testing");
-  
+
   Class c = define_vector<std::string>("StringVector").
     define_constructor(Constructor<std::vector<std::string>>());
 

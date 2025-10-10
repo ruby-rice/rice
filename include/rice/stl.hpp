@@ -4099,7 +4099,7 @@ namespace Rice
           .define_method("max_size", &T::max_size)
           .define_method("reserve", &T::reserve)
           .define_method("size", &T::size);
-        
+
         rb_define_alias(klass_, "count", "size");
         rb_define_alias(klass_, "length", "size");
         //detail::protect(rb_define_alias, klass_, "count", "size");
@@ -4135,6 +4135,11 @@ namespace Rice
           })
           .define_method("[]", [this](T& vector, Difference_T index) -> std::optional<std::reference_wrapper<Value_T>>
           {
+            if (vector.size() == 0)
+            {
+              return std::nullopt;
+            }
+
             index = normalizeIndex(vector.size(), index);
             if (index < 0 || index >= (Difference_T)vector.size())
             {
@@ -4174,6 +4179,11 @@ namespace Rice
           })
           .define_method("[]", [this](T& vector, Difference_T index) -> std::optional<Value_T>
           {
+            if (vector.size() == 0)
+            {
+              return std::nullopt;
+            }
+
             index = normalizeIndex(vector.size(), index);
             if (index < 0 || index >= (Difference_T)vector.size())
             {
@@ -4188,6 +4198,11 @@ namespace Rice
 
         klass_.define_method("[]", [this](T& vector, Difference_T start, Difference_T length) -> VALUE
         {
+          if (vector.size() == 0)
+          {
+            return Qnil;
+          }
+
           start = normalizeIndex(vector.size(), start);
           if (start < 0 || start >= (Difference_T)vector.size())
           {
@@ -4299,7 +4314,11 @@ namespace Rice
           })
           .define_method("insert", [this](T& vector, Difference_T index, Parameter_T element) -> T&
           {
-            index = normalizeIndex(vector.size(), index, true);
+            if (vector.size() > 0) {
+                if (index != vector.size()) index = normalizeIndex(vector.size(), index, true);
+            } else {
+                if (index != 0) throw std::out_of_range("Invalid index: " + std::to_string(index));
+            }
             auto iter = vector.begin() + index;
             vector.insert(iter, std::move(element));
             return vector;
@@ -4330,7 +4349,11 @@ namespace Rice
         .define_method("shrink_to_fit", &T::shrink_to_fit)
         .define_method("[]=", [this](T& vector, Difference_T index, Parameter_T element) -> void
           {
-            index = normalizeIndex(vector.size(), index, true);
+            if (vector.size() > 0) {
+              index = normalizeIndex(vector.size(), index, true);
+            } else {
+              throw std::out_of_range("Invalid index: " + std::to_string(index));
+            }
             vector[index] = std::move(element);
           });
 
