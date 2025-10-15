@@ -691,6 +691,24 @@ TESTCASE(AutoRegisterParameter)
   ASSERT_EQUAL(complexes[1], std::complex<double>(5, 5));
 }
 
+TESTCASE(AutoRegisterException)
+{
+  std::string code = R"(
+    begin
+      Std::Vector≺complex≺double≻≻.new('!!!!')
+    rescue => e
+      name = e.class.name
+      "#{e.class.name} #{e.message} #{(e.backtrace || []).join("\n")}"  # shoud not raise 'incompatible character encodings: BINARY (ASCII-8BIT) and UTF-8' ?
+    end
+    "reachable! - #{name}"
+  )";
+
+  Module m = define_module("Testing");
+  Object result = m.module_eval(code);
+  std::string actual = detail::From_Ruby<std::string>().convert(result);
+  ASSERT_EQUAL("reachable! - ArgumentError", actual);
+}
+
 namespace
 {
   std::vector<std::string> defaultVector(std::vector<std::string> strings = {"one", "two", "three"})

@@ -9471,7 +9471,7 @@ namespace Rice::detail
       else if (natives.size() == 0)
       {
         Identifier identifier(methodId);
-        rb_raise(rb_eArgError, "Could not find method call for %s#%s", rb_class2name(klass), identifier.c_str());
+        rb_enc_raise(rb_utf8_encoding(), rb_eArgError, "Could not find method call for %s#%s", rb_class2name(klass), identifier.c_str());
       }
       else
       {
@@ -9537,7 +9537,7 @@ namespace Rice::detail
               message << "\n     " << resolve.native->toString();
             }
 
-            rb_raise(rb_eArgError, message.str().c_str(), rb_class2name(klass), identifier.c_str(), natives.size());
+            rb_enc_raise(rb_utf8_encoding(), rb_eArgError, message.str().c_str(), rb_class2name(klass), identifier.c_str(), natives.size());
           }
         }
       }
