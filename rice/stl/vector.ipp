@@ -42,7 +42,7 @@ namespace Rice
         // wrap around!
         if (index < 0)
         {
-          index = ((-index) % size);
+          index = size == 0 ? (-index) : ((-index) % size);
           index = index > 0 ? size - index : index;
         }
 

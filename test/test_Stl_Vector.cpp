@@ -148,6 +148,9 @@ TESTCASE(Empty)
 
   result = vec.call("last");
   ASSERT_EQUAL(Qnil, result.value());
+
+  result = vec.call("[]", -1);
+  ASSERT_EQUAL(Qnil, result.value());
 }
 
 TESTCASE(BoolVector)
