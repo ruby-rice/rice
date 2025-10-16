@@ -38,9 +38,8 @@ namespace Rice
       // Helper method to translate Ruby indices to vector indices
       Difference_T normalizeIndex(Size_T size, Difference_T index, bool enforceBounds = false)
       {
-        // Negative indices mean count from the right. Note that negative indices
-        // wrap around!
-        if (index < 0)
+        // Negative indices mean count from the right
+        if (index < 0 && (-index <= size))
         {
           index = ((-index) % size);
           index = index > 0 ? size - index : index;

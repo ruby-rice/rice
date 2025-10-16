@@ -225,10 +225,30 @@ TESTCASE(Indexing)
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("[]", -4);
-  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
+  ASSERT_EQUAL(Qnil, result.value());
 
   result = vec.call("[]", -7);
-  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
+  ASSERT_EQUAL(Qnil, result.value());
+}
+
+TESTCASE(IndexingEmptyVector)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_vector<std::int32_t>("IntVector");
+  Object vec = c.call("new");
+
+  Object result = vec.call("size");
+  ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
+
+  result = vec.call("[]", 0);
+  ASSERT_EQUAL(Qnil, result.value());
+
+  result = vec.call("[]", 1);
+  ASSERT_EQUAL(Qnil, result.value());
+
+  result = vec.call("[]", -1);
+  ASSERT_EQUAL(Qnil, result.value());
 }
 
 TESTCASE(Slice)
