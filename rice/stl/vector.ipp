@@ -115,7 +115,7 @@ namespace Rice
           .define_method("max_size", &T::max_size)
           .define_method("reserve", &T::reserve)
           .define_method("size", &T::size);
-        
+
         rb_define_alias(klass_, "count", "size");
         rb_define_alias(klass_, "length", "size");
         //detail::protect(rb_define_alias, klass_, "count", "size");
@@ -315,7 +315,12 @@ namespace Rice
           })
           .define_method("insert", [this](T& vector, Difference_T index, Parameter_T element) -> T&
           {
-            index = normalizeIndex(vector.size(), index, true);
+            if (index < 0) {
+                index = index + vector.size() + 1;
+                if (index < 0) throw std::out_of_range("index " + std::to_string(index - 1 - vector.size()) + " too small for array; minimum: -" + std::to_string(vector.size() + 1));
+            } else if (index > (Difference_T)vector.size()) {
+                throw std::out_of_range("index " + std::to_string(index) + " too big");
+            }
             auto iter = vector.begin() + index;
             vector.insert(iter, std::move(element));
             return vector;

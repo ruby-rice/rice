@@ -369,6 +369,20 @@ TESTCASE(Modify)
 
   result = vec.call("pop");
   ASSERT_EQUAL(Qnil, result.value());
+
+  vec.call("append", 10);
+  vec.call("append", 20);
+  vec.call("insert", -1, 30);
+  result = vec.call("to_s");
+  ASSERT_EQUAL("[10, 20, 30]", detail::From_Ruby<std::string>().convert(result));
+
+  vec.call("insert", 3, 40);
+  result = vec.call("to_s");
+  ASSERT_EQUAL("[10, 20, 30, 40]", detail::From_Ruby<std::string>().convert(result));
+
+  vec.call("insert", 0, 0);
+  result = vec.call("to_s");
+  ASSERT_EQUAL("[0, 10, 20, 30, 40]", detail::From_Ruby<std::string>().convert(result));
 }
 
 TESTCASE(Clone)
