@@ -24,7 +24,7 @@ module Rice
 				FileUtils.mkdir_p(@output)
 
 				klasses.sort_by(&:name).each.with_index do |klass, i|
-					next unless klass.name == "Rice::Buffer≺int∗≻"
+					next unless klass.name == "Cv::Mat"
 					#next unless klass.name.match(/^Buffer≺int∗≻/)
 
 					STDOUT << klass.name << " (" << i << "/" << klasses.count << ")" << "\n"
@@ -140,6 +140,16 @@ module Rice
 				end.join(", ")
 			end
 
+			def return_sig(klass, native)
+				resolver = resolver(native.return_klass)
+				url = type_url(native.return_klass)
+				if url
+					"[#{native.return_klass}](#{url})"
+				else
+					"#{native.return_klass}"
+				end
+			end
+
 			def constructor_sig(klass, native)
 				url =  resolver(klass)&.method_url(klass, native)
 
@@ -160,9 +170,9 @@ module Rice
 				name = ESCAPE_METHODS[native.name] || native.name
 
 				if url
-					"[#{name}](#{url})(#{parameters_sig(klass, native)})"
+					"[#{name}](#{url})(#{parameters_sig(klass, native)}) -> #{return_sig(klass, native)}"
 				else
-					"#{name}(#{parameters_sig(klass, native)})"
+					"#{name}(#{parameters_sig(klass, native)}) -> #{return_sig(klass, native)}"
 				end
 			end
 
@@ -180,13 +190,13 @@ module Rice
 				attribute_resolver = resolver(klass)
 				attribute_url = attribute_resolver&.attribute_url(klass, native_attribute)
 
-				type_resolver = resolver(native_attribute.klass)
-				type_url = type_url(native_attribute.klass)
+				type_resolver = resolver(native_attribute.return_klass)
+				type_url = type_url(native_attribute.return_klass)
 
 				if attribute_url
-					"[#{native_attribute.name}](#{attribute_url}): [#{native_attribute.klass}](#{type_url}) (#{attr_type})"
+					"[#{native_attribute.name}](#{attribute_url}): [#{native_attribute.return_klass}](#{type_url}) (#{attr_type})"
 				else
-					"#{native_attribute.name}: [#{native_attribute.klass}](#{type_url}) (#{attr_type})"
+					"#{native_attribute.name}: [#{native_attribute.return_klass}](#{type_url}) (#{attr_type})"
 				end
 			end
 

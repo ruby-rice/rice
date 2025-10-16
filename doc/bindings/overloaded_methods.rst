@@ -126,7 +126,7 @@ Method Resolution
 -----------------
 Ruby does not natively support method overloading. Thus Rice must implement overloading support itself. It does this by maintaining a global registry (see `NativeRegistry <https://github.com/ruby-rice/rice/blob/master/rice/detail/NativeRegistry.hpp>`_) of methods keyed on class  and method name. For the example above, the key is ``Shape::intersects`` and the value is an array of three `NativeFunction <https://github.com/ruby-rice/rice/blob/master/rice/detail/NativeFunction.hpp>`_ instances, where each ``NativeFunction`` instance maps to one C++ member function.
 
-At runtime, Rice evaluates the method parameters sent to the ``intersects`` method and determines the best match. It does this by looping over the three ``NativeFunction`` instances and calls their ``matches`` method. The matches method, in turn, loops over the passed-in parameters and sends them to its array of ``From_Ruby`` instances (for more information see the :ref:`type conversion <type_conversions>` section).
+At runtime, Rice evaluates the method parameters sent to the ``intersects`` method and determines the best match. It does this by looping over the three ``NativeFunction`` instances and calls their ``matches`` method. The matches method, in turn, loops over the passed-in parameters and sends them to its array of ``From_Ruby`` instances (for more information see the :ref:`type conversion <type_conversion>` section).
 
 Each ``From_Ruby`` instance defines a ``convertible`` method that returns one of five results:
 

@@ -396,10 +396,15 @@ namespace Rice::detail
     using Type_T = Type<std::remove_reference_t<detail::remove_cv_recursive_t<T>>>;
     using Intrinsic_T = detail::intrinsic_type<T>;
 
-    // This checks for pointers like int*
     if constexpr (has_ruby_klass<Type_T>::value)
     {
       return Type_T::rubyKlass();
+    }
+    else if constexpr (std::is_fundamental_v<Intrinsic_T> && std::is_pointer_v<T>)
+    {
+			using Pointer_T = Pointer<std::remove_pointer_t<remove_cv_recursive_t<T>>>;
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Pointer_T>();
+      return pair.first;
     }
     else
     {

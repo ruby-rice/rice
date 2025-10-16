@@ -1,11 +1,11 @@
-.. _Memory Management:
+.. _memory_management:
 
 Memory Management
 =================
 
 The trickiest part of wrapping a C++ API is correctly managing memory shared between C++ and Ruby. It is critical to get this right - otherwise your program *will* crash. The key to getting it right is being crystal clear on who owns each piece of memory.
 
-Rice divides native types into Builtin types and external types. Builtin types are copied between C++ and Ruby while external types are wrapped. For additional information about builtin types please refer to the :doc:`Type Conversions <type_conversions>` section.
+Rice divides native types into Builtin types and external types. Builtin types are copied between C++ and Ruby while external types are wrapped. For additional information about builtin types please refer to the :doc:`Type Conversions <../types/conversion>` section.
 
 The rest of this section discusses how to manage memory of external types.
 

@@ -1,8 +1,10 @@
-## 4.6.2 (2025-07-31)
+## 4.7.0 (2025-10-03)
 Updates:
 * Refactor Native wrappers - functions, methods, attributes and procs - to enable introspection API
+* Introduce Pointer<T> class to wrap pointers to fundamental types and arrays.
 * Add a new Introspection API that exposes Rice internals to Ruby
-* Using the new API, add support for generating RBS files from extensions
+* Using the Introspection API, add support for generating RBS files for extensions
+* Using the Introspection API, add support for generating Markdown documentation for extensions
 * Don't create attribute writers for const attributes
 * Support attribute setters for Enums
 * Support wrapping std::vector<std::unique_ptr<T>>
@@ -20,6 +22,8 @@ Breaking Changes:
     ```
     explicit To_Ruby(Arg* arg)
    ```
+* You can no longer pass a Buffer<T> to an API that takes a pointer. Instead use Buffer<T>#data or Buffer<T>::release
+* The Rice_Init method has been removed.
 
 ## 4.6.1 (2025-06-25)
 * Improve attribute handling. Correctly deal with non-copyable/assignable attributes and return references instead of copies of objects

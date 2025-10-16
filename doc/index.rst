@@ -6,13 +6,14 @@ Rice - Ruby Interface for C++
   :maxdepth: 2
 
   introduction
-  why_rice
   tutorial
+  types
   bindings
   stl
   cpp_api
   introspection_api
   packaging
   migration
+  why_rice
   history
   architecture

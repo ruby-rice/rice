@@ -317,57 +317,7 @@ conversion works. When we write:
 
 We get the expected result.
 
-Rice includes default specializations for many C++ types. To define your own conversion, please refer to the :doc:`Type Conversions <bindings/type_conversions>` section.
-
-Conversions for wrapped C++ types
----------------------------------
-
-Take another look at the wrapper we wrote for the ``Test`` class:
-
-.. code-block:: cpp
-
-  extern "C"
-  void Init_test()
-  {
-    Data_Type<Test> rb_cTest =
-      define_class<Test>("Test")
-      .define_constructor(Constructor<Test>())
-      .define_method("hello", &Test::hello);
-  }
-
-When we called ``define_class<Test>``, it created a Class for us and automatically registered the new Class with the type system.
-
-The ``Data_Object`` class can be used to wrap a C++ object in a Ruby object:
-
-.. code-block:: cpp
-
-  Data_Object<Foo> obj(new Foo);
-
-We can then convert it back to C++:
-
-.. code-block:: cpp
-
-  Foo *f = detail::From_Ruby<Foo *>::convert(obj);
-
-The ``Data_Object`` class is a wrapper for the ``TypedData_Wrap_Struct`` and the ``TypedData_Get_Struct`` macros in C extensions. It can be used to wrap or unwrap any class that has been previously defined using a ``Data_Type``.
-
-A ``Data_Object`` functions like a smart pointer:
-
-.. code-block:: cpp
-
-  Data_Object<Foo> foo(obj);
-  foo->foo();
-  std::cout << *foo << std::endl;
-
-Like a ``VALUE`` or an ``Object``, data stored in a ``Data_Object`` will be marked by the garbage collector as long as the ``Data_Object`` is on the stack.
-
-Last, ``Data_Object`` inherits from ``Object``, so any Object member functions work with ``Data_Object``:
-
-.. code-block:: cpp
-
-  Object object_id = obj.call("object_id");
-  std::cout << object_id << std::endl;
-
+Rice includes default specializations for many C++ types. To define your own conversion, please refer to the :doc:`Type Conversions <types/conversion>` section.
 
 Exceptions
 ----------
@@ -375,8 +325,7 @@ Rice automatically handles exceptions. For example, suppose a member function of
 
 .. code-block:: cpp
 
-  class MyException
-    : public std::exception
+  class MyException : public std::exception
   {
   };
 
@@ -409,4 +358,8 @@ When we call the ``error`` function from Ruby, C++ will raise an exception. Rice
     ..
   end
 
-3 information refer to the :ref:`Exceptions` section.
+For more information refer to the :ref:`Exceptions` section.
+
+Next Steps
+----------
+Hopefully this tutorial will help get you started wrapping C++ libraries for use in Ruby. For much more detailed information refer to the Bindings topic.

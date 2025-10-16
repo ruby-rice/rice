@@ -43,6 +43,20 @@ namespace Rice::detail
   };
 
   template<>
+  struct Type<char*>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
+  template<>
   struct Type<signed char>
   {
     static bool verify()
@@ -389,20 +403,6 @@ namespace Rice::detail
     static VALUE rubyKlass()
     {
       return rb_cNilClass;
-    }
-  };
-
-  template<>
-  struct Type<char*>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-
-    static VALUE rubyKlass()
-    {
-      return rb_cString;
     }
   };
 }
