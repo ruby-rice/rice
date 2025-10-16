@@ -12,9 +12,9 @@ Built In Conversions
 --------------------
 Rice supports all fundamental types out of the box. It also includes special handling for ``char*`` which is converted to a Ruby String. In addition, various STL classes are also converted as described in the STL :ref:`documentation STL :ref:`documentatio  <converted_stl>`.
 
-======================  ======================  =======================
+======================  ======================  ========================
 C++ Type                Other Name              Ruby Type
-======================  ======================  =======================
+======================  ======================  ========================
 bool                                            TrueClass / FalseClass
 int8_t / uint8_t        char                    String (binary encoding)
 int8_t / uint8_t        char[]                  String (binary encoding)

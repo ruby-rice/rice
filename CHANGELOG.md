@@ -1,4 +1,4 @@
-## 4.7.0 (2025-10-03)
+## 4.7.0 (2025-10-?)
 Updates:
 * Refactor Native wrappers - functions, methods, attributes and procs - to enable introspection API
 * Introduce Pointer<T> class to wrap pointers to fundamental types and arrays.
@@ -12,6 +12,9 @@ Updates:
 * Add very basic support for creating std::filesystem::path instances
 * Remove toy samples and test libraries. These are replaced by a new gem that wraps the BitMapPlusPlus library (https://github.com/baderouaich/BitmapPlusPlus)
 * Add support for std::runtime_error since some libraries use that as a base exception class (thus when Rice wraps custom exceptions it also needs to wrap the base class)
+* Improve std::vector indexing to more closely match Ruby for negative index values
+* Correctly encode UTF8 Ruby class names in exception messages
+* Add support for disabling Ruby's global interpreter lock (GIL) when calling native functions
 
 Breaking Changes:
 * Custom implementations of From_Ruby must include a custom constructor:
