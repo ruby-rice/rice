@@ -175,3 +175,6 @@ We define the ``to_s`` method to take a single parameter, self, which is an C++ 
 
 The lambda function can take any number of additional parameters. It can be either a stateless or stateful lambda.
 
+Global VM Lock (GVL)
+--------------------
+Refer to the :ref:`gvl` section to learn how to call C++ code without holding Ruby's GVL.

@@ -8,6 +8,7 @@ Bindings
   bindings/constructors
   bindings/methods
   bindings/overloaded_methods
+  bindings/gvl
   bindings/attributes
   bindings/enums
   bindings/constants
