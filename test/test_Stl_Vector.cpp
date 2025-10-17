@@ -366,20 +366,34 @@ TESTCASE(Modify)
   result = vec.call("to_s");
   ASSERT_EQUAL("[11, 33, 22]", detail::From_Ruby<std::string>().convert(result));
 
+  result = vec.call("insert", -2, 34);
+
+  result = vec.call("size");
+  ASSERT_EQUAL(4, detail::From_Ruby<int32_t>().convert(result));
+
+  result = vec.call("to_s");
+  ASSERT_EQUAL("[11, 33, 34, 22]", detail::From_Ruby<std::string>().convert(result));
+
   result = vec.call("delete", 11);
   ASSERT_EQUAL(11, detail::From_Ruby<int64_t>().convert(result));
 
   result = vec.call("size");
-  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
+  ASSERT_EQUAL(3, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("delete_at", 0);
   ASSERT_EQUAL(33, detail::From_Ruby<int64_t>().convert(result));
 
   result = vec.call("size");
-  ASSERT_EQUAL(1, detail::From_Ruby<int32_t>().convert(result));
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("pop");
   ASSERT_EQUAL(22, detail::From_Ruby<int64_t>().convert(result));
+
+  result = vec.call("size");
+  ASSERT_EQUAL(1, detail::From_Ruby<int32_t>().convert(result));
+
+  result = vec.call("pop");
+  ASSERT_EQUAL(34, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));

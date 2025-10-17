@@ -41,8 +41,7 @@ namespace Rice
         // Negative indices mean count from the right
         if (index < 0 && (-index <= size))
         {
-          index = ((-index) % size);
-          index = index > 0 ? size - index : index;
+          index = size + index;
         }
 
         if (enforceBounds && (index < 0 || index >= (Difference_T)size))
@@ -314,8 +313,15 @@ namespace Rice
           })
           .define_method("insert", [this](T& vector, Difference_T index, Parameter_T element) -> T&
           {
-            index = normalizeIndex(vector.size(), index, true);
-            auto iter = vector.begin() + index;
+            int normalized = normalizeIndex(vector.size(), index, true);
+            // For a Ruby array a positive index means insert the element before the index. But
+            // a negative index means insert the element *after* the index. std::vector
+            // inserts *before* the index. So add 1 if this is a negative index.
+            if (index < 0)
+            {
+              normalized++;
+            }
+            auto iter = vector.begin() + normalized;
             vector.insert(iter, std::move(element));
             return vector;
           })
