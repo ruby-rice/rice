@@ -19,6 +19,11 @@ namespace Rice::detail
       auto indices = std::make_index_sequence<std::tuple_size_v<std::tuple<Types...>>>{};
       return verifyTypes(indices);
     }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cArray;
+    }
   };
 
   template<typename...Types>

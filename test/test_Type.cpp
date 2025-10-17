@@ -314,6 +314,11 @@ TESTCASE(RubyKlass)
   expected = Object(rb_cObject).const_get("Proc");
   actual = typeMapper22.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
+
+  detail::TypeMapper<std::tuple<float, float>> typeMapper23;
+  expected = Object(rb_cObject).const_get("Array");
+  actual = typeMapper23.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
 }
 
 TESTCASE(MakeRubyClass)
