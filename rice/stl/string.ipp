@@ -21,13 +21,32 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_buffer<std::string>();
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      using Pointer_T = Pointer<std::string>;
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Pointer_T>();
+      return pair.first;
+    }
+  };
+
+  template<>
+  struct Type<std::string**>
+  {
+    static bool verify()
+    {
       define_buffer<std::string*>();
       return true;
     }
 
     static VALUE rubyKlass()
     {
-      return rb_cString;
+      using Pointer_T = Pointer<std::string*>;
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Pointer_T>();
+      return pair.first;
     }
   };
 
