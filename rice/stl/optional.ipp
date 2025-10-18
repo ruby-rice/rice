@@ -9,6 +9,12 @@ namespace Rice::detail
     {
       return Type<intrinsic_type<T>>::verify();
     }
+
+    static VALUE rubyKlass()
+    {
+      TypeMapper<T> typeMapper;
+      return typeMapper.rubyKlass();
+    }
   };
 
   template<>

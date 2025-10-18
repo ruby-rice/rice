@@ -21,6 +21,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_pointer<std::string>();
       define_buffer<std::string>();
       return true;
     }
@@ -38,6 +39,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_pointer<std::string*>();
       define_buffer<std::string*>();
       return true;
     }

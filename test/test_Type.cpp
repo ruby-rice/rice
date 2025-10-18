@@ -331,6 +331,26 @@ TESTCASE(RubyKlass)
   expected = Object(rb_cObject).const_get("Array");
   actual = typeMapper25.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
+
+  detail::TypeMapper<std::optional<float>> typeMapper26;
+  actual = typeMapper26.rubyKlass();
+  ASSERT_EQUAL(rb_cFloat, actual);
+
+  detail::TypeMapper<std::complex<float>> typeMapper27;
+  actual = typeMapper27.rubyKlass();
+  ASSERT_EQUAL(rb_cComplex, actual);
+
+  detail::TypeMapper<std::monostate> typeMapper28;
+  actual = typeMapper28.rubyKlass();
+  ASSERT_EQUAL(rb_cNilClass, actual);
+
+  detail::TypeMapper<std::reference_wrapper<int>> typeMapper29;
+  actual = typeMapper29.rubyKlass();
+  ASSERT_EQUAL(rb_cInteger, actual);
+
+  detail::TypeMapper<std::string_view> typeMapper30;
+  actual = typeMapper30.rubyKlass();
+  ASSERT_EQUAL(rb_cString, actual);
 }
 
 TESTCASE(MakeRubyClass)
