@@ -223,7 +223,16 @@ namespace Rice::detail
   template<typename Function_T>
   inline VALUE NativeFunction<Function_T>::returnKlass()
   {
-    TypeMapper<Return_T> typeMapper;
-    return typeMapper.rubyKlass();
+    // Check if an array is being returned
+    if (this->methodInfo_->returnInfo()->isArray())
+    {
+      TypeMapper<Pointer<Return_T>> typeMapper;
+      return typeMapper.rubyKlass();
+    }
+    else
+    {
+      TypeMapper<Return_T> typeMapper;
+      return typeMapper.rubyKlass();
+    }
   }
 }

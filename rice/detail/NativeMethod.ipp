@@ -312,7 +312,16 @@ namespace Rice::detail
   template<typename Class_T, typename Method_T>
   inline VALUE NativeMethod<Class_T, Method_T>::returnKlass()
   {
-    TypeMapper<Return_T> typeMapper;
-    return typeMapper.rubyKlass();
+    // Check if an array is being returned
+    if (this->methodInfo_->returnInfo()->isArray())
+    {
+      TypeMapper<Pointer<Return_T>> typeMapper;
+      return typeMapper.rubyKlass();
+    }
+    else
+    {
+      TypeMapper<Return_T> typeMapper;
+      return typeMapper.rubyKlass();
+    }
   }
 }
