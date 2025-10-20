@@ -158,7 +158,14 @@ namespace Rice
       }
       case RUBY_T_DATA:
       {
-        if (Data_Type<Intrinsic_T>::is_descendant(value))
+        if (Data_Type<Pointer<Intrinsic_T>>::is_descendant(value))
+        {
+          this->m_buffer = detail::unwrap<T>(value, Data_Type<Pointer<Intrinsic_T>>::ruby_data_type(), false);
+          this->m_owner = false;
+          this->m_size = size;
+          break;
+        }
+        else if (Data_Type<Intrinsic_T>::is_descendant(value))
         {
           this->m_buffer = detail::unwrap<T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), false);
           this->m_owner = false;

@@ -218,8 +218,14 @@ namespace Rice
   template<typename T>
   inline bool Data_Type<T>::is_descendant(VALUE value)
   {
-    check_is_bound();
-    return detail::protect(rb_obj_is_kind_of, value, klass_) == Qtrue;
+    if (is_bound())
+    {
+      return detail::protect(rb_obj_is_kind_of, value, klass_) == Qtrue;
+    }
+    else
+    {
+      return false;
+    }
   }
 
   template<typename T>
