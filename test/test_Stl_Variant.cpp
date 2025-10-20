@@ -464,8 +464,6 @@ namespace
 
 TESTCASE(Buffer)
 {
-  define_buffer<int>();
-  define_buffer<float>();
   using namespace std::complex_literals;
 
   define_class<MyClass5>("MyClass5").

@@ -255,8 +255,8 @@ namespace
 TESTCASE(pointer_of_doubles)
 {
   Module m = define_module("Testing").
-    define_module_function("speeds", &speeds).
-    define_module_function("speeds_ptr", &speedsPtr);
+    define_module_function("speeds", &speeds, Return().setBuffer()).
+    define_module_function("speeds_ptr", &speedsPtr, Return().setBuffer());
 
   std::string code = R"(buffer = Rice::Buffer≺double≻.new(speeds, 3)
                         buffer[2])";
@@ -592,12 +592,8 @@ TESTCASE(array_of_objects_ptr)
 
 TESTCASE(pass_objects)
 {
-  define_pointer<MyClassBuf>();
-  define_buffer<MyClassBuf>();
-  define_buffer<MyClassBuf*>();
-
   Module m = define_module("Testing");
-  m.define_module_function<size_t(*)(const MyClassBuf*, size_t)>("sum_ids", &sumIds, Arg("myClasses").setArray());
+  m.define_module_function<size_t(*)(const MyClassBuf*, size_t)>("sum_ids", &sumIds, Arg("myClasses").setBuffer());
   m.define_module_function<size_t(*)(const MyClassBuf**, size_t)>("sum_ids_ptr", &sumIds);
 
   define_class_under<MyClassBuf>(m, "MyClassBuf").

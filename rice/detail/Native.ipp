@@ -173,6 +173,43 @@ namespace Rice::detail
   }
 
   // -----------  Helpers ----------------
+  template<typename T>
+  inline void Native::verify_type(bool isBuffer)
+  {
+    using Base_T = std::remove_pointer_t<remove_cv_recursive_t<T>>;
+
+    detail::verifyType<T>();
+
+    if constexpr (std::is_pointer_v<T> && std::is_fundamental_v<std::remove_pointer_t<T>>)
+    {
+      Type<Pointer<std::remove_pointer_t<T>>>::verify();
+      Type<Buffer<std::remove_pointer_t<T>>>::verify();
+    }
+    if constexpr (std::is_array_v<T>)
+    {
+      Type<Pointer<std::remove_extent_t<remove_cv_recursive_t<T>>>>::verify();
+      Type<Buffer<std::remove_extent_t<remove_cv_recursive_t<T>>>>::verify();
+    }
+    else if (isBuffer)
+    {
+      if constexpr (std::is_pointer_v<T> && !std::is_function_v<Base_T> && !std::is_abstract_v<Base_T>)
+      {
+        Type<Pointer<Base_T>>::verify();
+        Type<Buffer<Base_T>>::verify();
+      }
+      else
+      {
+        static_assert(true, "Only pointer types can be marked as buffers");
+      }
+    }
+  }
+
+  template<typename Tuple_T, std::size_t ...Indices>
+  inline void Native::verify_args(MethodInfo* methodInfo, std::index_sequence<Indices...> indices)
+  {
+    (Native::verify_type<std::tuple_element_t<Indices, Tuple_T>>(methodInfo->arg(Indices)->isBuffer()), ...);
+  }
+
   template<typename Tuple_T, std::size_t ...Indices>
   inline void Native::create_parameters_impl(std::vector<std::unique_ptr<ParameterAbstract>>& parameters, MethodInfo* methodInfo, std::index_sequence<Indices...> indices)
   {

@@ -365,6 +365,12 @@ namespace Rice
     class To_Ruby<unsigned char[N]>
     {
     public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
       VALUE convert(unsigned char data[N])
       {
         Buffer<unsigned char> buffer(data, N);

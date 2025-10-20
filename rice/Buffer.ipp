@@ -149,9 +149,14 @@ namespace Rice
           {
             new (&this->m_buffer[i]) T(std::move(fromRuby.convert(array[i].value())));
           }
-          else
+          else if constexpr (std::is_copy_constructible_v<T>)
           {
             new (&this->m_buffer[i]) T(fromRuby.convert(array[i].value()));
+          }
+          else
+          {
+            throw Exception(rb_eTypeError, "Cannot construct object of type %s - type is not move or copy constructible",
+              detail::TypeMapper<Intrinsic_T>().name().c_str());
           }
         }
         break;
@@ -858,8 +863,8 @@ namespace Rice
         define_method("size", &Buffer_T::size).
         template define_method<VALUE(Buffer_T::*)(size_t) const>("bytes", &Buffer_T::bytes, Return().setValue()).
         template define_method<VALUE(Buffer_T::*)() const>("bytes", &Buffer_T::bytes, Return().setValue()).
-        define_method("data", &Buffer_T::ptr, Return().setArray()).
-        define_method("release", &Buffer_T::release, Return().setArray());
+        define_method("data", &Buffer_T::ptr, Return().setBuffer()).
+        define_method("release", &Buffer_T::release, Return().setBuffer());
     }
     else
     {
@@ -873,8 +878,8 @@ namespace Rice
         template define_method<Array(Buffer_T::*)(size_t) const>("to_ary", &Buffer_T::toArray, Return().setValue()).
         template define_method<Array(Buffer_T::*)() const>("to_ary", &Buffer_T::toArray, Return().setValue()).
         define_method("[]", &Buffer_T::operator[], Arg("index")).
-        define_method("data", &Buffer_T::ptr, Return().setArray()).
-        define_method("release", &Buffer_T::release, Return().setArray());
+        define_method("data", &Buffer_T::ptr, Return().setBuffer()).
+        define_method("release", &Buffer_T::release, Return().setBuffer());
 
       if constexpr (!std::is_pointer_v<T> && !std::is_void_v<T> && !std::is_const_v<T> && std::is_copy_assignable_v<T>)
       {
@@ -894,4 +899,18 @@ namespace Rice
       return klass;
     }
   }
+}
+
+namespace Rice::detail
+{
+  template<typename T>
+  struct Type<Buffer<T>>
+  {
+    static bool verify()
+    {
+      detail::verifyType<T>();
+      define_buffer<T>();
+      return true;
+    }
+  };
 }

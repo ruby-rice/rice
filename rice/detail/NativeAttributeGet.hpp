@@ -24,7 +24,7 @@ namespace Rice
 
     public:
       // Register attribute getter with Ruby
-      static void define(VALUE klass, std::string name, Attribute_T attribute);
+      static void define(VALUE klass, std::string name, Attribute_T attribute, Return returnInfo);
 
     public:
       // Disallow creating/copying/moving
@@ -43,12 +43,13 @@ namespace Rice
       VALUE returnKlass() override;
 
     protected:
-      NativeAttributeGet(VALUE klass, std::string name, Attribute_T attr);
+      NativeAttributeGet(VALUE klass, std::string name, Attribute_T attr, Return returnInfo);
 
     private:
       VALUE klass_;
       std::string name_;
       Attribute_T attribute_;
+      Return return_;
     };
   } // detail
 } // Rice

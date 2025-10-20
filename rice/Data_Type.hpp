@@ -135,10 +135,10 @@ namespace Rice
     Data_Type<T>& define_iterator(Iterator_Func_T begin, Iterator_Func_T end, std::string name = "each");
 
     template <typename Attribute_T>
-    Data_Type<T>& define_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite);
+    Data_Type<T>& define_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite, Return returnInfo = Return());
   
     template <typename Attribute_T>
-    Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite);
+    Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite, Return returnInfo = Return());
 
     #include "cpp_api/shared_methods.hpp"
   protected:
@@ -165,7 +165,7 @@ namespace Rice
     void wrap_native_method(VALUE klass, std::string name, Method_T&& function, MethodInfo* methodInfo);
 
     template <typename Attribute_T>
-    Data_Type<T>& define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access);
+    Data_Type<T>& define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access, Return returnInfo);
 
   private:
     template<typename T_>

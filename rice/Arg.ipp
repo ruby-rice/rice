@@ -70,14 +70,14 @@ namespace Rice
     return this->isOwner_;
   }
 
-  inline Arg& Arg::setArray()
+  inline Arg& Arg::setBuffer()
   {
-    this->isArray_ = true;
+    this->isBuffer_ = true;
     return *this;
   }
 
-  inline bool Arg::isArray()
+  inline bool Arg::isBuffer()
   {
-    return this->isArray_;
+    return this->isBuffer_;
   }
 } // Rice

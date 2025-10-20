@@ -75,6 +75,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_buffer<signed char>();
       return true;
     }
 
@@ -103,6 +104,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_buffer<unsigned char>();
       return true;
     }
 
@@ -131,6 +133,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_buffer<short>();
       return true;
     }
 
@@ -159,6 +162,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_buffer<unsigned short>();
       return true;
     }
 
@@ -187,6 +191,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_buffer<int>();
       return true;
     }
 
@@ -215,6 +220,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_buffer<unsigned int>();
       return true;
     }
 
@@ -243,6 +249,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_buffer<long>();
       return true;
     }
 
@@ -271,6 +278,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_buffer<unsigned long>();
       return true;
     }
 
@@ -299,6 +307,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_buffer<long long>();
       return true;
     }
 
@@ -327,6 +336,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_buffer<unsigned long long>();
       return true;
     }
 
@@ -355,6 +365,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_buffer<float>();
       return true;
     }
 
@@ -383,6 +394,7 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      define_buffer<double>();
       return true;
     }
 
@@ -403,6 +415,16 @@ namespace Rice::detail
     static VALUE rubyKlass()
     {
       return rb_cNilClass;
+    }
+  };
+
+  template<>
+  struct Type<void*>
+  {
+    static bool verify()
+    {
+      Type<Pointer<void>>::verify();
+      return true;
     }
   };
 }
