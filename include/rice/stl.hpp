@@ -110,18 +110,49 @@ namespace Rice::detail
     }
   };
 
-  template<>
-  struct Type<std::string*>
+  template<int N>
+  struct Type<std::string[N]>
   {
     static bool verify()
     {
-      define_buffer<std::string*>();
       return true;
     }
 
     static VALUE rubyKlass()
     {
       return rb_cString;
+    }
+  };
+
+  template<>
+  struct Type<std::string*>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      using Pointer_T = Pointer<std::string>;
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Pointer_T>();
+      return pair.first;
+    }
+  };
+
+  template<>
+  struct Type<std::string**>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      using Pointer_T = Pointer<std::string*>;
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Pointer_T>();
+      return pair.first;
     }
   };
 
@@ -163,6 +194,26 @@ namespace Rice::detail
     Return* returnInfo_ = nullptr;
   };
 
+  template<int N>
+  class To_Ruby<std::string[N]>
+  {
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    {
+    }
+
+    VALUE convert(std::string data[N])
+    {
+      Buffer<std::string> buffer(data, N);
+      Data_Object<Buffer<std::string>> dataObject(std::move(buffer));
+      return dataObject.value();
+    }
+  private:
+    Return* returnInfo_ = nullptr;
+  };
+
   template<>
   class To_Ruby<std::string*>
   {
@@ -173,9 +224,20 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::string* x)
+    VALUE convert(const std::string* value)
     {
-      return detail::protect(rb_external_str_new, x->data(), (long)x->size());
+      bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+      bool isBuffer = this->returnInfo_ && this->returnInfo_->isBuffer();
+
+      if (isBuffer)
+      {
+        using Pointer_T = Pointer<std::string>;
+        return detail::wrap(Data_Type<Pointer_T>::klass(), Data_Type<Pointer_T>::ruby_data_type(), value, isOwner);
+      }
+      else
+      {
+        return detail::protect(rb_external_str_new, value->data(), (long)value->size());
+      }
     }
 
   private:
@@ -372,6 +434,11 @@ namespace Rice::detail
     {
       return true;
     }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
   };
 
   template<>
@@ -441,6 +508,11 @@ namespace Rice::detail
     static bool verify()
     {
       return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cComplex;
     }
   };
 
@@ -611,6 +683,12 @@ namespace Rice::detail
     {
       return Type<intrinsic_type<T>>::verify();
     }
+
+    static VALUE rubyKlass()
+    {
+      TypeMapper<T> typeMapper;
+      return typeMapper.rubyKlass();
+    }
   };
 
   template<>
@@ -773,6 +851,12 @@ namespace Rice::detail
     constexpr static bool verify()
     {
       return Type<T>::verify();
+    }
+
+    static VALUE rubyKlass()
+    {
+      TypeMapper<T> typeMapper;
+      return typeMapper.rubyKlass();
     }
   };
 
@@ -1440,6 +1524,11 @@ namespace Rice::detail
     constexpr static bool verify()
     {
       return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cNilClass;
     }
   };
 
@@ -2607,7 +2696,8 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return Type<T*>::verify();
+        return Type<Pointer<T>>::verify();
+        return Type<Buffer<T>>::verify();
       }
       else
       {
@@ -2814,6 +2904,11 @@ namespace Rice::detail
     {
       auto indices = std::make_index_sequence<std::tuple_size_v<std::tuple<Types...>>>{};
       return verifyTypes(indices);
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cArray;
     }
   };
 
@@ -3488,7 +3583,15 @@ namespace Rice::detail
   {
     static bool verify()
     {
-      return Type<T>::verify();
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        return Type<Pointer<T>>::verify();
+        return Type<Buffer<T>>::verify();
+      }
+      else
+      {
+        return Type<T>::verify();
+      }
     }
 
     static VALUE rubyKlass()
@@ -4022,12 +4125,10 @@ namespace Rice
       // Helper method to translate Ruby indices to vector indices
       Difference_T normalizeIndex(Size_T size, Difference_T index, bool enforceBounds = false)
       {
-        // Negative indices mean count from the right. Note that negative indices
-        // wrap around!
-        if (index < 0)
+        // Negative indices mean count from the right
+        if (index < 0 && (-index <= size))
         {
-          index = ((-index) % size);
-          index = index > 0 ? size - index : index;
+          index = size + index;
         }
 
         if (enforceBounds && (index < 0 || index >= (Difference_T)size))
@@ -4145,7 +4246,7 @@ namespace Rice
               return vector[index];
             }
           })
-          .template define_method<Value_T*(T::*)()>("data", &T::data);
+          .template define_method<Value_T*(T::*)()>("data", &T::data, Return().setBuffer());
         }
         else
         {
@@ -4299,8 +4400,15 @@ namespace Rice
           })
           .define_method("insert", [this](T& vector, Difference_T index, Parameter_T element) -> T&
           {
-            index = normalizeIndex(vector.size(), index, true);
-            auto iter = vector.begin() + index;
+            int normalized = normalizeIndex(vector.size(), index, true);
+            // For a Ruby array a positive index means insert the element before the index. But
+            // a negative index means insert the element *after* the index. std::vector
+            // inserts *before* the index. So add 1 if this is a negative index.
+            if (index < 0)
+            {
+              normalized++;
+            }
+            auto iter = vector.begin() + normalized;
             vector.insert(iter, std::move(element));
             return vector;
           })
