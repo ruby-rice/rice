@@ -648,13 +648,10 @@ namespace
   private:
     BigObject** bigObjects_ = nullptr;
   };
-
 }
 
 TESTCASE(pointerToPointer)
 {
-  define_buffer<BigObject*>();
-
   Module m = define_module("DataTypePointerToPointer");
 
   Class BigObjectClass = define_class<BigObject>("BigObject")
@@ -664,9 +661,9 @@ TESTCASE(pointerToPointer)
     .define_constructor(Constructor<Processor>())
     .define_method("create", &Processor::createBigObjects)
     .define_method("sum", &Processor::sumBigObjects,
-                          Arg("bigObjects").setArray(), Arg("size"))
+                          Arg("bigObjects").setBuffer(), Arg("size"))
     .define_method("sum_const", &Processor::sumBigObjectsConst,
-                                Arg("bigObjects").setArray(), Arg("size"));
+                                Arg("bigObjects").setBuffer(), Arg("size"));
 
   std::string code = R"(count = 2
                           processor = ProcessorClass.new
@@ -821,9 +818,6 @@ namespace RangesTest
 
 TESTCASE(array_of_ranges)
 {
-  define_pointer<RangesTest::RangeCustom>();
-  define_buffer<RangesTest::RangeCustom>();
-
   Module m = define_module("CustomRanges");
 
   Class c = define_class_under<RangesTest::RangeCustom>(m, "RangeCustom")
@@ -832,7 +826,7 @@ TESTCASE(array_of_ranges)
     .define_attr("y", &RangesTest::RangeCustom::y);
 
   m.define_module_function("sum_ranges_array", RangesTest::sumRangesArray, 
-                                               Arg("ranges[]").setArray(), Arg("size"));
+                                               Arg("ranges[]").setBuffer(), Arg("size"));
 
   std::string code = R"(range1 = RangeCustom.new(1, 2)
                         range2 = RangeCustom.new(3, 4)
@@ -847,8 +841,6 @@ TESTCASE(array_of_ranges)
 
 TESTCASE(pointer_of_ranges)
 {
-  define_buffer<RangesTest::RangeCustom>();
-
   Module m = define_module("CustomRanges");
 
   Class c = define_class_under<RangesTest::RangeCustom>(m, "RangeCustom")
@@ -857,7 +849,7 @@ TESTCASE(pointer_of_ranges)
     .define_attr("y", &RangesTest::RangeCustom::y);
 
   m.define_module_function<int(*)(const RangesTest::RangeCustom*, int)>("sum_ranges", RangesTest::sumRanges,
-                                                                        Arg("ranges").setArray(), Arg("size"));
+                                                                        Arg("ranges").setBuffer(), Arg("size"));
 
   std::string code = R"(range1 = RangeCustom.new(1, 2)
                         range2 = RangeCustom.new(3, 4)
@@ -872,8 +864,6 @@ TESTCASE(pointer_of_ranges)
 
 TESTCASE(pointer_of_ranges_wrong)
 {
-  define_buffer<RangesTest::RangeCustom>();
-
   Module m = define_module("CustomRanges");
 
   Class c = define_class_under<RangesTest::RangeCustom>(m, "RangeCustom")
@@ -893,14 +883,12 @@ TESTCASE(pointer_of_ranges_wrong)
   ASSERT_EXCEPTION_CHECK(
     Rice::Exception,
     m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Rice::Buffer≺RangesTest꞉꞉RangeCustom≻ (expected CustomRanges::RangeCustom)", ex.what())
+    ASSERT_EQUAL("Wrong argument type. Expected: Rice::Pointer≺RangesTest꞉꞉RangeCustom≻. Received: Rice::Buffer≺RangesTest꞉꞉RangeCustom≻.", ex.what())
   );
 }
 
 TESTCASE(pointer_of_pointer_ranges)
 {
-  define_buffer<RangesTest::RangeCustom*>();
-
   Module m = define_module("CustomRanges");
 
   Class c = define_class_under<RangesTest::RangeCustom>(m, "RangeCustom")
@@ -908,12 +896,12 @@ TESTCASE(pointer_of_pointer_ranges)
     .define_attr("x", &RangesTest::RangeCustom::x)
     .define_attr("y", &RangesTest::RangeCustom::y);
 
-  m.define_module_function<int(*)(const RangesTest::RangeCustom**, int)>("sum_ranges", RangesTest::sumRanges);
+  m.define_module_function<int(*)(const RangesTest::RangeCustom**, int)>("sum_ranges", RangesTest::sumRanges, Arg("ranges").setBuffer());
 
   std::string code = R"(range1 = RangeCustom.new(1, 2)
                         range2 = RangeCustom.new(3, 4)
                         range3 = RangeCustom.new(5, 6)
-                        buffer = Rice::Buffer≺RangesTest꞉꞉RangeCustom≻.new([range1, range2, range3])
+                        buffer = Rice::Buffer≺RangesTest꞉꞉RangeCustom∗≻.new([range1, range2, range3])
                         sum_ranges(buffer.data, buffer.size))";
 
   Object result = m.module_eval(code);

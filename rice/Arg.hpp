@@ -81,9 +81,9 @@ namespace Rice
     virtual Arg& takeOwnership();
     bool isOwner();
 
-    //! Is the parameter a C style array
-    virtual Arg& setArray();
-    bool isArray();
+    //! Is the parameter a buffer
+    virtual Arg& setBuffer();
+    bool isBuffer();
 
   public:
     std::string name;
@@ -96,7 +96,7 @@ namespace Rice
     bool isKeepAlive_ = false;
     bool isOwner_ = false;
     bool isOpaque_ = false;
-    bool isArray_ = false;
+    bool isBuffer_ = false;
 
   };
 } // Rice

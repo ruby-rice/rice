@@ -27,6 +27,23 @@ namespace Rice
         return buffer;
       }, Arg("self").setValue());
 
+    // Define a buffer to read the pointer's data
+    define_buffer<T>();
+
     return result;
   }
+}
+
+namespace Rice::detail
+{
+  template<typename T>
+  struct Type<Pointer<T>>
+  {
+    static bool verify()
+    {
+      detail::verifyType<T>();
+      define_pointer<T>();
+      return true;
+    }
+  };
 }

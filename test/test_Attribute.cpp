@@ -1,4 +1,4 @@
-#include <assert.h>
+﻿#include <assert.h>
 
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
@@ -382,4 +382,115 @@ TESTCASE(not_defined)
     o.call("some_class"),
     ASSERT_EQUAL(message, ex.what())
   );
+}
+
+namespace
+{
+  class Counter
+  {
+  public:
+    Counter() = default;
+
+    Counter(int i): value(i)
+    {
+    }
+
+    int value;
+  };
+
+  struct BufferAttrs
+  {
+    BufferAttrs() : stringArray{"one", "two", "three"}
+    {
+      this->buffer = new unsigned char[4]{'a', 'b', 'c', '\0'};
+      this->countersBuffer = new Counter[2]{ 0, 1 };
+    }
+
+    ~BufferAttrs()
+    {
+      delete[] this->buffer;
+      delete[] this->countersBuffer;
+    }
+
+    inline static float floatArray[3] = {1.0, 2.0, 3.0};
+    std::string stringArray[3];
+    unsigned char* buffer = nullptr;
+    Counter counters[2];
+    Counter* countersBuffer = nullptr;
+  };
+}
+
+TESTCASE(ArrayStaticAttribute)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_class<BufferAttrs>("BufferAttrs")
+    .define_constructor(Constructor<BufferAttrs>())
+    .define_singleton_attr("floats", &BufferAttrs::floatArray, Rice::AttrAccess::Read);
+
+  std::string code = R"(BufferAttrs.floats.class)";
+  Class klass = (Class)m.module_eval(code);
+  ASSERT_EQUAL("Rice::Buffer≺float≻", klass.name().c_str());
+}
+
+TESTCASE(ArrayAttribute)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_class<BufferAttrs>("BufferAttrs")
+    .define_constructor(Constructor<BufferAttrs>())
+    .define_attr("strings", &BufferAttrs::stringArray, Rice::AttrAccess::Read);
+
+  std::string code = R"(struct = BufferAttrs.new
+                        struct.strings.class)";
+  Class klass = (Class)m.module_eval(code);
+  ASSERT_EQUAL("Rice::Buffer≺string≻", klass.name().c_str());
+}
+
+TESTCASE(BufferAttribute)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_class<BufferAttrs>("BufferAttrs")
+    .define_constructor(Constructor<BufferAttrs>())
+    .define_attr("buffer", &BufferAttrs::buffer, Rice::AttrAccess::Read, Return().setBuffer());
+
+  std::string code = R"(struct = BufferAttrs.new
+                        struct.buffer.class)";
+  Class klass = (Class)m.module_eval(code);
+  ASSERT_EQUAL("Rice::Pointer≺unsigned char≻", klass.name().c_str());
+}
+
+TESTCASE(CounterArrayAttribute)
+{
+  Module m = define_module("Testing");
+
+  define_class<Counter>("Counter")
+    .define_attr("value", &Counter::value, Rice::AttrAccess::Read);
+
+  define_class<BufferAttrs>("BufferAttrs")
+    .define_constructor(Constructor<BufferAttrs>())
+    .define_attr("counters", &BufferAttrs::counters, Rice::AttrAccess::Read);
+
+  std::string code = R"(struct = BufferAttrs.new
+                        struct.counters.class)";
+  Class klass = (Class)m.module_eval(code);
+  ASSERT_EQUAL("Rice::Buffer≺AnonymousNamespace꞉꞉Counter≻", klass.name().c_str());
+}
+
+TESTCASE(CounterBufferAttribute)
+{
+  Module m = define_module("Testing");
+
+  define_class<Counter>("Counter")
+    .define_attr("value", &Counter::value, Rice::AttrAccess::Read);
+
+  define_class<BufferAttrs>("BufferAttrs")
+    .define_constructor(Constructor<BufferAttrs>())
+    .define_attr("counters_buffer", &BufferAttrs::countersBuffer, Rice::AttrAccess::Read, Return().setBuffer());
+
+  std::string code = R"(struct = BufferAttrs.new
+                        struct.counters_buffer.class)";
+  Class klass = (Class)m.module_eval(code);
+  ASSERT_EQUAL("Rice::Pointer≺AnonymousNamespace꞉꞉Counter≻", klass.name().c_str());
 }

@@ -9,6 +9,11 @@ namespace Rice::detail
     {
       return true;
     }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
   };
 
   template<>

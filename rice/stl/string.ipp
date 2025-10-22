@@ -16,18 +16,49 @@ namespace Rice::detail
     }
   };
 
-  template<>
-  struct Type<std::string*>
+  template<int N>
+  struct Type<std::string[N]>
   {
     static bool verify()
     {
-      define_buffer<std::string*>();
       return true;
     }
 
     static VALUE rubyKlass()
     {
       return rb_cString;
+    }
+  };
+
+  template<>
+  struct Type<std::string*>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      using Pointer_T = Pointer<std::string>;
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Pointer_T>();
+      return pair.first;
+    }
+  };
+
+  template<>
+  struct Type<std::string**>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      using Pointer_T = Pointer<std::string*>;
+      std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Pointer_T>();
+      return pair.first;
     }
   };
 
@@ -69,6 +100,26 @@ namespace Rice::detail
     Return* returnInfo_ = nullptr;
   };
 
+  template<int N>
+  class To_Ruby<std::string[N]>
+  {
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    {
+    }
+
+    VALUE convert(std::string data[N])
+    {
+      Buffer<std::string> buffer(data, N);
+      Data_Object<Buffer<std::string>> dataObject(std::move(buffer));
+      return dataObject.value();
+    }
+  private:
+    Return* returnInfo_ = nullptr;
+  };
+
   template<>
   class To_Ruby<std::string*>
   {
@@ -79,9 +130,20 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::string* x)
+    VALUE convert(const std::string* value)
     {
-      return detail::protect(rb_external_str_new, x->data(), (long)x->size());
+      bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
+      bool isBuffer = this->returnInfo_ && this->returnInfo_->isBuffer();
+
+      if (isBuffer)
+      {
+        using Pointer_T = Pointer<std::string>;
+        return detail::wrap(Data_Type<Pointer_T>::klass(), Data_Type<Pointer_T>::ruby_data_type(), value, isOwner);
+      }
+      else
+      {
+        return detail::protect(rb_external_str_new, value->data(), (long)value->size());
+      }
     }
 
   private:

@@ -218,8 +218,14 @@ namespace Rice
   template<typename T>
   inline bool Data_Type<T>::is_descendant(VALUE value)
   {
-    check_is_bound();
-    return detail::protect(rb_obj_is_kind_of, value, klass_) == Qtrue;
+    if (is_bound())
+    {
+      return detail::protect(rb_obj_is_kind_of, value, klass_) == Qtrue;
+    }
+    else
+    {
+      return false;
+    }
   }
 
   template<typename T>
@@ -325,34 +331,32 @@ namespace Rice
 
   template <typename T>
   template <typename Attribute_T>
-  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attribute_T attribute, AttrAccess access)
+  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attribute_T attribute, AttrAccess access, Return returnInfo)
   {
-    return this->define_attr_internal<Attribute_T>(this->klass_, name, std::forward<Attribute_T>(attribute), access);
+    return this->define_attr_internal<Attribute_T>(this->klass_, name, std::forward<Attribute_T>(attribute), access, returnInfo);
   }
 
   template <typename T>
   template <typename Attribute_T>
-  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access)
+  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access, Return returnInfo)
   {
     VALUE singleton = detail::protect(rb_singleton_class, this->value());
-    return this->define_attr_internal<Attribute_T>(singleton, name, std::forward<Attribute_T>(attribute), access);
+    return this->define_attr_internal<Attribute_T>(singleton, name, std::forward<Attribute_T>(attribute), access, returnInfo);
   }
 
   template <typename T>
   template <typename Attribute_T>
-  inline Data_Type<T>& Data_Type<T>::define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access)
+  inline Data_Type<T>& Data_Type<T>::define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access, Return returnInfo)
   {
     using Attr_T = typename detail::attribute_traits<Attribute_T>::attr_type;
-
-    // Make sure the Attribute type has been previously seen by Rice
-    detail::verifyType<Attr_T>();
 
     // Define attribute getter
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
     {
-      detail::NativeAttributeGet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute));
+      detail::NativeAttributeGet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute), returnInfo);
     }
 
+    // Define attribute setter
     // Define attribute setter
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
     {

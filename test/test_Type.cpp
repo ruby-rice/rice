@@ -277,48 +277,80 @@ TESTCASE(RubyKlass)
   actual = typeMapper16.rubyKlass();
   ASSERT_EQUAL(rb_cString, actual);
 
-  define_vector<std::string>();
-  Module stdModule("Std");
-
-  detail::TypeMapper<std::vector<std::string>> typeMapper17;
-  expected = stdModule.const_get("Vector≺string≻");
+  define_pointer<std::string>();
+  detail::TypeMapper<std::string*> typeMapper17;
+  expected = riceModule.const_get("Pointer≺string≻");
   actual = typeMapper17.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
-  define_class<Outer::Inner::Vec1>("Vec1");
-  detail::TypeMapper<Outer::Inner::Vec1> typeMapper18;
-  expected = Object(rb_cObject).const_get("Vec1");
+  define_pointer<std::string*>();
+  detail::TypeMapper<std::string**> typeMapper18;
+  expected = riceModule.const_get("Pointer≺string∗≻");
   actual = typeMapper18.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
+  
+  define_vector<std::string>();
+  Module stdModule("Std");
 
-  define_class<Outer::Inner::Map1>("Map1");
-  detail::TypeMapper<Outer::Inner::Map1> typeMapper19;
-  expected = Object(rb_cObject).const_get("Map1");
+  detail::TypeMapper<std::vector<std::string>> typeMapper19;
+  expected = stdModule.const_get("Vector≺string≻");
   actual = typeMapper19.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
-  define_class<Outer::Inner::UnorderedMap1>("UnorderedMap1");
-  detail::TypeMapper<Outer::Inner::UnorderedMap1> typeMapper20;
-  expected = Object(rb_cObject).const_get("UnorderedMap1");
+  define_class<Outer::Inner::Vec1>("Vec1");
+  detail::TypeMapper<Outer::Inner::Vec1> typeMapper20;
+  expected = Object(rb_cObject).const_get("Vec1");
   actual = typeMapper20.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
- 
-  define_class<Outer::Inner::SomeClass>("SomeClass");
-  detail::TypeMapper<Outer::Inner::SomeClass**> typeMapper21;
-  expected = Object(rb_cObject).const_get("SomeClass");
+
+  define_class<Outer::Inner::Map1>("Map1");
+  detail::TypeMapper<Outer::Inner::Map1> typeMapper21;
+  expected = Object(rb_cObject).const_get("Map1");
   actual = typeMapper21.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 
-  using Callback_T = char*(*)(int, double, bool, char*);
-  detail::TypeMapper<Callback_T> typeMapper22;
-  expected = Object(rb_cObject).const_get("Proc");
+  define_class<Outer::Inner::UnorderedMap1>("UnorderedMap1");
+  detail::TypeMapper<Outer::Inner::UnorderedMap1> typeMapper22;
+  expected = Object(rb_cObject).const_get("UnorderedMap1");
   actual = typeMapper22.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
-
-  detail::TypeMapper<std::tuple<float, float>> typeMapper23;
-  expected = Object(rb_cObject).const_get("Array");
+ 
+  define_class<Outer::Inner::SomeClass>("SomeClass");
+  detail::TypeMapper<Outer::Inner::SomeClass**> typeMapper23;
+  expected = Object(rb_cObject).const_get("SomeClass");
   actual = typeMapper23.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
+
+  using Callback_T = char*(*)(int, double, bool, char*);
+  detail::TypeMapper<Callback_T> typeMapper24;
+  expected = Object(rb_cObject).const_get("Proc");
+  actual = typeMapper24.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+
+  detail::TypeMapper<std::tuple<float, float>> typeMapper25;
+  expected = Object(rb_cObject).const_get("Array");
+  actual = typeMapper25.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+
+  detail::TypeMapper<std::optional<float>> typeMapper26;
+  actual = typeMapper26.rubyKlass();
+  ASSERT_EQUAL(rb_cFloat, actual);
+
+  detail::TypeMapper<std::complex<float>> typeMapper27;
+  actual = typeMapper27.rubyKlass();
+  ASSERT_EQUAL(rb_cComplex, actual);
+
+  detail::TypeMapper<std::monostate> typeMapper28;
+  actual = typeMapper28.rubyKlass();
+  ASSERT_EQUAL(rb_cNilClass, actual);
+
+  detail::TypeMapper<std::reference_wrapper<int>> typeMapper29;
+  actual = typeMapper29.rubyKlass();
+  ASSERT_EQUAL(rb_cInteger, actual);
+
+  detail::TypeMapper<std::string_view> typeMapper30;
+  actual = typeMapper30.rubyKlass();
+  ASSERT_EQUAL(rb_cString, actual);
 }
 
 TESTCASE(MakeRubyClass)

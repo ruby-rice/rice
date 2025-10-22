@@ -163,7 +163,15 @@ namespace Rice::detail
   {
     static bool verify()
     {
-      return Type<T>::verify();
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        return Type<Pointer<T>>::verify();
+        return Type<Buffer<T>>::verify();
+      }
+      else
+      {
+        return Type<T>::verify();
+      }
     }
 
     static VALUE rubyKlass()

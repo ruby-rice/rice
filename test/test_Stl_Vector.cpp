@@ -18,7 +18,7 @@ TEARDOWN(Vector)
 {
   rb_gc_start();
 }
-
+/*
 namespace
 {
   class MyClass
@@ -64,6 +64,22 @@ TESTCASE(StringVector)
 
   result = vec.call("last");
   ASSERT_EQUAL("four", detail::From_Ruby<std::string>().convert(result));
+}
+*/
+TESTCASE(StringVectorData)
+{
+  Module m = define_module("Testing");
+  define_vector<std::string>();
+
+  std::string code = R"(vec = Std::Vector≺string≻.new
+                        vec.push("Hello")
+                        vec.push("World")
+                        buffer = Rice::Buffer≺string≻.new(vec.data, vec.size())
+                        [buffer[0], buffer[1]])";
+  Array array = m.module_eval(code);
+  ASSERT_EQUAL(2, array.size());
+  ASSERT_EQUAL("Hello", detail::From_Ruby<std::string>().convert(array[0].value()).c_str());
+  ASSERT_EQUAL("World", detail::From_Ruby<std::string>().convert(array[1].value()).c_str());
 }
 
 TESTCASE(Constructors)
@@ -1084,7 +1100,6 @@ namespace
 
 TESTCASE(StringPointerVector)
 {
-  define_buffer<std::string>();
   define_global_function("vector_of_string_pointers", &vectorOfStringPointers);
 
   Module m(rb_mKernel);

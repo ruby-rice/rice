@@ -177,6 +177,35 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 
+  template <typename T, int N>
+  class To_Ruby<T[N]>
+  {
+    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
+      !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
+      !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
+      !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
+      !std::is_same_v<T, std::vector<T>>,
+      "Please include rice/stl.hpp header for STL support");
+
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    template<typename U>
+    VALUE convert(U data[N])
+    {
+      Buffer<T> buffer(data, N);
+      Data_Object<Buffer<T>> dataObject(std::move(buffer));
+      return dataObject.value();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
   template <typename T>
   class To_Ruby<T*>
   {
@@ -198,12 +227,13 @@ namespace Rice::detail
     VALUE convert(U* data)
     {
       bool isOwner = this->arg_ && this->arg_->isOwner();
+      bool isBuffer = this->arg_ && this->arg_->isBuffer();
 
       if (data == nullptr)
       {
         return Qnil;
       }
-      else if (std::is_fundamental_v<std::remove_pointer_t<T>> || (this->arg_ && this->arg_->isArray()))
+      else if (std::is_fundamental_v<std::remove_pointer_t<T>> || isBuffer)
       {
         using Pointer_T = Pointer<remove_cv_recursive_t<U>>;
         return detail::wrap(Data_Type<Pointer_T>::klass(), Data_Type<Pointer_T>::ruby_data_type(), data, isOwner);
@@ -222,7 +252,7 @@ namespace Rice::detail
   };
 
   template <typename T>
-  class To_Ruby<T*&>
+    class To_Ruby<T*&>
   {
     static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
                   !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
@@ -242,7 +272,8 @@ namespace Rice::detail
     VALUE convert(U* data)
     {
       bool isOwner = this->arg_ && this->arg_->isOwner();
-
+      bool isBuffer = this->arg_ && this->arg_->isBuffer();
+ 
       if (data == nullptr)
       {
         return Qnil;
@@ -252,7 +283,7 @@ namespace Rice::detail
         std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType(*data);
         return detail::wrap(rubyTypeInfo.first, rubyTypeInfo.second, data, isOwner);
       }
-      else if (std::is_fundamental_v<T> || (this->arg_ && this->arg_->isArray()))
+      else if (std::is_fundamental_v<T> || isBuffer)
       {
         using Pointer_T = Pointer<remove_cv_recursive_t<U>>;
         return detail::wrap(Data_Type<Pointer_T>::klass(), Data_Type<Pointer_T>::ruby_data_type(), data, isOwner);
@@ -470,23 +501,21 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      bool isArray = this->arg_ && this->arg_->isArray();
-
       switch (rb_type(value))
       {
-        case RUBY_T_DATA:
-          if (std::is_fundamental_v<std::remove_pointer_t<T>> || isArray)
-          {
-            return Data_Type<Pointer<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
-          }
-          else
-          {
-            return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
-          }
-          break;
         case RUBY_T_NIL:
           return Convertible::Exact;
           break;
+        case RUBY_T_DATA:
+          if (Data_Type<T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          else if (Data_Type<Pointer<T>>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
         default:
           return Convertible::None;
       }
@@ -495,7 +524,6 @@ namespace Rice::detail
     T* convert(VALUE value)
     {
       bool isOwner = this->arg_ && this->arg_->isOwner();
-      bool isArray = this->arg_ && this->arg_->isArray();
 
       switch (rb_type(value))
       {
@@ -506,14 +534,15 @@ namespace Rice::detail
         }
         case RUBY_T_DATA:
         {
-          if (std::is_fundamental_v<intrinsic_type<T>> || isArray)
-          {
-            return detail::unwrap<T>(value, Data_Type<Pointer<T>>::ruby_data_type(), isOwner);
-          }
-          else
+          if (Data_Type<T>::is_descendant(value))
           {
             return detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), isOwner);
           }
+          else if (Data_Type<Pointer<T>>::is_descendant(value))
+          {
+            return detail::unwrap<T>(value, Data_Type<Pointer<T>>::ruby_data_type(), isOwner);
+          }
+          [[fallthrough]];
         }
         default:
         {

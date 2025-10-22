@@ -67,7 +67,8 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return Type<T*>::verify();
+        return Type<Pointer<T>>::verify();
+        return Type<Buffer<T>>::verify();
       }
       else
       {

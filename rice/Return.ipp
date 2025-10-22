@@ -30,9 +30,9 @@ namespace Rice
     return *this;
   }
 
-  inline Return& Return::setArray()
+  inline Return& Return::setBuffer()
   {
-    Arg::setArray();
+    Arg::setBuffer();
     return *this;
   }
 }  // Rice

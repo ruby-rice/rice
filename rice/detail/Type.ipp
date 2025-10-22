@@ -19,16 +19,7 @@ namespace Rice::detail
   template<typename T>
   inline bool Type<T&>::verify()
   {
-    if constexpr (std::is_fundamental_v<T>)
-    {
-      define_pointer<T>();
-      define_buffer<T>();
-      return true;
-    }
-    else
-    {
-      return Type<T>::verify();
-    }
+    return Type<T>::verify();
   }
 
   template<typename T>
@@ -40,32 +31,13 @@ namespace Rice::detail
   template<typename T>
   inline bool Type<T*>::verify()
   {
-    if constexpr (std::is_fundamental_v<T>)
-    {
-      define_pointer<T>();
-      define_buffer<T>();
-      return true;
-    }
-    else
-    {
-      return Type<T>::verify();
-    }
+    return Type<T>::verify();
   }
 
   template<typename T>
   inline bool Type<T**>::verify()
   {
-    define_pointer<T*>();
-    define_buffer<T*>();
-
-    if constexpr (std::is_fundamental_v<T>)
-    {
-      return true;
-    }
-    else
-    {
-      return Type<T>::verify();
-    }
+    return Type<T>::verify();
   }
 
   template<typename T>

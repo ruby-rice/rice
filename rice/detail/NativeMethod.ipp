@@ -9,6 +9,11 @@ namespace Rice::detail
   template<typename Class_T, typename Method_T>
   void NativeMethod<Class_T, Method_T>::define(VALUE klass, std::string method_name, Method_T method, MethodInfo* methodInfo)
   {
+    // Verify return and argument types
+    Native::verify_type<Return_T>(methodInfo->returnInfo()->isBuffer());
+    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+    Native::verify_args<Arg_Ts>(methodInfo, indices);
+
     // Have we defined this method yet in Ruby?
     Identifier identifier(method_name);
     const std::vector<std::unique_ptr<Native>>& natives = Registries::instance.natives.lookup(klass, identifier.id());
@@ -312,7 +317,16 @@ namespace Rice::detail
   template<typename Class_T, typename Method_T>
   inline VALUE NativeMethod<Class_T, Method_T>::returnKlass()
   {
-    TypeMapper<Return_T> typeMapper;
-    return typeMapper.rubyKlass();
+    // Check if an array is being returned
+    if (this->methodInfo_->returnInfo()->isBuffer())
+    {
+      TypeMapper<Pointer<Return_T>> typeMapper;
+      return typeMapper.rubyKlass();
+    }
+    else
+    {
+      TypeMapper<Return_T> typeMapper;
+      return typeMapper.rubyKlass();
+    }
   }
 }

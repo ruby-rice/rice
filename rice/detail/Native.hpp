@@ -51,6 +51,12 @@ namespace Rice::detail
     std::vector<const ParameterAbstract*> parameters();
 
   protected:
+    template<typename T>
+    static void verify_type(bool isBuffer);
+
+    template<typename Tuple_T, std::size_t ...Indices>
+    static void verify_args(MethodInfo* methodInfo, std::index_sequence<Indices...> indices);
+
     std::vector<std::optional<VALUE>> getRubyValues(size_t argc, const VALUE* argv, bool validate);
     ParameterAbstract* getParameterByName(std::string name);
     Convertible matchParameters(std::vector<std::optional<VALUE>>& values);

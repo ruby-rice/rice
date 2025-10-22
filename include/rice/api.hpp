@@ -169,7 +169,7 @@ inline void Init_Native()
   define_class_under<detail::Native>(rb_mRice, "Native").
     define_method("name", &detail::Native::name).
     define_method("kind", &detail::Native::kind).
-    define_method("klass", &detail::Native::returnKlass, Return().setValue()).
+    define_method("return_klass", &detail::Native::returnKlass, Return().setValue()).
     define_method("parameters", &detail::Native::parameters).
     define_method("to_s", [](detail::Native& self) -> std::string
       {
