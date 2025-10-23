@@ -24,7 +24,7 @@ Ruby extensions with C++ easier.
   }
 
   s.bindir = "bin"
-  s.executables = ["rice-rbs"]
+  s.executables = ["rice-doc.rb", "rice-rbs.rb"]
 
   s.test_files = Dir['test/ruby/*.rb']
   s.extra_rdoc_files = ['README.md']
