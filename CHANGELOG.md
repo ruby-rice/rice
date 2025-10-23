@@ -4,8 +4,8 @@ Updates:
 * Introduce Pointer<T> class to wrap pointers to fundamental types and arrays.
 * Add new methods Arg#setBuffer and Return#setBuffer to indicate that a C++ pointer references an array of objects versus a single object
 * Add a new Introspection API that exposes Rice internals to Ruby
-* Using the Introspection API, add support for generating RBS files for extensions
-* Using the Introspection API, add support for generating Markdown documentation for extensions
+* Using the Introspection API, add support for generating RBS files for extensions. See bin/rice-rbs.rb
+* Using the Introspection API, add support for generating Markdown documentation for extensions. See bin/rice-doc.rb
 * Don't create attribute writers for const attributes
 * Support attribute setters for Enums
 * Support wrapping std::vector<std::unique_ptr<T>>
