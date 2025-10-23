@@ -31,20 +31,15 @@
 
 class Gem::Ext::CmakeBuilder
   attr_accessor :runner, :profile
-
   def initialize
     @runner = self.class.method(:run)
     @profile = :release
   end
 
-  def build(extension, dest_path, results, args = [], lib_dir = nil, cmake_dir = Dir.pwd, target_rbconfig = Gem.target_rbconfig)
+  def build(extension, dest_path, results, args = [], lib_dir = nil, cmake_dir = Dir.pwd,
+            target_rbconfig = Gem.target_rbconfig)
     if target_rbconfig.path
       warn "--target-rbconfig is not yet supported for CMake extensions. Ignoring"
-    end
-
-    # Make sure lib dir is set
-    unless lib_dir
-      lib_dir ||= File.join(dest_path, "lib")
     end
 
     # Figure the build dir
@@ -54,7 +49,7 @@ class Gem::Ext::CmakeBuilder
     check_presets(cmake_dir, args, results)
 
     # Configure
-    configure(cmake_dir, build_dir, lib_dir, args, results)
+    configure(cmake_dir, build_dir, dest_path, args, results)
 
     # Compile
     compile(cmake_dir, build_dir, args, results)
@@ -62,13 +57,13 @@ class Gem::Ext::CmakeBuilder
     results
   end
 
-  def configure(cmake_dir, build_dir, lib_dir, args, results)
+  def configure(cmake_dir, build_dir, install_dir, args, results)
     cmd = ["cmake",
            cmake_dir,
            "-B",
            build_dir,
-           "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=#{lib_dir}", # Windows
-           "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=#{lib_dir}", # Not Windows
+           "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=#{install_dir}", # Windows
+           "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=#{install_dir}", # Not Windows
            *Gem::Command.build_args,
            *args]
 
