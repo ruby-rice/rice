@@ -73,3 +73,15 @@ TESTCASE(to_id)
   Symbol symbol("Foo");
   ASSERT_EQUAL(Identifier("Foo"), symbol.to_id());
 }
+
+namespace
+{
+  void testSymbolArg(Object self, Symbol string)
+  {
+  }
+}
+
+TESTCASE(use_symbol_in_wrapped_function)
+{
+  define_global_function("test_symbol_arg", &testSymbolArg);
+}
