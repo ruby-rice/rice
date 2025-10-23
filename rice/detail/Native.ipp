@@ -182,10 +182,10 @@ namespace Rice::detail
 
     if constexpr (std::is_pointer_v<T> && std::is_fundamental_v<std::remove_pointer_t<T>>)
     {
-      Type<Pointer<std::remove_pointer_t<T>>>::verify();
-      Type<Buffer<std::remove_pointer_t<T>>>::verify();
+      Type<Pointer<Base_T>>::verify();
+      Type<Buffer<Base_T>>::verify();
     }
-    if constexpr (std::is_array_v<T>)
+    else if constexpr (std::is_array_v<T>)
     {
       Type<Pointer<std::remove_extent_t<remove_cv_recursive_t<T>>>>::verify();
       Type<Buffer<std::remove_extent_t<remove_cv_recursive_t<T>>>>::verify();
