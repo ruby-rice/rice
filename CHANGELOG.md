@@ -1,16 +1,17 @@
-## 4.7.0 (2025-10-?)
+## 4.7.0 (2025-10-22)
 Updates:
 * Refactor Native wrappers - functions, methods, attributes and procs - to enable introspection API
 * Introduce Pointer<T> class to wrap pointers to fundamental types and arrays.
+* Add new methods Arg#setBuffer and Return#setBuffer to indicate that a C++ pointer references an array of objects versus a single object
 * Add a new Introspection API that exposes Rice internals to Ruby
 * Using the Introspection API, add support for generating RBS files for extensions
 * Using the Introspection API, add support for generating Markdown documentation for extensions
 * Don't create attribute writers for const attributes
 * Support attribute setters for Enums
 * Support wrapping std::vector<std::unique_ptr<T>>
-* Update Array#push to not always copy C++ instances. This lays the foundation for extracting references and pointers and from tuples, variants and optionals.
+* Update Array#push to not always copy C++ instances. This lays the foundation for extracting references and pointers from tuples, variants and optionals.
 * Add very basic support for creating std::filesystem::path instances
-* Remove toy samples and test libraries. These are replaced by a new gem that wraps the BitMapPlusPlus library (https://github.com/baderouaich/BitmapPlusPlus)
+* Remove toy samples and test libraries. These will be replaced by a new gem that wraps the BitMapPlusPlus library (https://github.com/baderouaich/BitmapPlusPlus)
 * Add support for std::runtime_error since some libraries use that as a base exception class (thus when Rice wraps custom exceptions it also needs to wrap the base class)
 * Improve std::vector indexing to more closely match Ruby for negative index values
 * Correctly encode UTF8 Ruby class names in exception messages
@@ -23,7 +24,7 @@ Breaking Changes:
    ```
 * Custom implementations of To_Ruby must include a custom constructor:
     ```
-    explicit To_Ruby(Arg* arg)
+    explicit To_Ruby(Return* returnInfo)
    ```
 * You can no longer pass a Buffer<T> to an API that takes a pointer. Instead use Buffer<T>#data or Buffer<T>::release
 * The Rice_Init method has been removed.
