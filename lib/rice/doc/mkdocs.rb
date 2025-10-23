@@ -24,9 +24,6 @@ module Rice
 				FileUtils.mkdir_p(@output)
 
 				klasses.sort_by(&:name).each.with_index do |klass, i|
-					next unless klass.name == "Cv::Mat"
-					#next unless klass.name.match(/^Buffer≺int∗≻/)
-
 					STDOUT << klass.name << " (" << i << "/" << klasses.count << ")" << "\n"
 					if klass.instance_of?(Module)
 						write_module(klass)
