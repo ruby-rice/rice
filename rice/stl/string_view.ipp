@@ -20,20 +20,38 @@ namespace Rice::detail
   class To_Ruby<std::string_view>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
     VALUE convert(std::string_view const& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<>
   class To_Ruby<std::string_view&>
   {
   public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
     VALUE convert(std::string_view const& x)
     {
       return detail::protect(rb_external_str_new, x.data(), (long)x.size());
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<>

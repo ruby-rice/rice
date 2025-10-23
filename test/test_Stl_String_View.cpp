@@ -91,3 +91,13 @@ TESTCASE(std_string_view_from_ruby_refefence)
   string.instance_eval("self[1] = 'a'");
   //ASSERT_EQUAL("tast", view);
 }
+
+namespace {
+  std::string_view testStringViewReturn(Object self) {
+    return "test";
+  }
+}
+
+TESTCASE(use_string_view_in_wrapped_function) {
+  define_global_function("test_string_view_return", &testStringViewReturn);
+}
