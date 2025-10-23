@@ -34,9 +34,9 @@ would iterate over an STL container:
 .. code-block:: cpp
 
   Array a;
-  a.push(detail::To_Ruby<int>().convert(42));
-  a.push(detail::To_Ruby<int>().convert(43));
-  a.push(detail::To_Ruby<int>().convert(44));
+  a.push(detail::To_Ruby<int>().convert(42), false);
+  a.push(detail::To_Ruby<int>().convert(43), false);
+  a.push(detail::To_Ruby<int>().convert(44), false);
   Array::iterator it = a.begin();
   Array::iterator end = a.end();
   for(; it != end; ++it)

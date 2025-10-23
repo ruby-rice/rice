@@ -1885,8 +1885,8 @@ namespace Rice
    *  Example:
    *  \code
    *    Array a;
-   *    a.push(String("some string"));
-   *    a.push(42);
+   *    a.push(String("some string"), false);
+   *    a.push(42, false);
    *  \endcode
    */
   class Array

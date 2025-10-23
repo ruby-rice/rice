@@ -28,6 +28,7 @@ Breaking Changes:
    ```
 * You can no longer pass a Buffer<T> to an API that takes a pointer. Instead use Buffer<T>#data or Buffer<T>::release
 * The Rice_Init method has been removed.
+* Array#push requires a second argument.
 
 ## 4.6.1 (2025-06-25)
 * Improve attribute handling. Correctly deal with non-copyable/assignable attributes and return references instead of copies of objects
