@@ -1965,7 +1965,7 @@ namespace Rice
      *  \return the object which was pushed onto the array.
      */
     template<typename T>
-    Object push(T&& obj, bool takeOwnership);
+    Object push(T&& obj, bool takeOwnership = false);
 
     //! Pop an element from the end of the array
     /*! \return the object which was popped from the array, or Qnil if
