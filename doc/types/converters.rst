@@ -64,6 +64,8 @@ Next, we need to write C++ code that converts the ``std::deque<int>`` to a Ruby 
     class To_Ruby<std::deque<int>>
     {
     public:
+      To_Ruby() = default;
+
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
       }
@@ -109,7 +111,9 @@ Last, we need to write C++ code that converts a Ruby Array to ``std::deque<int>`
     class From_Ruby<std::deque<int>>
     {
     public:
-      explicit To_Ruby(Arg* arg) : arg_(arg)
+      From_Ruby() = default;
+
+      explicit From_Ruby(Arg* arg) : arg_(arg)
       {
       }
 
@@ -169,6 +173,8 @@ Expanding on our example above:
       class From_Ruby<std::deque<int>>
       {
       public:
+        From_Ruby() = default;
+
         explicit From_Ruby(Arg* arg) : arg_(arg)
         {
         }
