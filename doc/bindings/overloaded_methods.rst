@@ -1,7 +1,7 @@
 .. _overloaded_methods:
 
 Overloaded Methods
---------------------
+==================
 
 C++ supports overloading constructors, methods and functions. Starting with version 4.5, Rice supports C++ method overloading.
 
