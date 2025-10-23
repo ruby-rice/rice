@@ -53,7 +53,7 @@ module Rice
 									 "attr_reader"
 								 else
 									 "attr_writer"
-									end
+								 end
 			"#{attr_type} #{native_attributes.first.name}: #{native_attributes.first.return_type}"
 		end
 
@@ -82,7 +82,7 @@ module Rice
 		end
 
 		def template
-			content = <<~EOS
+			<<~EOS
         module <%= klass.name.split("::")[0..-2].join("::") %>
           class <%= klass.name.split("::").last %>
           <%- native_functions.each do |name, functions| -%>
