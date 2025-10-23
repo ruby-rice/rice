@@ -104,6 +104,12 @@ namespace Rice::detail
   class From_Ruby<Symbol>
   {
   public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
     Convertible is_convertible(VALUE value)
     {
       switch (rb_type(value))
@@ -123,5 +129,8 @@ namespace Rice::detail
     {
       return Symbol(value);
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 }
