@@ -5,7 +5,6 @@ require_relative '../lib/rice'
 require_relative '../lib/rice/doc'
 
 # Now setup option parser
-require 'ostruct'
 require 'optparse'
 
 module Rice
@@ -51,7 +50,7 @@ module Rice
 		end
 
 		def parse_args
-			@options = OpenStruct.new
+			@options = Struct.new(:exec, :extension, :output).new
 			options.extension = nil
 			options.output = nil
 

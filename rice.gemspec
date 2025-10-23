@@ -67,7 +67,6 @@ Ruby extensions with C++ easier.
   ]
 
   s.required_ruby_version = ">= 3.1"
-  s.add_dependency "ostruct"
   s.add_development_dependency "bundler"
   s.add_development_dependency "rake"
   s.add_development_dependency "minitest"
