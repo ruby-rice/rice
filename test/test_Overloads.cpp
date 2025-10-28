@@ -647,7 +647,7 @@ TESTCASE(int_conversion_6)
   Class c = define_class<MyClass3>("MyClass3").
     define_constructor(Constructor<MyClass3>()).
     define_method<std::string(MyClass3::*)(unsigned char)>("run", &MyClass3::run).
-    define_method<std::string(MyClass3::*)(unsigned char*)>("run", &MyClass3::run);
+    define_method<std::string(MyClass3::*)(unsigned char*)>("run", &MyClass3::run, Arg("value").setBuffer());
 
   Module m = define_module("Testing");
 
@@ -707,8 +707,8 @@ TESTCASE(NonConstRef)
   Module m = define_module("Testing");
 
   std::string code = R"(my_class4 = MyClass4.new
-                          my_class5 = MyClass5.new(my_class4)
-                          my_class5.result)";
+                        my_class5 = MyClass5.new(my_class4)
+                        my_class5.result)";
   String result = m.module_eval(code);
   ASSERT_EQUAL("non-const ref", result.str());
 }
@@ -726,8 +726,8 @@ TESTCASE(ConstRef)
   Module m = define_module("Testing");
 
   std::string code = R"(my_class4 = MyClass4.const_instance
-                          my_class5 = MyClass5.new(my_class4)
-                          my_class5.result)";
+                        my_class5 = MyClass5.new(my_class4)
+                        my_class5.result)";
   String result = m.module_eval(code);
   ASSERT_EQUAL("const ref", result.str());
 }
@@ -799,8 +799,56 @@ TESTCASE(ConstPointer)
   Module m = define_module("Testing");
 
   std::string code = R"(my_class6 = MyClass6.const_instance
-                          my_class7 = MyClass7.new(my_class6)
-                          my_class7.result)";
+                        my_class7 = MyClass7.new(my_class6)
+                        my_class7.result)";
   String result = m.module_eval(code);
   ASSERT_EQUAL("const pointer", result.str());
+}
+
+namespace
+{
+  std::string pointer(const MyClass6* data)
+  {
+    return "pointer";
+  }
+
+  std::string pointer(MyClass6* data)
+  {
+    return "pointerBuffer";
+  }
+}
+
+TESTCASE(PointerNotBuffer)
+{
+  Module m = define_module("Testing");
+
+  define_class<MyClass6>("MyClass").
+    define_constructor(Constructor<MyClass6>());
+
+  m.define_module_function<std::string(*)(const MyClass6*)>("pointer", pointer).
+    define_module_function<std::string(*)(MyClass6*)>("pointer", pointer, Arg("data").setBuffer());
+
+  std::string code = R"(my_class6 = MyClass6.new
+                        pointer(my_class6))";
+  
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("pointer", result.str());
+}
+
+TESTCASE(PointerBuffer)
+{
+  Module m = define_module("Testing");
+
+  define_class<MyClass6>("MyClass").
+    define_constructor(Constructor<MyClass6>());
+
+  m.define_function<std::string(*)(const MyClass6*)>("pointer", pointer).
+    define_function<std::string(*)(MyClass6*)>("pointer", pointer, Arg("data").setBuffer());
+
+  std::string code = R"(my_class6 = MyClass6.new
+                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClass6≻.new(my_class6)
+                        pointer(buffer.data))";
+
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("pointerBuffer", result.str());
 }

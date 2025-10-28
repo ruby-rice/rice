@@ -594,7 +594,7 @@ TESTCASE(pass_objects)
 {
   Module m = define_module("Testing");
   m.define_module_function<size_t(*)(const MyClassBuf*, size_t)>("sum_ids", &sumIds, Arg("myClasses").setBuffer());
-  m.define_module_function<size_t(*)(const MyClassBuf**, size_t)>("sum_ids_ptr", &sumIds);
+  m.define_module_function<size_t(*)(const MyClassBuf**, size_t)>("sum_ids_ptr", &sumIds, Arg("myClasses").setBuffer());
 
   define_class_under<MyClassBuf>(m, "MyClassBuf").
     define_constructor(Constructor<MyClassBuf, int>()).
