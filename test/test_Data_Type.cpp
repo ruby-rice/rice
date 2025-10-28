@@ -871,7 +871,8 @@ TESTCASE(pointer_of_ranges_wrong)
     .define_attr("x", &RangesTest::RangeCustom::x)
     .define_attr("y", &RangesTest::RangeCustom::y);
 
-  m.define_module_function<int(*)(const RangesTest::RangeCustom*, int)>("sum_ranges_wrong", RangesTest::sumRanges);
+  m.define_module_function<int(*)(const RangesTest::RangeCustom*, int)>("sum_ranges_wrong", RangesTest::sumRanges,
+                                  Arg("ranges").setBuffer());
 
   std::string code = R"(range1 = RangeCustom.new(1, 2)
                         range2 = RangeCustom.new(3, 4)
@@ -883,7 +884,7 @@ TESTCASE(pointer_of_ranges_wrong)
   ASSERT_EXCEPTION_CHECK(
     Rice::Exception,
     m.module_eval(code),
-    ASSERT_EQUAL("Wrong argument type. Expected: Rice::Pointer≺RangesTest꞉꞉RangeCustom≻. Received: Rice::Buffer≺RangesTest꞉꞉RangeCustom≻.", ex.what())
+    ASSERT_EQUAL("Wrong argument type. Expected Rice::Pointer≺RangesTest꞉꞉RangeCustom≻. Received Rice::Buffer≺RangesTest꞉꞉RangeCustom≻.", ex.what())
   );
 }
 

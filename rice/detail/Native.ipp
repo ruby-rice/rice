@@ -66,10 +66,6 @@ namespace Rice::detail
     // Execute the function but make sure to catch any C++ exceptions!
     return cpp_protect([&]
     {
-      Identifier id(methodId);
-      std::string methodName = id.str();
-      std::string className = rb_class2name(klass);
-
       const std::vector<std::unique_ptr<Native>>& natives = Registries::instance.natives.lookup(klass, methodId);
 
       if (natives.size() == 1)

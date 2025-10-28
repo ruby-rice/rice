@@ -95,7 +95,7 @@ TESTCASE(data_object_construct_from_ruby_object_and_wrong_class)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     Data_Object<Bar> bar(wrapped_foo),
-    ASSERT_EQUAL("Wrong argument type. Expected: Bar. Received: MyDataType.", ex.what()));
+    ASSERT_EQUAL("Wrong argument type. Expected Bar. Received MyDataType.", ex.what()));
 }
 
 TESTCASE(data_object_copy_construct)

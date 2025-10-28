@@ -6,16 +6,17 @@ namespace Rice
   template <typename T>
   Exception create_type_exception(VALUE value)
   {
-    if constexpr (std::is_pointer_v<T>)
+    if (Data_Type<T>::is_bound())
     {
-      return Exception(rb_eTypeError, "Wrong argument type. Expected: %s. Received: %s.",
-        detail::protect(rb_class2name, Data_Type<Pointer<std::remove_cv_t<std::remove_pointer_t<T>>>>::klass().value()),
+      return Exception(rb_eTypeError, "Wrong argument type. Expected %s. Received %s.",
+        detail::protect(rb_class2name, Data_Type<T>::klass().value()),
         detail::protect(rb_obj_classname, value));
     }
     else
     {
-      return Exception(rb_eTypeError, "Wrong argument type. Expected: %s. Received: %s.",
-        detail::protect(rb_class2name, Data_Type<detail::intrinsic_type<T>>::klass().value()),
+      detail::TypeMapper<T> typeMapper;
+      return Exception(rb_eTypeError, "Wrong argument type. Expected %s. Received %s.",
+        typeMapper.simplifiedName().c_str(),
         detail::protect(rb_obj_classname, value));
     }
   }
@@ -491,6 +492,7 @@ namespace Rice::detail
                   "Please include rice/stl.hpp header for STL support");
 
     using Intrinsic_T = intrinsic_type<T>;
+    using Pointer_T = Pointer<remove_cv_recursive_t<T>>;
 
   public:
     From_Ruby() = default;
@@ -501,17 +503,19 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
+      bool isBuffer = this->arg_->isBuffer();
+
       switch (rb_type(value))
       {
         case RUBY_T_NIL:
           return Convertible::Exact;
           break;
         case RUBY_T_DATA:
-          if (Data_Type<T>::is_descendant(value))
+          if (Data_Type<T>::is_descendant(value) && !isBuffer)
           {
             return Convertible::Exact;
           }
-          else if (Data_Type<Pointer<T>>::is_descendant(value))
+          else if (Data_Type<Pointer_T>::is_descendant(value))
           {
             return Convertible::Exact;
           }
@@ -524,6 +528,7 @@ namespace Rice::detail
     T* convert(VALUE value)
     {
       bool isOwner = this->arg_ && this->arg_->isOwner();
+      bool isBuffer = this->arg_ && this->arg_->isBuffer();
 
       switch (rb_type(value))
       {
@@ -534,19 +539,26 @@ namespace Rice::detail
         }
         case RUBY_T_DATA:
         {
-          if (Data_Type<T>::is_descendant(value))
+          if (Data_Type<T>::is_descendant(value) && !isBuffer)
           {
             return detail::unwrap<Intrinsic_T>(value, Data_Type<Intrinsic_T>::ruby_data_type(), isOwner);
           }
-          else if (Data_Type<Pointer<T>>::is_descendant(value))
+          else if (Data_Type<Pointer_T>::is_descendant(value))
           {
-            return detail::unwrap<T>(value, Data_Type<Pointer<T>>::ruby_data_type(), isOwner);
+            return detail::unwrap<T>(value, Data_Type<Pointer_T>::ruby_data_type(), isOwner);
           }
           [[fallthrough]];
         }
         default:
         {
-          throw create_type_exception<T*>(value);
+          if (isBuffer || std::is_fundamental_v<T>)
+          {
+            throw create_type_exception<Pointer_T>(value);
+          }
+          else
+          {
+            throw create_type_exception<T>(value);
+          }
         }
       }
     }
@@ -613,6 +625,7 @@ namespace Rice::detail
                   "Please include rice/stl.hpp header for STL support");
 
     using Intrinsic_T = intrinsic_type<T>;
+    using Pointer_T = Pointer<remove_cv_recursive_t<T>*>;
   public:
     From_Ruby() = default;
 
@@ -622,14 +635,19 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
+      bool isBuffer = this->arg_ && this->arg_->isBuffer();
+
       switch (rb_type(value))
       {
-        case RUBY_T_DATA:
-          return Data_Type<Pointer<T*>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
-          break;
         case RUBY_T_NIL:
           return Convertible::Exact;
           break;
+        case RUBY_T_DATA:
+          if (Data_Type<Pointer_T>::is_descendant(value) && isBuffer)
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
         default:
           return Convertible::None;
       }
@@ -638,23 +656,34 @@ namespace Rice::detail
     T** convert(VALUE value)
     {
       bool isOwner = this->arg_ && this->arg_->isOwner();
+      bool isBuffer = this->arg_ && this->arg_->isBuffer();
 
       switch (rb_type(value))
       {
-        case RUBY_T_DATA:
-        {
-          T** result = detail::unwrap<Intrinsic_T*>(value, Data_Type<Pointer<T*>>::ruby_data_type(), isOwner);
-          return result;
-          break;
-        }
         case RUBY_T_NIL:
         {
           return nullptr;
           break;
         }
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Pointer_T>::is_descendant(value) && isBuffer)
+          {
+            T** result = detail::unwrap<Intrinsic_T*>(value, Data_Type<Pointer_T>::ruby_data_type(), isOwner);
+            return result;
+          }
+          [[fallthrough]];
+        }
         default:
         {
-          throw create_type_exception<T**>(value);
+          if (isBuffer)
+          {
+            throw create_type_exception<Pointer_T>(value);
+          }
+          else
+          {
+            throw create_type_exception<T**>(value);
+          }
         }
       }
     }

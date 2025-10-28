@@ -59,7 +59,6 @@ namespace Rice::detail
     return result;
   }
 
-
   inline const std::vector<std::unique_ptr<Native>>& NativeRegistry::lookup(VALUE klass, ID methodId)
   {
     if (rb_type(klass) == T_ICLASS)

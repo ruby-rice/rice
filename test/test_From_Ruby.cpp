@@ -200,7 +200,7 @@ TESTCASE(signed_char_pointer)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     fromRuby.convert(rb_float_new(11.11)),
-    ASSERT_EQUAL("Wrong argument type. Expected: Rice::Pointer≺signed char≻. Received: Float.", ex.what())
+    ASSERT_EQUAL("Wrong argument type. Expected Rice::Pointer≺signed char≻. Received Float.", ex.what())
   );
 }
 
@@ -279,7 +279,7 @@ TESTCASE(unsigned_char_pointer)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     detail::From_Ruby<const char*>().convert(rb_float_new(11.11)),
-    ASSERT_EQUAL("Wrong argument type. Expected: Rice::Pointer≺char≻. Received: Float.", ex.what())
+    ASSERT_EQUAL("Wrong argument type. Expected Rice::Pointer≺char≻. Received Float.", ex.what())
   );
 }
 
@@ -414,7 +414,7 @@ TESTCASE(float_array_array)
 {
   Module m = define_module("Testing");
 
-  m.define_singleton_function("array_array_to_string", &arrayofArraysToString<float>);
+  m.define_singleton_function("array_array_to_string", &arrayofArraysToString<float>, Arg("buffer").setBuffer());
 
   std::string code = R"(buffer = Rice::Buffer≺float∗≻.new([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]])
                         array_array_to_string(buffer.data, buffer.size, 2))";
@@ -441,7 +441,7 @@ TESTCASE(float_array_array)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.module_eval(code),
-    ASSERT_EQUAL("Wrong argument type. Expected: Rice::Pointer≺float∗≻. Received: Array.", ex.what())
+    ASSERT_EQUAL("Wrong argument type. Expected Rice::Pointer≺float∗≻. Received Array.", ex.what())
   );
 }
 
