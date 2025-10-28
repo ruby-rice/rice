@@ -1,3 +1,9 @@
+## 4.7.1 (2025-10-28)
+Updates:
+* Update overload resolution to take into account function arguments that are tagged as buffers via Arg("").setBuffer().
+* Make second parameter optional for Array#push and update docs
+* Remove ostruct runtime dependency
+
 ## 4.7.0 (2025-10-22)
 Updates:
 * Refactor Native wrappers - functions, methods, attributes and procs - to enable introspection API
