@@ -327,6 +327,7 @@ TESTCASE(unsigned_char_pointer_array)
 
 TESTCASE(double)
 {
+#undef min
   ASSERT_EQUAL(0.0, detail::From_Ruby<double>().convert(rb_float_new(0.0)));
   ASSERT_EQUAL(-1.0, detail::From_Ruby<double>().convert(rb_float_new(-1.0)));
   ASSERT_EQUAL(1.0, detail::From_Ruby<double>().convert(rb_float_new(1.0)));
