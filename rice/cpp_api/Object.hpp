@@ -181,8 +181,8 @@ namespace Rice
     *    float ret = x.call<float>("foo", z, 42);
     *  \endcode
     */
-    template<typename ...Arg_Ts>
-    Object call(Identifier id, Arg_Ts... args) const;
+    template<typename ...Parameter_Ts>
+    Object call(Identifier id, Parameter_Ts... args) const;
 
     //! Call the Ruby method specified by 'id' on object 'obj'.
     /*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
@@ -204,8 +204,8 @@ namespace Rice
     *    float ret = x.call_kw<float>("foo", kw);
     *  \endcode
     */
-    template<typename ...Arg_Ts>
-    Object call_kw(Identifier id, Arg_Ts... args) const;
+    template<typename ...Parameter_Ts>
+    Object call_kw(Identifier id, Parameter_Ts... args) const;
 
     //! Vectorized call.
     /*! Calls the method identified by id with the list of arguments

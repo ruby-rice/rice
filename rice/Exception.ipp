@@ -5,27 +5,27 @@ namespace Rice
   {
   }
 
-  template <typename... Arg_Ts>
-  inline Exception::Exception(const Exception& other, char const* fmt, Arg_Ts&&...args)
-    : Exception(other.class_of(), fmt, std::forward<Arg_Ts>(args)...)
+  template <typename... Parameter_Ts>
+  inline Exception::Exception(const Exception& other, char const* fmt, Parameter_Ts&&...args)
+    : Exception(other.class_of(), fmt, std::forward<Parameter_Ts>(args)...)
   {
   }
 
-  template <typename... Arg_Ts>
-  inline Exception::Exception(const VALUE exceptionClass, char const* fmt, Arg_Ts&&...args)
+  template <typename... Parameter_Ts>
+  inline Exception::Exception(const VALUE exceptionClass, char const* fmt, Parameter_Ts&&...args)
   {
     #if defined(__GNUC__) || defined(__clang__)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wformat-security"
     #endif
 
-    size_t size = std::snprintf(nullptr, 0, fmt, std::forward<Arg_Ts>(args)...);
+    size_t size = std::snprintf(nullptr, 0, fmt, std::forward<Parameter_Ts>(args)...);
     this->message_ = std::string(size, '\0');
 
     // size+1 avoids truncating the string. Otherwise snprintf writes n - 1 characters
     // to allow space for null character but we don't need that since std::string
     // will add a null character internally at n + 1
-    std::snprintf(&this->message_[0], size + 1, fmt, std::forward<Arg_Ts>(args)...);
+    std::snprintf(&this->message_[0], size + 1, fmt, std::forward<Parameter_Ts>(args)...);
 
     #if defined(__GNUC__) || defined(__clang__)
     #pragma GCC diagnostic pop

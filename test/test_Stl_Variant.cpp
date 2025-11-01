@@ -334,9 +334,9 @@ TESTCASE(Roundtrip)
 /* This test case runs successfully on MSVC but not g++. Having stepped through the code with
   GDB, this sure seems due to a bug with g++. The issue is this variable in created operator():
 
-        Arg_Ts nativeValues = this->getNativeValues(rubyValues, indices);
+        Parameter_Ts nativeValues = this->getNativeValues(rubyValues, indices);
 
- And is then passed to invokeNativeFunction as a const Arg_Ts& nativeArgs where Arg_Ts& is
+ And is then passed to invokeNativeFunction as a const Parameter_Ts& nativeArgs where Parameter_Ts& is
  std::tuple with one element, a reference to a variant. So it doesn't change and the address
  of the variable doesn't change. But for some reason g++ resets the
  the std::variant index to 0 thus breaking the test. Maybe something to do with storing

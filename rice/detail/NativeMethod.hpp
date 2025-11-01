@@ -45,8 +45,8 @@ namespace Rice::detail
     // have the concept of constants anyways
     using Return_T = typename method_traits<Method_T>::Return_T;
     using Receiver_T = typename method_traits<Method_T>::Class_T;
-    using Arg_Ts = typename method_traits<Method_T>::Arg_Ts;
-    using Apply_Args_T = typename tuple_unshift<Receiver_T, Arg_Ts>::type;
+    using Parameter_Ts = typename method_traits<Method_T>::Parameter_Ts;
+    using Apply_Args_T = typename tuple_unshift<Receiver_T, Parameter_Ts>::type;
 
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
 

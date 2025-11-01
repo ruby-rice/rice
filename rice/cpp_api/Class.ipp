@@ -13,8 +13,8 @@ namespace Rice
     return *this;
   }
 
-  template<typename ...Arg_Ts>
-  inline Object Class::create(Arg_Ts ...args)
+  template<typename ...Parameter_Ts>
+  inline Object Class::create(Parameter_Ts ...args)
   {
     return this->call("new", args...);
   }

@@ -6,11 +6,11 @@ namespace Rice::detail
   template<typename Callback_T>
   class NativeCallbackSimple;
 
-  template<typename Return_T, typename ...Arg_Ts>
-  class NativeCallbackSimple<Return_T(*)(Arg_Ts...)>
+  template<typename Return_T, typename ...Parameter_Ts>
+  class NativeCallbackSimple<Return_T(*)(Parameter_Ts...)>
   {
   public:
-    static Return_T callback(Arg_Ts...args);
+    static Return_T callback(Parameter_Ts...args);
     static inline VALUE proc = Qnil;
     static void setMethodInfo(MethodInfo* methodInfo);
 
@@ -23,7 +23,7 @@ namespace Rice::detail
 
   private:
     template<std::size_t... I>
-    static Return_T callRuby(std::index_sequence<I...>& indices, Arg_Ts...args);
+    static Return_T callRuby(std::index_sequence<I...>& indices, Parameter_Ts...args);
     static inline std::unique_ptr<MethodInfo> methodInfo_ = std::make_unique<MethodInfo>();
   };
 }

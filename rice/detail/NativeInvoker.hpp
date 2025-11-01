@@ -61,11 +61,11 @@ namespace Rice::detail
     ResultWrapper<Return_T> resultWrapper;
   };
 
-  template<typename Function_T, typename ...Arg_Ts>
-  auto protect(Function_T func, Arg_Ts...args);
+  template<typename Function_T, typename ...Parameter_Ts>
+  auto protect(Function_T func, Parameter_Ts...args);
 
-  template<typename Function_T, typename ...Arg_Ts>
-  typename function_traits<Function_T>::return_type no_gvl(Function_T func, Arg_Ts...args);
+  template<typename Function_T, typename ...Parameter_Ts>
+  typename function_traits<Function_T>::return_type no_gvl(Function_T func, Parameter_Ts...args);
 
   template<typename Function_T, typename Tuple_T>
   typename function_traits<Function_T>::return_type no_gvl(Function_T func, Tuple_T&& args);

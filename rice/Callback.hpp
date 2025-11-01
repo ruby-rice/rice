@@ -15,7 +15,7 @@ namespace Rice
    *  \param args a list of Arg instance used to define default parameters (optional)
    *  \return nothing
    */
-  template<typename Callback_T, typename...Arg_Ts>
-  void define_callback(const Arg_Ts&...args);
+  template<typename Callback_T, typename...Parameter_Ts>
+  void define_callback(const Parameter_Ts&...args);
 }
 #endif // Rice__Callback__hpp_

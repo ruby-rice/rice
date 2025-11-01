@@ -114,38 +114,38 @@ namespace Rice
     template<typename T>
     struct tuple_shift;
 
-    template<typename T, typename...Arg_Ts>
-    struct tuple_shift<std::tuple<T, Arg_Ts...>>
+    template<typename T, typename...Parameter_Ts>
+    struct tuple_shift<std::tuple<T, Parameter_Ts...>>
     {
-      using type = std::tuple<Arg_Ts...>;
+      using type = std::tuple<Parameter_Ts...>;
     };
 
-    template<typename T, typename...Arg_Ts>
+    template<typename T, typename...Parameter_Ts>
     struct tuple_unshift;
       
-    template<typename T, typename...Arg_Ts>
-    struct tuple_unshift<T, std::tuple<Arg_Ts...>>
+    template<typename T, typename...Parameter_Ts>
+    struct tuple_unshift<T, std::tuple<Parameter_Ts...>>
     {
-      using type = std::tuple<T, Arg_Ts...>;
+      using type = std::tuple<T, Parameter_Ts...>;
     };
 
-    template<template<typename, typename...> typename T, typename...Arg_Ts>
+    template<template<typename, typename...> typename T, typename...Parameter_Ts>
     struct tuple_map;
 
-    template<template<typename, typename...> typename T, typename...Arg_Ts>
-    struct tuple_map<T, std::tuple<Arg_Ts...>>
+    template<template<typename, typename...> typename T, typename...Parameter_Ts>
+    struct tuple_map<T, std::tuple<Parameter_Ts...>>
     {
-      using type = std::tuple<T<Arg_Ts>...>;
+      using type = std::tuple<T<Parameter_Ts>...>;
     };
 
 
-    template<typename...Arg_Ts>
+    template<typename...Parameter_Ts>
     struct tuple_to_variant;
 
-    template<typename...Arg_Ts>
-    struct tuple_to_variant<std::tuple<Arg_Ts...>>
+    template<typename...Parameter_Ts>
+    struct tuple_to_variant<std::tuple<Parameter_Ts...>>
     {
-      using type = std::variant<Arg_Ts...>;
+      using type = std::variant<Parameter_Ts...>;
     };
 
     template<class T>

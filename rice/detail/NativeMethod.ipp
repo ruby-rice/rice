@@ -11,8 +11,8 @@ namespace Rice::detail
   {
     // Verify return and argument types
     Native::verify_type<Return_T>(methodInfo->returnInfo()->isBuffer());
-    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
-    Native::verify_args<Arg_Ts>(methodInfo, indices);
+    auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
+    Native::verify_args<Parameter_Ts>(methodInfo, indices);
 
     // Have we defined this method yet in Ruby?
     Identifier identifier(method_name);
@@ -32,7 +32,7 @@ namespace Rice::detail
 
   template<typename Class_T, typename Method_T>
   NativeMethod<Class_T, Method_T>::NativeMethod(VALUE klass, std::string method_name, Method_T method, MethodInfo* methodInfo)
-    : Native(Native::create_parameters<Arg_Ts>(methodInfo)),
+    : Native(Native::create_parameters<Parameter_Ts>(methodInfo)),
       klass_(klass), method_name_(method_name), method_(method), methodInfo_(methodInfo),
       toRuby_(methodInfo->returnInfo())
   {
@@ -68,7 +68,7 @@ namespace Rice::detail
 
     result << "(";
 
-    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+    auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
     std::vector<std::string> argTypeNames = this->argTypeNames(result, indices);
     for (size_t i = 0; i < argTypeNames.size(); i++)
     {
@@ -85,12 +85,12 @@ namespace Rice::detail
   typename NativeMethod<Class_T, Method_T>::Apply_Args_T NativeMethod<Class_T, Method_T>::getNativeValues(VALUE self, std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
-       on the arguments (Arg_Ts) required by the C++ method. Arg_T may have const/volatile while
+       on the arguments (Parameter_Ts) required by the C++ method. Arg_T may have const/volatile while
        the associated From_Ruby<T> template parameter will not. Thus From_Ruby produces non-const values 
        which we let the compiler convert to const values as needed. This works except for 
        T** -> const T**, see comment in convertToNative method. */
     return std::forward_as_tuple(this->getReceiver(self),
-      (dynamic_cast<Parameter<std::tuple_element_t<I, Arg_Ts>>*>(this->parameters_[I].get()))->
+      (dynamic_cast<Parameter<std::tuple_element_t<I, Parameter_Ts>>*>(this->parameters_[I].get()))->
                convertToNative(values[I])...);
   }
 
@@ -280,7 +280,7 @@ namespace Rice::detail
   {
     // Get the ruby values and make sure we have the correct number
     std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, true);
-    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+    auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
     Apply_Args_T nativeArgs = this->getNativeValues(self, rubyValues, indices);
 
     bool noGvl = this->methodInfo_->function()->isNoGvl();

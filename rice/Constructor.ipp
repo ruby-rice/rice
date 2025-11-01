@@ -1,16 +1,16 @@
 namespace Rice
 {
-  template<typename T, typename...Arg_Ts>
+  template<typename T, typename...Parameter_Ts>
   class Constructor
   {
   public:
-    static constexpr std::size_t arity = sizeof...(Arg_Ts);
+    static constexpr std::size_t arity = sizeof...(Parameter_Ts);
 
     static constexpr bool isCopyConstructor()
     {
       if constexpr (arity == 1)
       {
-        using Arg_Types = std::tuple<Arg_Ts...>;
+        using Arg_Types = std::tuple<Parameter_Ts...>;
         using First_Arg_T = std::tuple_element_t<0, Arg_Types>;
         return (arity == 1 &&
                 std::is_lvalue_reference_v<First_Arg_T> &&
@@ -26,7 +26,7 @@ namespace Rice
     {
       if constexpr (arity == 1)
       {
-        using Arg_Types = std::tuple<Arg_Ts...>;
+        using Arg_Types = std::tuple<Parameter_Ts...>;
         using First_Arg_T = std::tuple_element_t<0, Arg_Types>;
         return (arity == 1 &&
           std::is_rvalue_reference_v<First_Arg_T> &&
@@ -38,7 +38,7 @@ namespace Rice
       }
     }
 
-    static void initialize(VALUE self, Arg_Ts...args)
+    static void initialize(VALUE self, Parameter_Ts...args)
     {
       // Call C++ constructor
       T* data = new T(args...);
@@ -55,8 +55,8 @@ namespace Rice
   };
 
   //! Special-case Constructor used when defining Directors.
-  template<typename T, typename...Arg_Ts>
-  class Constructor<T, Object, Arg_Ts...>
+  template<typename T, typename...Parameter_Ts>
+  class Constructor<T, Object, Parameter_Ts...>
   {
     public:
       static constexpr bool isCopyConstructor()
@@ -69,7 +69,7 @@ namespace Rice
         return false;
       }
 
-      static void initialize(Object self, Arg_Ts...args)
+      static void initialize(Object self, Parameter_Ts...args)
       {
         // Call C++ constructor
         T* data = new T(self, args...);

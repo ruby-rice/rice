@@ -11,8 +11,8 @@ namespace Rice::detail
   {
     // Verify return and argument types
     Native::verify_type<Return_T>(methodInfo->returnInfo()->isBuffer());
-    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
-    Native::verify_args<Arg_Ts>(methodInfo, indices);
+    auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
+    Native::verify_args<Parameter_Ts>(methodInfo, indices);
 
     // Have we defined this method yet in Ruby?
     Identifier identifier(method_name);
@@ -32,7 +32,7 @@ namespace Rice::detail
 
   template<typename Function_T>
   NativeFunction<Function_T>::NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
-    : Native(Native::create_parameters<Arg_Ts>(methodInfo)),
+    : Native(Native::create_parameters<Parameter_Ts>(methodInfo)),
       klass_(klass), method_name_(method_name), function_(function), methodInfo_(methodInfo),
       toRuby_(methodInfo->returnInfo())
   {
@@ -61,7 +61,7 @@ namespace Rice::detail
 
     result << "(";
 
-    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+    auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
     std::vector<std::string> argTypeNames = this->argTypeNames(result, indices);
     for (size_t i = 0; i < argTypeNames.size(); i++)
     {
@@ -75,32 +75,32 @@ namespace Rice::detail
     
   template<typename Function_T>
   template<std::size_t... I>
-  typename NativeFunction<Function_T>::Arg_Ts NativeFunction<Function_T>::getNativeValues(std::vector<std::optional<VALUE>>& values,
+  typename NativeFunction<Function_T>::Parameter_Ts NativeFunction<Function_T>::getNativeValues(std::vector<std::optional<VALUE>>& values,
      std::index_sequence<I...>& indices)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
-       on the arguments (Arg_Ts) required by the C++ function. Arg_T may have const/volatile while
+       on the arguments (Parameter_Ts) required by the C++ function. Arg_T may have const/volatile while
        the associated From_Ruby<T> template parameter will not. Thus From_Ruby produces non-const values 
        which we let the compiler convert to const values as needed. This works except for 
        T** -> const T**, see comment in convertToNative method. */
-    //return std::forward_as_tuple(this->getNativeValue<std::tuple_element_t<I, Arg_Ts>, I>(values)...);
+    //return std::forward_as_tuple(this->getNativeValue<std::tuple_element_t<I, Parameter_Ts>, I>(values)...);
     return std::forward_as_tuple(
-      (dynamic_cast<Parameter<std::tuple_element_t<I, Arg_Ts>>*>(this->parameters_[I].get()))->
+      (dynamic_cast<Parameter<std::tuple_element_t<I, Parameter_Ts>>*>(this->parameters_[I].get()))->
                convertToNative(values[I])...);
   }
 
   template<typename Function_T>
-  VALUE NativeFunction<Function_T>::invoke(Arg_Ts&& nativeArgs)
+  VALUE NativeFunction<Function_T>::invoke(Parameter_Ts&& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
-      std::apply(this->function_, std::forward<Arg_Ts>(nativeArgs));
+      std::apply(this->function_, std::forward<Parameter_Ts>(nativeArgs));
       return Qnil;
     }
     else
     {
       // Call the native method and get the result
-      Return_T nativeResult = std::apply(this->function_, std::forward<Arg_Ts>(nativeArgs));
+      Return_T nativeResult = std::apply(this->function_, std::forward<Parameter_Ts>(nativeArgs));
 
       // Return the result
       return this->toRuby_.convert(nativeResult);
@@ -108,17 +108,17 @@ namespace Rice::detail
   }
 
   template<typename Function_T>
-  VALUE NativeFunction<Function_T>::invokeNoGVL(Arg_Ts&& nativeArgs)
+  VALUE NativeFunction<Function_T>::invokeNoGVL(Parameter_Ts&& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
-      no_gvl(this->function_, std::forward<Arg_Ts>(nativeArgs));
+      no_gvl(this->function_, std::forward<Parameter_Ts>(nativeArgs));
       return Qnil;
     }
     else
     {
       // Call the native method and get the result
-      Return_T nativeResult = no_gvl(this->function_, std::forward<Arg_Ts>(nativeArgs));
+      Return_T nativeResult = no_gvl(this->function_, std::forward<Parameter_Ts>(nativeArgs));
 
       // Return the result
       return this->toRuby_.convert(nativeResult);
@@ -189,10 +189,10 @@ namespace Rice::detail
     // Get the ruby values and make sure we have the correct number
     std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, true);
 
-    auto indices = std::make_index_sequence<std::tuple_size_v<Arg_Ts>>{};
+    auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
 
     // Convert the Ruby values to native values
-    Arg_Ts nativeValues = this->getNativeValues(rubyValues, indices);
+    Parameter_Ts nativeValues = this->getNativeValues(rubyValues, indices);
 
     bool noGvl = this->methodInfo_->function()->isNoGvl();
 
@@ -200,11 +200,11 @@ namespace Rice::detail
 
     if (noGvl)
     {
-      result = this->invokeNoGVL(std::forward<Arg_Ts>(nativeValues));
+      result = this->invokeNoGVL(std::forward<Parameter_Ts>(nativeValues));
     }
     else
     {
-      result = this->invoke(std::forward<Arg_Ts>(nativeValues));
+      result = this->invoke(std::forward<Parameter_Ts>(nativeValues));
     }
 
     // Check if any function arguments or return values need to have their lifetimes tied to the receiver

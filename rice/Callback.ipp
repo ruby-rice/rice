@@ -1,7 +1,7 @@
 namespace Rice
 {
-  template<typename Callback_T, typename...Arg_Ts>
-  void define_callback(const Arg_Ts&...args)
+  template<typename Callback_T, typename...Parameter_Ts>
+  void define_callback(const Parameter_Ts&...args)
   {
     MethodInfo* methodInfo = new MethodInfo(detail::function_traits<Callback_T>::arity, args...);
   #ifdef HAVE_LIBFFI
