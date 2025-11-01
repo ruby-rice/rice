@@ -76,7 +76,7 @@ namespace Rice
     return *this;
   }
 
-  inline bool Arg::isBuffer()
+  inline bool Arg::isBuffer() const
   {
     return this->isBuffer_;
   }

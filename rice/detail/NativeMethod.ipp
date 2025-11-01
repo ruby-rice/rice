@@ -6,13 +6,35 @@
 
 namespace Rice::detail
 {
-  template<typename Class_T, typename Method_T>
-  void NativeMethod<Class_T, Method_T>::define(VALUE klass, std::string method_name, Method_T method, MethodInfo* methodInfo)
+  template<typename Target, typename T>
+  auto keep_if(T&& x)
   {
-    // Verify return and argument types
+    using U = std::decay_t<T>;
+    if constexpr (std::is_same_v<U, Target>)
+      return std::tuple<U>{ std::forward<T>(x) };
+    else
+      return std::tuple<>{};
+  }
+
+  template<typename Class_T, typename... Ts>
+  constexpr auto filterTuple(Ts&&... args)
+  {
+    return std::tuple_cat(keep_if<Class_T>(std::forward<Ts>(args))...);
+  }
+
+  template<typename Class_T, typename Method_T>
+  template<typename ...Arg_Ts>
+  void NativeMethod<Class_T, Method_T>::define(VALUE klass, std::string method_name, Method_T method, const Arg_Ts& ...args)
+  {
+    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Method_T>::arity, args...);
+
+    // Verify return type
     Native::verify_type<Return_T>(methodInfo->returnInfo()->isBuffer());
+
+    // Verify parameter types
     auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
-    Native::verify_args<Parameter_Ts>(methodInfo, indices);
+    const auto argsTuple = tuple_filter<Arg>(args...);
+    Native::verify_parameters<Parameter_Ts, decltype(argsTuple)>(argsTuple, indices);
 
     // Have we defined this method yet in Ruby?
     Identifier identifier(method_name);
@@ -40,7 +62,7 @@ namespace Rice::detail
 
   template<typename Class_T, typename Method_T>
   template<std::size_t... I>
-  std::vector<std::string> NativeMethod<Class_T, Method_T>::argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices)
+  std::vector<std::string> NativeMethod<Class_T, Method_T>::argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices)
   {
     std::vector<std::string> result;
     for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)
@@ -82,7 +104,7 @@ namespace Rice::detail
     
   template<typename Class_T, typename Method_T>
   template<std::size_t... I>
-  typename NativeMethod<Class_T, Method_T>::Apply_Args_T NativeMethod<Class_T, Method_T>::getNativeValues(VALUE self, std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices)
+  typename NativeMethod<Class_T, Method_T>::Apply_Args_T NativeMethod<Class_T, Method_T>::getNativeValues(VALUE self, std::vector<std::optional<VALUE>>& values, const std::index_sequence<I...>& indices)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
        on the arguments (Parameter_Ts) required by the C++ method. Arg_T may have const/volatile while

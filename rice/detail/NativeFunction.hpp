@@ -48,8 +48,8 @@ namespace Rice::detail
     using Parameter_Ts = typename function_traits<Function_T>::arg_types;
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
 
-    // Register function with Ruby
-    static void define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
+    template<typename ...Arg_Ts>
+    static void define(VALUE klass, std::string method_name, Function_T function, const Arg_Ts& ...args);
 
   public:
     NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
@@ -63,7 +63,7 @@ namespace Rice::detail
 
   private:
     template<std::size_t...I>
-    std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);
+    std::vector<std::string> argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices);
 
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>

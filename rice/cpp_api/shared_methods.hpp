@@ -33,8 +33,7 @@ inline auto& include_module(Module const& inc)
 template<typename Method_T, typename...Arg_Ts>
 inline auto& define_method(std::string name, Method_T&& method, const Arg_Ts&...args)
 {
-  MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Method_T>::arity, args...);
-  this->wrap_native_method(this->value(), name, std::forward<Method_T>(method), methodInfo);
+  this->wrap_native_method(this->value(), name, std::forward<Method_T>(method), args...);
   return *this;
 }
 
@@ -52,8 +51,7 @@ inline auto& define_method(std::string name, Method_T&& method, const Arg_Ts&...
 template<typename Function_T, typename...Arg_Ts>
 inline auto& define_function(std::string name, Function_T&& func, const Arg_Ts&...args)
 {
-  MethodInfo* methodInfo = new MethodInfo(detail::function_traits<Function_T>::arity, args...);
-  this->wrap_native_function(this->value(), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function(this->value(), name, std::forward<Function_T>(func), args...);
   return *this;
 }
 
@@ -75,8 +73,7 @@ inline auto& define_function(std::string name, Function_T&& func, const Arg_Ts&.
 template<typename Method_T, typename...Arg_Ts>
 inline auto& define_singleton_method(std::string name, Method_T&& method, const Arg_Ts&...args)
 {
-  MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Method_T>::arity, args...);
-  this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Method_T>(method), methodInfo);
+  this->wrap_native_method(rb_singleton_class(*this), name, std::forward<Method_T>(method), args...);
   return *this;
 }
 
@@ -94,8 +91,7 @@ inline auto& define_singleton_method(std::string name, Method_T&& method, const 
 template<typename Function_T, typename...Arg_Ts>
 inline auto& define_singleton_function(std::string name, Function_T&& func, const Arg_Ts& ...args)
 {
-  MethodInfo* methodInfo = new MethodInfo(detail::function_traits<Function_T>::arity, args...);
-  this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Function_T>(func), methodInfo);
+  this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Function_T>(func), args...);
   return *this;
 }
 

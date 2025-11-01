@@ -51,7 +51,8 @@ namespace Rice::detail
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
 
     // Register method with Ruby
-    static void define(VALUE klass, std::string method_name, Method_T method, MethodInfo* methodInfo);
+    template <typename ...Arg_Ts>
+    static void define(VALUE klass, std::string method_name, Method_T method, const Arg_Ts& ...args);
 
   public:
     NativeMethod(VALUE klass, std::string method_name, Method_T method, MethodInfo* methodInfo);
@@ -64,13 +65,12 @@ namespace Rice::detail
     VALUE returnKlass() override;
 
   private:
-
     template<std::size_t...I>
-    std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);
+    std::vector<std::string> argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices);
 
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
-    Apply_Args_T getNativeValues(VALUE self, std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
+    Apply_Args_T getNativeValues(VALUE self, std::vector<std::optional<VALUE>>& values, const std::index_sequence<I...>& indices);
 
     // Figure out what self is
     Receiver_T getReceiver(VALUE self);

@@ -83,7 +83,7 @@ namespace Rice
 
     //! Is the parameter a buffer
     virtual Arg& setBuffer();
-    bool isBuffer();
+    bool isBuffer() const;
 
   public:
     std::string name;

@@ -7,12 +7,18 @@
 namespace Rice::detail
 {
   template<typename Function_T>
-  void NativeFunction<Function_T>::define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo)
+  template<typename ...Arg_Ts>
+  void NativeFunction<Function_T>::define(VALUE klass, std::string method_name, Function_T function, const Arg_Ts& ...args)
   {
-    // Verify return and argument types
+    MethodInfo* methodInfo = new MethodInfo(detail::function_traits<Function_T>::arity, args...);
+
+    // Verify return type
     Native::verify_type<Return_T>(methodInfo->returnInfo()->isBuffer());
+
+    // Verify parameter types
     auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
-    Native::verify_args<Parameter_Ts>(methodInfo, indices);
+    const auto argsTuple = tuple_filter<Arg>(args...);
+    Native::verify_parameters<Parameter_Ts, decltype(argsTuple)>(argsTuple, indices);
 
     // Have we defined this method yet in Ruby?
     Identifier identifier(method_name);
@@ -40,7 +46,7 @@ namespace Rice::detail
 
   template<typename Function_T>
   template<std::size_t... I>
-  std::vector<std::string> NativeFunction<Function_T>::argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices)
+  std::vector<std::string> NativeFunction<Function_T>::argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices)
   {
     std::vector<std::string> result;
     for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)

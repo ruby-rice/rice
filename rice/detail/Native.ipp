@@ -200,11 +200,32 @@ namespace Rice::detail
     }
   }
 
-  template<typename Tuple_T, std::size_t ...Indices>
-  inline void Native::verify_args(MethodInfo* methodInfo, std::index_sequence<Indices...> indices)
+  template<typename Parameter_Tuple, typename Arg_Tuple, std::size_t ...Indices>
+  inline void Native::verify_parameters(const Arg_Tuple& args, std::index_sequence<Indices...> indices)
   {
-    (Native::verify_type<std::tuple_element_t<Indices, Tuple_T>>(methodInfo->arg(Indices)->isBuffer()), ...);
+    constexpr std::size_t arg_size = std::tuple_size_v<Arg_Tuple>;
+
+    auto step = [&](auto Ic)
+    {
+      constexpr std::size_t I = decltype(Ic)::value;
+      using Param_T = std::tuple_element_t<I, Parameter_Tuple>;
+
+      if constexpr (I < arg_size)
+      {
+        verify_type<Param_T>(std::get<I>(args).isBuffer());
+      }
+      else
+      {
+        verify_type<Param_T>(false);
+      }
+    };
+
+    (step(std::integral_constant<std::size_t, Indices>{}), ...);
   }
+
+  //  (Native::verify_type<std::tuple_element_t<Indices, Parameter_Tuple>>(
+    //  <std::conditional_v<(index < std::tuple_size<Arg_Tuple>), args(Indices)->isBuffer(), false>), ...);
+ // }
 
   template<typename Tuple_T, std::size_t ...Indices>
   inline void Native::create_parameters_impl(std::vector<std::unique_ptr<ParameterAbstract>>& parameters, MethodInfo* methodInfo, std::index_sequence<Indices...> indices)

@@ -391,9 +391,9 @@ namespace Rice
   }
 
   template <typename T>
-  template<typename Method_T>
-  inline void Data_Type<T>::wrap_native_method(VALUE klass, std::string name, Method_T&& method, MethodInfo* methodInfo)
+  template<typename Method_T, typename ...Arg_Ts>
+  inline void Data_Type<T>::wrap_native_method(VALUE klass, std::string name, Method_T&& method, const Arg_Ts&...args)
   {
-    Module::wrap_native_method<T, Method_T>(klass, name, std::forward<Method_T>(method), methodInfo);
+    Module::wrap_native_method<T, Method_T>(klass, name, std::forward<Method_T>(method), args...);
   }
 }
