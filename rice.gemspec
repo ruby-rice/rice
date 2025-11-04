@@ -48,9 +48,7 @@ Ruby extensions with C++ easier.
     'FindRuby.cmake',
 
     # Include files
-    'include/rice/rice.hpp',
-    'include/rice/stl.hpp',
-    'include/rice/ruby-api.hpp',
+    'include/rice/*.hpp',
 
     # Bin files
     'bin/rice-rbs.rb',
