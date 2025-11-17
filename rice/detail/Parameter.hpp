@@ -9,7 +9,7 @@ namespace Rice::detail
   {
   public:
     ParameterAbstract() = default;
-    ParameterAbstract(Arg* arg);
+    ParameterAbstract(std::unique_ptr<Arg>&& arg);
     virtual ~ParameterAbstract() = default;
 
     ParameterAbstract(ParameterAbstract&& other) = default;
@@ -19,8 +19,10 @@ namespace Rice::detail
     virtual std::string cppTypeName() = 0;
     virtual VALUE klass() = 0;
 
-  public:
-    Arg* arg = nullptr;
+    Arg* arg();
+
+  private:
+    std::unique_ptr<Arg> arg_;
   };
 
   template<typename T>
@@ -30,7 +32,7 @@ namespace Rice::detail
      using Type = T;
 
      Parameter() = default;
-     Parameter(Arg* arg);
+     Parameter(std::unique_ptr<Arg>&& arg);
      Parameter(Parameter&& other) = default;
      Parameter& operator=(Parameter&& other) = default;
 

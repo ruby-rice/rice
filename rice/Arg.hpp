@@ -81,10 +81,6 @@ namespace Rice
     virtual Arg& takeOwnership();
     bool isOwner();
 
-    //! Is the parameter a buffer
-    virtual Arg& setBuffer();
-    bool isBuffer() const;
-
   public:
     std::string name;
     int32_t position = -1;
@@ -96,8 +92,12 @@ namespace Rice
     bool isKeepAlive_ = false;
     bool isOwner_ = false;
     bool isOpaque_ = false;
-    bool isBuffer_ = false;
+  };
 
+  class ArgBuffer : public Arg
+  {
+  public:
+    ArgBuffer(std::string name);
   };
 } // Rice
 

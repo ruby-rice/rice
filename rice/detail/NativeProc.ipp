@@ -9,8 +9,13 @@ namespace Rice::detail
   template<typename Proc_T>
   NativeProc<Proc_T>* NativeProc<Proc_T>::define(Proc_T proc)
   {
-    MethodInfo* methodInfo = new MethodInfo(detail::function_traits<Proc_T>::arity);
-    return new NativeProc_T(std::forward<Proc_T>(proc), methodInfo);
+    // Create proc parameters
+    std::vector<std::unique_ptr<ParameterAbstract>> parameters = Native::create_parameters<Parameter_Ts>();
+
+    // Create return info
+    std::unique_ptr<Return> returnInfo = std::make_unique<Return>();
+
+    return new NativeProc_T(std::forward<Proc_T>(proc), std::move(returnInfo), std::move(parameters));
   }
 
   template<typename Proc_T>
@@ -50,8 +55,9 @@ namespace Rice::detail
   }
 
   template<typename Proc_T>
-  NativeProc<Proc_T>::NativeProc(Proc_T proc, MethodInfo* methodInfo) : Native(Native::create_parameters<Parameter_Ts>(methodInfo)),
-                                                                        proc_(proc), methodInfo_(methodInfo)
+  NativeProc<Proc_T>::NativeProc(Proc_T proc, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters)
+    : Native(std::move(returnInfo), std::move(parameters)), 
+      proc_(proc), toRuby_(returnInfo_.get())
   {
   }
 

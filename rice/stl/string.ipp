@@ -133,7 +133,7 @@ namespace Rice::detail
     VALUE convert(const std::string* value)
     {
       bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
-      bool isBuffer = this->returnInfo_ && this->returnInfo_->isBuffer();
+      bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_) ? true : false;
 
       if (isBuffer)
       {

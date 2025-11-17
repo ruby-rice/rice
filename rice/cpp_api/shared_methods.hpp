@@ -89,7 +89,7 @@ inline auto& define_singleton_method(std::string name, Method_T&& method, const 
  *  \return *this
  */
 template<typename Function_T, typename...Arg_Ts>
-inline auto& define_singleton_function(std::string name, Function_T&& func, const Arg_Ts& ...args)
+inline auto& define_singleton_function(std::string name, Function_T&& func, Arg_Ts&& ...args)
 {
   this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Function_T>(func), args...);
   return *this;
@@ -108,7 +108,7 @@ inline auto& define_singleton_function(std::string name, Function_T&& func, cons
  *  \return *this
  */
 template<typename Function_T, typename...Arg_Ts>
-inline auto& define_module_function(std::string name, Function_T&& func, const Arg_Ts& ...args)
+inline auto& define_module_function(std::string name, Function_T&& func, Arg_Ts&& ...args)
 {
   if (this->rb_type() != T_MODULE)
   {

@@ -13,7 +13,10 @@ namespace Rice
     Return& setValue() override;
     Return& setOpaque() override;
     Return& takeOwnership() override;
-    Return& setBuffer() override;
+  };
+
+  class ReturnBuffer : public Return
+  {
   };
 } // Rice
 

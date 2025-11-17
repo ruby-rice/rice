@@ -90,8 +90,7 @@ namespace Rice
      *  library to die at run time when it tries to convert the base
      *  type into the Director proxy type.
      *
-     *  This method takes no methodInfo, just needs the type of the
-     *  Director proxy class.
+     *  This method needs the type of the Director proxy class.
      *
      *  For example:
      *  \code
@@ -134,11 +133,11 @@ namespace Rice
     template<typename Iterator_Func_T>
     Data_Type<T>& define_iterator(Iterator_Func_T begin, Iterator_Func_T end, std::string name = "each");
 
-    template <typename Attribute_T>
-    Data_Type<T>& define_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite, Return returnInfo = Return());
+    template <typename Attribute_T, typename...Arg_Ts>
+    Data_Type<T>& define_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite, const Arg_Ts&...args);
   
-    template <typename Attribute_T>
-    Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite, Return returnInfo = Return());
+    template <typename Attribute_T, typename...Arg_Ts>
+    Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite, const Arg_Ts&...args);
 
     #include "cpp_api/shared_methods.hpp"
   protected:
@@ -164,8 +163,8 @@ namespace Rice
     template<typename Method_T, typename...Arg_Ts>
     void wrap_native_method(VALUE klass, std::string name, Method_T&& function, const Arg_Ts&...args);
 
-    template <typename Attribute_T>
-    Data_Type<T>& define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access, Return returnInfo);
+    template <typename Attribute_T, typename...Arg_Ts>
+    Data_Type<T>& define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access, const Arg_Ts&...args);
 
   private:
     template<typename T_>

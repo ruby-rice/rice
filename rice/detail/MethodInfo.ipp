@@ -25,7 +25,7 @@ namespace Rice
   template <typename Arg_T>
   inline void MethodInfo::processArg(const Arg_T& arg)
   {
-    if constexpr (std::is_same_v<Arg_T, Return>)
+    if constexpr (std::is_same_v<Arg_T, Return> || std::is_same_v<Arg_T, ReturnBuffer>)
     {
       this->returnInfo_ = arg;
     }
@@ -33,7 +33,7 @@ namespace Rice
     {
       this->function_ = arg;
     }
-    else if constexpr (std::is_same_v<Arg_T, Arg>)
+    else if constexpr (std::is_same_v<Arg_T, Arg> || std::is_same_v<Arg_T, ArgBuffer>)
     {
       this->addArg(arg);
     }

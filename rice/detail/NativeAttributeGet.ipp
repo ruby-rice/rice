@@ -4,13 +4,17 @@
 namespace Rice::detail
 {
   template<typename Attribute_T>
-  void NativeAttributeGet<Attribute_T>::define(VALUE klass, std::string name, Attribute_T attribute, Return returnInfo)
+  template<typename...Arg_Ts>
+  void NativeAttributeGet<Attribute_T>::define(VALUE klass, std::string name, Attribute_T attribute, Arg_Ts&...args)
   {
     // Verify attribute type
-    Native::verify_type<Attr_T>(returnInfo.isBuffer());
+    Native::verify_type<Attr_T, is_one_of_v<ReturnBuffer, Arg_Ts...>>();
+
+    // Create return info
+    std::unique_ptr<Return> returnInfo = Native::create_return<Arg_Ts...>(args...);
 
     // Create a NativeAttributeGet that Ruby will call to read/write C++ variables
-    NativeAttribute_T* nativeAttribute = new NativeAttribute_T(klass, name, std::forward<Attribute_T>(attribute), returnInfo);
+    NativeAttribute_T* nativeAttribute = new NativeAttribute_T(klass, name, std::forward<Attribute_T>(attribute), std::move(returnInfo));
     std::unique_ptr<Native> native(nativeAttribute);
 
     detail::protect(rb_define_method, klass, name.c_str(), (RUBY_METHOD_FUNC)&Native::resolve, -1);
@@ -32,8 +36,9 @@ namespace Rice::detail
   }
   
   template<typename Attribute_T>
-  NativeAttributeGet<Attribute_T>::NativeAttributeGet(VALUE klass, std::string name, Attribute_T attribute, Return returnInfo)
-    : klass_(klass), name_(name), attribute_(attribute), return_(returnInfo)
+  NativeAttributeGet<Attribute_T>::NativeAttributeGet(VALUE klass, std::string name, Attribute_T attribute, std::unique_ptr<Return>&& returnInfo)
+    : Native(std::move(returnInfo)),
+      klass_(klass), name_(name), attribute_(attribute)
   {
   }
 
@@ -46,42 +51,42 @@ namespace Rice::detail
 
       if constexpr (std::is_fundamental_v<detail::intrinsic_type<To_Ruby_T>>)
       {
-        return To_Ruby<To_Ruby_T>(&this->return_).convert(nativeSelf->*attribute_);
+        return To_Ruby<To_Ruby_T>(this->returnInfo_.get()).convert(nativeSelf->*attribute_);
       }
       else if constexpr (std::is_array_v<To_Ruby_T>)
       {
-        return To_Ruby<To_Ruby_T>(&this->return_).convert(nativeSelf->*attribute_);
+        return To_Ruby<To_Ruby_T>(this->returnInfo_.get()).convert(nativeSelf->*attribute_);
       }
       else if constexpr (std::is_pointer_v<To_Ruby_T>)
       {
-        return To_Ruby<To_Ruby_T>(&this->return_).convert(nativeSelf->*attribute_);
+        return To_Ruby<To_Ruby_T>(this->returnInfo_.get()).convert(nativeSelf->*attribute_);
       }
       else
       {
         // If the attribute is an object return a reference to avoid a copy (and avoid issues with
         // attributes that are not assignable, copy constructible or move constructible)
-        return To_Ruby<To_Ruby_T&>(&this->return_).convert(nativeSelf->*attribute_);
+        return To_Ruby<To_Ruby_T&>(this->returnInfo_.get()).convert(nativeSelf->*attribute_);
       }
     }
     else
     {
       if constexpr (std::is_fundamental_v<detail::intrinsic_type<To_Ruby_T>>)
       {
-        return To_Ruby<To_Ruby_T>(&this->return_).convert(*attribute_);
+        return To_Ruby<To_Ruby_T>(this->returnInfo_.get()).convert(*attribute_);
       }
       else if constexpr (std::is_array_v<To_Ruby_T>)
       {
-        return To_Ruby<To_Ruby_T>(&this->return_).convert(*attribute_);
+        return To_Ruby<To_Ruby_T>(this->returnInfo_.get()).convert(*attribute_);
       }
       else if constexpr (std::is_pointer_v<To_Ruby_T>)
       {
-        return To_Ruby<To_Ruby_T>(&this->return_).convert(*attribute_);
+        return To_Ruby<To_Ruby_T>(this->returnInfo_.get()).convert(*attribute_);
       }
       else
       {
         // If the attribute is an object return a reference to avoid a copy (and avoid issues with
         // attributes that are not assignable, copy constructible or move constructible)
-        return To_Ruby<To_Ruby_T&>(&this->return_).convert(*attribute_);
+        return To_Ruby<To_Ruby_T&>(this->returnInfo_.get()).convert(*attribute_);
       }
     }
   }
@@ -108,7 +113,8 @@ namespace Rice::detail
   inline VALUE NativeAttributeGet<Attribute_T>::returnKlass()
   {
     // Check if an array is being returned
-    if (this->return_.isBuffer())
+    bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
+    if (isBuffer)
     {
       TypeMapper<Pointer<Attr_T>> typeMapper;
       return typeMapper.rubyKlass();

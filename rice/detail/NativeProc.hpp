@@ -23,7 +23,7 @@ namespace Rice::detail
     static VALUE resolve(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
  
   public:
-    NativeProc(Proc_T proc, MethodInfo* methodInfo);
+    NativeProc(Proc_T proc, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
     
@@ -43,7 +43,6 @@ namespace Rice::detail
 
   private:
     Proc_T proc_;
-    std::unique_ptr<MethodInfo> methodInfo_;
     To_Ruby<To_Ruby_T> toRuby_;
   };
 }

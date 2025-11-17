@@ -255,8 +255,8 @@ namespace
 TESTCASE(pointer_of_doubles)
 {
   Module m = define_module("Testing").
-    define_module_function("speeds", &speeds, Return().setBuffer()).
-    define_module_function("speeds_ptr", &speedsPtr, Return().setBuffer());
+    define_module_function("speeds", &speeds, ReturnBuffer()).
+    define_module_function("speeds_ptr", &speedsPtr, ReturnBuffer());
 
   std::string code = R"(buffer = Rice::Buffer≺double≻.new(speeds, 3)
                         buffer[2])";
@@ -492,8 +492,8 @@ TESTCASE(pointer_of_objects)
   define_buffer<MyClassBuf*>();
 
   Module m = define_module("Testing").
-    define_module_function("class_buffs", &classBufs).
-    define_module_function("class_buffs_ptr", &classBufsPtr);
+    define_module_function("class_buffs", &classBufs, ReturnBuffer()).
+    define_module_function("class_buffs_ptr", &classBufsPtr, ReturnBuffer());
 
   define_class<MyClassBuf>("MyClassBuf").
     define_constructor(Constructor<MyClassBuf, int>()).
@@ -593,8 +593,8 @@ TESTCASE(array_of_objects_ptr)
 TESTCASE(pass_objects)
 {
   Module m = define_module("Testing");
-  m.define_module_function<size_t(*)(const MyClassBuf*, size_t)>("sum_ids", &sumIds, Arg("myClasses").setBuffer());
-  m.define_module_function<size_t(*)(const MyClassBuf**, size_t)>("sum_ids_ptr", &sumIds, Arg("myClasses").setBuffer());
+  m.define_module_function<size_t(*)(const MyClassBuf*, size_t)>("sum_ids", &sumIds, ArgBuffer("myClasses"));
+  m.define_module_function<size_t(*)(const MyClassBuf**, size_t)>("sum_ids_ptr", &sumIds, ArgBuffer("myClasses"));
 
   define_class_under<MyClassBuf>(m, "MyClassBuf").
     define_constructor(Constructor<MyClassBuf, int>()).

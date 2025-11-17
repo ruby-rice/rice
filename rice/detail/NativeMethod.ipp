@@ -24,17 +24,12 @@ namespace Rice::detail
 
   template<typename Class_T, typename Method_T>
   template<typename ...Arg_Ts>
-  void NativeMethod<Class_T, Method_T>::define(VALUE klass, std::string method_name, Method_T method, const Arg_Ts& ...args)
+  void NativeMethod<Class_T, Method_T>::define(VALUE klass, std::string method_name, Method_T method, Arg_Ts&& ...args)
   {
-    MethodInfo* methodInfo = new MethodInfo(detail::method_traits<Method_T>::arity, args...);
-
     // Verify return type
-    Native::verify_type<Return_T>(methodInfo->returnInfo()->isBuffer());
-
-    // Verify parameter types
-    auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
-    const auto argsTuple = tuple_filter<Arg>(args...);
-    Native::verify_parameters<Parameter_Ts, decltype(argsTuple)>(argsTuple, indices);
+    using Arg_Tuple = std::tuple<Arg_Ts...>;
+    constexpr bool isBuffer = tuple_element_index_v<Arg_Tuple, ReturnBuffer> < std::tuple_size_v<Arg_Tuple>;
+    Native::verify_type<Return_T, isBuffer>();
 
     // Have we defined this method yet in Ruby?
     Identifier identifier(method_name);
@@ -45,18 +40,24 @@ namespace Rice::detail
       detail::protect(rb_define_method, klass, method_name.c_str(), (RUBY_METHOD_FUNC)&Native::resolve, -1);
     }
 
-    // Create a NativeMethod instance and save it to the NativeRegistry. There may be multiple
-    // NativeMethod instances for a specific method because C++ supports method overloading.
-    NativeMethod_T* NativeMethod = new NativeMethod_T(klass, method_name, std::forward<Method_T>(method), methodInfo);
-    std::unique_ptr<Native> native(NativeMethod);
+    // Create method parameters - this will also validate their types
+    std::vector<std::unique_ptr<ParameterAbstract>> parameters = Native::create_parameters<Parameter_Ts>(args...);
+
+    // Create return info
+    std::unique_ptr<Return> returnInfo = Native::create_return<Arg_Ts...>(args...);
+    
+    // Create native method
+    NativeMethod_T* nativeMethod = new NativeMethod_T(klass, method_name, std::forward<Method_T>(method), std::move(returnInfo), std::move(parameters));
+    std::unique_ptr<Native> native(nativeMethod);
+
+    // Register the native method
     detail::Registries::instance.natives.add(klass, identifier.id(), native);
   }
 
   template<typename Class_T, typename Method_T>
-  NativeMethod<Class_T, Method_T>::NativeMethod(VALUE klass, std::string method_name, Method_T method, MethodInfo* methodInfo)
-    : Native(Native::create_parameters<Parameter_Ts>(methodInfo)),
-      klass_(klass), method_name_(method_name), method_(method), methodInfo_(methodInfo),
-      toRuby_(methodInfo->returnInfo())
+  NativeMethod<Class_T, Method_T>::NativeMethod(VALUE klass, std::string method_name, Method_T method, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters)
+    : Native(std::move(returnInfo), std::move(parameters)),
+      klass_(klass), method_name_(method_name), method_(method), toRuby_(returnInfo_.get())
   {
   }
 
@@ -267,20 +268,21 @@ namespace Rice::detail
     WrapperBase* selfWrapper = getWrapper(self);
 
     // Check method arguments
-    for (const Arg& arg : (*this->methodInfo_))
+    for (size_t i=0; i<this->parameters_.size(); i++)
     {
-      if (arg.isKeepAlive())
+      Arg* arg = parameters_[i]->arg();
+      if (arg->isKeepAlive())
       {
         if (selfWrapper == nullptr)
         {
           noWrapper(self, "self");
         }
-        selfWrapper->addKeepAlive(rubyValues[arg.position].value());
+        selfWrapper->addKeepAlive(rubyValues[i].value());
       }
     }
 
     // Check return value
-    if (this->methodInfo_->returnInfo()->isKeepAlive())
+    if (this->returnInfo_->isKeepAlive())
     {
       if (selfWrapper == nullptr)
       {
@@ -305,18 +307,18 @@ namespace Rice::detail
     auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
     Apply_Args_T nativeArgs = this->getNativeValues(self, rubyValues, indices);
 
-    bool noGvl = this->methodInfo_->function()->isNoGvl();
+    bool noGvl = false;// this->methodInfo_->function()->isNoGvl();
 
     VALUE result = Qnil;
 
-    if (noGvl)
-    {
-      result = this->invokeNoGVL(self, std::forward<Apply_Args_T>(nativeArgs));
-    }
-    else
-    {
+   // if (noGvl)
+   // {
+   //   result = this->invokeNoGVL(self, std::forward<Apply_Args_T>(nativeArgs));
+   // }
+   // else
+    //{
       result = this->invoke(self, std::forward<Apply_Args_T>(nativeArgs));
-    }
+   // }
 
     // Check if any method arguments or return values need to have their lifetimes tied to the receiver
     this->checkKeepAlive(self, result, rubyValues);
@@ -340,7 +342,8 @@ namespace Rice::detail
   inline VALUE NativeMethod<Class_T, Method_T>::returnKlass()
   {
     // Check if an array is being returned
-    if (this->methodInfo_->returnInfo()->isBuffer())
+    bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
+    if (isBuffer)
     {
       TypeMapper<Pointer<Return_T>> typeMapper;
       return typeMapper.rubyKlass();

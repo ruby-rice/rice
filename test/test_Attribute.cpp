@@ -453,7 +453,7 @@ TESTCASE(BufferAttribute)
 
   Class c = define_class<BufferAttrs>("BufferAttrs")
     .define_constructor(Constructor<BufferAttrs>())
-    .define_attr("buffer", &BufferAttrs::buffer, Rice::AttrAccess::Read, Return().setBuffer());
+    .define_attr("buffer", &BufferAttrs::buffer, Rice::AttrAccess::Read, ReturnBuffer());
 
   std::string code = R"(struct = BufferAttrs.new
                         struct.buffer.class)";
@@ -487,7 +487,7 @@ TESTCASE(CounterBufferAttribute)
 
   define_class<BufferAttrs>("BufferAttrs")
     .define_constructor(Constructor<BufferAttrs>())
-    .define_attr("counters_buffer", &BufferAttrs::countersBuffer, Rice::AttrAccess::Read, Return().setBuffer());
+    .define_attr("counters_buffer", &BufferAttrs::countersBuffer, Rice::AttrAccess::Read, ReturnBuffer());
 
   std::string code = R"(struct = BufferAttrs.new
                         struct.counters_buffer.class)";

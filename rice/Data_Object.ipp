@@ -228,7 +228,7 @@ namespace Rice::detail
     VALUE convert(U* data)
     {
       bool isOwner = this->arg_ && this->arg_->isOwner();
-      bool isBuffer = this->arg_ && this->arg_->isBuffer();
+      bool isBuffer = dynamic_cast<ReturnBuffer*>(this->arg_) ? true : false;
 
       if (data == nullptr)
       {
@@ -273,7 +273,7 @@ namespace Rice::detail
     VALUE convert(U* data)
     {
       bool isOwner = this->arg_ && this->arg_->isOwner();
-      bool isBuffer = this->arg_ && this->arg_->isBuffer();
+      bool isBuffer = dynamic_cast<ReturnBuffer*>(this->arg_) ? true : false;
  
       if (data == nullptr)
       {
@@ -503,7 +503,7 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      bool isBuffer = this->arg_->isBuffer();
+      bool isBuffer = dynamic_cast<ArgBuffer*>(this->arg_) ? true : false;
 
       switch (rb_type(value))
       {
@@ -528,7 +528,7 @@ namespace Rice::detail
     T* convert(VALUE value)
     {
       bool isOwner = this->arg_ && this->arg_->isOwner();
-      bool isBuffer = this->arg_ && this->arg_->isBuffer();
+      bool isBuffer = dynamic_cast<ArgBuffer*>(this->arg_) ? true : false;
 
       switch (rb_type(value))
       {
@@ -635,7 +635,7 @@ namespace Rice::detail
 
     Convertible is_convertible(VALUE value)
     {
-      bool isBuffer = this->arg_ && this->arg_->isBuffer();
+      bool isBuffer = dynamic_cast<ArgBuffer*>(this->arg_) ? true : false;
 
       switch (rb_type(value))
       {
@@ -656,7 +656,7 @@ namespace Rice::detail
     T** convert(VALUE value)
     {
       bool isOwner = this->arg_ && this->arg_->isOwner();
-      bool isBuffer = this->arg_ && this->arg_->isBuffer();
+      bool isBuffer = dynamic_cast<ArgBuffer*>(this->arg_) ? true : false;
 
       switch (rb_type(value))
       {

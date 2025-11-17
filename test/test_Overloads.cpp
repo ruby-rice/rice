@@ -647,7 +647,7 @@ TESTCASE(int_conversion_6)
   Class c = define_class<MyClass3>("MyClass3").
     define_constructor(Constructor<MyClass3>()).
     define_method<std::string(MyClass3::*)(unsigned char)>("run", &MyClass3::run).
-    define_method<std::string(MyClass3::*)(unsigned char*)>("run", &MyClass3::run, Arg("value").setBuffer());
+    define_method<std::string(MyClass3::*)(unsigned char*)>("run", &MyClass3::run, ArgBuffer("value"));
 
   Module m = define_module("Testing");
 
@@ -826,7 +826,7 @@ TESTCASE(PointerNotBuffer)
     define_constructor(Constructor<MyClass6>());
 
   m.define_module_function<std::string(*)(const MyClass6*)>("pointer", pointer).
-    define_module_function<std::string(*)(MyClass6*)>("pointer", pointer, Arg("data").setBuffer());
+    define_module_function<std::string(*)(MyClass6*)>("pointer", pointer, ArgBuffer("data"));
 
   std::string code = R"(my_class6 = MyClass6.new
                         pointer(my_class6))";
@@ -843,7 +843,7 @@ TESTCASE(PointerBuffer)
     define_constructor(Constructor<MyClass6>());
 
   m.define_function<std::string(*)(const MyClass6*)>("pointer", pointer).
-    define_function<std::string(*)(MyClass6*)>("pointer", pointer, Arg("data").setBuffer());
+    define_function<std::string(*)(MyClass6*)>("pointer", pointer, ArgBuffer("data"));
 
   std::string code = R"(my_class6 = MyClass6.new
                         buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClass6≻.new(my_class6)

@@ -49,10 +49,10 @@ namespace Rice::detail
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
 
     template<typename ...Arg_Ts>
-    static void define(VALUE klass, std::string method_name, Function_T function, const Arg_Ts& ...args);
+    static void define(VALUE klass, std::string method_name, Function_T function, Arg_Ts&& ...args);
 
   public:
-    NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
+    NativeFunction(VALUE klass, std::string method_name, Function_T function, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
 
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
@@ -83,7 +83,6 @@ namespace Rice::detail
     VALUE klass_;
     std::string method_name_;
     Function_T function_;
-    std::unique_ptr<MethodInfo> methodInfo_;
     To_Ruby<To_Ruby_T> toRuby_;
   };
 }

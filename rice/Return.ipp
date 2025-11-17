@@ -29,10 +29,4 @@ namespace Rice
     Arg::takeOwnership();
     return *this;
   }
-
-  inline Return& Return::setBuffer()
-  {
-    Arg::setBuffer();
-    return *this;
-  }
 }  // Rice
