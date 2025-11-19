@@ -12,7 +12,7 @@ inline void Init_Native()
     .define_value("Method", detail::NativeKind::Method)
     .define_value("AttributeReader", detail::NativeKind::AttributeReader)
     .define_value("AttributeWriter", detail::NativeKind::AttributeWriter)
-    .define_value("Proc", detail::NativeKind::Proc).
+    .define_value("Proc", detail::NativeKind::Proc)
     .define_value("Callback", detail::NativeKind::Callback);
 
   define_class_under<detail::Native>(rb_mRice, "Native").
