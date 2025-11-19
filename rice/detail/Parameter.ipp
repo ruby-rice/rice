@@ -41,8 +41,9 @@ namespace Rice::detail
       {
         result = this->fromRuby_.is_convertible(value);
 
-        // If this is an exact match check if the const-ness of the value and the parameter match
-        if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA)
+        // If this is an exact match check if the const-ness of the value and the parameter match.
+        // One caveat - procs are also RUBY_T_DATA so don't check if this is a function type
+        if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA && !std::is_function_v<std::remove_pointer_t<T>>)
         {
           // Check the constness of the Ruby wrapped value and the parameter
           WrapperBase* wrapper = getWrapper(value);
