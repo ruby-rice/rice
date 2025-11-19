@@ -32,7 +32,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -49,7 +49,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<typename...Types>
@@ -58,7 +58,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -66,7 +66,7 @@ namespace Rice::detail
     {
       Array result;
 
-      bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
+      bool isOwner = (this->arg_ && this->arg_->isOwner());
 
       for_each_tuple(data, [&](auto& element)
       {
@@ -77,7 +77,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<typename...Types>
