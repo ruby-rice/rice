@@ -35,13 +35,15 @@ namespace Rice
   template<typename Function_T, typename ...Arg_Ts>
   inline void Module::wrap_native_function(VALUE klass, std::string name, Function_T&& function, const Arg_Ts&...args)
   {
-    detail::NativeFunction<Function_T>::define(klass, name, std::forward<Function_T>(function), args...);
+    constexpr bool isNoGVL = detail::tuple_element_index_v<std::tuple<Arg_Ts...>, NoGVL> < (sizeof...(Arg_Ts));
+    detail::NativeFunction<Function_T, isNoGVL>::define(klass, name, std::forward<Function_T>(function), args...);
   }
 
   template<typename Class_T, typename Method_T, typename ...Arg_Ts>
   inline void Module::wrap_native_method(VALUE klass, std::string name, Method_T&& method, const Arg_Ts&...args)
   {
-    detail::NativeMethod<Class_T, Method_T>::define(klass, name, std::forward<Method_T>(method), args...);
+    constexpr bool isNoGVL = detail::tuple_element_index_v<std::tuple<Arg_Ts...>, NoGVL> < (sizeof...(Arg_Ts));
+    detail::NativeMethod<Class_T, Method_T, isNoGVL>::define(klass, name, std::forward<Method_T>(method), args...);
   }
 
   inline Module define_module_under(Object parent, char const* name)

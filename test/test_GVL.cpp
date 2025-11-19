@@ -64,7 +64,7 @@ TESTCASE(Function)
 TESTCASE(FunctionViaRuby)
 {
   Module m = define_module("Testing");
-  m.define_module_function("slow_function_1", &slowFunction1, Function().setNoGvl());
+  m.define_module_function("slow_function_1", &slowFunction1, NoGVL());
   
   std::string code = R"(slow_function_1)";
   Object result = m.module_eval(code);
@@ -99,7 +99,7 @@ TESTCASE(MemberFunctionNoGvl)
 
   Class task = define_class_under<Task>(m, "Task")
     .define_constructor(Constructor<Task, int>())
-    .define_method("run", &Task::run, Function().setNoGvl());
+    .define_method("run", &Task::run, NoGVL());
 
   std::string code = R"(task = Task.new(85)
                         task.run(true))";

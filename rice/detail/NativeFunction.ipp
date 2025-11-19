@@ -6,9 +6,9 @@
 
 namespace Rice::detail
 {
-  template<typename Function_T>
+  template<typename Function_T, bool NoGVL>
   template<typename ...Arg_Ts>
-  void NativeFunction<Function_T>::define(VALUE klass, std::string method_name, Function_T function, Arg_Ts&& ...args)
+  void NativeFunction<Function_T, NoGVL>::define(VALUE klass, std::string method_name, Function_T function, Arg_Ts&& ...args)
   {
     // Verify return type
     using Arg_Tuple = std::tuple<Arg_Ts...>;
@@ -38,16 +38,16 @@ namespace Rice::detail
     detail::Registries::instance.natives.add(klass, identifier.id(), native);
   }
 
-  template<typename Function_T>
-  NativeFunction<Function_T>::NativeFunction(VALUE klass, std::string method_name, Function_T function, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters)
+  template<typename Function_T, bool NoGVL>
+  NativeFunction<Function_T, NoGVL>::NativeFunction(VALUE klass, std::string method_name, Function_T function, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters)
     : Native(std::move(returnInfo), std::move(parameters)),
       klass_(klass), method_name_(method_name), function_(function), toRuby_(returnInfo_.get())
   {
   }
 
-  template<typename Function_T>
+  template<typename Function_T, bool NoGVL>
   template<std::size_t... I>
-  std::vector<std::string> NativeFunction<Function_T>::argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices)
+  std::vector<std::string> NativeFunction<Function_T, NoGVL>::argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices)
   {
     std::vector<std::string> result;
     for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)
@@ -57,8 +57,8 @@ namespace Rice::detail
     return result;
   }
 
-  template<typename Function_T>
-  std::string NativeFunction<Function_T>::toString()
+  template<typename Function_T, bool NoGVL>
+  std::string NativeFunction<Function_T, NoGVL>::toString()
   {
     std::ostringstream result;
 
@@ -80,9 +80,9 @@ namespace Rice::detail
     return result.str();
   }
     
-  template<typename Function_T>
+  template<typename Function_T, bool NoGVL>
   template<std::size_t... I>
-  typename NativeFunction<Function_T>::Parameter_Ts NativeFunction<Function_T>::getNativeValues(std::vector<std::optional<VALUE>>& values,
+  typename NativeFunction<Function_T, NoGVL>::Parameter_Ts NativeFunction<Function_T, NoGVL>::getNativeValues(std::vector<std::optional<VALUE>>& values,
      std::index_sequence<I...>& indices)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
@@ -96,8 +96,8 @@ namespace Rice::detail
                convertToNative(values[I])...);
   }
 
-  template<typename Function_T>
-  VALUE NativeFunction<Function_T>::invoke(Parameter_Ts&& nativeArgs)
+  template<typename Function_T, bool NoGVL>
+  VALUE NativeFunction<Function_T, NoGVL>::invoke(Parameter_Ts&& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
@@ -114,8 +114,8 @@ namespace Rice::detail
     }
   }
 
-  template<typename Function_T>
-  VALUE NativeFunction<Function_T>::invokeNoGVL(Parameter_Ts&& nativeArgs)
+  template<typename Function_T, bool NoGVL>
+  VALUE NativeFunction<Function_T, NoGVL>::invokeNoGVL(Parameter_Ts&& nativeArgs)
   {
     if constexpr (std::is_void_v<Return_T>)
     {
@@ -132,8 +132,8 @@ namespace Rice::detail
     }
   }
 
-  template<typename Function_T>
-  void NativeFunction<Function_T>::noWrapper(const VALUE klass, const std::string& wrapper)
+  template<typename Function_T, bool NoGVL>
+  void NativeFunction<Function_T, NoGVL>::noWrapper(const VALUE klass, const std::string& wrapper)
   {
     std::stringstream message;
 
@@ -148,8 +148,8 @@ namespace Rice::detail
     throw std::runtime_error(message.str());
   }
 
-  template<typename Function_T>
-  void NativeFunction<Function_T>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues)
+  template<typename Function_T, bool NoGVL>
+  void NativeFunction<Function_T, NoGVL>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues)
   {
     // Self will be Qnil for wrapped procs
     if (self == Qnil)
@@ -191,8 +191,8 @@ namespace Rice::detail
     }
   }
 
-  template<typename Function_T>
-  VALUE NativeFunction<Function_T>::operator()(size_t argc, const VALUE* argv, VALUE self)
+  template<typename Function_T, bool NoGVL>
+  VALUE NativeFunction<Function_T, NoGVL>::operator()(size_t argc, const VALUE* argv, VALUE self)
   {
     // Get the ruby values and make sure we have the correct number
     std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, true);
@@ -202,18 +202,16 @@ namespace Rice::detail
     // Convert the Ruby values to native values
     Parameter_Ts nativeValues = this->getNativeValues(rubyValues, indices);
 
-    bool noGvl = false; // this->methodInfo_->function()->isNoGvl();
-
     VALUE result = Qnil;
 
-    //if (noGvl)
-    //{
-     // result = this->invokeNoGVL(std::forward<Parameter_Ts>(nativeValues));
-    //}
-    //else
-    //{
+    if constexpr (NoGVL)
+    {
+      result = this->invokeNoGVL(std::forward<Parameter_Ts>(nativeValues));
+    }
+    else
+    {
       result = this->invoke(std::forward<Parameter_Ts>(nativeValues));
-    //}
+    }
 
     // Check if any function arguments or return values need to have their lifetimes tied to the receiver
     this->checkKeepAlive(self, result, rubyValues);
@@ -221,20 +219,20 @@ namespace Rice::detail
     return result;
   }
 
-  template<typename Function_T>
-  inline std::string NativeFunction<Function_T>::name()
+  template<typename Function_T, bool NoGVL>
+  inline std::string NativeFunction<Function_T, NoGVL>::name()
   {
     return this->method_name_;
   }
 
-  template<typename Function_T>
-  inline NativeKind NativeFunction<Function_T>::kind()
+  template<typename Function_T, bool NoGVL>
+  inline NativeKind NativeFunction<Function_T, NoGVL>::kind()
   {
     return NativeKind::Function;
   }
 
-  template<typename Function_T>
-  inline VALUE NativeFunction<Function_T>::returnKlass()
+  template<typename Function_T, bool NoGVL>
+  inline VALUE NativeFunction<Function_T, NoGVL>::returnKlass()
   {
     // Check if an array is being returned
     bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;

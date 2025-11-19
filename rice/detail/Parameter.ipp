@@ -18,7 +18,7 @@ namespace Rice::detail
   // -----------  Parameter ----------------
   template<typename T>
   inline Parameter<T>::Parameter(std::unique_ptr<Arg>&& arg) : ParameterAbstract(std::move(arg)), 
-    fromRuby_(this->arg()), toRuby_((Return*)this->arg())
+    fromRuby_(this->arg()), toRuby_(this->arg())
   {
   }
 

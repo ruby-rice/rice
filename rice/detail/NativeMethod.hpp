@@ -35,11 +35,11 @@ namespace Rice::detail
    *    calling them methods (self) or functions (no self).
    */
 
-  template<typename Class_T, typename Method_T>
+  template<typename Class_T, typename Method_T, bool NoGVL>
   class NativeMethod: Native
   {
   public:
-    using NativeMethod_T = NativeMethod<Class_T, Method_T>;
+    using NativeMethod_T = NativeMethod<Class_T, Method_T, NoGVL>;
 
     // We remove const to avoid an explosion of To_Ruby specializations and Ruby doesn't
     // have the concept of constants anyways
