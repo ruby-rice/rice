@@ -5,6 +5,11 @@ namespace Rice::detail
   {
   }
 
+  inline ParameterAbstract::ParameterAbstract(const ParameterAbstract& other)
+  {
+    this->arg_ = std::make_unique<Arg>(*other.arg_);
+  }
+
   inline Arg* ParameterAbstract::arg()
   {
     return this->arg_.get();
@@ -12,7 +17,8 @@ namespace Rice::detail
 
   // -----------  Parameter ----------------
   template<typename T>
-  inline Parameter<T>::Parameter(std::unique_ptr<Arg>&& arg) : ParameterAbstract(std::move(arg)), fromRuby_(this->arg())
+  inline Parameter<T>::Parameter(std::unique_ptr<Arg>&& arg) : ParameterAbstract(std::move(arg)), 
+    fromRuby_(this->arg()), toRuby_((Return*)this->arg())
   {
   }
 
@@ -92,6 +98,12 @@ namespace Rice::detail
     }
 
     throw std::invalid_argument("Could not convert Rubyy value");
+  }
+
+  template<typename T>
+  inline VALUE Parameter<T>::convertToRuby(T object)
+  {
+    return this->toRuby_.convert(object);
   }
 
   template<typename T>

@@ -12,6 +12,7 @@ namespace Rice::detail
     ParameterAbstract(std::unique_ptr<Arg>&& arg);
     virtual ~ParameterAbstract() = default;
 
+    ParameterAbstract(const ParameterAbstract& other);
     ParameterAbstract(ParameterAbstract&& other) = default;
     ParameterAbstract& operator=(ParameterAbstract&& other) = default;
 
@@ -33,10 +34,13 @@ namespace Rice::detail
 
      Parameter() = default;
      Parameter(std::unique_ptr<Arg>&& arg);
+     Parameter(const Parameter& other) = default;
      Parameter(Parameter&& other) = default;
      Parameter& operator=(Parameter&& other) = default;
 
      T convertToNative(std::optional<VALUE>& valueOpt);
+     VALUE convertToRuby(T object);
+
      Convertible matches(std::optional<VALUE>& valueOpt) override;
      std::string cppTypeName() override;
      VALUE klass() override;
@@ -44,6 +48,7 @@ namespace Rice::detail
     // std::string typeName() override;
   private:
     From_Ruby<remove_cv_recursive_t<T>> fromRuby_;
+    To_Ruby<remove_cv_recursive_t<T>> toRuby_;
   };
 }
 #endif // Rice__detail__Parameter__hpp_

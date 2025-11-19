@@ -115,10 +115,8 @@
 #include "detail/NativeMethod.ipp"
 #include "detail/NativeProc.hpp"
 #include "detail/NativeProc.ipp"
-#include "detail/NativeCallbackFFI.hpp"
-#include "detail/NativeCallbackFFI.ipp"
-#include "detail/NativeCallbackSimple.hpp"
-#include "detail/NativeCallbackSimple.ipp"
+#include "detail/NativeCallback.hpp"
+#include "detail/NativeCallback.ipp"
 #include "detail/Proc.ipp"
 
 // C++ API definitions

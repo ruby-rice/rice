@@ -6,22 +6,6 @@
 
 namespace Rice::detail
 {
-  template<typename Target, typename T>
-  auto keep_if(T&& x)
-  {
-    using U = std::decay_t<T>;
-    if constexpr (std::is_same_v<U, Target>)
-      return std::tuple<U>{ std::forward<T>(x) };
-    else
-      return std::tuple<>{};
-  }
-
-  template<typename Class_T, typename... Ts>
-  constexpr auto filterTuple(Ts&&... args)
-  {
-    return std::tuple_cat(keep_if<Class_T>(std::forward<Ts>(args))...);
-  }
-
   template<typename Class_T, typename Method_T>
   template<typename ...Arg_Ts>
   void NativeMethod<Class_T, Method_T>::define(VALUE klass, std::string method_name, Method_T method, Arg_Ts&& ...args)

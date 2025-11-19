@@ -59,26 +59,12 @@ namespace Rice::detail
       }
     }
 
-#ifdef HAVE_LIBFFI
     Callback_T convert(VALUE value)
     {
-      using NativeCallback_T = NativeCallbackFFI<Return_T(*)(Parameter_Ts...)>;
-      NativeCallback_T* nativeCallback = new NativeCallback_T(value);
-
-      // Tie the lifetime of the NativeCallback C++ instance to the lifetime of the Ruby proc object
-      VALUE finalizer = rb_proc_new(NativeCallback_T::finalizerCallback, (VALUE)nativeCallback);
-      rb_define_finalizer(value, finalizer);
-
-      return nativeCallback->callback();
+      using NativeCallback_T = NativeCallback<Callback_T>;
+      NativeCallback_T* callback = new NativeCallback_T(value);
+      return callback->callback();
     }
-#else
-    Callback_T convert(VALUE value)
-    {
-      using NativeCallback_T = NativeCallbackSimple<Return_T(*)(Parameter_Ts...)>;
-      NativeCallback_T::proc = value;
-      return &NativeCallback_T::callback;
-    }
-#endif
 
   private:
     Arg* arg_ = nullptr;

@@ -1,4 +1,3 @@
-
 namespace Rice::detail
 {
   inline bool Resolved::operator<(Resolved other)

@@ -23,7 +23,8 @@ namespace Rice::detail
     Iterator,
     AttributeReader,
     AttributeWriter,
-    Proc
+    Proc,
+    Callback
   };
 
   class Native
