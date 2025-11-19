@@ -227,3 +227,56 @@ TESTCASE(UserData)
   String result = m.call("trigger_callback");
   ASSERT_EQUAL("TestingUserData::UserDataClass", result.c_str());
 }
+
+namespace
+{
+  using Callback_T4 = void(*)(void* userData);
+  Callback_T4 globalCallback4;
+  void* globalUserData4 = nullptr;
+
+  void registerCallback4(Callback_T4 callback, void* userData)
+  {
+    globalCallback4 = callback;
+    globalUserData4 = userData;
+  }
+
+  void triggerCallback4()
+  {
+    if (globalCallback4)
+    {
+      globalCallback4(globalUserData4);
+    }
+    else
+    {
+      throw std::runtime_error("Callback has not been registered");
+    }
+  }
+}
+
+TESTCASE(VoidReturn)
+{
+  Module m = define_module("TestingUserData");
+  m.define_module_function("register_callback4", registerCallback4, Arg("callback"), Arg("user_data").setOpaque()).
+    define_module_function("trigger_callback4", triggerCallback4);
+
+  define_callback<Callback_T4>(Arg("user_data").setOpaque());
+
+  std::string code = R"(class UserDataClass
+                        end
+
+                        user_data_1 = UserDataClass.new
+
+                        callback = Proc.new do |user_data_2|
+                                     unless user_data_1.equal?(user_data_2)
+                                       raise("Unexpected user data object")
+                                     end
+                                     user_data_2.class.name
+                                   end
+
+                        register_callback4(callback, user_data_1))";
+
+  m.module_eval(code);
+
+  Object result = m.call("trigger_callback4");
+  ASSERT_EQUAL(Qnil, result.value());
+}

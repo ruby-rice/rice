@@ -67,7 +67,15 @@ namespace Rice::detail
     auto helper = [&](auto&&... args)
     {
       self->callRuby(indices, std::forward<Parameter_Ts>(args)...);
-      *(Return_T*)ret = self->callRuby(indices, std::forward<Parameter_Ts>(args)...);
+
+      if constexpr (!std::is_void_v<Return_T>)
+      {
+        *(Return_T*)ret = self->callRuby(indices, std::forward<Parameter_Ts>(args)...);
+      }
+      else
+      {
+        self->callRuby(indices, std::forward<Parameter_Ts>(args)...);
+      }
     };
 
     // Convert the C style array to a tuple
