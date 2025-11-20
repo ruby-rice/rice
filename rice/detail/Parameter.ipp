@@ -1,13 +1,24 @@
 namespace Rice::detail
 {
   // -----------  ParameterAbstract ----------------
-  inline ParameterAbstract::ParameterAbstract(Arg* arg) : arg(arg)
+  inline ParameterAbstract::ParameterAbstract(std::unique_ptr<Arg>&& arg) : arg_(std::move(arg))
   {
+  }
+
+  inline ParameterAbstract::ParameterAbstract(const ParameterAbstract& other)
+  {
+    this->arg_ = std::make_unique<Arg>(*other.arg_);
+  }
+
+  inline Arg* ParameterAbstract::arg()
+  {
+    return this->arg_.get();
   }
 
   // -----------  Parameter ----------------
   template<typename T>
-  inline Parameter<T>::Parameter(Arg* arg) : ParameterAbstract(arg), fromRuby_(arg)
+  inline Parameter<T>::Parameter(std::unique_ptr<Arg>&& arg) : ParameterAbstract(std::move(arg)), 
+    fromRuby_(this->arg()), toRuby_(this->arg())
   {
   }
 
@@ -20,7 +31,7 @@ namespace Rice::detail
     if (valueOpt.has_value())
     {
       VALUE value = valueOpt.value();
-      if (this->arg->isValue())
+      if (this->arg()->isValue())
       {
         result = Convertible::Exact;
       }
@@ -30,8 +41,9 @@ namespace Rice::detail
       {
         result = this->fromRuby_.is_convertible(value);
 
-        // If this is an exact match check if the const-ness of the value and the parameter match
-        if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA)
+        // If this is an exact match check if the const-ness of the value and the parameter match.
+        // One caveat - procs are also RUBY_T_DATA so don't check if this is a function type
+        if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA && !std::is_function_v<std::remove_pointer_t<T>>)
         {
           // Check the constness of the Ruby wrapped value and the parameter
           WrapperBase* wrapper = getWrapper(value);
@@ -51,7 +63,7 @@ namespace Rice::detail
       }
     }
     // Last check if a default value has been set
-    else if (this->arg->hasDefaultValue())
+    else if (this->arg()->hasDefaultValue())
     {
       result = Convertible::Exact;
     }
@@ -80,13 +92,19 @@ namespace Rice::detail
     }
     else if constexpr (std::is_constructible_v<std::remove_cv_t<T>, std::remove_cv_t<std::remove_reference_t<T>>&>)
     {
-      if (this->arg->hasDefaultValue())
+      if (this->arg()->hasDefaultValue())
       {
-        return this->arg->template defaultValue<T>();
+        return this->arg()->template defaultValue<T>();
       }
     }
 
     throw std::invalid_argument("Could not convert Rubyy value");
+  }
+
+  template<typename T>
+  inline VALUE Parameter<T>::convertToRuby(T object)
+  {
+    return this->toRuby_.convert(object);
   }
 
   template<typename T>

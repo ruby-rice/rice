@@ -18,8 +18,8 @@ namespace Rice::detail
   {
     using Return_T = typename function_traits<Function_T>::return_type;
     using Class_T = typename function_traits<Function_T>::template nth_arg<0>;
-    using Arg_Ts = typename tuple_shift<typename function_traits<Function_T>::arg_types>::type;
-    static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
+    using Parameter_Ts = typename tuple_shift<typename function_traits<Function_T>::arg_types>::type;
+    static constexpr std::size_t arity = std::tuple_size_v<Parameter_Ts>;
   };
 
   // Member functions that have an implied self parameter of an object instance
@@ -29,8 +29,8 @@ namespace Rice::detail
   {
     using Return_T = typename function_traits<Function_T>::return_type;
     using Class_T = typename function_traits<Function_T>::class_type;
-    using Arg_Ts = typename function_traits<Function_T>::arg_types;
-    static constexpr std::size_t arity = std::tuple_size_v<Arg_Ts>;
+    using Parameter_Ts = typename function_traits<Function_T>::arg_types;
+    static constexpr std::size_t arity = std::tuple_size_v<Parameter_Ts>;
   };
 }
 #endif // Rice__detail__method_traits__hpp_

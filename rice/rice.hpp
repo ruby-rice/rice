@@ -37,8 +37,6 @@
 // Code for Ruby to call C++
 #include "Arg.hpp"
 #include "Return.hpp"
-#include "Function.hpp"
-#include "detail/MethodInfo.hpp"
 #include "detail/from_ruby.hpp"
 #include "detail/RubyType.hpp"
 #include "detail/Parameter.hpp"
@@ -76,8 +74,8 @@
 // To / From Ruby
 #include "Arg.ipp"
 #include "detail/Parameter.ipp"
+#include "NoGVL.hpp"
 #include "Return.ipp"
-#include "Function.ipp"
 #include "Constructor.hpp"
 #include "Buffer.hpp"
 #include "Pointer.hpp"
@@ -103,7 +101,6 @@
 #include "Exception.ipp"
 #include "detail/cpp_protect.hpp"
 #include "detail/Wrapper.ipp"
-#include "detail/MethodInfo.ipp"
 #include "detail/Native.ipp"
 #include "detail/NativeAttributeGet.ipp"
 #include "detail/NativeAttributeSet.ipp"
@@ -115,10 +112,8 @@
 #include "detail/NativeMethod.ipp"
 #include "detail/NativeProc.hpp"
 #include "detail/NativeProc.ipp"
-#include "detail/NativeCallbackFFI.hpp"
-#include "detail/NativeCallbackFFI.ipp"
-#include "detail/NativeCallbackSimple.hpp"
-#include "detail/NativeCallbackSimple.ipp"
+#include "detail/NativeCallback.hpp"
+#include "detail/NativeCallback.ipp"
 #include "detail/Proc.ipp"
 
 // C++ API definitions

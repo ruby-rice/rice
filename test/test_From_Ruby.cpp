@@ -327,6 +327,7 @@ TESTCASE(unsigned_char_pointer_array)
 
 TESTCASE(double)
 {
+#undef min
   ASSERT_EQUAL(0.0, detail::From_Ruby<double>().convert(rb_float_new(0.0)));
   ASSERT_EQUAL(-1.0, detail::From_Ruby<double>().convert(rb_float_new(-1.0)));
   ASSERT_EQUAL(1.0, detail::From_Ruby<double>().convert(rb_float_new(1.0)));
@@ -414,7 +415,7 @@ TESTCASE(float_array_array)
 {
   Module m = define_module("Testing");
 
-  m.define_singleton_function("array_array_to_string", &arrayofArraysToString<float>, Arg("buffer").setBuffer());
+  m.define_singleton_function("array_array_to_string", &arrayofArraysToString<float>, ArgBuffer("buffer"));
 
   std::string code = R"(buffer = Rice::Buffer≺float∗≻.new([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]])
                         array_array_to_string(buffer.data, buffer.size, 2))";

@@ -18,7 +18,7 @@ TEARDOWN(Vector)
 {
   rb_gc_start();
 }
-/*
+
 namespace
 {
   class MyClass
@@ -65,7 +65,7 @@ TESTCASE(StringVector)
   result = vec.call("last");
   ASSERT_EQUAL("four", detail::From_Ruby<std::string>().convert(result));
 }
-*/
+
 TESTCASE(StringVectorData)
 {
   Module m = define_module("Testing");

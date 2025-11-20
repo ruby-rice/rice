@@ -38,8 +38,8 @@ namespace Rice
     String(std::string_view const& s);
 
     //! Format a string using printf-style formatting.
-    template <typename... Arg_Ts>
-    static inline String format(char const* fmt, Arg_Ts&&...args);
+    template <typename... Parameter_Ts>
+    static inline String format(char const* fmt, Parameter_Ts&&...args);
 
     //! Get the length of the String.
     /*! \return the length of the string.

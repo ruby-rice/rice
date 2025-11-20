@@ -162,7 +162,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -172,7 +172,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -181,7 +181,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -191,7 +191,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<int N>
@@ -200,7 +200,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -211,7 +211,7 @@ namespace Rice::detail
       return dataObject.value();
     }
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -220,14 +220,14 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
     VALUE convert(const std::string* value)
     {
-      bool isOwner = this->returnInfo_ && this->returnInfo_->isOwner();
-      bool isBuffer = this->returnInfo_ && this->returnInfo_->isBuffer();
+      bool isOwner = this->arg_ && this->arg_->isOwner();
+      bool isBuffer = dynamic_cast<ReturnBuffer*>(this->arg_) ? true : false;
 
       if (isBuffer)
       {
@@ -241,7 +241,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -250,7 +250,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -260,7 +260,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   /*template<>
@@ -269,7 +269,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -281,7 +281,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };*/
 
   template<>
@@ -540,7 +540,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -553,7 +553,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -562,7 +562,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -575,7 +575,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -715,7 +715,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -725,7 +725,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -734,7 +734,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -751,7 +751,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -760,7 +760,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -777,7 +777,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -884,7 +884,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -894,7 +894,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -1556,7 +1556,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -1567,7 +1567,7 @@ namespace Rice::detail
 
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -1576,7 +1576,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -1586,7 +1586,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -2936,7 +2936,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -2953,7 +2953,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<typename...Types>
@@ -2962,7 +2962,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -2970,7 +2970,7 @@ namespace Rice::detail
     {
       Array result;
 
-      bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
+      bool isOwner = (this->arg_ && this->arg_->isOwner());
 
       for_each_tuple(data, [&](auto& element)
       {
@@ -2981,7 +2981,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<typename...Types>
@@ -3170,7 +3170,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -3239,7 +3239,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<typename...Types>
@@ -3248,7 +3248,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -3292,13 +3292,13 @@ namespace Rice::detail
     template<typename U>
     VALUE convert(U& data)
     {
-      bool isOwner = (this->returnInfo_ && this->returnInfo_->isOwner());
+      bool isOwner = (this->arg_ && this->arg_->isOwner());
       auto indices = std::make_index_sequence<std::variant_size_v<std::variant<Types...>>>{};
       return convertIterator(data, isOwner, indices);
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<typename...Types>
@@ -3470,7 +3470,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -3487,7 +3487,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template <typename T>
@@ -3496,7 +3496,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -3507,7 +3507,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template <typename T>
@@ -4264,7 +4264,7 @@ namespace Rice
               return vector[index];
             }
           })
-          .template define_method<Value_T*(T::*)()>("data", &T::data, Return().setBuffer());
+          .template define_method<Value_T*(T::*)()>("data", &T::data, ReturnBuffer());
         }
         else
         {
@@ -4757,7 +4757,7 @@ namespace Rice
     public:
       To_Ruby() = default;
 
-      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+      explicit To_Ruby(Arg* arg) : arg_(arg)
       {
       }
 
@@ -4767,7 +4767,7 @@ namespace Rice
       }
 
     private:
-      Return* returnInfo_ = nullptr;
+      Arg* arg_ = nullptr;
     };
   }
 }

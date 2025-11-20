@@ -159,7 +159,7 @@ namespace Rice
               return vector[index];
             }
           })
-          .template define_method<Value_T*(T::*)()>("data", &T::data, Return().setBuffer());
+          .template define_method<Value_T*(T::*)()>("data", &T::data, ReturnBuffer());
         }
         else
         {
@@ -652,7 +652,7 @@ namespace Rice
     public:
       To_Ruby() = default;
 
-      explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+      explicit To_Ruby(Arg* arg) : arg_(arg)
       {
       }
 
@@ -662,7 +662,7 @@ namespace Rice
       }
 
     private:
-      Return* returnInfo_ = nullptr;
+      Arg* arg_ = nullptr;
     };
   }
 }

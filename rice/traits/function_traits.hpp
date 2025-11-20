@@ -9,12 +9,12 @@ namespace Rice::detail
   template<typename Function_T>
   struct function_traits;
 
-  template<typename Return_T, typename Class_T, typename...Arg_Ts>
-  struct function_traits<Return_T(Class_T, Arg_Ts...)>
+  template<typename Return_T, typename Class_T, typename...Parameter_Ts>
+  struct function_traits<Return_T(Class_T, Parameter_Ts...)>
   {
-    using arg_types = std::tuple<Arg_Ts...>;
+    using arg_types = std::tuple<Parameter_Ts...>;
 
-    static constexpr std::size_t arity = sizeof...(Arg_Ts);
+    static constexpr std::size_t arity = sizeof...(Parameter_Ts);
 
     template<std::size_t N>
     using nth_arg = typename std::tuple_element_t<N, arg_types>;
@@ -37,47 +37,47 @@ namespace Rice::detail
   };
 
   // C functions and static member functions passed by pointer
-  template<typename Return_T, typename ...Arg_Ts>
-  struct function_traits<Return_T(*)(Arg_Ts...)> : public function_traits<Return_T(std::nullptr_t, Arg_Ts...)>
+  template<typename Return_T, typename ...Parameter_Ts>
+  struct function_traits<Return_T(*)(Parameter_Ts...)> : public function_traits<Return_T(std::nullptr_t, Parameter_Ts...)>
   {
-    using Function_T = Return_T(*)(Arg_Ts...);
+    using Function_T = Return_T(*)(Parameter_Ts...);
   };
   
   // C functions passed by pointer that take one or more defined parameter than a variable 
   // number of parameters (the second ...)
-  template<typename Return_T, typename ...Arg_Ts>
-  struct function_traits<Return_T(*)(Arg_Ts..., ...)> : public function_traits<Return_T(std::nullptr_t, Arg_Ts...)>
+  template<typename Return_T, typename ...Parameter_Ts>
+  struct function_traits<Return_T(*)(Parameter_Ts..., ...)> : public function_traits<Return_T(std::nullptr_t, Parameter_Ts...)>
   {
   };
 
   // C Functions or static member functions passed by reference
-  template<typename Return_T, typename ...Arg_Ts>
-  struct function_traits<Return_T(&)(Arg_Ts...)> : public function_traits<Return_T(std::nullptr_t, Arg_Ts...)>
+  template<typename Return_T, typename ...Parameter_Ts>
+  struct function_traits<Return_T(&)(Parameter_Ts...)> : public function_traits<Return_T(std::nullptr_t, Parameter_Ts...)>
   {
   };
 
   // Member Functions on C++ classes
-  template<typename Return_T, typename Class_T, typename...Arg_Ts>
-  struct function_traits<Return_T(Class_T::*)(Arg_Ts...)> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
+  template<typename Return_T, typename Class_T, typename...Parameter_Ts>
+  struct function_traits<Return_T(Class_T::*)(Parameter_Ts...)> : public function_traits<Return_T(Class_T*, Parameter_Ts...)>
   {
   };
 
   // const member Functions on C++ classes
-  template<typename Return_T, typename Class_T, typename...Arg_Ts>
-  struct function_traits<Return_T(Class_T::*)(Arg_Ts...) const> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
+  template<typename Return_T, typename Class_T, typename...Parameter_Ts>
+  struct function_traits<Return_T(Class_T::*)(Parameter_Ts...) const> : public function_traits<Return_T(Class_T*, Parameter_Ts...)>
   {
   };
 
   // noexcept member Functions on C++ classes
-  template<typename Return_T, typename Class_T, typename...Arg_Ts>
-  struct function_traits<Return_T(Class_T::*)(Arg_Ts...) noexcept> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
+  template<typename Return_T, typename Class_T, typename...Parameter_Ts>
+  struct function_traits<Return_T(Class_T::*)(Parameter_Ts...) noexcept> : public function_traits<Return_T(Class_T*, Parameter_Ts...)>
   {
   };
 
 
   // const noexcept member Functions on C++ classes
-  template<typename Return_T, typename Class_T, typename...Arg_Ts>
-  struct function_traits<Return_T(Class_T::*)(Arg_Ts...) const noexcept> : public function_traits<Return_T(Class_T*, Arg_Ts...)>
+  template<typename Return_T, typename Class_T, typename...Parameter_Ts>
+  struct function_traits<Return_T(Class_T::*)(Parameter_Ts...) const noexcept> : public function_traits<Return_T(Class_T*, Parameter_Ts...)>
   {
   };
 

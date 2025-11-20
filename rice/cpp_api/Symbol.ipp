@@ -67,7 +67,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -77,7 +77,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
 
@@ -87,7 +87,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -97,7 +97,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<>

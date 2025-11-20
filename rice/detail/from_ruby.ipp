@@ -1456,6 +1456,45 @@ namespace Rice::detail
 
   // ===========  void  ============
   template<>
+  class From_Ruby<void>
+  {
+  public:
+    From_Ruby()
+    {
+    };
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+      if (this->arg_->isOwner())
+      {
+        throw Exception(rb_eTypeError, "Cannot transfer ownership of C++ void pointer");
+      }
+    }
+
+    Convertible is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_NIL:
+        {
+          return Convertible::Exact;
+          break;
+        }
+        default:
+        {
+          return Convertible::None;
+        }
+      }
+    }
+
+    void convert(VALUE value)
+    {
+    }
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
   class From_Ruby<void*>
   {
   public:

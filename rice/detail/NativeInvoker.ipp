@@ -112,11 +112,11 @@ namespace Rice::detail
 
   // ------- Helper Methods --------
   // Create a functor for calling a Ruby function and define some aliases for readability.
-  template<typename Function_T, typename ...Arg_Ts>
-  auto protect(Function_T func, Arg_Ts...args)
+  template<typename Function_T, typename ...Parameter_Ts>
+  auto protect(Function_T func, Parameter_Ts...args)
   {
     using Return_T = typename function_traits<Function_T>::return_type;
-    using Tuple_T = std::tuple<Arg_Ts...>;
+    using Tuple_T = std::tuple<Parameter_Ts...>;
     using Invoker_T = NativeInvoker<Return_T, Function_T, Tuple_T>;
 
     Tuple_T argsTuple = std::forward_as_tuple(args...);
@@ -157,10 +157,10 @@ namespace Rice::detail
     }
   }
 
-  template<typename Function_T, typename ...Arg_Ts>
-  typename function_traits<Function_T>::return_type no_gvl(Function_T func, Arg_Ts...args)
+  template<typename Function_T, typename ...Parameter_Ts>
+  typename function_traits<Function_T>::return_type no_gvl(Function_T func, Parameter_Ts...args)
   {
-    using Tuple_T = std::tuple<Arg_Ts...>;
+    using Tuple_T = std::tuple<Parameter_Ts...>;
     Tuple_T argsTuple = std::forward_as_tuple(args...);
     return no_gvl(func, argsTuple);
   }

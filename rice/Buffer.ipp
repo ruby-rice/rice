@@ -863,8 +863,8 @@ namespace Rice
         define_method("size", &Buffer_T::size).
         template define_method<VALUE(Buffer_T::*)(size_t) const>("bytes", &Buffer_T::bytes, Return().setValue()).
         template define_method<VALUE(Buffer_T::*)() const>("bytes", &Buffer_T::bytes, Return().setValue()).
-        define_method("data", &Buffer_T::ptr, Return().setBuffer()).
-        define_method("release", &Buffer_T::release, Return().setBuffer());
+        define_method("data", &Buffer_T::ptr, ReturnBuffer()).
+        define_method("release", &Buffer_T::release, ReturnBuffer());
     }
     else
     {
@@ -878,8 +878,8 @@ namespace Rice
         template define_method<Array(Buffer_T::*)(size_t) const>("to_ary", &Buffer_T::toArray, Return().setValue()).
         template define_method<Array(Buffer_T::*)() const>("to_ary", &Buffer_T::toArray, Return().setValue()).
         define_method("[]", &Buffer_T::operator[], Arg("index")).
-        define_method("data", &Buffer_T::ptr, Return().setBuffer()).
-        define_method("release", &Buffer_T::release, Return().setBuffer());
+        define_method("data", &Buffer_T::ptr, ReturnBuffer()).
+        define_method("release", &Buffer_T::release, ReturnBuffer());
 
       if constexpr (!std::is_pointer_v<T> && !std::is_void_v<T> && !std::is_const_v<T> && std::is_copy_assignable_v<T>)
       {

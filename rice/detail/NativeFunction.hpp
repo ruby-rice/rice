@@ -35,24 +35,24 @@ namespace Rice::detail
    *    calling them methods (self) or functions (no self).
    */
 
-  template<typename Function_T>
+  template<typename Function_T, bool NoGVL = false>
   class NativeFunction: Native
   {
   public:
-    using NativeFunction_T = NativeFunction<Function_T>;
+    using NativeFunction_T = NativeFunction<Function_T, NoGVL>;
 
     // We remove const to avoid an explosion of To_Ruby specializations and Ruby doesn't
     // have the concept of constants anyways
     using Return_T = typename function_traits<Function_T>::return_type;
     using Class_T = typename function_traits<Function_T>::class_type;
-    using Arg_Ts = typename function_traits<Function_T>::arg_types;
+    using Parameter_Ts = typename function_traits<Function_T>::arg_types;
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
 
-    // Register function with Ruby
-    static void define(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
+    template<typename ...Arg_Ts>
+    static void define(VALUE klass, std::string method_name, Function_T function, Arg_Ts&& ...args);
 
   public:
-    NativeFunction(VALUE klass, std::string method_name, Function_T function, MethodInfo* methodInfo);
+    NativeFunction(VALUE klass, std::string method_name, Function_T function, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
 
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
@@ -63,11 +63,11 @@ namespace Rice::detail
 
   private:
     template<std::size_t...I>
-    std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);
+    std::vector<std::string> argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices);
 
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
-    Arg_Ts getNativeValues(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
+    Parameter_Ts getNativeValues(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
 
     // Throw an exception when wrapper cannot be extracted
     [[noreturn]] void noWrapper(const VALUE klass, const std::string& wrapper);
@@ -76,14 +76,13 @@ namespace Rice::detail
     void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues);
 
     // Call the underlying C++ function
-    VALUE invoke(Arg_Ts&& nativeArgs);
-    VALUE invokeNoGVL(Arg_Ts&& nativeArgs);
+    VALUE invoke(Parameter_Ts&& nativeArgs);
+    VALUE invokeNoGVL(Parameter_Ts&& nativeArgs);
 
   private:
     VALUE klass_;
     std::string method_name_;
     Function_T function_;
-    std::unique_ptr<MethodInfo> methodInfo_;
     To_Ruby<To_Ruby_T> toRuby_;
   };
 }

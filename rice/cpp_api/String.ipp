@@ -28,16 +28,16 @@ namespace Rice
   {
   }
 
-  template <typename... Arg_Ts>
-  inline String String::format(char const* fmt, Arg_Ts&&...args)
+  template <typename... Parameter_Ts>
+  inline String String::format(char const* fmt, Parameter_Ts&&...args)
   {
-    size_t size = std::snprintf(nullptr, 0, fmt, std::forward<Arg_Ts>(args)...);
+    size_t size = std::snprintf(nullptr, 0, fmt, std::forward<Parameter_Ts>(args)...);
     std::string temp(size, '\0');
 
     // size+1 avoids truncating the string. Otherwise snprintf writes n - 1 characters
     // to allow space for null character but we don't need that since std::string
     // will add a null character internally at n + 1
-    std::snprintf(&temp[0], size + 1, fmt, std::forward<Arg_Ts>(args)...);
+    std::snprintf(&temp[0], size + 1, fmt, std::forward<Parameter_Ts>(args)...);
 
     String s = String(temp.c_str());
     return s;
@@ -97,7 +97,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -107,7 +107,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<>

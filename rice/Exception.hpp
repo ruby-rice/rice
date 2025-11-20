@@ -28,8 +28,8 @@ namespace Rice
      *  \param fmt a printf-style format string
      *  \param ... the arguments to the format string.
      */
-    template <typename... Arg_Ts>
-    Exception(const Exception& other, char const* fmt, Arg_Ts&&...args);
+    template <typename... Parameter_Ts>
+    Exception(const Exception& other, char const* fmt, Parameter_Ts&&...args);
 
     //! Construct a Exception with printf-style formatting.
     /*! \param exc either an exception object or a class that inherits
@@ -37,8 +37,8 @@ namespace Rice
      *  \param fmt a printf-style format string
      *  \param ... the arguments to the format string.
      */
-    template <typename... Arg_Ts>
-    Exception(const VALUE exceptionType, char const* fmt, Arg_Ts&&...args);
+    template <typename... Parameter_Ts>
+    Exception(const VALUE exceptionType, char const* fmt, Parameter_Ts&&...args);
 
     //! Destructor
     virtual ~Exception() noexcept = default;

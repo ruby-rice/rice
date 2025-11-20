@@ -23,7 +23,8 @@ namespace Rice::detail
     Iterator,
     AttributeReader,
     AttributeWriter,
-    Proc
+    Proc,
+    Callback
   };
 
   class Native
@@ -32,7 +33,8 @@ namespace Rice::detail
     static VALUE resolve(int argc, VALUE* argv, VALUE self);
   public:
     Native() = default;
-    Native(std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
+    Native(std::unique_ptr<Return>&& returnInfo);
+    Native(std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
     virtual ~Native() = default;
 
     Native(const Native&) = delete;
@@ -51,25 +53,29 @@ namespace Rice::detail
     std::vector<const ParameterAbstract*> parameters();
 
   protected:
-    template<typename T>
-    static void verify_type(bool isBuffer);
-
-    template<typename Tuple_T, std::size_t ...Indices>
-    static void verify_args(MethodInfo* methodInfo, std::index_sequence<Indices...> indices);
+    template<typename T, bool isBuffer>
+    static void verify_type();
 
     std::vector<std::optional<VALUE>> getRubyValues(size_t argc, const VALUE* argv, bool validate);
     ParameterAbstract* getParameterByName(std::string name);
     Convertible matchParameters(std::vector<std::optional<VALUE>>& values);
 
-    template<typename Tuple_T>
-    static std::vector<std::unique_ptr<ParameterAbstract>> create_parameters(MethodInfo* methodInfo);
+    template<typename Parameter_Tuple, typename... Arg_Ts>
+    static std::vector<std::unique_ptr<ParameterAbstract>> create_parameters(Arg_Ts&& ...args);
 
-    template<typename Tuple_T, std::size_t ...Indices>
-    static inline void create_parameters_impl(std::vector<std::unique_ptr<ParameterAbstract>>& parameters, MethodInfo* methodInfo, std::index_sequence<Indices...> indices);
+    template<typename... Arg_Ts>
+    static std::unique_ptr<Return> create_return(Arg_Ts& ...args);
+
+  private:
+    template<typename Parameter_Tuple, typename Arg_Tuple, std::size_t ...Indices>
+    static inline void create_parameters_impl(std::vector<std::unique_ptr<ParameterAbstract>>& parameters, std::index_sequence<Indices...> indices, std::vector<std::unique_ptr<Arg>>&& args);
+
+    template<typename Parameter_Tuple, typename Arg_Tuple, size_t I>
+    static void verify_parameter();
 
   protected:
+    std::unique_ptr<Return> returnInfo_;
     std::vector<std::unique_ptr<ParameterAbstract>> parameters_;
-
   };
 }
 

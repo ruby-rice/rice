@@ -70,14 +70,9 @@ namespace Rice
     return this->isOwner_;
   }
 
-  inline Arg& Arg::setBuffer()
+  inline ArgBuffer::ArgBuffer(std::string name) : Arg(name)
   {
-    this->isBuffer_ = true;
-    return *this;
   }
 
-  inline bool Arg::isBuffer()
-  {
-    return this->isBuffer_;
-  }
+
 } // Rice

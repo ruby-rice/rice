@@ -32,16 +32,18 @@ namespace Rice
     this->set_value(result);
   }
 
-  template<typename Function_T>
-  inline void Module::wrap_native_function(VALUE klass, std::string name, Function_T&& function, MethodInfo* methodInfo)
+  template<typename Function_T, typename ...Arg_Ts>
+  inline void Module::wrap_native_function(VALUE klass, std::string name, Function_T&& function, const Arg_Ts&...args)
   {
-    detail::NativeFunction<Function_T>::define(klass, name, std::forward<Function_T>(function), methodInfo);
+    constexpr bool isNoGVL = detail::tuple_element_index_v<std::tuple<Arg_Ts...>, NoGVL> < (sizeof...(Arg_Ts));
+    detail::NativeFunction<Function_T, isNoGVL>::define(klass, name, std::forward<Function_T>(function), args...);
   }
 
-  template<typename Class_T, typename Method_T>
-  inline void Module::wrap_native_method(VALUE klass, std::string name, Method_T&& method, MethodInfo* methodInfo)
+  template<typename Class_T, typename Method_T, typename ...Arg_Ts>
+  inline void Module::wrap_native_method(VALUE klass, std::string name, Method_T&& method, const Arg_Ts&...args)
   {
-    detail::NativeMethod<Class_T, Method_T>::define(klass, name, std::forward<Method_T>(method), methodInfo);
+    constexpr bool isNoGVL = detail::tuple_element_index_v<std::tuple<Arg_Ts...>, NoGVL> < (sizeof...(Arg_Ts));
+    detail::NativeMethod<Class_T, Method_T, isNoGVL>::define(klass, name, std::forward<Method_T>(method), args...);
   }
 
   inline Module define_module_under(Object parent, char const* name)
@@ -94,7 +96,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -104,7 +106,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
 
@@ -114,7 +116,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -124,7 +126,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<>

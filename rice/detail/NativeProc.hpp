@@ -12,7 +12,7 @@ namespace Rice::detail
     // We remove const to avoid an explosion of To_Ruby specializations and Ruby doesn't
     // have the concept of constants anyways
     using Return_T = typename function_traits<Proc_T>::return_type;
-    using Arg_Ts = typename function_traits<Proc_T>::arg_types;
+    using Parameter_Ts = typename function_traits<Proc_T>::arg_types;
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
 
     // Define a new Ruby Proc to wrap a C++ function
@@ -23,7 +23,7 @@ namespace Rice::detail
     static VALUE resolve(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
  
   public:
-    NativeProc(Proc_T proc, MethodInfo* methodInfo);
+    NativeProc(Proc_T proc, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
     
@@ -36,14 +36,13 @@ namespace Rice::detail
 
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
-    Arg_Ts getNativeValues(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
+    Parameter_Ts getNativeValues(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
 
     // Call the underlying C++ function
-    VALUE invoke(Arg_Ts&& nativeArgs);
+    VALUE invoke(Parameter_Ts&& nativeArgs);
 
   private:
     Proc_T proc_;
-    std::unique_ptr<MethodInfo> methodInfo_;
     To_Ruby<To_Ruby_T> toRuby_;
   };
 }

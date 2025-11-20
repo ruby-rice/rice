@@ -16,7 +16,7 @@ namespace Rice
   *
   *  For more information, see Rice::Data_Type::define_constructor.
   */
-  template<typename T, typename...Arg_Ts>
+  template<typename T, typename...Parameter_Ts>
   class Constructor;
 }
 #endif // Rice__Constructor__hpp_

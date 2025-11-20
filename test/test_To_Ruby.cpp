@@ -28,6 +28,7 @@ TESTCASE(object_to_ruby)
 
 TESTCASE(short_to_ruby)
 {
+#undef min
   ASSERT_EQUAL(INT2NUM(0), detail::to_ruby((short)0));
   ASSERT_EQUAL(INT2NUM(-1), detail::to_ruby((short)-1));
   ASSERT_EQUAL(INT2NUM(1), detail::to_ruby((short)1));

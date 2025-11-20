@@ -1,4 +1,3 @@
-
 namespace Rice::detail
 {
   inline bool Resolved::operator<(Resolved other)
@@ -151,7 +150,12 @@ namespace Rice::detail
     });
   }
 
-  inline Native::Native(std::vector<std::unique_ptr<ParameterAbstract>>&& parameters) : parameters_(std::move(parameters))
+  inline Native::Native(std::unique_ptr<Return>&& returnInfo) : returnInfo_(std::move(returnInfo))
+  {
+  }
+
+  inline Native::Native(std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters) :
+    returnInfo_(std::move(returnInfo)), parameters_(std::move(parameters))
   {
   }
 
@@ -159,7 +163,7 @@ namespace Rice::detail
   {
     for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)
     {
-      if (parameter->arg->name == name)
+      if (parameter->arg()->name == name)
       {
         return parameter.get();
       }
@@ -169,8 +173,8 @@ namespace Rice::detail
   }
 
   // -----------  Helpers ----------------
-  template<typename T>
-  inline void Native::verify_type(bool isBuffer)
+  template<typename T, bool isBuffer>
+  inline void Native::verify_type()
   {
     using Base_T = std::remove_pointer_t<remove_cv_recursive_t<T>>;
 
@@ -181,43 +185,115 @@ namespace Rice::detail
       Type<Pointer<Base_T>>::verify();
       Type<Buffer<Base_T>>::verify();
     }
+    else if constexpr (std::is_pointer_v<Base_T>)
+    {
+      Type<Pointer<Base_T>>::verify();
+      Type<Buffer<Base_T>>::verify();
+    }
     else if constexpr (std::is_array_v<T>)
     {
       Type<Pointer<std::remove_extent_t<remove_cv_recursive_t<T>>>>::verify();
       Type<Buffer<std::remove_extent_t<remove_cv_recursive_t<T>>>>::verify();
     }
-    else if (isBuffer)
+    else if constexpr (isBuffer)
     {
-      if constexpr (std::is_pointer_v<T> && !std::is_function_v<Base_T> && !std::is_abstract_v<Base_T>)
-      {
-        Type<Pointer<Base_T>>::verify();
-        Type<Buffer<Base_T>>::verify();
-      }
-      else
-      {
-        static_assert(true, "Only pointer types can be marked as buffers");
-      }
+      Type<Pointer<Base_T>>::verify();
+      Type<Buffer<Base_T>>::verify();
     }
   }
 
-  template<typename Tuple_T, std::size_t ...Indices>
-  inline void Native::verify_args(MethodInfo* methodInfo, std::index_sequence<Indices...> indices)
+  template<typename Parameter_Tuple, typename Arg_Tuple, size_t I>
+  inline void Native::verify_parameter()
   {
-    (Native::verify_type<std::tuple_element_t<Indices, Tuple_T>>(methodInfo->arg(Indices)->isBuffer()), ...);
+    using Param_T = std::tuple_element_t<I, Parameter_Tuple>;
+    using Arg_T = std::tuple_element_t<I, Arg_Tuple>;
+    if constexpr (std::is_same_v<ArgBuffer, std::decay_t<Arg_T>>)
+    {
+      verify_type<Param_T, true>();
+    }
+    else
+    {
+      verify_type<Param_T, false>();
+    }
+  };
+
+  template<typename Parameter_Tuple, typename Arg_Tuple, std::size_t ...Indices>
+  inline void Native::create_parameters_impl(std::vector<std::unique_ptr<ParameterAbstract>>& parameters, std::index_sequence<Indices...> indices, std::vector<std::unique_ptr<Arg>>&& args)
+  {
+    // Verify parameter types
+    (verify_parameter<Parameter_Tuple, Arg_Tuple, Indices>(), ...);
+
+    // Create parameters
+    (parameters.push_back(std::move(std::make_unique<
+      Parameter<std::tuple_element_t<Indices, Parameter_Tuple>>>(std::move(args[Indices])))), ...);
   }
 
-  template<typename Tuple_T, std::size_t ...Indices>
-  inline void Native::create_parameters_impl(std::vector<std::unique_ptr<ParameterAbstract>>& parameters, MethodInfo* methodInfo, std::index_sequence<Indices...> indices)
-  {
-    (parameters.push_back(std::move(std::make_unique<Parameter<std::tuple_element_t<Indices, Tuple_T>>>(methodInfo->arg(Indices)))), ...);
-  }
-
-  template<typename Tuple_T>
-  inline std::vector<std::unique_ptr<ParameterAbstract>> Native::create_parameters(MethodInfo* methodInfo)
+  template<typename Parameter_Tuple, typename... Arg_Ts>
+  inline std::vector<std::unique_ptr<ParameterAbstract>> Native::create_parameters(Arg_Ts&& ...args)
   {
     std::vector<std::unique_ptr<ParameterAbstract>> result;
-    auto indices = std::make_index_sequence<std::tuple_size_v<Tuple_T>>{};
-    Native::create_parameters_impl<Tuple_T>(result, methodInfo, indices);
+
+    // Extract Arg and ArgBuffer from Arg_Ts and then pad Arg to match the size of Parameter_Tuple
+    using ArgsBaseTuple = tuple_filter_types_t<std::tuple<Arg_Ts...>, Arg, ArgBuffer>;
+
+    // Diff can be less than zero so it has to be signed! This happens when define_method is called with a self
+    // parameter and specifies one or more Args (usually to call Arg("self).setValue()). 
+    // In that case the self parameter is considered Class_T and there are no arguments.
+    constexpr long diff = (long)std::tuple_size_v<Parameter_Tuple> - (long)std::tuple_size_v<ArgsBaseTuple>;
+    using ArgsTuple = tuple_pad_type_t<ArgsBaseTuple, Arg, diff < 0 ? 0 : diff>;
+    
+    // Now play the same game but with the tuple values instead of types
+    std::vector<std::unique_ptr<Arg>> argsVector;
+
+    // Loop over each arg with an anonymous lambda
+    ([&]
+      {
+        using Arg_T = std::decay_t<Arg_Ts>;
+
+        if constexpr (std::is_same_v<Arg, Arg_T> || std::is_same_v<ArgBuffer, Arg_T>)
+        {
+          argsVector.emplace_back(std::make_unique<Arg_T>(args));
+        }
+      }(), ...);
+
+    // Fill in missing args
+    for (size_t i = argsVector.size(); i < std::tuple_size_v<Parameter_Tuple>; i++)
+    {
+      argsVector.emplace_back(std::make_unique<Arg>("arg_" + std::to_string(i)));
+    }
+
+    // TODO - there has to be a better way!
+    for (size_t i = 0; i < argsVector.size(); i++)
+    {
+      std::unique_ptr<Arg>& arg = argsVector[i];
+      arg->position = i;
+    }
+
+    auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Tuple>>{};
+    Native::create_parameters_impl<Parameter_Tuple, ArgsTuple>(result, indices, std::move(argsVector));
+    return result;
+  }
+
+  template<typename... Arg_Ts>
+  inline std::unique_ptr<Return> Native::create_return(Arg_Ts& ...args)
+  {
+    using Arg_Tuple = std::tuple<Arg_Ts...>;
+
+    constexpr std::size_t index = tuple_element_index_v<Arg_Tuple, Return, ReturnBuffer>;
+
+    std::unique_ptr<Return> result;
+
+    if constexpr (index < std::tuple_size_v<Arg_Tuple>)
+    {
+      using Return_T_Local = std::decay_t<std::tuple_element_t<index, Arg_Tuple>>;
+      const Return_T_Local& returnInfo = std::get<index>(std::forward_as_tuple(std::forward<Arg_Ts>(args)...));
+      result = std::make_unique<Return_T_Local>(returnInfo);
+    }
+    else
+    {
+      result = std::make_unique<Return>();
+    }
+
     return result;
   }
 
@@ -252,7 +328,7 @@ namespace Rice::detail
           throw std::invalid_argument("Unknown keyword: " + key.str());
         }
 
-        const Arg* arg = parameter->arg;
+        const Arg* arg = parameter->arg();
 
         result[arg->position] = pair.second.value();
       }
@@ -285,10 +361,10 @@ namespace Rice::detail
         std::optional<VALUE> value = result[i];
         ParameterAbstract* parameter = this->parameters_[i].get();
 
-        if (!parameter->arg->hasDefaultValue() && !value.has_value())
+        if (!parameter->arg()->hasDefaultValue() && !value.has_value())
         {
           std::string message;
-          message = "Missing argument. Name: " + parameter->arg->name + ". Index: " + std::to_string(parameter->arg->position) + ".";
+          message = "Missing argument. Name: " + parameter->arg()->name + ". Index: " + std::to_string(parameter->arg()->position) + ".";
           throw std::invalid_argument(message);
         }
       }

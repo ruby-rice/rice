@@ -35,26 +35,27 @@ namespace Rice::detail
    *    calling them methods (self) or functions (no self).
    */
 
-  template<typename Class_T, typename Method_T>
+  template<typename Class_T, typename Method_T, bool NoGVL>
   class NativeMethod: Native
   {
   public:
-    using NativeMethod_T = NativeMethod<Class_T, Method_T>;
+    using NativeMethod_T = NativeMethod<Class_T, Method_T, NoGVL>;
 
     // We remove const to avoid an explosion of To_Ruby specializations and Ruby doesn't
     // have the concept of constants anyways
     using Return_T = typename method_traits<Method_T>::Return_T;
     using Receiver_T = typename method_traits<Method_T>::Class_T;
-    using Arg_Ts = typename method_traits<Method_T>::Arg_Ts;
-    using Apply_Args_T = typename tuple_unshift<Receiver_T, Arg_Ts>::type;
+    using Parameter_Ts = typename method_traits<Method_T>::Parameter_Ts;
+    using Apply_Args_T = typename tuple_unshift<Receiver_T, Parameter_Ts>::type;
 
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
 
     // Register method with Ruby
-    static void define(VALUE klass, std::string method_name, Method_T method, MethodInfo* methodInfo);
+    template <typename ...Arg_Ts>
+    static void define(VALUE klass, std::string method_name, Method_T method, Arg_Ts&& ...args);
 
   public:
-    NativeMethod(VALUE klass, std::string method_name, Method_T method, MethodInfo* methodInfo);
+    NativeMethod(VALUE klass, std::string method_name, Method_T method, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
 
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
@@ -64,13 +65,12 @@ namespace Rice::detail
     VALUE returnKlass() override;
 
   private:
-
     template<std::size_t...I>
-    std::vector<std::string> argTypeNames(std::ostringstream& stream, std::index_sequence<I...>& indices);
+    std::vector<std::string> argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices);
 
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
-    Apply_Args_T getNativeValues(VALUE self, std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
+    Apply_Args_T getNativeValues(VALUE self, std::vector<std::optional<VALUE>>& values, const std::index_sequence<I...>& indices);
 
     // Figure out what self is
     Receiver_T getReceiver(VALUE self);
@@ -89,7 +89,6 @@ namespace Rice::detail
     VALUE klass_;
     std::string method_name_;
     Method_T method_;
-    std::unique_ptr<MethodInfo> methodInfo_;
     To_Ruby<To_Ruby_T> toRuby_;
   };
 }

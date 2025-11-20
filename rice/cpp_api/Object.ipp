@@ -27,8 +27,8 @@ namespace Rice
     return *this;
   }
 
-  template<typename ...Arg_Ts>
-  inline Object Object::call(Identifier id, Arg_Ts... args) const
+  template<typename ...Parameter_Ts>
+  inline Object Object::call(Identifier id, Parameter_Ts... args) const
   {
     /* IMPORTANT - We store VALUEs in an array that is a local variable.
        That allows the Ruby garbage collector to find them when scanning
@@ -37,15 +37,15 @@ namespace Rice
        to the destination method resulting in a segmentation fault. This is
        easy to duplicate by setting GC.stress to true and calling a constructor
        that takes multiple values like a std::pair wrapper. */
-    std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Arg_Ts>>().convert(std::forward<Arg_Ts>(args))... };
+    std::array<VALUE, sizeof...(Parameter_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Parameter_Ts>>().convert(std::forward<Parameter_Ts>(args))... };
     return detail::protect(rb_funcallv, value(), id.id(), (int)values.size(), (const VALUE*)values.data());
   }
 
-  template<typename ...Arg_Ts>
-  inline Object Object::call_kw(Identifier id, Arg_Ts... args) const
+  template<typename ...Parameter_Ts>
+  inline Object Object::call_kw(Identifier id, Parameter_Ts... args) const
   {
     /* IMPORTANT - See call() above */
-    std::array<VALUE, sizeof...(Arg_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Arg_Ts>>().convert(args)... };
+    std::array<VALUE, sizeof...(Parameter_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Parameter_Ts>>().convert(args)... };
     return detail::protect(rb_funcallv_kw, value(), id.id(), (int)values.size(), (const VALUE*)values.data(), RB_PASS_KEYWORDS);
   }
 
@@ -202,7 +202,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -212,7 +212,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -221,7 +221,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Return* returnInfo) : returnInfo_(returnInfo)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -231,7 +231,7 @@ namespace Rice::detail
     }
 
   private:
-    Return* returnInfo_ = nullptr;
+    Arg* arg_ = nullptr;
   };
 
   template<>

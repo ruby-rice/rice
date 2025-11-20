@@ -16,6 +16,6 @@ namespace Rice
    *  \return nothing
    */
   template<typename Callback_T, typename...Arg_Ts>
-  void define_callback(const Arg_Ts&...args);
+  void define_callback(Arg_Ts&&...args);
 }
 #endif // Rice__Callback__hpp_

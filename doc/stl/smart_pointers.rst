@@ -150,16 +150,16 @@ It is possible to extend Rice to support additional smart pointer types. Start b
 
   namespace Rice::detail
   {
-    template <template <typename, typename...> typename SmartPointer_T, typename...Arg_Ts>
+    template <template <typename, typename...> typename SmartPointer_T, typename...Parameter_Ts>
     class WrapperSmartPointer : public Wrapper
     {
     public:
-      WrapperSmartPointer(SmartPointer_T<Arg_Ts...>& data);
+      WrapperSmartPointer(SmartPointer_T<Parameter_Ts...>& data);
       void* get() override;
-      SmartPointer_T<Arg_Ts...>& data();
+      SmartPointer_T<Parameter_Ts...>& data();
 
     private:
-      SmartPointer_T<Arg_Ts...> data_;
+      SmartPointer_T<Parameter_Ts...> data_;
     };
   }
 
