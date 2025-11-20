@@ -235,11 +235,11 @@ namespace Rice::detail
 
     // Extract Arg and ArgBuffer from Arg_Ts and then pad Arg to match the size of Parameter_Tuple
     using ArgsBaseTuple = tuple_filter_types_t<std::tuple<Arg_Ts...>, Arg, ArgBuffer>;
-    constexpr int diff = std::tuple_size_v<Parameter_Tuple> - std::tuple_size_v<ArgsBaseTuple>;
 
-    // Diff can be less than zero. This happens when define_method is called with a self
+    // Diff can be less than zero so it has to be signed! This happens when define_method is called with a self
     // parameter and specifies one or more Args (usually to call Arg("self).setValue()). 
     // In that case the self parameter is considered Class_T and there are no arguments.
+    constexpr long diff = (long)std::tuple_size_v<Parameter_Tuple> - (long)std::tuple_size_v<ArgsBaseTuple>;
     using ArgsTuple = tuple_pad_type_t<ArgsBaseTuple, Arg, diff < 0 ? 0 : diff>;
     
     // Now play the same game but with the tuple values instead of types

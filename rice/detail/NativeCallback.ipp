@@ -1,6 +1,3 @@
-#include <tuple>
-#include <ffi.h>
-
 namespace Rice::detail
 {
 #ifdef HAVE_LIBFFI
@@ -200,7 +197,7 @@ namespace Rice::detail
   NativeCallback<Return_T(*)(Parameter_Ts...)>::~NativeCallback()
   {
 #ifdef HAVE_LIBFFI
-    ffi_closure_free(this->callback_);
+    ffi_closure_free(this->closure_);
 #endif
 
     NativeCallback_T::callback_ = nullptr;

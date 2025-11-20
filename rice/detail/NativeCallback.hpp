@@ -35,7 +35,7 @@ namespace Rice::detail
     Callback_T callback();
   private:
     template<std::size_t... I>
-    static typename Tuple_T convertArgsToTuple(void* args[], std::index_sequence<I...>& indices);
+    static Tuple_T convertArgsToTuple(void* args[], std::index_sequence<I...>& indices);
     Callback_T callback_ = nullptr;
 
     template<std::size_t... I>
