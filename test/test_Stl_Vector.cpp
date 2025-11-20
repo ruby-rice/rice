@@ -603,6 +603,37 @@ TESTCASE(Comparable)
   ASSERT_EQUAL(1, detail::From_Ruby<size_t>().convert(result.value()));
 }
 
+TESTCASE(ComparableEqual)
+{
+  define_class<Comparable>("IsComparable").
+    define_constructor(Constructor<Comparable, uint32_t>());
+
+  Comparable comparable1a(1);
+  Comparable comparable1b(1);
+  Comparable comparable2(2);
+
+  Class c = define_vector<Comparable>("ComparableVector");
+
+  Object vec1 = c.call("new");
+  Object vec2 = c.call("new");
+  Object vec3 = c.call("new");
+
+  Object result = vec1.call("eql?", vec2);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  vec1.call("push", comparable1a);
+  result = vec1.call("==", vec2);
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  vec2.call("push", comparable1b);
+  result = vec1.call("==", vec2);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  vec3.call("push", comparable2);
+  result = vec1.call("==", vec3);
+  ASSERT_EQUAL(Qfalse, result.value());
+}
+
 namespace
 {
   class ComparableButNotBool

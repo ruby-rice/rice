@@ -106,16 +106,21 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<Mapped_T>)
         {
-          klass_.define_method("value?", [](T& multimap, Mapped_T& value) -> bool
-            {
-              auto it = std::find_if(multimap.begin(), multimap.end(),
-              [&value](auto& pair)
-                {
-                  return pair.second == value;
-                });
+          klass_.define_method("==", [](T& multimap, T& other)->bool
+          {
+            return multimap == other;
+          })
+          .define_method("value?", [](T& multimap, Mapped_T& value) -> bool
+          {
+            auto it = std::find_if(multimap.begin(), multimap.end(),
+            [&value](auto& pair)
+              {
+                return pair.second == value;
+              });
 
-              return it != multimap.end();
+            return it != multimap.end();
           });
+          rb_define_alias(klass_, "eql?", "==");
         }
         else
         {
