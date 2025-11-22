@@ -132,13 +132,12 @@ namespace Rice::detail
     }
   }
 
-  template<typename Function_T, bool NoGVL>
-  void NativeFunction<Function_T, NoGVL>::noWrapper(const VALUE klass, const std::string& wrapper)
+  inline void NativeFunction_noWrapper(const VALUE klass, const std::string& wrapper, const std::string& method_name_)
   {
     std::stringstream message;
 
     message << "When calling the method `";
-    message << this->method_name_;
+    message << method_name_;
     message << "' we could not find the wrapper for the '";
     message << rb_obj_classname(klass);
     message << "' ";
@@ -148,8 +147,7 @@ namespace Rice::detail
     throw std::runtime_error(message.str());
   }
 
-  template<typename Function_T, bool NoGVL>
-  void NativeFunction<Function_T, NoGVL>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues)
+  inline void NativeFunction_checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues, const std::string& method_name_, Native* parent_)
   {
     // Self will be Qnil for wrapped procs
     if (self == Qnil)
@@ -160,32 +158,32 @@ namespace Rice::detail
     WrapperBase* selfWrapper = getWrapper(self);
 
     // Check function arguments
-    for (size_t i = 0; i < this->parameters_.size(); i++)
+    for (size_t i = 0; i < parent_->parameters_.size(); i++)
     {
-      Arg* arg = parameters_[i]->arg();
+      Arg* arg = parent_->parameters_[i]->arg();
       if (arg->isKeepAlive())
       {
         if (selfWrapper == nullptr)
         {
-          noWrapper(self, "self");
+          NativeFunction_noWrapper(self, "self", method_name_);
         }
         selfWrapper->addKeepAlive(rubyValues[i].value());
       }
     }
 
     // Check return value
-    if (this->returnInfo_->isKeepAlive())
+    if (parent_->returnInfo_->isKeepAlive())
     {
       if (selfWrapper == nullptr)
       {
-        noWrapper(self, "self");
+        NativeFunction_noWrapper(self, "self", method_name_);
       }
 
       // returnWrapper will be nullptr if returnValue is a built-in type and not an external(wrapped) type
       WrapperBase* returnWrapper = getWrapper(returnValue);
       if (returnWrapper == nullptr)
       {
-        noWrapper(returnValue, "return");
+        NativeFunction_noWrapper(returnValue, "return", method_name_);
       }
       returnWrapper->addKeepAlive(self);
     }
@@ -214,7 +212,7 @@ namespace Rice::detail
     }
 
     // Check if any function arguments or return values need to have their lifetimes tied to the receiver
-    this->checkKeepAlive(self, result, rubyValues);
+    NativeFunction_checkKeepAlive(self, result, rubyValues, this->method_name_, this);
 
     return result;
   }
