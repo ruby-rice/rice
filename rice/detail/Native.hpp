@@ -73,7 +73,7 @@ namespace Rice::detail
     template<typename Parameter_Tuple, typename Arg_Tuple, size_t I>
     static void verify_parameter();
 
-  protected:
+  public:
     std::unique_ptr<Return> returnInfo_;
     std::vector<std::unique_ptr<ParameterAbstract>> parameters_;
   };
