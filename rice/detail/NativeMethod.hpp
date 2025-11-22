@@ -75,12 +75,6 @@ namespace Rice::detail
     // Figure out what self is
     Receiver_T getReceiver(VALUE self);
 
-    // Throw an exception when wrapper cannot be extracted
-    [[noreturn]] void noWrapper(const VALUE klass, const std::string& wrapper);
-
-    // Do we need to keep alive any arguments?
-    void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues);
-
     // Call the underlying C++ method
     VALUE invoke(VALUE self, Apply_Args_T&& nativeArgs);
     VALUE invokeNoGVL(VALUE self, Apply_Args_T&& nativeArgs);
@@ -91,6 +85,12 @@ namespace Rice::detail
     Method_T method_;
     To_Ruby<To_Ruby_T> toRuby_;
   };
+
+  // Throw an exception when wrapper cannot be extracted
+  [[noreturn]] void NativeMethod_noWrapper(const VALUE klass, const std::string& wrapper, const std::string& method_name_);
+
+  // Do we need to keep alive any arguments?
+  void NativeMethod_checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues, const std::string& method_name_, Native* parent_);
 }
 
 #endif // Rice__detail__Native_Method__hpp_
