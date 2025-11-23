@@ -56,6 +56,13 @@ end
 def combine_headers(filename)
   stream = StringIO.new
 
+  stream << "// This file is part of [rice](https://github.com/ruby-rice/rice).\n"
+  stream << "//\n"
+  load_file("COPYING").each_line do |line|
+    stream << (line.strip.size.zero? ? "//\n" : "// #{line}")
+  end
+  stream << "\n"
+
   load_file("rice/#{filename}").each_line do |line|
     if matches = line.match(RICE_INCLUDE_REGEX)
       path = File.join("rice", matches[1])
