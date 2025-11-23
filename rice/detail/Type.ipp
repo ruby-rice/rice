@@ -126,12 +126,11 @@ namespace Rice::detail
   }
 
   // Find text inside of < > taking into account nested groups.
-  // 
+  //
   // Example:
-  //  
+  //
   //   std::vector<std::vector<int>, std::allocator<std::vector, std::allocator<int>>>
-  template<typename T>
-  inline std::string TypeMapper<T>::findGroup(std::string& string, size_t offset)
+  inline std::string TypeMapper_findGroup(std::string& string, size_t offset)
   {
     int depth = 0;
 
@@ -164,8 +163,7 @@ namespace Rice::detail
     throw std::runtime_error("Unbalanced Group");
   }
 
-  template<typename T>
-  inline void TypeMapper<T>::replaceAll(std::string& string, std::regex regex, std::string replacement)
+  inline void TypeMapper_replaceAll(std::string& string, std::regex regex, std::string replacement)
   {
     std::smatch match;
     while (std::regex_search(string, match, regex))
@@ -174,25 +172,23 @@ namespace Rice::detail
     }
   }
 
-  template<typename T>
-  inline void TypeMapper<T>::removeGroup(std::string& string, std::regex regex)
+  inline void TypeMapper_removeGroup(std::string& string, std::regex regex)
   {
     std::smatch match;
     while (std::regex_search(string, match, regex))
     {
-      std::string group = findGroup(string, match.position());
+      std::string group = TypeMapper_findGroup(string, match.position());
       group = match.str() + group;
       string.erase(match.position(), group.length());
     }
   }
 
-  template<typename T>
-  inline void TypeMapper<T>::replaceGroup(std::string& string, std::regex regex, std::string replacement)
+  inline void TypeMapper_replaceGroup(std::string& string, std::regex regex, std::string replacement)
   {
     std::smatch match;
     while (std::regex_search(string, match, regex))
     {
-      std::string group = findGroup(string, match.position());
+      std::string group = TypeMapper_findGroup(string, match.position());
       group = match.str() + group;
       string.replace(match.position(), group.length(), replacement);
     }
@@ -202,7 +198,12 @@ namespace Rice::detail
   inline std::string TypeMapper<T>::simplifiedName()
   {
     std::string base = this->name();
+    TypeMapper_simplifiedName(base);
+    return base;
+  }
 
+  inline void TypeMapper_simplifiedName(std::string& base)
+  {
     // Remove void from Buffer<T, void> - the void comes from SFINAE
     std::regex fixBuffer = std::regex("(Buffer<.*),\\s?void>");
     base = std::regex_replace(base, fixBuffer, "$1>");
@@ -221,23 +222,23 @@ namespace Rice::detail
 
     // Remove allocators
     std::regex allocatorRegex(R"(,\s*std::allocator)");
-    removeGroup(base, allocatorRegex);
+    TypeMapper_removeGroup(base, allocatorRegex);
 
     // Remove char_traits
     std::regex charTraitsRegex(R"(,\s*std::char_traits)");
-    removeGroup(base, charTraitsRegex);
+    TypeMapper_removeGroup(base, charTraitsRegex);
 
     // Remove less (std::map)
     std::regex lessRegex(R"(,\s*std::less)");
-    removeGroup(base, lessRegex);
+    TypeMapper_removeGroup(base, lessRegex);
 
     // Remove hash (std::unordered_map)
     std::regex hashRegex(R"(,\s*std::hash)");
-    removeGroup(base, hashRegex);
+    TypeMapper_removeGroup(base, hashRegex);
 
     // Remove equal_to (std::unordered_map)
     std::regex equalRegex(R"(,\s*std::equal_to)");
-    removeGroup(base, equalRegex);
+    TypeMapper_removeGroup(base, equalRegex);
 
     // Remove spaces before pointers
     std::regex ptrRegex = std::regex(R"(\s+\*)");
@@ -249,30 +250,27 @@ namespace Rice::detail
 
     // Replace " >" with ">"
     std::regex trailingAngleBracketSpaceRegex = std::regex(R"(\s+>)");
-    replaceAll(base, trailingAngleBracketSpaceRegex, ">");
+    TypeMapper_replaceAll(base, trailingAngleBracketSpaceRegex, ">");
 
     // One space after a comma (MSVC has no spaces, GCC one space)
     std::regex commaSpaceRegex = std::regex(R"(,(\S))");
-    replaceAll(base, commaSpaceRegex, ", $1");
+    TypeMapper_replaceAll(base, commaSpaceRegex, ", $1");
 
     // Fix strings
     std::regex stringRegex = std::regex(R"(basic_string<char>)");
-    replaceAll(base, stringRegex, "string");
+    TypeMapper_replaceAll(base, stringRegex, "string");
 
     std::regex wstringRegex = std::regex(R"(basic_string<wchar_t>)");
-    replaceAll(base, wstringRegex, "wstring");
+    TypeMapper_replaceAll(base, wstringRegex, "wstring");
 
     // Normalize Anonymous namespace
     std::regex anonymousNamespaceGcc = std::regex(R"(\(anonymous namespace\))");
-    replaceAll(base, anonymousNamespaceGcc, "AnonymousNamespace");
+    TypeMapper_replaceAll(base, anonymousNamespaceGcc, "AnonymousNamespace");
     std::regex anonymousNamespaceMsvc = std::regex(R"(`anonymous namespace')");
-    replaceAll(base, anonymousNamespaceMsvc, "AnonymousNamespace");
-
-    return base;
+    TypeMapper_replaceAll(base, anonymousNamespaceMsvc, "AnonymousNamespace");
   }
 
-  template<typename T>
-  inline void TypeMapper<T>::capitalizeHelper(std::string& content, std::regex& regex)
+  inline void TypeMapper_capitalizeHelper(std::string& content, std::regex& regex)
   {
     std::smatch match;
     while (std::regex_search(content, match, regex))
@@ -307,7 +305,13 @@ namespace Rice::detail
   inline std::string TypeMapper<T>::rubyName()
   {
     std::string base = this->rubyTypeName();
+    if constexpr (std::is_fundamental_v<intrinsic_type<T>>) { TypeMapper_rubyName(base, true); }
+    else { TypeMapper_rubyName(base, false); }
+    return base;
+  }
 
+  inline void TypeMapper_rubyName(std::string& base, bool is_fundamental_v_intrinsic_type)
+  {
     // Remove std:: these could be embedded in template types
     auto stdRegex = std::regex("std::");
     base = std::regex_replace(base, stdRegex, "");
@@ -322,44 +326,42 @@ namespace Rice::detail
 
     // Replace :: with unicode U+u02F8 (Modified Letter raised colon)
     auto colonRegex = std::regex(R"(:)");
-    replaceAll(base, colonRegex, "\uA789");
+    TypeMapper_replaceAll(base, colonRegex, "\uA789");
 
     // Replace _ and capitalize the next letter
     std::regex underscoreRegex(R"(_(\w))");
-    capitalizeHelper(base, underscoreRegex);
+    TypeMapper_capitalizeHelper(base, underscoreRegex);
 
-    if constexpr (std::is_fundamental_v<intrinsic_type<T>>)
+    if (is_fundamental_v_intrinsic_type)
     {
       // Replace space and capitalize the next letter
       std::regex spaceRegex(R"(\s+(\w))");
-      capitalizeHelper(base, spaceRegex);
+      TypeMapper_capitalizeHelper(base, spaceRegex);
     }
     else
     {
       // Replace spaces with unicode U+u00A0 (Non breaking Space)
       std::regex spaceRegex = std::regex(R"(\s+)");
-      replaceAll(base, spaceRegex, "\u00A0");
+      TypeMapper_replaceAll(base, spaceRegex, "\u00A0");
     }
 
     // Replace < with unicode U+227A (Precedes)
     auto lessThanRegex = std::regex("<");
-    //replaceAll(base, lessThanRegex, "≺");
-    replaceAll(base, lessThanRegex, "\u227A");
+    //TypeMapper_replaceAll(base, lessThanRegex, "≺");
+    TypeMapper_replaceAll(base, lessThanRegex, "\u227A");
 
     // Replace > with unicode U+227B (Succeeds)
     auto greaterThanRegex = std::regex(">");
-    //replaceAll(base, greaterThanRegex, "≻");
-    replaceAll(base, greaterThanRegex, "\u227B");
+    //TypeMapper_replaceAll(base, greaterThanRegex, "≻");
+    TypeMapper_replaceAll(base, greaterThanRegex, "\u227B");
 
     // Replace , with Unicode Character (U+066C) - Arabic Thousands Separator
     auto commaRegex = std::regex(R"(,\s*)");
-    replaceAll(base, commaRegex, "\u201A");
+    TypeMapper_replaceAll(base, commaRegex, "\u201A");
 
     // Replace * with Unicode Character (U+2217) -	Asterisk Operator
     auto asteriskRegex = std::regex(R"(\*)");
-    replaceAll(base, asteriskRegex, "\u2217");
-
-    return base;
+    TypeMapper_replaceAll(base, asteriskRegex, "\u2217");
   }
 
   template<typename T>

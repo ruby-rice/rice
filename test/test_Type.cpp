@@ -42,18 +42,18 @@ TESTCASE(FindGroup)
   std::string name = "class std::vector<class cv::Vec<unsigned char, 2>, class std::allocator<class cv::Vec<unsigned char, 2> > >";
 
   detail::TypeMapper<int> typeMapper;
-  std::string group = typeMapper.findGroup(name, 0);
+  std::string group = Rice::detail::TypeMapper_findGroup(name, 0);
   ASSERT_EQUAL("<class cv::Vec<unsigned char, 2>, class std::allocator<class cv::Vec<unsigned char, 2> > >", group.c_str());
 
-  group = typeMapper.findGroup(name, 18);
+  group = Rice::detail::TypeMapper_findGroup(name, 18);
   ASSERT_EQUAL("<unsigned char, 2>", group.c_str());
-  
-  group = typeMapper.findGroup(name, 49);
+
+  group = Rice::detail::TypeMapper_findGroup(name, 49);
   ASSERT_EQUAL("<class cv::Vec<unsigned char, 2> >", group.c_str());
 
   ASSERT_EXCEPTION_CHECK(
     std::runtime_error,
-    typeMapper.findGroup(name, 48),
+    Rice::detail::TypeMapper_findGroup(name, 48),
       ASSERT_EQUAL("Unbalanced Group", ex.what())
   );
 }
@@ -288,7 +288,7 @@ TESTCASE(RubyKlass)
   expected = riceModule.const_get("Pointer≺string∗≻");
   actual = typeMapper18.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
-  
+
   define_vector<std::string>();
   Module stdModule("Std");
 
@@ -314,7 +314,7 @@ TESTCASE(RubyKlass)
   expected = Object(rb_cObject).const_get("UnorderedMap1");
   actual = typeMapper22.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
- 
+
   define_class<Outer::Inner::SomeClass>("SomeClass");
   detail::TypeMapper<Outer::Inner::SomeClass**> typeMapper23;
   expected = Object(rb_cObject).const_get("SomeClass");
@@ -362,9 +362,9 @@ TESTCASE(MakeRubyClass)
 
   Identifier id(rubyClassName);
   define_class_under<Outer::Inner::Vec1>(module, id);
-  
+
   std::string code = R"(Testing.constants.grep(/Vector/).sort)";
-  
+
   Array result = module.module_eval(code);
   ASSERT_EQUAL(1, result.size());
 

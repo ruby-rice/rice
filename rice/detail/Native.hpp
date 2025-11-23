@@ -73,10 +73,16 @@ namespace Rice::detail
     template<typename Parameter_Tuple, typename Arg_Tuple, size_t I>
     static void verify_parameter();
 
-  protected:
+  public:
     std::unique_ptr<Return> returnInfo_;
     std::vector<std::unique_ptr<ParameterAbstract>> parameters_;
   };
+
+  // Throw an exception when wrapper cannot be extracted
+  [[noreturn]] void Native_noWrapper(const VALUE klass, const std::string& wrapper, const std::string& method_name_);
+
+  // Do we need to keep alive any arguments?
+  void Native_checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues, const std::string& method_name_, Native* parent_);
 }
 
 #endif // Rice__detail__Native__hpp_
