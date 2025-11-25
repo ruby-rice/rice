@@ -90,7 +90,19 @@ namespace Rice::detail
     {
       return this->fromRuby_.convert(valueOpt.value());
     }
-    else if constexpr (std::is_constructible_v<std::remove_cv_t<T>, std::remove_cv_t<std::remove_reference_t<T>>&>)
+    // Remember std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
+    // So special case vector handling
+    else if constexpr (detail::is_std_vector_v<detail::intrinsic_type<T>>)
+    {
+      if constexpr (std::is_copy_constructible_v<typename detail::intrinsic_type<T>::value_type>)
+      {
+        if (this->arg()->hasDefaultValue())
+        {
+          return this->arg()->template defaultValue<T>();
+        }
+      }
+    }
+    else if constexpr (std::is_copy_constructible_v<T>)
     {
       if (this->arg()->hasDefaultValue())
       {
@@ -98,7 +110,7 @@ namespace Rice::detail
       }
     }
 
-    throw std::invalid_argument("Could not convert Rubyy value");
+    throw std::invalid_argument("Could not convert Ruby value");
   }
 
   template<typename T>
