@@ -66,6 +66,9 @@ namespace Rice::detail
     template<typename... Arg_Ts>
     static std::unique_ptr<Return> create_return(Arg_Ts& ...args);
 
+    // Do we need to keep alive any arguments?
+    void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues);
+
   private:
     template<typename Parameter_Tuple, typename Arg_Tuple, std::size_t ...Indices>
     static inline void create_parameters_impl(std::vector<std::unique_ptr<ParameterAbstract>>& parameters, std::index_sequence<Indices...> indices, std::vector<std::unique_ptr<Arg>>&& args);

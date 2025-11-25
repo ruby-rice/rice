@@ -107,16 +107,21 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<Mapped_T>)
         {
-          klass_.define_method("value?", [](T& map, Mapped_T& value) -> bool
-            {
-              auto it = std::find_if(map.begin(), map.end(),
-              [&value](auto& pair)
-                {
-                  return pair.second == value;
-                });
+          klass_.define_method("==", [](T& map, T& other)->bool
+          {
+            return map == other;
+          })
+          .define_method("value?", [](T& map, Mapped_T& value) -> bool
+          {
+            auto it = std::find_if(map.begin(), map.end(),
+            [&value](auto& pair)
+              {
+                return pair.second == value;
+              });
 
-              return it != map.end();
+            return it != map.end();
           });
+          rb_define_alias(klass_, "eql?", "==");
         }
         else
         {
@@ -333,7 +338,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::map");
           }
         }
@@ -388,7 +393,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::map");
           }
         }
@@ -447,7 +452,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::map");
           }
         }

@@ -139,7 +139,7 @@ namespace Rice::detail
       result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
-    // std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> return true. Sigh.
+    // std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
     else if constexpr (detail::is_std_vector_v<T>)
     {
       if constexpr (std::is_copy_constructible_v<typename T::value_type>)
@@ -233,12 +233,18 @@ namespace Rice::detail
   inline WrapperBase* getWrapper(VALUE value)
   {
     // Turn off spurious warning on g++ 12
-    #if defined(__GNUC__) || defined(__clang__)
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Warray-bounds"
-    #endif
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
 
-    return RTYPEDDATA_P(value) ? static_cast<WrapperBase*>(RTYPEDDATA_DATA(value)) : nullptr;
+    if (!RTYPEDDATA_P(value))
+    {
+      throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+        detail::protect(rb_obj_classname, value), "wrapped C++ object");
+    }
+
+    return static_cast<WrapperBase*>(RTYPEDDATA_DATA(value));
     
     #if defined(__GNUC__) || defined(__clang__)
     #pragma GCC diagnostic pop

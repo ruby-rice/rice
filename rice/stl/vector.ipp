@@ -240,7 +240,11 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<T>)
         {
-          klass_.define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
+          klass_.define_method("==", [](T& vector, T& other)->bool
+          {
+            return vector == other;
+          })
+          .define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
           {
             auto iter = std::find(vector.begin(), vector.end(), element);
             if (iter == vector.end())
@@ -274,6 +278,7 @@ namespace Rice
               return iter - vector.begin();
             }
           });
+          rb_define_alias(klass_, "eql?", "==");
         }
         else
         {
@@ -513,7 +518,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::vector");
           }
         }
@@ -570,7 +575,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::vector");
           }
         }
@@ -631,7 +636,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::vector");
           }
         }
