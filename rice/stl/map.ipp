@@ -338,7 +338,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::map");
           }
         }
@@ -393,7 +393,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::map");
           }
         }
@@ -452,7 +452,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::map");
           }
         }

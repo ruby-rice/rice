@@ -117,7 +117,7 @@ namespace Rice
         {
           detail::TypeMapper<T> typeMapper;
           std::string typeName = typeMapper.name();
-          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
             detail::protect(rb_obj_classname, value), typeName.c_str());
         }
       }
@@ -198,7 +198,7 @@ namespace Rice
       {
         detail::TypeMapper<T> typeMapper;
         std::string typeName = typeMapper.name();
-        throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
     }
@@ -411,7 +411,7 @@ namespace Rice
       {
         detail::TypeMapper<T> typeMapper;
         std::string typeName = typeMapper.name();
-        throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
     }
@@ -604,7 +604,7 @@ namespace Rice
       {
         detail::TypeMapper<T> typeMapper;
         std::string typeName = typeMapper.name();
-        throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
     }
@@ -769,7 +769,7 @@ namespace Rice
       {
         detail::TypeMapper<void> typeMapper;
         std::string typeName = typeMapper.name();
-        throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
     }

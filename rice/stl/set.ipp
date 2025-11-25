@@ -343,12 +343,12 @@ namespace Rice
             {
               return toSet<T>(value);
             }
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
         }
@@ -412,12 +412,12 @@ namespace Rice
                 return this->converted_;
               }
             }
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
         }
@@ -484,12 +484,12 @@ namespace Rice
                 return &this->converted_;
               }
             }
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
         }
