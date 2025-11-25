@@ -49,8 +49,8 @@ namespace Rice
         Enum_T otherEnum = (Enum_T)other;
 
         Array result;
-        result.push(self, false);
         result.push(otherEnum, true);
+        result.push(self, false);
         return result;
       })
       .define_method("inspect", [](Enum_T& self)
