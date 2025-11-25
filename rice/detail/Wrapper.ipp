@@ -139,7 +139,7 @@ namespace Rice::detail
       result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
-    // std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> return true. Sigh.
+    // std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
     else if constexpr (detail::is_std_vector_v<T>)
     {
       if constexpr (std::is_copy_constructible_v<typename T::value_type>)
