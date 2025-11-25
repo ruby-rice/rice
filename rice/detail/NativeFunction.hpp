@@ -69,12 +69,6 @@ namespace Rice::detail
     template<typename std::size_t...I>
     Parameter_Ts getNativeValues(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
 
-    // Throw an exception when wrapper cannot be extracted
-    [[noreturn]] void noWrapper(const VALUE klass, const std::string& wrapper);
-
-    // Do we need to keep alive any arguments?
-    void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues);
-
     // Call the underlying C++ function
     VALUE invoke(Parameter_Ts&& nativeArgs);
     VALUE invokeNoGVL(Parameter_Ts&& nativeArgs);

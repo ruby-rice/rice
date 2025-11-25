@@ -225,65 +225,6 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Method_T, bool NoGVL>
-  inline void NativeMethod<Class_T, Method_T, NoGVL>::noWrapper(const VALUE klass, const std::string& wrapper)
-  {
-    std::stringstream message;
-
-    message << "When calling the method `";
-    message << this->method_name_;
-    message << "' we could not find the wrapper for the '";
-    message << rb_obj_classname(klass);
-    message << "' ";
-    message << wrapper;
-    message << " type. You should not use keepAlive() on a Return or Arg that is a builtin Rice type.";
-
-    throw std::runtime_error(message.str());
-  }
-
-  template<typename Class_T, typename Method_T, bool NoGVL>
-  void NativeMethod<Class_T, Method_T, NoGVL>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues)
-  {
-    // Self will be Qnil for wrapped procs
-    if (self == Qnil)
-      return;
-
-    // selfWrapper will be nullptr if this(self) is a builtin type and not an external(wrapped) type
-    // it is highly unlikely that keepAlive is used in this case but we check anyway
-    WrapperBase* selfWrapper = getWrapper(self);
-
-    // Check method arguments
-    for (size_t i=0; i<this->parameters_.size(); i++)
-    {
-      Arg* arg = parameters_[i]->arg();
-      if (arg->isKeepAlive())
-      {
-        if (selfWrapper == nullptr)
-        {
-          noWrapper(self, "self");
-        }
-        selfWrapper->addKeepAlive(rubyValues[i].value());
-      }
-    }
-
-    // Check return value
-    if (this->returnInfo_->isKeepAlive())
-    {
-      if (selfWrapper == nullptr)
-      {
-        noWrapper(self, "self");
-      }
-
-      // returnWrapper will be nullptr if returnValue is a built-in type and not an external(wrapped) type
-      WrapperBase* returnWrapper = getWrapper(returnValue);
-      if (returnWrapper == nullptr)
-      {
-        noWrapper(returnValue, "return");
-      }
-      returnWrapper->addKeepAlive(self);
-    }
-  }
-
-  template<typename Class_T, typename Method_T, bool NoGVL>
   VALUE NativeMethod<Class_T, Method_T, NoGVL>::operator()(size_t argc, const VALUE* argv, VALUE self)
   {
     // Get the ruby values and make sure we have the correct number

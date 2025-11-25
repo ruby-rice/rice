@@ -63,7 +63,7 @@ namespace Rice::detail
     }
 
     // Execute the function but make sure to catch any C++ exceptions!
-    return cpp_protect([&]
+    return cpp_protect([&]()
     {
       const std::vector<std::unique_ptr<Native>>& natives = Registries::instance.natives.lookup(klass, methodId);
 
@@ -172,7 +172,28 @@ namespace Rice::detail
     return nullptr;
   }
 
-  // -----------  Helpers ----------------
+  inline void Native::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues)
+  {
+    // Check function arguments
+    for (size_t i = 0; i < this->parameters_.size(); i++)
+    {
+      Arg* arg = parameters_[i]->arg();
+      if (arg->isKeepAlive())
+      {
+        static WrapperBase* selfWrapper = getWrapper(self);
+        selfWrapper->addKeepAlive(rubyValues[i].value());
+      }
+    }
+
+    // Check return value
+    if (this->returnInfo_->isKeepAlive())
+    {
+      WrapperBase* returnWrapper = getWrapper(returnValue);
+      returnWrapper->addKeepAlive(self);
+    }
+  }
+
+  // -----------  Type Checking ----------------
   template<typename T, bool isBuffer>
   inline void Native::verify_type()
   {
