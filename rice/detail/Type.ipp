@@ -71,37 +71,20 @@ namespace Rice::detail
   {
   };
 
-  // ---------- TypeMapper ------------
-  template<typename T>
-  inline std::string TypeMapper<T>::demangle(char const* mangled_name)
+  // ---------- TypeIndexParser ------------
+  inline TypeIndexParser::TypeIndexParser(const std::type_index& typeIndex, bool isFundamental) :
+    typeIndex_(typeIndex), isFundamental_(isFundamental)
+  {
+  }
+
+  inline std::string TypeIndexParser::demangle(char const* mangled_name)
   {
 #ifdef __GNUC__
-    struct Helper
+    int status = 0;
+    char* name = abi::__cxa_demangle(mangled_name, 0, 0, &status);
+    if (name)
     {
-      Helper(
-        char const* mangled_name)
-        : name_(0)
-      {
-        int status = 0;
-        name_ = abi::__cxa_demangle(mangled_name, 0, 0, &status);
-      }
-
-      ~Helper()
-      {
-        std::free(name_);
-      }
-
-      char* name_;
-
-    private:
-      Helper(Helper const&);
-      void operator=(Helper const&);
-    };
-
-    Helper helper(mangled_name);
-    if (helper.name_)
-    {
-      return helper.name_;
+      return name;
     }
     else
     {
@@ -112,17 +95,9 @@ namespace Rice::detail
 #endif
   }
 
-  template<typename T>
-  inline std::string TypeMapper<T>::name()
+  inline std::string TypeIndexParser::name()
   {
-    const std::type_index& typeIndex = typeid(T);
-    return demangle(typeIndex.name());
-  }
-
-  template<typename T>
-  inline std::string TypeMapper<T>::name(const std::type_index& typeIndex)
-  {
-    return demangle(typeIndex.name());
+    return this->demangle(this->typeIndex_.name());
   }
 
   // Find text inside of < > taking into account nested groups.
@@ -130,8 +105,7 @@ namespace Rice::detail
   // Example:
   //  
   //   std::vector<std::vector<int>, std::allocator<std::vector, std::allocator<int>>>
-  template<typename T>
-  inline std::string TypeMapper<T>::findGroup(std::string& string, size_t offset)
+  inline std::string TypeIndexParser::findGroup(std::string& string, size_t offset)
   {
     int depth = 0;
 
@@ -164,8 +138,7 @@ namespace Rice::detail
     throw std::runtime_error("Unbalanced Group");
   }
 
-  template<typename T>
-  inline void TypeMapper<T>::replaceAll(std::string& string, std::regex regex, std::string replacement)
+  inline void TypeIndexParser::replaceAll(std::string& string, std::regex regex, std::string replacement)
   {
     std::smatch match;
     while (std::regex_search(string, match, regex))
@@ -174,8 +147,7 @@ namespace Rice::detail
     }
   }
 
-  template<typename T>
-  inline void TypeMapper<T>::removeGroup(std::string& string, std::regex regex)
+  inline void TypeIndexParser::removeGroup(std::string& string, std::regex regex)
   {
     std::smatch match;
     while (std::regex_search(string, match, regex))
@@ -186,8 +158,7 @@ namespace Rice::detail
     }
   }
 
-  template<typename T>
-  inline void TypeMapper<T>::replaceGroup(std::string& string, std::regex regex, std::string replacement)
+  inline void TypeIndexParser::replaceGroup(std::string& string, std::regex regex, std::string replacement)
   {
     std::smatch match;
     while (std::regex_search(string, match, regex))
@@ -198,8 +169,7 @@ namespace Rice::detail
     }
   }
 
-  template<typename T>
-  inline std::string TypeMapper<T>::simplifiedName()
+  inline std::string TypeIndexParser::simplifiedName()
   {
     std::string base = this->name();
 
@@ -271,42 +241,9 @@ namespace Rice::detail
     return base;
   }
 
-  template<typename T>
-  inline void TypeMapper<T>::capitalizeHelper(std::string& content, std::regex& regex)
+  inline std::string TypeIndexParser::rubyName(std::string rubyTypeName)
   {
-    std::smatch match;
-    while (std::regex_search(content, match, regex))
-    {
-      std::string replacement = match[1];
-      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
-      content.replace(match.position(), match.length(), replacement);
-    }
-  }
-
-  template<typename T>
-  inline std::string TypeMapper<T>::rubyTypeName()
-  {
-    using Intrinsic_T = detail::intrinsic_type<T>;
-
-    if constexpr (std::is_fundamental_v<T>)
-    {
-      return RubyType<Intrinsic_T>::name;
-    }
-    else if constexpr (std::is_same_v<std::remove_cv_t<T>, char*>)
-    {
-      return "String";
-    }
-    else
-    {
-      detail::TypeMapper<Intrinsic_T> typeIntrinsicMapper;
-      return typeIntrinsicMapper.simplifiedName();
-    }
-  }
-
-  template<typename T>
-  inline std::string TypeMapper<T>::rubyName()
-  {
-    std::string base = this->rubyTypeName();
+    std::string base = rubyTypeName;
 
     // Remove std:: these could be embedded in template types
     auto stdRegex = std::regex("std::");
@@ -322,44 +259,83 @@ namespace Rice::detail
 
     // Replace :: with unicode U+u02F8 (Modified Letter raised colon)
     auto colonRegex = std::regex(R"(:)");
-    replaceAll(base, colonRegex, "\uA789");
+    this->replaceAll(base, colonRegex, "\uA789");
 
     // Replace _ and capitalize the next letter
     std::regex underscoreRegex(R"(_(\w))");
-    capitalizeHelper(base, underscoreRegex);
+    this->capitalizeHelper(base, underscoreRegex);
 
-    if constexpr (std::is_fundamental_v<intrinsic_type<T>>)
+    if (this->isFundamental_)
     {
       // Replace space and capitalize the next letter
       std::regex spaceRegex(R"(\s+(\w))");
-      capitalizeHelper(base, spaceRegex);
+      this->capitalizeHelper(base, spaceRegex);
     }
     else
     {
       // Replace spaces with unicode U+u00A0 (Non breaking Space)
       std::regex spaceRegex = std::regex(R"(\s+)");
-      replaceAll(base, spaceRegex, "\u00A0");
+      this->replaceAll(base, spaceRegex, "\u00A0");
     }
 
     // Replace < with unicode U+227A (Precedes)
     auto lessThanRegex = std::regex("<");
     //replaceAll(base, lessThanRegex, "≺");
-    replaceAll(base, lessThanRegex, "\u227A");
+    this->replaceAll(base, lessThanRegex, "\u227A");
 
     // Replace > with unicode U+227B (Succeeds)
     auto greaterThanRegex = std::regex(">");
     //replaceAll(base, greaterThanRegex, "≻");
-    replaceAll(base, greaterThanRegex, "\u227B");
+    this->replaceAll(base, greaterThanRegex, "\u227B");
 
     // Replace , with Unicode Character (U+066C) - Arabic Thousands Separator
     auto commaRegex = std::regex(R"(,\s*)");
-    replaceAll(base, commaRegex, "\u201A");
+    this->replaceAll(base, commaRegex, "\u201A");
 
     // Replace * with Unicode Character (U+2217) -	Asterisk Operator
     auto asteriskRegex = std::regex(R"(\*)");
-    replaceAll(base, asteriskRegex, "\u2217");
+    this->replaceAll(base, asteriskRegex, "\u2217");
 
     return base;
+  }
+
+  inline void TypeIndexParser::capitalizeHelper(std::string& content, std::regex& regex)
+  {
+    std::smatch match;
+    while (std::regex_search(content, match, regex))
+    {
+      std::string replacement = match[1];
+      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
+      content.replace(match.position(), match.length(), replacement);
+    }
+  }
+
+  // ---------- TypeMapper ------------
+  template<typename T>
+  inline std::string TypeMapper<T>::rubyTypeName()
+  {
+    using Intrinsic_T = detail::intrinsic_type<T>;
+
+    if constexpr (std::is_fundamental_v<T>)
+    {
+      return RubyType<Intrinsic_T>::name;
+    }
+    else if constexpr (std::is_same_v<std::remove_cv_t<T>, char*>)
+    {
+      return "String";
+    }
+    else
+    {
+      detail::TypeIndexParser typeIndexParser(typeid(Intrinsic_T), std::is_fundamental_v<detail::intrinsic_type<Intrinsic_T>>);
+      return typeIndexParser.simplifiedName();
+    }
+  }
+
+  template<typename T>
+  inline std::string TypeMapper<T>::rubyName()
+  {
+    std::string base = this->rubyTypeName();
+    return this->typeIndexParser_.rubyName(base);
   }
 
   template<typename T>

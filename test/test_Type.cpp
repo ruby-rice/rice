@@ -41,83 +41,84 @@ TESTCASE(FindGroup)
 {
   std::string name = "class std::vector<class cv::Vec<unsigned char, 2>, class std::allocator<class cv::Vec<unsigned char, 2> > >";
 
-  detail::TypeMapper<int> typeMapper;
-  std::string group = typeMapper.findGroup(name, 0);
+  detail::TypeIndexParser parser(typeid(int), true);
+
+  std::string group = parser.findGroup(name, 0);
   ASSERT_EQUAL("<class cv::Vec<unsigned char, 2>, class std::allocator<class cv::Vec<unsigned char, 2> > >", group.c_str());
 
-  group = typeMapper.findGroup(name, 18);
+  group = parser.findGroup(name, 18);
   ASSERT_EQUAL("<unsigned char, 2>", group.c_str());
   
-  group = typeMapper.findGroup(name, 49);
+  group = parser.findGroup(name, 49);
   ASSERT_EQUAL("<class cv::Vec<unsigned char, 2> >", group.c_str());
 
   ASSERT_EXCEPTION_CHECK(
     std::runtime_error,
-    typeMapper.findGroup(name, 48),
+    parser.findGroup(name, 48),
       ASSERT_EQUAL("Unbalanced Group", ex.what())
   );
 }
 
 TESTCASE(SimplifiedName)
 {
-  detail::TypeMapper<char*> typeMapper1;
-  std::string className = typeMapper1.simplifiedName();
+  detail::TypeIndexParser typeIndexParser1(typeid(char*));
+  std::string className = typeIndexParser1.simplifiedName();
   ASSERT_EQUAL("char*", className.c_str());
 
-  detail::TypeMapper<char**> typeMapper2;
-  className = typeMapper2.simplifiedName();
+  detail::TypeIndexParser typeIndexParser2(typeid(char**));
+  className = typeIndexParser2.simplifiedName();
   ASSERT_EQUAL("char**", className.c_str());
 
-  detail::TypeMapper<double> typeMapper3;
-  className = typeMapper3.simplifiedName();
+  detail::TypeIndexParser typeIndexParser3(typeid(double));
+  className = typeIndexParser3.simplifiedName();
   ASSERT_EQUAL("double", className.c_str());
 
-  detail::TypeMapper<double*> typeMapper4;
-  className = typeMapper4.simplifiedName();
+  detail::TypeIndexParser typeIndexParser4(typeid(double*));
+  className = typeIndexParser4.simplifiedName();
   ASSERT_EQUAL("double*", className.c_str());
 
-  detail::TypeMapper<std::string> typeMapper5;
-  className = typeMapper5.simplifiedName();
+  detail::TypeIndexParser typeIndexParser5(typeid(std::string));
+  className = typeIndexParser5.simplifiedName();
   ASSERT_EQUAL("std::string", className.c_str());
 
-  detail::TypeMapper<std::wstring> typeMapper6;
-  className = typeMapper6.simplifiedName();
+  detail::TypeIndexParser typeIndexParser6(typeid(std::wstring));
+  className = typeIndexParser6.simplifiedName();
   ASSERT_EQUAL("std::wstring", className.c_str());
 
-  detail::TypeMapper<std::vector<std::string>> typeMapper7;
-  className = typeMapper7.simplifiedName();
+  detail::TypeIndexParser typeIndexParser7(typeid(std::vector<std::string>));
+  className = typeIndexParser7.simplifiedName();
   ASSERT_EQUAL("std::vector<std::string>", className.c_str());
 
-  detail::TypeMapper<std::vector<std::wstring>> typeMapper8;
-  className = typeMapper8.simplifiedName();
+  detail::TypeIndexParser typeIndexParser8(typeid(std::vector<std::wstring>));
+  className = typeIndexParser8.simplifiedName();
   ASSERT_EQUAL("std::vector<std::wstring>", className.c_str());
 
-  detail::TypeMapper<std::vector<double*>> typeMapper9;
-  className = typeMapper9.simplifiedName();
+  detail::TypeIndexParser typeIndexParser9(typeid(std::vector<double*>));
+  className = typeIndexParser9.simplifiedName();
   ASSERT_EQUAL("std::vector<double*>", className.c_str());
 
-  detail::TypeMapper<std::vector<double**>> typeMapper10;
-  className = typeMapper10.simplifiedName();
+  detail::TypeIndexParser typeIndexParser10(typeid(std::vector<double**>));
+  className = typeIndexParser10.simplifiedName();
   ASSERT_EQUAL("std::vector<double**>", className.c_str());
 
-  detail::TypeMapper<Outer::Inner::Vec1> typeMapper11;
-  className = typeMapper11.simplifiedName();
+  detail::TypeIndexParser typeIndexParser11(typeid(Outer::Inner::Vec1));
+  className = typeIndexParser11.simplifiedName();
   ASSERT_EQUAL("std::vector<std::complex<float>>", className.c_str());
 
-  detail::TypeMapper<Outer::Inner::Vec2> typeMapper12;
-  className = typeMapper12.simplifiedName();
+  detail::TypeIndexParser typeIndexParser12(typeid(Outer::Inner::Vec2));
+  className = typeIndexParser12.simplifiedName();
   ASSERT_EQUAL("std::vector<unsigned char*>", className.c_str());
 
-  detail::TypeMapper<Outer::Inner::Vec3> typeMapper13;
-  className = typeMapper13.simplifiedName();
+  detail::TypeIndexParser typeIndexParser13(typeid(Outer::Inner::Vec3));
+  className = typeIndexParser13.simplifiedName();
   ASSERT_EQUAL("std::vector<Outer::Inner::SomeClass>", className.c_str());
 
-  detail::TypeMapper<Outer::Inner::Map1> typeMapper14;
-  className = typeMapper14.simplifiedName();
+  detail::TypeIndexParser typeIndexParser14(typeid(Outer::Inner::Map1));
+  className = typeIndexParser14.simplifiedName();
   ASSERT_EQUAL("std::map<std::string, std::vector<std::complex<float>>>", className.c_str());
 
-  detail::TypeMapper<Outer::Inner::UnorderedMap1> typeMapper15;
-  className = typeMapper15.simplifiedName();
+  detail::TypeIndexParser typeIndexParser15(typeid(Outer::Inner::UnorderedMap1));
+  className = typeIndexParser15.simplifiedName();
   ASSERT_EQUAL("std::unordered_map<std::string, std::complex<float>>", className.c_str());
 }
 
