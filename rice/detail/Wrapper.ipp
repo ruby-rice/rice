@@ -170,9 +170,9 @@ namespace Rice::detail
 
     else
     {
-      detail::TypeMapper<T> typeMapper;
+      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
       std::string message = "Rice was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: " +
-        typeMapper.name();
+        typeIndexParser.name();
       throw std::runtime_error(message);
     }
 

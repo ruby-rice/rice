@@ -62,8 +62,8 @@ namespace Rice::detail
   {
     std::ostringstream result;
 
-    detail::TypeMapper<Return_T> typeMapper;
-    result << typeMapper.simplifiedName() << " ";
+    detail::TypeIndexParser typeIndexParser(typeid(Return_T), std::is_fundamental_v<detail::intrinsic_type<Return_T>>);
+    result << typeIndexParser.simplifiedName() << " ";
     result << this->method_name_;
 
     result << "(";

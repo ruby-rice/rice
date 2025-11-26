@@ -122,8 +122,8 @@ namespace Rice::detail
   template<typename T>
   inline std::string Parameter<T>::cppTypeName()
   {
-    detail::TypeMapper<T> typeMapper;
-    return typeMapper.simplifiedName();
+    detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+    return typeIndexParser.simplifiedName();
   }
 
   template<typename T>

@@ -37,8 +37,8 @@ namespace Rice
   {
     if (is_bound())
     {
-      detail::TypeMapper<T> typeMapper;
-      std::string message = "Type " + typeMapper.name() + " is already bound to a different type";
+      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+      std::string message = "Type " + typeIndexParser.name() + " is already bound to a different type";
       throw std::runtime_error(message.c_str());
     }
 
@@ -71,8 +71,8 @@ namespace Rice
     Data_Type<T> dataType;
     dataType.define_singleton_method("cpp_class", [](VALUE klass) -> VALUE
     {
-      detail::TypeMapper<T> typeMapper;
-      std::string cppClassName = typeMapper.simplifiedName();
+      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+      std::string cppClassName = typeIndexParser.simplifiedName();
       Return returnInfo;
       returnInfo.takeOwnership();
       return detail::To_Ruby<char*>(&returnInfo).convert(cppClassName.c_str());
@@ -233,8 +233,8 @@ namespace Rice
   {
     if (!is_bound())
     {
-      detail::TypeMapper<T> typeMapper;
-      std::string message = "Type is not defined with Rice: " + typeMapper.name();
+      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+      std::string message = "Type is not defined with Rice: " + typeIndexParser.name();
       throw std::invalid_argument(message.c_str());
     }
   }
