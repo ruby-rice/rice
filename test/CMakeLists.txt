@@ -6,8 +6,9 @@ set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 
 project(unittest)
 
+# ----- Sources ------
 # Add source to this project's executable.
-add_executable(unittest
+add_executable(${PROJECT_NAME}
                "unittest.cpp"
                "embed_ruby.cpp"
                "test_Address_Registration_Guard.cpp"
@@ -66,27 +67,52 @@ add_executable(unittest
                "test_Stl_Variant.cpp"
                "test_Stl_Vector.cpp")
 
+# ----- Dependencies ------
+#target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Ruby
 #find_package("Ruby")
 include("../FindRuby.cmake")
+target_include_directories(${PROJECT_NAME} PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} ${Ruby_LIBRARY})
 
-target_include_directories(unittest PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})
-target_include_directories(unittest PRIVATE ${PROJECT_SOURCE_DIR})
-target_link_libraries(unittest ${Ruby_LIBRARY} ffi)
+# FFI
+find_library(FFI_LIBRARY NAMES ffi REQUIRED)
+target_link_libraries(${PROJECT_NAME} ${FFI_LIBRARY})
+target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_LIBFFI)
 
-target_include_directories(unittest PRIVATE ..)
-target_compile_definitions(unittest PRIVATE -DHAVE_LIBFFI)
+# Rice
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-  add_compile_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
-  add_compile_options(/W4 /bigobj /utf-8)
-  # The default of /EHsc crashes Ruby when calling longjmp with optimizations on (/O2)
-  string(REGEX REPLACE "/EHsc" "/EHs" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  add_compile_definitions(-D_CRT_SECURE_NO_WARNINGS)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  add_compile_options(-Wall -ftemplate-backtrace-limit=0)
-  # https://github.com/doxygen/doxygen/issues/9269#issuecomment-1094975328
-  #add_compile_options(unittest PRIVATE -Wa,-mbig-obj)
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og")
+# ---- Compiler Settings ---------
+if (MSVC)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+            _CRT_SECURE_NO_DEPRECATE
+            _CRT_NONSTDC_NO_DEPRECATE)
+
+     target_compile_options(${PROJECT_NAME} PRIVATE 
+            /W4        # Warning level 4
+            /bigobj    # Increase number of sections in .obj file
+            /utf-8)    # Set source and execution character sets to UTF-8
+    
+    # Edit and Continue for Debug builds
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT 
+        "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+    
+    # Fix exception handling for Ruby's longjmp
+    # The default of /EHsc crashes Ruby when calling longjmp with optimizations on (/O2)
+    # So replace /EHsc with /EHs just for this target
+    get_target_property(_unittest_cxx_opts ${PROJECT_NAME} COMPILE_OPTIONS)
+    if(_unittest_cxx_opts)
+        list(TRANSFORM _unittest_cxx_opts REPLACE "/EHsc" "/EHs")
+        set_target_properties(${PROJECT_NAME}  PROPERTIES COMPILE_OPTIONS "${_unittest_cxx_opts}")
+    endif()
+    #string(REGEX REPLACE "/EHsc" "/EHs" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+else ()   
+    target_compile_options(${PROJECT_NAME} PRIVATE
+            -Wall
+            -Wno-unused-private-field
+            -ftemplate-backtrace-limit=0
+            -Wa,-mbig-obj # https://github.com/doxygen/doxygen/issues/9269#issuecomment-1094975328
+            $<$<CONFIG:Debug>:-Og>)
 endif ()
