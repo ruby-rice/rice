@@ -56,7 +56,7 @@ namespace Rice::detail
 
   template<typename Proc_T>
   NativeProc<Proc_T>::NativeProc(Proc_T proc, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters)
-    : Native(std::move(returnInfo), std::move(parameters)), 
+    : Native("proc", std::move(returnInfo), std::move(parameters)),
       proc_(proc), toRuby_(returnInfo_.get())
   {
   }
@@ -116,12 +116,6 @@ namespace Rice::detail
     VALUE result = this->invoke(std::forward<Parameter_Ts>(nativeValues));
 
     return result;
-  }
-
-  template<typename Proc_T>
-  inline std::string NativeProc< Proc_T>::name()
-  {
-    return "proc";
   }
 
   template<typename Proc_T>

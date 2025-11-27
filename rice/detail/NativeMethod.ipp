@@ -40,8 +40,8 @@ namespace Rice::detail
 
   template<typename Class_T, typename Method_T, bool NoGVL>
   NativeMethod<Class_T, Method_T, NoGVL>::NativeMethod(VALUE klass, std::string method_name, Method_T method, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters)
-    : Native(std::move(returnInfo), std::move(parameters)),
-      klass_(klass), method_name_(method_name), method_(method), toRuby_(returnInfo_.get())
+    : Native(method_name, std::move(returnInfo), std::move(parameters)),
+      klass_(klass), method_(method), toRuby_(returnInfo_.get())
   {
   }
 
@@ -71,7 +71,7 @@ namespace Rice::detail
       result << typeIndexParserReceiver.simplifiedName() << "::";
     }
     
-    result << this->method_name_;
+    result << this->name();
 
     result << "(";
 
@@ -247,12 +247,6 @@ namespace Rice::detail
     this->checkKeepAlive(self, result, rubyValues);
 
     return result;
-  }
-
-  template<typename Class_T, typename Method_T, bool NoGVL>
-  inline std::string NativeMethod<Class_T, Method_T, NoGVL>::name()
-  {
-    return this->method_name_;
   }
 
   template<typename Class_T, typename Method_T, bool NoGVL>

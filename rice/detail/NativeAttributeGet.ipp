@@ -37,8 +37,8 @@ namespace Rice::detail
   
   template<typename Attribute_T>
   NativeAttributeGet<Attribute_T>::NativeAttributeGet(VALUE klass, std::string name, Attribute_T attribute, std::unique_ptr<Return>&& returnInfo)
-    : Native(std::move(returnInfo)),
-      klass_(klass), name_(name), attribute_(attribute)
+    : Native(name, std::move(returnInfo)),
+      klass_(klass), attribute_(attribute)
   {
   }
 
@@ -95,12 +95,6 @@ namespace Rice::detail
   inline std::string NativeAttributeGet<Attribute_T>::toString()
   {
     return "";
-  }
-
-  template<typename Attribute_T>
-  inline std::string NativeAttributeGet<Attribute_T>::name()
-  {
-    return this->name_;
   }
 
   template<typename Attribute_T>
