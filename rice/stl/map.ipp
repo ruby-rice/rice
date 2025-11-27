@@ -125,7 +125,7 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("value?", [](T& map, Mapped_T& value) -> bool
+          klass_.define_method("value?", [](T&, Mapped_T&) -> bool
           {
               return false;
           });
@@ -210,10 +210,10 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& map)
-            {
-              return "[Not printable]";
-            });
+          klass_.define_method("to_s", [](const T&)
+          {
+            return "[Not printable]";
+          });
         }
       }
 

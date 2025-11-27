@@ -42,7 +42,7 @@ namespace Rice::detail
     void operator=(const Native&) = delete;
     void operator=(Native&&) = delete;
 
-    virtual Resolved matches(size_t argc, const VALUE* argv, VALUE self);
+    virtual Resolved matches(size_t argc, const VALUE* argv);
     virtual VALUE operator()(size_t argc, const VALUE* argv, VALUE self) = 0;
     virtual std::string toString() = 0;
 

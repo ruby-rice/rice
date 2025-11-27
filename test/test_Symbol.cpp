@@ -76,7 +76,7 @@ TESTCASE(to_id)
 
 namespace
 {
-  void testSymbolArg(Object self, Symbol string)
+  void testSymbolArg(Object, Symbol)
   {
   }
 }

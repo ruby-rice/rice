@@ -93,11 +93,13 @@ TESTCASE(std_string_view_from_ruby_refefence)
 }
 
 namespace {
-  std::string_view testStringViewReturn(Object self) {
+  std::string_view testStringViewReturn(Object)
+  {
     return "test";
   }
 }
 
-TESTCASE(use_string_view_in_wrapped_function) {
+TESTCASE(use_string_view_in_wrapped_function)
+{
   define_global_function("test_string_view_return", &testStringViewReturn);
 }

@@ -39,7 +39,7 @@ namespace Rice
       Difference_T normalizeIndex(Size_T size, Difference_T index, bool enforceBounds = false)
       {
         // Negative indices mean count from the right
-        if (index < 0 && (-index <= size))
+        if (index < 0 && ((Size_T)(-index) <= size))
         {
           index = size + index;
         }
@@ -83,7 +83,7 @@ namespace Rice
           }
 
           // Wrap the vector
-          detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data, true);
+          detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
         });
       }
 
@@ -99,10 +99,10 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("resize", [](const T& vector, Size_T newSize)
-              {
-                // Do nothing
-              });
+          klass_.define_method("resize", [](const T&, Size_T)
+          {
+            // Do nothing
+          });
         }
       }
 
@@ -282,18 +282,18 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
-            {
-              return std::nullopt;
-            })
-          .define_method("include?", [](const T& vector, Parameter_T element)
-            {
-              return false;
-            })
-          .define_method("index", [](const T& vector, Parameter_T element) -> std::optional<Difference_T>
-            {
-              return std::nullopt;
-            });
+          klass_.define_method("delete", [](T&, Parameter_T) -> std::optional<Value_T>
+          {
+            return std::nullopt;
+          })
+          .define_method("include?", [](const T&, Parameter_T)
+          {
+            return false;
+          })
+          .define_method("index", [](const T&, Parameter_T) -> std::optional<Difference_T>
+          {
+            return std::nullopt;
+          });
         }
       }
 
@@ -318,7 +318,7 @@ namespace Rice
           })
           .define_method("insert", [this](T& vector, Difference_T index, Parameter_T element) -> T&
           {
-            int normalized = normalizeIndex(vector.size(), index, true);
+            size_t normalized = normalizeIndex(vector.size(), index, true);
             // For a Ruby array a positive index means insert the element before the index. But
             // a negative index means insert the element *after* the index. std::vector
             // inserts *before* the index. So add 1 if this is a negative index.
@@ -417,10 +417,10 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& vector)
-            {
-              return "[Not printable]";
-            });
+          klass_.define_method("to_s", [](const T&)
+          {
+            return "[Not printable]";
+          });
         }
       }
 

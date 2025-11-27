@@ -53,27 +53,27 @@ namespace
     return i;
   }
 
-  int method_int(Object object, int i)
+  int method_int(Object, int i)
   {
     return i;
   }
 
-  bool method_lvalue(MyClass& myClass)
+  bool method_lvalue(MyClass&)
   {
     return true;
   }
 
-  bool method_rvalue(MyClass&& myClass)
+  bool method_rvalue(MyClass&&)
   {
     return true;
   }
 
-  void method_lvalue_return_void(int a, MyClass& myClass)
+  void method_lvalue_return_void(int, MyClass&)
   {
     // Do nothing
   }
 
-  void method_rvalue_return_void(int b, MyClass&& myClass)
+  void method_rvalue_return_void(int, MyClass&&)
   {
     // Do nothing
   }

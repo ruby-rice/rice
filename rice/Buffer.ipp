@@ -103,10 +103,12 @@ namespace Rice
       default:
       {
         if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end() ||
-          RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end() ||
-          RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
+            RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end() ||
+            RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
         {
-          T data = detail::protect(RubyType_T::fromRuby, value);
+          // The Ruby method may return a different type - for example Ruby floats
+          // are converted to double and not float - so we need a typecast.
+          T data = (T)detail::protect(RubyType_T::fromRuby, value);
           this->m_size = 1;
           this->m_buffer = new T[this->m_size]();
           memcpy((void*)this->m_buffer, &data, sizeof(T));
@@ -137,12 +139,12 @@ namespace Rice
         this->m_size = array.size();
 
         // Use operator new[] to allocate memory but not call constructors.
-        size_t size = sizeof(T) * this->m_size;
-        this->m_buffer = static_cast<T*>(operator new[](size));
+        size_t memsize = sizeof(T) * this->m_size;
+        this->m_buffer = static_cast<T*>(operator new[](memsize));
 
         detail::From_Ruby<Intrinsic_T> fromRuby;
 
-        for (size_t i = 0; i < this->m_size; i++)
+        for (int i = 0; i < this->m_size; i++)
         {
           // Construct objects in allocated memory using move or copy construction
           if constexpr (std::is_move_constructible_v<T>)
@@ -346,7 +348,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Buffer(T** pointer, size_t size) : m_buffer(pointer), m_size(size)
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Buffer(T** pointer, size_t size) : m_size(size), m_buffer(pointer)
   {
   }
 
@@ -371,7 +373,7 @@ namespace Rice
         this->m_size = outer.size();
         this->m_buffer = new T*[this->m_size]();
 
-        for (size_t i = 0; i < this->m_size; i++)
+        for (int i = 0; i < this->m_size; i++)
         {
           // Check the inner value is also an array
           Array inner(outer[i].value());
@@ -384,13 +386,16 @@ namespace Rice
             String packed = inner.pack<Intrinsic_T>();
             memcpy((void*)this->m_buffer[i], RSTRING_PTR(packed.value()), RSTRING_LEN(packed.value()));
           }
+          // This is for std::string, should be a 1 length array
           else
           {
             detail::From_Ruby<Intrinsic_T*> fromRuby;
-            for (int i = 0; i < inner.size(); i++)
+            if (inner.size() != 1)
             {
-              this->m_buffer[0] = fromRuby.convert(inner[i].value());
+              throw Exception(rb_eTypeError, "Expected inner array size 1 for type %s* but got %ld",
+                detail::TypeIndexParser(typeid(T)).name().c_str(), inner.size());
             }
+            this->m_buffer[i] = fromRuby.convert(inner[0].value());
           }
         }
 
@@ -560,7 +565,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::Buffer(T** pointer, size_t size) : m_buffer(pointer), m_size(size)
+  inline Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::Buffer(T** pointer, size_t size) : m_size(size), m_buffer(pointer)
   {
   }
 
@@ -583,7 +588,7 @@ namespace Rice
 
         detail::From_Ruby<T*> fromRuby;
 
-        for (size_t i = 0; i < this->m_size; i++)
+        for (int i = 0; i < this->m_size; i++)
         {
           this->m_buffer[i] = fromRuby.convert(array[i].value());
         }
@@ -751,7 +756,7 @@ namespace Rice
   }
   
   template<typename T>
-  inline Buffer<T, std::enable_if_t<std::is_void_v<T>>>::Buffer(VALUE value, size_t size)
+  inline Buffer<T, std::enable_if_t<std::is_void_v<T>>>::Buffer(VALUE value, size_t)
   {
     ruby_value_type valueType = rb_type(value);
 

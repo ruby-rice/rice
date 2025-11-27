@@ -192,7 +192,7 @@ TESTCASE(instance_swap)
  */
 
 namespace {
-  void testStructArg(Object self, Struct string) {
+  void testStructArg(Object, Struct) {
   }
 }
 

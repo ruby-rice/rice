@@ -26,7 +26,7 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::monostate& _)
+    VALUE convert(const std::monostate&)
     {
       return Qnil;
     }
@@ -46,7 +46,7 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::monostate& data)
+    VALUE convert(const std::monostate&)
     {
       return Qnil;
     }
@@ -61,7 +61,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -81,6 +81,9 @@ namespace Rice::detail
         throw std::runtime_error("Can only convert nil values to std::monostate");
       }
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -89,7 +92,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -111,6 +114,7 @@ namespace Rice::detail
     }
     
   private:
+    Arg* arg_ = nullptr;
     std::monostate converted_ = std::monostate();
   };
 }

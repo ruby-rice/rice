@@ -38,7 +38,7 @@ namespace
       multiple_args_called = false;
     }
 
-    static Object singleton_method_object_int(Object object, int anInt)
+    static Object singleton_method_object_int(Object object, int)
     {
       return object;
     }
@@ -427,12 +427,12 @@ namespace
     RValue(RValue&& other) = default;
 
     // Move assignment operator.
-    RValue& operator=(RValue&& other) noexcept
+    RValue& operator=(RValue&&) noexcept
     {
       return *this;
     }
 
-    bool takesRValue(RValue&& rvalue)
+    bool takesRValue(RValue&&)
     {
       return true;
     }
@@ -612,11 +612,11 @@ namespace
   class Processor
   {
   public:
-    BigObject** createBigObjects(size_t size)
+    BigObject** createBigObjects(int size)
     {
       BigObject** result = new BigObject*[size];
 
-      for (size_t i = 0; i < size; ++i)
+      for (int i = 0; i < size; ++i)
       {
         result[i] = new BigObject(i + 5);
       }
@@ -688,15 +688,15 @@ namespace
   {
   };
 
-  void undefinedArg(UnknownClass unknownClass)
+  void undefinedArg(UnknownClass)
   {
   }
 
-  void undefinedArg(UnknownClass& unknownClass)
+  void undefinedArg(UnknownClass&)
   {
   }
 
-  void undefinedArg(UnknownClass* unknownClass)
+  void undefinedArg(UnknownClass*)
   {
   }
 

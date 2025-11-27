@@ -39,12 +39,12 @@ namespace
       destructorCalls++;
     }
 
-    SelfClass(const SelfClass& other)
+    SelfClass(const SelfClass&)
     {
       copyConstructorCalls++;
     }
 
-    SelfClass(SelfClass&& other)
+    SelfClass(SelfClass&&)
     {
       moveConstructorCalls++;
     }

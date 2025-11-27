@@ -210,7 +210,7 @@ TESTCASE(iterate_and_change)
  */
 
 namespace {
-  void testHashArg(Object self, Hash string) {
+  void testHashArg(Object, Hash) {
   }
 }
 

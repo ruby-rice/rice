@@ -68,7 +68,6 @@ namespace Rice::detail
       if constexpr (std::is_fundamental_v<T>)
       {
         return Type<Pointer<T>>::verify();
-        return Type<Buffer<T>>::verify();
       }
       else
       {
@@ -97,7 +96,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Arg* arv)
+    explicit To_Ruby(Arg*)
     {
     }
 
@@ -185,7 +184,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Arg* arg)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -193,6 +192,9 @@ namespace Rice::detail
     {
       return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template <typename T>

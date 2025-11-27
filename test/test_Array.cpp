@@ -235,9 +235,9 @@ TESTCASE(iterate_and_call_member)
   Array::iterator it = a.begin();
   Array::iterator end = a.end();
   std::vector<Object> v;
-  for(int j = 0; it != end; ++j, ++it)
+  for(const auto& item: a)
   {
-    v.push_back(it->to_s());
+    v.push_back(Object(item).to_s());
   }
   ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(a[0].value()));
   ASSERT_EQUAL(43, detail::From_Ruby<int>().convert(a[1].value()));
@@ -278,7 +278,7 @@ TESTCASE(assign_int)
 
 namespace
 {
-  void testArrayArg(Object self, Array string)
+  void testArrayArg(Object, Array)
   {
   }
 }

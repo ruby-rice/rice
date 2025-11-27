@@ -71,6 +71,11 @@ namespace Rice::detail
     return result;
   }
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4702)  // unreachable code
+#endif
+
   template<typename T>
   inline T Parameter<T>::convertToNative(std::optional<VALUE>& valueOpt)
   {
@@ -110,8 +115,13 @@ namespace Rice::detail
       }
     }
 
+    // This can be unreachable code
     throw std::invalid_argument("Could not convert Ruby value");
   }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
   template<typename T>
   inline VALUE Parameter<T>::convertToRuby(T object)

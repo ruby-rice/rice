@@ -26,7 +26,7 @@ namespace Rice
       void operator=(const NativeAttribute_T&) = delete;
       void operator=(NativeAttribute_T&&) = delete;
 
-      Resolved matches(size_t argc, const VALUE* argv, VALUE self) override;
+      Resolved matches(size_t argc, const VALUE* argv) override;
       VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
       std::string toString() override;
 

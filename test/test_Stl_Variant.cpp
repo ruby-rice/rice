@@ -21,12 +21,6 @@ namespace
     int
   >;
 
-  inline std::ostream& operator<<(std::ostream& stream, Intrinsic_Variant_T const& variant)
-  {
-    stream << "Variant(" << "index: " << variant.index() << ")";
-    return stream;
-  }
-
   class MyClass
   {
   public:
@@ -111,7 +105,6 @@ namespace
   public:
     MyClass1()
     {
-      int a = 1;
     }
 
     std::string sayHello()
@@ -125,7 +118,6 @@ namespace
   public:
     MyClass2()
     {
-      int a = 2;
     }
 
     std::string sayHello()

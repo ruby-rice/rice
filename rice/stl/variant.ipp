@@ -8,7 +8,7 @@ namespace Rice::detail
     using Tuple_T = std::tuple<Types...>;
 
     template<std::size_t... I>
-    constexpr static bool verifyTypes(std::index_sequence<I...>& indices)
+    constexpr static bool verifyTypes(std::index_sequence<I...>&)
     {
       return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
     }
@@ -39,11 +39,16 @@ namespace Rice::detail
     template<typename U, typename V>
     VALUE convertElement(U& data, bool takeOwnership)
     {
-      return To_Ruby<V>().convert(std::forward<V>(std::get<V>(data)));
+      Arg arg("arg1");
+      if (takeOwnership)
+      {
+        arg.takeOwnership();
+      }
+      return To_Ruby<V>(&arg).convert(std::forward<V>(std::get<V>(data)));
     }
 
     template<typename U, std::size_t... I>
-    VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>&)
     {
       // Create a tuple of the variant types so we can look over the tuple's types
       using Tuple_T = std::tuple<Types...>;
@@ -117,18 +122,24 @@ namespace Rice::detail
     template<typename U, typename V>
     VALUE convertElement(U& data, bool takeOwnership)
     {
+      Arg arg("arg1");
+      if (takeOwnership)
+      {
+        arg.takeOwnership();
+      }
+
       if constexpr (std::is_const_v<U>)
       {
-        return To_Ruby<V>().convert(std::get<V>(data));
+        return To_Ruby<V>(&arg).convert(std::get<V>(data));
       }
       else
       {
-        return To_Ruby<V>().convert(std::forward<V>(std::get<V>(data)));
+        return To_Ruby<V>(&arg).convert(std::forward<V>(std::get<V>(data)));
       }
     }
 
     template<typename U, std::size_t... I>
-    VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>&)
     {
       // Create a tuple of the variant types so we can look over the tuple's types
       using Tuple_T = std::tuple<Types...>;
@@ -169,7 +180,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -240,7 +251,10 @@ namespace Rice::detail
           return convertInternal<I + 1>(value, index);
         }
       }
-      rb_raise(rb_eArgError, "Could not find converter for variant");
+      else
+      {
+        rb_raise(rb_eArgError, "Could not find converter for variant");
+      }
     }
 
     std::variant<Types...> convert(VALUE value)
@@ -250,6 +264,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     // Possible converters we could use for this variant
     using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
     From_Ruby_Ts fromRubys_;
@@ -261,7 +276,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -273,6 +288,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::variant<Types...> converted_;
   };
 }

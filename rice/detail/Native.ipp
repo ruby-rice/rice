@@ -86,7 +86,7 @@ namespace Rice::detail
           std::back_inserter(resolves), 
           [&](const std::unique_ptr<Native>& native)
           {
-            return native->matches(argc, argv, self);
+            return native->matches(argc, argv);
           });
 
         // Now sort from best to worst
@@ -249,7 +249,7 @@ namespace Rice::detail
   };
 
   template<typename Parameter_Tuple, typename Arg_Tuple, std::size_t ...Indices>
-  inline void Native::create_parameters_impl(std::vector<std::unique_ptr<ParameterAbstract>>& parameters, std::index_sequence<Indices...> indices, std::vector<std::unique_ptr<Arg>>&& args)
+  inline void Native::create_parameters_impl(std::vector<std::unique_ptr<ParameterAbstract>>& parameters, std::index_sequence<Indices...>, std::vector<std::unique_ptr<Arg>>&& args)
   {
     // Verify parameter types
     (verify_parameter<Parameter_Tuple, Arg_Tuple, Indices>(), ...);
@@ -297,7 +297,7 @@ namespace Rice::detail
     for (size_t i = 0; i < argsVector.size(); i++)
     {
       std::unique_ptr<Arg>& arg = argsVector[i];
-      arg->position = i;
+      arg->position = (int32_t)i;
     }
 
     auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Tuple>>{};
@@ -331,14 +331,14 @@ namespace Rice::detail
   inline std::vector<std::optional<VALUE>> Native::getRubyValues(size_t argc, const VALUE* argv, bool validate)
   {
 #undef max
-    int size = std::max(this->parameters_.size(), argc);
+    size_t size = std::max(this->parameters_.size(), argc);
     std::vector<std::optional<VALUE>> result(size);
 
     // Keyword handling
     if (rb_keyword_given_p())
     {
       // Keywords are stored in the last element in a hash
-      int actualArgc = argc - 1;
+      size_t actualArgc = argc - 1;
 
       VALUE value = argv[actualArgc];
       Hash keywords(value);
@@ -416,7 +416,7 @@ namespace Rice::detail
     return result;
   }
 
-  inline Resolved Native::matches(size_t argc, const VALUE* argv, VALUE self)
+  inline Resolved Native::matches(size_t argc, const VALUE* argv)
   {
     // Return false if Ruby provided more arguments than the C++ method takes
     if (argc > this->parameters_.size())
@@ -429,10 +429,10 @@ namespace Rice::detail
 
     if (this->parameters_.size() > 0)
     {
-      int providedValues = std::count_if(rubyValues.begin(), rubyValues.end(), [](std::optional<VALUE>& value)
-        {
-          return value.has_value();
-        });
+      size_t providedValues = std::count_if(rubyValues.begin(), rubyValues.end(), [](std::optional<VALUE>& value)
+      {
+        return value.has_value();
+      });
 
       result.parameterMatch = providedValues / (double)this->parameters_.size();
     }

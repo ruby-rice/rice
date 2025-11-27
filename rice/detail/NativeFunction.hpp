@@ -61,8 +61,7 @@ namespace Rice::detail
     VALUE returnKlass() override;
 
   private:
-    template<std::size_t...I>
-    std::vector<std::string> argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices);
+    std::vector<std::string> argTypeNames();
 
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>

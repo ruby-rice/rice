@@ -23,7 +23,7 @@ namespace Rice::detail
 
     To_Ruby() = default;
 
-    explicit To_Ruby(Arg* arg)
+    explicit To_Ruby(Arg*)
     {
     }
 

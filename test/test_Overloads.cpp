@@ -116,27 +116,27 @@ namespace
     return "run<void>";
   }
 
-  std::string run(int a)
+  std::string run(int)
   {
     return "run<int>";
   }
 
-  std::string run(float a)
+  std::string run(float)
   {
     return "run<float>";
   }
 
-  std::string run(std::string a)
+  std::string run(std::string)
   {
     return "run<string>";
   }
 
-  std::string run(int a, float b = 1.0)
+  std::string run(int, float = 1.0)
   {
     return "run<int,float>";
   }
 
-  std::string run(float a, int b = 1)
+  std::string run(float, int = 1)
   {
     return "run<float,int>";
   }
@@ -212,27 +212,27 @@ namespace
       return "run<void>";
     }
 
-    std::string run(int a)
+    std::string run(int)
     {
       return "run<int>";
     }
 
-    std::string run(float a)
+    std::string run(float)
     {
       return "run<float>";
     }
 
-    std::string run(std::string a)
+    std::string run(std::string)
     {
       return "run<string>";
     }
 
-    std::string run(int a, float b = 1.0)
+    std::string run(int, float = 1.0)
     {
       return "run<int,float>";
     }
 
-    std::string run(float a, int b = 1)
+    std::string run(float, int = 1)
     {
       return "run<float,int>";
     }
@@ -344,27 +344,27 @@ namespace
       this->constructor = "constructor<void>";
     }
 
-    MyClass2(int a)
+    MyClass2(int)
     {
       this->constructor = "constructor<int>";
     }
 
-    MyClass2(float a)
+    MyClass2(float)
     {
       this->constructor = "constructor<float>";
     }
 
-    MyClass2(std::string a)
+    MyClass2(std::string)
     {
       this->constructor = "constructor<string>";
     }
 
-    MyClass2(int a, float b)
+    MyClass2(int, float)
     {
       this->constructor = "constructor<int,float>";
     }
 
-    MyClass2(float a, int b)
+    MyClass2(float, int)
     {
       this->constructor = "constructor<float,int>";
     }
@@ -446,52 +446,52 @@ namespace
   class MyClass3
   {
   public:
-    std::string run(char value)
+    std::string run(char)
     {
       return "run<char>";
     }
 
-    std::string run(unsigned char value)
+    std::string run(unsigned char)
     {
       return "run<unsigned char>";
     }
 
-    std::string run(char* value)
+    std::string run(char*)
     {
       return "run<char*>";
     }
 
-    std::string run(unsigned char* value)
+    std::string run(unsigned char*)
     {
       return "run<unsigned char*>";
     }
 
-    std::string run(short value)
+    std::string run(short)
     {
       return "run<short>";
     }
 
-    std::string run(int value)
+    std::string run(int)
     {
       return "run<int>";
     }
 
-    std::string run(float value)
+    std::string run(float)
     {
       return "run<float>";
     }
 
-    std::string run(double value)
+    std::string run(double)
     {
       return "run<double>";
     }
 
-    std::string run(long value)
+    std::string run(long)
     {
       return "run<long>";
     }
 
-    std::string run(long long value)
+    std::string run(long long)
     {
       return "run<long long>";
     }
@@ -679,12 +679,12 @@ namespace
   class MyClass5
   {
   public:
-    MyClass5(MyClass4& class4)
+    MyClass5(MyClass4&)
     {
       this->result = "non-const ref";
     }
 
-    MyClass5(const MyClass4& class4)
+    MyClass5(const MyClass4&)
     {
       this->result = "const ref";
     }
@@ -753,12 +753,12 @@ namespace
   class MyClass7
   {
   public:
-    MyClass7(MyClass6* class6)
+    MyClass7(MyClass6*)
     {
       this->result = "non-const pointer";
     }
 
-    MyClass7(const MyClass6* class6)
+    MyClass7(const MyClass6*)
     {
       this->result = "const pointer";
     }
@@ -807,12 +807,12 @@ TESTCASE(ConstPointer)
 
 namespace
 {
-  std::string pointer(const MyClass6* data)
+  std::string pointer(const MyClass6*)
   {
     return "pointer";
   }
 
-  std::string pointer(MyClass6* data)
+  std::string pointer(MyClass6*)
   {
     return "pointerBuffer";
   }

@@ -26,7 +26,7 @@ namespace Rice::detail
   }
 
   template<typename T, typename Iterator_Func_T>
-  inline Resolved NativeIterator<T, Iterator_Func_T>::matches(size_t argc, const VALUE* argv, VALUE self)
+  inline Resolved NativeIterator<T, Iterator_Func_T>::matches(size_t, const VALUE*)
   {
     return Resolved{ Convertible::Exact, 1.0, this };
   }
@@ -34,7 +34,7 @@ namespace Rice::detail
   template<typename T, typename Iterator_Func_T>
   inline VALUE NativeIterator<T, Iterator_Func_T>::createRubyEnumerator(VALUE self)
   {
-    auto rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
+    auto rb_size_function = [](VALUE recv, VALUE, VALUE eobj) -> VALUE
     {
       // Since we can't capture VALUE self from above (because then we can't send
       // this lambda to rb_enumeratorize_with_size), extract it from recv
@@ -72,7 +72,7 @@ namespace Rice::detail
   }
 
   template<typename T, typename Iterator_Func_T>
-  inline VALUE NativeIterator<T, Iterator_Func_T>::operator()(size_t argc, const VALUE* argv, VALUE self)
+  inline VALUE NativeIterator<T, Iterator_Func_T>::operator()(size_t, const VALUE*, VALUE self)
   {
     if (!protect(rb_block_given_p))
     {
