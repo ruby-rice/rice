@@ -26,7 +26,7 @@ namespace Rice::detail
 
   template<typename Attribute_T>
   NativeAttributeSet<Attribute_T>::NativeAttributeSet(VALUE klass, std::string name, Attribute_T attribute)
-    : klass_(klass), name_(name), attribute_(attribute)
+    : Native(name), klass_(klass), attribute_(attribute)
   {
   }
 
@@ -75,12 +75,6 @@ namespace Rice::detail
   inline std::string NativeAttributeSet<Attribute_T>::toString()
   {
     return "";
-  }
-
-  template<typename Attribute_T>
-  inline std::string NativeAttributeSet<Attribute_T>::name()
-  {
-    return this->name_;
   }
 
   template<typename Attribute_T>

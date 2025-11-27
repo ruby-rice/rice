@@ -39,9 +39,9 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool NoGVL>
-  NativeFunction<Function_T, NoGVL>::NativeFunction(VALUE klass, std::string method_name, Function_T function, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters)
-    : Native(std::move(returnInfo), std::move(parameters)),
-      klass_(klass), method_name_(method_name), function_(function), toRuby_(returnInfo_.get())
+  NativeFunction<Function_T, NoGVL>::NativeFunction(VALUE klass, std::string function_name, Function_T function, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters)
+    : Native(function_name, std::move(returnInfo), std::move(parameters)),
+      klass_(klass), function_(function), toRuby_(returnInfo_.get())
   {
   }
 
@@ -64,7 +64,7 @@ namespace Rice::detail
 
     detail::TypeIndexParser typeIndexParser(typeid(Return_T), std::is_fundamental_v<detail::intrinsic_type<Return_T>>);
     result << typeIndexParser.simplifiedName() << " ";
-    result << this->method_name_;
+    result << this->name();
 
     result << "(";
 
@@ -161,17 +161,10 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool NoGVL>
-  inline std::string NativeFunction<Function_T, NoGVL>::name()
-  {
-    return this->method_name_;
-  }
-
-  template<typename Function_T, bool NoGVL>
   inline NativeKind NativeFunction<Function_T, NoGVL>::kind()
   {
     return NativeKind::Function;
   }
-
   template<typename Function_T, bool NoGVL>
   inline VALUE NativeFunction<Function_T, NoGVL>::returnKlass()
   {

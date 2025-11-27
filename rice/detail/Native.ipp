@@ -150,15 +150,25 @@ namespace Rice::detail
     });
   }
 
-  inline Native::Native(std::unique_ptr<Return>&& returnInfo) : returnInfo_(std::move(returnInfo))
+  inline Native::Native(std::string name) :
+    name_(name)
   {
   }
 
-  inline Native::Native(std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters) :
-    returnInfo_(std::move(returnInfo)), parameters_(std::move(parameters))
+  inline Native::Native(std::string name,std::unique_ptr<Return>&& returnInfo) :
+    name_(name), returnInfo_(std::move(returnInfo))
   {
   }
 
+  inline Native::Native(std::string name, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters) :
+    name_(name), returnInfo_(std::move(returnInfo)), parameters_(std::move(parameters))
+  {
+  }
+
+  inline std::string Native::name()
+  {
+    return this->name_;
+  }
   inline ParameterAbstract* Native::getParameterByName(std::string name)
   {
     for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)

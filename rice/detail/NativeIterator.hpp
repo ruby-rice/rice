@@ -30,7 +30,6 @@ namespace Rice::detail
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
 
-    std::string name() override;
     NativeKind kind() override;
     VALUE returnKlass() override;
 
@@ -42,7 +41,6 @@ namespace Rice::detail
 
   private:
     VALUE klass_;
-    std::string method_name_;
     Iterator_Func_T begin_;
     Iterator_Func_T end_;
   };

@@ -169,7 +169,7 @@ namespace Rice::detail
 
   template<typename Return_T, typename ...Parameter_Ts>
   NativeCallback<Return_T(*)(Parameter_Ts...)>::NativeCallback(VALUE proc) :
-    Native(std::move(copyReturnInfo()), std::move(copyParameters())),
+    Native("callback", std::move(copyReturnInfo()), std::move(copyParameters())),
       proc_(proc), fromRuby_(returnInfo_.get())
   {
     // Tie the lifetime of the NativeCallback C++ instance to the lifetime of the Ruby proc object
@@ -233,12 +233,6 @@ namespace Rice::detail
   inline VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::operator()(size_t argc, const VALUE* argv, VALUE self)
   {
     return Qnil;
-  }
-
-  template<typename Return_T, typename ...Parameter_Ts>
-  inline std::string NativeCallback<Return_T(*)(Parameter_Ts...)>::name()
-  {
-    return "";
   }
 
   template<typename Return_T, typename ...Parameter_Ts>

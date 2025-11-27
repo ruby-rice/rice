@@ -21,7 +21,7 @@ namespace Rice::detail
 
   template <typename T, typename Iterator_Func_T>
   inline NativeIterator<T, Iterator_Func_T>::NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end) :
-    klass_(klass), method_name_(method_name), begin_(begin), end_(end)
+    Native(method_name), klass_(klass), begin_(begin), end_(end)
   {
   }
 
@@ -61,7 +61,7 @@ namespace Rice::detail
       });
     };
 
-    Identifier identifier(this->method_name_);
+    Identifier identifier(this->name());
     VALUE enumerator = protect(rb_enumeratorize_with_size, self, identifier.to_sym(), 0, nullptr, rb_size_function);
     
     // Hack the enumerator object by storing name_ on the enumerator object so
@@ -100,12 +100,6 @@ namespace Rice::detail
   inline std::string NativeIterator<T, Iterator_Func_T>::toString()
   {
     return "";
-  }
-
-  template<typename T, typename Iterator_Func_T>
-  inline std::string NativeIterator<T, Iterator_Func_T>::name()
-  {
-    return this->method_name_;
   }
 
   template<typename T, typename Iterator_Func_T>

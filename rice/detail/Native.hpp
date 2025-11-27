@@ -32,9 +32,9 @@ namespace Rice::detail
   public:
     static VALUE resolve(int argc, VALUE* argv, VALUE self);
   public:
-    Native() = default;
-    Native(std::unique_ptr<Return>&& returnInfo);
-    Native(std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
+    Native(std::string name);
+    Native(std::string name, std::unique_ptr<Return>&& returnInfo);
+    Native(std::string name, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
     virtual ~Native() = default;
 
     Native(const Native&) = delete;
@@ -47,10 +47,10 @@ namespace Rice::detail
     virtual std::string toString() = 0;
 
     // Ruby API access
-    virtual std::string name() = 0;
+    std::string name();
+    std::vector<const ParameterAbstract*> parameters();
     virtual NativeKind kind() = 0;
     virtual VALUE returnKlass() = 0;
-    std::vector<const ParameterAbstract*> parameters();
 
   protected:
     template<typename T, bool isBuffer>
@@ -77,6 +77,7 @@ namespace Rice::detail
     static void verify_parameter();
 
   protected:
+    std::string name_;
     std::unique_ptr<Return> returnInfo_;
     std::vector<std::unique_ptr<ParameterAbstract>> parameters_;
   };
