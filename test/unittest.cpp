@@ -68,7 +68,7 @@ run(Test_Result & result)
       std::cout << ".";
     }
     catch(Assertion_Failed const & ex)
-    {
+      {
       std::cout << "F";
       result.add_failure(Failure(name(), it->name(), ex.what()));
     }

@@ -255,7 +255,7 @@ namespace Rice::detail
     base = std::regex_replace(base, leadingNamespacesRegex, "");
 
     // Capitalize first letter
-    base[0] = std::toupper(base[0]);
+    base[0] = (char)std::toupper(base[0]);
 
     // Replace :: with unicode U+u02F8 (Modified Letter raised colon)
     auto colonRegex = std::regex(R"(:)");
@@ -305,7 +305,11 @@ namespace Rice::detail
     while (std::regex_search(content, match, regex))
     {
       std::string replacement = match[1];
-      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
+      std::transform(replacement.begin(), replacement.end(), replacement.begin(), 
+        [](unsigned char c) -> char
+        {
+          return static_cast<char>(std::toupper(c));
+        });
       content.replace(match.position(), match.length(), replacement);
     }
   }

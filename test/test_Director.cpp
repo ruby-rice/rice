@@ -85,7 +85,7 @@ namespace {
         return detail::From_Ruby<int>().convert( getSelf().call("process", num) );
       }
 
-      int default_process(int num)
+      int default_process(int)
       {
         raisePureVirtual();
         return 0;
@@ -222,7 +222,7 @@ namespace {
         return detail::From_Ruby<int>().convert( getSelf().call("do_it_impl", in) );
       }
 
-      int default_doItImpl(int in)
+      int default_doItImpl(int)
       {
         raisePureVirtual();
         return 0;

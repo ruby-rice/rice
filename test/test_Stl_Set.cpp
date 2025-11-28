@@ -349,7 +349,7 @@ TESTCASE(ToArray)
                         set.to_a)";
 
   Array array = m.module_eval(code);
-  ASSERT_EQUAL(3u, array.size());
+  ASSERT_EQUAL(3, array.size());
 
   ASSERT_EQUAL("abc", detail::From_Ruby<std::string>().convert(array[0].value()));
   ASSERT_EQUAL("def", detail::From_Ruby<std::string>().convert(array[1].value()));
@@ -507,11 +507,11 @@ namespace
     static inline std::set<std::string> instance_{ "one", "two", "three" };
   };
 
-  std::ostream& operator<<(std::ostream& stream, const std::set<std::string>& set)
+ /* std::ostream& operator<<(std::ostream& stream, const std::set<std::string>& set)
   {
-    stream << "Set";
+    stream << set;
     return stream;
-  }
+  }*/
 
   void createFactoryClass()
   {

@@ -1487,8 +1487,9 @@ namespace Rice::detail
       }
     }
 
-    void convert(VALUE value)
+    void convert(VALUE)
     {
+      // Nothing to do
     }
   private:
     Arg* arg_ = nullptr;

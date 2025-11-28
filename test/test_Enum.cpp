@@ -76,7 +76,7 @@ TESTCASE(values)
   std::string code = R"(Color.values)";
 
   Array a = m.module_eval(code);
-  ASSERT_EQUAL(3u, a.size());
+  ASSERT_EQUAL(3, a.size());
 
   Data_Object<Color> enum_0(a[0]);
   ASSERT_EQUAL(RED, *enum_0);
@@ -96,7 +96,7 @@ TESTCASE(seasons_values)
   std::string code = R"(Season.values)";
 
   Array a = m.module_eval(code);
-  ASSERT_EQUAL(4u, a.size());
+  ASSERT_EQUAL(4, a.size());
 
   Data_Object<Season> enum_0(a[0]);
   ASSERT_EQUAL(Season::Spring, *enum_0);
@@ -398,7 +398,7 @@ namespace
 {
   enum class Undefined { A, B, C };
 
-  void undefinedArg(Undefined undefined)
+  void undefinedArg(Undefined)
   {
   }
 

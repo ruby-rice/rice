@@ -20,13 +20,13 @@ namespace Rice
   }
 
   template<typename T>
-  inline size_t ruby_size_internal(const T* data)
+  inline size_t ruby_size_internal(const T*)
   {
     return sizeof(T);
   }
 
   template<>
-  inline size_t ruby_size_internal(const void* data)
+  inline size_t ruby_size_internal(const void*)
   {
     return sizeof(void*);
   }
@@ -69,7 +69,7 @@ namespace Rice
 
     // Add a method to get the source C++ class name from Ruby
     Data_Type<T> dataType;
-    dataType.define_singleton_method("cpp_class", [](VALUE klass) -> VALUE
+    dataType.define_singleton_method("cpp_class", [](VALUE) -> VALUE
     {
       detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
       std::string cppClassName = typeIndexParser.simplifiedName();
@@ -148,7 +148,7 @@ namespace Rice
 
   template<typename T>
   template<typename Constructor_T, typename...Rice_Arg_Ts>
-  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T constructor, Rice_Arg_Ts const& ...args)
+  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T, Rice_Arg_Ts const& ...args)
   {
     check_is_bound();
 

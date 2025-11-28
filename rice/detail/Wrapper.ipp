@@ -252,7 +252,7 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, bool isOwner)
+  inline void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data)
   {
     using Wrapper_T = Wrapper<T*>;
     

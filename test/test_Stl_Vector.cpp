@@ -591,7 +591,7 @@ TESTCASE(Comparable)
 
   Object result = vec.call("delete", Comparable(1));
   Comparable comparable = detail::From_Ruby<Comparable>().convert(result);
-  ASSERT_EQUAL(1, comparable.value_);
+  ASSERT_EQUAL(1u, comparable.value_);
 
   result = vec.call("length");
   ASSERT_EQUAL(2, detail::From_Ruby<size_t>().convert(result));
@@ -643,7 +643,7 @@ namespace
     {
     };
 
-    std::string operator==(const ComparableButNotBool& other)
+    std::string operator==(const ComparableButNotBool&)
     {
       return "not a boolean";
     }
@@ -829,7 +829,7 @@ TESTCASE(ToArray)
                         vector.to_a)";
 
   Array array = m.module_eval(code);
-  ASSERT_EQUAL(3u, array.size());
+  ASSERT_EQUAL(3, array.size());
 
   ASSERT_EQUAL("abc", detail::From_Ruby<std::string>().convert(array[0].value()));
   ASSERT_EQUAL("def", detail::From_Ruby<std::string>().convert(array[1].value()));
@@ -993,11 +993,11 @@ namespace
     static inline std::vector<std::string> instance_{ "one", "two", "three" };
   };
 
-  std::ostream& operator<<(std::ostream& stream, const std::vector<std::string>& vector)
+ /* std::ostream& operator<<(std::ostream& stream, const std::vector<std::string>& vector)
   {
-    stream << "Vector";
+    stream << vector;
     return stream;
-  }
+  }*/
 
   void createFactoryClass()
   {
@@ -1188,17 +1188,17 @@ TESTCASE(MyClass2PointerVector)
 
 namespace
 {
-  bool typeCheckValue(std::vector<std::string> vec)
+  bool typeCheckValue(std::vector<std::string>)
   {
     return true;
   }
 
-  bool typeCheckRef(std::vector<std::string>& vec)
+  bool typeCheckRef(std::vector<std::string>&)
   {
     return true;
   }
 
-  bool typeCheckPtr(std::vector<std::string>* vec)
+  bool typeCheckPtr(std::vector<std::string>*)
   {
     return true;
   }

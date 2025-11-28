@@ -46,8 +46,7 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool NoGVL>
-  template<std::size_t... I>
-  std::vector<std::string> NativeFunction<Function_T, NoGVL>::argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices)
+  std::vector<std::string> NativeFunction<Function_T, NoGVL>::argTypeNames()
   {
     std::vector<std::string> result;
     for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)
@@ -68,8 +67,7 @@ namespace Rice::detail
 
     result << "(";
 
-    auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
-    std::vector<std::string> argTypeNames = this->argTypeNames(result, indices);
+    std::vector<std::string> argTypeNames = this->argTypeNames();
     for (size_t i = 0; i < argTypeNames.size(); i++)
     {
       result << argTypeNames[i];
@@ -83,7 +81,7 @@ namespace Rice::detail
   template<typename Function_T, bool NoGVL>
   template<std::size_t... I>
   typename NativeFunction<Function_T, NoGVL>::Parameter_Ts NativeFunction<Function_T, NoGVL>::getNativeValues(std::vector<std::optional<VALUE>>& values,
-     std::index_sequence<I...>& indices)
+     std::index_sequence<I...>&)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
        on the arguments (Parameter_Ts) required by the C++ function. Arg_T may have const/volatile while

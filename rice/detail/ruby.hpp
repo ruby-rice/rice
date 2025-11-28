@@ -8,9 +8,31 @@
 
 #include <cmath>
 
+// Clang has to be first because on Windows it defines _MSC_VER too
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#elif defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4100)  // unreferenced formal parameter
+#pragma warning(disable: 4702)  // unreachable code
+#elif defined(__GNUC__ )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#endif
+
 #include <ruby.h>
 #include <ruby/encoding.h>
 #include <ruby/thread.h>
+
+// Clang has to be first because on Windows it defines _MSC_VER too
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning(pop)
+#elif defined(__GNUC__ )
+#pragma GCC diagnostic pop
+#endif
 
 // ruby.h has a few defines that conflict with Visual Studio's STL
 #if defined(_MSC_VER)

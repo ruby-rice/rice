@@ -27,7 +27,7 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::nullopt_t& _)
+    VALUE convert(const std::nullopt_t&)
     {
       return Qnil;
     }
@@ -94,7 +94,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -121,6 +121,9 @@ namespace Rice::detail
         return From_Ruby<T>().convert(value);
       }
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -129,7 +132,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -158,6 +161,7 @@ namespace Rice::detail
       return this->converted_;
     }
   private:
+    Arg* arg_ = nullptr;
     std::optional<T> converted_;
   };
 }

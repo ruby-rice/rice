@@ -33,7 +33,7 @@ namespace
 namespace Rice
 {
   template<>
-  void ruby_mark(MyDataType* myDataType)
+  void ruby_mark(MyDataType*)
   {
     test_ruby_mark_called = true;
   }

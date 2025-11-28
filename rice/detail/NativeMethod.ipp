@@ -46,8 +46,7 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Method_T, bool NoGVL>
-  template<std::size_t... I>
-  std::vector<std::string> NativeMethod<Class_T, Method_T, NoGVL>::argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices)
+  std::vector<std::string> NativeMethod<Class_T, Method_T, NoGVL>::argTypeNames()
   {
     std::vector<std::string> result;
     for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)
@@ -75,8 +74,7 @@ namespace Rice::detail
 
     result << "(";
 
-    auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
-    std::vector<std::string> argTypeNames = this->argTypeNames(result, indices);
+    std::vector<std::string> argTypeNames = this->argTypeNames();
     for (size_t i = 0; i < argTypeNames.size(); i++)
     {
       result << argTypeNames[i];
@@ -89,7 +87,7 @@ namespace Rice::detail
     
   template<typename Class_T, typename Method_T, bool NoGVL>
   template<std::size_t... I>
-  typename NativeMethod<Class_T, Method_T, NoGVL>::Apply_Args_T NativeMethod<Class_T, Method_T, NoGVL>::getNativeValues(VALUE self, std::vector<std::optional<VALUE>>& values, const std::index_sequence<I...>& indices)
+  typename NativeMethod<Class_T, Method_T, NoGVL>::Apply_Args_T NativeMethod<Class_T, Method_T, NoGVL>::getNativeValues(VALUE self, std::vector<std::optional<VALUE>>& values, const std::index_sequence<I...>&)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
        on the arguments (Parameter_Ts) required by the C++ method. Arg_T may have const/volatile while

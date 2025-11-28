@@ -77,7 +77,7 @@ namespace Rice::detail
 
   // ---- Helper Functions ---------
   template <typename T>
-  void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, bool isOwner);
+  void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data);
 
   template <typename T>
   VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner);

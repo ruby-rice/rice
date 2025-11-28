@@ -131,7 +131,7 @@ namespace
   };
 }
 
-Object getColumn(Module& m, uint32_t index)
+Object getColumn(Module& m, uint32_t)
 {
   Object connection = m.module_eval("Connection.new");
   return connection.call("getColumn", 3);

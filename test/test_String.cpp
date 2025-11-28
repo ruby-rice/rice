@@ -118,10 +118,12 @@ TESTCASE(intern)
  */
 
 namespace {
-  void testStringArg(Object self, String string) {
+  void testStringArg(Object, String)
+  {
   }
 }
 
-TESTCASE(use_string_in_wrapped_function) {
+TESTCASE(use_string_in_wrapped_function)
+{
   define_global_function("test_string_arg", &testStringArg);
 }

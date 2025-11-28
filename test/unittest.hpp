@@ -268,11 +268,11 @@ void assert_in_delta(
   T const& expected,
   U const& actual,
   V const& delta,
-  std::string const& s_t,
-  std::string const& s_u,
-  std::string const& s_delta,
-  std::string const& file,
-  size_t line)
+  std::string const&,
+  std::string const&,
+  std::string const&,
+  std::string const&,
+  size_t)
 {
   // Negative deltas don't make sense; treat as failure for clarity.
   if (delta < 0)

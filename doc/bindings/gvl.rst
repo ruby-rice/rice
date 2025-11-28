@@ -21,12 +21,12 @@ Assume you are wrapping a function that will take a long time to complete:
     std::this_thread::sleep_for(std::chrono::milliseconds(100000));
   }
 
-You can tell Rice to run this code without holding the GVL by using the ``Function`` object to mark it as GVL safe:
+You can tell Rice to run this code without holding the GVL by using the ``NoGVL`` object to mark it as GVL safe:
 
 .. code-block:: cpp
 
   Module m = define_module("Testing");
-  m.define_module_function("slow_function", &slowFunction, Function().setNoGvl());
+  m.define_module_function("slow_function", &slowFunction, NoGvl());
 
 When ``slow_function`` is called from Ruby, Rice will first ask Ruby to release the GVL before executing the C++ code.
 

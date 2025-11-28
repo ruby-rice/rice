@@ -8,8 +8,9 @@
 namespace Rice
 {
   template<typename T>
-  void ruby_mark(T* data)
+  void ruby_mark(T*)
   {
+    // Do nothing by default
   }
 }
 #endif // Rice__ruby_mark__hpp_

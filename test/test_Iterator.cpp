@@ -50,7 +50,7 @@ TESTCASE(define_array_iterator)
   Object wrapped_container = Data_Object<Container>(container);
 
   Array a = wrapped_container.instance_eval("a = []; each() { |x| a << x }; a");
-  ASSERT_EQUAL(3u, a.size());
+  ASSERT_EQUAL(3, a.size());
   ASSERT_EQUAL(Object(detail::to_ruby(1)), a[0]);
   ASSERT_EQUAL(Object(detail::to_ruby(2)), a[1]);
   ASSERT_EQUAL(Object(detail::to_ruby(3)), a[2]);
@@ -152,16 +152,16 @@ TESTCASE(iterator_value)
   Data_Object<ContainerValues> wrapper(container);
 
   Array a = wrapper.instance_eval("each.to_a");
-  ASSERT_EQUAL(3u, a.size());
+  ASSERT_EQUAL(3, a.size());
 
   Data_Object<Data> wrappedData(a[0]);
-  ASSERT_EQUAL(1, wrappedData->index);
+  ASSERT_EQUAL(1u, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[1];
-  ASSERT_EQUAL(2, wrappedData->index);
+  ASSERT_EQUAL(2u, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[2];
-  ASSERT_EQUAL(3, wrappedData->index);
+  ASSERT_EQUAL(3u, wrappedData->index);
 }
 
 TESTCASE(const_iterator_value)
@@ -185,13 +185,13 @@ TESTCASE(const_iterator_value)
   Array a = m.module_eval(code);
 
   Data_Object<Data> wrappedData(a[0]);
-  ASSERT_EQUAL(1, wrappedData->index);
+  ASSERT_EQUAL(1u, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[1];
-  ASSERT_EQUAL(2, wrappedData->index);
+  ASSERT_EQUAL(2u, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[2];
-  ASSERT_EQUAL(3, wrappedData->index);
+  ASSERT_EQUAL(3u, wrappedData->index);
 }
 
 TESTCASE(iterator_pointer)
@@ -218,13 +218,13 @@ TESTCASE(iterator_pointer)
   Array a = m.module_eval(code);
 
   Data_Object<Data> wrappedData(a[0]);
-  ASSERT_EQUAL(1, wrappedData->index);
+  ASSERT_EQUAL(1u, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[1];
-  ASSERT_EQUAL(2, wrappedData->index);
+  ASSERT_EQUAL(2u, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[2];
-  ASSERT_EQUAL(3, wrappedData->index);
+  ASSERT_EQUAL(3u, wrappedData->index);
 }
 
 TESTCASE(two_iterator_pointer)
@@ -254,25 +254,25 @@ TESTCASE(two_iterator_pointer)
 
   Array a = m.module_eval(code);
 
-  ASSERT_EQUAL(6u, a.size());
+  ASSERT_EQUAL(6, a.size());
 
   Data_Object<Data> wrappedData(a[0]);
-  ASSERT_EQUAL(1, wrappedData->index);
+  ASSERT_EQUAL(1u, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[1];
-  ASSERT_EQUAL(2, wrappedData->index);
+  ASSERT_EQUAL(2u, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[2];
-  ASSERT_EQUAL(3, wrappedData->index);
+  ASSERT_EQUAL(3u, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[3];
-  ASSERT_EQUAL(3, wrappedData->index);
+  ASSERT_EQUAL(3u, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[4];
-  ASSERT_EQUAL(2, wrappedData->index);
+  ASSERT_EQUAL(2u, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)a[5];
-  ASSERT_EQUAL(1, wrappedData->index);
+  ASSERT_EQUAL(1u, wrappedData->index);
 }
 
 TESTCASE(map)
@@ -293,7 +293,7 @@ TESTCASE(map)
                         end)";
 
   Array a = m.module_eval(code);
-  ASSERT_EQUAL(3u, a.size());
+  ASSERT_EQUAL(3, a.size());
 
   Object element = a[0];
   ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(element));
@@ -323,7 +323,7 @@ TESTCASE(to_enum)
 
   Array a = m.module_eval(code);
 
-  ASSERT_EQUAL(3u, a.size());
+  ASSERT_EQUAL(3, a.size());
 
   Object element = a[0];
   ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(element));
@@ -352,7 +352,7 @@ TESTCASE(IterateNoCopy)
 
   ASSERT_EQUAL(container.data_.size(), (size_t)a.size());
 
-  for (size_t i = 0; i < container.data_.size(); i++)
+  for (int i = 0; i < container.data_.size(); i++)
   {
     Data& expected = container.data_[i];
     Data_Object<Data> actual(a[i]);

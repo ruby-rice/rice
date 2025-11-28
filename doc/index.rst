@@ -17,3 +17,4 @@ Rice - Ruby Interface for C++
   why_rice
   history
   architecture
+  changelog

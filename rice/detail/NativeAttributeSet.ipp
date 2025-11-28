@@ -31,7 +31,7 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline Resolved NativeAttributeSet<Attribute_T>::matches(size_t argc, const VALUE* argv, VALUE self)
+  inline Resolved NativeAttributeSet<Attribute_T>::matches(size_t argc, const VALUE*)
   {
     if (argc == 1)
       return Resolved{ Convertible::Exact, 1, this };

@@ -240,7 +240,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -260,5 +260,8 @@ namespace Rice::detail
     {
       return Object(value);
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 }

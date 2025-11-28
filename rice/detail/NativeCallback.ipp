@@ -55,7 +55,7 @@ namespace Rice::detail
 
   // This is the function provided to the C++ callback with FFI
   template<typename Return_T, typename ...Parameter_Ts>
-  void NativeCallback<Return_T(*)(Parameter_Ts...)>::invokeFFI(ffi_cif* cif, void* ret, void* args[], void* instance)
+  void NativeCallback<Return_T(*)(Parameter_Ts...)>::invokeFFI(ffi_cif*, void* ret, void* args[], void* instance)
   {
     NativeCallback_T* self = (NativeCallback_T*)instance;
 
@@ -119,7 +119,7 @@ namespace Rice::detail
 
   template<typename Return_T, typename ...Parameter_Ts>
   template<std::size_t... I>
-  void NativeCallback<Return_T(*)(Parameter_Ts...)>::copyParametersImpl(std::vector<std::unique_ptr<ParameterAbstract>>& result, std::index_sequence<I...> indices)
+  void NativeCallback<Return_T(*)(Parameter_Ts...)>::copyParametersImpl(std::vector<std::unique_ptr<ParameterAbstract>>& result, std::index_sequence<I...>)
   {
     (result.push_back(std::make_unique<Parameter<Parameter_Ts>>(*(Parameter<Parameter_Ts>*)parameters_[I].get())), ...);
   }
@@ -137,7 +137,7 @@ namespace Rice::detail
 
   template<typename Return_T, typename ...Parameter_Ts>
   template<std::size_t... I>
-  typename NativeCallback<Return_T(*)(Parameter_Ts...)>::Tuple_T NativeCallback<Return_T(*)(Parameter_Ts...)>::convertArgsToTuple(void* args[], std::index_sequence<I...>& indices)
+  typename NativeCallback<Return_T(*)(Parameter_Ts...)>::Tuple_T NativeCallback<Return_T(*)(Parameter_Ts...)>::convertArgsToTuple(void* args[], std::index_sequence<I...>&)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
        on the arguments (Parameter_Ts) required by the C++ function. Arg_T may have const/volatile while
@@ -148,7 +148,7 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename ...Parameter_Ts>
-  VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
+  VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::finalizerCallback(VALUE, VALUE callback_arg, int, const VALUE*, VALUE)
   {
     NativeCallback_T* nativeCallback = (NativeCallback_T*)callback_arg;
     delete nativeCallback;
@@ -214,7 +214,7 @@ namespace Rice::detail
 
   template<typename Return_T, typename ...Parameter_Ts>
   template<std::size_t... I>
-  Return_T NativeCallback<Return_T(*)(Parameter_Ts...)>::callRuby(std::index_sequence<I...>& indices, Parameter_Ts...args)
+  Return_T NativeCallback<Return_T(*)(Parameter_Ts...)>::callRuby(std::index_sequence<I...>&, Parameter_Ts...args)
   {
     // Convert the C++ arguments to Ruby VALUEs
     std::array<VALUE, sizeof...(Parameter_Ts)> values = {
@@ -230,7 +230,7 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename ...Parameter_Ts>
-  inline VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::operator()(size_t argc, const VALUE* argv, VALUE self)
+  inline VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::operator()(size_t, const VALUE*, VALUE)
   {
     return Qnil;
   }

@@ -8,7 +8,9 @@ Buffers are often used in C and C++ APIs. Examples include:
 * Pointers to arrays of fundamental type or C++ objects
 * Pointer to a fundamental type (often used to support function parameters used to return values)
 
-Rice supports these uses cases via its ``Buffer`` class. By default, Rice will :doc:`auto generate <../types/naming>` Buffer Ruby classes. For example, a Buffer to an int, ``Buffer<T>``, will be wrapped by a Ruby class named ``Rice::Buffer≺int≻``.
+Rice supports these uses cases via its ``Buffer<T>`` Ruby class. For example, a Buffer to an int, ``Buffer<T>``, will be wrapped by a Ruby class named ``Rice::Buffer≺int≻``.
+
+The :ref:`pointers` documentation describes how to create ``Buffer<T>`` classes.
 
 Fundamental Types
 -----------------

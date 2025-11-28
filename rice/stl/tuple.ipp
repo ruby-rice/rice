@@ -8,7 +8,7 @@ namespace Rice::detail
     using Tuple_T = std::tuple<Types...>;
 
     template<std::size_t... I>
-    constexpr static bool verifyTypes(std::index_sequence<I...>& indices)
+    constexpr static bool verifyTypes(std::index_sequence<I...>&)
     {
       return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
     }
@@ -94,7 +94,7 @@ namespace Rice::detail
 
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -122,7 +122,7 @@ namespace Rice::detail
     }
 
     template <std::size_t... I>
-    std::tuple<Types...> convertInternal(Array array, std::index_sequence<I...>& indices)
+    std::tuple<Types...> convertInternal(Array array, std::index_sequence<I...>&)
     {
       return std::forward_as_tuple(std::get<I>(this->fromRubys_).convert(array[I].value())...);
     }
@@ -135,6 +135,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     // Possible converters we could use for this variant
     using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
     From_Ruby_Ts fromRubys_;

@@ -32,8 +32,7 @@ namespace Rice::detail
   class RubyType<signed char>
   {
   public:
-    // Hack - need to later typecast
-    using FromRuby_T = char(*)(VALUE);
+    using FromRuby_T =  char(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2char_inline;
     static inline std::set<ruby_value_type> Exact = { };
@@ -47,7 +46,6 @@ namespace Rice::detail
   class RubyType<unsigned char>
   {
   public:
-    // Hack - need to later typecast, although char's in ruby are unsigned
     using FromRuby_T = char(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2char_inline;

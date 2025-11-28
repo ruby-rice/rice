@@ -217,10 +217,10 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& self)
-            {
-              return "[Not printable]";
-            });
+          klass_.define_method("to_s", [](const T&)
+          {
+            return "[Not printable]";
+          });
         }
       }
 

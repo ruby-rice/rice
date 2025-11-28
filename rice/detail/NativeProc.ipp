@@ -35,7 +35,7 @@ namespace Rice::detail
 
   // Ruby calls this method when invoking a proc that was defined as a C++ function
   template<typename Proc_T>
-  VALUE NativeProc<Proc_T>::resolve(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
+  VALUE NativeProc<Proc_T>::resolve(VALUE, VALUE callback_arg, int argc, const VALUE* argv, VALUE)
   {
     return cpp_protect([&]
     {
@@ -47,7 +47,7 @@ namespace Rice::detail
   // Ruby calls this method if an instance of a NativeProc is owned by a Ruby proc. That happens when C++
   // returns a function back to Ruby
   template<typename Proc_T>
-  VALUE NativeProc<Proc_T>::finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
+  VALUE NativeProc<Proc_T>::finalizerCallback(VALUE, VALUE callback_arg, int, const VALUE*, VALUE)
   {
     NativeProc_T* native = (NativeProc_T*)callback_arg;
     delete native;
@@ -70,7 +70,7 @@ namespace Rice::detail
   template<typename Proc_T>
   template<std::size_t... I>
   typename NativeProc<Proc_T>::Parameter_Ts NativeProc<Proc_T>::getNativeValues(std::vector<std::optional<VALUE>>& values,
-     std::index_sequence<I...>& indices)
+     std::index_sequence<I...>&)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
        on the arguments (Parameter_Ts) required by the C++ function. Arg_T may have const/volatile while
@@ -102,7 +102,7 @@ namespace Rice::detail
   }
 
   template<typename Proc_T>
-  VALUE NativeProc<Proc_T>::operator()(size_t argc, const VALUE* argv, VALUE self)
+  VALUE NativeProc<Proc_T>::operator()(size_t argc, const VALUE* argv, VALUE)
   {
     // Get the ruby values and make sure we have the correct number
     std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, true);

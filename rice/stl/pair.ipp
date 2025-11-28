@@ -62,11 +62,11 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& pair)
-            {
-              return "[Not printable]";
-            });
-        }
+          klass_.define_method("to_s", [](const T&)
+          {
+            return "[Not printable]";
+          });
+      }
       }
 
       private:
