@@ -144,7 +144,7 @@ namespace Rice
 
         detail::From_Ruby<Intrinsic_T> fromRuby;
 
-        for (int i = 0; i < this->m_size; i++)
+        for (size_t i = 0; i < this->m_size; i++)
         {
           // Construct objects in allocated memory using move or copy construction
           if constexpr (std::is_move_constructible_v<T>)
@@ -373,7 +373,7 @@ namespace Rice
         this->m_size = outer.size();
         this->m_buffer = new T*[this->m_size]();
 
-        for (int i = 0; i < this->m_size; i++)
+        for (size_t i = 0; i < this->m_size; i++)
         {
           // Check the inner value is also an array
           Array inner(outer[i].value());
@@ -588,7 +588,7 @@ namespace Rice
 
         detail::From_Ruby<T*> fromRuby;
 
-        for (int i = 0; i < this->m_size; i++)
+        for (size_t i = 0; i < this->m_size; i++)
         {
           this->m_buffer[i] = fromRuby.convert(array[i].value());
         }

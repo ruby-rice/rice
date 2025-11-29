@@ -344,7 +344,7 @@ namespace Rice::detail
       Hash keywords(value);
 
       // Copy over leading non-keyword arguments
-      for (int i = 0; i < actualArgc; i++)
+      for (size_t i = 0; i < actualArgc; i++)
       {
         result[i] = argv[i];
       }
