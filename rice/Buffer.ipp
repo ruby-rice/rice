@@ -149,7 +149,7 @@ namespace Rice
           // Construct objects in allocated memory using move or copy construction
           if constexpr (std::is_move_constructible_v<T>)
           {
-            new (&this->m_buffer[i]) T(std::move(fromRuby.convert(array[i].value())));
+            new (&this->m_buffer[i]) T(std::move(fromRuby.convert(array[(long)i].value())));
           }
           else if constexpr (std::is_copy_constructible_v<T>)
           {
@@ -376,7 +376,7 @@ namespace Rice
         for (size_t i = 0; i < this->m_size; i++)
         {
           // Check the inner value is also an array
-          Array inner(outer[i].value());
+          Array inner(outer[(long)i].value());
 
           // Allocate inner buffer
           this->m_buffer[i] = new T[inner.size()]();
@@ -590,7 +590,7 @@ namespace Rice
 
         for (size_t i = 0; i < this->m_size; i++)
         {
-          this->m_buffer[i] = fromRuby.convert(array[i].value());
+          this->m_buffer[i] = fromRuby.convert(array[(long)i].value());
         }
 
         this->m_owner = true;
