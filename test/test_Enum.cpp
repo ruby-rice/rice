@@ -198,8 +198,33 @@ TESTCASE(eql)
   Module m = define_module("Testing");
 
   Enum<Color> colorEnum = define_color_enum();
-  ASSERT_EQUAL(detail::to_ruby(false), m.module_eval("Color::RED == Color::BLACK").value());
-  ASSERT_EQUAL(detail::to_ruby(true), m.module_eval("Color::GREEN == Color::GREEN").value());
+  ASSERT_EQUAL(Qfalse, m.module_eval("Color::RED == Color::BLACK").value());
+  ASSERT_EQUAL(Qtrue, m.module_eval("Color::GREEN == Color::GREEN").value());
+}
+
+TESTCASE(case_eql)
+{
+  Module m = define_module("Testing");
+
+  Enum<Color> colorEnum = define_color_enum();
+
+ /* Object result = m.module_eval("Color::RED === Color::BLACK");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = m.module_eval("Color::GREEN === Color::GREEN");
+  ASSERT_EQUAL(Qtrue, result.value());*/
+
+  Object result = m.module_eval("Color::RED === 0");
+  ASSERT_EQUAL(Qtrue, result.value());
+  
+  result = m.module_eval("0 == Color::RED");
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  result = m.module_eval("Color::RED === 1");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = m.module_eval("1 == Color::RED");
+  ASSERT_EQUAL(Qfalse, result.value());
 }
 
 TESTCASE(compare_equal)
@@ -207,7 +232,11 @@ TESTCASE(compare_equal)
   Enum<Color> colorEnum = define_color_enum();
   Object color1 = colorEnum.const_get("RED");
   Object color2 = colorEnum.const_get("RED");
+
   Object result = color1.call("<=>", color2);
+  ASSERT_EQUAL(0, detail::From_Ruby<int>().convert(result));
+
+  result = color1.call("<=>", 0);
   ASSERT_EQUAL(0, detail::From_Ruby<int>().convert(result));
 }
 
