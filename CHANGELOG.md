@@ -1,3 +1,16 @@
+# Changelog 
+
+## 4.8.0 (2025-11-28)
+The release focuses on compilation times and library sizes. Compilation times are approximately 2x faster than version 4.7 and a bit faster than 4.6. Library sizes are about 30% smaller.
+
+However, these updates required some breaking changes, which include:
+
+* `Return().isBuffer()` is replaced by `ReturnBuffer()`
+* `Arg("").isBuffer()` is replaced by `ArgBuffer("")`
+* `Function().noGVL()` is replaced by `NoGvL()`
+
+See the pointer documentation for information on how to use them.
+
 ## 4.7.1 (2025-10-28)
 Updates:
 * Update overload resolution to take into account function arguments that are tagged as buffers via Arg("").setBuffer().
@@ -217,7 +230,7 @@ There are a ton of changes, but some of the most important ones:
 	Ruby RArray type to the system. This is not something that we should support going forward
 	as these internals are going to change.
 
-# 2.0.0 (2015-11-27)
+## 2.0.0 (2015-11-27)
 
 * Deprecated all versions of Ruby < 2.0
 * Removed Rice::VM.

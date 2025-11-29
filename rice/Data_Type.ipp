@@ -187,9 +187,6 @@ namespace Rice
   template<typename Function_T>
   inline Data_Type<T>& Data_Type<T>::define(Function_T func)
   {
-    // The passed in this pointer is an RValue, so we need to keep it alive by
-    // assigning it to a const lvalue
-    const auto& dummy = *this;
     func(*this);
     return *this;
   }

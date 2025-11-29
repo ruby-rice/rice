@@ -201,7 +201,8 @@ namespace Rice::detail
   {
     if (rb_type(value) != RUBY_T_DATA)
     {
-      std::string message = "The provided Ruby object does not wrap a C++ object";
+      std::string message = "The Ruby object does not wrap a C++ object. It is actually a " +
+        std::string(detail::protect(rb_obj_classname, value)) + ".";
       throw std::runtime_error(message);
     }
 
