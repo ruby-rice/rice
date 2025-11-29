@@ -1,3 +1,30 @@
+// This file is part of [rice](https://github.com/ruby-rice/rice).
+//
+// Copyright (C) 2025 Jason Roelofs <jasongroelofs@gmail.com>
+//                    Paul Brannan <curlypaul924@gmail.com>,
+//                    Charlie Savage
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+//
+// 1. Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+// IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+// OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+// IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+// NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+// THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #ifndef Rice__hpp_
 #define Rice__hpp_
 
@@ -12,9 +39,31 @@
 
 #include <cmath>
 
+// Clang has to be first because on Windows it defines _MSC_VER too
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#elif defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4100)  // unreferenced formal parameter
+#pragma warning(disable: 4702)  // unreachable code
+#elif defined(__GNUC__ )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#endif
+
 #include <ruby.h>
 #include <ruby/encoding.h>
 #include <ruby/thread.h>
+
+// Clang has to be first because on Windows it defines _MSC_VER too
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning(pop)
+#elif defined(__GNUC__ )
+#pragma GCC diagnostic pop
+#endif
 
 // ruby.h has a few defines that conflict with Visual Studio's STL
 #if defined(_MSC_VER)
@@ -616,7 +665,7 @@ namespace Rice::detail
 
   // ---- Helper Functions ---------
   template <typename T>
-  void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, bool isOwner);
+  void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data);
 
   template <typename T>
   VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner);
@@ -669,25 +718,41 @@ namespace Rice::detail
     static bool verify();
   };
 
+  class TypeIndexParser
+  {
+  public:
+    TypeIndexParser(const std::type_index& typeIndex, bool isFundamental = false);
+    std::string name();
+    std::string simplifiedName();
+    std::string rubyName(std::string rubyTypeName);
+
+    // public only for testing
+    std::string findGroup(std::string& string, size_t start = 0);
+
+  private:
+    std::string demangle(char const* mangled_name);
+    void removeGroup(std::string& string, std::regex regex);
+    void replaceGroup(std::string& string, std::regex regex, std::string replacement);
+    void capitalizeHelper(std::string& content, std::regex& regex);
+    void replaceAll(std::string& string, std::regex regex, std::string replacement);
+
+  private:
+    const std::type_index typeIndex_;
+    bool isFundamental_ = false;
+  };
+
   template<typename T>
   class TypeMapper
   {
   public:
-    std::string name();
-    std::string name(const std::type_index& typeIndex);
-    std::string simplifiedName();
-    std::string rubyName();
     VALUE rubyKlass();
+    std::string rubyName();
 
-    // public only for testing
-    std::string findGroup(std::string& string, size_t start = 0);
   private:
-    std::string demangle(char const* mangled_name);
     std::string rubyTypeName();
-    void removeGroup(std::string& string, std::regex regex);
-    void replaceGroup(std::string& string, std::regex regex, std::string replacement);
-    void replaceAll(std::string& string, std::regex regex, std::string replacement);
-    void capitalizeHelper(std::string& content, std::regex& regex);
+  
+  private:
+    TypeIndexParser typeIndexParser_{ typeid(T), std::is_fundamental_v<intrinsic_type<T>> };
   };
 
   template<typename T>
@@ -943,7 +1008,7 @@ namespace Rice::detail
     {
       return std::move(this->result_.value());
     }
-    // std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> return true. Sigh.
+    // std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
     else if constexpr (detail::is_std_vector_v<Return_T> && std::is_copy_constructible_v<Return_T>)
     {
       if constexpr (!std::is_copy_constructible_v<typename Return_T::value_type>)
@@ -2770,9 +2835,9 @@ namespace Rice::detail
   public:
     static VALUE resolve(int argc, VALUE* argv, VALUE self);
   public:
-    Native() = default;
-    Native(std::unique_ptr<Return>&& returnInfo);
-    Native(std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
+    Native(std::string name);
+    Native(std::string name, std::unique_ptr<Return>&& returnInfo);
+    Native(std::string name, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
     virtual ~Native() = default;
 
     Native(const Native&) = delete;
@@ -2780,15 +2845,15 @@ namespace Rice::detail
     void operator=(const Native&) = delete;
     void operator=(Native&&) = delete;
 
-    virtual Resolved matches(size_t argc, const VALUE* argv, VALUE self);
+    virtual Resolved matches(size_t argc, const VALUE* argv);
     virtual VALUE operator()(size_t argc, const VALUE* argv, VALUE self) = 0;
     virtual std::string toString() = 0;
 
     // Ruby API access
-    virtual std::string name() = 0;
+    std::string name();
+    std::vector<const ParameterAbstract*> parameters();
     virtual NativeKind kind() = 0;
     virtual VALUE returnKlass() = 0;
-    std::vector<const ParameterAbstract*> parameters();
 
   protected:
     template<typename T, bool isBuffer>
@@ -2804,6 +2869,9 @@ namespace Rice::detail
     template<typename... Arg_Ts>
     static std::unique_ptr<Return> create_return(Arg_Ts& ...args);
 
+    // Do we need to keep alive any arguments?
+    void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues);
+
   private:
     template<typename Parameter_Tuple, typename Arg_Tuple, std::size_t ...Indices>
     static inline void create_parameters_impl(std::vector<std::unique_ptr<ParameterAbstract>>& parameters, std::index_sequence<Indices...> indices, std::vector<std::unique_ptr<Arg>>&& args);
@@ -2812,6 +2880,7 @@ namespace Rice::detail
     static void verify_parameter();
 
   protected:
+    std::string name_;
     std::unique_ptr<Return> returnInfo_;
     std::vector<std::unique_ptr<ParameterAbstract>> parameters_;
   };
@@ -2854,11 +2923,10 @@ namespace Rice
       void operator=(const NativeAttribute_T&) = delete;
       void operator=(NativeAttribute_T&&) = delete;
 
-      Resolved matches(size_t argc, const VALUE* argv, VALUE self) override;
+      Resolved matches(size_t argc, const VALUE* argv) override;
       VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
       std::string toString() override;
 
-      std::string name() override;
       NativeKind kind() override;
       VALUE returnKlass() override;
 
@@ -2867,7 +2935,6 @@ namespace Rice
 
     private:
       VALUE klass_;
-      std::string name_;
       Attribute_T attribute_;
     };
   } // detail
@@ -2901,11 +2968,10 @@ namespace Rice
       void operator=(const NativeAttribute_T&) = delete;
       void operator=(NativeAttribute_T&&) = delete;
 
-      Resolved matches(size_t argc, const VALUE* argv, VALUE self) override;
+      Resolved matches(size_t argc, const VALUE* argv) override;
       VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
       std::string toString() override;
 
-      std::string name() override;
       NativeKind kind() override;
       VALUE returnKlass() override;
 
@@ -2914,7 +2980,6 @@ namespace Rice
 
     private:
       VALUE klass_;
-      std::string name_;
       Attribute_T attribute_;
     };
   } // detail
@@ -3379,8 +3444,7 @@ namespace Rice::detail
   class RubyType<signed char>
   {
   public:
-    // Hack - need to later typecast
-    using FromRuby_T = char(*)(VALUE);
+    using FromRuby_T =  char(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2char_inline;
     static inline std::set<ruby_value_type> Exact = { };
@@ -3394,7 +3458,6 @@ namespace Rice::detail
   class RubyType<unsigned char>
   {
   public:
-    // Hack - need to later typecast, although char's in ruby are unsigned
     using FromRuby_T = char(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2char_inline;
@@ -3916,6 +3979,11 @@ namespace Rice::detail
     return result;
   }
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4702)  // unreachable code
+#endif
+
   template<typename T>
   inline T Parameter<T>::convertToNative(std::optional<VALUE>& valueOpt)
   {
@@ -3935,7 +4003,19 @@ namespace Rice::detail
     {
       return this->fromRuby_.convert(valueOpt.value());
     }
-    else if constexpr (std::is_constructible_v<std::remove_cv_t<T>, std::remove_cv_t<std::remove_reference_t<T>>&>)
+    // Remember std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
+    // So special case vector handling
+    else if constexpr (detail::is_std_vector_v<detail::intrinsic_type<T>>)
+    {
+      if constexpr (std::is_copy_constructible_v<typename detail::intrinsic_type<T>::value_type>)
+      {
+        if (this->arg()->hasDefaultValue())
+        {
+          return this->arg()->template defaultValue<T>();
+        }
+      }
+    }
+    else if constexpr (std::is_copy_constructible_v<T>)
     {
       if (this->arg()->hasDefaultValue())
       {
@@ -3943,8 +4023,13 @@ namespace Rice::detail
       }
     }
 
-    throw std::invalid_argument("Could not convert Rubyy value");
+    // This can be unreachable code
+    throw std::invalid_argument("Could not convert Ruby value");
   }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
   template<typename T>
   inline VALUE Parameter<T>::convertToRuby(T object)
@@ -3955,8 +4040,8 @@ namespace Rice::detail
   template<typename T>
   inline std::string Parameter<T>::cppTypeName()
   {
-    detail::TypeMapper<T> typeMapper;
-    return typeMapper.simplifiedName();
+    detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+    return typeIndexParser.simplifiedName();
   }
 
   template<typename T>
@@ -4325,10 +4410,12 @@ namespace Rice
       default:
       {
         if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end() ||
-          RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end() ||
-          RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
+            RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end() ||
+            RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
         {
-          T data = detail::protect(RubyType_T::fromRuby, value);
+          // The Ruby method may return a different type - for example Ruby floats
+          // are converted to double and not float - so we need a typecast.
+          T data = (T)detail::protect(RubyType_T::fromRuby, value);
           this->m_size = 1;
           this->m_buffer = new T[this->m_size]();
           memcpy((void*)this->m_buffer, &data, sizeof(T));
@@ -4337,9 +4424,9 @@ namespace Rice
         }
         else
         {
-          detail::TypeMapper<T> typeMapper;
-          std::string typeName = typeMapper.name();
-          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+          detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+          std::string typeName = typeIndexParser.name();
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
             detail::protect(rb_obj_classname, value), typeName.c_str());
         }
       }
@@ -4359,12 +4446,12 @@ namespace Rice
         this->m_size = array.size();
 
         // Use operator new[] to allocate memory but not call constructors.
-        size_t size = sizeof(T) * this->m_size;
-        this->m_buffer = static_cast<T*>(operator new[](size));
+        size_t memsize = sizeof(T) * this->m_size;
+        this->m_buffer = static_cast<T*>(operator new[](memsize));
 
         detail::From_Ruby<Intrinsic_T> fromRuby;
 
-        for (size_t i = 0; i < this->m_size; i++)
+        for (int i = 0; i < this->m_size; i++)
         {
           // Construct objects in allocated memory using move or copy construction
           if constexpr (std::is_move_constructible_v<T>)
@@ -4377,8 +4464,9 @@ namespace Rice
           }
           else
           {
+            detail::TypeIndexParser typeIndexParser(typeid(Intrinsic_T), std::is_fundamental_v<Intrinsic_T>);
             throw Exception(rb_eTypeError, "Cannot construct object of type %s - type is not move or copy constructible",
-              detail::TypeMapper<Intrinsic_T>().name().c_str());
+              typeIndexParser.name().c_str());
           }
         }
         break;
@@ -4418,9 +4506,9 @@ namespace Rice
       }
       default:
       {
-        detail::TypeMapper<T> typeMapper;
-        std::string typeName = typeMapper.name();
-        throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+        detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+        std::string typeName = typeIndexParser.name();
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
     }
@@ -4489,8 +4577,8 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::toString() const
   {
-    detail::TypeMapper<T*> typeMapper;
-    std::string description = "Buffer<type: " + typeMapper.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
+    detail::TypeIndexParser typeIndexParser(typeid(T*), std::is_fundamental_v<detail::intrinsic_type<T>>);
+    std::string description = "Buffer<type: " + typeIndexParser.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -4567,7 +4655,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Buffer(T** pointer, size_t size) : m_buffer(pointer), m_size(size)
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Buffer(T** pointer, size_t size) : m_size(size), m_buffer(pointer)
   {
   }
 
@@ -4592,7 +4680,7 @@ namespace Rice
         this->m_size = outer.size();
         this->m_buffer = new T*[this->m_size]();
 
-        for (size_t i = 0; i < this->m_size; i++)
+        for (int i = 0; i < this->m_size; i++)
         {
           // Check the inner value is also an array
           Array inner(outer[i].value());
@@ -4605,13 +4693,16 @@ namespace Rice
             String packed = inner.pack<Intrinsic_T>();
             memcpy((void*)this->m_buffer[i], RSTRING_PTR(packed.value()), RSTRING_LEN(packed.value()));
           }
+          // This is for std::string, should be a 1 length array
           else
           {
             detail::From_Ruby<Intrinsic_T*> fromRuby;
-            for (int i = 0; i < inner.size(); i++)
+            if (inner.size() != 1)
             {
-              this->m_buffer[0] = fromRuby.convert(inner[i].value());
+              throw Exception(rb_eTypeError, "Expected inner array size 1 for type %s* but got %ld",
+                detail::TypeIndexParser(typeid(T)).name().c_str(), inner.size());
             }
+            this->m_buffer[i] = fromRuby.convert(inner[0].value());
           }
         }
 
@@ -4631,9 +4722,9 @@ namespace Rice
       }
       default:
       {
-        detail::TypeMapper<T> typeMapper;
-        std::string typeName = typeMapper.name();
-        throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+        detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+        std::string typeName = typeIndexParser.name();
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
     }
@@ -4717,8 +4808,8 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::toString() const
   {
-    detail::TypeMapper<T*> typeMapper;
-    std::string description = "Buffer<type: " + typeMapper.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
+    detail::TypeIndexParser typeIndexParser(typeid(T*), std::is_fundamental_v<detail::intrinsic_type<T>>);
+    std::string description = "Buffer<type: " + typeIndexParser.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -4781,7 +4872,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::Buffer(T** pointer, size_t size) : m_buffer(pointer), m_size(size)
+  inline Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::Buffer(T** pointer, size_t size) : m_size(size), m_buffer(pointer)
   {
   }
 
@@ -4804,7 +4895,7 @@ namespace Rice
 
         detail::From_Ruby<T*> fromRuby;
 
-        for (size_t i = 0; i < this->m_size; i++)
+        for (int i = 0; i < this->m_size; i++)
         {
           this->m_buffer[i] = fromRuby.convert(array[i].value());
         }
@@ -4824,9 +4915,9 @@ namespace Rice
       }
       default:
       {
-        detail::TypeMapper<T> typeMapper;
-        std::string typeName = typeMapper.name();
-        throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+        detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+        std::string typeName = typeIndexParser.name();
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
     }
@@ -4909,8 +5000,8 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::toString() const
   {
-    detail::TypeMapper<T*> typeMapper;
-    std::string description = "Buffer<type: " + typeMapper.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
+    detail::TypeIndexParser typeIndexParser(typeid(T*), std::is_fundamental_v<detail::intrinsic_type<T>>);
+    std::string description = "Buffer<type: " + typeIndexParser.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -4972,7 +5063,7 @@ namespace Rice
   }
   
   template<typename T>
-  inline Buffer<T, std::enable_if_t<std::is_void_v<T>>>::Buffer(VALUE value, size_t size)
+  inline Buffer<T, std::enable_if_t<std::is_void_v<T>>>::Buffer(VALUE value, size_t)
   {
     ruby_value_type valueType = rb_type(value);
 
@@ -4989,9 +5080,9 @@ namespace Rice
       }
       default:
       {
-        detail::TypeMapper<void> typeMapper;
-        std::string typeName = typeMapper.name();
-        throw Exception(rb_eTypeError, "wrong argument type %s (expected % s*)",
+        detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+        std::string typeName = typeIndexParser.name();
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
     }
@@ -6778,7 +6869,7 @@ namespace Rice::detail
         {
           detail::TypeMapper<Pointer<T>> typeMapper;
           std::string expected = typeMapper.rubyName();
-          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }
       }
@@ -6837,7 +6928,7 @@ namespace Rice::detail
         {
           detail::TypeMapper<Pointer<T*>> typeMapper;
           std::string expected = typeMapper.rubyName();
-          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }
       }
@@ -8115,7 +8206,7 @@ namespace Rice::detail
         }
         default:
         {
-          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
             detail::protect(rb_obj_classname, value), "nil");
         }
       }
@@ -8157,8 +8248,9 @@ namespace Rice::detail
       }
     }
 
-    void convert(VALUE value)
+    void convert(VALUE)
     {
+      // Nothing to do
     }
   private:
     Arg* arg_ = nullptr;
@@ -8259,7 +8351,7 @@ namespace Rice::detail
         }
         default:
         {
-          throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+          throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
             detail::protect(rb_obj_classname, value), "pointer");
         }
       }
@@ -8373,8 +8465,9 @@ namespace Rice::detail
       return result.value();
     }
 
-    detail::TypeMapper<T> typeMapper;
-    raiseUnverifiedType(typeMapper.name());
+    detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+    raiseUnverifiedType(typeIndexParser.name());
+
     // Make the compiler happy
     return std::pair<VALUE, rb_data_type_t*>(Qnil, nullptr);
   }
@@ -8407,8 +8500,8 @@ namespace Rice::detail
 
     for (const std::type_index& typeIndex : this->unverified_)
     {
-      detail::TypeMapper<int> typeMapper;
-      stream << "  " << typeMapper.name(typeIndex) << "\n";
+      detail::TypeIndexParser typeIndexParser(typeIndex);
+      stream << "  " << typeIndexParser.name() << "\n";
     }
 
     throw std::invalid_argument(stream.str());
@@ -8701,37 +8794,20 @@ namespace Rice::detail
   {
   };
 
-  // ---------- TypeMapper ------------
-  template<typename T>
-  inline std::string TypeMapper<T>::demangle(char const* mangled_name)
+  // ---------- TypeIndexParser ------------
+  inline TypeIndexParser::TypeIndexParser(const std::type_index& typeIndex, bool isFundamental) :
+    typeIndex_(typeIndex), isFundamental_(isFundamental)
+  {
+  }
+
+  inline std::string TypeIndexParser::demangle(char const* mangled_name)
   {
 #ifdef __GNUC__
-    struct Helper
+    int status = 0;
+    char* name = abi::__cxa_demangle(mangled_name, 0, 0, &status);
+    if (name)
     {
-      Helper(
-        char const* mangled_name)
-        : name_(0)
-      {
-        int status = 0;
-        name_ = abi::__cxa_demangle(mangled_name, 0, 0, &status);
-      }
-
-      ~Helper()
-      {
-        std::free(name_);
-      }
-
-      char* name_;
-
-    private:
-      Helper(Helper const&);
-      void operator=(Helper const&);
-    };
-
-    Helper helper(mangled_name);
-    if (helper.name_)
-    {
-      return helper.name_;
+      return name;
     }
     else
     {
@@ -8742,17 +8818,9 @@ namespace Rice::detail
 #endif
   }
 
-  template<typename T>
-  inline std::string TypeMapper<T>::name()
+  inline std::string TypeIndexParser::name()
   {
-    const std::type_index& typeIndex = typeid(T);
-    return demangle(typeIndex.name());
-  }
-
-  template<typename T>
-  inline std::string TypeMapper<T>::name(const std::type_index& typeIndex)
-  {
-    return demangle(typeIndex.name());
+    return this->demangle(this->typeIndex_.name());
   }
 
   // Find text inside of < > taking into account nested groups.
@@ -8760,8 +8828,7 @@ namespace Rice::detail
   // Example:
   //  
   //   std::vector<std::vector<int>, std::allocator<std::vector, std::allocator<int>>>
-  template<typename T>
-  inline std::string TypeMapper<T>::findGroup(std::string& string, size_t offset)
+  inline std::string TypeIndexParser::findGroup(std::string& string, size_t offset)
   {
     int depth = 0;
 
@@ -8794,8 +8861,7 @@ namespace Rice::detail
     throw std::runtime_error("Unbalanced Group");
   }
 
-  template<typename T>
-  inline void TypeMapper<T>::replaceAll(std::string& string, std::regex regex, std::string replacement)
+  inline void TypeIndexParser::replaceAll(std::string& string, std::regex regex, std::string replacement)
   {
     std::smatch match;
     while (std::regex_search(string, match, regex))
@@ -8804,8 +8870,7 @@ namespace Rice::detail
     }
   }
 
-  template<typename T>
-  inline void TypeMapper<T>::removeGroup(std::string& string, std::regex regex)
+  inline void TypeIndexParser::removeGroup(std::string& string, std::regex regex)
   {
     std::smatch match;
     while (std::regex_search(string, match, regex))
@@ -8816,8 +8881,7 @@ namespace Rice::detail
     }
   }
 
-  template<typename T>
-  inline void TypeMapper<T>::replaceGroup(std::string& string, std::regex regex, std::string replacement)
+  inline void TypeIndexParser::replaceGroup(std::string& string, std::regex regex, std::string replacement)
   {
     std::smatch match;
     while (std::regex_search(string, match, regex))
@@ -8828,8 +8892,7 @@ namespace Rice::detail
     }
   }
 
-  template<typename T>
-  inline std::string TypeMapper<T>::simplifiedName()
+  inline std::string TypeIndexParser::simplifiedName()
   {
     std::string base = this->name();
 
@@ -8901,18 +8964,80 @@ namespace Rice::detail
     return base;
   }
 
-  template<typename T>
-  inline void TypeMapper<T>::capitalizeHelper(std::string& content, std::regex& regex)
+  inline std::string TypeIndexParser::rubyName(std::string rubyTypeName)
+  {
+    std::string base = rubyTypeName;
+
+    // Remove std:: these could be embedded in template types
+    auto stdRegex = std::regex("std::");
+    base = std::regex_replace(base, stdRegex, "");
+
+    // Remove leading namespaces. This will not remove namespaces
+    // embedded in template types like std::vector<mynamespace::foo>
+    auto leadingNamespacesRegex = std::regex("^[^<]*::");
+    base = std::regex_replace(base, leadingNamespacesRegex, "");
+
+    // Capitalize first letter
+    base[0] = (char)std::toupper(base[0]);
+
+    // Replace :: with unicode U+u02F8 (Modified Letter raised colon)
+    auto colonRegex = std::regex(R"(:)");
+    this->replaceAll(base, colonRegex, "\uA789");
+
+    // Replace _ and capitalize the next letter
+    std::regex underscoreRegex(R"(_(\w))");
+    this->capitalizeHelper(base, underscoreRegex);
+
+    if (this->isFundamental_)
+    {
+      // Replace space and capitalize the next letter
+      std::regex spaceRegex(R"(\s+(\w))");
+      this->capitalizeHelper(base, spaceRegex);
+    }
+    else
+    {
+      // Replace spaces with unicode U+u00A0 (Non breaking Space)
+      std::regex spaceRegex = std::regex(R"(\s+)");
+      this->replaceAll(base, spaceRegex, "\u00A0");
+    }
+
+    // Replace < with unicode U+227A (Precedes)
+    auto lessThanRegex = std::regex("<");
+    //replaceAll(base, lessThanRegex, "≺");
+    this->replaceAll(base, lessThanRegex, "\u227A");
+
+    // Replace > with unicode U+227B (Succeeds)
+    auto greaterThanRegex = std::regex(">");
+    //replaceAll(base, greaterThanRegex, "≻");
+    this->replaceAll(base, greaterThanRegex, "\u227B");
+
+    // Replace , with Unicode Character (U+066C) - Arabic Thousands Separator
+    auto commaRegex = std::regex(R"(,\s*)");
+    this->replaceAll(base, commaRegex, "\u201A");
+
+    // Replace * with Unicode Character (U+2217) -	Asterisk Operator
+    auto asteriskRegex = std::regex(R"(\*)");
+    this->replaceAll(base, asteriskRegex, "\u2217");
+
+    return base;
+  }
+
+  inline void TypeIndexParser::capitalizeHelper(std::string& content, std::regex& regex)
   {
     std::smatch match;
     while (std::regex_search(content, match, regex))
     {
       std::string replacement = match[1];
-      std::transform(replacement.begin(), replacement.end(), replacement.begin(), ::toupper);
+      std::transform(replacement.begin(), replacement.end(), replacement.begin(), 
+        [](unsigned char c) -> char
+        {
+          return static_cast<char>(std::toupper(c));
+        });
       content.replace(match.position(), match.length(), replacement);
     }
   }
 
+  // ---------- TypeMapper ------------
   template<typename T>
   inline std::string TypeMapper<T>::rubyTypeName()
   {
@@ -8928,8 +9053,8 @@ namespace Rice::detail
     }
     else
     {
-      detail::TypeMapper<Intrinsic_T> typeIntrinsicMapper;
-      return typeIntrinsicMapper.simplifiedName();
+      detail::TypeIndexParser typeIndexParser(typeid(Intrinsic_T), std::is_fundamental_v<detail::intrinsic_type<Intrinsic_T>>);
+      return typeIndexParser.simplifiedName();
     }
   }
 
@@ -8937,59 +9062,7 @@ namespace Rice::detail
   inline std::string TypeMapper<T>::rubyName()
   {
     std::string base = this->rubyTypeName();
-
-    // Remove std:: these could be embedded in template types
-    auto stdRegex = std::regex("std::");
-    base = std::regex_replace(base, stdRegex, "");
-
-    // Remove leading namespaces. This will not remove namespaces
-    // embedded in template types like std::vector<mynamespace::foo>
-    auto leadingNamespacesRegex = std::regex("^[^<]*::");
-    base = std::regex_replace(base, leadingNamespacesRegex, "");
-
-    // Capitalize first letter
-    base[0] = std::toupper(base[0]);
-
-    // Replace :: with unicode U+u02F8 (Modified Letter raised colon)
-    auto colonRegex = std::regex(R"(:)");
-    replaceAll(base, colonRegex, "\uA789");
-
-    // Replace _ and capitalize the next letter
-    std::regex underscoreRegex(R"(_(\w))");
-    capitalizeHelper(base, underscoreRegex);
-
-    if constexpr (std::is_fundamental_v<intrinsic_type<T>>)
-    {
-      // Replace space and capitalize the next letter
-      std::regex spaceRegex(R"(\s+(\w))");
-      capitalizeHelper(base, spaceRegex);
-    }
-    else
-    {
-      // Replace spaces with unicode U+u00A0 (Non breaking Space)
-      std::regex spaceRegex = std::regex(R"(\s+)");
-      replaceAll(base, spaceRegex, "\u00A0");
-    }
-
-    // Replace < with unicode U+227A (Precedes)
-    auto lessThanRegex = std::regex("<");
-    //replaceAll(base, lessThanRegex, "≺");
-    replaceAll(base, lessThanRegex, "\u227A");
-
-    // Replace > with unicode U+227B (Succeeds)
-    auto greaterThanRegex = std::regex(">");
-    //replaceAll(base, greaterThanRegex, "≻");
-    replaceAll(base, greaterThanRegex, "\u227B");
-
-    // Replace , with Unicode Character (U+066C) - Arabic Thousands Separator
-    auto commaRegex = std::regex(R"(,\s*)");
-    replaceAll(base, commaRegex, "\u201A");
-
-    // Replace * with Unicode Character (U+2217) -	Asterisk Operator
-    auto asteriskRegex = std::regex(R"(\*)");
-    replaceAll(base, asteriskRegex, "\u2217");
-
-    return base;
+    return this->typeIndexParser_.rubyName(base);
   }
 
   template<typename T>
@@ -9320,7 +9393,7 @@ namespace Rice::detail
       result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
-    // std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> return true. Sigh.
+    // std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
     else if constexpr (detail::is_std_vector_v<T>)
     {
       if constexpr (std::is_copy_constructible_v<typename T::value_type>)
@@ -9351,9 +9424,9 @@ namespace Rice::detail
 
     else
     {
-      detail::TypeMapper<T> typeMapper;
+      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
       std::string message = "Rice was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: " +
-        typeMapper.name();
+        typeIndexParser.name();
       throw std::runtime_error(message);
     }
 
@@ -9382,7 +9455,8 @@ namespace Rice::detail
   {
     if (rb_type(value) != RUBY_T_DATA)
     {
-      std::string message = "The provided Ruby object does not wrap a C++ object";
+      std::string message = "The Ruby object does not wrap a C++ object. It is actually a " +
+        std::string(detail::protect(rb_obj_classname, value)) + ".";
       throw std::runtime_error(message);
     }
 
@@ -9414,12 +9488,18 @@ namespace Rice::detail
   inline WrapperBase* getWrapper(VALUE value)
   {
     // Turn off spurious warning on g++ 12
-    #if defined(__GNUC__) || defined(__clang__)
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Warray-bounds"
-    #endif
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
 
-    return RTYPEDDATA_P(value) ? static_cast<WrapperBase*>(RTYPEDDATA_DATA(value)) : nullptr;
+    if (!RTYPEDDATA_P(value))
+    {
+      throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+        detail::protect(rb_obj_classname, value), "wrapped C++ object");
+    }
+
+    return static_cast<WrapperBase*>(RTYPEDDATA_DATA(value));
     
     #if defined(__GNUC__) || defined(__clang__)
     #pragma GCC diagnostic pop
@@ -9427,7 +9507,7 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, bool isOwner)
+  inline void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data)
   {
     using Wrapper_T = Wrapper<T*>;
     
@@ -9512,7 +9592,7 @@ namespace Rice::detail
     }
 
     // Execute the function but make sure to catch any C++ exceptions!
-    return cpp_protect([&]
+    return cpp_protect([&]()
     {
       const std::vector<std::unique_ptr<Native>>& natives = Registries::instance.natives.lookup(klass, methodId);
 
@@ -9535,7 +9615,7 @@ namespace Rice::detail
           std::back_inserter(resolves), 
           [&](const std::unique_ptr<Native>& native)
           {
-            return native->matches(argc, argv, self);
+            return native->matches(argc, argv);
           });
 
         // Now sort from best to worst
@@ -9599,15 +9679,25 @@ namespace Rice::detail
     });
   }
 
-  inline Native::Native(std::unique_ptr<Return>&& returnInfo) : returnInfo_(std::move(returnInfo))
+  inline Native::Native(std::string name) :
+    name_(name)
   {
   }
 
-  inline Native::Native(std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters) :
-    returnInfo_(std::move(returnInfo)), parameters_(std::move(parameters))
+  inline Native::Native(std::string name,std::unique_ptr<Return>&& returnInfo) :
+    name_(name), returnInfo_(std::move(returnInfo))
   {
   }
 
+  inline Native::Native(std::string name, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters) :
+    name_(name), returnInfo_(std::move(returnInfo)), parameters_(std::move(parameters))
+  {
+  }
+
+  inline std::string Native::name()
+  {
+    return this->name_;
+  }
   inline ParameterAbstract* Native::getParameterByName(std::string name)
   {
     for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)
@@ -9621,7 +9711,28 @@ namespace Rice::detail
     return nullptr;
   }
 
-  // -----------  Helpers ----------------
+  inline void Native::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues)
+  {
+    // Check function arguments
+    for (size_t i = 0; i < this->parameters_.size(); i++)
+    {
+      Arg* arg = parameters_[i]->arg();
+      if (arg->isKeepAlive())
+      {
+        static WrapperBase* selfWrapper = getWrapper(self);
+        selfWrapper->addKeepAlive(rubyValues[i].value());
+      }
+    }
+
+    // Check return value
+    if (this->returnInfo_->isKeepAlive())
+    {
+      WrapperBase* returnWrapper = getWrapper(returnValue);
+      returnWrapper->addKeepAlive(self);
+    }
+  }
+
+  // -----------  Type Checking ----------------
   template<typename T, bool isBuffer>
   inline void Native::verify_type()
   {
@@ -9667,7 +9778,7 @@ namespace Rice::detail
   };
 
   template<typename Parameter_Tuple, typename Arg_Tuple, std::size_t ...Indices>
-  inline void Native::create_parameters_impl(std::vector<std::unique_ptr<ParameterAbstract>>& parameters, std::index_sequence<Indices...> indices, std::vector<std::unique_ptr<Arg>>&& args)
+  inline void Native::create_parameters_impl(std::vector<std::unique_ptr<ParameterAbstract>>& parameters, std::index_sequence<Indices...>, std::vector<std::unique_ptr<Arg>>&& args)
   {
     // Verify parameter types
     (verify_parameter<Parameter_Tuple, Arg_Tuple, Indices>(), ...);
@@ -9715,7 +9826,7 @@ namespace Rice::detail
     for (size_t i = 0; i < argsVector.size(); i++)
     {
       std::unique_ptr<Arg>& arg = argsVector[i];
-      arg->position = i;
+      arg->position = (int32_t)i;
     }
 
     auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Tuple>>{};
@@ -9749,14 +9860,14 @@ namespace Rice::detail
   inline std::vector<std::optional<VALUE>> Native::getRubyValues(size_t argc, const VALUE* argv, bool validate)
   {
 #undef max
-    int size = std::max(this->parameters_.size(), argc);
+    size_t size = std::max(this->parameters_.size(), argc);
     std::vector<std::optional<VALUE>> result(size);
 
     // Keyword handling
     if (rb_keyword_given_p())
     {
       // Keywords are stored in the last element in a hash
-      int actualArgc = argc - 1;
+      size_t actualArgc = argc - 1;
 
       VALUE value = argv[actualArgc];
       Hash keywords(value);
@@ -9834,7 +9945,7 @@ namespace Rice::detail
     return result;
   }
 
-  inline Resolved Native::matches(size_t argc, const VALUE* argv, VALUE self)
+  inline Resolved Native::matches(size_t argc, const VALUE* argv)
   {
     // Return false if Ruby provided more arguments than the C++ method takes
     if (argc > this->parameters_.size())
@@ -9847,10 +9958,10 @@ namespace Rice::detail
 
     if (this->parameters_.size() > 0)
     {
-      int providedValues = std::count_if(rubyValues.begin(), rubyValues.end(), [](std::optional<VALUE>& value)
-        {
-          return value.has_value();
-        });
+      size_t providedValues = std::count_if(rubyValues.begin(), rubyValues.end(), [](std::optional<VALUE>& value)
+      {
+        return value.has_value();
+      });
 
       result.parameterMatch = providedValues / (double)this->parameters_.size();
     }
@@ -9901,7 +10012,7 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline Resolved NativeAttributeGet<Attribute_T>::matches(size_t argc, const VALUE* argv, VALUE self)
+  inline Resolved NativeAttributeGet<Attribute_T>::matches(size_t argc, const VALUE*)
   {
     if (argc == 0)
       return Resolved { Convertible::Exact, 1, this };
@@ -9911,13 +10022,13 @@ namespace Rice::detail
   
   template<typename Attribute_T>
   NativeAttributeGet<Attribute_T>::NativeAttributeGet(VALUE klass, std::string name, Attribute_T attribute, std::unique_ptr<Return>&& returnInfo)
-    : Native(std::move(returnInfo)),
-      klass_(klass), name_(name), attribute_(attribute)
+    : Native(name, std::move(returnInfo)),
+      klass_(klass), attribute_(attribute)
   {
   }
 
   template<typename Attribute_T>
-  inline VALUE NativeAttributeGet<Attribute_T>::operator()(size_t argc, const VALUE* argv, VALUE self)
+  inline VALUE NativeAttributeGet<Attribute_T>::operator()(size_t, const VALUE*, VALUE self)
   {
     if constexpr (std::is_member_object_pointer_v<Attribute_T>)
     {
@@ -9972,12 +10083,6 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline std::string NativeAttributeGet<Attribute_T>::name()
-  {
-    return this->name_;
-  }
-
-  template<typename Attribute_T>
   inline NativeKind NativeAttributeGet<Attribute_T>::kind()
   {
     return NativeKind::AttributeReader;
@@ -10029,12 +10134,12 @@ namespace Rice::detail
 
   template<typename Attribute_T>
   NativeAttributeSet<Attribute_T>::NativeAttributeSet(VALUE klass, std::string name, Attribute_T attribute)
-    : klass_(klass), name_(name), attribute_(attribute)
+    : Native(name), klass_(klass), attribute_(attribute)
   {
   }
 
   template<typename Attribute_T>
-  inline Resolved NativeAttributeSet<Attribute_T>::matches(size_t argc, const VALUE* argv, VALUE self)
+  inline Resolved NativeAttributeSet<Attribute_T>::matches(size_t argc, const VALUE*)
   {
     if (argc == 1)
       return Resolved{ Convertible::Exact, 1, this };
@@ -10078,12 +10183,6 @@ namespace Rice::detail
   inline std::string NativeAttributeSet<Attribute_T>::toString()
   {
     return "";
-  }
-
-  template<typename Attribute_T>
-  inline std::string NativeAttributeSet<Attribute_T>::name()
-  {
-    return this->name_;
   }
 
   template<typename Attribute_T>
@@ -10150,7 +10249,7 @@ namespace Rice::detail
     using To_Ruby_T = remove_cv_recursive_t<Return_T>;
 
     template<typename ...Arg_Ts>
-    static void define(VALUE klass, std::string method_name, Function_T function, Arg_Ts&& ...args);
+    static void define(VALUE klass, std::string function_name, Function_T function, Arg_Ts&& ...args);
 
   public:
     NativeFunction(VALUE klass, std::string method_name, Function_T function, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
@@ -10158,23 +10257,15 @@ namespace Rice::detail
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
 
-    std::string name() override;
     NativeKind kind() override;
     VALUE returnKlass() override;
 
   private:
-    template<std::size_t...I>
-    std::vector<std::string> argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices);
+    std::vector<std::string> argTypeNames();
 
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
     Parameter_Ts getNativeValues(std::vector<std::optional<VALUE>>& values, std::index_sequence<I...>& indices);
-
-    // Throw an exception when wrapper cannot be extracted
-    [[noreturn]] void noWrapper(const VALUE klass, const std::string& wrapper);
-
-    // Do we need to keep alive any arguments?
-    void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues);
 
     // Call the underlying C++ function
     VALUE invoke(Parameter_Ts&& nativeArgs);
@@ -10182,7 +10273,6 @@ namespace Rice::detail
 
   private:
     VALUE klass_;
-    std::string method_name_;
     Function_T function_;
     To_Ruby<To_Ruby_T> toRuby_;
   };
@@ -10231,15 +10321,14 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool NoGVL>
-  NativeFunction<Function_T, NoGVL>::NativeFunction(VALUE klass, std::string method_name, Function_T function, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters)
-    : Native(std::move(returnInfo), std::move(parameters)),
-      klass_(klass), method_name_(method_name), function_(function), toRuby_(returnInfo_.get())
+  NativeFunction<Function_T, NoGVL>::NativeFunction(VALUE klass, std::string function_name, Function_T function, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters)
+    : Native(function_name, std::move(returnInfo), std::move(parameters)),
+      klass_(klass), function_(function), toRuby_(returnInfo_.get())
   {
   }
 
   template<typename Function_T, bool NoGVL>
-  template<std::size_t... I>
-  std::vector<std::string> NativeFunction<Function_T, NoGVL>::argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices)
+  std::vector<std::string> NativeFunction<Function_T, NoGVL>::argTypeNames()
   {
     std::vector<std::string> result;
     for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)
@@ -10254,14 +10343,13 @@ namespace Rice::detail
   {
     std::ostringstream result;
 
-    detail::TypeMapper<Return_T> typeMapper;
-    result << typeMapper.simplifiedName() << " ";
-    result << this->method_name_;
+    detail::TypeIndexParser typeIndexParser(typeid(Return_T), std::is_fundamental_v<detail::intrinsic_type<Return_T>>);
+    result << typeIndexParser.simplifiedName() << " ";
+    result << this->name();
 
     result << "(";
 
-    auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
-    std::vector<std::string> argTypeNames = this->argTypeNames(result, indices);
+    std::vector<std::string> argTypeNames = this->argTypeNames();
     for (size_t i = 0; i < argTypeNames.size(); i++)
     {
       result << argTypeNames[i];
@@ -10275,7 +10363,7 @@ namespace Rice::detail
   template<typename Function_T, bool NoGVL>
   template<std::size_t... I>
   typename NativeFunction<Function_T, NoGVL>::Parameter_Ts NativeFunction<Function_T, NoGVL>::getNativeValues(std::vector<std::optional<VALUE>>& values,
-     std::index_sequence<I...>& indices)
+     std::index_sequence<I...>&)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
        on the arguments (Parameter_Ts) required by the C++ function. Arg_T may have const/volatile while
@@ -10325,65 +10413,6 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool NoGVL>
-  void NativeFunction<Function_T, NoGVL>::noWrapper(const VALUE klass, const std::string& wrapper)
-  {
-    std::stringstream message;
-
-    message << "When calling the method `";
-    message << this->method_name_;
-    message << "' we could not find the wrapper for the '";
-    message << rb_obj_classname(klass);
-    message << "' ";
-    message << wrapper;
-    message << " type. You should not use keepAlive() on a Return or Arg that is a builtin Rice type.";
-
-    throw std::runtime_error(message.str());
-  }
-
-  template<typename Function_T, bool NoGVL>
-  void NativeFunction<Function_T, NoGVL>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues)
-  {
-    // Self will be Qnil for wrapped procs
-    if (self == Qnil)
-      return;
-
-    // selfWrapper will be nullptr if this(self) is a builtin type and not an external(wrapped) type
-    // it is highly unlikely that keepAlive is used in this case but we check anyway
-    WrapperBase* selfWrapper = getWrapper(self);
-
-    // Check function arguments
-    for (size_t i = 0; i < this->parameters_.size(); i++)
-    {
-      Arg* arg = parameters_[i]->arg();
-      if (arg->isKeepAlive())
-      {
-        if (selfWrapper == nullptr)
-        {
-          noWrapper(self, "self");
-        }
-        selfWrapper->addKeepAlive(rubyValues[i].value());
-      }
-    }
-
-    // Check return value
-    if (this->returnInfo_->isKeepAlive())
-    {
-      if (selfWrapper == nullptr)
-      {
-        noWrapper(self, "self");
-      }
-
-      // returnWrapper will be nullptr if returnValue is a built-in type and not an external(wrapped) type
-      WrapperBase* returnWrapper = getWrapper(returnValue);
-      if (returnWrapper == nullptr)
-      {
-        noWrapper(returnValue, "return");
-      }
-      returnWrapper->addKeepAlive(self);
-    }
-  }
-
-  template<typename Function_T, bool NoGVL>
   VALUE NativeFunction<Function_T, NoGVL>::operator()(size_t argc, const VALUE* argv, VALUE self)
   {
     // Get the ruby values and make sure we have the correct number
@@ -10412,17 +10441,10 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool NoGVL>
-  inline std::string NativeFunction<Function_T, NoGVL>::name()
-  {
-    return this->method_name_;
-  }
-
-  template<typename Function_T, bool NoGVL>
   inline NativeKind NativeFunction<Function_T, NoGVL>::kind()
   {
     return NativeKind::Function;
   }
-
   template<typename Function_T, bool NoGVL>
   inline VALUE NativeFunction<Function_T, NoGVL>::returnKlass()
   {
@@ -10468,11 +10490,10 @@ namespace Rice::detail
     void operator=(const NativeIterator_T&) = delete;
     void operator=(NativeIterator_T&&) = delete;
 
-    Resolved matches(size_t argc, const VALUE* argv, VALUE self) override;
+    Resolved matches(size_t argc, const VALUE* argv) override;
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
 
-    std::string name() override;
     NativeKind kind() override;
     VALUE returnKlass() override;
 
@@ -10484,7 +10505,6 @@ namespace Rice::detail
 
   private:
     VALUE klass_;
-    std::string method_name_;
     Iterator_Func_T begin_;
     Iterator_Func_T end_;
   };
@@ -10515,12 +10535,12 @@ namespace Rice::detail
 
   template <typename T, typename Iterator_Func_T>
   inline NativeIterator<T, Iterator_Func_T>::NativeIterator(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end) :
-    klass_(klass), method_name_(method_name), begin_(begin), end_(end)
+    Native(method_name), klass_(klass), begin_(begin), end_(end)
   {
   }
 
   template<typename T, typename Iterator_Func_T>
-  inline Resolved NativeIterator<T, Iterator_Func_T>::matches(size_t argc, const VALUE* argv, VALUE self)
+  inline Resolved NativeIterator<T, Iterator_Func_T>::matches(size_t, const VALUE*)
   {
     return Resolved{ Convertible::Exact, 1.0, this };
   }
@@ -10528,7 +10548,7 @@ namespace Rice::detail
   template<typename T, typename Iterator_Func_T>
   inline VALUE NativeIterator<T, Iterator_Func_T>::createRubyEnumerator(VALUE self)
   {
-    auto rb_size_function = [](VALUE recv, VALUE argv, VALUE eobj) -> VALUE
+    auto rb_size_function = [](VALUE recv, VALUE, VALUE eobj) -> VALUE
     {
       // Since we can't capture VALUE self from above (because then we can't send
       // this lambda to rb_enumeratorize_with_size), extract it from recv
@@ -10555,7 +10575,7 @@ namespace Rice::detail
       });
     };
 
-    Identifier identifier(this->method_name_);
+    Identifier identifier(this->name());
     VALUE enumerator = protect(rb_enumeratorize_with_size, self, identifier.to_sym(), 0, nullptr, rb_size_function);
     
     // Hack the enumerator object by storing name_ on the enumerator object so
@@ -10566,7 +10586,7 @@ namespace Rice::detail
   }
 
   template<typename T, typename Iterator_Func_T>
-  inline VALUE NativeIterator<T, Iterator_Func_T>::operator()(size_t argc, const VALUE* argv, VALUE self)
+  inline VALUE NativeIterator<T, Iterator_Func_T>::operator()(size_t, const VALUE*, VALUE self)
   {
     if (!protect(rb_block_given_p))
     {
@@ -10594,12 +10614,6 @@ namespace Rice::detail
   inline std::string NativeIterator<T, Iterator_Func_T>::toString()
   {
     return "";
-  }
-
-  template<typename T, typename Iterator_Func_T>
-  inline std::string NativeIterator<T, Iterator_Func_T>::name()
-  {
-    return this->method_name_;
   }
 
   template<typename T, typename Iterator_Func_T>
@@ -10676,13 +10690,11 @@ namespace Rice::detail
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
 
-    std::string name() override;
     NativeKind kind() override;
     VALUE returnKlass() override;
 
   private:
-    template<std::size_t...I>
-    std::vector<std::string> argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices);
+    std::vector<std::string> argTypeNames();
 
     // Convert Ruby values to C++ values
     template<typename std::size_t...I>
@@ -10691,19 +10703,12 @@ namespace Rice::detail
     // Figure out what self is
     Receiver_T getReceiver(VALUE self);
 
-    // Throw an exception when wrapper cannot be extracted
-    [[noreturn]] void noWrapper(const VALUE klass, const std::string& wrapper);
-
-    // Do we need to keep alive any arguments?
-    void checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues);
-
     // Call the underlying C++ method
     VALUE invoke(VALUE self, Apply_Args_T&& nativeArgs);
     VALUE invokeNoGVL(VALUE self, Apply_Args_T&& nativeArgs);
 
   private:
     VALUE klass_;
-    std::string method_name_;
     Method_T method_;
     To_Ruby<To_Ruby_T> toRuby_;
   };
@@ -10753,14 +10758,13 @@ namespace Rice::detail
 
   template<typename Class_T, typename Method_T, bool NoGVL>
   NativeMethod<Class_T, Method_T, NoGVL>::NativeMethod(VALUE klass, std::string method_name, Method_T method, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters)
-    : Native(std::move(returnInfo), std::move(parameters)),
-      klass_(klass), method_name_(method_name), method_(method), toRuby_(returnInfo_.get())
+    : Native(method_name, std::move(returnInfo), std::move(parameters)),
+      klass_(klass), method_(method), toRuby_(returnInfo_.get())
   {
   }
 
   template<typename Class_T, typename Method_T, bool NoGVL>
-  template<std::size_t... I>
-  std::vector<std::string> NativeMethod<Class_T, Method_T, NoGVL>::argTypeNames(std::ostringstream& stream, const std::index_sequence<I...>& indices)
+  std::vector<std::string> NativeMethod<Class_T, Method_T, NoGVL>::argTypeNames()
   {
     std::vector<std::string> result;
     for (std::unique_ptr<ParameterAbstract>& parameter : this->parameters_)
@@ -10775,21 +10779,20 @@ namespace Rice::detail
   {
     std::ostringstream result;
 
-    detail::TypeMapper<Return_T> typeReturnMapper;
-    result << typeReturnMapper.simplifiedName() << " ";
+    detail::TypeIndexParser typeIndexParserReturn(typeid(Return_T), std::is_fundamental_v<detail::intrinsic_type<Return_T>>);
+    result << typeIndexParserReturn.simplifiedName() << " ";
     
     if (!std::is_null_pointer_v<Receiver_T>)
     {
-      detail::TypeMapper<Receiver_T> typeReceiverMapper;
-      result << typeReceiverMapper.simplifiedName() << "::";
+      detail::TypeIndexParser typeIndexParserReceiver(typeid(Receiver_T), std::is_fundamental_v<detail::intrinsic_type<Receiver_T>>);
+      result << typeIndexParserReceiver.simplifiedName() << "::";
     }
     
-    result << this->method_name_;
+    result << this->name();
 
     result << "(";
 
-    auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
-    std::vector<std::string> argTypeNames = this->argTypeNames(result, indices);
+    std::vector<std::string> argTypeNames = this->argTypeNames();
     for (size_t i = 0; i < argTypeNames.size(); i++)
     {
       result << argTypeNames[i];
@@ -10802,7 +10805,7 @@ namespace Rice::detail
     
   template<typename Class_T, typename Method_T, bool NoGVL>
   template<std::size_t... I>
-  typename NativeMethod<Class_T, Method_T, NoGVL>::Apply_Args_T NativeMethod<Class_T, Method_T, NoGVL>::getNativeValues(VALUE self, std::vector<std::optional<VALUE>>& values, const std::index_sequence<I...>& indices)
+  typename NativeMethod<Class_T, Method_T, NoGVL>::Apply_Args_T NativeMethod<Class_T, Method_T, NoGVL>::getNativeValues(VALUE self, std::vector<std::optional<VALUE>>& values, const std::index_sequence<I...>&)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
        on the arguments (Parameter_Ts) required by the C++ method. Arg_T may have const/volatile while
@@ -10938,65 +10941,6 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Method_T, bool NoGVL>
-  inline void NativeMethod<Class_T, Method_T, NoGVL>::noWrapper(const VALUE klass, const std::string& wrapper)
-  {
-    std::stringstream message;
-
-    message << "When calling the method `";
-    message << this->method_name_;
-    message << "' we could not find the wrapper for the '";
-    message << rb_obj_classname(klass);
-    message << "' ";
-    message << wrapper;
-    message << " type. You should not use keepAlive() on a Return or Arg that is a builtin Rice type.";
-
-    throw std::runtime_error(message.str());
-  }
-
-  template<typename Class_T, typename Method_T, bool NoGVL>
-  void NativeMethod<Class_T, Method_T, NoGVL>::checkKeepAlive(VALUE self, VALUE returnValue, std::vector<std::optional<VALUE>>& rubyValues)
-  {
-    // Self will be Qnil for wrapped procs
-    if (self == Qnil)
-      return;
-
-    // selfWrapper will be nullptr if this(self) is a builtin type and not an external(wrapped) type
-    // it is highly unlikely that keepAlive is used in this case but we check anyway
-    WrapperBase* selfWrapper = getWrapper(self);
-
-    // Check method arguments
-    for (size_t i=0; i<this->parameters_.size(); i++)
-    {
-      Arg* arg = parameters_[i]->arg();
-      if (arg->isKeepAlive())
-      {
-        if (selfWrapper == nullptr)
-        {
-          noWrapper(self, "self");
-        }
-        selfWrapper->addKeepAlive(rubyValues[i].value());
-      }
-    }
-
-    // Check return value
-    if (this->returnInfo_->isKeepAlive())
-    {
-      if (selfWrapper == nullptr)
-      {
-        noWrapper(self, "self");
-      }
-
-      // returnWrapper will be nullptr if returnValue is a built-in type and not an external(wrapped) type
-      WrapperBase* returnWrapper = getWrapper(returnValue);
-      if (returnWrapper == nullptr)
-      {
-        noWrapper(returnValue, "return");
-      }
-      returnWrapper->addKeepAlive(self);
-    }
-  }
-
-  template<typename Class_T, typename Method_T, bool NoGVL>
   VALUE NativeMethod<Class_T, Method_T, NoGVL>::operator()(size_t argc, const VALUE* argv, VALUE self)
   {
     // Get the ruby values and make sure we have the correct number
@@ -11019,12 +10963,6 @@ namespace Rice::detail
     this->checkKeepAlive(self, result, rubyValues);
 
     return result;
-  }
-
-  template<typename Class_T, typename Method_T, bool NoGVL>
-  inline std::string NativeMethod<Class_T, Method_T, NoGVL>::name()
-  {
-    return this->method_name_;
   }
 
   template<typename Class_T, typename Method_T, bool NoGVL>
@@ -11079,7 +11017,6 @@ namespace Rice::detail
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
     
-    std::string name() override;
     NativeKind kind() override;
     VALUE returnKlass() override;
 
@@ -11138,7 +11075,7 @@ namespace Rice::detail
 
   // Ruby calls this method when invoking a proc that was defined as a C++ function
   template<typename Proc_T>
-  VALUE NativeProc<Proc_T>::resolve(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
+  VALUE NativeProc<Proc_T>::resolve(VALUE, VALUE callback_arg, int argc, const VALUE* argv, VALUE)
   {
     return cpp_protect([&]
     {
@@ -11150,7 +11087,7 @@ namespace Rice::detail
   // Ruby calls this method if an instance of a NativeProc is owned by a Ruby proc. That happens when C++
   // returns a function back to Ruby
   template<typename Proc_T>
-  VALUE NativeProc<Proc_T>::finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
+  VALUE NativeProc<Proc_T>::finalizerCallback(VALUE, VALUE callback_arg, int, const VALUE*, VALUE)
   {
     NativeProc_T* native = (NativeProc_T*)callback_arg;
     delete native;
@@ -11159,7 +11096,7 @@ namespace Rice::detail
 
   template<typename Proc_T>
   NativeProc<Proc_T>::NativeProc(Proc_T proc, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters)
-    : Native(std::move(returnInfo), std::move(parameters)), 
+    : Native("proc", std::move(returnInfo), std::move(parameters)),
       proc_(proc), toRuby_(returnInfo_.get())
   {
   }
@@ -11173,7 +11110,7 @@ namespace Rice::detail
   template<typename Proc_T>
   template<std::size_t... I>
   typename NativeProc<Proc_T>::Parameter_Ts NativeProc<Proc_T>::getNativeValues(std::vector<std::optional<VALUE>>& values,
-     std::index_sequence<I...>& indices)
+     std::index_sequence<I...>&)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
        on the arguments (Parameter_Ts) required by the C++ function. Arg_T may have const/volatile while
@@ -11205,7 +11142,7 @@ namespace Rice::detail
   }
 
   template<typename Proc_T>
-  VALUE NativeProc<Proc_T>::operator()(size_t argc, const VALUE* argv, VALUE self)
+  VALUE NativeProc<Proc_T>::operator()(size_t argc, const VALUE* argv, VALUE)
   {
     // Get the ruby values and make sure we have the correct number
     std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, true);
@@ -11219,12 +11156,6 @@ namespace Rice::detail
     VALUE result = this->invoke(std::forward<Parameter_Ts>(nativeValues));
 
     return result;
-  }
-
-  template<typename Proc_T>
-  inline std::string NativeProc< Proc_T>::name()
-  {
-    return "proc";
   }
 
   template<typename Proc_T>
@@ -11291,7 +11222,6 @@ namespace Rice::detail
   private:
     VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
     std::string toString() override;
-    std::string name() override;
     NativeKind kind() override;
     VALUE returnKlass() override;
 
@@ -11372,7 +11302,7 @@ namespace Rice::detail
 
   // This is the function provided to the C++ callback with FFI
   template<typename Return_T, typename ...Parameter_Ts>
-  void NativeCallback<Return_T(*)(Parameter_Ts...)>::invokeFFI(ffi_cif* cif, void* ret, void* args[], void* instance)
+  void NativeCallback<Return_T(*)(Parameter_Ts...)>::invokeFFI(ffi_cif*, void* ret, void* args[], void* instance)
   {
     NativeCallback_T* self = (NativeCallback_T*)instance;
 
@@ -11436,7 +11366,7 @@ namespace Rice::detail
 
   template<typename Return_T, typename ...Parameter_Ts>
   template<std::size_t... I>
-  void NativeCallback<Return_T(*)(Parameter_Ts...)>::copyParametersImpl(std::vector<std::unique_ptr<ParameterAbstract>>& result, std::index_sequence<I...> indices)
+  void NativeCallback<Return_T(*)(Parameter_Ts...)>::copyParametersImpl(std::vector<std::unique_ptr<ParameterAbstract>>& result, std::index_sequence<I...>)
   {
     (result.push_back(std::make_unique<Parameter<Parameter_Ts>>(*(Parameter<Parameter_Ts>*)parameters_[I].get())), ...);
   }
@@ -11454,7 +11384,7 @@ namespace Rice::detail
 
   template<typename Return_T, typename ...Parameter_Ts>
   template<std::size_t... I>
-  typename NativeCallback<Return_T(*)(Parameter_Ts...)>::Tuple_T NativeCallback<Return_T(*)(Parameter_Ts...)>::convertArgsToTuple(void* args[], std::index_sequence<I...>& indices)
+  typename NativeCallback<Return_T(*)(Parameter_Ts...)>::Tuple_T NativeCallback<Return_T(*)(Parameter_Ts...)>::convertArgsToTuple(void* args[], std::index_sequence<I...>&)
   {
     /* Loop over each value returned from Ruby and convert it to the appropriate C++ type based
        on the arguments (Parameter_Ts) required by the C++ function. Arg_T may have const/volatile while
@@ -11465,7 +11395,7 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename ...Parameter_Ts>
-  VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg)
+  VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::finalizerCallback(VALUE, VALUE callback_arg, int, const VALUE*, VALUE)
   {
     NativeCallback_T* nativeCallback = (NativeCallback_T*)callback_arg;
     delete nativeCallback;
@@ -11486,7 +11416,7 @@ namespace Rice::detail
 
   template<typename Return_T, typename ...Parameter_Ts>
   NativeCallback<Return_T(*)(Parameter_Ts...)>::NativeCallback(VALUE proc) :
-    Native(std::move(copyReturnInfo()), std::move(copyParameters())),
+    Native("callback", std::move(copyReturnInfo()), std::move(copyParameters())),
       proc_(proc), fromRuby_(returnInfo_.get())
   {
     // Tie the lifetime of the NativeCallback C++ instance to the lifetime of the Ruby proc object
@@ -11531,7 +11461,7 @@ namespace Rice::detail
 
   template<typename Return_T, typename ...Parameter_Ts>
   template<std::size_t... I>
-  Return_T NativeCallback<Return_T(*)(Parameter_Ts...)>::callRuby(std::index_sequence<I...>& indices, Parameter_Ts...args)
+  Return_T NativeCallback<Return_T(*)(Parameter_Ts...)>::callRuby(std::index_sequence<I...>&, Parameter_Ts...args)
   {
     // Convert the C++ arguments to Ruby VALUEs
     std::array<VALUE, sizeof...(Parameter_Ts)> values = {
@@ -11547,15 +11477,9 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename ...Parameter_Ts>
-  inline VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::operator()(size_t argc, const VALUE* argv, VALUE self)
+  inline VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::operator()(size_t, const VALUE*, VALUE)
   {
     return Qnil;
-  }
-
-  template<typename Return_T, typename ...Parameter_Ts>
-  inline std::string NativeCallback<Return_T(*)(Parameter_Ts...)>::name()
-  {
-    return "";
   }
 
   template<typename Return_T, typename ...Parameter_Ts>
@@ -11605,7 +11529,7 @@ namespace Rice::detail
 
     To_Ruby() = default;
 
-    explicit To_Ruby(Arg* arg)
+    explicit To_Ruby(Arg*)
     {
     }
 
@@ -11958,7 +11882,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -11978,6 +11902,9 @@ namespace Rice::detail
     {
       return Object(value);
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 }
 
@@ -12139,7 +12066,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -12159,6 +12086,9 @@ namespace Rice::detail
     {
       return String(value);
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 }
 // =========   Array.ipp   =========
@@ -12486,7 +12416,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -12506,6 +12436,9 @@ namespace Rice::detail
     {
       return Array(value);
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 }
 
@@ -12765,7 +12698,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -12785,6 +12718,9 @@ namespace Rice::detail
     {
       return Hash(value);
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 }
 
@@ -13593,8 +13529,9 @@ void Rice::define_global_function(char const * name, Function_T&& func, Arg_Ts c
 namespace Rice
 {
   template<typename T>
-  void ruby_mark(T* data)
+  void ruby_mark(T*)
   {
+    // Do nothing by default
   }
 }
 
@@ -13673,13 +13610,13 @@ namespace Rice
   }
 
   template<typename T>
-  inline size_t ruby_size_internal(const T* data)
+  inline size_t ruby_size_internal(const T*)
   {
     return sizeof(T);
   }
 
   template<>
-  inline size_t ruby_size_internal(const void* data)
+  inline size_t ruby_size_internal(const void*)
   {
     return sizeof(void*);
   }
@@ -13690,8 +13627,8 @@ namespace Rice
   {
     if (is_bound())
     {
-      detail::TypeMapper<T> typeMapper;
-      std::string message = "Type " + typeMapper.name() + " is already bound to a different type";
+      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+      std::string message = "Type " + typeIndexParser.name() + " is already bound to a different type";
       throw std::runtime_error(message.c_str());
     }
 
@@ -13722,10 +13659,10 @@ namespace Rice
 
     // Add a method to get the source C++ class name from Ruby
     Data_Type<T> dataType;
-    dataType.define_singleton_method("cpp_class", [](VALUE klass) -> VALUE
+    dataType.define_singleton_method("cpp_class", [](VALUE) -> VALUE
     {
-      detail::TypeMapper<T> typeMapper;
-      std::string cppClassName = typeMapper.simplifiedName();
+      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+      std::string cppClassName = typeIndexParser.simplifiedName();
       Return returnInfo;
       returnInfo.takeOwnership();
       return detail::To_Ruby<char*>(&returnInfo).convert(cppClassName.c_str());
@@ -13801,7 +13738,7 @@ namespace Rice
 
   template<typename T>
   template<typename Constructor_T, typename...Rice_Arg_Ts>
-  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T constructor, Rice_Arg_Ts const& ...args)
+  inline Data_Type<T>& Data_Type<T>::define_constructor(Constructor_T, Rice_Arg_Ts const& ...args)
   {
     check_is_bound();
 
@@ -13840,9 +13777,6 @@ namespace Rice
   template<typename Function_T>
   inline Data_Type<T>& Data_Type<T>::define(Function_T func)
   {
-    // The passed in this pointer is an RValue, so we need to keep it alive by
-    // assigning it to a const lvalue
-    const auto& dummy = *this;
     func(*this);
     return *this;
   }
@@ -13886,8 +13820,8 @@ namespace Rice
   {
     if (!is_bound())
     {
-      detail::TypeMapper<T> typeMapper;
-      std::string message = "Type is not defined with Rice: " + typeMapper.name();
+      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+      std::string message = "Type is not defined with Rice: " + typeIndexParser.name();
       throw std::invalid_argument(message.c_str());
     }
   }
@@ -14107,14 +14041,14 @@ namespace Rice
     {
       // Call C++ constructor
       T* data = new T(args...);
-      detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data, true);
+      detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
     }
 
     static void initialize_copy(VALUE self, const T& other)
     {
       // Call C++ copy constructor
       T* data = new T(other);
-      detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data, true);
+      detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
     }
 
   };
@@ -14138,7 +14072,7 @@ namespace Rice
       {
         // Call C++ constructor
         T* data = new T(self, args...);
-        detail::wrapConstructed<T>(self.value(), Data_Type<T>::ruby_data_type(), data, true);
+        detail::wrapConstructed<T>(self.value(), Data_Type<T>::ruby_data_type(), data);
       }
   };
 }
@@ -14188,9 +14122,9 @@ namespace Rice
     }
     else
     {
-      detail::TypeMapper<T> typeMapper;
+      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
       return Exception(rb_eTypeError, "Wrong argument type. Expected %s. Received %s.",
-        typeMapper.simplifiedName().c_str(),
+        typeIndexParser.simplifiedName().c_str(),
         detail::protect(rb_obj_classname, value));
     }
   }
@@ -14995,48 +14929,52 @@ namespace Rice
     klass.define_constructor(Constructor<Enum_T>());
 
     klass.define_method("to_s", [](Enum_T& self) -> String
-      {
-        return String(valuesToNames_[self]);
-      })
-      .define_method("to_int", [](Enum_T& self) ->  Underlying_T
-      {
-        return (Underlying_T)(self);
-      })
-      .define_method("coerce", [](Enum_T& self, Underlying_T& other) -> Array
-      {
-        /* Other will be a numeric value that matches the underlying type of the enum, for example an int.
-           Convert that to the enum type and then create new Ruby object to wrap it. This then enables code
-           like this:
+    {
+      return String(valuesToNames_[self]);
+    })
+    .define_method("to_int", [](Enum_T& self) ->  Underlying_T
+    {
+      return (Underlying_T)(self);
+    })
+    .define_method("coerce", [](Enum_T& self, Underlying_T& other) -> Array
+    {
+      /* Other will be a numeric value that matches the underlying type of the enum, for example an int.
+          Convert that to the enum type and then create new Ruby object to wrap it. This then enables code
+          like this:
         
-           Colors::Red | Colors:Blue | Colors:Green
+          Colors::Red | Colors:Blue | Colors:Green
 
-        Colors::Red | Colors:Blue returns an integer. Then this method converts the integer back into an Enum
-        instance so that Colors:Blue | Colors:Green works. */
-        Enum_T otherEnum = (Enum_T)other;
+      Colors::Red | Colors:Blue returns an integer. Then this method converts the integer back into an Enum
+      instance so that Colors:Blue | Colors:Green works. */
+      Enum_T otherEnum = (Enum_T)other;
 
-        Array result;
-        result.push(self, false);
-        result.push(otherEnum, true);
-        return result;
-      })
-      .define_method("inspect", [](Enum_T& self)
-      {
-        std::stringstream result;
-        VALUE rubyKlass = Enum<Enum_T>::klass().value();
-        result << "#<" << detail::protect(rb_class2name, rubyKlass)
-          << "::" << Enum<Enum_T>::valuesToNames_[self] << ">";
+      Array result;
+      result.push(otherEnum, true);
+      result.push(self, false);
+      return result;
+    })
+    .define_method("inspect", [](Enum_T& self)
+    {
+      std::stringstream result;
+      VALUE rubyKlass = Enum<Enum_T>::klass().value();
+      result << "#<" << detail::protect(rb_class2name, rubyKlass)
+        << "::" << Enum<Enum_T>::valuesToNames_[self] << ">";
 
-        // We have to return string because we don't know if std::string support has
-        // been included by the user
-        return String(result.str());
-      })
-      .define_method("hash", [](Enum_T& self) ->  Underlying_T
-      {
-        return (Underlying_T)self;
-      })
-      .define_method("eql?", [](Enum_T& self, Enum_T& other)
-      {
-        return self == other;
+      // We have to return string because we don't know if std::string support has
+      // been included by the user
+      return String(result.str());
+    })
+    .define_method("hash", [](Enum_T& self) ->  Underlying_T
+    {
+      return (Underlying_T)self;
+    })
+    .define_method("eql?", [](Enum_T& self, Enum_T& other)
+    {
+      return self == other;
+    })
+    .define_method("eql?", [](Enum_T& self, Underlying_T& other)
+    {
+      return self == (Enum_T)other;
     });
 
     // Add aliases
@@ -15052,6 +14990,21 @@ namespace Rice
           return 0;
         }
         else if (self < other)
+        {
+          return -1;
+        }
+        else
+        {
+          return 1;
+        }
+      })
+      .define_method("<=>", [](Enum_T& self, Underlying_T& other)
+      {
+        if (self == (Enum_T)other)
+        {
+          return 0;
+        }
+        else if (self < (Enum_T)other)
         {
           return -1;
         }

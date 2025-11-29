@@ -1,3 +1,30 @@
+// This file is part of [rice](https://github.com/ruby-rice/rice).
+//
+// Copyright (C) 2025 Jason Roelofs <jasongroelofs@gmail.com>
+//                    Paul Brannan <curlypaul924@gmail.com>,
+//                    Charlie Savage
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+//
+// 1. Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//
+// THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+// IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+// OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+// IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+// NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+// THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #ifndef Rice__stl__hpp_
 #define Rice__stl__hpp_
 
@@ -584,7 +611,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) :arg_(arg)
     {
     }
 
@@ -607,6 +634,9 @@ namespace Rice::detail
 
       return std::complex<T>(From_Ruby<T>().convert(real), From_Ruby<T>().convert(imaginary));
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -615,7 +645,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -641,6 +671,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::complex<T> converted_;
   };
 }
@@ -719,7 +750,7 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::nullopt_t& _)
+    VALUE convert(const std::nullopt_t&)
     {
       return Qnil;
     }
@@ -786,7 +817,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -813,6 +844,9 @@ namespace Rice::detail
         return From_Ruby<T>().convert(value);
       }
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -821,7 +855,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -850,6 +884,7 @@ namespace Rice::detail
       return this->converted_;
     }
   private:
+    Arg* arg_ = nullptr;
     std::optional<T> converted_;
   };
 }
@@ -903,7 +938,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -918,6 +953,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     From_Ruby<T&> converter_;
   };
 }
@@ -997,11 +1033,11 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& pair)
-            {
-              return "[Not printable]";
-            });
-        }
+          klass_.define_method("to_s", [](const T&)
+          {
+            return "[Not printable]";
+          });
+      }
       }
 
       private:
@@ -1175,20 +1211,25 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<Mapped_T>)
         {
-          klass_.define_method("value?", [](T& map, Mapped_T& value) -> bool
-            {
-              auto it = std::find_if(map.begin(), map.end(),
-              [&value](auto& pair)
-                {
-                  return pair.second == value;
-                });
+          klass_.define_method("==", [](T& map, T& other)->bool
+          {
+            return map == other;
+          })
+          .define_method("value?", [](T& map, Mapped_T& value) -> bool
+          {
+            auto it = std::find_if(map.begin(), map.end(),
+            [&value](auto& pair)
+              {
+                return pair.second == value;
+              });
 
-              return it != map.end();
+            return it != map.end();
           });
+          rb_define_alias(klass_, "eql?", "==");
         }
         else
         {
-          klass_.define_method("value?", [](T& map, Mapped_T& value) -> bool
+          klass_.define_method("value?", [](T&, Mapped_T&) -> bool
           {
               return false;
           });
@@ -1273,10 +1314,10 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& map)
-            {
-              return "[Not printable]";
-            });
+          klass_.define_method("to_s", [](const T&)
+          {
+            return "[Not printable]";
+          });
         }
       }
 
@@ -1401,7 +1442,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::map");
           }
         }
@@ -1456,7 +1497,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::map");
           }
         }
@@ -1515,7 +1556,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::map");
           }
         }
@@ -1560,7 +1601,7 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::monostate& _)
+    VALUE convert(const std::monostate&)
     {
       return Qnil;
     }
@@ -1580,7 +1621,7 @@ namespace Rice::detail
     {
     }
 
-    VALUE convert(const std::monostate& data)
+    VALUE convert(const std::monostate&)
     {
       return Qnil;
     }
@@ -1595,7 +1636,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -1615,6 +1656,9 @@ namespace Rice::detail
         throw std::runtime_error("Can only convert nil values to std::monostate");
       }
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<>
@@ -1623,7 +1667,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -1645,6 +1689,7 @@ namespace Rice::detail
     }
     
   private:
+    Arg* arg_ = nullptr;
     std::monostate converted_ = std::monostate();
   };
 }
@@ -1770,20 +1815,25 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<Mapped_T>)
         {
-          klass_.define_method("value?", [](T& multimap, Mapped_T& value) -> bool
-            {
-              auto it = std::find_if(multimap.begin(), multimap.end(),
-              [&value](auto& pair)
-                {
-                  return pair.second == value;
-                });
+          klass_.define_method("==", [](T& multimap, T& other)->bool
+          {
+            return multimap == other;
+          })
+          .define_method("value?", [](T& multimap, Mapped_T& value) -> bool
+          {
+            auto it = std::find_if(multimap.begin(), multimap.end(),
+            [&value](auto& pair)
+              {
+                return pair.second == value;
+              });
 
-              return it != multimap.end();
+            return it != multimap.end();
           });
+          rb_define_alias(klass_, "eql?", "==");
         }
         else
         {
-          klass_.define_method("value?", [](T& multimap, Mapped_T& value) -> bool
+          klass_.define_method("value?", [](T&, Mapped_T&) -> bool
           {
               return false;
           });
@@ -1852,10 +1902,10 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& multimap)
-            {
-              return "[Not printable]";
-            });
+          klass_.define_method("to_s", [](const T&)
+          {
+            return "[Not printable]";
+          });
         }
       }
 
@@ -1977,7 +2027,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::multimap");
           }
         }
@@ -2032,7 +2082,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::multimap");
           }
         }
@@ -2091,7 +2141,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::multimap");
           }
         }
@@ -2333,10 +2383,10 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& self)
-            {
-              return "[Not printable]";
-            });
+          klass_.define_method("to_s", [](const T&)
+          {
+            return "[Not printable]";
+          });
         }
       }
 
@@ -2459,12 +2509,12 @@ namespace Rice
             {
               return toSet<T>(value);
             }
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
         }
@@ -2528,12 +2578,12 @@ namespace Rice
                 return this->converted_;
               }
             }
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
         }
@@ -2600,12 +2650,12 @@ namespace Rice
                 return &this->converted_;
               }
             }
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
         }
@@ -2715,7 +2765,6 @@ namespace Rice::detail
       if constexpr (std::is_fundamental_v<T>)
       {
         return Type<Pointer<T>>::verify();
-        return Type<Buffer<T>>::verify();
       }
       else
       {
@@ -2744,7 +2793,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Arg* arv)
+    explicit To_Ruby(Arg*)
     {
     }
 
@@ -2832,7 +2881,7 @@ namespace Rice::detail
   public:
     To_Ruby() = default;
 
-    explicit To_Ruby(Arg* arg)
+    explicit To_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -2840,6 +2889,9 @@ namespace Rice::detail
     {
       return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template <typename T>
@@ -2912,7 +2964,7 @@ namespace Rice::detail
     using Tuple_T = std::tuple<Types...>;
 
     template<std::size_t... I>
-    constexpr static bool verifyTypes(std::index_sequence<I...>& indices)
+    constexpr static bool verifyTypes(std::index_sequence<I...>&)
     {
       return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
     }
@@ -2998,7 +3050,7 @@ namespace Rice::detail
 
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -3026,7 +3078,7 @@ namespace Rice::detail
     }
 
     template <std::size_t... I>
-    std::tuple<Types...> convertInternal(Array array, std::index_sequence<I...>& indices)
+    std::tuple<Types...> convertInternal(Array array, std::index_sequence<I...>&)
     {
       return std::forward_as_tuple(std::get<I>(this->fromRubys_).convert(array[I].value())...);
     }
@@ -3039,6 +3091,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     // Possible converters we could use for this variant
     using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
     From_Ruby_Ts fromRubys_;
@@ -3146,7 +3199,7 @@ namespace Rice::detail
     using Tuple_T = std::tuple<Types...>;
 
     template<std::size_t... I>
-    constexpr static bool verifyTypes(std::index_sequence<I...>& indices)
+    constexpr static bool verifyTypes(std::index_sequence<I...>&)
     {
       return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
     }
@@ -3177,11 +3230,16 @@ namespace Rice::detail
     template<typename U, typename V>
     VALUE convertElement(U& data, bool takeOwnership)
     {
-      return To_Ruby<V>().convert(std::forward<V>(std::get<V>(data)));
+      Arg arg("arg1");
+      if (takeOwnership)
+      {
+        arg.takeOwnership();
+      }
+      return To_Ruby<V>(&arg).convert(std::forward<V>(std::get<V>(data)));
     }
 
     template<typename U, std::size_t... I>
-    VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>&)
     {
       // Create a tuple of the variant types so we can look over the tuple's types
       using Tuple_T = std::tuple<Types...>;
@@ -3255,18 +3313,24 @@ namespace Rice::detail
     template<typename U, typename V>
     VALUE convertElement(U& data, bool takeOwnership)
     {
+      Arg arg("arg1");
+      if (takeOwnership)
+      {
+        arg.takeOwnership();
+      }
+
       if constexpr (std::is_const_v<U>)
       {
-        return To_Ruby<V>().convert(std::get<V>(data));
+        return To_Ruby<V>(&arg).convert(std::get<V>(data));
       }
       else
       {
-        return To_Ruby<V>().convert(std::forward<V>(std::get<V>(data)));
+        return To_Ruby<V>(&arg).convert(std::forward<V>(std::get<V>(data)));
       }
     }
 
     template<typename U, std::size_t... I>
-    VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>& indices)
+    VALUE convertIterator(U& data, bool takeOwnership, std::index_sequence<I...>&)
     {
       // Create a tuple of the variant types so we can look over the tuple's types
       using Tuple_T = std::tuple<Types...>;
@@ -3307,7 +3371,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -3378,7 +3442,10 @@ namespace Rice::detail
           return convertInternal<I + 1>(value, index);
         }
       }
-      rb_raise(rb_eArgError, "Could not find converter for variant");
+      else
+      {
+        rb_raise(rb_eArgError, "Could not find converter for variant");
+      }
     }
 
     std::variant<Types...> convert(VALUE value)
@@ -3388,6 +3455,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     // Possible converters we could use for this variant
     using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
     From_Ruby_Ts fromRubys_;
@@ -3399,7 +3467,7 @@ namespace Rice::detail
   public:
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -3411,6 +3479,7 @@ namespace Rice::detail
     }
 
   private:
+    Arg* arg_ = nullptr;
     std::variant<Types...> converted_;
   };
 }
@@ -3522,7 +3591,7 @@ namespace Rice::detail
 
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -3551,6 +3620,9 @@ namespace Rice::detail
       }
       return std::move(wrapper->data());
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template <typename T>
@@ -3565,7 +3637,7 @@ namespace Rice::detail
 
     From_Ruby() = default;
 
-    explicit From_Ruby(Arg* arg)
+    explicit From_Ruby(Arg* arg) : arg_(arg)
     {
     }
 
@@ -3594,6 +3666,9 @@ namespace Rice::detail
       }
       return wrapper->data();
     }
+
+  private:
+    Arg* arg_ = nullptr;
   };
 
   template<typename T>
@@ -3740,7 +3815,11 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<Mapped_T>)
         {
-          klass_.define_method("value?", [](T& unordered_map, Mapped_T& value) -> bool
+          klass_.define_method("==", [](T& unordered_map, T& other)->bool
+          {
+            return unordered_map == other;
+          })
+          .define_method("value?", [](T& unordered_map, Mapped_T& value) -> bool
             {
               auto it = std::find_if(unordered_map.begin(), unordered_map.end(),
               [&value](auto& pair)
@@ -3750,10 +3829,11 @@ namespace Rice
 
               return it != unordered_map.end();
           });
+          rb_define_alias(klass_, "eql?", "==");
         }
         else
         {
-          klass_.define_method("value?", [](T& unordered_map, Mapped_T& value) -> bool
+          klass_.define_method("value?", [](T&, Mapped_T&) -> bool
           {
               return false;
           });
@@ -3838,10 +3918,10 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& unordered_map)
-            {
-              return "[Not printable]";
-            });
+          klass_.define_method("to_s", [](const T&)
+          {
+            return "[Not printable]";
+          });
         }
       }
 
@@ -3966,7 +4046,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::unordered_map");
           }
         }
@@ -4021,7 +4101,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::unordered_map");
           }
         }
@@ -4080,7 +4160,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::unordered_map");
           }
         }
@@ -4144,7 +4224,7 @@ namespace Rice
       Difference_T normalizeIndex(Size_T size, Difference_T index, bool enforceBounds = false)
       {
         // Negative indices mean count from the right
-        if (index < 0 && (-index <= size))
+        if (index < 0 && ((Size_T)(-index) <= size))
         {
           index = size + index;
         }
@@ -4188,7 +4268,7 @@ namespace Rice
           }
 
           // Wrap the vector
-          detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data, true);
+          detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
         });
       }
 
@@ -4204,10 +4284,10 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("resize", [](const T& vector, Size_T newSize)
-              {
-                // Do nothing
-              });
+          klass_.define_method("resize", [](const T&, Size_T)
+          {
+            // Do nothing
+          });
         }
       }
 
@@ -4345,7 +4425,11 @@ namespace Rice
       {
         if constexpr (detail::is_comparable_v<T>)
         {
-          klass_.define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
+          klass_.define_method("==", [](T& vector, T& other)->bool
+          {
+            return vector == other;
+          })
+          .define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
           {
             auto iter = std::find(vector.begin(), vector.end(), element);
             if (iter == vector.end())
@@ -4379,21 +4463,22 @@ namespace Rice
               return iter - vector.begin();
             }
           });
+          rb_define_alias(klass_, "eql?", "==");
         }
         else
         {
-          klass_.define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
-            {
-              return std::nullopt;
-            })
-          .define_method("include?", [](const T& vector, Parameter_T element)
-            {
-              return false;
-            })
-          .define_method("index", [](const T& vector, Parameter_T element) -> std::optional<Difference_T>
-            {
-              return std::nullopt;
-            });
+          klass_.define_method("delete", [](T&, Parameter_T) -> std::optional<Value_T>
+          {
+            return std::nullopt;
+          })
+          .define_method("include?", [](const T&, Parameter_T)
+          {
+            return false;
+          })
+          .define_method("index", [](const T&, Parameter_T) -> std::optional<Difference_T>
+          {
+            return std::nullopt;
+          });
         }
       }
 
@@ -4418,7 +4503,7 @@ namespace Rice
           })
           .define_method("insert", [this](T& vector, Difference_T index, Parameter_T element) -> T&
           {
-            int normalized = normalizeIndex(vector.size(), index, true);
+            size_t normalized = normalizeIndex(vector.size(), index, true);
             // For a Ruby array a positive index means insert the element before the index. But
             // a negative index means insert the element *after* the index. std::vector
             // inserts *before* the index. So add 1 if this is a negative index.
@@ -4517,10 +4602,10 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("to_s", [](const T& vector)
-            {
-              return "[Not printable]";
-            });
+          klass_.define_method("to_s", [](const T&)
+          {
+            return "[Not printable]";
+          });
         }
       }
 
@@ -4618,7 +4703,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::vector");
           }
         }
@@ -4675,7 +4760,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::vector");
           }
         }
@@ -4736,7 +4821,7 @@ namespace Rice
           }
           default:
           {
-            throw Exception(rb_eTypeError, "wrong argument type %s (expected % s)",
+            throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::vector");
           }
         }
