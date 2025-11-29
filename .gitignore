@@ -28,3 +28,4 @@ msvc
 .vscode
 .cmake
 cmake-build-mingw
+build
