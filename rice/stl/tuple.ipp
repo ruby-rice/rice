@@ -86,12 +86,6 @@ namespace Rice::detail
   public:
     using Tuple_T = std::tuple<Types...>;
 
-    template<std::size_t... I>
-    constexpr static bool verifyTypes(Array& array, std::index_sequence<I...>& indices)
-    {
-      return (Type<std::tuple_element_t<I, Tuple_T>>::verify() && ...);
-    }
-
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -140,19 +134,4 @@ namespace Rice::detail
     using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
     From_Ruby_Ts fromRubys_;
   };
-
-/*  template<typename...Types>
-  class From_Ruby<std::tuple<Types...>&> : public From_Ruby<std::tuple<Types...>>
-  {
-  public:
-    std::tuple<Types...>& convert(VALUE value)
-    {
-      int index = this->figureIndex(value);
-      this->converted_ = this->convertInternal(value, index);
-      return this->converted_;
-    }
-
-  private:
-    std::tuple<Types...> converted_;
-  };*/
 }
