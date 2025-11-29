@@ -74,12 +74,18 @@ add_executable(${PROJECT_NAME}
 #find_package("Ruby")
 include("../FindRuby.cmake")
 target_include_directories(${PROJECT_NAME} PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} ${Ruby_LIBRARY})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${Ruby_LIBRARY})
 
 # FFI
-find_library(FFI_LIBRARY NAMES ffi REQUIRED)
-target_link_libraries(${PROJECT_NAME} ${FFI_LIBRARY})
-target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_LIBFFI)
+if (MSVC) # This will include Clang on Windows
+    find_package(unofficial-libffi CONFIG REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE unofficial::libffi::libffi)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_LIBFFI)
+else()
+    find_library(FFI_LIBRARY NAMES ffi REQUIRED)
+    target_link_libraries(${PROJECT_NAMEPROJECT_NAME} PRIVATE ${FFI_LIBRARY})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_LIBFFI)
+endif()
 
 # Rice
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
