@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 
-project(unittest)
+project(unittest LANGUAGES CXX)
 
 # ----- Sources ------
 # Add source to this project's executable.
@@ -89,47 +89,3 @@ endif()
 
 # Rice
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
-
-# ---- Compiler Settings ---------
-if (MSVC)
-    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
-            _CRT_SECURE_NO_DEPRECATE
-            _CRT_NONSTDC_NO_DEPRECATE)
-
-    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE 
-            /W4                   
-            /bigobj   
-            /utf-8)
-
-    # Clang built into Visual Studio
-    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        # Fixes error  error G5FE2FDFE:  __attribute__((noreturn))' cannot be used prior to '::' because it has no members
-        target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC CV_NORETURN="__declspec(noreturn)")
-
-        target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE 
-                /clang:-Wno-unused-private-field)
-    else ()
-        # Edit and Continue for Debug builds
-        set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT
-            "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-    endif ()
-
-    # Fix exception handling for Ruby's longjmp
-    # The default of /EHsc crashes Ruby when calling longjmp with optimizations on (/O2)
-    # So replace /EHsc with /EHs just for this target
-    get_target_property(_cxx_opts ${CMAKE_PROJECT_NAME} COMPILE_OPTIONS)
-    if(_cxx_opts)
-        list(TRANSFORM _cxx_opts REPLACE "/EHsc" "/EHs")
-        set_target_properties(${CMAKE_PROJECT_NAME}  PROPERTIES COMPILE_OPTIONS "${_cxx_opts}")
-    endif()
-elseif (MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
-                           -Wa,-mbig-obj
-                           $<$<CONFIG:Debug>:-Og>)
-else ()
-    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
-            -Wall
-            -Wno-unused-private-field
-            -ftemplate-backtrace-limit=0
-            $<$<CONFIG:Debug>:-Og>)
-endif ()
