@@ -43,11 +43,7 @@ namespace
 
   bool closeFile(FILE* fptr)
   {
-    // Ruby override fclose and replaces it with rb_w32_fclose which causes a segementation fault. Oy!
-#ifndef _MSC_VER
     fclose(fptr);
-#endif
-    return true;
   }
 }
 

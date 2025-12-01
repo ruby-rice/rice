@@ -28,6 +28,9 @@ namespace
 
   class NotAssignable
   {
+  public:
+    NotAssignable() = default;
+    NotAssignable(const NotAssignable&) = default;
     NotAssignable& operator=(const NotAssignable&) = delete;
   };
 
@@ -35,7 +38,7 @@ namespace
   {
   public:
     NotCopyable() = default;
-    NotCopyable(const NotCopyable& other) = delete;
+    NotCopyable(const NotCopyable&) = delete;
   };
 
   enum OldEnum

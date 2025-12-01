@@ -88,7 +88,6 @@ namespace {
       int default_process(int)
       {
         raisePureVirtual();
-        return 0;
       }
 
       virtual int doSomething(int num)
@@ -225,7 +224,6 @@ namespace {
       int default_doItImpl(int)
       {
         raisePureVirtual();
-        return 0;
       }
   };
 

@@ -773,8 +773,6 @@ namespace RangesTest
     {
     }
 
-    RangeCustom(const RangeCustom& other) = default;
-
     int x;
     int y;
   };
