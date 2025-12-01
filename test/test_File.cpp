@@ -26,6 +26,12 @@ namespace
   {
     std::filesystem::path path = __FILE__;
     FILE* fptr = fopen(path.string().c_str(), "rb");
+    if (!fptr)
+    {
+      int err = errno;
+      throw std::runtime_error("Failed to open file '" + path.string() + "': " +
+        std::strerror(err) + " (errno=" + std::to_string(err) + ")");
+    }
     return fptr;
   }
 
@@ -43,10 +49,8 @@ namespace
 
   bool closeFile(FILE* fptr)
   {
-    // Ruby override fclose and replaces it with rb_w32_fclose which causes a segementation fault. Oy!
-#ifndef _MSC_VER
-    fclose(fptr);
-#endif
+    // crashes on windows due to Ruby overriding and mixing UCRTs
+    //fclose(fptr);
     return true;
   }
 }

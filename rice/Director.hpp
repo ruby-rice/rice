@@ -23,6 +23,7 @@ namespace Rice
       /*! If a Ruby script calls 'super' on a method that's otherwise a pure virtual
        *  method, use this method to throw an exception in this case.
        */
+      [[noreturn]]
       void raisePureVirtual() const
       {
         rb_raise(rb_eNotImpError, "Cannot call super() into a pure-virtual C++ method");

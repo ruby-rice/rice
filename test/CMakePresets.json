@@ -1,0 +1,207 @@
+﻿{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install/${presetName}"
+    },
+    {
+      "name": "linux-debug",
+      "inherits": "base",
+      "displayName": "Linux Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "-Wall -Wno-unused-private-field -ftemplate-backtrace-limit=0 -Og"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-release",
+      "inherits": "base",
+      "displayName": "Linux Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_FLAGS": "-Wall -Wno-unused-private-field -ftemplate-backtrace-limit=0 -O3 -DNDEBUG"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "macos-debug",
+      "inherits": "base",
+      "displayName": "macOS Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "-Wall -Wno-unused-private-field -ftemplate-backtrace-limit=0 -Og"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "macos-release",
+      "inherits": "base",
+      "displayName": "macOS Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_FLAGS": "-Wall -Wno-unused-private-field -ftemplate-backtrace-limit=0 -O3 -DNDEBUG"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "windows",
+      "hidden": true,
+      "inherits": "base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "toolchainFile": "$env{VCPKG_ROOT}\\scripts\\buildsystems\\vcpkg.cmake"
+    },
+    {
+      "name": "msvc-debug",
+      "inherits": "windows",
+      "displayName": "MSVC x64 Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "cl.exe",
+        "CMAKE_CXX_FLAGS": "/EHs /W4 /bigobj /utf-8 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE",
+        "CMAKE_MSVC_DEBUG_INFORMATION_FORMAT": "EditAndContinue"
+      }
+    },
+    {
+      "name": "msvc-release",
+      "inherits": "windows",
+      "displayName": "MSVC x64 Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_COMPILER": "cl.exe",
+        "CMAKE_CXX_FLAGS": "/EHs /W4 /bigobj /utf-8 /O2 /DNDEBUG /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE",
+        "CMAKE_MSVC_DEBUG_INFORMATION_FORMAT": "ProgramDatabase"
+      }
+    },
+    {
+      "name": "clang-windows-debug",
+      "inherits": "windows",
+      "displayName": "Clang Windows Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "clang-cl.exe",
+        "CMAKE_CXX_FLAGS": "/EHs /W4 /bigobj /utf-8 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /clang:-Wno-unused-private-field"
+      }
+    },
+    {
+      "name": "clang-windows-release",
+      "inherits": "windows",
+      "displayName": "Clang Windows Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_COMPILER": "clang-cl.exe",
+        "CMAKE_CXX_FLAGS": "/EHs /W4 /bigobj /utf-8 /O2 /DNDEBUG /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /clang:-Wno-unused-private-field"
+      }
+    },
+    {
+      "name": "mingw-debug",
+      "inherits": "base",
+      "displayName": "Mingw x64 Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "g++.exe",
+        "CMAKE_CXX_FLAGS": "-Wall -ftemplate-backtrace-limit=0 -Wa,-mbig-obj -Og",
+        "CMAKE_EXE_LINKER_FLAGS": "-fuse-ld=lld",
+        "CMAKE_SHARED_LINKER_FLAGS": "-fuse-ld=lld"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "mingw-release",
+      "inherits": "base",
+      "displayName": "Mingw x64 Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_COMPILER": "g++.exe",
+        "CMAKE_CXX_FLAGS": "-Wall -ftemplate-backtrace-limit=0 -Wa,-mbig-obj -O3 -DNDEBUG",
+        "CMAKE_EXE_LINKER_FLAGS": "-fuse-ld=lld",
+        "CMAKE_SHARED_LINKER_FLAGS": "-fuse-ld=lld"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "linux-debug",
+      "displayName": "Build Linux Debug",
+      "configurePreset": "linux-debug"
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Build Linux Release",
+      "configurePreset": "linux-release"
+    },
+    {
+      "name": "macos-debug",
+      "displayName": "Build macOS Debug",
+      "configurePreset": "macos-debug"
+    },
+    {
+      "name": "macos-release",
+      "displayName": "Build macOS Release",
+      "configurePreset": "macos-release"
+    },
+    {
+      "name": "msvc-debug",
+      "displayName": "Build MSVC x64 Debug",
+      "configurePreset": "msvc-debug"
+    },
+    {
+      "name": "msvc-release",
+      "displayName": "Build MSVC x64 Release",
+      "configurePreset": "msvc-release"
+    },
+    {
+      "name": "clang-windows-debug",
+      "displayName": "Build Clang Windows Debug",
+      "configurePreset": "clang-windows-debug"
+    },
+    {
+      "name": "clang-windows-release",
+      "displayName": "Build Clang Windows Release",
+      "configurePreset": "clang-windows-release"
+    },
+    {
+      "name": "mingw-debug",
+      "displayName": "Build Mingw x64 Debug",
+      "configurePreset": "mingw-debug"
+    },
+    {
+      "name": "mingw-release",
+      "displayName": "Build Mingw x64 Release",
+      "configurePreset": "mingw-release"
+    }
+  ]
+}
