@@ -94,7 +94,7 @@ TESTCASE(TupleToRuby)
   ASSERT_EQUAL(1i, detail::From_Ruby<std::complex<double>>().convert(result[1].value()));
   
   std::vector<int> converted = detail::From_Ruby<std::vector<int>>().convert(result[2].value());
-  ASSERT_EQUAL(3, converted.size());
+  ASSERT_EQUAL(3u, converted.size());
 
   ASSERT_EQUAL(3.3, detail::From_Ruby<double>().convert(result[3].value()));
   ASSERT_EQUAL(Qtrue, result[4].value());
