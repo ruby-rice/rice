@@ -43,6 +43,7 @@
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
+#pragma clang diagnostic ignored "-Wunused-parameter"
 #elif defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable: 4100)  // unreferenced formal parameter
@@ -2544,7 +2545,7 @@ inline auto& define_singleton_method(std::string name, Method_T&& method, const 
  *  \return *this
  */
 template<typename Function_T, typename...Arg_Ts>
-inline auto& define_singleton_function(std::string name, Function_T&& func, Arg_Ts&& ...args)
+inline auto& define_singleton_function(std::string name, Function_T&& func, const Arg_Ts& ...args)
 {
   this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Function_T>(func), args...);
   return *this;
@@ -2737,7 +2738,7 @@ inline auto& define_singleton_method(std::string name, Method_T&& method, const 
  *  \return *this
  */
 template<typename Function_T, typename...Arg_Ts>
-inline auto& define_singleton_function(std::string name, Function_T&& func, Arg_Ts&& ...args)
+inline auto& define_singleton_function(std::string name, Function_T&& func, const Arg_Ts& ...args)
 {
   this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Function_T>(func), args...);
   return *this;
@@ -3217,7 +3218,7 @@ inline auto& define_singleton_method(std::string name, Method_T&& method, const 
  *  \return *this
  */
 template<typename Function_T, typename...Arg_Ts>
-inline auto& define_singleton_function(std::string name, Function_T&& func, Arg_Ts&& ...args)
+inline auto& define_singleton_function(std::string name, Function_T&& func, const Arg_Ts& ...args)
 {
   this->wrap_native_function(rb_singleton_class(*this), name, std::forward<Function_T>(func), args...);
   return *this;
@@ -4451,12 +4452,12 @@ namespace Rice
 
         detail::From_Ruby<Intrinsic_T> fromRuby;
 
-        for (int i = 0; i < this->m_size; i++)
+        for (size_t i = 0; i < this->m_size; i++)
         {
           // Construct objects in allocated memory using move or copy construction
           if constexpr (std::is_move_constructible_v<T>)
           {
-            new (&this->m_buffer[i]) T(std::move(fromRuby.convert(array[i].value())));
+            new (&this->m_buffer[i]) T(std::move(fromRuby.convert(array[(long)i].value())));
           }
           else if constexpr (std::is_copy_constructible_v<T>)
           {
@@ -4680,10 +4681,10 @@ namespace Rice
         this->m_size = outer.size();
         this->m_buffer = new T*[this->m_size]();
 
-        for (int i = 0; i < this->m_size; i++)
+        for (size_t i = 0; i < this->m_size; i++)
         {
           // Check the inner value is also an array
-          Array inner(outer[i].value());
+          Array inner(outer[(long)i].value());
 
           // Allocate inner buffer
           this->m_buffer[i] = new T[inner.size()]();
@@ -4895,9 +4896,9 @@ namespace Rice
 
         detail::From_Ruby<T*> fromRuby;
 
-        for (int i = 0; i < this->m_size; i++)
+        for (size_t i = 0; i < this->m_size; i++)
         {
-          this->m_buffer[i] = fromRuby.convert(array[i].value());
+          this->m_buffer[i] = fromRuby.convert(array[(long)i].value());
         }
 
         this->m_owner = true;
@@ -9873,7 +9874,7 @@ namespace Rice::detail
       Hash keywords(value);
 
       // Copy over leading non-keyword arguments
-      for (int i = 0; i < actualArgc; i++)
+      for (size_t i = 0; i < actualArgc; i++)
       {
         result[i] = argv[i];
       }
@@ -13571,6 +13572,7 @@ namespace Rice
       /*! If a Ruby script calls 'super' on a method that's otherwise a pure virtual
        *  method, use this method to throw an exception in this case.
        */
+      [[noreturn]]
       void raisePureVirtual() const
       {
         rb_raise(rb_eNotImpError, "Cannot call super() into a pure-virtual C++ method");
