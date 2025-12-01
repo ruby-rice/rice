@@ -83,7 +83,7 @@ if (MSVC) # This will include Clang on Windows
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_LIBFFI)
 else()
     find_library(FFI_LIBRARY NAMES ffi REQUIRED)
-    target_link_libraries(${PROJECT_NAMEPROJECT_NAME} PRIVATE ${FFI_LIBRARY})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${FFI_LIBRARY})
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_LIBFFI)
 endif()
 
