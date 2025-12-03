@@ -81,11 +81,16 @@ if (MSVC) # This will include Clang on Windows
     find_package(unofficial-libffi CONFIG REQUIRED)
     target_link_libraries(${PROJECT_NAME} PRIVATE unofficial::libffi::libffi)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_LIBFFI)
+elseif (APPLE)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(FFI REQUIRED IMPORTED_TARGET libffi)
+    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE PkgConfig::FFI)
 else()
     find_library(FFI_LIBRARY NAMES ffi REQUIRED)
     target_link_libraries(${PROJECT_NAME} PRIVATE ${FFI_LIBRARY})
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_LIBFFI)
 endif()
+target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_LIBFFI)
 
 # Rice
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
