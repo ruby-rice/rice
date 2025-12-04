@@ -231,11 +231,12 @@ function(_RUBY_CHECK_BREW)
           ENV PATH
           NO_CACHE
   )
-  MESSAGE(DEBUG "Found brew at: ${_BREW_EXECUTABLE}")
 
   if (NOT _BREW_EXECUTABLE)
     return()
   endif ()
+
+  MESSAGE(DEBUG "Found brew at: ${_BREW_EXECUTABLE}")
 
   # Query Homebrew for the prefix of the 'ruby' formula.
   # If Ruby is not installed via Homebrew, this will fail.
@@ -450,10 +451,8 @@ message(DEBUG "Ruby_ENV: ${Ruby_ENV}")
 message(DEBUG "Found Ruby_VERSION: \"${Ruby_VERSION}\"")
 message(DEBUG "Ruby_EXECUTABLE: ${Ruby_EXECUTABLE}")
 message(DEBUG "Ruby_LIBRARY: ${Ruby_LIBRARY}")
-message(DEBUG "Ruby_INCLUDE_DIR: ${Ruby_INCLUDE_DIR}")
-message(DEBUG "Ruby_CONFIG_INCLUDE_DIR: ${Ruby_CONFIG_INCLUDE_DIR}")
-message(DEBUG "Ruby_HDR_DIR: ${Ruby_HDR_DIR}")
 message(DEBUG "Ruby_ARCH_DIR: ${Ruby_ARCH_DIR}")
+message(DEBUG "Ruby_HDR_DIR: ${Ruby_HDR_DIR}")
 message(DEBUG "Ruby_ARCHHDR_DIR: ${Ruby_ARCHHDR_DIR}")
 message(DEBUG "--------------------")
 
