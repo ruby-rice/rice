@@ -5,64 +5,56 @@
 FindRuby
 --------
 
-This module determines if Ruby is installed and finds the locations of its
-include files and libraries. Ruby 1.8 through 3.4 are supported.
-
-The minimum required version of Ruby can be specified using the
-standard syntax, e.g.
+Finds Ruby installation and the locations of its include files and libraries:
 
 .. code-block:: cmake
 
-  find_package(Ruby 3.2.6 EXACT REQUIRED)
-  # OR
-  find_package(Ruby 3.2)
+  find_package(Ruby [<version>] [...])
 
-Virtual environments, such as RVM or RBENV, are supported.
+Ruby is a general-purpose programming language.  This module supports Ruby
+1.8 through 3.4.  Virtual environments, such as RVM or RBENV, are also
+supported.
 
 Result Variables
 ^^^^^^^^^^^^^^^^
 
-This module will set the following variables in your project:
+This module defines the following variables:
 
 ``Ruby_FOUND``
-  set to true if ruby was found successfully
-``Ruby_EXECUTABLE``
-  full path to the ruby binary
-``Ruby_INCLUDE_DIRS``
-  include dirs to be used when using the ruby library
-``Ruby_LIBRARIES``
-  .. versionadded:: 3.18
-    libraries needed to use ruby from C.
+  .. versionadded:: 3.3
+
+  Boolean indicating whether (the requested version of) ruby was found.
+
 ``Ruby_VERSION``
-  the version of ruby which was found, e.g. "3.2.6"
+  The version of ruby which was found, e.g. ``3.2.6``.
+
 ``Ruby_VERSION_MAJOR``
   Ruby major version.
+
 ``Ruby_VERSION_MINOR``
   Ruby minor version.
+
 ``Ruby_VERSION_PATCH``
   Ruby patch version.
+
+``Ruby_EXECUTABLE``
+  The full path to the ruby binary.
+
+``Ruby_INCLUDE_DIRS``
+  Include dirs to be used when using the ruby library.
+
+``Ruby_LIBRARIES``
+  .. versionadded:: 3.18
+
+  Libraries needed to use ruby from C.
 
 .. versionchanged:: 3.18
   Previous versions of CMake used the ``RUBY_`` prefix for all variables.
 
-.. deprecated:: 4.0
-  The following variables are deprecated.  See policy :policy:`CMP0185`.
-
-  ``RUBY_EXECUTABLE``
-    same as ``Ruby_EXECUTABLE``.
-  ``RUBY_INCLUDE_DIRS``
-    same as ``Ruby_INCLUDE_DIRS``.
-  ``RUBY_INCLUDE_PATH``
-    same as ``Ruby_INCLUDE_DIRS``.
-  ``RUBY_LIBRARY``
-    same as ``Ruby_LIBRARY``.
-  ``RUBY_VERSION``
-    same as ``Ruby_VERSION``.
-  ``RUBY_FOUND``
-    same as ``Ruby_FOUND``.
-
 Hints
 ^^^^^
+
+This module accepts the following variables:
 
 ``Ruby_FIND_VIRTUALENV``
   .. versionadded:: 3.18
@@ -84,10 +76,61 @@ Hints
   ``rbenv``
     Requires that ``rbenv`` is installed in ``~/.rbenv/bin``
     or that the ``RBENV_ROOT`` environment variable is defined.
+
+Deprecated Variables
+^^^^^^^^^^^^^^^^^^^^
+
+The following variables are provided for backward compatibility:
+
+.. deprecated:: 4.0
+  The following variables are deprecated.  See policy :policy:`CMP0185`.
+
+  ``RUBY_FOUND``
+    Same as ``Ruby_FOUND``.
+  ``RUBY_VERSION``
+    Same as ``Ruby_VERSION``.
+  ``RUBY_EXECUTABLE``
+    Same as ``Ruby_EXECUTABLE``.
+  ``RUBY_INCLUDE_DIRS``
+    Same as ``Ruby_INCLUDE_DIRS``.
+  ``RUBY_INCLUDE_PATH``
+    Same as ``Ruby_INCLUDE_DIRS``.
+  ``RUBY_LIBRARY``
+    Same as ``Ruby_LIBRARY``.
+
+Examples
+^^^^^^^^
+
+Finding Ruby and specifying the minimum required version:
+
+.. code-block:: cmake
+
+  find_package(Ruby 3.2.6 EXACT REQUIRED)
+  # or
+  find_package(Ruby 3.2)
 #]=======================================================================]
 
+cmake_policy(GET CMP0185 _Ruby_CMP0185)
+
+if(NOT _Ruby_CMP0185 STREQUAL "NEW")
+  # Backwards compatibility
+  # Define camel case versions of input variables
+  foreach (UPPER
+          RUBY_EXECUTABLE
+          RUBY_LIBRARY
+          RUBY_INCLUDE_DIR
+          RUBY_CONFIG_INCLUDE_DIR)
+    if (DEFINED ${UPPER})
+      string(REPLACE "RUBY_" "Ruby_" Camel ${UPPER})
+      if (NOT DEFINED ${Camel})
+        set(${Camel} ${${UPPER}})
+      endif ()
+    endif ()
+  endforeach ()
+endif()
+
 # Uncomment the following line to get debug output for this file
-set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
+#set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 
 # Determine the list of possible names of the ruby executable depending
 # on which version of ruby is required
@@ -436,6 +479,7 @@ find_library(Ruby_LIBRARY NAMES
              NAMES ${_Ruby_POSSIBLE_LIB_NAMES}
              PATHS ${_Ruby_POSSIBLE_LIB_DIR}
              NO_DEFAULT_PATH)
+set(Ruby_LIBRARIES ${Ruby_LIBRARY})
 
 set(_Ruby_REQUIRED_VARS Ruby_EXECUTABLE Ruby_INCLUDE_DIR Ruby_LIBRARY)
 if (_Ruby_VERSION_SHORT_NODOT GREATER 18)
@@ -461,7 +505,21 @@ find_package_handle_standard_args(Ruby REQUIRED_VARS ${_Ruby_REQUIRED_VARS}
                                   VERSION_VAR Ruby_VERSION)
 
 if (Ruby_FOUND)
-  set(Ruby_LIBRARIES ${Ruby_LIBRARY})
+  if (NOT TARGET Ruby::Ruby)
+    add_library(Ruby::Ruby UNKNOWN IMPORTED)
+    set_target_properties(Ruby::Ruby PROPERTIES
+                          IMPORTED_LOCATION "${Ruby_LIBRARY}"
+                          INTERFACE_INCLUDE_DIRECTORIES "${Ruby_HDR_DIR};${Ruby_ARCHHDR_DIR}"
+
+                          # Custom property for extension suffix (with dot), e.g. ".so", ".bundle"
+                          INTERFACE_RUBY_EXTENSION_SUFFIX "${Ruby_SOEXT}"
+
+                          # Hide symbols by default with GCC/Clang on *nix-ish platforms
+                          INTERFACE_C_VISIBILITY_PRESET hidden
+                          INTERFACE_CXX_VISIBILITY_PRESET hidden
+                          INTERFACE_VISIBILITY_INLINES_HIDDEN ON
+    )
+  endif ()
 endif ()
 
 mark_as_advanced(
@@ -470,3 +528,35 @@ mark_as_advanced(
     Ruby_INCLUDE_DIR
     Ruby_CONFIG_INCLUDE_DIR
     )
+
+if(NOT _Ruby_CMP0185 STREQUAL "NEW")
+  # Set some variables for compatibility with previous version of this file (no need to provide a CamelCase version of that...)
+  set(RUBY_POSSIBLE_LIB_PATH ${_Ruby_POSSIBLE_LIB_DIR})
+  set(RUBY_RUBY_LIB_PATH ${Ruby_RUBY_LIB_DIR})
+  set(RUBY_INCLUDE_PATH ${Ruby_INCLUDE_DIRS})
+
+  # Backwards compatibility
+  # Define upper case versions of output variables
+  foreach (Camel
+          Ruby_EXECUTABLE
+          Ruby_INCLUDE_DIRS
+          Ruby_LIBRARY
+          Ruby_VERSION
+          Ruby_VERSION_MAJOR
+          Ruby_VERSION_MINOR
+          Ruby_VERSION_PATCH
+
+          Ruby_ARCH_DIR
+          Ruby_ARCH
+          Ruby_HDR_DIR
+          Ruby_ARCHHDR_DIR
+          Ruby_RUBY_LIB_DIR
+          Ruby_SITEARCH_DIR
+          Ruby_SITELIB_DIR
+          Ruby_HAS_VENDOR_RUBY
+          Ruby_VENDORARCH_DIR
+          Ruby_VENDORLIB_DIR)
+    string(TOUPPER ${Camel} UPPER)
+    set(${UPPER} ${${Camel}})
+  endforeach ()
+endif()
