@@ -199,7 +199,7 @@ TESTCASE(IntrinsicReturns)
 
   result = myClass.call("variant_vector");
   std::vector<int> converted = detail::From_Ruby<std::vector<int>>().convert(result);
-  ASSERT_EQUAL(3, converted.size());
+  ASSERT_EQUAL(3u, converted.size());
 
   result = myClass.call("variant_double");
   ASSERT_EQUAL(3.3, detail::From_Ruby<double>().convert(result));
@@ -408,19 +408,19 @@ TESTCASE(VariantWithTwoVectors)
                           my_class.variant_index(vector))";
 
   Object result = m.module_eval(code);
-  ASSERT_EQUAL(0, detail::From_Ruby<size_t>().convert(result));
+  ASSERT_EQUAL(0u, detail::From_Ruby<size_t>().convert(result));
 
   code = R"(vector = Std::Vector≺int≻.new
               vector.push_back(4)
               my_class = MyClass4.new
               my_class.variant_index(vector))";
   result = m.module_eval(code);
-  ASSERT_EQUAL(1, detail::From_Ruby<size_t>().convert(result));
+  ASSERT_EQUAL(1u, detail::From_Ruby<size_t>().convert(result));
 
   code = R"(my_class = MyClass4.new
               my_class.variant_index(["x", "y", "z"]))";
   result = m.module_eval(code);
-  ASSERT_EQUAL(0, detail::From_Ruby<size_t>().convert(result));
+  ASSERT_EQUAL(0u, detail::From_Ruby<size_t>().convert(result));
 
   code = R"(my_class = MyClass4.new
               my_class.variant_index([5, 6]))";

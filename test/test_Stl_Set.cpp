@@ -645,7 +645,7 @@ TESTCASE(StringPointerSet)
 
   Module m(rb_mKernel);
   Data_Object<std::set<std::string*>> set = m.call("set_of_string_pointers");
-  ASSERT_EQUAL(1, set->size());
+  ASSERT_EQUAL(1u, set->size());
 
   std::string expected = "Hello";
   const std::string* actual = *set->begin();
@@ -682,7 +682,7 @@ TESTCASE(MyClass2PointerSet)
 
   Module m(rb_mKernel);
   Data_Object<std::set<MyClass2*>> result = m.call("set_of_myclass2_pointers");
-  ASSERT_EQUAL(1, result->size());
+  ASSERT_EQUAL(1u, result->size());
 
  MyClass2* pMyClass = *result->begin();
  ASSERT_EQUAL("Hello MyClass2", pMyClass->name);
