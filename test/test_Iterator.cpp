@@ -355,7 +355,7 @@ TESTCASE(IterateNoCopy)
   for (size_t i = 0; i < container.data_.size(); i++)
   {
     Data& expected = container.data_[i];
-    Data_Object<Data> actual(a[i]);
+    Data_Object<Data> actual(a[(long)i]);
     ASSERT_EQUAL(&expected, &(*actual));
   }
 }
