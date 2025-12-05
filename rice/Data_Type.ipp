@@ -33,7 +33,7 @@ namespace Rice
 
   template<typename T>
   template <typename Base_T>
-  inline Data_Type<T> Data_Type<T>::bind(const Module& klass)
+  inline Data_Type<T> Data_Type<T>::bind(const Module& klass, rb_data_type_t *data_type)
   {
     if (is_bound())
     {
@@ -44,17 +44,25 @@ namespace Rice
 
     klass_ = klass;
 
-    rb_data_type_ = new rb_data_type_t();
-    rb_data_type_->wrap_struct_name = strdup(Rice::detail::protect(rb_class2name, klass_));
-    rb_data_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
-    rb_data_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
-    rb_data_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
-    rb_data_type_->data = nullptr;
-    rb_data_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
+    if (data_type) {
+      rb_data_type_ = data_type;
+    } else {
+      // FIXME: wrap_struct_name is used for diagnostic purposes. It has to be unique in the process. Currently, when
+      // invoking Data_Type<T>::bind() in different DLLs on Windows, they use the same name, which confuses. Also,
+      // rb_class2name may contain UTF-8 characters, such as "\u227A". When rb_check_typeddata fails, Ruby will print
+      // an error message containing the ASCII-encoded string "\xE2\x89\xBA".
+      rb_data_type_ = new rb_data_type_t();
+      rb_data_type_->wrap_struct_name = strdup(Rice::detail::protect(rb_class2name, klass_));
+      rb_data_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
+      rb_data_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
+      rb_data_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
+      rb_data_type_->data = nullptr;
+      rb_data_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
 
-    if constexpr (!std::is_void_v<Base_T>)
-    {
-      rb_data_type_->parent = Data_Type<Base_T>::ruby_data_type();
+      if constexpr (!std::is_void_v<Base_T>)
+      {
+        rb_data_type_->parent = Data_Type<Base_T>::ruby_data_type();
+      }
     }
 
     auto instances = unbound_instances();
@@ -91,7 +99,7 @@ namespace Rice
       klass_ = Qnil;
     }
 
-    // There could be objects floating around using the existing rb_type so 
+    // There could be objects floating around using the existing rb_type so
     // do not delete it. This is of course a memory leak.
     rb_data_type_ = nullptr;
   }
@@ -162,7 +170,7 @@ namespace Rice
     // Otherwise if a user calls #dup or #clone an error will occur because the newly cloned Ruby
     // object will have a NULL ptr because the C++ object is never copied. This also prevents having
     // very unlike Ruby code of:
-    // 
+    //
     //    my_object_copy = MyObject.new(my_ojbect_original).
 
     if constexpr (Constructor_T::isCopyConstructor())
@@ -301,7 +309,6 @@ namespace Rice
   inline Data_Type<T> define_class(char const* name)
   {
     std::string klassName(name);
-
     if (Rice::Data_Type<T>::check_defined(klassName))
     {
       return Data_Type<T>();
@@ -311,6 +318,19 @@ namespace Rice
     Class klass = define_class(name, superKlass);
     klass.undef_creation_funcs();
     return Data_Type<T>::template bind<Base_T>(klass);
+  }
+
+  template<typename T, typename Base_T>
+  Data_Type<T> declare_class_under(Object parent, char const* name, rb_data_type_t *data_type)
+  {
+    Identifier id(name);
+    if (Rice::Data_Type<T>::check_defined(id.str(), parent))
+    {
+      return Data_Type<T>();
+    }
+
+    Class klass = parent.const_get(id).value();
+    return Data_Type<T>::template bind<Base_T>(klass, data_type);
   }
 
   template<typename T>
@@ -358,11 +378,11 @@ namespace Rice
     if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
     {
       // This seems super hacky - must be a better way?
-      constexpr bool checkWriteAccess = !std::is_reference_v<Attr_T> && 
+      constexpr bool checkWriteAccess = !std::is_reference_v<Attr_T> &&
                                         !std::is_pointer_v<Attr_T> &&
                                         !std::is_fundamental_v<Attr_T> &&
                                         !std::is_enum_v<Attr_T>;
-      
+
       if constexpr (std::is_const_v<Attr_T>)
       {
         throw std::runtime_error("Cannot define attribute writer for a const attribute: " + name);
