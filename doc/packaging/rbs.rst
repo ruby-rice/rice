@@ -4,7 +4,7 @@ RBS Signature Files
 ===================
 Ruby 3.0 added support for signature files, known as RBS files. `RBS <https://github.com/ruby/rbs>`_ is a language that describes the structure of a Ruby program including its type information.
 
-Rice of course knows a lot about your extension's types! Starting with Rice 4.7, this information is available to Ruby via the :ref:`introspection_api` when it is :ref:`enabled <introspection_enable>`.
+Rice of course knows a lot about your extension's types! Starting with Rice 4.7, this information is available to Ruby via the :ref:`ruby_api` when it is :ref:`enabled <introspection_enable>`.
 
 Generating RBS Files
 --------------------

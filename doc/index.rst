@@ -11,7 +11,7 @@ Rice - Ruby Interface for C++
   bindings
   stl
   cpp_api
-  introspection_api
+  ruby_api
   packaging
   migration
   why_rice
