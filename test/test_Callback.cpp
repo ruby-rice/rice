@@ -20,7 +20,7 @@ TEARDOWN(Callback)
 
 namespace
 {
-  using Callback_T = char*(*)(int, double, bool, char*);
+  using Callback_T = char*(*)(int, double, bool, char*, int&);
   Callback_T globalCallback;
 
   void registerCallback(Callback_T callback)
@@ -28,11 +28,11 @@ namespace
     globalCallback = callback;
   }
 
-  char* triggerCallback(int anInt, double aDouble, bool aBool, char* aString)
+  char* triggerCallback(int anInt, double aDouble, bool aBool, char* aString, int& intRef)
   {
     if (globalCallback)
     {
-      return globalCallback(anInt, aDouble, aBool, aString);
+      return globalCallback(anInt, aDouble, aBool, aString, intRef);
     }
     throw std::runtime_error("Callback has not been registered");
   }
@@ -41,13 +41,12 @@ namespace
 TESTCASE(LambdaCallBack)
 {
   Module m = define_module("TestingLambda");
-  m.define_module_function("register_callback", registerCallback).
-    define_module_function("trigger_callback", triggerCallback);
+  m.define_module_function("register_callback", registerCallback);
 
   ASSERT_EQUAL(globalCallback, nullptr);
 
-  std::string code = R"(callback = lambda do |an_int, a_double, a_bool, a_string|
-                                     values = [an_int, a_double, a_bool, a_string]
+  std::string code = R"(callback = lambda do |an_int, a_double, a_bool, a_string, an_intref|
+                                     values = [an_int, a_double, a_bool, a_string, an_intref]
                                      values.map {|value| value.to_s}.join(" - ")
                                    end
                         register_callback(callback))";
@@ -55,8 +54,9 @@ TESTCASE(LambdaCallBack)
   m.module_eval(code);
   ASSERT((globalCallback != nullptr));
 
-  String result = m.call("trigger_callback", 1, 2, true, "hello");
-  ASSERT_EQUAL("1 - 2.0 - true - hello", result.c_str());
+  int ref = 4;
+  char* result = triggerCallback(1, 2, true, "hello", ref);
+  ASSERT_EQUAL("1 - 2.0 - true - hello - 4", result);
 }
 
 TESTCASE(BlockCallBack)
@@ -65,15 +65,15 @@ TESTCASE(BlockCallBack)
   m.define_module_function("register_callback", registerCallback).
     define_module_function("trigger_callback", triggerCallback);
 
-  std::string code = R"(register_callback do |an_int, a_double, a_bool, a_string|
-                          values = [an_int, a_double, a_bool, a_string]
+  std::string code = R"(register_callback do |an_int, a_double, a_bool, a_string, an_intref|
+                          values = [an_int, a_double, a_bool, a_string, an_intref]
                           values.map {|value| value.to_s}.join(" - ")
                         end)";
 
   m.module_eval(code);
 
-  String result = m.call("trigger_callback", 4, 5.5, false, "Hello block");
-  ASSERT_EQUAL("4 - 5.5 - false - Hello block", result.c_str());
+  String result = m.call("trigger_callback", 4, 5.5, false, "Hello block", 8);
+  ASSERT_EQUAL("4 - 5.5 - false - Hello block - 8", result.c_str());
 }
 
 TESTCASE(ProcCallBack)
@@ -82,16 +82,17 @@ TESTCASE(ProcCallBack)
   m.define_module_function("register_callback", registerCallback).
     define_module_function("trigger_callback", triggerCallback);
 
-  std::string code = R"(callback = Proc.new do |an_int, a_double, a_bool, a_string|
-                                      values = [an_int, a_double, a_bool, a_string]
+  std::string code = R"(callback = Proc.new do |an_int, a_double, a_bool, a_string, an_intref|
+                                      values = [an_int, a_double, a_bool, a_string, an_intref]
                                       values.map {|value| value.to_s}.join(" - ")
                                    end
                         register_callback(callback))";
 
   m.module_eval(code);
 
-  String result = m.call("trigger_callback", 8, 4.4, true, "Hello proc");
-  ASSERT_EQUAL("8 - 4.4 - true - Hello proc", result.c_str());
+  int ref = 9;
+  String result = m.call("trigger_callback", 8, 4.4, true, "Hello proc", ref);
+  ASSERT_EQUAL("8 - 4.4 - true - Hello proc - 9", result.c_str());
 }
 
 TESTCASE(MethodCallBack)
@@ -100,16 +101,16 @@ TESTCASE(MethodCallBack)
   m.define_module_function("register_callback", registerCallback).
     define_module_function("trigger_callback", triggerCallback);
 
-  std::string code = R"(def self.callback(an_int, a_double, a_bool, a_string)
-                          values = [an_int, a_double, a_bool, a_string]
+  std::string code = R"(def self.callback(an_int, a_double, a_bool, a_string, an_intref)
+                          values = [an_int, a_double, a_bool, a_string, an_intref]
                           values.map {|value| value.to_s}.join(" - ")
                         end
                         register_callback(method(:callback).to_proc))";
 
   m.module_eval(code);
 
-  String result = m.call("trigger_callback", 11.1, 22.9, true, "Hello method");
-  ASSERT_EQUAL("11 - 22.9 - true - Hello method", result.c_str());
+  String result = m.call("trigger_callback", 11.1, 22.9, true, "Hello method", 17.2);
+  ASSERT_EQUAL("11 - 22.9 - true - Hello method - 17", result.c_str());
 }
 
 namespace
