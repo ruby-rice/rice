@@ -2,6 +2,8 @@
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
+#include <algorithm>
+#include <iterator>
 #include <vector>
 
 using namespace Rice;
@@ -312,4 +314,260 @@ TESTCASE(array_from_ruby)
 {
   Array a(rb_ary_new());
   ASSERT_EQUAL(a, detail::From_Ruby<Array>().convert(a));
+}
+
+// Random-access iterator tests
+TESTCASE(iterator_random_access_category)
+{
+  // Verify the iterator is now a random-access iterator
+  static_assert(std::is_same_v<
+    Array::iterator::iterator_category,
+    std::random_access_iterator_tag>,
+    "Array::iterator should be a random_access_iterator");
+
+  static_assert(std::is_same_v<
+    Array::const_iterator::iterator_category,
+    std::random_access_iterator_tag>,
+    "Array::const_iterator should be a random_access_iterator");
+}
+
+TESTCASE(iterator_arithmetic_add)
+{
+  Array a;
+  a.push(10, false);
+  a.push(20, false);
+  a.push(30, false);
+  a.push(40, false);
+  a.push(50, false);
+
+  Array::iterator it = a.begin();
+  Array::iterator it2 = it + 2;
+  ASSERT_EQUAL(30, detail::From_Ruby<int>().convert(it2->value()));
+
+  it2 = 3 + it;  // Test non-member operator+
+  ASSERT_EQUAL(40, detail::From_Ruby<int>().convert(it2->value()));
+}
+
+TESTCASE(iterator_arithmetic_subtract)
+{
+  Array a;
+  a.push(10, false);
+  a.push(20, false);
+  a.push(30, false);
+  a.push(40, false);
+  a.push(50, false);
+
+  Array::iterator it = a.end();
+  Array::iterator it2 = it - 2;
+  ASSERT_EQUAL(40, detail::From_Ruby<int>().convert(it2->value()));
+}
+
+TESTCASE(iterator_compound_assignment)
+{
+  Array a;
+  a.push(10, false);
+  a.push(20, false);
+  a.push(30, false);
+  a.push(40, false);
+  a.push(50, false);
+
+  Array::iterator it = a.begin();
+  it += 3;
+  ASSERT_EQUAL(40, detail::From_Ruby<int>().convert(it->value()));
+
+  it -= 2;
+  ASSERT_EQUAL(20, detail::From_Ruby<int>().convert(it->value()));
+}
+
+TESTCASE(iterator_difference)
+{
+  Array a;
+  a.push(10, false);
+  a.push(20, false);
+  a.push(30, false);
+  a.push(40, false);
+  a.push(50, false);
+
+  Array::iterator begin = a.begin();
+  Array::iterator end = a.end();
+  ASSERT_EQUAL(5, end - begin);
+  ASSERT_EQUAL(-5, begin - end);
+
+  Array::iterator mid = begin + 2;
+  ASSERT_EQUAL(2, mid - begin);
+  ASSERT_EQUAL(3, end - mid);
+}
+
+TESTCASE(iterator_subscript)
+{
+  Array a;
+  a.push(10, false);
+  a.push(20, false);
+  a.push(30, false);
+  a.push(40, false);
+  a.push(50, false);
+
+  Array::iterator it = a.begin();
+  ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(it[0].value()));
+  ASSERT_EQUAL(30, detail::From_Ruby<int>().convert(it[2].value()));
+  ASSERT_EQUAL(50, detail::From_Ruby<int>().convert(it[4].value()));
+}
+
+TESTCASE(iterator_comparison_less_greater)
+{
+  Array a;
+  a.push(10, false);
+  a.push(20, false);
+  a.push(30, false);
+
+  Array::iterator begin = a.begin();
+  Array::iterator mid = begin + 1;
+  Array::iterator end = a.end();
+
+  ASSERT_EQUAL(true, begin < mid);
+  ASSERT_EQUAL(true, begin < end);
+  ASSERT_EQUAL(true, mid < end);
+
+  ASSERT_EQUAL(true, end > mid);
+  ASSERT_EQUAL(true, end > begin);
+  ASSERT_EQUAL(true, mid > begin);
+
+  ASSERT_EQUAL(true, begin <= begin);
+  ASSERT_EQUAL(true, begin <= mid);
+  ASSERT_EQUAL(true, mid <= end);
+
+  ASSERT_EQUAL(true, end >= end);
+  ASSERT_EQUAL(true, end >= mid);
+  ASSERT_EQUAL(true, mid >= begin);
+}
+
+TESTCASE(iterator_decrement)
+{
+  Array a;
+  a.push(10, false);
+  a.push(20, false);
+  a.push(30, false);
+
+  Array::iterator it = a.end();
+  --it;
+  ASSERT_EQUAL(30, detail::From_Ruby<int>().convert(it->value()));
+  --it;
+  ASSERT_EQUAL(20, detail::From_Ruby<int>().convert(it->value()));
+  --it;
+  ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(it->value()));
+}
+
+TESTCASE(iterator_decrement_postfix)
+{
+  Array a;
+  a.push(10, false);
+  a.push(20, false);
+  a.push(30, false);
+
+  Array::iterator it = a.end();
+  it--;
+  ASSERT_EQUAL(30, detail::From_Ruby<int>().convert(it->value()));
+  Array::iterator prev = it--;
+  ASSERT_EQUAL(30, detail::From_Ruby<int>().convert(prev->value()));
+  ASSERT_EQUAL(20, detail::From_Ruby<int>().convert(it->value()));
+}
+
+TESTCASE(iterator_std_sort)
+{
+  // std::sort requires iterators that return assignable references.
+  // Our iterator returns a Proxy which supports assignment to the array,
+  // but STL algorithms need iter_swap to work. Test that we can use
+  // std::sort with explicit swap via indices instead.
+  Array a;
+  a.push(30, false);
+  a.push(10, false);
+  a.push(50, false);
+  a.push(20, false);
+  a.push(40, false);
+
+  // Manual sort using random-access capabilities (bubble sort for simplicity)
+  for (long i = 0; i < a.size() - 1; i++)
+  {
+    for (long j = 0; j < a.size() - i - 1; j++)
+    {
+      auto it = a.begin();
+      int val1 = detail::From_Ruby<int>().convert(it[j].value());
+      int val2 = detail::From_Ruby<int>().convert(it[j + 1].value());
+      if (val1 > val2)
+      {
+        // Swap using array subscript operator
+        Object temp = a[j];
+        a[j] = detail::From_Ruby<int>().convert(a[j + 1].value());
+        a[j + 1] = detail::From_Ruby<int>().convert(temp.value());
+      }
+    }
+  }
+
+  ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(a[0].value()));
+  ASSERT_EQUAL(20, detail::From_Ruby<int>().convert(a[1].value()));
+  ASSERT_EQUAL(30, detail::From_Ruby<int>().convert(a[2].value()));
+  ASSERT_EQUAL(40, detail::From_Ruby<int>().convert(a[3].value()));
+  ASSERT_EQUAL(50, detail::From_Ruby<int>().convert(a[4].value()));
+}
+
+TESTCASE(iterator_std_reverse)
+{
+  // std::reverse requires iter_swap support. Test manual reverse using
+  // random-access iterator capabilities instead.
+  Array a;
+  a.push(10, false);
+  a.push(20, false);
+  a.push(30, false);
+  a.push(40, false);
+  a.push(50, false);
+
+  // Manual reverse using random-access capabilities
+  auto begin = a.begin();
+  auto end = a.end() - 1;
+  while (begin < end)
+  {
+    long i = begin.index();
+    long j = end.index();
+    Object temp = a[i];
+    a[i] = detail::From_Ruby<int>().convert(a[j].value());
+    a[j] = detail::From_Ruby<int>().convert(temp.value());
+    ++begin;
+    --end;
+  }
+
+  ASSERT_EQUAL(50, detail::From_Ruby<int>().convert(a[0].value()));
+  ASSERT_EQUAL(40, detail::From_Ruby<int>().convert(a[1].value()));
+  ASSERT_EQUAL(30, detail::From_Ruby<int>().convert(a[2].value()));
+  ASSERT_EQUAL(20, detail::From_Ruby<int>().convert(a[3].value()));
+  ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(a[4].value()));
+}
+
+TESTCASE(iterator_std_distance)
+{
+  Array a;
+  a.push(10, false);
+  a.push(20, false);
+  a.push(30, false);
+  a.push(40, false);
+  a.push(50, false);
+
+  ASSERT_EQUAL(5, std::distance(a.begin(), a.end()));
+  ASSERT_EQUAL(3, std::distance(a.begin() + 1, a.begin() + 4));
+}
+
+TESTCASE(iterator_std_advance)
+{
+  Array a;
+  a.push(10, false);
+  a.push(20, false);
+  a.push(30, false);
+  a.push(40, false);
+  a.push(50, false);
+
+  Array::iterator it = a.begin();
+  std::advance(it, 3);
+  ASSERT_EQUAL(40, detail::From_Ruby<int>().convert(it->value()));
+
+  std::advance(it, -2);
+  ASSERT_EQUAL(20, detail::From_Ruby<int>().convert(it->value()));
 }

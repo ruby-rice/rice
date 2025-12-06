@@ -186,7 +186,7 @@ namespace Rice
   }
 
   template<typename Array_Ptr_T, typename Value_T>
-  inline Value_T Array::Iterator<Array_Ptr_T, Value_T>::operator*()
+  inline Value_T Array::Iterator<Array_Ptr_T, Value_T>::operator*() const
   {
     return (*array_)[index_];
   }
@@ -210,6 +210,99 @@ namespace Rice
   inline bool Array::Iterator<Array_Ptr_T, Value_T>::operator!=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const
   {
     return !(*this == rhs);
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  template<typename Array_Ptr_T_, typename Value_T_>
+  inline bool Array::Iterator<Array_Ptr_T, Value_T>::operator<(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const
+  {
+    return index_ < rhs.index_;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  template<typename Array_Ptr_T_, typename Value_T_>
+  inline bool Array::Iterator<Array_Ptr_T, Value_T>::operator>(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const
+  {
+    return index_ > rhs.index_;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  template<typename Array_Ptr_T_, typename Value_T_>
+  inline bool Array::Iterator<Array_Ptr_T, Value_T>::operator<=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const
+  {
+    return index_ <= rhs.index_;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  template<typename Array_Ptr_T_, typename Value_T_>
+  inline bool Array::Iterator<Array_Ptr_T, Value_T>::operator>=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const
+  {
+    return index_ >= rhs.index_;
+  }
+
+  // Bidirectional iterator operations
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T>& Array::Iterator<Array_Ptr_T, Value_T>::operator--()
+  {
+    --index_;
+    return *this;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T> Array::Iterator<Array_Ptr_T, Value_T>::operator--(int)
+  {
+    Iterator copy(*this);
+    --(*this);
+    return copy;
+  }
+
+  // Random access iterator operations
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T>& Array::Iterator<Array_Ptr_T, Value_T>::operator+=(difference_type n)
+  {
+    index_ += n;
+    return *this;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T>& Array::Iterator<Array_Ptr_T, Value_T>::operator-=(difference_type n)
+  {
+    index_ -= n;
+    return *this;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T> Array::Iterator<Array_Ptr_T, Value_T>::operator+(difference_type n) const
+  {
+    return Iterator(array_, index_ + n);
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T> Array::Iterator<Array_Ptr_T, Value_T>::operator-(difference_type n) const
+  {
+    return Iterator(array_, index_ - n);
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  inline typename Array::Iterator<Array_Ptr_T, Value_T>::difference_type
+  Array::Iterator<Array_Ptr_T, Value_T>::operator-(Iterator const& rhs) const
+  {
+    return index_ - rhs.index_;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Value_T Array::Iterator<Array_Ptr_T, Value_T>::operator[](difference_type n) const
+  {
+    return (*array_)[index_ + n];
+  }
+
+  // Non-member operator+ (allows n + iterator syntax)
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T> operator+(
+    long n,
+    Array::Iterator<Array_Ptr_T, Value_T> const& it)
+  {
+    return it + n;
   }
 
   template<typename Array_Ptr_T, typename Value_T>
