@@ -42,7 +42,7 @@ namespace Rice::detail
       nativeToFfiMapping[std::type_index(typeid(long))] = &ffi_type_sint64;
     }
     
-    if (std::is_pointer_v<Arg_T>)
+    if constexpr (std::is_pointer_v<Arg_T> || std::is_reference_v<Arg_T>)
     {
       return &ffi_type_pointer;
     }
@@ -63,8 +63,6 @@ namespace Rice::detail
     auto indices = std::make_index_sequence<sizeof...(Parameter_Ts)>{};
     auto helper = [&](auto&&... args)
     {
-      self->callRuby(indices, std::forward<Parameter_Ts>(args)...);
-
       if constexpr (!std::is_void_v<Return_T>)
       {
         *(Return_T*)ret = self->callRuby(indices, std::forward<Parameter_Ts>(args)...);
@@ -136,6 +134,21 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename ...Parameter_Ts>
+  template<typename Parameter_T>
+  Parameter_T NativeCallback<Return_T(*)(Parameter_Ts...)>::extractArg(void* arg)
+  {
+    if constexpr (std::is_reference_v<Parameter_T>)
+    {
+      // We told libffi to pass references as pointers, so arg points to the pointer
+      return static_cast<Parameter_T>(**reinterpret_cast<std::remove_reference_t<Parameter_T>**>(arg));
+    }
+    else
+    {
+      return *reinterpret_cast<Parameter_T*>(arg);
+    }
+  }
+
+  template<typename Return_T, typename ...Parameter_Ts>
   template<std::size_t... I>
   typename NativeCallback<Return_T(*)(Parameter_Ts...)>::Tuple_T NativeCallback<Return_T(*)(Parameter_Ts...)>::convertArgsToTuple(void* args[], std::index_sequence<I...>&)
   {
@@ -144,7 +157,7 @@ namespace Rice::detail
        the associated From_Ruby<T> template parameter will not. Thus From_Ruby produces non-const values
        which we let the compiler convert to const values as needed. This works except for
        T** -> const T**, see comment in convertToNative method. */
-    return std::forward_as_tuple(*(Parameter_Ts*)(args[I])...);
+    return std::forward_as_tuple(extractArg<Parameter_Ts>(args[I])...);
   }
 
   template<typename Return_T, typename ...Parameter_Ts>
@@ -180,7 +193,7 @@ namespace Rice::detail
     // First setup description of callback
     if (cif_.bytes == 0)
     {
-      ffi_prep_cif(&cif_, FFI_DEFAULT_ABI, sizeof...(Parameter_Ts), &ffi_type_pointer, args_.data());
+      ffi_prep_cif(&cif_, FFI_DEFAULT_ABI, sizeof...(Parameter_Ts), ffiType<Return_T>(), args_.data());
     }
 
     // Now allocate memory

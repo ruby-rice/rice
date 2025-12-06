@@ -116,6 +116,12 @@ namespace Rice
     template<typename Array_Ptr_T, typename Value_T>
     class Iterator;
 
+    // Friend declaration for non-member operator+
+    template<typename Array_Ptr_T, typename Value_T>
+    friend Iterator<Array_Ptr_T, Value_T> operator+(
+      long n,
+      Iterator<Array_Ptr_T, Value_T> const& it);
+
     long position_of(long index) const;
 
   public:
@@ -164,13 +170,12 @@ namespace Rice
     long index_;
   };
 
-  //! A helper class for implementing iterators for a Array.
-  // TODO: This really should be a random-access iterator.
+  //! A random-access iterator for Array.
   template<typename Array_Ptr_T, typename Value_T>
   class Array::Iterator
   {
   public:
-    using iterator_category = std::forward_iterator_tag;
+    using iterator_category = std::random_access_iterator_tag;
     using value_type = Value_T;
     using difference_type = long;
     using pointer = Object*;
@@ -184,16 +189,42 @@ namespace Rice
     template<typename Array_Ptr_T_, typename Value_T_>
     Iterator& operator=(Iterator<Array_Ptr_T_, Value_T_> const& rhs);
 
+    // Forward iterator operations
     Iterator& operator++();
     Iterator operator++(int);
-    Value_T operator*();
+    Value_T operator*() const;
     Object* operator->();
 
+    // Bidirectional iterator operations
+    Iterator& operator--();
+    Iterator operator--(int);
+
+    // Random access iterator operations
+    Iterator& operator+=(difference_type n);
+    Iterator& operator-=(difference_type n);
+    Iterator operator+(difference_type n) const;
+    Iterator operator-(difference_type n) const;
+    difference_type operator-(Iterator const& rhs) const;
+    Value_T operator[](difference_type n) const;
+
+    // Comparison operators
     template<typename Array_Ptr_T_, typename Value_T_>
     bool operator==(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
 
     template<typename Array_Ptr_T_, typename Value_T_>
     bool operator!=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
+
+    template<typename Array_Ptr_T_, typename Value_T_>
+    bool operator<(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
+
+    template<typename Array_Ptr_T_, typename Value_T_>
+    bool operator>(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
+
+    template<typename Array_Ptr_T_, typename Value_T_>
+    bool operator<=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
+
+    template<typename Array_Ptr_T_, typename Value_T_>
+    bool operator>=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
 
     Array_Ptr_T array() const;
     long index() const;
@@ -204,6 +235,12 @@ namespace Rice
 
     Object tmp_;
   };
+
+  // Non-member operator+ for n + iterator (allows n + iterator syntax)
+  template<typename Array_Ptr_T, typename Value_T>
+  Array::Iterator<Array_Ptr_T, Value_T> operator+(
+    long n,
+    Array::Iterator<Array_Ptr_T, Value_T> const& it);
 } // namespace Rice
 
 #endif // Rice__Array__hpp_

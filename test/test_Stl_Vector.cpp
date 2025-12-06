@@ -282,24 +282,24 @@ TESTCASE(Slice)
 
   Array result = vec.call("[]", 3, 1);
   std::vector<std::int32_t> slice = result.to_vector<int32_t>();
-  ASSERT_EQUAL(1, slice.size());
+  ASSERT_EQUAL(1u, slice.size());
   ASSERT_EQUAL(10, slice[0]);
 
   result = vec.call("[]", 3, 2);
   slice = result.to_vector<int32_t>();
-  ASSERT_EQUAL(2, slice.size());
+  ASSERT_EQUAL(2u, slice.size());
   ASSERT_EQUAL(10, slice[0]);
   ASSERT_EQUAL(11, slice[1]);
 
   result = vec.call("[]", 4, 10);
   slice = result.to_vector<int32_t>();
-  ASSERT_EQUAL(2, slice.size());
+  ASSERT_EQUAL(2u, slice.size());
   ASSERT_EQUAL(11, slice[0]);
   ASSERT_EQUAL(12, slice[1]);
 
   result = vec.call("[]", -1, 2);
   slice = result.to_vector<int32_t>();
-  ASSERT_EQUAL(1, slice.size());
+  ASSERT_EQUAL(1u, slice.size());
   ASSERT_EQUAL(12, slice[0]);
 }
 
@@ -528,7 +528,7 @@ TESTCASE(NotDefaultConstructable)
   ASSERT_EQUAL(Qnil, result.value());
 
   result = vec.call("length");
-  ASSERT_EQUAL(0, detail::From_Ruby<size_t>().convert(result));
+  ASSERT_EQUAL(0u, detail::From_Ruby<size_t>().convert(result));
 }
 
 TESTCASE(NotPrintable)
@@ -594,13 +594,13 @@ TESTCASE(Comparable)
   ASSERT_EQUAL(1u, comparable.value_);
 
   result = vec.call("length");
-  ASSERT_EQUAL(2, detail::From_Ruby<size_t>().convert(result));
+  ASSERT_EQUAL(2u, detail::From_Ruby<size_t>().convert(result));
 
   result = vec.call("include?", Comparable(2));
   ASSERT_EQUAL(Qtrue, result.value());
 
   result = vec.call("index", Comparable(3));
-  ASSERT_EQUAL(1, detail::From_Ruby<size_t>().convert(result.value()));
+  ASSERT_EQUAL(1u, detail::From_Ruby<size_t>().convert(result.value()));
 }
 
 TESTCASE(ComparableEqual)
@@ -689,7 +689,7 @@ TESTCASE(DefaultConstructable)
   ASSERT_EQUAL(Qnil, result.value());
 
   result = vec.call("length");
-  ASSERT_EQUAL(0, detail::From_Ruby<size_t>().convert(result));
+  ASSERT_EQUAL(0u, detail::From_Ruby<size_t>().convert(result));
 }
 
 TESTCASE(Printable)
@@ -873,17 +873,17 @@ TESTCASE(ArrayToVector)
   std::string code = "array_to_vector([7, 9, 1_000_000], [49.0, 78.0, 999.0], %w[one two three])";
   m.module_eval(code);
 
-  ASSERT_EQUAL(3, ints.size());
+  ASSERT_EQUAL(3u, ints.size());
   ASSERT_EQUAL(7, ints[0]);
   ASSERT_EQUAL(9, ints[1]);
   ASSERT_EQUAL(1'000'000, ints[2]);
 
-  ASSERT_EQUAL(3, floats.size());
+  ASSERT_EQUAL(3u, floats.size());
   ASSERT_EQUAL(49.0, floats[0]);
   ASSERT_EQUAL(78.0, floats[1]);
   ASSERT_EQUAL(999.0, floats[2]);
 
-  ASSERT_EQUAL(3, strings.size());
+  ASSERT_EQUAL(3u, strings.size());
   ASSERT_EQUAL("one", strings[0]);
   ASSERT_EQUAL("two", strings[1]);
   ASSERT_EQUAL("three", strings[2]);
@@ -898,17 +898,17 @@ TESTCASE(ArrayToVectorRefs)
   std::string code = "array_to_vector_refs([8, 10, 1_000_001], [50.0, 79.0, 1_000.0], %w[eleven twelve thirteen])";
   m.module_eval(code);
 
-  ASSERT_EQUAL(3, ints.size());
+  ASSERT_EQUAL(3u, ints.size());
   ASSERT_EQUAL(8, ints[0]);
   ASSERT_EQUAL(10, ints[1]);
   ASSERT_EQUAL(1'000'001, ints[2]);
 
-  ASSERT_EQUAL(3, floats.size());
+  ASSERT_EQUAL(3u, floats.size());
   ASSERT_EQUAL(50.0, floats[0]);
   ASSERT_EQUAL(79.0, floats[1]);
   ASSERT_EQUAL(1'000.0, floats[2]);
 
-  ASSERT_EQUAL(3, strings.size());
+  ASSERT_EQUAL(3u, strings.size());
   ASSERT_EQUAL("eleven", strings[0]);
   ASSERT_EQUAL("twelve", strings[1]);
   ASSERT_EQUAL("thirteen", strings[2]);
@@ -923,17 +923,17 @@ TESTCASE(ArrayToVectorPointers)
   std::string code = "array_to_vector_pointers([9, 11, 1_000_002], [51.0, 80.0, 1_001.0], %w[fourteen fifteen sixteen])";
   m.module_eval(code);
 
-  ASSERT_EQUAL(3, ints.size());
+  ASSERT_EQUAL(3u, ints.size());
   ASSERT_EQUAL(9, ints[0]);
   ASSERT_EQUAL(11, ints[1]);
   ASSERT_EQUAL(1'000'002, ints[2]);
 
-  ASSERT_EQUAL(3, floats.size());
+  ASSERT_EQUAL(3u, floats.size());
   ASSERT_EQUAL(51.0, floats[0]);
   ASSERT_EQUAL(80.0, floats[1]);
   ASSERT_EQUAL(1'001.0, floats[2]);
 
-  ASSERT_EQUAL(3, strings.size());
+  ASSERT_EQUAL(3u, strings.size());
   ASSERT_EQUAL("fourteen", strings[0]);
   ASSERT_EQUAL("fifteen", strings[1]);
   ASSERT_EQUAL("sixteen", strings[2]);
@@ -1039,7 +1039,7 @@ TESTCASE(Iterate)
                                   end)";
 
   Array result = m.module_eval(code);
-  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL(3u, result.size());
   ASSERT_EQUAL(10.0, detail::From_Ruby<double>().convert(result[0].value()));
   ASSERT_EQUAL(12.0, detail::From_Ruby<double>().convert(result[1].value()));
   ASSERT_EQUAL(14.0, detail::From_Ruby<double>().convert(result[2].value()));
@@ -1058,7 +1058,7 @@ TESTCASE(ToEnumPointer)
 
   Array result = m.module_eval(code);
 
-  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL(3u, result.size());
   ASSERT_EQUAL("one_updated", detail::From_Ruby<std::string>().convert(result[0].value()));
   ASSERT_EQUAL("two_updated", detail::From_Ruby<std::string>().convert(result[1].value()));
   ASSERT_EQUAL("three_updated", detail::From_Ruby<std::string>().convert(result[2].value()));
@@ -1077,7 +1077,7 @@ TESTCASE(ToEnumReference)
 
   Array result = m.module_eval(code);
 
-  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL(3u, result.size());
   ASSERT_EQUAL("one_updated", detail::From_Ruby<std::string>().convert(result[0].value()));
   ASSERT_EQUAL("two_updated", detail::From_Ruby<std::string>().convert(result[1].value()));
   ASSERT_EQUAL("three_updated", detail::From_Ruby<std::string>().convert(result[2].value()));
@@ -1096,7 +1096,7 @@ TESTCASE(ToEnumValue)
 
   Array result = m.module_eval(code);
 
-  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL(3u, result.size());
   ASSERT_EQUAL("one_updated", detail::From_Ruby<std::string>().convert(result[0].value()));
   ASSERT_EQUAL("two_updated", detail::From_Ruby<std::string>().convert(result[1].value()));
   ASSERT_EQUAL("three_updated", detail::From_Ruby<std::string>().convert(result[2].value()));
@@ -1135,7 +1135,7 @@ TESTCASE(StringPointerVector)
 
   Module m(rb_mKernel);
   Data_Object<std::vector<std::string*>> vec = m.call("vector_of_string_pointers");
-  ASSERT_EQUAL(2, vec->size());
+  ASSERT_EQUAL(2u, vec->size());
 
   std::string expected("Hello");
   std::string* actual = (*vec)[0];
@@ -1146,7 +1146,7 @@ TESTCASE(StringPointerVector)
                         inner_buffer = Rice::Buffer≺string≻.new(outer_buffer[1])
                         inner_buffer.to_ary(1))";
   Array array = m.module_eval(code);
-  ASSERT_EQUAL(1, array.size());
+  ASSERT_EQUAL(1u, array.size());
   ASSERT_EQUAL("World", detail::From_Ruby<std::string>().convert(array[0].value()).c_str());
 }
 
@@ -1180,7 +1180,7 @@ TESTCASE(MyClass2PointerVector)
 
   Module m(rb_mKernel);
   Data_Object<std::vector<MyClass2*>> result = m.call("vector_of_myclass2_pointers");
-  ASSERT_EQUAL(1, result->size());
+  ASSERT_EQUAL(1u, result->size());
 
  MyClass2* pMyClass = (*result)[0];
  ASSERT_EQUAL("Hello MyClass2", pMyClass->name);
