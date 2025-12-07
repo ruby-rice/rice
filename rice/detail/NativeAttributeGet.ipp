@@ -1,8 +1,7 @@
 #include <array>
 #include <algorithm>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Attribute_T>
   template<typename...Arg_Ts>
   void NativeAttributeGet<Attribute_T>::define(VALUE klass, std::string name, Attribute_T attribute, Arg_Ts&...args)
@@ -119,4 +118,4 @@ namespace Rice::detail
       return typeMapper.rubyKlass();
     }
   }
-}
+RICE_DETAIL_END_NAMESPACE

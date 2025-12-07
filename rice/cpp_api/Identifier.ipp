@@ -1,5 +1,4 @@
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Identifier::Identifier(ID id) : id_(id)
   {
   }
@@ -28,4 +27,4 @@ namespace Rice
   {
     return ID2SYM(id_);
   }
-}
+RICE_END_NAMESPACE

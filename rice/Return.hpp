@@ -1,8 +1,7 @@
 #ifndef Rice__Return__hpp_
 #define Rice__Return__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! Helper for defining Return argument of a method
 
   class Return: public Arg
@@ -18,6 +17,6 @@ namespace Rice
   class ReturnBuffer : public Return
   {
   };
-} // Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Return__hpp_

@@ -4,8 +4,7 @@
 #include <iterator>
 #include <type_traits>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A wrapper for the ruby Hash class.
   //! This class provides a C++-style interface to ruby's Hash class and
   //! its associated rb_hash_* functions.
@@ -188,7 +187,7 @@ namespace Rice
 
     mutable typename std::remove_const<Value_T>::type tmp_;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Hash__hpp_
 

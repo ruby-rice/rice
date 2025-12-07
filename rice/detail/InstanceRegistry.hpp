@@ -3,8 +3,7 @@
 
 #include <map>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class InstanceRegistry
   {
   public:
@@ -25,7 +24,7 @@ namespace Rice::detail
   private:
     std::map<void*, VALUE> objectMap_;
   };
-} // namespace Rice::detail
+RICE_DETAIL_END_NAMESPACE
 
 #endif // Rice__detail__InstanceRegistry__hpp_
 

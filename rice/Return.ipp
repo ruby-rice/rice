@@ -1,7 +1,6 @@
 #include <any>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Return::Return(): Arg("Return")
   {
   }
@@ -29,4 +28,4 @@ namespace Rice
     Arg::takeOwnership();
     return *this;
   }
-}  // Rice
+RICE_END_NAMESPACE

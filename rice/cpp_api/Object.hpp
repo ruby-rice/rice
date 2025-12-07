@@ -6,8 +6,7 @@
 
 #include <iosfwd>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   class Class;
   class String;
   class Array;
@@ -267,6 +266,6 @@ namespace Rice
   extern Object const True;
   extern Object const False;
   extern Object const Undef;
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Object__hpp_

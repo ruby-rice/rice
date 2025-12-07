@@ -6,7 +6,7 @@
 #include <iterator>
 #include <vector>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Array);
 
@@ -76,7 +76,7 @@ TESTCASE(push_no_items)
 TESTCASE(push_one_item)
 {
   Array a;
-  a.push(Rice::True, false);
+  a.push(True, false);
   ASSERT_EQUAL(1, a.size());
   ASSERT_EQUAL(Qtrue, a[0]);
 }

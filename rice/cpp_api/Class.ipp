@@ -1,6 +1,5 @@
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Class::Class(VALUE value) : Module(value)
   {
     detail::protect(rb_check_type, value, (int)T_CLASS);
@@ -71,10 +70,9 @@ namespace Rice
 
     return klass;
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   class To_Ruby<Class>
   {
@@ -113,4 +111,4 @@ namespace Rice::detail
       return Class(value);
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE

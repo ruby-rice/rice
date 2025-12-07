@@ -1,8 +1,7 @@
 #ifndef Rice__Enum__hpp_
 #define Rice__Enum__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   /*!
    *  \example enum/sample_enum.cpp
    */
@@ -59,6 +58,6 @@ namespace Rice
 
   template<typename T>
   Enum<T> define_enum_under(char const* name, Module module );
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Enum__hpp_

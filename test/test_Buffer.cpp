@@ -5,7 +5,7 @@
 #include <limits>
 #include <cmath>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Buffer);
 
@@ -25,10 +25,10 @@ TESTCASE(Char)
 
   Module m = define_module("BufferTesting");
 
-  std::string code = R"(Rice::Buffer≺char≻.new("my string"))";
+  std::string code = R"(RiceTest::Buffer≺char≻.new("my string"))";
   Object result = m.instance_eval(code);
 
-  ASSERT_EQUAL("Rice::Buffer≺char≻", result.class_name().c_str());
+  ASSERT_EQUAL("RiceTest::Buffer≺char≻", result.class_name().c_str());
   ASSERT_EQUAL("my string", String(result.call("bytes")).c_str());
 
   Array array = result.call("to_ary");
@@ -71,7 +71,7 @@ TESTCASE(CharArray)
 
   Module m = define_module("BufferTesting");
 
-  std::string code = R"(Rice::Buffer≺char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  std::string code = R"(RiceTest::Buffer≺char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   Data_Object<Buffer<char>> result = m.instance_eval(code);
   Buffer<char> buffer = std::move(*result);
   char* data = buffer.ptr();
@@ -92,9 +92,9 @@ TESTCASE(ConstChar)
 
   Module m = define_module("BufferTesting");
 
-  std::string code = R"(Rice::Buffer≺char const≻.new("my string"))";
+  std::string code = R"(RiceTest::Buffer≺char const≻.new("my string"))";
   Object object = m.instance_eval(code);
-  ASSERT_EQUAL("Rice::Buffer≺char const≻", object.class_name().c_str());
+  ASSERT_EQUAL("RiceTest::Buffer≺char const≻", object.class_name().c_str());
 
   String bytes = object.call("bytes");
   ASSERT_EQUAL(std::string("my string"), bytes.str());
@@ -116,7 +116,7 @@ TESTCASE(signed_char_pointer)
   define_buffer<signed char>();
   Module m = define_module("Testing");
 
-  std::string code = R"(Rice::Buffer≺signed char≻.new("my string"))";
+  std::string code = R"(RiceTest::Buffer≺signed char≻.new("my string"))";
   Data_Object<Buffer<signed char>> result = m.instance_eval(code);
   Buffer<signed char> buffer = std::move(*result);
   signed char* data = buffer.ptr();
@@ -124,7 +124,7 @@ TESTCASE(signed_char_pointer)
   signed char* expected = (signed char*)"my string";
   ASSERT_EQUAL(*expected, *data);
 
-  code = R"(Rice::Buffer≺signed char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  code = R"(RiceTest::Buffer≺signed char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   result = m.instance_eval(code);
   buffer = std::move(*result);
   data = buffer.ptr();
@@ -144,7 +144,7 @@ TESTCASE(char_pointer_const)
   define_buffer<char>();
   Module m = define_module("Testing");
 
-  std::string code = R"(Rice::Buffer≺char≻.new("my string"))";
+  std::string code = R"(RiceTest::Buffer≺char≻.new("my string"))";
 
   Data_Object<Buffer<char>> result = m.instance_eval(code);
   Buffer<char> buffer = std::move(*result);
@@ -153,7 +153,7 @@ TESTCASE(char_pointer_const)
   const char* expected = "my string";
   ASSERT_EQUAL(expected, data);
 
-  code = R"(Rice::Buffer≺char≻.new(""))";
+  code = R"(RiceTest::Buffer≺char≻.new(""))";
   result = m.instance_eval(code);
   buffer = std::move(*result);
   data = buffer.ptr();
@@ -167,7 +167,7 @@ TESTCASE(unsigned_char_pointer)
   define_buffer<unsigned char>();
   Module m = define_module("Testing");
 
-  std::string code = R"(Rice::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  std::string code = R"(RiceTest::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   Data_Object<Buffer<unsigned char>> result = m.instance_eval(code);
   Buffer<unsigned char> buffer = std::move(*result);
   unsigned char* data = buffer.ptr();
@@ -183,7 +183,7 @@ TESTCASE(unsigned_char_pointer)
 
   code = R"(array = [0, 127, 128, 255, 256, -128, -129, -255]
               packed = array.pack("C*")
-              Rice::Buffer≺unsigned char≻.new(packed))";
+              RiceTest::Buffer≺unsigned char≻.new(packed))";
   result = m.instance_eval(code);
   buffer = std::move(*result);
   data = buffer.ptr();
@@ -203,7 +203,7 @@ TESTCASE(float_array_array)
   define_buffer<float*>();
   Module m = define_module("Testing");
 
-  std::string code = R"(Rice::Buffer≺float∗≻.new([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]]))";
+  std::string code = R"(RiceTest::Buffer≺float∗≻.new([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]]))";
   Data_Object<Buffer<float*>> result = m.instance_eval(code);
   Buffer<float*> buffer = std::move(*result);
 
@@ -227,7 +227,7 @@ TESTCASE(wrong_type)
   define_buffer<float*>();
   Module m = define_module("Testing");
 
-  std::string code = R"(Rice::Buffer≺float∗≻.new([[4, "bad"], [2, 1]]))";
+  std::string code = R"(RiceTest::Buffer≺float∗≻.new([[4, "bad"], [2, 1]]))";
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -258,15 +258,15 @@ TESTCASE(pointer_of_doubles)
     define_module_function("speeds", &speeds, ReturnBuffer()).
     define_module_function("speeds_ptr", &speedsPtr, ReturnBuffer());
 
-  std::string code = R"(buffer = Rice::Buffer≺double≻.new(speeds, 3)
+  std::string code = R"(buffer = RiceTest::Buffer≺double≻.new(speeds, 3)
                         buffer[2])";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(66.0, detail::From_Ruby<double>().convert(result));
 
-  code = R"(buffer_outer = Rice::Buffer≺double∗≻.new(speeds_ptr, 3)
+  code = R"(buffer_outer = RiceTest::Buffer≺double∗≻.new(speeds_ptr, 3)
             data = buffer_outer[2]
-            buffer_inner = Rice::Buffer≺double≻.new(data, 1)
+            buffer_inner = RiceTest::Buffer≺double≻.new(data, 1)
             buffer_inner[0])";
 
   result = m.module_eval(code);
@@ -292,21 +292,21 @@ TESTCASE(update_reference)
   Module m = define_module("Testing");
   m.define_module_function("update_reference", &updateRef);
 
-  std::string code = R"(buffer = Rice::Buffer≺int≻.new(0)
+  std::string code = R"(buffer = RiceTest::Buffer≺int≻.new(0)
                         update_reference(buffer.data)
                         buffer.to_ary(1).first)";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(result));
 
-  code = R"(buffer = Rice::Buffer≺int≻.new(0)
+  code = R"(buffer = RiceTest::Buffer≺int≻.new(0)
             update_reference(buffer.data)
             buffer[0])";
 
   result = m.module_eval(code);
   ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(result));
 
-  code = R"(buffer = Rice::Buffer≺int≻.new(0)
+  code = R"(buffer = RiceTest::Buffer≺int≻.new(0)
             update_reference(buffer.data)
             buffer[1])";
 
@@ -323,21 +323,21 @@ TESTCASE(update_ptr)
   Module m = define_module("Testing");
   m.define_module_function("update_pointer", &updatePtr);
 
-  std::string code = R"(buffer = Rice::Buffer≺int≻.new(0)
+  std::string code = R"(buffer = RiceTest::Buffer≺int≻.new(0)
                         update_pointer(buffer.data)
                         buffer.to_ary(1).first)";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result));
 
-  code = R"(buffer = Rice::Buffer≺int≻.new(0)
+  code = R"(buffer = RiceTest::Buffer≺int≻.new(0)
             update_pointer(buffer.data)
             buffer[0])";
 
   result = m.module_eval(code);
   ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result));
 
-  code = R"(buffer = Rice::Buffer≺int≻.new(0)
+  code = R"(buffer = RiceTest::Buffer≺int≻.new(0)
             update_pointer(buffer.data)
             buffer[1])";
 
@@ -353,14 +353,14 @@ TESTCASE(update_buffer)
   define_buffer<int>();
   Module m = define_module("Testing");
 
-  std::string code = R"(buffer = Rice::Buffer≺int≻.new(0)
+  std::string code = R"(buffer = RiceTest::Buffer≺int≻.new(0)
                         buffer[0] = 8
                         buffer[0])";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(8, detail::From_Ruby<int>().convert(result));
 
-  code = R"(buffer = Rice::Buffer≺int≻.new(0)
+  code = R"(buffer = RiceTest::Buffer≺int≻.new(0)
             buffer[1] = 9
             buffer[1])";
 
@@ -377,8 +377,8 @@ TESTCASE(update_buffer_ptr)
 
   Module m = define_module("Testing");
 
-  std::string code = R"(buffer = Rice::Buffer≺int∗≻.new([[0, 1], [2, 3]])
-                        inner = Rice::Buffer≺int≻.new(buffer[1], 2)
+  std::string code = R"(buffer = RiceTest::Buffer≺int∗≻.new([[0, 1], [2, 3]])
+                        inner = RiceTest::Buffer≺int≻.new(buffer[1], 2)
                         inner[1] = 9
                         inner[1])";
 
@@ -391,7 +391,7 @@ TESTCASE(to_s)
   define_buffer<unsigned char>();
   Module m = define_module("Testing");
 
-  std::string code = R"(buffer = Rice::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255])
+  std::string code = R"(buffer = RiceTest::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255])
                         buffer.to_s)";
   String result = m.instance_eval(code);
   ASSERT_EQUAL("Buffer<type: unsigned char*, size: 8>", result.c_str());
@@ -460,7 +460,7 @@ TESTCASE(array_of_objects)
     define_attr("id", &MyClassBuf::id);
 
   std::string code = R"(array = [MyClassBuf.new(0), MyClassBuf.new(1)]
-                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(array)
+                        buffer = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(array)
                         buffer[1].id)";
 
   Module m = define_module("Testing");
@@ -477,7 +477,7 @@ TESTCASE(update_array_of_objects)
     define_attr("id", &MyClassBuf::id);
 
   std::string code = R"(array = [MyClassBuf.new(0), MyClassBuf.new(1)]
-                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(array)
+                        buffer = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(array)
                         buffer[1] = MyClassBuf.new(8)
                         buffer[1].id)";
 
@@ -499,13 +499,13 @@ TESTCASE(pointer_of_objects)
     define_constructor(Constructor<MyClassBuf, int>()).
     define_attr("id", &MyClassBuf::id);
 
-  std::string code = R"(buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(class_buffs, 3)
+  std::string code = R"(buffer = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(class_buffs, 3)
                         buffer[1].id)";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(result));
 
-  code = R"(buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(class_buffs_ptr, 3)
+  code = R"(buffer = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(class_buffs_ptr, 3)
             buffer[2].id)";
 
   result = m.module_eval(code);
@@ -524,15 +524,15 @@ TESTCASE(update_pointer_of_objects)
     define_constructor(Constructor<MyClassBuf, int>()).
     define_attr("id", &MyClassBuf::id);
 
-  std::string code = R"(buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(class_buffs_ptr, 3)
-                        inner = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(buffer[2], 1)
+  std::string code = R"(buffer = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(class_buffs_ptr, 3)
+                        inner = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(buffer[2], 1)
                         inner[0] = MyClassBuf.new(7)
                         inner[0].id)";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(7, detail::From_Ruby<int>().convert(result));
 
-  code = R"(buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(class_buffs_ptr, 3)
+  code = R"(buffer = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(class_buffs_ptr, 3)
             buffer[2] = MyClassBuf.new(9)
             buffer[2].id)";
 
@@ -549,7 +549,7 @@ TESTCASE(array_of_const_objects)
     define_attr("id", &MyClassBuf::id);
 
   std::string code = R"(array = [MyClassBuf.new(0), MyClassBuf.new(1)]
-                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
+                        buffer = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
                         buffer[1].id)";
 
   Module m = define_module("Testing");
@@ -557,7 +557,7 @@ TESTCASE(array_of_const_objects)
   ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result));
 
   code = R"(array = [MyClassBuf.new(0), MyClassBuf.new(1)]
-            buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
+            buffer = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
             my_class = buffer[1]
             my_class.id)";
 
@@ -574,7 +574,7 @@ TESTCASE(array_of_objects_ptr)
     define_attr("id", &MyClassBuf::id);
 
   std::string code = R"(array = [MyClassBuf.new(0), MyClassBuf.new(1)]
-                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
+                        buffer = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
                         buffer[1].id)";
 
   Module m = define_module("Testing");
@@ -582,7 +582,7 @@ TESTCASE(array_of_objects_ptr)
   ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result));
 
   code = R"(array = [MyClassBuf.new(0), MyClassBuf.new(1)]
-            buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
+            buffer = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
             my_class = buffer[1]
             my_class.id)";
 
@@ -601,14 +601,14 @@ TESTCASE(pass_objects)
     define_attr("id", &MyClassBuf::id);
 
   std::string code = R"(array = [MyClassBuf.new(5), MyClassBuf.new(7)]
-                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(array)
+                        buffer = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClassBuf≻.new(array)
                         sum_ids(buffer.data, buffer.size))";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(12, detail::From_Ruby<int>().convert(result));
 
   code = R"(array = [MyClassBuf.new(5), MyClassBuf.new(7)]
-            buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
+            buffer = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClassBuf∗≻.new(array)
             sum_ids_ptr(buffer.data, buffer.size))";
 
   result = m.module_eval(code);

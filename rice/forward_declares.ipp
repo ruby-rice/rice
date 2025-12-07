@@ -1,8 +1,7 @@
 #ifndef Rice__Forward_Declares__ipp_
 #define Rice__Forward_Declares__ipp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   // These methods cannot be defined where they are declared due to circular dependencies
   inline Class Object::class_of() const
   {
@@ -84,5 +83,6 @@ namespace Rice
     const VALUE argv[] = { s.value() };
     return detail::protect(rb_mod_module_eval, 1, &argv[0], this->value());
   }
-}
+RICE_END_NAMESPACE
+
 #endif // Rice__Forward_Declares__ipp_

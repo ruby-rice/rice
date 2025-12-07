@@ -1,11 +1,11 @@
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 extern "C"
 inline void Init_Native_Registry()
 {
-  Module rb_mRice = define_module("Rice");
+  Module rb_mRice = RICE_DEFINE_MODULE_RICE;
 
-  Rice::define_class_under<detail::NativeRegistry>(rb_mRice, "NativeRegistry").
+  define_class_under<detail::NativeRegistry>(rb_mRice, "NativeRegistry").
     define_method("lookup", [](detail::NativeRegistry& self, VALUE klass) -> Array
     {
       Array result;

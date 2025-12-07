@@ -8,6 +8,9 @@ abort "libffi not found" unless have_libffi
 target_exe = "unittest#{RbConfig::CONFIG['EXEEXT']}"
 $cleanfiles << target_exe
 
+# Test RICE_NAMESPACE feature
+append_cppflags("-DRICE_NAMESPACE=RiceTest")
+
 create_makefile(target_exe) do |conf|
   conf << "\n"
   conf << "#{target_exe}: $(OBJS)"

@@ -4,7 +4,7 @@
 
 #include <vector>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Director);
 
@@ -75,7 +75,7 @@ namespace {
   /**
    * Our Director wrapper of Worker
    */
-  class WorkerDirector : public Worker, public Rice::Director
+  class WorkerDirector : public Worker, public Director
   {
     public:
       WorkerDirector(Object self) : Director(self) { }
@@ -257,7 +257,7 @@ TESTCASE(mix_of_polymorphic_calls_and_inheritance_dont_cause_infinite_loops)
 {
   define_class<CallsSelf>("CallsSelf")
     .define_director<CallsSelfDirector>()
-    .define_constructor(Constructor<CallsSelfDirector, Rice::Object>())
+    .define_constructor(Constructor<CallsSelfDirector, Object>())
     .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
     .define_method("do_it", &CallsSelf::doIt);
 
@@ -278,7 +278,7 @@ TESTCASE(director_class_super_classes_get_type_bound)
 
   define_class<CallsSelf>("CallsSelf")
     .define_director<CallsSelfDirector>()
-    .define_constructor(Constructor<CallsSelfDirector, Rice::Object>())
+    .define_constructor(Constructor<CallsSelfDirector, Object>())
     .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
     .define_method("do_it", &CallsSelf::doIt);
 
@@ -294,7 +294,7 @@ TESTCASE(director_allows_abstract_types_used_as_parameters_pointers)
 
   define_class<CallsSelf>("CallsSelf")
     .define_director<CallsSelfDirector>()
-    .define_constructor(Constructor<CallsSelfDirector, Rice::Object>())
+    .define_constructor(Constructor<CallsSelfDirector, Object>())
     .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
     .define_method("do_it", &CallsSelf::doIt);
 
@@ -314,7 +314,7 @@ TESTCASE(director_allows_abstract_types_used_as_parameters_reference)
 
   define_class<CallsSelf>("CallsSelf")
     .define_director<CallsSelfDirector>()
-    .define_constructor(Constructor<CallsSelfDirector, Rice::Object>())
+    .define_constructor(Constructor<CallsSelfDirector, Object>())
     .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
     .define_method("do_it", &CallsSelf::doIt);
 

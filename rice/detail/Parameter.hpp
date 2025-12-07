@@ -3,8 +3,7 @@
 
 #include <optional>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class ParameterAbstract
   {
   public:
@@ -50,5 +49,5 @@ namespace Rice::detail
     From_Ruby<remove_cv_recursive_t<T>> fromRuby_;
     To_Ruby<remove_cv_recursive_t<T>> toRuby_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 #endif // Rice__detail__Parameter__hpp_

@@ -1,7 +1,6 @@
 #include <string>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<std::string>
   {
@@ -323,4 +322,4 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     std::string converted_;
   };
-}
+RICE_DETAIL_END_NAMESPACE

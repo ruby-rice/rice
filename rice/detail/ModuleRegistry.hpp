@@ -1,8 +1,7 @@
 #ifndef Rice__ModuleRegistry__hpp_
 #define Rice__ModuleRegistry__hpp_
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class ModuleRegistry
   {
   public:
@@ -13,6 +12,6 @@ namespace Rice::detail
   private:
     std::set<VALUE> modules_{};
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 #endif // Rice__ModuleRegistry__hpp_

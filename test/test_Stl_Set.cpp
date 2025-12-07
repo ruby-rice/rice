@@ -5,7 +5,7 @@
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Set);
 
@@ -37,20 +37,20 @@ TESTCASE(Size)
   Module m = define_module("Testing");
   define_set<std::string>("StringSet");
 
-  std::string code = R"(s = Std::StringSet.new
+  std::string code = R"(s = RiceTest::Std::StringSet.new
                         s.size)";
 
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
-  code = R"(s = Std::StringSet.new
+  code = R"(s = RiceTest::Std::StringSet.new
             s << "one" << "two"
             s.size)";
   
   result = m.instance_eval(code);
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
-  code = R"(s = Std::StringSet.new
+  code = R"(s = RiceTest::Std::StringSet.new
             s << "one" << "two"
             s.clear
             s.size)";
@@ -64,7 +64,7 @@ TESTCASE(Add)
   Module m = define_module("Testing");
   define_set<std::string>("StringSet");
 
-  std::string code = R"(set = Std::StringSet.new
+  std::string code = R"(set = RiceTest::Std::StringSet.new
                         set << "one" << "two" << "two" << "three"
                         set)";
 
@@ -86,7 +86,7 @@ TESTCASE(WrongType)
   Module m = define_module("Testing");
   Class c = define_set<std::string>("StringSet");
 
-  std::string code = R"(set = Std::StringSet.new
+  std::string code = R"(set = RiceTest::Std::StringSet.new
                         set << 1
                         set)";
 
@@ -102,13 +102,13 @@ TESTCASE(Empty)
 
   Class c = define_set<std::int32_t>("IntSet");
 
-  std::string code = R"(set = Std::StringSet.new
+  std::string code = R"(set = RiceTest::Std::StringSet.new
                         set.size)";
 
   Object size = m.instance_eval(code);
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(size));
 
-  code = R"(set = Std::StringSet.new
+  code = R"(set = RiceTest::Std::StringSet.new
             set.empty?)";
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
@@ -119,7 +119,7 @@ TESTCASE(ToString)
   Module m = define_module("Testing");
   define_set<std::string>("StringSet");
 
-  std::string code = R"(set = Std::StringSet.new
+  std::string code = R"(set = RiceTest::Std::StringSet.new
                         set.insert("one")
                         set << "two" << "two" << "three"
                         set.to_s)";
@@ -133,7 +133,7 @@ TESTCASE(Include)
   Module m = define_module("Testing");
   define_set<std::string>("StringSet");
 
-  std::string code = R"(set = Std::StringSet.new
+  std::string code = R"(set = RiceTest::Std::StringSet.new
                         set << "one" << "two" << "two" << "three"
                         set.include?("two"))";
 
@@ -173,7 +173,7 @@ TESTCASE(Clone)
   Module m = define_module("Testing");
   Class c = define_set<double>("DoubleSet");
 
-  std::string code = R"(set = Std::DoubleSet.new
+  std::string code = R"(set = RiceTest::Std::DoubleSet.new
                         set << 11.1 << 22.2)";
 
   Object set = m.instance_eval(code);
@@ -245,7 +245,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object set = m.module_eval("return_float_set");
-  ASSERT_EQUAL("Std::Set≺float≻", set.class_name().str());
+  ASSERT_EQUAL("RiceTest::Std::Set≺float≻", set.class_name().str());
 
   std::string code = R"(set = return_float_set
                         set.size == 3)";
@@ -255,13 +255,13 @@ TESTCASE(AutoRegisterReturn)
 
   // Now register this same set
   define_set<float>("FloatSet");
-  code = R"(set = Std::FloatSet.new)";
+  code = R"(set = RiceTest::Std::FloatSet.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(set.class_of()));
 
   // Now register it again in the module
   define_set<float>("FloatSet2");
-  code = R"(set = Std::FloatSet2.new)";
+  code = R"(set = RiceTest::Std::FloatSet2.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(set.class_of()));
 }
@@ -270,7 +270,7 @@ TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_float_set", &passFloatSet);
 
-  std::string code = R"(set = Std::Set≺float≻.new
+  std::string code = R"(set = RiceTest::Std::Set≺float≻.new
                           set << 4.0
                           set << 5.0
                           pass_float_set(set))";
@@ -279,7 +279,7 @@ TESTCASE(AutoRegisterParameter)
   Object set = m.module_eval(code);
 
   Object result = set.call("size");
-  ASSERT_EQUAL("Std::Set≺float≻", set.class_name().str());
+  ASSERT_EQUAL("RiceTest::Std::Set≺float≻", set.class_name().str());
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 }
 
@@ -311,10 +311,10 @@ TESTCASE(Equal)
   Module m = define_module("Testing");
   Class c = define_set<int>("IntSet");
 
-  std::string code = R"(set1 = Std::IntSet.new
+  std::string code = R"(set1 = RiceTest::Std::IntSet.new
                         set1 << 4 << 5 << 6
 
-                        set2 = Std::IntSet.new
+                        set2 = RiceTest::Std::IntSet.new
                         set2 << 4 << 5 << 6
 
                         set1 == set2)";
@@ -327,8 +327,8 @@ TESTCASE(Equal)
 
   define_set<NotPrintable>("NotPrintableSet");
 
-  code = R"(set1 = Std::NotPrintableSet.new
-            set2 = Std::NotPrintableSet.new
+  code = R"(set1 = RiceTest::Std::NotPrintableSet.new
+            set2 = RiceTest::Std::NotPrintableSet.new
             set1 == set2)";
 
   result = m.instance_eval(code);
@@ -342,7 +342,7 @@ TESTCASE(ToArray)
   Class c = define_set<std::string>("StringSet").
     define_constructor(Constructor<std::set<std::string>>());
 
-  std::string code = R"(set = Std::StringSet.new
+  std::string code = R"(set = RiceTest::Std::StringSet.new
                         set << "abc"
                         set << "def"
                         set << "ghi"
@@ -546,7 +546,7 @@ TESTCASE(Iterate)
   Module m = define_module("Testing");
   Class c = define_set<double>("DoubleSet");
 
-  std::string code = R"(set = Std::DoubleSet.new
+  std::string code = R"(set = RiceTest::Std::DoubleSet.new
                         set << 5.0 << 6.0 << 7.0
                         set.map do |value|
                           value * 2.0
@@ -693,10 +693,10 @@ TESTCASE(Intersect)
   Module m = define_module("Testing");
   define_set<std::string>("StringSet");
 
-  std::string code = R"(set1 = Std::StringSet.new
+  std::string code = R"(set1 = RiceTest::Std::StringSet.new
                         set1 << "one" << "two" << "two" << "three"
 
-                        set2 = Std::StringSet.new
+                        set2 = RiceTest::Std::StringSet.new
                         set2 << "three" << "four"
 
                         set1 & set2)";
@@ -714,10 +714,10 @@ TESTCASE(Union)
   Module m = define_module("Testing");
   define_set<std::string>("StringSet");
 
-  std::string code = R"(set1 = Std::StringSet.new
+  std::string code = R"(set1 = RiceTest::Std::StringSet.new
                         set1 << "one" << "two" << "two" << "three"
 
-                        set2 = Std::StringSet.new
+                        set2 = RiceTest::Std::StringSet.new
                         set2 << "three" << "four"
 
                         set1 | set2)";
@@ -735,10 +735,10 @@ TESTCASE(Difference)
   Module m = define_module("Testing");
   define_set<std::string>("StringSet");
 
-  std::string code = R"(set1 = Std::StringSet.new
+  std::string code = R"(set1 = RiceTest::Std::StringSet.new
                         set1 << "one" << "two" << "two" << "three"
 
-                        set2 = Std::StringSet.new
+                        set2 = RiceTest::Std::StringSet.new
                         set2 << "three" << "four"
 
                         set1 - set2)";
@@ -756,10 +756,10 @@ TESTCASE(Exclusive)
   Module m = define_module("Testing");
   define_set<std::string>("StringSet");
 
-  std::string code = R"(set1 = Std::StringSet.new
+  std::string code = R"(set1 = RiceTest::Std::StringSet.new
                         set1 << "one" << "two" << "three"
 
-                        set2 = Std::StringSet.new
+                        set2 = RiceTest::Std::StringSet.new
                         set2 << "three" << "four"
 
                         set1 ^ set2)";
@@ -777,10 +777,10 @@ TESTCASE(Superset)
   Module m = define_module("Testing");
   define_set<std::string>("StringSet");
 
-  std::string code = R"(set1 = Std::StringSet.new
+  std::string code = R"(set1 = RiceTest::Std::StringSet.new
                         set1 << "one" << "two" << "three"
 
-                        set2 = Std::StringSet.new
+                        set2 = RiceTest::Std::StringSet.new
                         set2 << "three"
 
                         set1 > set2)";

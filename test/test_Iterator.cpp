@@ -2,7 +2,7 @@
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Iterator);
 
@@ -279,7 +279,7 @@ TESTCASE(map)
 {
   define_class<Data>("Data")
     .define_constructor(Constructor<Data, uint32_t>())
-    .define_attr("index", &Data::index, Rice::AttrAccess::Read);
+    .define_attr("index", &Data::index, AttrAccess::Read);
 
   define_class<ContainerPointers>("ContainerPointers")
     .define_constructor(Constructor<ContainerPointers>())

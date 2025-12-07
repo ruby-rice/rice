@@ -1,7 +1,6 @@
 #include <stdexcept>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename Enum_T>
   Enum<Enum_T>::Enum(char const* name, Module module) : Data_Type<Enum_T>()
   {
@@ -186,4 +185,4 @@ namespace Rice
 
     return Enum<Enum_T>(name, module);
   }
-}
+RICE_END_NAMESPACE

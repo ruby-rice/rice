@@ -1,10 +1,9 @@
 #ifndef Rice__stl__exception__hpp_
 #define Rice__stl__exception__hpp_
 
-namespace Rice::stl
-{
+RICE_STL_BEGIN_NAMESPACE
   extern Class rb_cStlException;
-}
+RICE_STL_END_NAMESPACE
 
 #include "exception.ipp"
 

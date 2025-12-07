@@ -1,11 +1,11 @@
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 #include <ostream>
 
 extern "C"
 inline void Init_Native()
 {
-  Module rb_mRice = define_module("Rice");
+  Module rb_mRice = RICE_DEFINE_MODULE_RICE;
 
   define_enum_under<detail::NativeKind>("NativeKind", rb_mRice)
     .define_value("Function", detail::NativeKind::Function)

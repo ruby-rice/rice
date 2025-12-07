@@ -1,8 +1,7 @@
 #ifndef Rice__detail__Native_Attribute_Get__hpp_
 #define Rice__detail__Native_Attribute_Get__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   enum class AttrAccess
   {
     ReadWrite,
@@ -50,6 +49,6 @@ namespace Rice
       Attribute_T attribute_;
     };
   } // detail
-} // Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__detail__Native_Attribute_Get__hpp_

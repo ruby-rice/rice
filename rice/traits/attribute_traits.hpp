@@ -3,8 +3,7 @@
 
 #include <tuple>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   // Base class
   template<typename Attribute_T>
   struct attribute_traits;
@@ -22,5 +21,5 @@ namespace Rice::detail
     using attr_type = Attribute_T;
     using class_type = Class_T;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 #endif // Rice__detail__attribute_traits__hpp_

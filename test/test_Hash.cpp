@@ -6,7 +6,7 @@
 #include <map>
 #include <algorithm>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Hash);
 

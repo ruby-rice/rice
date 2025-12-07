@@ -6,7 +6,7 @@
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(UnorderedMap);
 
@@ -49,7 +49,7 @@ TESTCASE(StringUnorderedMap)
 
   Class c = define_unordered_map<std::string, std::string>("StringUnorderedMap");
 
-  Object unordered_map = m.module_eval("$unordered_map = Std::StringUnorderedMap.new");
+  Object unordered_map = m.module_eval("$unordered_map = RiceTest::Std::StringUnorderedMap.new");
   Object result = unordered_map.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
@@ -67,7 +67,7 @@ TESTCASE(WrongType)
   Module m = define_module("Testing");
 
   Class c = define_unordered_map<std::string, std::string>("StringUnorderedMap");
-  Object unordered_map = m.module_eval("$unordered_map = Std::StringUnorderedMap.new");
+  Object unordered_map = m.module_eval("$unordered_map = RiceTest::Std::StringUnorderedMap.new");
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -243,7 +243,7 @@ TESTCASE(Iterate)
   Module m = define_module("Testing");
   Class c = define_unordered_map<std::string, int>("IntUnorderedMap");
 
-  std::string code = R"(unordered_map = Std::IntUnorderedMap.new
+  std::string code = R"(unordered_map = RiceTest::Std::IntUnorderedMap.new
                         unordered_map["five"] = 5
                         unordered_map["six"] = 6
                         unordered_map["seven"] = 7
@@ -267,7 +267,7 @@ TESTCASE(ToEnum)
   Module m = define_module("Testing");
   Class c = define_unordered_map<std::string, int>("IntUnorderedMap");
 
-  std::string code = R"(unordered_map = Std::IntUnorderedMap.new
+  std::string code = R"(unordered_map = RiceTest::Std::IntUnorderedMap.new
                         unordered_map["five"] = 5
                         unordered_map["six"] = 6
                         unordered_map["seven"] = 7
@@ -292,7 +292,7 @@ TESTCASE(ToEnumSize)
   Module m = define_module("TestingModule");
   Class c = define_unordered_map<std::string, int>("IntUnorderedMap");
 
-  std::string code = R"(map = Std::IntUnorderedMap.new
+  std::string code = R"(map = RiceTest::Std::IntUnorderedMap.new
                         map["five"] = 5
                         map["six"] = 6
                         map["seven"] = 7
@@ -443,7 +443,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object unordered_map = m.module_eval("return_complex_unordered_map");
-  ASSERT_EQUAL("Std::UnorderedMap≺string‚ complex≺double≻≻",
+  ASSERT_EQUAL("RiceTest::Std::UnorderedMap≺string‚ complex≺double≻≻",
                unordered_map.class_name().str());
 
   std::string code = R"(unordered_map = return_complex_unordered_map
@@ -455,7 +455,7 @@ TESTCASE(AutoRegisterReturn)
 
   // Now register the unordered_map again
   define_unordered_map<std::string, std::complex<double>>("ComplexUnorderedMap");
-  code = R"(unordered_map = Std::ComplexUnorderedMap.new)";
+  code = R"(unordered_map = RiceTest::Std::ComplexUnorderedMap.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(unordered_map.class_of()));
 }
@@ -464,7 +464,7 @@ TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_complex_unordered_map", &passComplexUnorderedMap);
 
-  std::string code = R"(unordered_map = Std::UnorderedMap≺string‚ complex≺double≻≻.new
+  std::string code = R"(unordered_map = RiceTest::Std::UnorderedMap≺string‚ complex≺double≻≻.new
                           unordered_map["four"] = Complex(4.0, 4.0)
                           unordered_map["five"] = Complex(5.0, 5.0)
                           pass_complex_unordered_map(unordered_map))";
@@ -473,7 +473,7 @@ TESTCASE(AutoRegisterParameter)
   Object unordered_map = m.module_eval(code);
 
   Object result = unordered_map.call("size");
-  ASSERT_EQUAL("Std::UnorderedMap≺string‚ complex≺double≻≻",
+  ASSERT_EQUAL("RiceTest::Std::UnorderedMap≺string‚ complex≺double≻≻",
                unordered_map.class_name().str());
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 

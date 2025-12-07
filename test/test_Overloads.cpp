@@ -4,7 +4,7 @@
 #include <rice/stl.hpp>
 #include <ruby/version.h>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Overloads);
 
@@ -25,9 +25,9 @@ TEARDOWN(Overloads)
   Data_Type<MyClass>::unbind();
   Data_Type<MyClass2>::unbind();
   Data_Type<MyClass3>::unbind();
-  Rice::detail::Registries::instance.types.remove<MyClass>();
-  Rice::detail::Registries::instance.types.remove<MyClass2>();
-  Rice::detail::Registries::instance.types.remove<MyClass3>();
+  detail::Registries::instance.types.remove<MyClass>();
+  detail::Registries::instance.types.remove<MyClass2>();
+  detail::Registries::instance.types.remove<MyClass3>();
   rb_gc_start();
 }
 
@@ -159,7 +159,7 @@ TESTCASE(function_zero_parameters)
 
   std::string code = R"(run())";
 
-  Rice::String result = m.module_eval(code);
+  String result = m.module_eval(code);
   ASSERT_EQUAL("run<void>", result.str());
 }
 
@@ -170,7 +170,7 @@ TESTCASE(function_one_parameter)
 
   std::string code = R"(run(1))";
 
-  Rice::String result = m.module_eval(code);
+  String result = m.module_eval(code);
   ASSERT_EQUAL("run<int>", result.str());
 
   code = R"(run(1.0))";
@@ -191,7 +191,7 @@ TESTCASE(function_two_parameters)
 
   std::string code = R"(run(1, 1.0))";
 
-  Rice::String result = m.module_eval(code);
+  String result = m.module_eval(code);
   ASSERT_EQUAL("run<int,float>", result.str());
 
   code = R"(run(1.0, 1))";
@@ -265,7 +265,7 @@ TESTCASE(method_zero_parameters)
   std::string code = R"(my_class = MyClass.new
                         my_class.run())";
 
-  Rice::String result = m.module_eval(code);
+  String result = m.module_eval(code);
   ASSERT_EQUAL("run<void>", result.str());
 }
 
@@ -277,7 +277,7 @@ TESTCASE(method_one_parameter)
   std::string code = R"(my_class = MyClass.new
                         my_class.run(1))";
 
-  Rice::String result = m.module_eval(code);
+  String result = m.module_eval(code);
   ASSERT_EQUAL("run<int>", result.str());
 
   code = R"(my_class = MyClass.new
@@ -301,7 +301,7 @@ TESTCASE(method_two_parameters)
   std::string code = R"(my_class = MyClass.new
                         my_class.run(1, 1.0))";
 
-  Rice::String result = m.module_eval(code);
+  String result = m.module_eval(code);
   ASSERT_EQUAL("run<int,float>", result.str());
 
   code = R"(my_class = MyClass.new
@@ -330,7 +330,7 @@ TESTCASE(invalid_parameters)
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    Rice::String result = m.module_eval(code),
+    String result = m.module_eval(code),
     ASSERT_EQUAL(expected.c_str(), ex.what()));
 }
 
@@ -368,7 +368,7 @@ namespace
     {
       this->constructor = "constructor<float,int>";
     }
-   
+
     std::string constructor;
   };
 } // namespace
@@ -394,8 +394,8 @@ TESTCASE(constructor_zero_parameters)
 
   std::string code = R"(MyClass.new)";
 
-  Rice::Object result = m.module_eval(code);
-  Rice::String constructor = result.call("constructor");
+  Object result = m.module_eval(code);
+  String constructor = result.call("constructor");
   ASSERT_EQUAL("constructor<void>", constructor.str());
 }
 
@@ -406,8 +406,8 @@ TESTCASE(constructor_one_parameter)
 
   std::string code = R"(MyClass.new(1))";
 
-  Rice::Object result = m.module_eval(code);
-  Rice::String constructor = result.call("constructor");
+  Object result = m.module_eval(code);
+  String constructor = result.call("constructor");
   ASSERT_EQUAL("constructor<int>", constructor.str());
 
   code = R"(my_class = MyClass.new(1.0))";
@@ -430,8 +430,8 @@ TESTCASE(constructor_two_parameters)
 
   std::string code = R"(MyClass.new(1, 1.0))";
 
-  Rice::Object result = m.module_eval(code);
-  Rice::String constructor = result.call("constructor");
+  Object result = m.module_eval(code);
+  String constructor = result.call("constructor");
   ASSERT_EQUAL("constructor<int,float>", constructor.str());
 
   code = R"(my_class = MyClass.new(1.0, 1))";
@@ -652,7 +652,7 @@ TESTCASE(int_conversion_6)
   Module m = define_module("Testing");
 
   std::string code = R"(my_class = MyClass3.new
-                        buffer = Rice::Buffer≺unsigned char≻.new("54")
+                        buffer = RiceTest::Buffer≺unsigned char≻.new("54")
                         my_class.run(buffer.data))";
   String result = m.module_eval(code);
   ASSERT_EQUAL("run<unsigned char*>", result.str());
@@ -671,7 +671,7 @@ namespace
       }
       return *instance_;
     }
-  
+
   private:
     static inline MyClass4* instance_ = nullptr;
   };
@@ -830,7 +830,7 @@ TESTCASE(PointerNotBuffer)
 
   std::string code = R"(my_class6 = MyClass6.new
                         pointer(my_class6))";
-  
+
   String result = m.module_eval(code);
   ASSERT_EQUAL("pointer", result.str());
 }
@@ -846,7 +846,7 @@ TESTCASE(PointerBuffer)
     define_function<std::string(*)(MyClass6*)>("pointer", pointer, ArgBuffer("data"));
 
   std::string code = R"(my_class6 = MyClass6.new
-                        buffer = Rice::Buffer≺AnonymousNamespace꞉꞉MyClass6≻.new(my_class6)
+                        buffer = RiceTest::Buffer≺AnonymousNamespace꞉꞉MyClass6≻.new(my_class6)
                         pointer(buffer.data))";
 
   String result = m.module_eval(code);

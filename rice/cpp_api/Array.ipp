@@ -1,8 +1,7 @@
 #ifndef Rice__Array__ipp_
 #define Rice__Array__ipp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Array::Array() : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
   {
   }
@@ -336,10 +335,9 @@ namespace Rice
   {
     return const_iterator(this, size());
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Array>
   {
@@ -441,5 +439,5 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 #endif // Rice__Array__ipp_

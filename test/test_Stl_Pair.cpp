@@ -5,7 +5,7 @@
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Pair);
 
@@ -63,13 +63,13 @@ TESTCASE(CreatePairConst)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     pair.call("first=", "A second value"),
-    ASSERT_EQUAL("undefined method 'first=' for an instance of Std::ConstStringPair", ex.what())
+    ASSERT_EQUAL("undefined method 'first=' for an instance of RiceTest::Std::ConstStringPair", ex.what())
   );
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
     pair.call("second=", "A second value"),
-    ASSERT_EQUAL("undefined method 'second=' for an instance of Std::ConstStringPair", ex.what())
+    ASSERT_EQUAL("undefined method 'second=' for an instance of RiceTest::Std::ConstStringPair", ex.what())
   );
 #endif
 }
@@ -109,7 +109,7 @@ TESTCASE(AutoRegister)
 
   Object pair = someClass.call("pair");
   String name = pair.class_name();
-  ASSERT_EQUAL("Std::Pair≺string‚ double≻", detail::From_Ruby<std::string>().convert(name));
+  ASSERT_EQUAL("RiceTest::Std::Pair≺string‚ double≻", detail::From_Ruby<std::string>().convert(name));
 
   Class pairKlass1 = pair.class_of();
   Class pairKlass2 = Data_Type<std::pair<std::string, double>>::klass();
@@ -133,13 +133,13 @@ TESTCASE(AutoRegister)
 
   // Now register the pair again
   define_pair<std::string, double>("SomePair");
-  std::string code = R"(pair = Std::SomePair.new('string', 2.0))";
+  std::string code = R"(pair = RiceTest::Std::SomePair.new('string', 2.0))";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(pair.class_of()));
 
   // And again in the module
   define_pair<std::string, double>("SomePair2");
-  code = R"(pair = Std::SomePair2.new('string', 3.0))";
+  code = R"(pair = RiceTest::Std::SomePair2.new('string', 3.0))";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(pair.class_of()));
 }

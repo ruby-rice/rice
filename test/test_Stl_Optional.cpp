@@ -5,7 +5,7 @@
 
 #include <optional>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Optional);
 

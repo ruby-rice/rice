@@ -1,8 +1,7 @@
 #ifndef Rice__detail__Native__hpp_
 #define Rice__detail__Native__hpp_
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class Native;
 
   class Resolved
@@ -81,6 +80,6 @@ namespace Rice::detail
     std::unique_ptr<Return> returnInfo_;
     std::vector<std::unique_ptr<ParameterAbstract>> parameters_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 #endif // Rice__detail__Native__hpp_

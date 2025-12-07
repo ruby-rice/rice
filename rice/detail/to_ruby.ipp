@@ -1,6 +1,5 @@
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace detail
   {
     // ===========  bool  ============
@@ -1044,4 +1043,4 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
  }
-}
+RICE_END_NAMESPACE

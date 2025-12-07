@@ -1,8 +1,7 @@
 #ifndef Rice__Address_Registration_Guard__hpp_
 #define Rice__Address_Registration_Guard__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A guard to register a given address with the GC.
   /*! Calls rb_gc_register_address upon construction and
    *  rb_gc_unregister_address upon destruction.
@@ -71,6 +70,6 @@ namespace Rice
 
     VALUE* address_ = nullptr;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Address_Registration_Guard__hpp_

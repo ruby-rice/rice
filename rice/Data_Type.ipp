@@ -1,7 +1,6 @@
 #include <stdexcept>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T>
   inline void ruby_mark_internal(detail::WrapperBase* wrapper)
   {
@@ -45,10 +44,10 @@ namespace Rice
     klass_ = klass;
 
     rb_data_type_ = new rb_data_type_t();
-    rb_data_type_->wrap_struct_name = strdup(Rice::detail::protect(rb_class2name, klass_));
-    rb_data_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
-    rb_data_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
-    rb_data_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
+    rb_data_type_->wrap_struct_name = strdup(detail::protect(rb_class2name, klass_));
+    rb_data_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&ruby_mark_internal<T>);
+    rb_data_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&ruby_free_internal<T>);
+    rb_data_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&ruby_size_internal<T>);
     rb_data_type_->data = nullptr;
     rb_data_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
 
@@ -279,7 +278,7 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class_under(Object parent, Identifier id, Class superKlass)
   {
-    if (Rice::Data_Type<T>::check_defined(id.str(), parent))
+    if (Data_Type<T>::check_defined(id.str(), parent))
     {
       return Data_Type<T>();
     }
@@ -302,7 +301,7 @@ namespace Rice
   {
     std::string klassName(name);
 
-    if (Rice::Data_Type<T>::check_defined(klassName))
+    if (Data_Type<T>::check_defined(klassName))
     {
       return Data_Type<T>();
     }
@@ -393,4 +392,4 @@ namespace Rice
   {
     Module::wrap_native_method<T, Method_T>(klass, name, std::forward<Method_T>(method), args...);
   }
-}
+RICE_END_NAMESPACE

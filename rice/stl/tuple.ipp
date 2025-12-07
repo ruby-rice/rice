@@ -1,7 +1,6 @@
 #include <tuple>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename...Types>
   struct Type<std::tuple<Types...>>
   {
@@ -134,4 +133,4 @@ namespace Rice::detail
     using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
     From_Ruby_Ts fromRubys_;
   };
-}
+RICE_DETAIL_END_NAMESPACE

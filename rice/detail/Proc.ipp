@@ -1,5 +1,4 @@
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Return_T, typename ...Parameter_Ts>
   struct Type<Return_T(*)(Parameter_Ts...)>
   {
@@ -69,4 +68,4 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE

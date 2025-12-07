@@ -1,5 +1,4 @@
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   inline bool Resolved::operator<(Resolved other)
   {
     if (this->convertible != other.convertible)
@@ -451,4 +450,4 @@ namespace Rice::detail
       
     return result;
   }
-}
+RICE_DETAIL_END_NAMESPACE

@@ -2,8 +2,7 @@
 #include <functional>
 #include <type_traits>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template <typename T, typename Iterator_Func_T>
   inline void NativeIterator<T, Iterator_Func_T>::define(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end)
   {
@@ -114,4 +113,4 @@ namespace Rice::detail
     TypeMapper<Value_T> typeMapper;
     return typeMapper.rubyKlass();
   }
-}
+RICE_DETAIL_END_NAMESPACE

@@ -3,8 +3,7 @@
 
 #include <tuple>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   // Declare struct
   template<typename Function_T, typename = void>
   struct method_traits;
@@ -32,5 +31,5 @@ namespace Rice::detail
     using Parameter_Ts = typename function_traits<Function_T>::arg_types;
     static constexpr std::size_t arity = std::tuple_size_v<Parameter_Ts>;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 #endif // Rice__detail__method_traits__hpp_

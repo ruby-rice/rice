@@ -1,5 +1,4 @@
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Encoding Encoding::utf8()
   {
     return Encoding(rb_utf8_encoding());
@@ -8,10 +7,10 @@ namespace Rice
   inline Encoding::Encoding(rb_encoding* encoding) : encoding_(encoding)
   {
   }
-}
+RICE_END_NAMESPACE
 
-/*namespace Rice::detail
-{
+/*
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Encoding>
   {
@@ -55,5 +54,5 @@ namespace Rice
      // return Symbol(value);
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 */

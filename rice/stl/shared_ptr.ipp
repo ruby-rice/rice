@@ -1,8 +1,7 @@
 #include <memory>
 
 // --------- Enable creation of std::shared_ptr from Ruby ---------
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T>
   Data_Type<std::shared_ptr<T>> define_shared_ptr(std::string klassName)
   {
@@ -15,7 +14,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
       return Data_Type_T();
@@ -27,11 +26,10 @@ namespace Rice
 
     return result;
   }
-}
+RICE_END_NAMESPACE
 
 // --------- Wrapper ---------
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   inline Wrapper<std::shared_ptr<T>>::Wrapper(const std::shared_ptr<T>& data)
     : data_(data)
@@ -55,11 +53,10 @@ namespace Rice::detail
   {
     return data_;
   }
-}
+RICE_DETAIL_END_NAMESPACE
 
 // --------- Type/To_Ruby/From_Ruby ---------
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type<std::shared_ptr<T>>
   {
@@ -250,4 +247,4 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE

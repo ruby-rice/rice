@@ -2,11 +2,10 @@
 
 // Libraries sometime inherit custom exception objects from std::exception,
 // so define it for Ruby if necessary
-namespace Rice::stl
-{
+RICE_STL_BEGIN_NAMESPACE
   inline void define_stl_exceptions()
   {
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
 
     define_class_under<std::exception>(rb_mStd, "Exception", rb_eStandardError).
       define_constructor(Constructor<std::exception>()).
@@ -16,16 +15,15 @@ namespace Rice::stl
       define_constructor(Constructor<std::runtime_error, const char*>()).
       define_method("message", &std::runtime_error::what);
   }
-}
+RICE_STL_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<std::exception>
   {
     static bool verify()
     {
-      Rice::stl::define_stl_exceptions();
+      RICE_PREPEND_NAMESPACE(stl)::define_stl_exceptions();
       return true;
     }
   };
@@ -35,8 +33,8 @@ namespace Rice::detail
   {
     static bool verify()
     {
-      Rice::stl::define_stl_exceptions();
+      RICE_PREPEND_NAMESPACE(stl)::define_stl_exceptions();
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE

@@ -6,8 +6,7 @@
  *  objects as Ruby objects.
  */
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A smartpointer-like wrapper for Ruby data objects.
   /*! A data object is a ruby object of type T_DATA, which is usually
    *  created by using the Data_Wrap_Struct or Data_Make_Struct macro.
@@ -73,6 +72,6 @@ namespace Rice
   private:
     static void check_ruby_type(VALUE value);
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Data_Object__hpp_

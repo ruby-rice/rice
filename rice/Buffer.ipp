@@ -1,5 +1,4 @@
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   // ----  Buffer<T> ------- 
   template<typename T>
   inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::Buffer(T* pointer) : m_buffer(pointer)
@@ -854,7 +853,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mRice = define_module("Rice");
+    Module rb_mRice = RICE_DEFINE_MODULE_RICE;
 
     if (Data_Type_T::check_defined(klassName, rb_mRice))
     {
@@ -905,10 +904,9 @@ namespace Rice
       return klass;
     }
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type<Buffer<T>>
   {
@@ -919,4 +917,4 @@ namespace Rice::detail
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE

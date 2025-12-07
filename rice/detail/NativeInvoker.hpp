@@ -3,8 +3,7 @@
 
 #include <optional>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Return_T>
   class ResultWrapper
   {
@@ -69,6 +68,6 @@ namespace Rice::detail
 
   template<typename Function_T, typename Tuple_T>
   typename function_traits<Function_T>::return_type no_gvl(Function_T func, Tuple_T&& args);
-}
+RICE_DETAIL_END_NAMESPACE
 
 #endif // Rice__detail__native_invoker__hpp_

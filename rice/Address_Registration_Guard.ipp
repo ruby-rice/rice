@@ -1,5 +1,4 @@
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Address_Registration_Guard::Address_Registration_Guard(VALUE* address) : address_(address)
   {
     registerExitHandler();
@@ -77,4 +76,4 @@ namespace Rice
   {
     enabled = false;
   }
-} // Rice
+RICE_END_NAMESPACE

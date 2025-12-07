@@ -1,7 +1,6 @@
 #include <algorithm>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Hash::Hash() : Builtin_Object<T_HASH>(detail::protect(rb_hash_new))
   {
   }
@@ -189,10 +188,10 @@ namespace Rice
     return const_iterator(this, (int)size());
   }
 
-  inline bool operator<(Rice::Hash::Entry const& lhs, Rice::Hash::Entry const& rhs)
+  inline bool operator<(Hash::Entry const& lhs, Hash::Entry const& rhs)
   {
-    Rice::Object lhs_key(lhs.key);
-    Rice::Object rhs_key(rhs.key);
+    Object lhs_key(lhs.key);
+    Object rhs_key(rhs.key);
     if (lhs_key < rhs_key)
     {
       return true;
@@ -201,7 +200,7 @@ namespace Rice
     {
       return false;
     }
-    else if (Rice::Object(lhs.value.value()) < Rice::Object(rhs.value.value()))
+    else if (Object(lhs.value.value()) < Object(rhs.value.value()))
     {
       return true;
     }
@@ -210,10 +209,9 @@ namespace Rice
       return false;
     }
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Hash>
   {
@@ -277,4 +275,4 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE

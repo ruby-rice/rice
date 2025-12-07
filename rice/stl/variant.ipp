@@ -1,7 +1,6 @@
 #include <variant>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename...Types>
   struct Type<std::variant<Types...>>
   {
@@ -291,4 +290,4 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     std::variant<Types...> converted_;
   };
-}
+RICE_DETAIL_END_NAMESPACE

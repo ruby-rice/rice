@@ -3,8 +3,7 @@
 
 #include <set>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A mechanism for binding ruby types to C++ types.
   /*! This class binds run-time types (Ruby VALUEs) to compile-time types
    *  (C++ types).  The binding can occur only once.
@@ -152,13 +151,13 @@ namespace Rice
     static Data_Type<T> bind(const Module& klass);
 
     template<typename T_, typename Base_T>
-    friend Rice::Data_Type<T_> define_class_under(Object parent, Identifier id, Class superKlass);
+    friend Data_Type<T_> define_class_under(Object parent, Identifier id, Class superKlass);
 
     template<typename T_, typename Base_T>
-    friend Rice::Data_Type<T_> define_class_under(Object parent, char const * name);
+    friend Data_Type<T_> define_class_under(Object parent, char const * name);
 
     template<typename T_, typename Base_T>
-    friend Rice::Data_Type<T_> define_class(char const * name);
+    friend Data_Type<T_> define_class(char const * name);
 
     template<typename Method_T, typename...Arg_Ts>
     void wrap_native_method(VALUE klass, std::string name, Method_T&& function, const Arg_Ts&...args);
@@ -213,6 +212,6 @@ namespace Rice
    */
   template<typename T, typename Base_T = void>
   Data_Type<T> define_class(char const* name);
-}
+RICE_END_NAMESPACE
 
 #endif // Rice__Data_Type__hpp_

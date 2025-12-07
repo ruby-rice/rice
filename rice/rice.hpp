@@ -13,8 +13,11 @@
 
 #ifdef _MSC_VER
   // Prevent _strdup deprecated message on MSVC
-  #define strdup _strdup 
+  #define strdup _strdup
 #endif
+
+// Macros
+#include "configmacros.hpp"
 
 // Traits
 #include "traits/rice_traits.hpp"

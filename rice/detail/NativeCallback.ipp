@@ -1,5 +1,4 @@
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
 #ifdef HAVE_LIBFFI
   template<typename Return_T, typename ...Parameter_Ts>
   template<typename Arg_T>
@@ -267,4 +266,4 @@ namespace Rice::detail
   {
     return Qnil;
   }
-}
+RICE_DETAIL_END_NAMESPACE

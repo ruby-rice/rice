@@ -1,5 +1,4 @@
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline String::String() : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, ""))
   {
   }
@@ -73,10 +72,9 @@ namespace Rice
   {
     return rb_intern(c_str());
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<String>
   {
@@ -140,4 +138,4 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE

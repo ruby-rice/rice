@@ -4,7 +4,7 @@
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Module);
 
@@ -83,7 +83,7 @@ TESTCASE(define_method)
 {
   Module m(anonymous_module());
   m.define_method("some_method", some_method);
-  
+
   Object o = m.module_eval("$o = Object.new");
   Object result = m.module_eval(R"EOS($o.extend(self)
                                         $o.some_method)EOS");
@@ -501,10 +501,10 @@ TESTCASE(pointers)
   define_global_function("with_pointers", &withPointers);
 
   Module m = define_module("TestingModule");
-  std::string code = R"(int_buffer = Rice::Buffer≺int≻.new(32)
-                        bool_buffer = Rice::Buffer≺bool≻.new(true)
-                        double_buffer = Rice::Buffer≺float≻.new(33.0)
-                        float_buffer = Rice::Buffer≺double≻.new(34.0)
+  std::string code = R"(int_buffer = RiceTest::Buffer≺int≻.new(32)
+                        bool_buffer = RiceTest::Buffer≺bool≻.new(true)
+                        double_buffer = RiceTest::Buffer≺float≻.new(33.0)
+                        float_buffer = RiceTest::Buffer≺double≻.new(34.0)
                         with_pointers(int_buffer.data, bool_buffer.data, double_buffer.data, float_buffer.data))";
 
   m.module_eval(code);

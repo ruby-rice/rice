@@ -4,7 +4,7 @@
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(TypeInfo);
 
@@ -97,7 +97,7 @@ TESTCASE(TypeIndexCreate)
 
   std::string code = R"(int = 5
                         type_info = get_type_info(5)
-                        Std::TypeIndex.new(type_info))";
+                        RiceTest::Std::TypeIndex.new(type_info))";
 
 #ifdef _MSC_VER
   const char* expected = "int";

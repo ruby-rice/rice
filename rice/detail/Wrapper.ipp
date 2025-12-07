@@ -1,7 +1,6 @@
 #include <memory>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   inline bool WrapperBase::isConst()
   {
     return this->isConst_;
@@ -270,4 +269,4 @@ namespace Rice::detail
 
     Registries::instance.instances.add(data, value);
   }
-} // namespace
+RICE_DETAIL_END_NAMESPACE

@@ -1,5 +1,4 @@
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   class RubyType<bool>
   {
@@ -209,4 +208,4 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string name = "void";
   };
-}
+RICE_DETAIL_END_NAMESPACE

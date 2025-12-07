@@ -1,8 +1,7 @@
 #ifndef Rice__Constructor__hpp_
 #define Rice__Constructor__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! Define a Type's Constructor and it's arguments.
   /*! E.g. for the default constructor on a Type:
       \code
@@ -18,5 +17,5 @@ namespace Rice
   */
   template<typename T, typename...Parameter_Ts>
   class Constructor;
-}
+RICE_END_NAMESPACE
 #endif // Rice__Constructor__hpp_

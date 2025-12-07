@@ -1,19 +1,17 @@
 #include <typeindex>
 
-namespace Rice::stl
-{
+RICE_STL_BEGIN_NAMESPACE
   inline Data_Type<std::type_index> define_type_index()
   {
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     return define_class_under<std::type_index>(rb_mStd, "TypeIndex").
       define_constructor(Constructor<std::type_index, const std::type_info&>()).
       define_method("hash_code", &std::type_index::hash_code).
       define_method("name", &std::type_index::name);
   }
-}
+RICE_STL_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<std::type_index>
   {
@@ -27,4 +25,4 @@ namespace Rice::detail
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE

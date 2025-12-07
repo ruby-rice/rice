@@ -1,8 +1,7 @@
 #ifndef Rice__detail__from_ruby__hpp_
 #define Rice__detail__from_ruby__hpp_
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   //! Convert a Ruby object to C++.
   /*! If the Ruby object can be converted to an immediate value, returns a
    *  copy of the Ruby object.  If the Ruby object is holding a C++
@@ -38,6 +37,6 @@ namespace Rice::detail
       Const  = 0b0111,
       Exact  = 0b1111
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 #endif // Rice__detail__From_Ruby2__hpp_

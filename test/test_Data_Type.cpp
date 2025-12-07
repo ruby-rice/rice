@@ -1,11 +1,11 @@
-#include <assert.h> 
+#include <assert.h>
 
 #include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Data_Type);
 
@@ -16,7 +16,7 @@ SETUP(Data_Type)
 
 TEARDOWN(Data_Type)
 {
-  Rice::detail::Registries::instance.types.clearUnverifiedTypes();
+  detail::Registries::instance.types.clearUnverifiedTypes();
   rb_gc_start();
 }
 
@@ -197,7 +197,7 @@ TESTCASE(methods_with_lambdas)
 {
   Class c = define_class<MyClass>("MyClass")
     .define_constructor(Constructor<MyClass>())
-    .define_method("no_return_no_arg", 
+    .define_method("no_return_no_arg",
         [](MyClass& instance)
         {
           instance.no_return_no_arg();
@@ -207,7 +207,7 @@ TESTCASE(methods_with_lambdas)
         {
           return instance.no_arg();
         })
-    .define_method("int_arg", 
+    .define_method("int_arg",
         [](MyClass& instance, int anInt)
         {
           return instance.int_arg(anInt);
@@ -542,7 +542,7 @@ namespace
     {
       if (!this->helper_)
         this->helper_ = new Helper(4);
-      
+
       return static_cast<void*>(this->helper_);
     }
 
@@ -720,7 +720,7 @@ TESTCASE(not_defined)
 
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
-    Rice::detail::Registries::instance.types.validateTypes(),
+    detail::Registries::instance.types.validateTypes(),
     ASSERT_EQUAL(message, ex.what())
   );
 
@@ -731,7 +731,7 @@ TESTCASE(not_defined)
 #endif
 
   ASSERT_EXCEPTION_CHECK(
-    Rice::Exception,
+    Exception,
     m.call("undefined_return"),
     ASSERT_EQUAL(message, ex.what())
   );
@@ -745,7 +745,7 @@ TESTCASE(not_defined)
   m.define_module_function<void(*)(UnknownClass)>("undefined_arg_value", &undefinedArg);
 
   ASSERT_EXCEPTION_CHECK(
-    Rice::Exception,
+    Exception,
     m.call("undefined_arg_value", nullptr),
     ASSERT_EQUAL(message, ex.what())
   );
@@ -753,13 +753,13 @@ TESTCASE(not_defined)
   m.define_module_function<void(*)(UnknownClass&)>("undefined_arg_reference", &undefinedArg);
 
   ASSERT_EXCEPTION_CHECK(
-    Rice::Exception,
+    Exception,
     m.call("undefined_arg_reference", nullptr),
     ASSERT_EQUAL(message, ex.what())
   );
 
   m.define_module_function<void(*)(UnknownClass*)>("undefined_arg_pointer", &undefinedArg);
-  
+
   // This actually works because we pass a nullptr
   m.call("undefined_arg_pointer", nullptr);
 }
@@ -823,14 +823,14 @@ TESTCASE(array_of_ranges)
     .define_attr("x", &RangesTest::RangeCustom::x)
     .define_attr("y", &RangesTest::RangeCustom::y);
 
-  m.define_module_function("sum_ranges_array", RangesTest::sumRangesArray, 
+  m.define_module_function("sum_ranges_array", RangesTest::sumRangesArray,
                            ArgBuffer("ranges[]"), Arg("size"));
 
   std::string code = R"(range1 = RangeCustom.new(1, 2)
                         range2 = RangeCustom.new(3, 4)
                         range3 = RangeCustom.new(5, 6)
-            
-                        buffer = Rice::Buffer≺RangesTest꞉꞉RangeCustom≻.new([range1, range2, range3])
+
+                        buffer = RiceTest::Buffer≺RangesTest꞉꞉RangeCustom≻.new([range1, range2, range3])
                         sum_ranges_array(buffer.data, buffer.size))";
 
   Object result = m.module_eval(code);
@@ -853,7 +853,7 @@ TESTCASE(pointer_of_ranges)
                         range2 = RangeCustom.new(3, 4)
                         range3 = RangeCustom.new(5, 6)
 
-                        buffer = Rice::Buffer≺RangesTest꞉꞉RangeCustom≻.new([range1, range2, range3])
+                        buffer = RiceTest::Buffer≺RangesTest꞉꞉RangeCustom≻.new([range1, range2, range3])
                         sum_ranges(buffer.data, buffer.size))";
 
   Object result = m.module_eval(code);
@@ -876,13 +876,13 @@ TESTCASE(pointer_of_ranges_wrong)
                         range2 = RangeCustom.new(3, 4)
                         range3 = RangeCustom.new(5, 6)
 
-                        buffer = Rice::Buffer≺RangesTest꞉꞉RangeCustom≻.new([range1, range2, range3])
+                        buffer = RiceTest::Buffer≺RangesTest꞉꞉RangeCustom≻.new([range1, range2, range3])
                         sum_ranges_wrong(buffer, buffer.size))";
 
   ASSERT_EXCEPTION_CHECK(
-    Rice::Exception,
+    Exception,
     m.module_eval(code),
-    ASSERT_EQUAL("Wrong argument type. Expected Rice::Pointer≺RangesTest꞉꞉RangeCustom≻. Received Rice::Buffer≺RangesTest꞉꞉RangeCustom≻.", ex.what())
+    ASSERT_EQUAL("Wrong argument type. Expected RiceTest::Pointer≺RangesTest꞉꞉RangeCustom≻. Received RiceTest::Buffer≺RangesTest꞉꞉RangeCustom≻.", ex.what())
   );
 }
 
@@ -900,7 +900,7 @@ TESTCASE(pointer_of_pointer_ranges)
   std::string code = R"(range1 = RangeCustom.new(1, 2)
                         range2 = RangeCustom.new(3, 4)
                         range3 = RangeCustom.new(5, 6)
-                        buffer = Rice::Buffer≺RangesTest꞉꞉RangeCustom∗≻.new([range1, range2, range3])
+                        buffer = RiceTest::Buffer≺RangesTest꞉꞉RangeCustom∗≻.new([range1, range2, range3])
                         sum_ranges(buffer.data, buffer.size))";
 
   Object result = m.module_eval(code);

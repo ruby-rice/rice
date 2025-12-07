@@ -6,7 +6,7 @@
 #include <variant>
 #include <complex>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Variant);
 
@@ -402,7 +402,7 @@ TESTCASE(VariantWithTwoVectors)
 
   Module m = define_module("Testing");
 
-  std::string code = R"(vector = Std::Vector≺string≻.new
+  std::string code = R"(vector = RiceTest::Std::Vector≺string≻.new
                           vector << "a" << "b" << "c"
                           my_class = MyClass4.new
                           my_class.variant_index(vector))";
@@ -410,7 +410,7 @@ TESTCASE(VariantWithTwoVectors)
   Object result = m.module_eval(code);
   ASSERT_EQUAL(0u, detail::From_Ruby<size_t>().convert(result));
 
-  code = R"(vector = Std::Vector≺int≻.new
+  code = R"(vector = RiceTest::Std::Vector≺int≻.new
               vector.push_back(4)
               my_class = MyClass4.new
               my_class.variant_index(vector))";

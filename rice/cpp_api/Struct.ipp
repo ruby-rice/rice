@@ -1,6 +1,5 @@
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Struct& Struct::initialize(Module module, Identifier name)
   {
     Class struct_class(rb_cStruct);
@@ -77,10 +76,9 @@ namespace Rice
   {
     return (*this)[Identifier(name)];
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Struct>
   {
@@ -94,4 +92,4 @@ namespace Rice::detail
       return rb_cStruct;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE

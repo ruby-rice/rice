@@ -6,7 +6,7 @@
 #include <tuple>
 #include <complex>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 using namespace std::complex_literals;
 
 TESTSUITE(Tuple);

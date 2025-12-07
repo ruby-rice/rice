@@ -1,6 +1,5 @@
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Module::Module() : Object(rb_cObject)
   {
   }
@@ -72,10 +71,9 @@ namespace Rice
 
     return klass;
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Module>
   {
@@ -138,4 +136,4 @@ namespace Rice::detail
       return Module(value);
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE

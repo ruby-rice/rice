@@ -1,7 +1,6 @@
 #include <set>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace stl
   {
     template<typename T>
@@ -241,7 +240,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
       return Data_Type_T();
@@ -500,4 +499,4 @@ namespace Rice
       std::set<T> converted_;
     };
   }
-}
+RICE_END_NAMESPACE

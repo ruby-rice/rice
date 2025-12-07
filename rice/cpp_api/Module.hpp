@@ -1,8 +1,7 @@
 #ifndef Rice__Module__hpp_
 #define Rice__Module__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template <typename T>
   void validateType();
 
@@ -71,5 +70,6 @@ namespace Rice
   /*! \return the new module.
    */
   Module anonymous_module();
-}
+RICE_END_NAMESPACE
+
 #endif // Rice__Module__hpp_

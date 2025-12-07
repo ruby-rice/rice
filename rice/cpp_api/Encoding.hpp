@@ -1,8 +1,7 @@
 #ifndef Rice__Encoding__hpp_
 #define Rice__Encoding__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A wrapper for a Ruby encoding
   class Encoding
   {
@@ -26,7 +25,7 @@ namespace Rice
   private:
     rb_encoding* encoding_;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Encoding__hpp_
 

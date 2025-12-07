@@ -5,8 +5,7 @@
 #include <ffi.h>
 #endif //HAVE_LIBFFI
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Callback_T>
   class NativeCallback;
 
@@ -73,5 +72,5 @@ namespace Rice::detail
     ffi_closure* closure_ = nullptr;
 #endif //HAVE_LIBFFI
   };
-}
+RICE_DETAIL_END_NAMESPACE
 #endif // Rice__detail__Native_Callback_Ffi_hpp_

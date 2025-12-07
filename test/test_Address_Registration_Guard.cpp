@@ -2,7 +2,7 @@
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Address_Registration_Guard);
 

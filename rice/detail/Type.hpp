@@ -3,8 +3,7 @@
 
 #include <regex>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type
   {
@@ -77,6 +76,6 @@ namespace Rice::detail
 
   template<typename Tuple_T>
   void verifyTypes();
-}
+RICE_DETAIL_END_NAMESPACE
 
 #endif // Rice__Type__hpp_

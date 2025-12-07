@@ -1,8 +1,7 @@
 #ifndef Rice__Buffer__hpp_
 #define Rice__Buffer__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T, typename = void>
   class Buffer;
     
@@ -167,6 +166,6 @@ namespace Rice
 
   template<typename T>
   Data_Type<Buffer<T>> define_buffer(std::string klassName = "");
-}
+RICE_END_NAMESPACE
 
 #endif // Rice__Buffer__hpp_

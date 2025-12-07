@@ -1,8 +1,7 @@
 #ifndef Rice__Callback__hpp_
 #define Rice__Callback__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! Define a callback.
   /*! When C++ invokes a C style callback, Rice automatically converts the C++ arguments
    *  to Ruby. However, there may be cases where you need to specify how individual arguments
@@ -17,5 +16,5 @@ namespace Rice
    */
   template<typename Callback_T, typename...Arg_Ts>
   void define_callback(Arg_Ts&&...args);
-}
+RICE_END_NAMESPACE
 #endif // Rice__Callback__hpp_

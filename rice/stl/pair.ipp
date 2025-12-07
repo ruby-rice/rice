@@ -1,7 +1,6 @@
 #include <utility>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace stl
   {
     template<typename T>
@@ -32,20 +31,20 @@ namespace Rice
         // Access methods
         if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::first_type>>>)
         {
-          klass_.define_attr("first", &T::first, Rice::AttrAccess::Read);
+          klass_.define_attr("first", &T::first, AttrAccess::Read);
         }
         else
         {
-          klass_.define_attr("first", &T::first, Rice::AttrAccess::ReadWrite);
+          klass_.define_attr("first", &T::first, AttrAccess::ReadWrite);
         }
 
         if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::second_type>>>)
         {
-          klass_.define_attr("second", &T::second, Rice::AttrAccess::Read);
+          klass_.define_attr("second", &T::second, AttrAccess::Read);
         }
         else
         {
-          klass_.define_attr("second", &T::second, Rice::AttrAccess::ReadWrite);
+          klass_.define_attr("second", &T::second, AttrAccess::ReadWrite);
         }
       }
 
@@ -86,7 +85,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
       return Data_Type_T();
@@ -117,4 +116,4 @@ namespace Rice
       }
     };
   }
-}
+RICE_END_NAMESPACE

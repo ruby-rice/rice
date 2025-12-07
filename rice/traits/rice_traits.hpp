@@ -7,8 +7,7 @@
 #include <variant>
 #include <vector>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace detail
   {
     // Get the base_type of T - without pointer, reference, const or volatile. We call remove_pointer_t twice 
@@ -306,6 +305,6 @@ namespace Rice
 
 
   } // detail
-} // Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__detail__traits__hpp_

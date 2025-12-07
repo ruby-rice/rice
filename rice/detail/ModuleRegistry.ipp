@@ -4,8 +4,7 @@
 #include <typeindex>
 
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   inline void ModuleRegistry::add(VALUE module)
   {
     this->modules_.insert(module);
@@ -22,4 +21,4 @@ namespace Rice::detail
     }
     return result;
   }
-}
+RICE_DETAIL_END_NAMESPACE

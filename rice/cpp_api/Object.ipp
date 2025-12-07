@@ -1,5 +1,4 @@
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline const Object Nil(Qnil);
   inline const Object True(Qtrue);
   inline const Object False(Qfalse);
@@ -178,10 +177,9 @@ namespace Rice
     Object result = lhs.call(">", rhs);
     return result.test();
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Object>
   {
@@ -264,4 +262,4 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE

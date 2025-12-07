@@ -20,8 +20,7 @@
    by calling the reset method on the registry. Although redefinition shouldn't happen in 
    production code it happens in many places in the unit tests. */
    
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class NativeRegistry
   {
   public:
@@ -42,6 +41,6 @@ namespace Rice::detail
     // Value - Vector of Native pointers owned by the registry (thus wrapped in std::unique_ptr)
     std::map<std::pair<VALUE, ID>, std::vector<std::unique_ptr<Native>>> natives_ = {};
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 #endif // Rice__detail__NativeRegistry__hpp

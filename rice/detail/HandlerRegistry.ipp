@@ -1,5 +1,4 @@
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   inline HandlerRegistry::HandlerRegistry() : handler_(DefaultHandler())
   {
   }
@@ -13,4 +12,4 @@ namespace Rice::detail
   {
     return this->handler_;
   }
-}
+RICE_DETAIL_END_NAMESPACE

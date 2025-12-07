@@ -3,8 +3,7 @@
 
 #include <functional>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class HandlerRegistry
   {
   public:
@@ -15,7 +14,7 @@ namespace Rice::detail
   private:
     std::function<void()> handler_;
   };
-} // namespace Rice::detail
+RICE_DETAIL_END_NAMESPACE
 
 #endif // Rice__detail__HandlerRegistry__hpp_
 

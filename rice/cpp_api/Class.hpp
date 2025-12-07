@@ -1,8 +1,7 @@
 #ifndef Rice__Class__hpp_
 #define Rice__Class__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A helper for defining a Class and its methods.
   /*! This class provides a C++-style interface to ruby's Class class and
    *  for defining methods on that class.
@@ -60,6 +59,6 @@ namespace Rice
   /*! \return the new class.
    */
   Class anonymous_class();
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Class__hpp_

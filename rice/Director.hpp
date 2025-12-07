@@ -1,8 +1,7 @@
 #ifndef Rice__Director__hpp_
 #define Rice__Director__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   /**
    * A Director works exactly as a SWIG %director works (thus the name).
    * You use this class to help build proxy classes so that polymorphism
@@ -38,5 +37,5 @@ namespace Rice
       Object self_;
 
   };
-}
+RICE_END_NAMESPACE
 #endif // Rice__Director__hpp_

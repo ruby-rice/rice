@@ -1,8 +1,7 @@
 #ifndef Rice__String__hpp_
 #define Rice__String__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A Wraper for the ruby String class.
   /*! This class provides a C++-style interface to ruby's String class and
    *  its associated rb_str_* functions.
@@ -68,6 +67,6 @@ namespace Rice
      */
     Identifier intern() const;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__String__hpp_

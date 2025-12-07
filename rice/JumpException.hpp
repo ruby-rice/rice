@@ -1,8 +1,7 @@
 #ifndef Rice__JumpException__hpp_
 #define Rice__JumpException__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A placeholder for Ruby longjmp data.
   /*! When a Ruby exception is caught, the tag used for the longjmp is stored in
    *  a Jump_Tag, then later passed to rb_jump_tag() when there is no more
@@ -39,6 +38,6 @@ namespace Rice
   private:
     std::string message_;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__JumpException__hpp_

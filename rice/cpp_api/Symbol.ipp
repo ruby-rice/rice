@@ -1,5 +1,4 @@
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Symbol::Symbol(VALUE value) : Object(value)
   {
     detail::protect(rb_check_type, value, (int)T_SYMBOL);
@@ -43,10 +42,9 @@ namespace Rice
   {
     return rb_to_id(value());
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Symbol>
   {
@@ -133,4 +131,4 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE

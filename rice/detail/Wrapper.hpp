@@ -1,8 +1,7 @@
 #ifndef Rice__detail__Wrapper__hpp_
 #define Rice__detail__Wrapper__hpp_
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class WrapperBase
   {
   public:
@@ -92,6 +91,6 @@ namespace Rice::detail
   Wrapper_T* getWrapper(VALUE value, rb_data_type_t* rb_data_type);
 
   WrapperBase* getWrapper(VALUE value);
-}
+RICE_DETAIL_END_NAMESPACE
 #endif // Rice__detail__Wrapper__hpp_
  

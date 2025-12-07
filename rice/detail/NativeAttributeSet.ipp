@@ -2,8 +2,7 @@
 #include <algorithm>
 
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Attribute_T>
   void NativeAttributeSet<Attribute_T>::define(VALUE klass, std::string name, Attribute_T attribute)
   {
@@ -89,4 +88,4 @@ namespace Rice::detail
     TypeMapper<Attr_T> typeMapper;
     return typeMapper.rubyKlass();
   }
-}
+RICE_DETAIL_END_NAMESPACE

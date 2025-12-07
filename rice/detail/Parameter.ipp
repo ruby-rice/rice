@@ -1,5 +1,4 @@
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   // -----------  ParameterAbstract ----------------
   inline ParameterAbstract::ParameterAbstract(std::unique_ptr<Arg>&& arg) : arg_(std::move(arg))
   {
@@ -142,4 +141,4 @@ namespace Rice::detail
     TypeMapper<T> typeMapper;
     return typeMapper.rubyKlass();
   }
-}
+RICE_DETAIL_END_NAMESPACE

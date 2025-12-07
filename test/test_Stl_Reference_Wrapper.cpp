@@ -5,7 +5,7 @@
 
 #include <functional>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(ReferenceWrapper);
 

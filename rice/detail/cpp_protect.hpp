@@ -15,8 +15,7 @@
 #endif
 
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template <typename Callable_T>
   auto cpp_protect(Callable_T&& func)
   {
@@ -31,11 +30,11 @@ namespace Rice::detail
         std::function<void()> handler = detail::Registries::instance.handlers.handler();
         handler();
       }
-      catch (::Rice::Exception const& ex)
+      catch (RICE_PREPEND_NAMESPACE(Exception) const& ex)
       {
         rb_exc_raise(ex.value());
       }
-      catch (::Rice::JumpException const& ex)
+      catch (RICE_PREPEND_NAMESPACE(JumpException) const& ex)
       {
         rb_jump_tag(ex.tag);
       }
@@ -97,5 +96,5 @@ namespace Rice::detail
       throw std::runtime_error("Should never get here - just making compilers happy");
     }
   }
-}
+RICE_DETAIL_END_NAMESPACE
 #endif // Rice__detail__cpp_protect__hpp_

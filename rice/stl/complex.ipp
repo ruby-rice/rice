@@ -1,7 +1,6 @@
 #include <complex>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type<std::complex<T>>
   {
@@ -129,4 +128,4 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     std::complex<T> converted_;
   };
-}
+RICE_DETAIL_END_NAMESPACE

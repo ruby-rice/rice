@@ -5,7 +5,7 @@
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Attribute);
 
@@ -16,7 +16,7 @@ SETUP(Attribute)
 
 TEARDOWN(Attribute)
 {
-  Rice::detail::Registries::instance.types.clearUnverifiedTypes();
+  detail::Registries::instance.types.clearUnverifiedTypes();
   rb_gc_start();
 }
 
@@ -103,8 +103,8 @@ TESTCASE(attributes)
     .define_constructor(Constructor<DataStruct>())
     .define_method("inspect", &DataStruct::inspect)
     .define_attr("chars", &DataStruct::chars)
-    .define_attr("read_chars", &DataStruct::readChars, Rice::AttrAccess::Read)
-    .define_attr("write_int", &DataStruct::writeInt, Rice::AttrAccess::Write)
+    .define_attr("read_chars", &DataStruct::readChars, AttrAccess::Read)
+    .define_attr("write_int", &DataStruct::writeInt, AttrAccess::Write)
     .define_attr("read_write_string", &DataStruct::readWriteString);
 
   Object o = c.call("new");
@@ -112,7 +112,7 @@ TESTCASE(attributes)
 
   Object result = o.call("chars");
   ASSERT_EQUAL("Some chars!", detail::From_Ruby<char*>().convert(result));
-  
+
   o.call("chars=", "New chars!");
   result = o.call("chars");
   ASSERT_EQUAL("New chars!", detail::From_Ruby<char*>().convert(result));
@@ -192,7 +192,7 @@ TESTCASE(Array)
 
   Class c = define_class<DataStruct>("DataStruct")
     .define_constructor(Constructor<DataStruct>())
-    .define_attr("buf", &DataStruct::buf, Rice::AttrAccess::Read);
+    .define_attr("buf", &DataStruct::buf, AttrAccess::Read);
 
   Object o = c.call("new");
   DataStruct* dataStruct = detail::From_Ruby<DataStruct*>().convert(o);
@@ -209,7 +209,7 @@ TESTCASE(vector)
 
   define_class<VecStruct>("VecStruct")
     .define_constructor(Constructor<VecStruct, std::vector<double>>())
-    .define_attr("vector", &VecStruct::vector, Rice::AttrAccess::Read)
+    .define_attr("vector", &VecStruct::vector, AttrAccess::Read)
     .define_method("vector_size", &VecStruct::vecSize);
 
   std::string code = R"(struct = VecStruct.new([1, 2])
@@ -234,7 +234,7 @@ TESTCASE(const_attribute)
 
   c.define_attr("const_int", &DataStruct::constInt, AttrAccess::Read);
   Data_Object<DataStruct> o = c.call("new");
-    
+
   if constexpr (!oldRuby)
   {
     ASSERT_EXCEPTION_CHECK(
@@ -249,7 +249,7 @@ TESTCASE(not_assignable)
 {
   Class notAssignableClass = define_class<NotAssignable>("NotAssignable")
     .define_constructor(Constructor<NotAssignable>());
-    
+
   Data_Type<DataStruct> c = define_class<DataStruct>("DataStruct")
     .define_constructor(Constructor<DataStruct>());
 
@@ -263,7 +263,7 @@ TESTCASE(not_assignable)
   Data_Object<NotAssignable> notAssignable = notAssignableClass.call("new");
 
   Data_Object<DataStruct> o = c.call("new");
-  
+
   if constexpr (!oldRuby)
   {
     ASSERT_EXCEPTION_CHECK(
@@ -307,8 +307,8 @@ TESTCASE(static_attributes)
 {
   Class c = define_class<DataStruct>("DataStruct")
     .define_constructor(Constructor<DataStruct>())
-    .define_singleton_attr("static_float", &DataStruct::staticFloat, Rice::AttrAccess::ReadWrite)
-    .define_singleton_attr("static_string", &DataStruct::staticString, Rice::AttrAccess::Read);
+    .define_singleton_attr("static_float", &DataStruct::staticFloat, AttrAccess::ReadWrite)
+    .define_singleton_attr("static_string", &DataStruct::staticString, AttrAccess::Read);
 
   // Test readwrite attribute
   Object result = c.call("static_float=", 7.0);
@@ -334,8 +334,8 @@ TESTCASE(global_attributes)
 {
   Class c = define_class<DataStruct>("DataStruct")
     .define_constructor(Constructor<DataStruct>())
-    .define_singleton_attr("global_bool", &globalBool, Rice::AttrAccess::ReadWrite)
-    .define_singleton_attr("global_struct", &globalStruct, Rice::AttrAccess::Read);
+    .define_singleton_attr("global_bool", &globalBool, AttrAccess::ReadWrite)
+    .define_singleton_attr("global_struct", &globalStruct, AttrAccess::Read);
 
   Object result = c.call("global_bool=", false);
   ASSERT_EQUAL(Qfalse, result.value());
@@ -362,7 +362,7 @@ TESTCASE(not_defined)
 
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
-    Rice::detail::Registries::instance.types.validateTypes(),
+    detail::Registries::instance.types.validateTypes(),
     ASSERT_EQUAL(message, ex.what())
   );
 
@@ -373,7 +373,7 @@ TESTCASE(not_defined)
 #endif
 
   ASSERT_EXCEPTION_CHECK(
-    Rice::Exception,
+    Exception,
     c.call("some_class_static"),
     ASSERT_EQUAL(message, ex.what())
   );
@@ -381,7 +381,7 @@ TESTCASE(not_defined)
   c.define_attr("some_class", &DataStruct::someClass);
   Object o = c.call("new");
   ASSERT_EXCEPTION_CHECK(
-    Rice::Exception,
+    Exception,
     o.call("some_class"),
     ASSERT_EQUAL(message, ex.what())
   );
@@ -429,11 +429,11 @@ TESTCASE(ArrayStaticAttribute)
 
   Class c = define_class<BufferAttrs>("BufferAttrs")
     .define_constructor(Constructor<BufferAttrs>())
-    .define_singleton_attr("floats", &BufferAttrs::floatArray, Rice::AttrAccess::Read);
+    .define_singleton_attr("floats", &BufferAttrs::floatArray, AttrAccess::Read);
 
   std::string code = R"(BufferAttrs.floats.class)";
   Class klass = (Class)m.module_eval(code);
-  ASSERT_EQUAL("Rice::Buffer≺float≻", klass.name().c_str());
+  ASSERT_EQUAL("RiceTest::Buffer≺float≻", klass.name().c_str());
 }
 
 TESTCASE(ArrayAttribute)
@@ -442,12 +442,12 @@ TESTCASE(ArrayAttribute)
 
   Class c = define_class<BufferAttrs>("BufferAttrs")
     .define_constructor(Constructor<BufferAttrs>())
-    .define_attr("strings", &BufferAttrs::stringArray, Rice::AttrAccess::Read);
+    .define_attr("strings", &BufferAttrs::stringArray, AttrAccess::Read);
 
   std::string code = R"(struct = BufferAttrs.new
                         struct.strings.class)";
   Class klass = (Class)m.module_eval(code);
-  ASSERT_EQUAL("Rice::Buffer≺string≻", klass.name().c_str());
+  ASSERT_EQUAL("RiceTest::Buffer≺string≻", klass.name().c_str());
 }
 
 TESTCASE(BufferAttribute)
@@ -456,12 +456,12 @@ TESTCASE(BufferAttribute)
 
   Class c = define_class<BufferAttrs>("BufferAttrs")
     .define_constructor(Constructor<BufferAttrs>())
-    .define_attr("buffer", &BufferAttrs::buffer, Rice::AttrAccess::Read, ReturnBuffer());
+    .define_attr("buffer", &BufferAttrs::buffer, AttrAccess::Read, ReturnBuffer());
 
   std::string code = R"(struct = BufferAttrs.new
                         struct.buffer.class)";
   Class klass = (Class)m.module_eval(code);
-  ASSERT_EQUAL("Rice::Pointer≺unsigned char≻", klass.name().c_str());
+  ASSERT_EQUAL("RiceTest::Pointer≺unsigned char≻", klass.name().c_str());
 }
 
 TESTCASE(CounterArrayAttribute)
@@ -469,16 +469,16 @@ TESTCASE(CounterArrayAttribute)
   Module m = define_module("Testing");
 
   define_class<Counter>("Counter")
-    .define_attr("value", &Counter::value, Rice::AttrAccess::Read);
+    .define_attr("value", &Counter::value, AttrAccess::Read);
 
   define_class<BufferAttrs>("BufferAttrs")
     .define_constructor(Constructor<BufferAttrs>())
-    .define_attr("counters", &BufferAttrs::counters, Rice::AttrAccess::Read);
+    .define_attr("counters", &BufferAttrs::counters, AttrAccess::Read);
 
   std::string code = R"(struct = BufferAttrs.new
                         struct.counters.class)";
   Class klass = (Class)m.module_eval(code);
-  ASSERT_EQUAL("Rice::Buffer≺AnonymousNamespace꞉꞉Counter≻", klass.name().c_str());
+  ASSERT_EQUAL("RiceTest::Buffer≺AnonymousNamespace꞉꞉Counter≻", klass.name().c_str());
 }
 
 TESTCASE(CounterBufferAttribute)
@@ -486,14 +486,14 @@ TESTCASE(CounterBufferAttribute)
   Module m = define_module("Testing");
 
   define_class<Counter>("Counter")
-    .define_attr("value", &Counter::value, Rice::AttrAccess::Read);
+    .define_attr("value", &Counter::value, AttrAccess::Read);
 
   define_class<BufferAttrs>("BufferAttrs")
     .define_constructor(Constructor<BufferAttrs>())
-    .define_attr("counters_buffer", &BufferAttrs::countersBuffer, Rice::AttrAccess::Read, ReturnBuffer());
+    .define_attr("counters_buffer", &BufferAttrs::countersBuffer, AttrAccess::Read, ReturnBuffer());
 
   std::string code = R"(struct = BufferAttrs.new
                         struct.counters_buffer.class)";
   Class klass = (Class)m.module_eval(code);
-  ASSERT_EQUAL("Rice::Pointer≺AnonymousNamespace꞉꞉Counter≻", klass.name().c_str());
+  ASSERT_EQUAL("RiceTest::Pointer≺AnonymousNamespace꞉꞉Counter≻", klass.name().c_str());
 }

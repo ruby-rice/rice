@@ -3,8 +3,7 @@
 
 #include <any>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! Helper for defining default arguments of a method
   /*! This class exposes the ability to define the default values of a
    *  wrapped method. Inspired by how Boost.Python handles keyword and
@@ -99,6 +98,6 @@ namespace Rice
   public:
     ArgBuffer(std::string name);
   };
-} // Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Arg__hpp_

@@ -7,8 +7,7 @@
 // Rice saves types either as the intrinsic type (MyObject) or pointer (MyObject*).
 // It strips out references, const and volatile to avoid an explosion of template classes.
 // Pointers are used for C function pointers used in callbacks and for the Buffer class.
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   // ------ Type ----------------
   template<typename T>
   inline bool Type<T>::verify()
@@ -364,4 +363,4 @@ namespace Rice::detail
       return pair.first;
     }
   }
-}
+RICE_DETAIL_END_NAMESPACE

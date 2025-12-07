@@ -7,7 +7,7 @@
 #include <rice/stl.hpp>
 #include <ruby/version.h>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Multimap);
 
@@ -49,7 +49,7 @@ TESTCASE(StringMultimap)
 
   Class c = define_multimap<std::string, std::string>("StringMultimap");
 
-  Object multimap = m.module_eval("$multimap = Std::StringMultimap.new");
+  Object multimap = m.module_eval("$multimap = RiceTest::Std::StringMultimap.new");
   Object result = multimap.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
@@ -67,7 +67,7 @@ TESTCASE(WrongType)
   Module m = define_module("Testing");
 
   Class c = define_multimap<std::string, std::string>("StringMultimap");
-  Object multimap = m.module_eval("$multimap = Std::StringMultimap.new");
+  Object multimap = m.module_eval("$multimap = RiceTest::Std::StringMultimap.new");
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -240,7 +240,7 @@ TESTCASE(Iterate)
   Module m = define_module("Testing");
   Class c = define_multimap<std::string, int>("IntMultimap");
 
-  std::string code = R"(multimap = Std::IntMultimap.new
+  std::string code = R"(multimap = RiceTest::Std::IntMultimap.new
                         multimap.insert("five", 5)
                         multimap.insert("six", 6)
                         multimap.insert("seven", 7)
@@ -267,7 +267,7 @@ TESTCASE(ToEnum)
   Module m = define_module("Testing");
   Class c = define_multimap<std::string, int>("IntMultimap");
 
-  std::string code = R"(multimap = Std::IntMultimap.new
+  std::string code = R"(multimap = RiceTest::Std::IntMultimap.new
                         multimap.insert("five", 5)
                         multimap.insert("six", 6)
                         multimap.insert("seven", 7)
@@ -295,7 +295,7 @@ TESTCASE(ToEnumSize)
   Module m = define_module("TestingModule");
   Class c = define_multimap<std::string, int>("IntMultimap");
 
-  std::string code = R"(multimap = Std::IntMultimap.new
+  std::string code = R"(multimap = RiceTest::Std::IntMultimap.new
                         multimap.insert("five", 5)
                         multimap.insert("six", 6)
                         multimap.insert("seven", 7)
@@ -447,7 +447,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object multimap = m.module_eval("return_complex_multimap");
-  ASSERT_EQUAL("Std::Multimap≺string‚ complex≺double≻≻",
+  ASSERT_EQUAL("RiceTest::Std::Multimap≺string‚ complex≺double≻≻",
                multimap.class_name().str());
 
   std::string code = R"(multimap = return_complex_multimap
@@ -459,13 +459,13 @@ TESTCASE(AutoRegisterReturn)
 
   // Now register the multimap again
   define_multimap<std::string, std::complex<double>>("ComplexMultimap");
-  code = R"(multimap = Std::ComplexMultimap.new)";
+  code = R"(multimap = RiceTest::Std::ComplexMultimap.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(multimap.class_of()));
 
   // And again in the module
   define_multimap<std::string, std::complex<double>>("ComplexMultimap2");
-  code = R"(multimap = Std::ComplexMultimap2.new)";
+  code = R"(multimap = RiceTest::Std::ComplexMultimap2.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(multimap.class_of()));
 }
@@ -474,7 +474,7 @@ TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_complex_multimap", &passComplexMultimap);
 
-  std::string code = R"(multimap = Std::Multimap≺string‚ complex≺double≻≻.new
+  std::string code = R"(multimap = RiceTest::Std::Multimap≺string‚ complex≺double≻≻.new
                           multimap.insert("four", Complex(4.0, 4.0))
                           multimap.insert("five", Complex(5.0, 5.0))
                           pass_complex_multimap(multimap))";
@@ -483,7 +483,7 @@ TESTCASE(AutoRegisterParameter)
   Object multimap = m.module_eval(code);
 
   Object result = multimap.call("size");
-  ASSERT_EQUAL("Std::Multimap≺string‚ complex≺double≻≻",
+  ASSERT_EQUAL("RiceTest::Std::Multimap≺string‚ complex≺double≻≻",
                multimap.class_name().str());
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 

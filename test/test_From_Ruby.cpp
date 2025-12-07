@@ -6,7 +6,7 @@
 #include <limits>
 #include <cmath>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(FromRuby);
 
@@ -138,14 +138,14 @@ TESTCASE(char_pointer)
   char* buffer = fromRuby.convert(Qnil);
   ASSERT_EQUAL(nullptr, buffer);
 
-  std::string code = R"(Rice::Buffer≺char≻.new("my string"))";
+  std::string code = R"(RiceTest::Buffer≺char≻.new("my string"))";
   Object result = m.instance_eval(code);
   Object data = result.call("data");
   buffer = fromRuby.convert(data);
   const char* expected = "my string";
   ASSERT_EQUAL(*expected, *buffer);
 
-  code = R"(Rice::Buffer≺char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  code = R"(RiceTest::Buffer≺char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   result = m.instance_eval(code);
   data = result.call("data");
   buffer = fromRuby.convert(data);
@@ -176,14 +176,14 @@ TESTCASE(signed_char_pointer)
   signed char* buffer = fromRuby.convert(Qnil);
   ASSERT_EQUAL(expected, buffer);
 
-  std::string code = R"(Rice::Buffer≺signed char≻.new("my string"))";
+  std::string code = R"(RiceTest::Buffer≺signed char≻.new("my string"))";
   Object result = m.instance_eval(code);
   Object data = result.call("data");
   buffer = fromRuby.convert(data);
   expected = (signed char*)"my string";
   ASSERT_EQUAL(*expected, *buffer);
 
-  code = R"(Rice::Buffer≺signed char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  code = R"(RiceTest::Buffer≺signed char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   result = m.instance_eval(code);
   data = result.call("data");
   buffer = fromRuby.convert(data);
@@ -200,7 +200,7 @@ TESTCASE(signed_char_pointer)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     fromRuby.convert(rb_float_new(11.11)),
-    ASSERT_EQUAL("Wrong argument type. Expected Rice::Pointer≺signed char≻. Received Float.", ex.what())
+    ASSERT_EQUAL("Wrong argument type. Expected RiceTest::Pointer≺signed char≻. Received Float.", ex.what())
   );
 }
 
@@ -209,13 +209,13 @@ TESTCASE(char_pointer_const)
   Module m = define_module("Testing");
   define_pointer<char>();
 
-  std::string code = R"(Rice::Buffer≺char≻.new("my string"))";
+  std::string code = R"(RiceTest::Buffer≺char≻.new("my string"))";
   Object result = m.instance_eval(code);
   const char* expected = "my string";
   const char* data = detail::From_Ruby<char*>().convert(result.call("data"));
   ASSERT_EQUAL(expected, data);
 
-  code = R"(Rice::Buffer≺char≻.new(""))";
+  code = R"(RiceTest::Buffer≺char≻.new(""))";
   result = m.instance_eval(code);
   expected = "";
   data = detail::From_Ruby<char*>().convert(result.call("data"));
@@ -246,7 +246,7 @@ TESTCASE(unsigned_char_pointer)
   Buffer<unsigned char>* buffer = fromRuby.convert(Qnil);
   ASSERT_EQUAL(nullptr, buffer);
 
-  std::string code = R"(Rice::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
+  std::string code = R"(RiceTest::Buffer≺unsigned char≻.new([0, 127, 128, 255, 256, -128, -129, -255]))";
   Object result = m.instance_eval(code);
   buffer = fromRuby.convert(result.value());
 
@@ -262,7 +262,7 @@ TESTCASE(unsigned_char_pointer)
 
   code = R"(array = [0, 127, 128, 255, 256, -128, -129, -255]
             packed = array.pack("C*")
-            Rice::Buffer≺unsigned char≻.new(packed))";
+            RiceTest::Buffer≺unsigned char≻.new(packed))";
   result = m.instance_eval(code);
   buffer = fromRuby.convert(result.value());
 
@@ -279,7 +279,7 @@ TESTCASE(unsigned_char_pointer)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     detail::From_Ruby<const char*>().convert(rb_float_new(11.11)),
-    ASSERT_EQUAL("Wrong argument type. Expected Rice::Pointer≺char≻. Received Float.", ex.what())
+    ASSERT_EQUAL("Wrong argument type. Expected RiceTest::Pointer≺char≻. Received Float.", ex.what())
   );
 }
 
@@ -290,7 +290,7 @@ TESTCASE(unsigned_char_pointer_array)
   m.define_singleton_function("unsigned_char_pointer", &arrayToString<unsigned char>);
 
   std::string code = R"(arr = ["A", "B"]
-                        buffer = Rice::Buffer≺unsigned char≻.new(arr)
+                        buffer = RiceTest::Buffer≺unsigned char≻.new(arr)
                         unsigned_char_pointer(buffer.data, buffer.size))";
 
   ASSERT_EXCEPTION_CHECK(
@@ -301,21 +301,21 @@ TESTCASE(unsigned_char_pointer_array)
 
   code = R"(arr = ["A", "B"].map do |char|
                                char.ord
-                             end  
-            buffer = Rice::Buffer≺unsigned char≻.new(arr)
+                             end
+            buffer = RiceTest::Buffer≺unsigned char≻.new(arr)
             unsigned_char_pointer(buffer.data, buffer.size))";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL("[A, B]", detail::From_Ruby<std::string>().convert(result.value()));
 
   code = R"(arr = [65, 66]
-            buffer = Rice::Buffer≺unsigned char≻.new(arr)
+            buffer = RiceTest::Buffer≺unsigned char≻.new(arr)
             unsigned_char_pointer(buffer.data, buffer.size))";
   result = m.module_eval(code);
   ASSERT_EQUAL("[A, B]", detail::From_Ruby<std::string>().convert(result.value()));
 
   code = R"(arr = [true]
-            buffer = Rice::Buffer≺unsigned char≻.new(arr)
+            buffer = RiceTest::Buffer≺unsigned char≻.new(arr)
             unsigned_char_pointer(buffer.ptr, buffer.size))";
 
   ASSERT_EXCEPTION_CHECK(
@@ -353,7 +353,7 @@ TESTCASE(double_pointer_array)
   m.define_singleton_function("double_pointer", &arrayToString<double>);
 
   std::string code = R"(arr = [1.1, 2.2, 3.3, 4.4]
-                        buffer = Rice::Buffer≺double≻.new(arr)
+                        buffer = RiceTest::Buffer≺double≻.new(arr)
                         double_pointer(buffer.data, buffer.size))";
 
   Object result = m.module_eval(code);
@@ -389,19 +389,19 @@ TESTCASE(float_pointer_array)
   m.define_singleton_function("float_pointer", &arrayToString<float>);
 
   std::string code = R"(arr = [4.3, 3.2, 2.1, 1.1]
-                        buffer = Rice::Buffer≺float≻.new(arr)
+                        buffer = RiceTest::Buffer≺float≻.new(arr)
                         float_pointer(buffer.data, buffer.size))";
   Object result = m.module_eval(code);
   ASSERT_EQUAL("[4.3, 3.2, 2.1, 1.1]", detail::From_Ruby<std::string>().convert(result.value()));
 
   code = R"(arr = [4, 3, 2.8, 1]
-           buffer = Rice::Buffer≺float≻.new(arr)
+           buffer = RiceTest::Buffer≺float≻.new(arr)
             float_pointer(buffer.data, buffer.size))";
   result = m.module_eval(code);
   ASSERT_EQUAL("[4, 3, 2.8, 1]", detail::From_Ruby<std::string>().convert(result.value()));
 
   code = R"(arr = [4, "bad", 2, 1]
-            buffer = Rice::Buffer≺float≻.new(arr)
+            buffer = RiceTest::Buffer≺float≻.new(arr)
             float_pointer(buffer.data, buffer.size))";
 
   ASSERT_EXCEPTION_CHECK(
@@ -417,17 +417,17 @@ TESTCASE(float_array_array)
 
   m.define_singleton_function("array_array_to_string", &arrayofArraysToString<float>, ArgBuffer("buffer"));
 
-  std::string code = R"(buffer = Rice::Buffer≺float∗≻.new([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]])
+  std::string code = R"(buffer = RiceTest::Buffer≺float∗≻.new([[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]])
                         array_array_to_string(buffer.data, buffer.size, 2))";
   Object result = m.module_eval(code);
   ASSERT_EQUAL("[[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]]", detail::From_Ruby<std::string>().convert(result.value()));
 
-  code = R"(buffer = Rice::Buffer≺float∗≻.new([[4, 3], [2.8, 1]])
+  code = R"(buffer = RiceTest::Buffer≺float∗≻.new([[4, 3], [2.8, 1]])
             array_array_to_string(buffer.data, buffer.size, 2))";
   result = m.module_eval(code);
   ASSERT_EQUAL("[[4, 3], [2.8, 1]]", detail::From_Ruby<std::string>().convert(result.value()));
 
-  code = R"(buffer = Rice::Buffer≺float∗≻.new([[4, "bad"], [2, 1]])
+  code = R"(buffer = RiceTest::Buffer≺float∗≻.new([[4, "bad"], [2, 1]])
             array_array_to_string(buffer.data, buffer.size, 2))";
 
   ASSERT_EXCEPTION_CHECK(
@@ -442,7 +442,7 @@ TESTCASE(float_array_array)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.module_eval(code),
-    ASSERT_EQUAL("Wrong argument type. Expected Rice::Pointer≺float∗≻. Received Array.", ex.what())
+    ASSERT_EQUAL("Wrong argument type. Expected RiceTest::Pointer≺float∗≻. Received Array.", ex.what())
   );
 }
 
@@ -469,13 +469,13 @@ TESTCASE(int_pointer_array)
   m.define_singleton_function("int_pointer", &arrayToString<int>);
 
   std::string code = R"(arr = [4, 3, 2, 1]
-                        buffer = Rice::Buffer≺int≻.new(arr)
+                        buffer = RiceTest::Buffer≺int≻.new(arr)
                         int_pointer(buffer.data, buffer.size))";
   Object result = m.module_eval(code);
   ASSERT_EQUAL("[4, 3, 2, 1]", detail::From_Ruby<std::string>().convert(result.value()));
 
   code = R"(arr = [4.2, 3.8, 2.0, 1]
-            buffer = Rice::Buffer≺int≻.new(arr)
+            buffer = RiceTest::Buffer≺int≻.new(arr)
             int_pointer(buffer.data, buffer.size))";
   result = m.module_eval(code);
   ASSERT_EQUAL("[4, 3, 2, 1]", detail::From_Ruby<std::string>().convert(result.value()));

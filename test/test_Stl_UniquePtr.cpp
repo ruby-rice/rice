@@ -5,7 +5,7 @@
 
 #include <memory>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(UniquePtr);
 

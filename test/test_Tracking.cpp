@@ -3,7 +3,7 @@
 
 #include <rice/rice.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Tracking);
 

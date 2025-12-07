@@ -1,8 +1,7 @@
 #ifndef Rice__NativeIterator__hpp_
 #define Rice__NativeIterator__hpp_
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T, typename Iterator_Func_T>
   class NativeIterator: Native
   {
@@ -44,6 +43,6 @@ namespace Rice::detail
     Iterator_Func_T begin_;
     Iterator_Func_T end_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 #endif // Rice__NativeIterator__hpp_

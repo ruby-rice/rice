@@ -5,7 +5,7 @@
 
 #include <memory>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(SharedPtr);
 
@@ -189,7 +189,7 @@ TESTCASE(ShareOwnership)
 
   ASSERT_EQUAL(0, Factory::instance_.use_count());
   m.module_eval(code);
-  
+
   ASSERT_EQUAL(11, Factory::instance_.use_count());
   rb_gc_start();
   ASSERT_EQUAL(1, Factory::instance_.use_count());
@@ -312,7 +312,7 @@ TESTCASE(RoundTrip)
   // Create ruby objects that point to the same instance of MyClass
   std::string code = R"(factory = Factory.new
                         my_class = factory.share
-                        
+
                         sink = Sink.new
                         sink.share_ownership(my_class))";
 
@@ -360,7 +360,8 @@ TESTCASE(KlassSharedPtr)
   define_shared_ptr<MyClass>();
   detail::TypeMapper<std::shared_ptr<MyClass>> typeMapper;
 
-  Module stdModule("Std");
+  Module riceModule = define_module("RiceTest");
+  Module stdModule("Std", riceModule);
   Object expected = stdModule.const_get("SharedPtr≺AnonymousNamespace꞉꞉MyClass≻");
   VALUE actual = typeMapper.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
@@ -432,8 +433,8 @@ TESTCASE(CreatePointerToInt)
 
   define_shared_ptr<int>("SharedPtrInt");
 
-  std::string code = R"(buffer = Rice::Buffer≺int≻.new(45)
-                        ptr = Std::SharedPtrInt.new(buffer.release)
+  std::string code = R"(buffer = RiceTest::Buffer≺int≻.new(45)
+                        ptr = RiceTest::Std::SharedPtrInt.new(buffer.release)
                         get_pointer_value(ptr))";
 
   Object result = m.instance_eval(code);
@@ -447,8 +448,8 @@ TESTCASE(UpdatePointerToInt)
 
   define_shared_ptr<int>();
 
-  std::string code = R"(buffer = Rice::Buffer≺int≻.new(45)
-                        ptr = Std::SharedPtr≺int≻.new(buffer.release)
+  std::string code = R"(buffer = RiceTest::Buffer≺int≻.new(45)
+                        ptr = RiceTest::Std::SharedPtr≺int≻.new(buffer.release)
                         update_pointer_value(ptr))";
 
   Object result = m.instance_eval(code);

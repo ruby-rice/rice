@@ -3,8 +3,7 @@
 
 #include <stdexcept>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A placeholder for Ruby exceptions.
   /*! You can use this to safely throw a Ruby exception using C++ syntax:
    *  \code
@@ -62,6 +61,6 @@ namespace Rice
     mutable VALUE exception_ = Qnil;
     mutable std::string message_;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Exception__hpp_

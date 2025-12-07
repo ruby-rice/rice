@@ -1,8 +1,7 @@
 #ifndef Rice__stl__unique_ptr__hpp_
 #define Rice__stl__unique_ptr__hpp_
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   class Wrapper<std::unique_ptr<T>> : public WrapperBase
   {
@@ -15,7 +14,7 @@ namespace Rice::detail
   private:
     std::unique_ptr<T> data_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 #include "unique_ptr.ipp"
 

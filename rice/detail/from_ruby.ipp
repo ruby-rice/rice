@@ -4,8 +4,7 @@
 
 /* This file implements conversions from Ruby to native values fo fundamental types 
    such as bool, int, float, etc. It also includes conversions for chars and strings */
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   inline Convertible operator&(Convertible left, Convertible right)
   {
     return static_cast<Convertible>(static_cast<uint8_t>(left) & static_cast<uint8_t>(right));
@@ -1598,4 +1597,4 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE

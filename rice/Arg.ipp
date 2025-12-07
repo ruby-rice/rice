@@ -1,5 +1,4 @@
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Arg::Arg(std::string name) : name(name)
   {
   }
@@ -73,6 +72,4 @@ namespace Rice
   inline ArgBuffer::ArgBuffer(std::string name) : Arg(name)
   {
   }
-
-
-} // Rice
+RICE_END_NAMESPACE

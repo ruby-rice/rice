@@ -1,7 +1,6 @@
 #include <optional>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type<std::optional<T>>
   {
@@ -164,4 +163,4 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     std::optional<T> converted_;
   };
-}
+RICE_DETAIL_END_NAMESPACE

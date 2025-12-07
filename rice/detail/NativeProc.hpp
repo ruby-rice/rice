@@ -1,8 +1,7 @@
 #ifndef Rice__detail__Native_Proc__hpp_
 #define Rice__detail__Native_Proc__hpp_
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Proc_T>
   class NativeProc: Native
   {
@@ -44,6 +43,6 @@ namespace Rice::detail
     Proc_T proc_;
     To_Ruby<To_Ruby_T> toRuby_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 #endif // Rice__detail__Native_Proc__hpp_

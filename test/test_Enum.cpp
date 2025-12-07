@@ -5,7 +5,7 @@
 
 #include <rice/rice.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Enum);
 
@@ -16,7 +16,7 @@ SETUP(Enum)
 
 TEARDOWN(Enum)
 {
-  Rice::detail::Registries::instance.types.clearUnverifiedTypes();
+  detail::Registries::instance.types.clearUnverifiedTypes();
   rb_gc_start();
 }
 
@@ -451,7 +451,7 @@ TESTCASE(not_defined)
 
   ASSERT_EXCEPTION_CHECK(
     std::invalid_argument,
-    Rice::detail::Registries::instance.types.validateTypes(),
+    detail::Registries::instance.types.validateTypes(),
     ASSERT_EQUAL(message, ex.what())
   );
 
@@ -463,7 +463,7 @@ TESTCASE(not_defined)
 
   m.define_module_function("undefined_return", &undefinedReturn);
   ASSERT_EXCEPTION_CHECK(
-    Rice::Exception,
+    Exception,
     m.call("undefined_return"),
     ASSERT_EQUAL(message, ex.what())
   );
@@ -475,7 +475,7 @@ TESTCASE(not_defined)
 #endif
 
   ASSERT_EXCEPTION_CHECK(
-    Rice::Exception,
+    Exception,
     m.call("undefined_arg", 1),
     ASSERT_EQUAL(message, ex.what())
   );

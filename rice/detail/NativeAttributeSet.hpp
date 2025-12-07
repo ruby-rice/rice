@@ -1,8 +1,7 @@
 #ifndef Rice__detail__Native_Attribute_Set__hpp_
 #define Rice__detail__Native_Attribute_Set__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace detail
   {
     template<typename Attribute_T>
@@ -41,6 +40,6 @@ namespace Rice
       Attribute_T attribute_;
     };
   } // detail
-} // Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__detail__Native_Attribute_Set__hpp_

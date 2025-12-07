@@ -1,8 +1,7 @@
 #ifndef Rice__ruby_struct__hpp_
 #define Rice__ruby_struct__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A wrapper for creating Struct classes.
   /*! The Struct class is used for creating new Classes.  Note that the
    *  notation used here differs slightly from the notation inside the
@@ -108,6 +107,6 @@ namespace Rice
   //! Define a new Struct
   Struct define_struct();
 
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__ruby_struct__hpp_

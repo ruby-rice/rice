@@ -14,8 +14,7 @@
    to an Abstract class, the actual returned object will be a Child class. However, all we know
    from the C++ method signature is that it is an Absract class - thus the need for a registry.*/
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class TypeRegistry
   {
   public:
@@ -53,6 +52,6 @@ namespace Rice::detail
     std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};
     std::set<std::type_index> unverified_{};
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 #endif // Rice__TypeRegistry__hpp_

@@ -4,8 +4,7 @@
 #include <sstream>
 #include <tuple>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Proc_T>
   NativeProc<Proc_T>* NativeProc<Proc_T>::define(Proc_T proc)
   {
@@ -130,4 +129,4 @@ namespace Rice::detail
     TypeMapper<Return_T> typeMapper;
     return typeMapper.rubyKlass();
   }
-}
+RICE_DETAIL_END_NAMESPACE

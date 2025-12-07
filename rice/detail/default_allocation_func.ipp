@@ -1,5 +1,4 @@
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   VALUE default_allocation_func(VALUE klass)
   {
@@ -7,4 +6,4 @@ namespace Rice::detail
     // just pass a nullptr. It will be set via the Constructor call
     return TypedData_Wrap_Struct(klass, Data_Type<T>::ruby_data_type(), nullptr);
   }
-}
+RICE_DETAIL_END_NAMESPACE

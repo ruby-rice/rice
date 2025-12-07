@@ -1,6 +1,5 @@
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Exception::Exception(VALUE exception) : exception_(exception)
   {
   }
@@ -56,4 +55,4 @@ namespace Rice
   {
     return this->exception_;
   }
-}
+RICE_END_NAMESPACE

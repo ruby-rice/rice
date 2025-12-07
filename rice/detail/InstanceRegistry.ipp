@@ -1,7 +1,6 @@
 #include <memory>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template <typename T>
   inline VALUE InstanceRegistry::lookup(T& cppInstance)
   {
@@ -47,4 +46,4 @@ namespace Rice::detail
   {
     this->objectMap_.clear();
   }
-} // namespace
+RICE_DETAIL_END_NAMESPACE

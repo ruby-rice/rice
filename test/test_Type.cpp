@@ -6,7 +6,7 @@
 
 #include <complex>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Type);
 
@@ -48,7 +48,7 @@ TESTCASE(FindGroup)
 
   group = parser.findGroup(name, 18);
   ASSERT_EQUAL("<unsigned char, 2>", group.c_str());
-  
+
   group = parser.findGroup(name, 49);
   ASSERT_EQUAL("<class cv::Vec<unsigned char, 2> >", group.c_str());
 
@@ -203,7 +203,7 @@ TESTCASE(RubyName)
 
 TESTCASE(RubyKlass)
 {
-  Module riceModule = define_module("Rice");
+  Module riceModule = define_module("RiceTest");
 
   detail::TypeMapper<int> typeMapper1;
   VALUE actual = typeMapper1.rubyKlass();
@@ -289,9 +289,9 @@ TESTCASE(RubyKlass)
   expected = riceModule.const_get("Pointer≺string∗≻");
   actual = typeMapper18.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
-  
+
   define_vector<std::string>();
-  Module stdModule("Std");
+  Module stdModule("Std", riceModule);
 
   detail::TypeMapper<std::vector<std::string>> typeMapper19;
   expected = stdModule.const_get("Vector≺string≻");
@@ -315,7 +315,7 @@ TESTCASE(RubyKlass)
   expected = Object(rb_cObject).const_get("UnorderedMap1");
   actual = typeMapper22.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
- 
+
   define_class<Outer::Inner::SomeClass>("SomeClass");
   detail::TypeMapper<Outer::Inner::SomeClass**> typeMapper23;
   expected = Object(rb_cObject).const_get("SomeClass");
@@ -363,9 +363,9 @@ TESTCASE(MakeRubyClass)
 
   Identifier id(rubyClassName);
   define_class_under<Outer::Inner::Vec1>(module, id);
-  
+
   std::string code = R"(Testing.constants.grep(/Vector/).sort)";
-  
+
   Array result = module.module_eval(code);
   ASSERT_EQUAL(1, result.size());
 

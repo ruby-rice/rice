@@ -1,6 +1,5 @@
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   inline void NativeRegistry::add(VALUE klass, ID methodId, std::unique_ptr<Native>& native)
   {
     if (rb_type(klass) == T_ICLASS)
@@ -72,4 +71,4 @@ namespace Rice::detail
     // Lookup items for method
     return this->natives_[key];
   }
-}
+RICE_DETAIL_END_NAMESPACE

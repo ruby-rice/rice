@@ -4,8 +4,7 @@
 #include <sstream>
 #include <tuple>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Class_T, typename Method_T, bool NoGVL>
   template<typename ...Arg_Ts>
   void NativeMethod<Class_T, Method_T, NoGVL>::define(VALUE klass, std::string method_name, Method_T method, Arg_Ts&& ...args)
@@ -269,4 +268,4 @@ namespace Rice::detail
       return typeMapper.rubyKlass();
     }
   }
-}
+RICE_DETAIL_END_NAMESPACE

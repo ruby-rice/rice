@@ -5,7 +5,7 @@
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Template);
 
@@ -50,7 +50,7 @@ void MyVector_builder(Data_Type_T& klass)
   klass.define_constructor(Constructor<MyVector<T>>())
     .define_method("add", &MyVector<T>::add)
     .define_method("size", &MyVector<T>::size)
-    .define_attr("empty", &MyVector<T>::empty, Rice::AttrAccess::Read);
+    .define_attr("empty", &MyVector<T>::empty, AttrAccess::Read);
 }
 
 TESTCASE(my_vector)

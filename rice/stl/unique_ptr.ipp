@@ -1,7 +1,6 @@
 #include <memory>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   inline Wrapper<std::unique_ptr<T>>::Wrapper(std::unique_ptr<T>&& data)
     : data_(std::move(data))
@@ -186,4 +185,4 @@ namespace Rice::detail
       return typeMapper.rubyKlass();
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE

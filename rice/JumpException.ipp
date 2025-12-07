@@ -1,5 +1,4 @@
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline JumpException::JumpException(ruby_tag_type tag) : tag(tag)
   {
     this->createMessage();
@@ -45,4 +44,4 @@ namespace Rice
         break;
     }
   }
-} // namespace Rice
+RICE_END_NAMESPACE

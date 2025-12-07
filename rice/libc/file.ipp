@@ -1,18 +1,19 @@
 #include <exception>
 
-namespace Rice::Libc
-{
-  inline Class rb_cLibcFile;
-
-  inline void define_libc_file()
+RICE_BEGIN_NAMESPACE
+  namespace libc
   {
-    Module rb_mLibc = define_module("Libc");
-    rb_cLibcFile = define_class_under<FILE>(rb_mLibc, "File");
-  }
-}
+    inline Class rb_cLibcFile;
 
-namespace Rice::detail
-{
+    inline void define_libc_file()
+    {
+      Module rb_mLibc = RICE_DEFINE_MODULE_RICE_LIBC;
+      rb_cLibcFile = define_class_under<FILE>(rb_mLibc, "File");
+    }
+  }
+RICE_END_NAMESPACE
+
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<FILE>
   {
@@ -20,10 +21,10 @@ namespace Rice::detail
     {
       if (!Data_Type<FILE>::is_defined())
       {
-        Libc::define_libc_file();
+        libc::define_libc_file();
       }
 
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE

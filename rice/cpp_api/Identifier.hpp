@@ -1,8 +1,7 @@
 #ifndef Rice__Identifier__hpp_
 #define Rice__Identifier__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   class Symbol;
 
   //! A wrapper for the ID type
@@ -41,6 +40,6 @@ namespace Rice
   private:
     ID id_;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Identifier__hpp_

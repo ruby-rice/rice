@@ -3,12 +3,11 @@
 
 #include <set>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template <typename T>
   class RubyType
   {
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 #endif // Rice__detail__ruby__type__hpp_

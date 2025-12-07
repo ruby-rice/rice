@@ -3,8 +3,7 @@
 
 #include <tuple>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   // Base class
   template<typename Function_T>
   struct function_traits;
@@ -91,5 +90,5 @@ namespace Rice::detail
   struct function_traits<Function_T&&> : public function_traits<Function_T>
   {
   };*/
-}
+RICE_DETAIL_END_NAMESPACE
 #endif // Rice__detail__function_traits__hpp_

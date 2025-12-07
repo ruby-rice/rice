@@ -1,7 +1,6 @@
 #include <functional>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type<std::reference_wrapper<T>>
   {
@@ -60,4 +59,4 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     From_Ruby<T&> converter_;
   };
-}
+RICE_DETAIL_END_NAMESPACE

@@ -1,5 +1,4 @@
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T, typename...Parameter_Ts>
   class Constructor
   {
@@ -76,4 +75,4 @@ namespace Rice
         detail::wrapConstructed<T>(self.value(), Data_Type<T>::ruby_data_type(), data);
       }
   };
-}
+RICE_END_NAMESPACE

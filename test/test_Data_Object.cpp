@@ -2,7 +2,7 @@
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Data_Object);
 
@@ -30,14 +30,13 @@ namespace
   };
 }
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<>
   void ruby_mark(MyDataType*)
   {
     test_ruby_mark_called = true;
   }
-}
+RICE_END_NAMESPACE
 
 SETUP(Data_Object)
 {

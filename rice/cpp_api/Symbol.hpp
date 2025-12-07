@@ -1,8 +1,7 @@
 #ifndef Rice__Symbol__hpp_
 #define Rice__Symbol__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A wrapper for ruby's Symbol class.
   /*! Symbols are internal identifiers in ruby.  They are singletons and
    *  can be thought of as frozen strings.  They differ from an Identifier
@@ -40,7 +39,7 @@ namespace Rice
     //! Return the Symbol as an Identifier.
     Identifier to_id() const;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Symbol__hpp_
 

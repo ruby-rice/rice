@@ -4,8 +4,7 @@
 #include <typeindex>
 
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template <typename T>
   inline void TypeRegistry::add(VALUE klass, rb_data_type_t* rbType)
   {
@@ -162,4 +161,4 @@ namespace Rice::detail
     }
     return result;
   }
-}
+RICE_DETAIL_END_NAMESPACE

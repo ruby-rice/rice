@@ -1,5 +1,4 @@
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T>
   inline Data_Type<Pointer<T>> define_pointer(std::string klassName)
   {
@@ -12,7 +11,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mRice = define_module("Rice");
+    Module rb_mRice = RICE_DEFINE_MODULE_RICE;
 
     if (Data_Type_T::check_defined(klassName, rb_mRice))
     {
@@ -32,10 +31,9 @@ namespace Rice
 
     return result;
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type<Pointer<T>>
   {
@@ -46,4 +44,4 @@ namespace Rice::detail
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE

@@ -6,7 +6,7 @@
 
 #include <optional>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(StlStringView);
 
@@ -68,7 +68,7 @@ TESTCASE(std_string_view_from_ruby)
 
 TESTCASE(std_string_view_to_ruby_with_binary)
 {
-  Rice::String got = detail::to_ruby(std::string_view("\000test", 5));
+  String got = detail::to_ruby(std::string_view("\000test", 5));
 
   ASSERT_EQUAL(String(std::string_view("\000test", 5)), got);
   ASSERT_EQUAL(5ul, got.length());

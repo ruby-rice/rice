@@ -1,8 +1,7 @@
 #ifndef Rice__detail__Native_Method__hpp_
 #define Rice__detail__Native_Method__hpp_
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   //! The NativeMethod class calls C++ functions/methods/lambdas on behalf of Ruby
   /*! The NativeMethod class is an intermediate between Ruby and C++. Every method
    *  defined in Rice is associated with a NativeFuntion instance that is stored in
@@ -82,6 +81,6 @@ namespace Rice::detail
     Method_T method_;
     To_Ruby<To_Ruby_T> toRuby_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 #endif // Rice__detail__Native_Method__hpp_

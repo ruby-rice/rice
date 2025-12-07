@@ -1,7 +1,6 @@
 #include <variant>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<std::monostate>
   {
@@ -117,4 +116,4 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     std::monostate converted_ = std::monostate();
   };
-}
+RICE_DETAIL_END_NAMESPACE

@@ -1,7 +1,6 @@
 #include <algorithm>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace detail
   {
     inline VALUE check_type(Object value, int type)
@@ -34,4 +33,4 @@ namespace Rice
   {
     return ROBJECT(this->value());
   }
-} // namespace Rice
+RICE_END_NAMESPACE

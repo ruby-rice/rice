@@ -1,8 +1,7 @@
 
 #include <algorithm>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template <typename T>
   Exception create_type_exception(VALUE value)
   {
@@ -94,10 +93,9 @@ namespace Rice
       return detail::unwrap<T>(this->value(), Data_Type<T>::ruby_data_type(), false);
     }
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   class To_Ruby
   {
@@ -724,4 +722,4 @@ namespace Rice::detail
       return Data_Object<T>(value);
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE

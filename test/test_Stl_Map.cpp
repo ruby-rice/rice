@@ -7,7 +7,7 @@
 #include <rice/stl.hpp>
 #include <ruby/version.h>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Map);
 
@@ -49,7 +49,7 @@ TESTCASE(StringMap)
 
   Class c = define_map<std::string, std::string>("StringMap");
 
-  Object map = m.module_eval("$map = Std::StringMap.new");
+  Object map = m.module_eval("$map = RiceTest::Std::StringMap.new");
   Object result = map.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
@@ -67,7 +67,7 @@ TESTCASE(WrongType)
   Module m = define_module("Testing");
 
   Class c = define_map<std::string, std::string>("StringMap");
-  Object map = m.module_eval("$map = Std::StringMap.new");
+  Object map = m.module_eval("$map = RiceTest::Std::StringMap.new");
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -100,7 +100,7 @@ TESTCASE(Include)
 
   Class c = define_map<std::string, std::int32_t>("IntMap");
 
-  std::string code = R"(map = Std::IntMap.new
+  std::string code = R"(map = RiceTest::Std::IntMap.new
                         map["one"] = 1
                         map["two"] = 2
                         map)";
@@ -247,7 +247,7 @@ TESTCASE(Iterate)
   Module m = define_module("Testing");
   Class c = define_map<std::string, int>("IntMap");
 
-  std::string code = R"(map = Std::IntMap.new
+  std::string code = R"(map = RiceTest::Std::IntMap.new
                         map["five"] = 5
                         map["six"] = 6
                         map["seven"] = 7
@@ -274,7 +274,7 @@ TESTCASE(ToEnum)
   Module m = define_module("Testing");
   Class c = define_map<std::string, int>("IntMap");
 
-  std::string code = R"(map = Std::IntMap.new
+  std::string code = R"(map = RiceTest::Std::IntMap.new
                         map["five"] = 5
                         map["six"] = 6
                         map["seven"] = 7
@@ -302,7 +302,7 @@ TESTCASE(ToEnumSize)
   Module m = define_module("TestingModule");
   Class c = define_map<std::string, int>("IntMap");
 
-  std::string code = R"(map = Std::IntMap.new
+  std::string code = R"(map = RiceTest::Std::IntMap.new
                         map["five"] = 5
                         map["six"] = 6
                         map["seven"] = 7
@@ -451,7 +451,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object map = m.module_eval("return_complex_map");
-  ASSERT_EQUAL("Std::Map≺string‚ complex≺double≻≻",
+  ASSERT_EQUAL("RiceTest::Std::Map≺string‚ complex≺double≻≻",
                map.class_name().str());
 
   std::string code = R"(map = return_complex_map
@@ -463,7 +463,7 @@ TESTCASE(AutoRegisterReturn)
 
   // Now register the map again
   define_map<std::string, std::complex<double>>("ComplexMap");
-  code = R"(map = Std::ComplexMap.new)";
+  code = R"(map = RiceTest::Std::ComplexMap.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(map.class_of()));
 }
@@ -472,7 +472,7 @@ TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_complex_map", &passComplexMap);
 
-  std::string code = R"(map = Std::Map≺string‚ complex≺double≻≻.new
+  std::string code = R"(map = RiceTest::Std::Map≺string‚ complex≺double≻≻.new
                           map["four"] = Complex(4.0, 4.0)
                           map["five"] = Complex(5.0, 5.0)
                           pass_complex_map(map))";
@@ -481,7 +481,7 @@ TESTCASE(AutoRegisterParameter)
   Object map = m.module_eval(code);
 
   Object result = map.call("size");
-  ASSERT_EQUAL("Std::Map≺string‚ complex≺double≻≻",
+  ASSERT_EQUAL("RiceTest::Std::Map≺string‚ complex≺double≻≻",
                map.class_name().str());
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 

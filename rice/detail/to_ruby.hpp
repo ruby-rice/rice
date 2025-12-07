@@ -1,8 +1,7 @@
 #ifndef Rice__detail__to_ruby__hpp_
 #define Rice__detail__to_ruby__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace detail
   {
     //! Convert a C++ object to Ruby.
@@ -41,6 +40,6 @@ namespace Rice
       return To_Ruby<Unqualified_T*>().convert(x);
     }
   } // detail
-} // Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__detail__to_ruby__hpp_

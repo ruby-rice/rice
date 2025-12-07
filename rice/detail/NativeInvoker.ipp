@@ -1,5 +1,4 @@
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   // ----- ResultWrapper -------
   template<typename Return_T>
   inline Return_T ResultWrapper<Return_T>::getResult()
@@ -148,11 +147,13 @@ namespace Rice::detail
       if (state == JumpException::RUBY_TAG_RAISE && RB_TEST(err))
       {
         rb_set_errinfo(Qnil);
-        throw Rice::Exception(err);
+        throw RICE_PREPEND_NAMESPACE(Exception)(err);
       }
       else
       {
-        throw Rice::JumpException((Rice::JumpException::ruby_tag_type)state);
+        throw RICE_PREPEND_NAMESPACE(JumpException)(
+          (RICE_PREPEND_NAMESPACE(JumpException)::ruby_tag_type)state
+        );
       }
     }
   }
@@ -194,4 +195,4 @@ namespace Rice::detail
       return invoker.result();
     }
   }
-}
+RICE_DETAIL_END_NAMESPACE

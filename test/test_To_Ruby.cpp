@@ -5,7 +5,7 @@
 #include <limits>
 #include <cmath>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 using namespace std::string_literals;
 
 TESTSUITE(ToRuby);
@@ -207,7 +207,7 @@ TESTCASE(unsigned_char_ptr_buffer)
   Class c = define_class_under<Matrix2UnsignedChar>(m, "Matrix2UnsignedChar")
     .define_constructor(Constructor<Matrix2UnsignedChar>())
     .define_method("ptr", &Matrix2UnsignedChar::ptr)
-    .define_attr("data", &Matrix2UnsignedChar::data, Rice::AttrAccess::Read);
+    .define_attr("data", &Matrix2UnsignedChar::data, AttrAccess::Read);
 
   std::string code = R"(matrix = Matrix2UnsignedChar.new
                         buffer = matrix.ptr.buffer
@@ -217,7 +217,7 @@ TESTCASE(unsigned_char_ptr_buffer)
 
   code = R"(matrix = Matrix2UnsignedChar.new
             ptr = matrix.ptr
-            buffer = Rice::Buffer≺unsigned char≻.new(ptr)
+            buffer = RiceTest::Buffer≺unsigned char≻.new(ptr)
             buffer.bytes(5))";
   buffer = m.module_eval(code);
   ASSERT_EQUAL("\x1\x2\x3\x4\x5", buffer.str());
@@ -270,7 +270,7 @@ TESTCASE(unsigned_char_ptr_ptr_buffer)
   Class c = define_class_under<Matrix3UnsignedChar>(m, "Matrix3UnsignedChar")
     .define_constructor(Constructor<Matrix3UnsignedChar>())
     .define_method("ptr", &Matrix3UnsignedChar::ptr)
-    .define_attr("data", &Matrix3UnsignedChar::data, Rice::AttrAccess::Read);
+    .define_attr("data", &Matrix3UnsignedChar::data, AttrAccess::Read);
 
   std::string code = R"(matrix = Matrix3UnsignedChar.new
                         buffer = matrix.ptr.buffer

@@ -1,3 +1,2 @@
-namespace Rice
-{
-}
+RICE_BEGIN_NAMESPACE
+RICE_END_NAMESPACE

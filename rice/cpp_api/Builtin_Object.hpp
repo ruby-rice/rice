@@ -1,8 +1,7 @@
 #ifndef Rice__Builtin_Object__hpp_
 #define Rice__Builtin_Object__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A smartpointer-like wrapper for Ruby builtin objects.
   /*! A builtin object is one of Ruby's internal types, e.g. RArray or
    *  RString.  Every builtin type structure has a corresponding integer
@@ -26,6 +25,6 @@ namespace Rice
     RObject* operator->() const; //!< Return a pointer to obj_
     RObject* get() const;       //!< Return a pointer to obj_
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Builtin_Object__hpp_

@@ -4,8 +4,7 @@
 #include <iterator>
 #include <memory>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A wrapper for the ruby Array class.
   /*! This class provides a C++-style interface to ruby's Array class and
    *  its associated rb_ary_* functions.
@@ -241,6 +240,6 @@ namespace Rice
   Array::Iterator<Array_Ptr_T, Value_T> operator+(
     long n,
     Array::Iterator<Array_Ptr_T, Value_T> const& it);
-} // namespace Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__Array__hpp_

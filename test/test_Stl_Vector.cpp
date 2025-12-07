@@ -5,7 +5,7 @@
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
 
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 TESTSUITE(Vector);
 
@@ -47,7 +47,7 @@ TESTCASE(StringVector)
 
   Class c = define_vector<std::string>("StringVector");
 
-  Object vec = m.module_eval("$vector = Std::StringVector.new");
+  Object vec = m.module_eval("$vector = RiceTest::Std::StringVector.new");
   Object result = vec.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
@@ -71,10 +71,10 @@ TESTCASE(StringVectorData)
   Module m = define_module("Testing");
   define_vector<std::string>();
 
-  std::string code = R"(vec = Std::Vector≺string≻.new
+  std::string code = R"(vec = RiceTest::Std::Vector≺string≻.new
                         vec.push("Hello")
                         vec.push("World")
-                        buffer = Rice::Buffer≺string≻.new(vec.data, vec.size())
+                        buffer = RiceTest::Buffer≺string≻.new(vec.data, vec.size())
                         [buffer[0], buffer[1]])";
   Array array = m.module_eval(code);
   ASSERT_EQUAL(2, array.size());
@@ -89,7 +89,7 @@ TESTCASE(Constructors)
   Class c = define_vector<int>("IntVector");
 
   // Default constructor
-  std::string code = R"(Std::IntVector.new)";
+  std::string code = R"(RiceTest::Std::IntVector.new)";
   Object vec = m.module_eval(code);
   Object result = vec.call("size");
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
@@ -97,7 +97,7 @@ TESTCASE(Constructors)
   detail::From_Ruby<int> fromRuby;
 
   // Constructor with specific size and default construtible values
-  code = R"(Std::IntVector.new(3))";
+  code = R"(RiceTest::Std::IntVector.new(3))";
   vec = m.module_eval(code);
   result = vec.call("size");
   ASSERT_EQUAL(3, fromRuby.convert(result));
@@ -109,7 +109,7 @@ TESTCASE(Constructors)
   ASSERT_EQUAL(0, fromRuby.convert(element));
 
   // Constructor with specific size and value
-  code = R"(Std::IntVector.new(3, 5))";
+  code = R"(RiceTest::Std::IntVector.new(3, 5))";
   vec = m.module_eval(code);
   result = vec.call("size");
   ASSERT_EQUAL(3, fromRuby.convert(result));
@@ -121,7 +121,7 @@ TESTCASE(Constructors)
   ASSERT_EQUAL(5, fromRuby.convert(element));
 
   // Custom constructor
-  code = R"(Std::IntVector.new([1, 2, 3]))";
+  code = R"(RiceTest::Std::IntVector.new([1, 2, 3]))";
   vec = m.module_eval(code);
   result = vec.call("size");
   ASSERT_EQUAL(3, fromRuby.convert(result));
@@ -139,7 +139,7 @@ TESTCASE(WrongElementType)
 
   Class c = define_vector<std::string>("StringVector");
 
-  Object vec = m.module_eval("$vector = Std::StringVector.new");
+  Object vec = m.module_eval("$vector = RiceTest::Std::StringVector.new");
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.module_eval("$vector << 1"),
@@ -215,7 +215,7 @@ TESTCASE(Indexing)
   vec.call("push", 0);
   vec.call("push", 1);
   vec.call("push", 2);
-  
+
   Object result = vec.call("size");
   ASSERT_EQUAL(3, detail::From_Ruby<int32_t>().convert(result));
 
@@ -520,7 +520,7 @@ TESTCASE(NotDefaultConstructable)
 {
   define_class<NotComparable>("NotComparable").
     define_constructor(Constructor<NotComparable, uint32_t>());
-    
+
   Class c = define_vector<NotComparable>("NotComparableVector");
   Object vec = c.call("new");
 
@@ -579,7 +579,7 @@ TESTCASE(Comparable)
   Class c = define_vector<Comparable>("ComparableVector");
 
   Object vec = c.call("new");
-  
+
   Comparable comparable1(1);
   vec.call("push", comparable1);
 
@@ -735,7 +735,7 @@ TESTCASE(AutoRegisterReturn)
 
   Module m = define_module("Testing");
   Object vec = m.module_eval("return_complex_vector");
-  ASSERT_EQUAL("Std::Vector≺complex≺double≻≻", vec.class_name().str());
+  ASSERT_EQUAL("RiceTest::Std::Vector≺complex≺double≻≻", vec.class_name().str());
 
   std::string code = R"(vector = return_complex_vector
                         complex = vector.last
@@ -746,7 +746,7 @@ TESTCASE(AutoRegisterReturn)
 
   // Now register this same vector
   define_vector<std::complex<double>>("ComplexVector");
-  code = R"(vector = Std::ComplexVector.new)";
+  code = R"(vector = RiceTest::Std::ComplexVector.new)";
   result = m.module_eval(code);
   ASSERT(result.is_instance_of(vec.class_of()));
 }
@@ -755,7 +755,7 @@ TESTCASE(AutoRegisterParameter)
 {
   define_global_function("pass_complex_vector", &passComplexVector);
 
-  std::string code = R"(vector = Std::Vector≺complex≺double≻≻.new
+  std::string code = R"(vector = RiceTest::Std::Vector≺complex≺double≻≻.new
                         vector << Complex(4.0, 4.0)
                         vector << Complex(5.0, 5.0)
                         pass_complex_vector(vector))";
@@ -764,7 +764,7 @@ TESTCASE(AutoRegisterParameter)
   Object vec = m.module_eval(code);
 
   Object result = vec.call("size");
-  ASSERT_EQUAL("Std::Vector≺complex≺double≻≻", vec.class_name().str());
+  ASSERT_EQUAL("RiceTest::Std::Vector≺complex≺double≻≻", vec.class_name().str());
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
   std::vector<std::complex<double>> complexes = detail::From_Ruby<std::vector<std::complex<double>>>().convert(vec);
@@ -776,7 +776,7 @@ TESTCASE(AutoRegisterException)
 {
   std::string code = R"(
     begin
-      Std::Vector≺complex≺double≻≻.new('!!!!')
+      RiceTest::Std::Vector≺complex≺double≻≻.new('!!!!')
     rescue => e
       name = e.class.name
       "#{e.class.name} #{e.message} #{(e.backtrace || []).join("\n")}"  # shoud not raise 'incompatible character encodings: BINARY (ASCII-8BIT) and UTF-8' ?
@@ -818,11 +818,11 @@ TESTCASE(DefaultValue)
 TESTCASE(ToArray)
 {
   Module m = define_module("Testing");
-  
+
   Class c = define_vector<std::string>("StringVector").
     define_constructor(Constructor<std::vector<std::string>>());
 
-  std::string code = R"(vector = Std::StringVector.new
+  std::string code = R"(vector = RiceTest::Std::StringVector.new
                         vector << "abc"
                         vector << "def"
                         vector << "ghi"
@@ -1032,7 +1032,7 @@ TESTCASE(Iterate)
   Module m = define_module("Testing");
   Class c = define_vector<double>("DoubleVector");
 
-  std::string code = R"(vector = Std::DoubleVector.new
+  std::string code = R"(vector = RiceTest::Std::DoubleVector.new
                         vector << 5.0 << 6.0 << 7.0
                         updated = vector.map do |value|
                                     value * 2.0
@@ -1143,7 +1143,7 @@ TESTCASE(StringPointerVector)
 
   std::string code = R"(vec = vector_of_string_pointers
                         outer_buffer = vec.data.buffer
-                        inner_buffer = Rice::Buffer≺string≻.new(outer_buffer[1])
+                        inner_buffer = RiceTest::Buffer≺string≻.new(outer_buffer[1])
                         inner_buffer.to_ary(1))";
   Array array = m.module_eval(code);
   ASSERT_EQUAL(1u, array.size());
@@ -1214,42 +1214,42 @@ TESTCASE(TypeCheck)
     define_module_function("check_ref", &typeCheckRef).
     define_module_function("check_ptr", &typeCheckPtr);
 
-  std::string code = R"(vec = Std::Vector≺string≻.new
+  std::string code = R"(vec = RiceTest::Std::Vector≺string≻.new
                         check_value(vec))";
   Object result = m.module_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
 
-  code = R"(vec = Std::Vector≺string≻.new
+  code = R"(vec = RiceTest::Std::Vector≺string≻.new
             check_ref(vec))";
   result = m.module_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
 
-  code = R"(vec = Std::Vector≺string≻.new
+  code = R"(vec = RiceTest::Std::Vector≺string≻.new
             check_ptr(vec))";
   result = m.module_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
 
-  code = R"(vec = Std::Vector≺int≻.new
+  code = R"(vec = RiceTest::Std::Vector≺int≻.new
             check_value(vec))";
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≻)", ex.what()));
+    ASSERT_EQUAL("wrong argument type RiceTest::Std::Vector≺int≻ (expected RiceTest::Std::Vector≺string≻)", ex.what()));
 
-  code = R"(vec = Std::Vector≺int≻.new
+  code = R"(vec = RiceTest::Std::Vector≺int≻.new
             check_ref(vec))";
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≻)", ex.what()));
+    ASSERT_EQUAL("wrong argument type RiceTest::Std::Vector≺int≻ (expected RiceTest::Std::Vector≺string≻)", ex.what()));
 
-  code = R"(vec = Std::Vector≺int≻.new
+  code = R"(vec = RiceTest::Std::Vector≺int≻.new
             check_ptr(vec))";
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≻)", ex.what()));
+    ASSERT_EQUAL("wrong argument type RiceTest::Std::Vector≺int≻ (expected RiceTest::Std::Vector≺string≻)", ex.what()));
 }

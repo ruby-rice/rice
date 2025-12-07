@@ -1,8 +1,7 @@
 #ifndef Rice__global_function__hpp_
 #define Rice__global_function__hpp_
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
    //! Define an global function
    /*! The method's implementation can be any function or static member
     *  function.  A wrapper will be generated which will convert the arguments
@@ -16,6 +15,6 @@ namespace Rice
     */
   template<typename Function_T, typename...Arg_Ts>
   void define_global_function(char const * name, Function_T&& func, Arg_Ts const& ...args);
-} // Rice
+RICE_END_NAMESPACE
 
 #endif // Rice__global_function__hpp_
