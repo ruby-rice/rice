@@ -31,10 +31,9 @@
 
 // =========   exception.hpp   =========
 
-namespace Rice::stl
-{
+RICE_STL_BEGIN_NAMESPACE
   extern Class rb_cStlException;
-}
+RICE_STL_END_NAMESPACE
 
 
 // ---------   exception.ipp   ---------
@@ -42,11 +41,10 @@ namespace Rice::stl
 
 // Libraries sometime inherit custom exception objects from std::exception,
 // so define it for Ruby if necessary
-namespace Rice::stl
-{
+RICE_STL_BEGIN_NAMESPACE
   inline void define_stl_exceptions()
   {
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
 
     define_class_under<std::exception>(rb_mStd, "Exception", rb_eStandardError).
       define_constructor(Constructor<std::exception>()).
@@ -56,16 +54,15 @@ namespace Rice::stl
       define_constructor(Constructor<std::runtime_error, const char*>()).
       define_method("message", &std::runtime_error::what);
   }
-}
+RICE_STL_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<std::exception>
   {
     static bool verify()
     {
-      Rice::stl::define_stl_exceptions();
+      RICE_PREPEND_NAMESPACE(stl)::define_stl_exceptions();
       return true;
     }
   };
@@ -75,11 +72,11 @@ namespace Rice::detail
   {
     static bool verify()
     {
-      Rice::stl::define_stl_exceptions();
+      RICE_PREPEND_NAMESPACE(stl)::define_stl_exceptions();
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   exception_ptr.hpp   =========
@@ -88,17 +85,15 @@ namespace Rice::detail
 // ---------   exception_ptr.ipp   ---------
 #include <exception>
 
-namespace Rice::stl
-{
+RICE_STL_BEGIN_NAMESPACE
   inline Data_Type<std::exception_ptr> define_exception_ptr()
   {
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     return define_class_under<std::exception_ptr>(rb_mStd, "ExceptionPtr");
   }
-}
+RICE_STL_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<std::exception_ptr>
   {
@@ -112,7 +107,7 @@ namespace Rice::detail
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   string.hpp   =========
@@ -121,8 +116,7 @@ namespace Rice::detail
 // ---------   string.ipp   ---------
 #include <string>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<std::string>
   {
@@ -444,7 +438,8 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     std::string converted_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
+
 
 // =========   string_view.hpp   =========
 
@@ -452,8 +447,7 @@ namespace Rice::detail
 // ---------   string_view.ipp   ---------
 #include <string_view>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<std::string_view>
   {
@@ -537,7 +531,8 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE
+
 
 // =========   complex.hpp   =========
 
@@ -545,8 +540,7 @@ namespace Rice::detail
 // ---------   complex.ipp   ---------
 #include <complex>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type<std::complex<T>>
   {
@@ -674,7 +668,7 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     std::complex<T> converted_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   filesystem.hpp   =========
@@ -683,13 +677,12 @@ namespace Rice::detail
 // ---------   filesystem.ipp   ---------
 #include <filesystem>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace stl
   {
     inline void define_filesystem_path()
     {
-      Module rb_mStd = define_module("Std");
+      Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
       Module rb_mFileSystem = define_module_under(rb_mStd, "Filesystem");
 
       define_class_under<std::filesystem::path>(rb_mFileSystem, "Path").
@@ -697,10 +690,9 @@ namespace Rice
         define_constructor(Constructor<std::filesystem::path, std::string>());
     }
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<std::filesystem::path>
   {
@@ -708,13 +700,13 @@ namespace Rice::detail
     {
       if (!Data_Type<std::filesystem::path>::is_defined())
       {
-        Rice::stl::define_filesystem_path();
+        RICE_PREPEND_NAMESPACE(stl)::define_filesystem_path();
       }
 
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   optional.hpp   =========
@@ -723,8 +715,7 @@ namespace Rice::detail
 // ---------   optional.ipp   ---------
 #include <optional>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type<std::optional<T>>
   {
@@ -887,7 +878,7 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     std::optional<T> converted_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   reference_wrapper.hpp   =========
@@ -896,8 +887,7 @@ namespace Rice::detail
 // ---------   reference_wrapper.ipp   ---------
 #include <functional>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type<std::reference_wrapper<T>>
   {
@@ -956,23 +946,21 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     From_Ruby<T&> converter_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   pair.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T1, typename T2>
   Data_Type<std::pair<T1, T2>> define_pair(std::string klassName = "");
-}
+RICE_END_NAMESPACE
 
 
 // ---------   pair.ipp   ---------
 #include <utility>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace stl
   {
     template<typename T>
@@ -1003,20 +991,20 @@ namespace Rice
         // Access methods
         if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::first_type>>>)
         {
-          klass_.define_attr("first", &T::first, Rice::AttrAccess::Read);
+          klass_.define_attr("first", &T::first, AttrAccess::Read);
         }
         else
         {
-          klass_.define_attr("first", &T::first, Rice::AttrAccess::ReadWrite);
+          klass_.define_attr("first", &T::first, AttrAccess::ReadWrite);
         }
 
         if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::second_type>>>)
         {
-          klass_.define_attr("second", &T::second, Rice::AttrAccess::Read);
+          klass_.define_attr("second", &T::second, AttrAccess::Read);
         }
         else
         {
-          klass_.define_attr("second", &T::second, Rice::AttrAccess::ReadWrite);
+          klass_.define_attr("second", &T::second, AttrAccess::ReadWrite);
         }
       }
 
@@ -1057,7 +1045,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
       return Data_Type_T();
@@ -1088,24 +1076,22 @@ namespace Rice
       }
     };
   }
-}
+RICE_END_NAMESPACE
 
 
 
 // =========   map.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename K, typename T>
   Data_Type<std::map<K, T>> define_map(std::string name = "");
-}
+RICE_END_NAMESPACE
 
 
 // ---------   map.ipp   ---------
 #include <map>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace stl
   {
     template<typename T>
@@ -1338,7 +1324,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
       return Data_Type_T();
@@ -1567,7 +1553,8 @@ namespace Rice
       std::map<T, U> converted_;
     };
   }
-}
+RICE_END_NAMESPACE
+
 
 // =========   monostate.hpp   =========
 
@@ -1575,8 +1562,7 @@ namespace Rice
 // ---------   monostate.ipp   ---------
 #include <variant>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<std::monostate>
   {
@@ -1692,25 +1678,23 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     std::monostate converted_ = std::monostate();
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   multimap.hpp   =========
 
 #include <map>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename K, typename T>
   Data_Type<std::multimap<K, T>> define_multimap(std::string name = "");
-}
+RICE_END_NAMESPACE
 
 
 // ---------   multimap.ipp   ---------
 #include <map>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace stl
   {
     template<typename T>
@@ -1926,7 +1910,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
       return Data_Type_T();
@@ -2152,22 +2136,21 @@ namespace Rice
       std::multimap<T, U> converted_;
     };
   }
-}
+RICE_END_NAMESPACE
+
 
 // =========   set.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T>
   Data_Type<std::set<T>> define_set(std::string klassName = "");
-}
+RICE_END_NAMESPACE
 
 
 // ---------   set.ipp   ---------
 #include <set>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace stl
   {
     template<typename T>
@@ -2407,7 +2390,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
       return Data_Type_T();
@@ -2666,13 +2649,12 @@ namespace Rice
       std::set<T> converted_;
     };
   }
-}
+RICE_END_NAMESPACE
 
 
 // =========   shared_ptr.hpp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   class Wrapper<std::shared_ptr<T>> : public WrapperBase
   {
@@ -2685,21 +2667,19 @@ namespace Rice::detail
   private:
     std::shared_ptr<T> data_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T>
   Data_Type<std::shared_ptr<T>> define_shared_ptr(std::string klassName = "");
-}
+RICE_END_NAMESPACE
 
 
 // ---------   shared_ptr.ipp   ---------
 #include <memory>
 
 // --------- Enable creation of std::shared_ptr from Ruby ---------
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T>
   Data_Type<std::shared_ptr<T>> define_shared_ptr(std::string klassName)
   {
@@ -2712,7 +2692,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
       return Data_Type_T();
@@ -2724,11 +2704,10 @@ namespace Rice
 
     return result;
   }
-}
+RICE_END_NAMESPACE
 
 // --------- Wrapper ---------
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   inline Wrapper<std::shared_ptr<T>>::Wrapper(const std::shared_ptr<T>& data)
     : data_(data)
@@ -2752,11 +2731,10 @@ namespace Rice::detail
   {
     return data_;
   }
-}
+RICE_DETAIL_END_NAMESPACE
 
 // --------- Type/To_Ruby/From_Ruby ---------
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type<std::shared_ptr<T>>
   {
@@ -2947,7 +2925,7 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   tuple.hpp   =========
@@ -2956,8 +2934,7 @@ namespace Rice::detail
 // ---------   tuple.ipp   ---------
 #include <tuple>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename...Types>
   struct Type<std::tuple<Types...>>
   {
@@ -3090,7 +3067,7 @@ namespace Rice::detail
     using From_Ruby_Ts = std::tuple<From_Ruby<Types>...>;
     From_Ruby_Ts fromRubys_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   type_index.hpp   =========
@@ -3099,20 +3076,18 @@ namespace Rice::detail
 // ---------   type_index.ipp   ---------
 #include <typeindex>
 
-namespace Rice::stl
-{
+RICE_STL_BEGIN_NAMESPACE
   inline Data_Type<std::type_index> define_type_index()
   {
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     return define_class_under<std::type_index>(rb_mStd, "TypeIndex").
       define_constructor(Constructor<std::type_index, const std::type_info&>()).
       define_method("hash_code", &std::type_index::hash_code).
       define_method("name", &std::type_index::name);
   }
-}
+RICE_STL_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<std::type_index>
   {
@@ -3126,7 +3101,7 @@ namespace Rice::detail
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   type_info.hpp   =========
@@ -3135,19 +3110,17 @@ namespace Rice::detail
 // ---------   type_info.ipp   ---------
 #include <typeinfo>
 
-namespace Rice::stl
-{
+RICE_STL_BEGIN_NAMESPACE
   inline Data_Type<std::type_info> define_type_info()
   {
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     return define_class_under<std::type_info>(rb_mStd, "TypeInfo").
       define_method("hash_code", &std::type_info::hash_code).
       define_method("name", &std::type_info::name);
   }
-}
+RICE_STL_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<std::type_info>
   {
@@ -3161,7 +3134,7 @@ namespace Rice::detail
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   variant.hpp   =========
@@ -3170,8 +3143,7 @@ namespace Rice::detail
 // ---------   variant.ipp   ---------
 #include <variant>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename...Types>
   struct Type<std::variant<Types...>>
   {
@@ -3461,13 +3433,12 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     std::variant<Types...> converted_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   unique_ptr.hpp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   class Wrapper<std::unique_ptr<T>> : public WrapperBase
   {
@@ -3480,14 +3451,13 @@ namespace Rice::detail
   private:
     std::unique_ptr<T> data_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // ---------   unique_ptr.ipp   ---------
 #include <memory>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   inline Wrapper<std::unique_ptr<T>>::Wrapper(std::unique_ptr<T>&& data)
     : data_(std::move(data))
@@ -3672,23 +3642,21 @@ namespace Rice::detail
       return typeMapper.rubyKlass();
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   unordered_map.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename Key, typename T>
   Data_Type<std::unordered_map<Key, T>> define_unordered_map(std::string name = "");
-}
+RICE_END_NAMESPACE
 
 
 // ---------   unordered_map.ipp   ---------
 #include <unordered_map>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace stl
   {
     template<typename T>
@@ -3921,7 +3889,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
       return Data_Type_T();
@@ -4150,22 +4118,21 @@ namespace Rice
       std::unordered_map<T, U> converted_;
     };
   }
-}
+RICE_END_NAMESPACE
+
 
 // =========   vector.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T>
   Data_Type<std::vector<T>> define_vector(std::string name = "" );
-}
+RICE_END_NAMESPACE
 
 
 // ---------   vector.ipp   ---------
 #include <vector>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace stl
   {
     template<typename T>
@@ -4605,7 +4572,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mStd = define_module("Std");
+    Module rb_mStd = RICE_DEFINE_MODULE_RICE_STL;
     if (Data_Type_T::check_defined(klassName, rb_mStd))
     {
       return Data_Type_T();
@@ -4834,7 +4801,7 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
   }
-}
+RICE_END_NAMESPACE
 
 
 #endif // Rice__stl__hpp_

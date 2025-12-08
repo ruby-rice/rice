@@ -39,14 +39,14 @@ void Init_Module_Registry();
 #endif
 
 // =========   ModuleRegistry.ipp   =========
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 extern "C"
 void Init_Module_Registry()
 {
-  Module rb_mRice = define_module("Rice");
+  Module rb_mRice = RICE_DEFINE_MODULE_RICE;
 
-  Rice::define_class_under<detail::ModuleRegistry>(rb_mRice, "ModuleRegistry").
+  define_class_under<detail::ModuleRegistry>(rb_mRice, "ModuleRegistry").
     define_method("modules", &detail::ModuleRegistry::modules, Return().setValue());
 }
 
@@ -60,14 +60,14 @@ void Init_Native_Registry();
 #endif
 
 // =========   NativeRegistry.ipp   =========
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 extern "C"
 inline void Init_Native_Registry()
 {
-  Module rb_mRice = define_module("Rice");
+  Module rb_mRice = RICE_DEFINE_MODULE_RICE;
 
-  Rice::define_class_under<detail::NativeRegistry>(rb_mRice, "NativeRegistry").
+  define_class_under<detail::NativeRegistry>(rb_mRice, "NativeRegistry").
     define_method("lookup", [](detail::NativeRegistry& self, VALUE klass) -> Array
     {
       Array result;
@@ -92,14 +92,14 @@ void Init_Type_Registry();
 #endif
 
 // =========   TypeRegistry.ipp   =========
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 extern "C"
 void Init_Type_Registry()
 {
-  Module rb_mRice = define_module("Rice");
+  Module rb_mRice = RICE_DEFINE_MODULE_RICE;
 
-  Rice::define_class_under<detail::TypeRegistry>(rb_mRice, "TypeRegistry").
+  define_class_under<detail::TypeRegistry>(rb_mRice, "TypeRegistry").
     define_method("klasses", &detail::TypeRegistry::klasses, Return().setValue());
 }
 
@@ -112,11 +112,11 @@ void Init_Registries();
 #endif
 
 // =========   Registries.ipp   =========
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 inline void Init_Registries()
 {
-  Module rb_mRice = define_module("Rice");
+  Module rb_mRice = RICE_DEFINE_MODULE_RICE;
 
   define_class_under<detail::Registries>(rb_mRice, "Registries").
     define_singleton_attr("instance", &detail::Registries::instance, AttrAccess::Read).
@@ -135,11 +135,11 @@ void Init_Arg();
 #endif
 
 // =========   Arg.ipp   =========
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 inline void Init_Arg()
 {
-  Module rb_mRice = define_module("Rice");
+  Module rb_mRice = RICE_DEFINE_MODULE_RICE;
 
   define_class_under<Arg>(rb_mRice, "Arg").
     define_attr("name", &Arg::name, AttrAccess::Read);
@@ -155,11 +155,11 @@ void Init_Parameter();
 #endif
 
 // =========   Parameter.ipp   =========
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 inline void Init_Parameter()
 {
-  Module rb_mRice = define_module("Rice");
+  Module rb_mRice = RICE_DEFINE_MODULE_RICE;
 
   define_class_under<detail::ParameterAbstract>(rb_mRice, "Parameter").
     define_method("arg", &detail::ParameterAbstract::arg).
@@ -177,14 +177,14 @@ void Init_Native();
 #endif
 
 // =========   Native.ipp   =========
-using namespace Rice;
+RICE_USE_NAMESPACE
 
 #include <ostream>
 
 extern "C"
 inline void Init_Native()
 {
-  Module rb_mRice = define_module("Rice");
+  Module rb_mRice = RICE_DEFINE_MODULE_RICE;
 
   define_enum_under<detail::NativeKind>("NativeKind", rb_mRice)
     .define_value("Function", detail::NativeKind::Function)

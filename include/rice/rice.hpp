@@ -117,8 +117,42 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 
 #ifdef _MSC_VER
   // Prevent _strdup deprecated message on MSVC
-  #define strdup _strdup 
+  #define strdup _strdup
 #endif
+
+// Macros
+
+// =========   configmacros.hpp   =========
+
+#define STR_EXPAND(tok) #tok
+#define STR(tok) STR_EXPAND(tok)
+
+#ifndef RICE_NAMESPACE
+  #define RICE_NAMESPACE Rice
+  #define RICE_DEFINE_MODULE_RICE define_module("Rice");
+  #define RICE_DEFINE_MODULE_RICE_LIBC define_module("Libc");
+  #define RICE_DEFINE_MODULE_RICE_STL define_module("Std");
+#else
+  #define RICE_DEFINE_MODULE_RICE define_module( STR(RICE_NAMESPACE) );
+  #define RICE_DEFINE_MODULE_RICE_LIBC define_module_under(define_module( STR(RICE_NAMESPACE) ), "Libc");
+  #define RICE_DEFINE_MODULE_RICE_STL define_module_under(define_module( STR(RICE_NAMESPACE) ), "Std");
+#endif
+
+#define RICE_PREPEND_NAMESPACE(name) ::RICE_NAMESPACE::name
+#define RICE_USE_NAMESPACE using namespace ::RICE_NAMESPACE;
+#define RICE_BEGIN_NAMESPACE namespace RICE_NAMESPACE {
+#define RICE_END_NAMESPACE }
+
+#define RICE_DETAIL_NAMESPACE RICE_NAMESPACE::detail
+// #define RICE_DETAIL_USE_NAMESPACE using namespace ::RICE_DETAIL_NAMESPACE;
+#define RICE_DETAIL_BEGIN_NAMESPACE namespace RICE_DETAIL_NAMESPACE {
+#define RICE_DETAIL_END_NAMESPACE }
+
+#define RICE_STL_NAMESPACE RICE_NAMESPACE::stl
+// #define RICE_STL_USE_NAMESPACE using namespace ::RICE_STL_NAMESPACE;
+#define RICE_STL_BEGIN_NAMESPACE namespace RICE_STL_NAMESPACE {
+#define RICE_STL_END_NAMESPACE }
+
 
 // Traits
 
@@ -130,8 +164,7 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 #include <variant>
 #include <vector>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace detail
   {
     // Get the base_type of T - without pointer, reference, const or volatile. We call remove_pointer_t twice 
@@ -429,15 +462,14 @@ namespace Rice
 
 
   } // detail
-} // Rice
+RICE_END_NAMESPACE
 
 
 // =========   function_traits.hpp   =========
 
 #include <tuple>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   // Base class
   template<typename Function_T>
   struct function_traits;
@@ -524,14 +556,13 @@ namespace Rice::detail
   struct function_traits<Function_T&&> : public function_traits<Function_T>
   {
   };*/
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   method_traits.hpp   =========
 
 #include <tuple>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   // Declare struct
   template<typename Function_T, typename = void>
   struct method_traits;
@@ -559,14 +590,13 @@ namespace Rice::detail
     using Parameter_Ts = typename function_traits<Function_T>::arg_types;
     static constexpr std::size_t arity = std::tuple_size_v<Parameter_Ts>;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   attribute_traits.hpp   =========
 
 #include <tuple>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   // Base class
   template<typename Attribute_T>
   struct attribute_traits;
@@ -584,14 +614,13 @@ namespace Rice::detail
     using attr_type = Attribute_T;
     using class_type = Class_T;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // Wrap C++ objects as Ruby objects
 
 // =========   Wrapper.hpp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class WrapperBase
   {
   public:
@@ -681,14 +710,14 @@ namespace Rice::detail
   Wrapper_T* getWrapper(VALUE value, rb_data_type_t* rb_data_type);
 
   WrapperBase* getWrapper(VALUE value);
-}
+RICE_DETAIL_END_NAMESPACE
  
+
 // =========   Type.hpp   =========
 
 #include <regex>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type
   {
@@ -761,7 +790,7 @@ namespace Rice::detail
 
   template<typename Tuple_T>
   void verifyTypes();
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // Code for C++ to call Ruby
@@ -770,8 +799,7 @@ namespace Rice::detail
 
 #include <stdexcept>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A placeholder for Ruby exceptions.
   /*! You can use this to safely throw a Ruby exception using C++ syntax:
    *  \code
@@ -829,13 +857,12 @@ namespace Rice
     mutable VALUE exception_ = Qnil;
     mutable std::string message_;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 // =========   JumpException.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A placeholder for Ruby longjmp data.
   /*! When a Ruby exception is caught, the tag used for the longjmp is stored in
    *  a Jump_Tag, then later passed to rb_jump_tag() when there is no more
@@ -872,12 +899,11 @@ namespace Rice
   private:
     std::string message_;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 // =========   JumpException.ipp   =========
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline JumpException::JumpException(ruby_tag_type tag) : tag(tag)
   {
     this->createMessage();
@@ -923,14 +949,13 @@ namespace Rice
         break;
     }
   }
-} // namespace Rice
+RICE_END_NAMESPACE
 
 // =========   NativeInvoker.hpp   =========
 
 #include <optional>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Return_T>
   class ResultWrapper
   {
@@ -995,12 +1020,11 @@ namespace Rice::detail
 
   template<typename Function_T, typename Tuple_T>
   typename function_traits<Function_T>::return_type no_gvl(Function_T func, Tuple_T&& args);
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   NativeInvoker.ipp   =========
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   // ----- ResultWrapper -------
   template<typename Return_T>
   inline Return_T ResultWrapper<Return_T>::getResult()
@@ -1149,11 +1173,13 @@ namespace Rice::detail
       if (state == JumpException::RUBY_TAG_RAISE && RB_TEST(err))
       {
         rb_set_errinfo(Qnil);
-        throw Rice::Exception(err);
+        throw RICE_PREPEND_NAMESPACE(Exception)(err);
       }
       else
       {
-        throw Rice::JumpException((Rice::JumpException::ruby_tag_type)state);
+        throw RICE_PREPEND_NAMESPACE(JumpException)(
+          (RICE_PREPEND_NAMESPACE(JumpException)::ruby_tag_type)state
+        );
       }
     }
   }
@@ -1195,11 +1221,11 @@ namespace Rice::detail
       return invoker.result();
     }
   }
-}
+RICE_DETAIL_END_NAMESPACE
+
 // =========   to_ruby.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace detail
   {
     //! Convert a C++ object to Ruby.
@@ -1238,7 +1264,7 @@ namespace Rice
       return To_Ruby<Unqualified_T*>().convert(x);
     }
   } // detail
-} // Rice
+RICE_END_NAMESPACE
 
 
 // Code for Ruby to call C++
@@ -1247,8 +1273,7 @@ namespace Rice
 
 #include <any>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! Helper for defining default arguments of a method
   /*! This class exposes the ability to define the default values of a
    *  wrapped method. Inspired by how Boost.Python handles keyword and
@@ -1343,13 +1368,12 @@ namespace Rice
   public:
     ArgBuffer(std::string name);
   };
-} // Rice
+RICE_END_NAMESPACE
 
 
 // =========   Return.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! Helper for defining Return argument of a method
 
   class Return: public Arg
@@ -1365,13 +1389,12 @@ namespace Rice
   class ReturnBuffer : public Return
   {
   };
-} // Rice
+RICE_END_NAMESPACE
 
 
 // =========   from_ruby.hpp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   //! Convert a Ruby object to C++.
   /*! If the Ruby object can be converted to an immediate value, returns a
    *  copy of the Ruby object.  If the Ruby object is holding a C++
@@ -1407,28 +1430,26 @@ namespace Rice::detail
       Const  = 0b0111,
       Exact  = 0b1111
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   RubyType.hpp   =========
 
 #include <set>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template <typename T>
   class RubyType
   {
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   Parameter.hpp   =========
 
 #include <optional>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class ParameterAbstract
   {
   public:
@@ -1474,14 +1495,13 @@ namespace Rice::detail
     From_Ruby<remove_cv_recursive_t<T>> fromRuby_;
     To_Ruby<remove_cv_recursive_t<T>> toRuby_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // C++ API declarations
 
 // =========   Encoding.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A wrapper for a Ruby encoding
   class Encoding
   {
@@ -1505,14 +1525,13 @@ namespace Rice
   private:
     rb_encoding* encoding_;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 
 // =========   Identifier.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   class Symbol;
 
   //! A wrapper for the ID type
@@ -1551,12 +1570,11 @@ namespace Rice
   private:
     ID id_;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 // =========   Identifier.ipp   =========
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Identifier::Identifier(ID id) : id_(id)
   {
   }
@@ -1585,7 +1603,8 @@ namespace Rice
   {
     return ID2SYM(id_);
   }
-}
+RICE_END_NAMESPACE
+
 // =========   Object.hpp   =========
 
 /*! \file Object.hpp
@@ -1593,8 +1612,7 @@ namespace Rice
 
 #include <iosfwd>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   class Class;
   class String;
   class Array;
@@ -1854,13 +1872,12 @@ namespace Rice
   extern Object const True;
   extern Object const False;
   extern Object const Undef;
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 // =========   Builtin_Object.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A smartpointer-like wrapper for Ruby builtin objects.
   /*! A builtin object is one of Ruby's internal types, e.g. RArray or
    *  RString.  Every builtin type structure has a corresponding integer
@@ -1884,13 +1901,12 @@ namespace Rice
     RObject* operator->() const; //!< Return a pointer to obj_
     RObject* get() const;       //!< Return a pointer to obj_
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 // =========   String.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A Wraper for the ruby String class.
   /*! This class provides a C++-style interface to ruby's String class and
    *  its associated rb_str_* functions.
@@ -1956,13 +1972,12 @@ namespace Rice
      */
     Identifier intern() const;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 // =========   Symbol.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A wrapper for ruby's Symbol class.
   /*! Symbols are internal identifiers in ruby.  They are singletons and
    *  can be thought of as frozen strings.  They differ from an Identifier
@@ -2000,7 +2015,7 @@ namespace Rice
     //! Return the Symbol as an Identifier.
     Identifier to_id() const;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 
@@ -2009,8 +2024,7 @@ namespace Rice
 #include <iterator>
 #include <memory>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A wrapper for the ruby Array class.
   /*! This class provides a C++-style interface to ruby's Array class and
    *  its associated rb_ary_* functions.
@@ -2121,6 +2135,12 @@ namespace Rice
     template<typename Array_Ptr_T, typename Value_T>
     class Iterator;
 
+    // Friend declaration for non-member operator+
+    template<typename Array_Ptr_T, typename Value_T>
+    friend Iterator<Array_Ptr_T, Value_T> operator+(
+      long n,
+      Iterator<Array_Ptr_T, Value_T> const& it);
+
     long position_of(long index) const;
 
   public:
@@ -2169,13 +2189,12 @@ namespace Rice
     long index_;
   };
 
-  //! A helper class for implementing iterators for a Array.
-  // TODO: This really should be a random-access iterator.
+  //! A random-access iterator for Array.
   template<typename Array_Ptr_T, typename Value_T>
   class Array::Iterator
   {
   public:
-    using iterator_category = std::forward_iterator_tag;
+    using iterator_category = std::random_access_iterator_tag;
     using value_type = Value_T;
     using difference_type = long;
     using pointer = Object*;
@@ -2189,16 +2208,42 @@ namespace Rice
     template<typename Array_Ptr_T_, typename Value_T_>
     Iterator& operator=(Iterator<Array_Ptr_T_, Value_T_> const& rhs);
 
+    // Forward iterator operations
     Iterator& operator++();
     Iterator operator++(int);
-    Value_T operator*();
+    Value_T operator*() const;
     Object* operator->();
 
+    // Bidirectional iterator operations
+    Iterator& operator--();
+    Iterator operator--(int);
+
+    // Random access iterator operations
+    Iterator& operator+=(difference_type n);
+    Iterator& operator-=(difference_type n);
+    Iterator operator+(difference_type n) const;
+    Iterator operator-(difference_type n) const;
+    difference_type operator-(Iterator const& rhs) const;
+    Value_T operator[](difference_type n) const;
+
+    // Comparison operators
     template<typename Array_Ptr_T_, typename Value_T_>
     bool operator==(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
 
     template<typename Array_Ptr_T_, typename Value_T_>
     bool operator!=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
+
+    template<typename Array_Ptr_T_, typename Value_T_>
+    bool operator<(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
+
+    template<typename Array_Ptr_T_, typename Value_T_>
+    bool operator>(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
+
+    template<typename Array_Ptr_T_, typename Value_T_>
+    bool operator<=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
+
+    template<typename Array_Ptr_T_, typename Value_T_>
+    bool operator>=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const;
 
     Array_Ptr_T array() const;
     long index() const;
@@ -2209,7 +2254,13 @@ namespace Rice
 
     Object tmp_;
   };
-} // namespace Rice
+
+  // Non-member operator+ for n + iterator (allows n + iterator syntax)
+  template<typename Array_Ptr_T, typename Value_T>
+  Array::Iterator<Array_Ptr_T, Value_T> operator+(
+    long n,
+    Array::Iterator<Array_Ptr_T, Value_T> const& it);
+RICE_END_NAMESPACE
 
 
 // =========   Hash.hpp   =========
@@ -2217,8 +2268,7 @@ namespace Rice
 #include <iterator>
 #include <type_traits>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A wrapper for the ruby Hash class.
   //! This class provides a C++-style interface to ruby's Hash class and
   //! its associated rb_hash_* functions.
@@ -2401,15 +2451,14 @@ namespace Rice
 
     mutable typename std::remove_const<Value_T>::type tmp_;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 
 
 // =========   Module.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template <typename T>
   void validateType();
 
@@ -2607,12 +2656,12 @@ inline auto& define_constant(std::string name, Constant_T value)
   /*! \return the new module.
    */
   Module anonymous_module();
-}
+RICE_END_NAMESPACE
+
 
 // =========   Class.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A helper for defining a Class and its methods.
   /*! This class provides a C++-style interface to ruby's Class class and
    *  for defining methods on that class.
@@ -2799,14 +2848,13 @@ inline auto& define_constant(std::string name, Constant_T value)
   /*! \return the new class.
    */
   Class anonymous_class();
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 
 // =========   Native.hpp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class Native;
 
   class Resolved
@@ -2885,13 +2933,12 @@ namespace Rice::detail
     std::unique_ptr<Return> returnInfo_;
     std::vector<std::unique_ptr<ParameterAbstract>> parameters_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   NativeAttributeGet.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   enum class AttrAccess
   {
     ReadWrite,
@@ -2939,13 +2986,12 @@ namespace Rice
       Attribute_T attribute_;
     };
   } // detail
-} // Rice
+RICE_END_NAMESPACE
 
 
 // =========   NativeAttributeSet.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace detail
   {
     template<typename Attribute_T>
@@ -2984,15 +3030,14 @@ namespace Rice
       Attribute_T attribute_;
     };
   } // detail
-} // Rice
+RICE_END_NAMESPACE
 
 
 // =========   Data_Type.hpp   =========
 
 #include <set>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A mechanism for binding ruby types to C++ types.
   /*! This class binds run-time types (Ruby VALUEs) to compile-time types
    *  (C++ types).  The binding can occur only once.
@@ -3269,13 +3314,13 @@ inline auto& define_constant(std::string name, Constant_T value)
     static Data_Type<T> bind(const Module& klass);
 
     template<typename T_, typename Base_T>
-    friend Rice::Data_Type<T_> define_class_under(Object parent, Identifier id, Class superKlass);
+    friend Data_Type<T_> define_class_under(Object parent, Identifier id, Class superKlass);
 
     template<typename T_, typename Base_T>
-    friend Rice::Data_Type<T_> define_class_under(Object parent, char const * name);
+    friend Data_Type<T_> define_class_under(Object parent, char const * name);
 
     template<typename T_, typename Base_T>
-    friend Rice::Data_Type<T_> define_class(char const * name);
+    friend Data_Type<T_> define_class(char const * name);
 
     template<typename Method_T, typename...Arg_Ts>
     void wrap_native_method(VALUE klass, std::string name, Method_T&& function, const Arg_Ts&...args);
@@ -3330,7 +3375,7 @@ inline auto& define_constant(std::string name, Constant_T value)
    */
   template<typename T, typename Base_T = void>
   Data_Type<T> define_class(char const* name);
-}
+RICE_END_NAMESPACE
 
 
 // =========   Data_Object.hpp   =========
@@ -3340,8 +3385,7 @@ inline auto& define_constant(std::string name, Constant_T value)
  *  objects as Ruby objects.
  */
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A smartpointer-like wrapper for Ruby data objects.
   /*! A data object is a ruby object of type T_DATA, which is usually
    *  created by using the Data_Wrap_Struct or Data_Make_Struct macro.
@@ -3407,12 +3451,11 @@ namespace Rice
   private:
     static void check_ruby_type(VALUE value);
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 // =========   RubyType.ipp   =========
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   class RubyType<bool>
   {
@@ -3622,7 +3665,8 @@ namespace Rice::detail
     static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string name = "void";
   };
-}
+RICE_DETAIL_END_NAMESPACE
+
 // Registries
 
 // =========   TypeRegistry.hpp   =========
@@ -3640,8 +3684,7 @@ namespace Rice::detail
    to an Abstract class, the actual returned object will be a Child class. However, all we know
    from the C++ method signature is that it is an Absract class - thus the need for a registry.*/
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class TypeRegistry
   {
   public:
@@ -3679,15 +3722,14 @@ namespace Rice::detail
     std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};
     std::set<std::type_index> unverified_{};
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   InstanceRegistry.hpp   =========
 
 #include <map>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class InstanceRegistry
   {
   public:
@@ -3708,27 +3750,25 @@ namespace Rice::detail
   private:
     std::map<void*, VALUE> objectMap_;
   };
-} // namespace Rice::detail
+RICE_DETAIL_END_NAMESPACE
 
 
 
 // =========   DefaultHandler.hpp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class DefaultHandler
   {
   public:
     void operator()() const;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   HandlerRegistry.hpp   =========
 
 #include <functional>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class HandlerRegistry
   {
   public:
@@ -3739,14 +3779,13 @@ namespace Rice::detail
   private:
     std::function<void()> handler_;
   };
-} // namespace Rice::detail
+RICE_DETAIL_END_NAMESPACE
 
 
 
 // =========   ModuleRegistry.hpp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class ModuleRegistry
   {
   public:
@@ -3757,7 +3796,7 @@ namespace Rice::detail
   private:
     std::set<VALUE> modules_{};
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   NativeRegistry.hpp   =========
@@ -3781,8 +3820,7 @@ namespace Rice::detail
    by calling the reset method on the registry. Although redefinition shouldn't happen in 
    production code it happens in many places in the unit tests. */
    
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class NativeRegistry
   {
   public:
@@ -3803,13 +3841,12 @@ namespace Rice::detail
     // Value - Vector of Native pointers owned by the registry (thus wrapped in std::unique_ptr)
     std::map<std::pair<VALUE, ID>, std::vector<std::unique_ptr<Native>>> natives_ = {};
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   Registries.hpp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   class Registries
   {
   public:
@@ -3822,14 +3859,13 @@ namespace Rice::detail
     NativeRegistry natives;
     TypeRegistry types;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // To / From Ruby
 
 // =========   Arg.ipp   =========
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Arg::Arg(std::string name) : name(name)
   {
   }
@@ -3903,12 +3939,10 @@ namespace Rice
   inline ArgBuffer::ArgBuffer(std::string name) : Arg(name)
   {
   }
+RICE_END_NAMESPACE
 
-
-} // Rice
 // =========   Parameter.ipp   =========
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   // -----------  ParameterAbstract ----------------
   inline ParameterAbstract::ParameterAbstract(std::unique_ptr<Arg>&& arg) : arg_(std::move(arg))
   {
@@ -4051,25 +4085,23 @@ namespace Rice::detail
     TypeMapper<T> typeMapper;
     return typeMapper.rubyKlass();
   }
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   NoGVL.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   class NoGVL
   {
   public:
     NoGVL() = default;
   };
-} // Rice
+RICE_END_NAMESPACE
 
 
 // =========   Return.ipp   =========
 #include <any>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Return::Return(): Arg("Return")
   {
   }
@@ -4097,12 +4129,11 @@ namespace Rice
     Arg::takeOwnership();
     return *this;
   }
-}  // Rice
+RICE_END_NAMESPACE
 
 // =========   Constructor.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! Define a Type's Constructor and it's arguments.
   /*! E.g. for the default constructor on a Type:
       \code
@@ -4118,12 +4149,11 @@ namespace Rice
   */
   template<typename T, typename...Parameter_Ts>
   class Constructor;
-}
+RICE_END_NAMESPACE
 
 // =========   Buffer.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T, typename = void>
   class Buffer;
     
@@ -4288,13 +4318,12 @@ namespace Rice
 
   template<typename T>
   Data_Type<Buffer<T>> define_buffer(std::string klassName = "");
-}
+RICE_END_NAMESPACE
 
 
 // =========   Pointer.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T>
   class Pointer
   {
@@ -4302,12 +4331,11 @@ namespace Rice
 
   template<typename T>
   Data_Type<Pointer<T>> define_pointer(std::string klassName = "");
-}
+RICE_END_NAMESPACE
 
 
 // =========   Buffer.ipp   =========
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   // ----  Buffer<T> ------- 
   template<typename T>
   inline Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::Buffer(T* pointer) : m_buffer(pointer)
@@ -5162,7 +5190,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mRice = define_module("Rice");
+    Module rb_mRice = RICE_DEFINE_MODULE_RICE;
 
     if (Data_Type_T::check_defined(klassName, rb_mRice))
     {
@@ -5213,10 +5241,9 @@ namespace Rice
       return klass;
     }
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type<Buffer<T>>
   {
@@ -5227,11 +5254,10 @@ namespace Rice::detail
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   Pointer.ipp   =========
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T>
   inline Data_Type<Pointer<T>> define_pointer(std::string klassName)
   {
@@ -5244,7 +5270,7 @@ namespace Rice
       klassName = typeMapper.rubyName();
     }
 
-    Module rb_mRice = define_module("Rice");
+    Module rb_mRice = RICE_DEFINE_MODULE_RICE;
 
     if (Data_Type_T::check_defined(klassName, rb_mRice))
     {
@@ -5264,10 +5290,9 @@ namespace Rice
 
     return result;
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   struct Type<Pointer<T>>
   {
@@ -5278,11 +5303,10 @@ namespace Rice::detail
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   Types.ipp   =========
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<bool>
   {
@@ -5710,11 +5734,11 @@ namespace Rice::detail
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
+
 // =========   to_ruby.ipp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace detail
   {
     // ===========  bool  ============
@@ -6758,7 +6782,8 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
  }
-}
+RICE_END_NAMESPACE
+
 // =========   from_ruby.ipp   =========
 #include <limits>
 #include <optional>
@@ -6766,8 +6791,7 @@ namespace Rice
 
 /* This file implements conversions from Ruby to native values fo fundamental types 
    such as bool, int, float, etc. It also includes conversions for chars and strings */
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   inline Convertible operator&(Convertible left, Convertible right)
   {
     return static_cast<Convertible>(static_cast<uint8_t>(left) & static_cast<uint8_t>(right));
@@ -8360,7 +8384,8 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE
+
 // =========   Proc.hpp   =========
 
 
@@ -8373,8 +8398,7 @@ namespace Rice::detail
 #include <typeindex>
 
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template <typename T>
   inline void TypeRegistry::add(VALUE klass, rb_data_type_t* rbType)
   {
@@ -8531,12 +8555,12 @@ namespace Rice::detail
     }
     return result;
   }
-}
+RICE_DETAIL_END_NAMESPACE
+
 // =========   InstanceRegistry.ipp   =========
 #include <memory>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template <typename T>
   inline VALUE InstanceRegistry::lookup(T& cppInstance)
   {
@@ -8582,20 +8606,19 @@ namespace Rice::detail
   {
     this->objectMap_.clear();
   }
-} // namespace
+RICE_DETAIL_END_NAMESPACE
 
 // =========   DefaultHandler.ipp   =========
-namespace Rice::detail
-{
-  inline void Rice::detail::DefaultHandler::operator()() const
+RICE_DETAIL_BEGIN_NAMESPACE
+  inline void DefaultHandler::operator()() const
   {
     // This handler does nothing, it just rethrows the exception so it can be handled
     throw;
   }
-}
+RICE_DETAIL_END_NAMESPACE
+
 // =========   HandlerRegistry.ipp   =========
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   inline HandlerRegistry::HandlerRegistry() : handler_(DefaultHandler())
   {
   }
@@ -8609,7 +8632,8 @@ namespace Rice::detail
   {
     return this->handler_;
   }
-}
+RICE_DETAIL_END_NAMESPACE
+
 // =========   ModuleRegistry.ipp   =========
 #include <iostream>
 #include <stdexcept>
@@ -8617,8 +8641,7 @@ namespace Rice::detail
 #include <typeindex>
 
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   inline void ModuleRegistry::add(VALUE module)
   {
     this->modules_.insert(module);
@@ -8635,11 +8658,11 @@ namespace Rice::detail
     }
     return result;
   }
-}
+RICE_DETAIL_END_NAMESPACE
+
 // =========   NativeRegistry.ipp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   inline void NativeRegistry::add(VALUE klass, ID methodId, std::unique_ptr<Native>& native)
   {
     if (rb_type(klass) == T_ICLASS)
@@ -8711,14 +8734,13 @@ namespace Rice::detail
     // Lookup items for method
     return this->natives_[key];
   }
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   Registries.ipp   =========
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   //Initialize static variables here.
   inline Registries Registries::instance;
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   Type.ipp   =========
@@ -8731,8 +8753,7 @@ namespace Rice::detail
 // Rice saves types either as the intrinsic type (MyObject) or pointer (MyObject*).
 // It strips out references, const and volatile to avoid an explosion of template classes.
 // Pointers are used for C function pointers used in callbacks and for the Buffer class.
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   // ------ Type ----------------
   template<typename T>
   inline bool Type<T>::verify()
@@ -9088,13 +9109,13 @@ namespace Rice::detail
       return pair.first;
     }
   }
-}
+RICE_DETAIL_END_NAMESPACE
+
 // Code for Ruby to call C++
 
 // =========   Exception.ipp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Exception::Exception(VALUE exception) : exception_(exception)
   {
   }
@@ -9150,7 +9171,7 @@ namespace Rice
   {
     return this->exception_;
   }
-}
+RICE_END_NAMESPACE
 
 // =========   cpp_protect.hpp   =========
 
@@ -9168,8 +9189,7 @@ namespace Rice
 #endif
 
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template <typename Callable_T>
   auto cpp_protect(Callable_T&& func)
   {
@@ -9184,11 +9204,11 @@ namespace Rice::detail
         std::function<void()> handler = detail::Registries::instance.handlers.handler();
         handler();
       }
-      catch (::Rice::Exception const& ex)
+      catch (RICE_PREPEND_NAMESPACE(Exception) const& ex)
       {
         rb_exc_raise(ex.value());
       }
-      catch (::Rice::JumpException const& ex)
+      catch (RICE_PREPEND_NAMESPACE(JumpException) const& ex)
       {
         rb_jump_tag(ex.tag);
       }
@@ -9250,13 +9270,12 @@ namespace Rice::detail
       throw std::runtime_error("Should never get here - just making compilers happy");
     }
   }
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   Wrapper.ipp   =========
 #include <memory>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   inline bool WrapperBase::isConst()
   {
     return this->isConst_;
@@ -9525,11 +9544,10 @@ namespace Rice::detail
 
     Registries::instance.instances.add(data, value);
   }
-} // namespace
+RICE_DETAIL_END_NAMESPACE
 
 // =========   Native.ipp   =========
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   inline bool Resolved::operator<(Resolved other)
   {
     if (this->convertible != other.convertible)
@@ -9981,14 +9999,13 @@ namespace Rice::detail
       
     return result;
   }
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   NativeAttributeGet.ipp   =========
 #include <array>
 #include <algorithm>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Attribute_T>
   template<typename...Arg_Ts>
   void NativeAttributeGet<Attribute_T>::define(VALUE klass, std::string name, Attribute_T attribute, Arg_Ts&...args)
@@ -10105,14 +10122,14 @@ namespace Rice::detail
       return typeMapper.rubyKlass();
     }
   }
-}
+RICE_DETAIL_END_NAMESPACE
+
 // =========   NativeAttributeSet.ipp   =========
 #include <array>
 #include <algorithm>
 
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Attribute_T>
   void NativeAttributeSet<Attribute_T>::define(VALUE klass, std::string name, Attribute_T attribute)
   {
@@ -10198,12 +10215,11 @@ namespace Rice::detail
     TypeMapper<Attr_T> typeMapper;
     return typeMapper.rubyKlass();
   }
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   NativeFunction.hpp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   //! The NativeFunction class calls C++ functions/methods/lambdas on behalf of Ruby
   /*! The NativeFunction class is an intermediate between Ruby and C++. Every method
    *  defined in Rice is associated with a NativeFuntion instance that is stored in
@@ -10277,7 +10293,7 @@ namespace Rice::detail
     Function_T function_;
     To_Ruby<To_Ruby_T> toRuby_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   NativeFunction.ipp   =========
@@ -10287,8 +10303,7 @@ namespace Rice::detail
 #include <sstream>
 #include <tuple>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Function_T, bool NoGVL>
   template<typename ...Arg_Ts>
   void NativeFunction<Function_T, NoGVL>::define(VALUE klass, std::string method_name, Function_T function, Arg_Ts&& ...args)
@@ -10462,12 +10477,11 @@ namespace Rice::detail
       return typeMapper.rubyKlass();
     }
   }
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   NativeIterator.hpp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T, typename Iterator_Func_T>
   class NativeIterator: Native
   {
@@ -10509,7 +10523,7 @@ namespace Rice::detail
     Iterator_Func_T begin_;
     Iterator_Func_T end_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   NativeIterator.ipp   =========
@@ -10517,8 +10531,7 @@ namespace Rice::detail
 #include <functional>
 #include <type_traits>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template <typename T, typename Iterator_Func_T>
   inline void NativeIterator<T, Iterator_Func_T>::define(VALUE klass, std::string method_name, Iterator_Func_T begin, Iterator_Func_T end)
   {
@@ -10629,11 +10642,11 @@ namespace Rice::detail
     TypeMapper<Value_T> typeMapper;
     return typeMapper.rubyKlass();
   }
-}
+RICE_DETAIL_END_NAMESPACE
+
 // =========   NativeMethod.hpp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   //! The NativeMethod class calls C++ functions/methods/lambdas on behalf of Ruby
   /*! The NativeMethod class is an intermediate between Ruby and C++. Every method
    *  defined in Rice is associated with a NativeFuntion instance that is stored in
@@ -10713,7 +10726,7 @@ namespace Rice::detail
     Method_T method_;
     To_Ruby<To_Ruby_T> toRuby_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   NativeMethod.ipp   =========
@@ -10723,8 +10736,7 @@ namespace Rice::detail
 #include <sstream>
 #include <tuple>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Class_T, typename Method_T, bool NoGVL>
   template<typename ...Arg_Ts>
   void NativeMethod<Class_T, Method_T, NoGVL>::define(VALUE klass, std::string method_name, Method_T method, Arg_Ts&& ...args)
@@ -10988,12 +11000,11 @@ namespace Rice::detail
       return typeMapper.rubyKlass();
     }
   }
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   NativeProc.hpp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Proc_T>
   class NativeProc: Native
   {
@@ -11035,7 +11046,7 @@ namespace Rice::detail
     Proc_T proc_;
     To_Ruby<To_Ruby_T> toRuby_;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   NativeProc.ipp   =========
@@ -11045,8 +11056,7 @@ namespace Rice::detail
 #include <sstream>
 #include <tuple>
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Proc_T>
   NativeProc<Proc_T>* NativeProc<Proc_T>::define(Proc_T proc)
   {
@@ -11171,15 +11181,15 @@ namespace Rice::detail
     TypeMapper<Return_T> typeMapper;
     return typeMapper.rubyKlass();
   }
-}
+RICE_DETAIL_END_NAMESPACE
+
 // =========   NativeCallback.hpp   =========
 
 #ifdef HAVE_LIBFFI
 #include <ffi.h>
 #endif //HAVE_LIBFFI
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Callback_T>
   class NativeCallback;
 
@@ -11207,6 +11217,9 @@ namespace Rice::detail
 
     Callback_T callback();
   private:
+    template<typename Parameter_T>
+    static Parameter_T extractArg(void* arg);
+
     template<std::size_t... I>
     static Tuple_T convertArgsToTuple(void* args[], std::index_sequence<I...>& indices);
     Callback_T callback_ = nullptr;
@@ -11243,11 +11256,10 @@ namespace Rice::detail
     ffi_closure* closure_ = nullptr;
 #endif //HAVE_LIBFFI
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   NativeCallback.ipp   =========
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
 #ifdef HAVE_LIBFFI
   template<typename Return_T, typename ...Parameter_Ts>
   template<typename Arg_T>
@@ -11290,7 +11302,7 @@ namespace Rice::detail
       nativeToFfiMapping[std::type_index(typeid(long))] = &ffi_type_sint64;
     }
     
-    if (std::is_pointer_v<Arg_T>)
+    if constexpr (std::is_pointer_v<Arg_T> || std::is_reference_v<Arg_T>)
     {
       return &ffi_type_pointer;
     }
@@ -11311,8 +11323,6 @@ namespace Rice::detail
     auto indices = std::make_index_sequence<sizeof...(Parameter_Ts)>{};
     auto helper = [&](auto&&... args)
     {
-      self->callRuby(indices, std::forward<Parameter_Ts>(args)...);
-
       if constexpr (!std::is_void_v<Return_T>)
       {
         *(Return_T*)ret = self->callRuby(indices, std::forward<Parameter_Ts>(args)...);
@@ -11384,6 +11394,21 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename ...Parameter_Ts>
+  template<typename Parameter_T>
+  Parameter_T NativeCallback<Return_T(*)(Parameter_Ts...)>::extractArg(void* arg)
+  {
+    if constexpr (std::is_reference_v<Parameter_T>)
+    {
+      // We told libffi to pass references as pointers, so arg points to the pointer
+      return static_cast<Parameter_T>(**reinterpret_cast<std::remove_reference_t<Parameter_T>**>(arg));
+    }
+    else
+    {
+      return *reinterpret_cast<Parameter_T*>(arg);
+    }
+  }
+
+  template<typename Return_T, typename ...Parameter_Ts>
   template<std::size_t... I>
   typename NativeCallback<Return_T(*)(Parameter_Ts...)>::Tuple_T NativeCallback<Return_T(*)(Parameter_Ts...)>::convertArgsToTuple(void* args[], std::index_sequence<I...>&)
   {
@@ -11392,7 +11417,7 @@ namespace Rice::detail
        the associated From_Ruby<T> template parameter will not. Thus From_Ruby produces non-const values
        which we let the compiler convert to const values as needed. This works except for
        T** -> const T**, see comment in convertToNative method. */
-    return std::forward_as_tuple(*(Parameter_Ts*)(args[I])...);
+    return std::forward_as_tuple(extractArg<Parameter_Ts>(args[I])...);
   }
 
   template<typename Return_T, typename ...Parameter_Ts>
@@ -11417,7 +11442,7 @@ namespace Rice::detail
 
   template<typename Return_T, typename ...Parameter_Ts>
   NativeCallback<Return_T(*)(Parameter_Ts...)>::NativeCallback(VALUE proc) :
-    Native("callback", std::move(copyReturnInfo()), std::move(copyParameters())),
+    Native("callback", copyReturnInfo(), copyParameters()),
       proc_(proc), fromRuby_(returnInfo_.get())
   {
     // Tie the lifetime of the NativeCallback C++ instance to the lifetime of the Ruby proc object
@@ -11428,7 +11453,7 @@ namespace Rice::detail
     // First setup description of callback
     if (cif_.bytes == 0)
     {
-      ffi_prep_cif(&cif_, FFI_DEFAULT_ABI, sizeof...(Parameter_Ts), &ffi_type_pointer, args_.data());
+      ffi_prep_cif(&cif_, FFI_DEFAULT_ABI, sizeof...(Parameter_Ts), ffiType<Return_T>(), args_.data());
     }
 
     // Now allocate memory
@@ -11502,11 +11527,10 @@ namespace Rice::detail
   {
     return Qnil;
   }
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   Proc.ipp   =========
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename Return_T, typename ...Parameter_Ts>
   struct Type<Return_T(*)(Parameter_Ts...)>
   {
@@ -11576,13 +11600,12 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // C++ API definitions
 
 // =========   Encoding.ipp   =========
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Encoding Encoding::utf8()
   {
     return Encoding(rb_utf8_encoding());
@@ -11591,10 +11614,10 @@ namespace Rice
   inline Encoding::Encoding(rb_encoding* encoding) : encoding_(encoding)
   {
   }
-}
+RICE_END_NAMESPACE
 
-/*namespace Rice::detail
-{
+/*
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Encoding>
   {
@@ -11638,11 +11661,11 @@ namespace Rice
      // return Symbol(value);
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 */
+
 // =========   Object.ipp   =========
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline const Object Nil(Qnil);
   inline const Object True(Qtrue);
   inline const Object False(Qfalse);
@@ -11821,10 +11844,9 @@ namespace Rice
     Object result = lhs.call(">", rhs);
     return result.test();
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Object>
   {
@@ -11907,13 +11929,12 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   Builtin_Object.ipp   =========
 #include <algorithm>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   namespace detail
   {
     inline VALUE check_type(Object value, int type)
@@ -11946,11 +11967,10 @@ namespace Rice
   {
     return ROBJECT(this->value());
   }
-} // namespace Rice
+RICE_END_NAMESPACE
 
 // =========   String.ipp   =========
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline String::String() : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, ""))
   {
   }
@@ -12024,10 +12044,9 @@ namespace Rice
   {
     return rb_intern(c_str());
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<String>
   {
@@ -12091,11 +12110,11 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE
+
 // =========   Array.ipp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Array::Array() : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
   {
   }
@@ -12279,7 +12298,7 @@ namespace Rice
   }
 
   template<typename Array_Ptr_T, typename Value_T>
-  inline Value_T Array::Iterator<Array_Ptr_T, Value_T>::operator*()
+  inline Value_T Array::Iterator<Array_Ptr_T, Value_T>::operator*() const
   {
     return (*array_)[index_];
   }
@@ -12303,6 +12322,99 @@ namespace Rice
   inline bool Array::Iterator<Array_Ptr_T, Value_T>::operator!=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const
   {
     return !(*this == rhs);
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  template<typename Array_Ptr_T_, typename Value_T_>
+  inline bool Array::Iterator<Array_Ptr_T, Value_T>::operator<(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const
+  {
+    return index_ < rhs.index_;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  template<typename Array_Ptr_T_, typename Value_T_>
+  inline bool Array::Iterator<Array_Ptr_T, Value_T>::operator>(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const
+  {
+    return index_ > rhs.index_;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  template<typename Array_Ptr_T_, typename Value_T_>
+  inline bool Array::Iterator<Array_Ptr_T, Value_T>::operator<=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const
+  {
+    return index_ <= rhs.index_;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  template<typename Array_Ptr_T_, typename Value_T_>
+  inline bool Array::Iterator<Array_Ptr_T, Value_T>::operator>=(Iterator<Array_Ptr_T_, Value_T_> const& rhs) const
+  {
+    return index_ >= rhs.index_;
+  }
+
+  // Bidirectional iterator operations
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T>& Array::Iterator<Array_Ptr_T, Value_T>::operator--()
+  {
+    --index_;
+    return *this;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T> Array::Iterator<Array_Ptr_T, Value_T>::operator--(int)
+  {
+    Iterator copy(*this);
+    --(*this);
+    return copy;
+  }
+
+  // Random access iterator operations
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T>& Array::Iterator<Array_Ptr_T, Value_T>::operator+=(difference_type n)
+  {
+    index_ += n;
+    return *this;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T>& Array::Iterator<Array_Ptr_T, Value_T>::operator-=(difference_type n)
+  {
+    index_ -= n;
+    return *this;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T> Array::Iterator<Array_Ptr_T, Value_T>::operator+(difference_type n) const
+  {
+    return Iterator(array_, index_ + n);
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T> Array::Iterator<Array_Ptr_T, Value_T>::operator-(difference_type n) const
+  {
+    return Iterator(array_, index_ - n);
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  inline typename Array::Iterator<Array_Ptr_T, Value_T>::difference_type
+  Array::Iterator<Array_Ptr_T, Value_T>::operator-(Iterator const& rhs) const
+  {
+    return index_ - rhs.index_;
+  }
+
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Value_T Array::Iterator<Array_Ptr_T, Value_T>::operator[](difference_type n) const
+  {
+    return (*array_)[index_ + n];
+  }
+
+  // Non-member operator+ (allows n + iterator syntax)
+  template<typename Array_Ptr_T, typename Value_T>
+  inline Array::Iterator<Array_Ptr_T, Value_T> operator+(
+    long n,
+    Array::Iterator<Array_Ptr_T, Value_T> const& it)
+  {
+    return it + n;
   }
 
   template<typename Array_Ptr_T, typename Value_T>
@@ -12336,10 +12448,9 @@ namespace Rice
   {
     return const_iterator(this, size());
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Array>
   {
@@ -12441,13 +12552,12 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   Hash.ipp   =========
 #include <algorithm>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Hash::Hash() : Builtin_Object<T_HASH>(detail::protect(rb_hash_new))
   {
   }
@@ -12635,10 +12745,10 @@ namespace Rice
     return const_iterator(this, (int)size());
   }
 
-  inline bool operator<(Rice::Hash::Entry const& lhs, Rice::Hash::Entry const& rhs)
+  inline bool operator<(Hash::Entry const& lhs, Hash::Entry const& rhs)
   {
-    Rice::Object lhs_key(lhs.key);
-    Rice::Object rhs_key(rhs.key);
+    Object lhs_key(lhs.key);
+    Object rhs_key(rhs.key);
     if (lhs_key < rhs_key)
     {
       return true;
@@ -12647,7 +12757,7 @@ namespace Rice
     {
       return false;
     }
-    else if (Rice::Object(lhs.value.value()) < Rice::Object(rhs.value.value()))
+    else if (Object(lhs.value.value()) < Object(rhs.value.value()))
     {
       return true;
     }
@@ -12656,10 +12766,9 @@ namespace Rice
       return false;
     }
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Hash>
   {
@@ -12723,11 +12832,10 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   Symbol.ipp   =========
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Symbol::Symbol(VALUE value) : Object(value)
   {
     detail::protect(rb_check_type, value, (int)T_SYMBOL);
@@ -12771,10 +12879,9 @@ namespace Rice
   {
     return rb_to_id(value());
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Symbol>
   {
@@ -12861,13 +12968,12 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 // =========   Module.ipp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Module::Module() : Object(rb_cObject)
   {
   }
@@ -12939,10 +13045,9 @@ namespace Rice
 
     return klass;
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Module>
   {
@@ -13005,12 +13110,11 @@ namespace Rice::detail
       return Module(value);
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   Class.ipp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Class::Class(VALUE value) : Module(value)
   {
     detail::protect(rb_check_type, value, (int)T_CLASS);
@@ -13081,10 +13185,9 @@ namespace Rice
 
     return klass;
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   class To_Ruby<Class>
   {
@@ -13123,12 +13226,11 @@ namespace Rice::detail
       return Class(value);
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   Struct.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A wrapper for creating Struct classes.
   /*! The Struct class is used for creating new Classes.  Note that the
    *  notation used here differs slightly from the notation inside the
@@ -13234,13 +13336,12 @@ namespace Rice
   //! Define a new Struct
   Struct define_struct();
 
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 // =========   Struct.ipp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Struct& Struct::initialize(Module module, Identifier name)
   {
     Class struct_class(rb_cStruct);
@@ -13317,10 +13418,9 @@ namespace Rice
   {
     return (*this)[Identifier(name)];
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<Struct>
   {
@@ -13334,12 +13434,12 @@ namespace Rice::detail
       return rb_cStruct;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
+
 
 // =========   Address_Registration_Guard.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! A guard to register a given address with the GC.
   /*! Calls rb_gc_register_address upon construction and
    *  rb_gc_unregister_address upon destruction.
@@ -13408,12 +13508,11 @@ namespace Rice
 
     VALUE* address_ = nullptr;
   };
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 // =========   Address_Registration_Guard.ipp   =========
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   inline Address_Registration_Guard::Address_Registration_Guard(VALUE* address) : address_(address)
   {
     registerExitHandler();
@@ -13491,11 +13590,11 @@ namespace Rice
   {
     enabled = false;
   }
-} // Rice
+RICE_END_NAMESPACE
+
 // =========   global_function.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
    //! Define an global function
    /*! The method's implementation can be any function or static member
     *  function.  A wrapper will be generated which will convert the arguments
@@ -13509,16 +13608,17 @@ namespace Rice
     */
   template<typename Function_T, typename...Arg_Ts>
   void define_global_function(char const * name, Function_T&& func, Arg_Ts const& ...args);
-} // Rice
+RICE_END_NAMESPACE
 
 
 // =========   global_function.ipp   =========
 
 template<typename Function_T, typename...Arg_Ts>
-void Rice::define_global_function(char const * name, Function_T&& func, Arg_Ts const& ...args)
+void RICE_PREPEND_NAMESPACE(define_global_function)(char const * name, Function_T&& func, Arg_Ts const& ...args)
 {
   Module(rb_mKernel).define_module_function(name, std::forward<Function_T>(func), args...);
 }
+
 // Code involved in creating custom DataTypes (ie, Ruby classes that wrap C++ classes)
 
 // =========   ruby_mark.hpp   =========
@@ -13527,31 +13627,29 @@ void Rice::define_global_function(char const * name, Function_T&& func, Arg_Ts c
 /*! This function can be specialized for a particular type to override
  *  the default behavior (which is to not mark any additional objects).
  */
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T>
   void ruby_mark(T*)
   {
     // Do nothing by default
   }
-}
+RICE_END_NAMESPACE
+
 
 
 // =========   default_allocation_func.hpp   =========
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   //! A default implementation of an allocate_func.  This function does no
   //! actual allocation; the initialize_func can later do the real
   //! allocation with: DATA_PTR(self) = new Type(arg1, arg2, ...)
   template<typename T>
   VALUE default_allocation_func(VALUE klass);
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   Director.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   /**
    * A Director works exactly as a SWIG %director works (thus the name).
    * You use this class to help build proxy classes so that polymorphism
@@ -13587,13 +13685,12 @@ namespace Rice
       Object self_;
 
   };
-}
+RICE_END_NAMESPACE
 
 // =========   Data_Type.ipp   =========
 #include <stdexcept>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T>
   inline void ruby_mark_internal(detail::WrapperBase* wrapper)
   {
@@ -13637,10 +13734,10 @@ namespace Rice
     klass_ = klass;
 
     rb_data_type_ = new rb_data_type_t();
-    rb_data_type_->wrap_struct_name = strdup(Rice::detail::protect(rb_class2name, klass_));
-    rb_data_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&Rice::ruby_mark_internal<T>);
-    rb_data_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&Rice::ruby_free_internal<T>);
-    rb_data_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&Rice::ruby_size_internal<T>);
+    rb_data_type_->wrap_struct_name = strdup(detail::protect(rb_class2name, klass_));
+    rb_data_type_->function.dmark = reinterpret_cast<void(*)(void*)>(&ruby_mark_internal<T>);
+    rb_data_type_->function.dfree = reinterpret_cast<void(*)(void*)>(&ruby_free_internal<T>);
+    rb_data_type_->function.dsize = reinterpret_cast<size_t(*)(const void*)>(&ruby_size_internal<T>);
     rb_data_type_->data = nullptr;
     rb_data_type_->flags = RUBY_TYPED_FREE_IMMEDIATELY;
 
@@ -13871,7 +13968,7 @@ namespace Rice
   template<typename T, typename Base_T>
   inline Data_Type<T> define_class_under(Object parent, Identifier id, Class superKlass)
   {
-    if (Rice::Data_Type<T>::check_defined(id.str(), parent))
+    if (Data_Type<T>::check_defined(id.str(), parent))
     {
       return Data_Type<T>();
     }
@@ -13894,7 +13991,7 @@ namespace Rice
   {
     std::string klassName(name);
 
-    if (Rice::Data_Type<T>::check_defined(klassName))
+    if (Data_Type<T>::check_defined(klassName))
     {
       return Data_Type<T>();
     }
@@ -13985,11 +14082,10 @@ namespace Rice
   {
     Module::wrap_native_method<T, Method_T>(klass, name, std::forward<Method_T>(method), args...);
   }
-}
+RICE_END_NAMESPACE
 
 // =========   default_allocation_func.ipp   =========
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   VALUE default_allocation_func(VALUE klass)
   {
@@ -13997,10 +14093,10 @@ namespace Rice::detail
     // just pass a nullptr. It will be set via the Constructor call
     return TypedData_Wrap_Struct(klass, Data_Type<T>::ruby_data_type(), nullptr);
   }
-}
+RICE_DETAIL_END_NAMESPACE
+
 // =========   Constructor.ipp   =========
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename T, typename...Parameter_Ts>
   class Constructor
   {
@@ -14077,11 +14173,11 @@ namespace Rice
         detail::wrapConstructed<T>(self.value(), Data_Type<T>::ruby_data_type(), data);
       }
   };
-}
+RICE_END_NAMESPACE
+
 // =========   Callback.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   //! Define a callback.
   /*! When C++ invokes a C style callback, Rice automatically converts the C++ arguments
    *  to Ruby. However, there may be cases where you need to specify how individual arguments
@@ -14096,23 +14192,22 @@ namespace Rice
    */
   template<typename Callback_T, typename...Arg_Ts>
   void define_callback(Arg_Ts&&...args);
-}
+RICE_END_NAMESPACE
 
 // =========   Callback.ipp   =========
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename Callback_T, typename...Arg_Ts>
   inline void define_callback(Arg_Ts&&...args)
   {
     detail::NativeCallback<Callback_T>::define(std::forward<Arg_Ts>(args)...);
   }
-}
+RICE_END_NAMESPACE
+
 // =========   Data_Object.ipp   =========
 
 #include <algorithm>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template <typename T>
   Exception create_type_exception(VALUE value)
   {
@@ -14204,10 +14299,9 @@ namespace Rice
       return detail::unwrap<T>(this->value(), Data_Type<T>::ruby_data_type(), false);
     }
   }
-}
+RICE_END_NAMESPACE
 
-namespace Rice::detail
-{
+RICE_DETAIL_BEGIN_NAMESPACE
   template<typename T>
   class To_Ruby
   {
@@ -14834,12 +14928,11 @@ namespace Rice::detail
       return Data_Object<T>(value);
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 // =========   Enum.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   /*!
    *  \example enum/sample_enum.cpp
    */
@@ -14896,14 +14989,13 @@ namespace Rice
 
   template<typename T>
   Enum<T> define_enum_under(char const* name, Module module );
-} // namespace Rice
+RICE_END_NAMESPACE
 
 
 // =========   Enum.ipp   =========
 #include <stdexcept>
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   template<typename Enum_T>
   Enum<Enum_T>::Enum(char const* name, Module module) : Data_Type<Enum_T>()
   {
@@ -15088,27 +15180,26 @@ namespace Rice
 
     return Enum<Enum_T>(name, module);
   }
-}
+RICE_END_NAMESPACE
+
 // =========   MemoryView.hpp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   class MemoryView
   {
   };
-}
+RICE_END_NAMESPACE
 
 
 // =========   MemoryView.ipp   =========
-namespace Rice
-{
-}
+RICE_BEGIN_NAMESPACE
+RICE_END_NAMESPACE
+
 // Dependent on Module, Class, Array and String
 
 // =========   forward_declares.ipp   =========
 
-namespace Rice
-{
+RICE_BEGIN_NAMESPACE
   // These methods cannot be defined where they are declared due to circular dependencies
   inline Class Object::class_of() const
   {
@@ -15190,34 +15281,38 @@ namespace Rice
     const VALUE argv[] = { s.value() };
     return detail::protect(rb_mod_module_eval, 1, &argv[0], this->value());
   }
-}
+RICE_END_NAMESPACE
+
 
 // For now include libc support - maybe should be separate header file someday
 
 // =========   file.hpp   =========
 
-namespace Rice::libc
-{
-  extern Class rb_cLibcFile;
-}
+RICE_BEGIN_NAMESPACE
+  namespace libc
+  {
+    extern Class rb_cLibcFile;
+  }
+RICE_END_NAMESPACE
 
 
 // ---------   file.ipp   ---------
 #include <exception>
 
-namespace Rice::Libc
-{
-  inline Class rb_cLibcFile;
-
-  inline void define_libc_file()
+RICE_BEGIN_NAMESPACE
+  namespace libc
   {
-    Module rb_mLibc = define_module("Libc");
-    rb_cLibcFile = define_class_under<FILE>(rb_mLibc, "File");
-  }
-}
+    inline Class rb_cLibcFile;
 
-namespace Rice::detail
-{
+    inline void define_libc_file()
+    {
+      Module rb_mLibc = RICE_DEFINE_MODULE_RICE_LIBC;
+      rb_cLibcFile = define_class_under<FILE>(rb_mLibc, "File");
+    }
+  }
+RICE_END_NAMESPACE
+
+RICE_DETAIL_BEGIN_NAMESPACE
   template<>
   struct Type<FILE>
   {
@@ -15225,13 +15320,13 @@ namespace Rice::detail
     {
       if (!Data_Type<FILE>::is_defined())
       {
-        Libc::define_libc_file();
+        libc::define_libc_file();
       }
 
       return true;
     }
   };
-}
+RICE_DETAIL_END_NAMESPACE
 
 
 #endif // Rice__hpp_

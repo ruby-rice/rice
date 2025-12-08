@@ -1,6 +1,9 @@
 #ifndef unittest__hpp_
 #define unittest__hpp_
 
+// test RICE_NAMESPACE feature
+#define RICE_NAMESPACE RiceTest
+
 /*! \file
  *  \brief A (very) simple unit test framework.
  */
@@ -279,7 +282,7 @@ void assert_in_delta(
   {
     throw Assertion_Failed("assert_in_delta failed: negative delta");
   }
-  
+
   T diff = std::abs(expected - actual);
   if (!(diff <= delta))
   {
@@ -339,4 +342,3 @@ void assert_in_delta(
   ASSERT_EXCEPTION_CHECK(type, code, )
 
 #endif
-
