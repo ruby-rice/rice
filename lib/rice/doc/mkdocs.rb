@@ -127,7 +127,6 @@ module Rice
 
 			def parameters_sig(klass, native)
 				native.parameters.map do |parameter|
-					resolver = resolver(parameter.klass)
 					url = type_url(parameter.klass)
 					if url
 						"#{parameter.arg.name}: [#{parameter.klass}](#{url})"
@@ -138,7 +137,6 @@ module Rice
 			end
 
 			def return_sig(klass, native)
-				resolver = resolver(native.return_klass)
 				url = type_url(native.return_klass)
 				if url
 					"[#{native.return_klass}](#{url})"
@@ -187,7 +185,6 @@ module Rice
 				attribute_resolver = resolver(klass)
 				attribute_url = attribute_resolver&.attribute_url(klass, native_attribute)
 
-				type_resolver = resolver(native_attribute.return_klass)
 				type_url = type_url(native_attribute.return_klass)
 
 				if attribute_url
@@ -263,8 +260,6 @@ module Rice
 			end
 
 			def write_enum(klass)
-				klass_name = klass.name.split('::').last
-
 				path = output_path(klass)
 				File.open(path, 'w') do |file|
 					file << enum_sig(klass) << "\n"
@@ -276,7 +271,6 @@ module Rice
 			end
 
 			def write_union(klass)
-				klass_name = klass.name.split('::').last
 				native_attributes = Registries.instance.natives.native_attributes(klass).sort.group_by(&:name)
 
 				path = output_path(klass)
