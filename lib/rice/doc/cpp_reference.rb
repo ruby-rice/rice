@@ -91,8 +91,6 @@ module Rice
 				node = class_node(klass)
 				if node
 					path = node.attributes["link"]
-					name = cpp_name(klass)
-					parts = name.split("::")
 					"#{ROOT}/#{path}"
 				end
 			end
@@ -105,7 +103,6 @@ module Rice
 			end
 
 			def module_url(klass)
-				a = 1
 			end
 
 			def method_url(klass, native)
@@ -155,7 +152,7 @@ module Rice
 				link = member_node.attributes["link"]
 				if member_node && link && link != "."
 					"#{class_base(klass)}/#{member_node.attributes['link']}.html"
-  			elsif member_node && link && link == "."
+				elsif member_node && link && link == "."
 	  			"#{class_base(klass)}.html"
 				elsif member_node
 					"#{class_base(klass)}/#{member_node.attributes['name']}.html"

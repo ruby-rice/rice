@@ -153,7 +153,7 @@ Another example is when a returned object is dependent upon the original object.
        return Column(*this, index);
     }
 
-    std::string looupName(uint32_t index)
+    std::string lookupName(uint32_t index)
     {
       return some_name;
     }
@@ -168,7 +168,7 @@ Another example is when a returned object is dependent upon the original object.
 
     Column getName()
     {
-      return this->database.lookupName(this->index_):
+      return this->database_.lookupName(this->index_);
     }
 
   private:

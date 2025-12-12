@@ -111,7 +111,17 @@ namespace Rice::detail
   template<typename T, typename Iterator_Func_T>
   inline VALUE NativeIterator<T, Iterator_Func_T>::returnKlass()
   {
-    TypeMapper<Value_T> typeMapper;
-    return typeMapper.rubyKlass();
+    // Check if an array is being returned
+    bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
+    if (isBuffer)
+    {
+      TypeMapper<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Value_T>>>> typeMapper;
+      return typeMapper.rubyKlass();
+    }
+    else
+    {
+      TypeMapper<Value_T> typeMapper;
+      return typeMapper.rubyKlass();
+    }
   }
 }

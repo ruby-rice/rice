@@ -9,3 +9,4 @@ Packaging
   packaging/extconf.rb
   packaging/cmake
   packaging/rbs
+  packaging/documentation

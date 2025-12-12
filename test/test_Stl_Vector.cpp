@@ -1039,7 +1039,7 @@ TESTCASE(Iterate)
                                   end)";
 
   Array result = m.module_eval(code);
-  ASSERT_EQUAL(3u, result.size());
+  ASSERT_EQUAL(3, result.size());
   ASSERT_EQUAL(10.0, detail::From_Ruby<double>().convert(result[0].value()));
   ASSERT_EQUAL(12.0, detail::From_Ruby<double>().convert(result[1].value()));
   ASSERT_EQUAL(14.0, detail::From_Ruby<double>().convert(result[2].value()));
@@ -1058,7 +1058,7 @@ TESTCASE(ToEnumPointer)
 
   Array result = m.module_eval(code);
 
-  ASSERT_EQUAL(3u, result.size());
+  ASSERT_EQUAL(3, result.size());
   ASSERT_EQUAL("one_updated", detail::From_Ruby<std::string>().convert(result[0].value()));
   ASSERT_EQUAL("two_updated", detail::From_Ruby<std::string>().convert(result[1].value()));
   ASSERT_EQUAL("three_updated", detail::From_Ruby<std::string>().convert(result[2].value()));
@@ -1077,7 +1077,7 @@ TESTCASE(ToEnumReference)
 
   Array result = m.module_eval(code);
 
-  ASSERT_EQUAL(3u, result.size());
+  ASSERT_EQUAL(3, result.size());
   ASSERT_EQUAL("one_updated", detail::From_Ruby<std::string>().convert(result[0].value()));
   ASSERT_EQUAL("two_updated", detail::From_Ruby<std::string>().convert(result[1].value()));
   ASSERT_EQUAL("three_updated", detail::From_Ruby<std::string>().convert(result[2].value()));
@@ -1096,7 +1096,7 @@ TESTCASE(ToEnumValue)
 
   Array result = m.module_eval(code);
 
-  ASSERT_EQUAL(3u, result.size());
+  ASSERT_EQUAL(3, result.size());
   ASSERT_EQUAL("one_updated", detail::From_Ruby<std::string>().convert(result[0].value()));
   ASSERT_EQUAL("two_updated", detail::From_Ruby<std::string>().convert(result[1].value()));
   ASSERT_EQUAL("three_updated", detail::From_Ruby<std::string>().convert(result[2].value()));
@@ -1146,7 +1146,7 @@ TESTCASE(StringPointerVector)
                         inner_buffer = Rice::Buffer≺string≻.new(outer_buffer[1])
                         inner_buffer.to_ary(1))";
   Array array = m.module_eval(code);
-  ASSERT_EQUAL(1u, array.size());
+  ASSERT_EQUAL(1, array.size());
   ASSERT_EQUAL("World", detail::From_Ruby<std::string>().convert(array[0].value()).c_str());
 }
 

@@ -155,7 +155,7 @@ It is also possible to define_methods using C++ lambdas. Similar to define_metho
   Class rb_cTest =
     define_class("Test")
     .define_method("hello", [](Object& object) {
-      return test_hello
+      return test_hello(object);
     });
 
 Note that we pass self as a reference since we do not want to copy it!

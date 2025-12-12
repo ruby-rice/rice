@@ -4,10 +4,34 @@ CMake
 =====
 For more complex C++ extensions, you may wish to use ``CMake`` to build your extension. ``CMake`` has a lot of advantages over ``extconf.rb``:
 
-* Is is likely the build system the library you are wrapping uses
+* It is likely the build system the library you are wrapping uses
 * Provides built-in functionality for finding installed modules (like Ruby!)
 * Provides much more control over the build process
 * Parallelizes builds resulting in *much* faster compilation times compared to ``make``
+
+CMakePresets.json
+-----------------
+Rice includes a ``CMakePresets.json`` file (in the ``test`` directory) that provides pre-configured build settings for various platforms and compilers. Using presets is highly recommended as they encode the correct compiler flags for each platform.
+
+The available presets include:
+
+* ``linux-debug`` / ``linux-release`` - Linux with GCC
+* ``macos-debug`` / ``macos-release`` - macOS with Clang
+* ``msvc-debug`` / ``msvc-release`` - Windows with MSVC
+* ``clang-windows-debug`` / ``clang-windows-release`` - Windows with Clang
+* ``mingw-debug`` / ``mingw-release`` - Windows with MinGW
+
+To use a preset:
+
+.. code-block:: bash
+
+    # Configure using a preset
+    cmake --preset macos-debug
+
+    # Build using a preset
+    cmake --build --preset macos-debug
+
+You can copy this file to your own project and customize it as needed. Using presets ensures consistent builds and makes it easy to switch between debug and release configurations.
 
 Enabling
 --------
@@ -19,9 +43,9 @@ To build your extension using ``CMake``, add the following to your Gemspec (assu
       spec.extensions = ["ext/CMakeLists.txt"]
     end
 
-Unfortunately, ``RubyGems`` support for CMake is fairly poor. Therefore, Rice includes an improved RubyGem `CMakeBuilder <https://github.com/ruby-rice/rice/blob/master/lib/rubygems/cmake_builder.rb>`_. This updated code has been submitted `upstream <https://github.com/rubygems/rubygems/pull/8753>`_.
+RubyGems 4.0 and later include full CMake support, with improvements contributed by the Rice project.
 
-Rice uses RubyGem's `plugin <https://guides.rubygems.org/plugins/>`_ system to install the updated ``CMakeBuilder`` code. To use the improved builder include ``Rice`` in your gemspec like this:
+If you are using an older version of RubyGems (< 4.0), Rice will automatically patch RubyGems to add improved CMake support. This is done via the `rubygems_plugin.rb <https://github.com/ruby-rice/rice/blob/master/lib/rubygems_plugin.rb>`_ file which uses RubyGem's `plugin <https://guides.rubygems.org/plugins/>`_ system. To enable this, include ``Rice`` as a dependency in your gemspec:
 
 .. code-block:: ruby
 
@@ -35,44 +59,41 @@ Below is an example ``CMakeLists.txt`` file to build a Ruby C++ extension:
 
 .. code-block:: cmake
 
-    cmake_minimum_required (VERSION 3.26)
+    cmake_minimum_required(VERSION 3.26)
 
-    project(MyExtensionLibrary)
+    project(MyExtension)
 
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-    find_package("Ruby")
+    find_package(Ruby REQUIRED)
 
+    # Platform-specific compiler settings
     if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-        add_compile_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
+        add_compile_definitions(_CRT_SECURE_NO_DEPRECATE _CRT_NONSTDC_NO_DEPRECATE)
         add_compile_options(/bigobj /utf-8)
         # The default of /EHsc crashes Ruby when calling longjmp with optimizations on (/O2)
         string(REGEX REPLACE "/EHsc" "/EHs" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        add_compile_definitions(-D_CRT_SECURE_NO_WARNINGS)
     elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         add_compile_options(-ftemplate-backtrace-limit=0)
-        # https://github.com/doxygen/doxygen/issues/9269#issuecomment-1094975328
-        add_compile_options(unittest PRIVATE -Wa,-mbig-obj)
     endif ()
 
-    add_library (MyExtension SHARED
-                 "MyExtension.cpp")
+    add_library(MyExtension SHARED
+                "MyExtension.cpp")
 
-    target_include_directories(MyExtensionLibrary PRIVATE ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})
-    target_include_directories(MyExtensionLibrary PRIVATE ${PROJECT_SOURCE_DIR})
-    target_link_libraries(MyExtensionLibrary ${Ruby_LIBRARY})
+    # Link to Ruby using the modern imported target
+    target_link_libraries(MyExtension PRIVATE Ruby::Ruby)
 
     # Add in Rice headers
-    target_include_directories(MyExtensionLibrary PRIVATE <path>)
+    target_include_directories(MyExtension PRIVATE <path-to-rice-headers>)
 
-    # Add in the library you are wrapping headers and libraries
-    target_include_directories(MyExtensionLibrary PRIVATE <path>)
-    target_link_libraries(MyExtensionLibrary <path>})
+    # Add in the library you are wrapping (headers and libraries)
+    target_include_directories(MyExtension PRIVATE <path-to-library-headers>)
+    target_link_libraries(MyExtension PRIVATE <library-name>)
 
 Currently you will need to manually specify where the Rice :ref:`header_files` header files are located.
+
+Note that using the ``Ruby::Ruby`` imported target (available in CMake 3.18+) is preferred over manually specifying include directories and libraries, as it automatically sets up all necessary include paths and link libraries.
 
 Compiler Settings
 -----------------
@@ -88,13 +109,39 @@ Notice the inclusion of the following line in the above ``CMakeLists.txt`` file:
 
 This will find a locally installed Ruby, whether it is the system Ruby or a `RVM <https://rvm.io/>`_ or `RbENV <https://rbenv.org/>`_ installed Ruby.
 
-If you are using an older version of CMake, you can use the `FindRuby.cmake <https://github.com/ruby-rice/rice/blob/master/FindRuby.cmake>`_) script included in Rice. In that case, the syntax would be:
+macOS with Homebrew
+^^^^^^^^^^^^^^^^^^^
+CMake's built-in ``FindRuby`` module does not currently support finding Ruby installed via `Homebrew <https://brew.sh/>`_ on macOS. If you are using Homebrew-installed Ruby, you will need to use Rice's `FindRuby.cmake <https://github.com/ruby-rice/rice/blob/master/FindRuby.cmake>`_ script instead.
+
+Rice's ``FindRuby.cmake`` includes support for:
+
+* RVM virtual environments
+* rbenv virtual environments
+* Homebrew-installed Ruby (both Apple Silicon and Intel Macs)
+* System Ruby
+
+To use Rice's FindRuby script, copy it to your project and include it before calling ``find_package``:
 
 .. code-block:: cmake
 
-     include("./FindRuby.cmake")
+    # Use Rice's FindRuby which supports Homebrew
+    include("${CMAKE_CURRENT_SOURCE_DIR}/FindRuby.cmake")
 
-This sets the following CMake CACHE variables:
+    # Now find_package will use the included module
+    find_package(Ruby REQUIRED)
+
+Alternatively, you can add the directory containing ``FindRuby.cmake`` to your module path:
+
+.. code-block:: cmake
+
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
+    find_package(Ruby REQUIRED)
+
+Rice's ``FindRuby.cmake`` is also useful for older versions of CMake that lack good Ruby support.
+
+FindRuby Variables
+^^^^^^^^^^^^^^^^^^
+The following CMake variables are set by FindRuby:
 
 ========================== ================
 Variable                   Description

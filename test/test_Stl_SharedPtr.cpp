@@ -349,8 +349,10 @@ TESTCASE(Update)
 
 TESTCASE(Klass)
 {
+  define_shared_ptr<MyClass>(); 
   detail::TypeMapper<std::shared_ptr<MyClass>> typeMapper;
-  Object expected = Object(rb_cObject).const_get("MyClass");
+  Module aModule("Std");
+  Object expected = aModule.const_get("SharedPtr≺AnonymousNamespace꞉꞉MyClass≻");
   VALUE actual = typeMapper.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 }
@@ -430,10 +432,8 @@ TESTCASE(CreatePointerToInt)
   Module m = define_module("CreatePointerToInt").
     define_module_function("get_pointer_value", &getPointerValue);
 
-  define_shared_ptr<int>("SharedPtrInt");
-
   std::string code = R"(buffer = Rice::Buffer≺int≻.new(45)
-                        ptr = Std::SharedPtrInt.new(buffer.release)
+                        ptr = Std::SharedPtr≺int≻.new(buffer.release)
                         get_pointer_value(ptr))";
 
   Object result = m.instance_eval(code);
@@ -444,8 +444,6 @@ TESTCASE(UpdatePointerToInt)
 {
   Module m = define_module("UpdatePointerToInt").
     define_module_function("update_pointer_value", &updatePointerValue);
-
-  define_shared_ptr<int>();
 
   std::string code = R"(buffer = Rice::Buffer≺int≻.new(45)
                         ptr = Std::SharedPtr≺int≻.new(buffer.release)

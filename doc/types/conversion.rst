@@ -4,13 +4,13 @@ Type Conversions
 ================
 Rice converts fundamental types to their equivalent Ruby types. Fundamental types include nullptr, bool, numeric types (integer, float, double, complex) and char types.
 
-Type conversion is easy to understand because its familiar to programmers. When you pass a boolean or integer into a method, you don't expect the method is going to change it - instead it just gets a copy.
+Type conversion is easy to understand because it is familiar to programmers. When you pass a boolean or integer into a method, you don't expect the method is going to change it - instead it just gets a copy.
 
 Since they are copied, instances of fundamental types are disconnected. If a Ruby string is converted to a ``std::string`` then the two strings are independent and changes in one will *not* be reflected in the other.
 
 Built In Conversions
 --------------------
-Rice supports all fundamental types out of the box. It also includes special handling for ``char*`` which is converted to a Ruby String. In addition, various STL classes are also converted as described in the STL :ref:`documentation STL :ref:`documentatio  <converted_stl>`.
+Rice supports all fundamental types out of the box. It also includes special handling for ``char*`` which is converted to a Ruby String. In addition, various STL classes are also converted as described in the :ref:`STL documentation <stl>`.
 
 ======================  ======================  ========================
 C++ Type                Other Name              Ruby Type

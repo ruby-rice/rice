@@ -97,7 +97,7 @@ Note that you can mix ``Arg`` and ``Return`` objects in any order. For example t
 
 .. code-block:: cpp
 
-  define_global_function("some_function", &some_function, Return.setValue(), Arg("ary").setValue());
+  define_global_function("some_function", &some_function, Return().setValue(), Arg("ary").setValue());
 
 .. _keyword_arguments:
 

@@ -261,10 +261,20 @@ namespace Rice::detail
     return NativeKind::Callback;
   }
 
-  //VALUE returnKlass() override;
   template<typename Return_T, typename ...Parameter_Ts>
   inline VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::returnKlass()
   {
-    return Qnil;
+    // Check if an array is being returned
+    bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
+    if (isBuffer)
+    {
+      TypeMapper<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Return_T>>>> typeMapper;
+      return typeMapper.rubyKlass();
+    }
+    else
+    {
+      TypeMapper<Return_T> typeMapper;
+      return typeMapper.rubyKlass();
+    }
   }
 }
