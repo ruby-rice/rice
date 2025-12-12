@@ -19,11 +19,11 @@ Rice provides:
 Project Details
 ---------------
 
-Source code is hosted on GitHub: http://github.com/ruby-rice/rice
+Source code is hosted on GitHub: https://github.com/ruby-rice/rice
 
-Bug tracking is also hosted on github: http://github.com/ruby-rice/rice/issues
+Bug tracking is also hosted on GitHub: https://github.com/ruby-rice/rice/issues
 
-API documentation: http://ruby-rice.github.io/4.x
+API documentation: https://ruby-rice.github.io/4.x
 
 .. _installation:
 
