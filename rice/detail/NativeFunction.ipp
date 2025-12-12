@@ -170,7 +170,7 @@ namespace Rice::detail
     bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
     if (isBuffer)
     {
-      TypeMapper<Pointer<Return_T>> typeMapper;
+      TypeMapper<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Return_T>>>> typeMapper;
       return typeMapper.rubyKlass();
     }
     else
