@@ -5,11 +5,12 @@ module Rice
 		class Config
 			attr_reader :extension, :output, :resolvers
 
-			def initialize(path)
-				@config = YAML.load_file(path)
-				@extension = @config['extension']
-				@output = @config['output']
-				@resolvers = build_resolvers(@config['namespaces'] || {})
+			def initialize(config_path)
+				config = YAML.load_file(config_path)
+				base_dir = File.dirname(config_path)
+				@extension = File.expand_path(config['extension'], base_dir)
+				@output = File.expand_path(config['output'], base_dir)
+				@resolvers = build_resolvers(config['namespaces'] || {})
 			end
 
 			private
