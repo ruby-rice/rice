@@ -354,9 +354,13 @@ namespace Rice::detail
       {
         Symbol key(pair.first);
         ParameterAbstract* parameter = this->getParameterByName(key.str());
-        if (!parameter)
+        if (!parameter && validate)
         {
           throw std::invalid_argument("Unknown keyword: " + key.str());
+        }
+        else if (!parameter)
+        {
+          continue;
         }
 
         const Arg* arg = parameter->arg();
