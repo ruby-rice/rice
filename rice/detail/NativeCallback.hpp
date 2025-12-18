@@ -51,7 +51,7 @@ namespace Rice::detail
     static inline NativeCallback_T* native_;
 
   private:
-    VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
+    VALUE operator()(std::map<std::string, VALUE>& values, VALUE self) override;
     std::string toString() override;
     NativeKind kind() override;
     VALUE returnKlass() override;

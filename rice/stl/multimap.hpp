@@ -1,8 +1,6 @@
 #ifndef Rice__stl__multimap__hpp_
 #define Rice__stl__multimap__hpp_
 
-#include <map>
-
 namespace Rice
 {
   template<typename K, typename T>

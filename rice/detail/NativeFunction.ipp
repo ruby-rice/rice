@@ -131,10 +131,10 @@ namespace Rice::detail
   }
 
   template<typename Function_T, bool NoGVL>
-  VALUE NativeFunction<Function_T, NoGVL>::operator()(size_t argc, const VALUE* argv, VALUE self)
+  VALUE NativeFunction<Function_T, NoGVL>::operator()(std::map<std::string, VALUE>& values, VALUE self)
   {
     // Get the ruby values and make sure we have the correct number
-    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, true);
+    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(values, true);
 
     auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
 

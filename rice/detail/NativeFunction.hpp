@@ -54,7 +54,7 @@ namespace Rice::detail
   public:
     NativeFunction(VALUE klass, std::string method_name, Function_T function, std::unique_ptr<Return>&& returnInfo, std::vector<std::unique_ptr<ParameterAbstract>>&& parameters);
 
-    VALUE operator()(size_t argc, const VALUE* argv, VALUE self) override;
+    VALUE operator()(std::map<std::string, VALUE>& values, VALUE self) override;
     std::string toString() override;
 
     NativeKind kind() override;

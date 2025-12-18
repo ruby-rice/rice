@@ -42,8 +42,8 @@ namespace Rice::detail
     void operator=(const Native&) = delete;
     void operator=(Native&&) = delete;
 
-    virtual Resolved matches(size_t argc, const VALUE* argv);
-    virtual VALUE operator()(size_t argc, const VALUE* argv, VALUE self) = 0;
+    virtual Resolved matches(std::map<std::string, VALUE>& values);
+    virtual VALUE operator()(std::map<std::string, VALUE>& values, VALUE self) = 0;
     virtual std::string toString() = 0;
 
     // Ruby API access
@@ -56,7 +56,8 @@ namespace Rice::detail
     template<typename T, bool isBuffer>
     static void verify_type();
 
-    std::vector<std::optional<VALUE>> getRubyValues(size_t argc, const VALUE* argv, bool validate);
+    static std::map<std::string, VALUE> readRubyArgs(size_t argc, const VALUE* argv);
+    std::vector<std::optional<VALUE>> getRubyValues(std::map<std::string, VALUE> values, bool validate);
     ParameterAbstract* getParameterByName(std::string name);
     Convertible matchParameters(std::vector<std::optional<VALUE>>& values);
 

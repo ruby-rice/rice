@@ -124,9 +124,37 @@ namespace Rice::detail
 #endif
 
   template<typename T>
-  inline VALUE Parameter<T>::convertToRuby(T object)
+  inline VALUE Parameter<T>::convertToRuby(T& object)
   {
     return this->toRuby_.convert(object);
+  }
+
+  template<typename T>
+  inline VALUE Parameter<T>::defaultValueRuby()
+  {
+    if constexpr (std::is_constructible_v<std::remove_cv_t<T>, std::remove_cv_t<std::remove_reference_t<T>>&>)
+    {
+      // Remember std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
+      // So special case vector handling
+      if constexpr (detail::is_std_vector_v<detail::intrinsic_type<T>>)
+      {
+        if constexpr (std::is_copy_constructible_v<typename detail::intrinsic_type<T>::value_type>)
+        {
+          if (this->arg()->hasDefaultValue())
+          {
+            T defaultValue = this->arg()->template defaultValue<T>();
+            return this->toRuby_.convert(defaultValue);
+          }
+        }
+      }
+      else if (this->arg()->hasDefaultValue())
+      {
+        T defaultValue = this->arg()->template defaultValue<T>();
+        return this->toRuby_.convert(defaultValue);
+      }
+    }
+
+    throw std::runtime_error("No default value set for parameter " + this->arg()->name);
   }
 
   template<typename T>

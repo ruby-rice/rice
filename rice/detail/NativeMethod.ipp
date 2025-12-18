@@ -223,10 +223,10 @@ namespace Rice::detail
   }
 
   template<typename Class_T, typename Method_T, bool NoGVL>
-  VALUE NativeMethod<Class_T, Method_T, NoGVL>::operator()(size_t argc, const VALUE* argv, VALUE self)
+  VALUE NativeMethod<Class_T, Method_T, NoGVL>::operator()(std::map<std::string, VALUE>& values, VALUE self)
   {
     // Get the ruby values and make sure we have the correct number
-    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, true);
+    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(values, true);
     auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
     Apply_Args_T nativeArgs = this->getNativeValues(self, rubyValues, indices);
 

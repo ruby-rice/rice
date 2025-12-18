@@ -75,7 +75,7 @@ TESTCASE(int_kw_arg_invalid)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.instance_eval(code),
-    ASSERT_EQUAL("Unknown keyword: wrong", ex.what())
+    ASSERT_EQUAL("Missing argument. Name: value. Index: 0.", ex.what())
   );
 }
 

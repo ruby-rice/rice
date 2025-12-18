@@ -83,7 +83,6 @@ namespace Rice
 
   public:
     std::string name;
-    int32_t position = -1;
 
   private:
     //! Our saved default value
