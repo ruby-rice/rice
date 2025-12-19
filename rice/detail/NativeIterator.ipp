@@ -28,7 +28,7 @@ namespace Rice::detail
   template<typename T, typename Iterator_Func_T>
   inline Resolved NativeIterator<T, Iterator_Func_T>::matches(std::map<std::string, VALUE>&)
   {
-    return Resolved{ Convertible::Exact, 1.0, this };
+    return Resolved{ Convertible::Exact, this };
   }
 
   template<typename T, typename Iterator_Func_T>

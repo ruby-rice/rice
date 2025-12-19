@@ -70,7 +70,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -104,7 +104,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {

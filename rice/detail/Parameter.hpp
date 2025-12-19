@@ -16,7 +16,7 @@ namespace Rice::detail
     ParameterAbstract& operator=(ParameterAbstract&& other) = default;
 
     virtual VALUE defaultValueRuby() = 0;
-    virtual Convertible matches(std::optional<VALUE>& valueOpt) = 0;
+    virtual double matches(std::optional<VALUE>& valueOpt) = 0;
     virtual std::string cppTypeName() = 0;
     virtual VALUE klass() = 0;
 
@@ -41,7 +41,7 @@ namespace Rice::detail
      VALUE convertToRuby(T& object);
      VALUE defaultValueRuby() override;
 
-     Convertible matches(std::optional<VALUE>& valueOpt) override;
+     double matches(std::optional<VALUE>& valueOpt) override;
      std::string cppTypeName() override;
      VALUE klass() override;
 

@@ -19,6 +19,10 @@ namespace Rice
     template<typename T>
     constexpr bool is_const_any_v = std::is_const_v<std::remove_pointer_t<std::remove_pointer_t<std::remove_reference_t<T>>>>;
 
+    // Helper to detect char types
+    template<typename T>
+    constexpr bool is_char_type_v = std::is_same_v<T, char> || std::is_same_v<T, signed char> || std::is_same_v<T, unsigned char>;
+
     // Recursively remove const/volatile
     template<typename T>
     struct remove_cv_recursive

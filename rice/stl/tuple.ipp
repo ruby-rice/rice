@@ -92,23 +92,22 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
-      Convertible result = Convertible::None;
-
       // The ruby value must be an array of the correct size
       if (rb_type(value) != RUBY_T_ARRAY || Array(value).size() != std::tuple_size_v<Tuple_T>)
       {
-        return result;
+        return Convertible::None;
       }
-      
-      // Now check that each tuple type is convertible
+
+      // Now check that each tuple type is convertible - use minimum score
+      double result = Convertible::Exact;
       Array array(value);
       int i = 0;
       for_each_tuple(this->fromRubys_,
         [&](auto& fromRuby)
         {
-          result = result | fromRuby.is_convertible(array[i].value());
+          result = (std::min)(result, fromRuby.is_convertible(array[i].value()));
           i++;
         });
 

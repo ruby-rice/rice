@@ -110,15 +110,15 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
         case RUBY_T_SYMBOL:
           return Convertible::Exact;
           break;
-      case RUBY_T_STRING:
-          return Convertible::Cast;
+        case RUBY_T_STRING:
+          return Convertible::Exact;
           break;
         default:
           return Convertible::None;

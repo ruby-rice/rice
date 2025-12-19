@@ -184,14 +184,14 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
-      Convertible result = Convertible::None;
+      double result = Convertible::None;
 
       for_each_tuple(this->fromRubys_,
         [&](auto& fromRuby)
         {
-          result = result | fromRuby.is_convertible(value);
+          result = std::max(result, fromRuby.is_convertible(value));
         });
 
       return result;
@@ -203,17 +203,17 @@ namespace Rice::detail
     {
       int i = 0;
       int index = -1;
-      Convertible foundConversion = Convertible::None;
+      double foundScore = Convertible::None;
 
       for_each_tuple(this->fromRubys_,
         [&](auto& fromRuby)
         {
-          Convertible isConvertible = fromRuby.is_convertible(value);
+          double score = fromRuby.is_convertible(value);
 
-          if (isConvertible > foundConversion)
+          if (score > foundScore)
           {
             index = i;
-            foundConversion = isConvertible;
+            foundScore = score;
           }
           i++;
         });

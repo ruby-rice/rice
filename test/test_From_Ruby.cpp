@@ -83,7 +83,7 @@ TESTCASE(bool)
 {
   ASSERT_EQUAL(detail::Convertible::Exact, detail::From_Ruby<bool>().is_convertible(Qfalse));
   ASSERT_EQUAL(detail::Convertible::Exact, detail::From_Ruby<bool>().is_convertible(Qtrue));
-  ASSERT_EQUAL(detail::Convertible::Cast, detail::From_Ruby<bool>().is_convertible(Qnil));
+  ASSERT_EQUAL(detail::Convertible::Exact, detail::From_Ruby<bool>().is_convertible(Qnil));
   ASSERT_EQUAL(detail::Convertible::None, detail::From_Ruby<bool>().is_convertible(INT2NUM(3)));
   ASSERT_EQUAL(detail::Convertible::None, detail::From_Ruby<bool>().is_convertible(rb_float_new(3.33)));
   ASSERT_EQUAL(detail::Convertible::None, detail::From_Ruby<bool>().is_convertible(rb_str_new2("some string")));

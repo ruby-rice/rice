@@ -46,7 +46,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return this->converter_.is_convertible(value);
     }

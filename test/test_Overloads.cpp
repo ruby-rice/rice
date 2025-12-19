@@ -28,6 +28,8 @@ TEARDOWN(Overloads)
   Rice::detail::Registries::instance.types.remove<MyClass>();
   Rice::detail::Registries::instance.types.remove<MyClass2>();
   Rice::detail::Registries::instance.types.remove<MyClass3>();
+  Rice::detail::Registries::instance.natives.reset(Module(rb_mKernel));
+
   rb_gc_start();
 }
 
@@ -139,6 +141,37 @@ namespace
   std::string run(float, int = 1)
   {
     return "run<float,int>";
+  }
+
+  // Signed vs unsigned overloads
+  std::string run(unsigned int)
+  {
+    return "run<unsigned int>";
+  }
+
+  std::string run(short)
+  {
+    return "run<short>";
+  }
+
+  std::string run(unsigned short)
+  {
+    return "run<unsigned short>";
+  }
+
+  std::string run(long long)
+  {
+    return "run<long long>";
+  }
+
+  std::string run(unsigned long long)
+  {
+    return "run<unsigned long long>";
+  }
+
+  std::string run(double)
+  {
+    return "run<double>";
   }
 } // namespace
 
@@ -321,10 +354,10 @@ TESTCASE(invalid_parameters)
 
   std::string expected = R"(Could not resolve method call for MyClass#run
   6 overload(s) were evaluated based on the types of Ruby parameters provided:
-     std::string AnonymousNamespace::MyClass*::run(int, float)
-     std::string AnonymousNamespace::MyClass*::run(float, int)
      std::string AnonymousNamespace::MyClass*::run()
      std::string AnonymousNamespace::MyClass*::run(std::string)
+     std::string AnonymousNamespace::MyClass*::run(int, float)
+     std::string AnonymousNamespace::MyClass*::run(float, int)
      std::string AnonymousNamespace::MyClass*::run(int)
      std::string AnonymousNamespace::MyClass*::run(float))";
 
@@ -515,7 +548,15 @@ TESTCASE(int_conversion_1)
                         value = 1
                         my_class.run(value))";
   String result = m.module_eval(code);
-  ASSERT_EQUAL("run<long>", result.str());
+
+  if constexpr (sizeof(long) == sizeof(int))
+  {
+    ASSERT_EQUAL("run<long long>", result.str());
+  }
+  else
+  {
+    ASSERT_EQUAL("run<long>", result.str());
+  }
 
   code = R"(my_class = MyClass3.new
             value = 2**60
@@ -550,15 +591,8 @@ TESTCASE(int_conversion_2)
             value = 2**64
             my_class.run(value))";
 
-  std::string expected = R"(Could not resolve method call for MyClass3#run
-  2 overload(s) were evaluated based on the types of Ruby parameters provided:
-     std::string AnonymousNamespace::MyClass3*::run(short)
-     std::string AnonymousNamespace::MyClass3*::run(float))";
-
-  ASSERT_EXCEPTION_CHECK(
-    Exception,
-    result = m.module_eval(code),
-    ASSERT_EQUAL(expected.c_str(), ex.what()));
+  result = m.module_eval(code);
+  ASSERT_EQUAL("run<float>", result.str());
 }
 
 TESTCASE(int_conversion_3)
@@ -872,6 +906,31 @@ namespace
   };
 }
 
+TESTCASE(FloatToIntConversionWithOverload)
+{
+  Module m = define_module("Testing");
+
+  // Define overloaded functions: one takes int, one takes no args
+  // There is NO float overload
+  m.define_module_function("hello_int_resolve", [](int x) -> int { return x; });
+  m.define_module_function("hello_int_resolve", []() -> int { return 0; });
+
+  // Calling with an integer should work
+  std::string code = R"(hello_int_resolve(1))";
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result.value()));
+
+  // Calling with no args should work
+  code = R"(hello_int_resolve())";
+  result = m.module_eval(code);
+  ASSERT_EQUAL(0, detail::From_Ruby<int>().convert(result.value()));
+
+  // Calling with a float should convert to int (lossy but allowed)
+  code = R"(hello_int_resolve(1.7))";
+  result = m.module_eval(code);
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result.value()));
+}
+
 TESTCASE(Keywords)
 {
   Module m = define_module("Testing");
@@ -898,4 +957,136 @@ TESTCASE(Keywords)
 
   result = m.module_eval(code);
   ASSERT_EQUAL(0xA05028ull, detail::From_Ruby<size_t>().convert(result.value()));
+}
+
+// ========== Signed vs Unsigned Preference Tests ==========
+
+// Test: int should be preferred over unsigned int for Ruby Integer
+TESTCASE(SignedPreferredOverUnsigned_Int)
+{
+  Module m = define_module("Testing");
+
+  define_global_function<std::string(*)(int)>("run", &run);
+  define_global_function<std::string(*)(unsigned int)>("run", &run);
+
+  std::string code = R"(run(42))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<int>", result.str());
+}
+
+// Test: short should be preferred over unsigned short for Ruby Integer
+TESTCASE(SignedPreferredOverUnsigned_Short)
+{
+  Module m = define_module("Testing");
+
+  define_global_function<std::string(*)(short)>("run", &run);
+  define_global_function<std::string(*)(unsigned short)>("run", &run);
+
+  std::string code = R"(run(42))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<short>", result.str());
+}
+
+// Test: long long should be preferred over unsigned long long for Ruby Integer
+TESTCASE(SignedPreferredOverUnsigned_LongLong)
+{
+  Module m = define_module("Testing");
+
+  define_global_function<std::string(*)(long long)>("run", &run);
+  define_global_function<std::string(*)(unsigned long long)>("run", &run);
+
+  std::string code = R"(run(42))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<long long>", result.str());
+}
+
+// Test: int should be preferred over float for Ruby Integer
+TESTCASE(IntPreferredOverFloat_ForInteger)
+{
+  Module m = define_module("Testing");
+
+  define_global_function<std::string(*)(int)>("run", &run);
+  define_global_function<std::string(*)(float)>("run", &run);
+
+  std::string code = R"(run(42))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<int>", result.str());
+}
+
+// Test: float should be preferred over int for Ruby Float
+TESTCASE(FloatPreferredOverInt_ForFloat)
+{
+  Module m = define_module("Testing");
+
+  define_global_function<std::string(*)(int)>("run", &run);
+  define_global_function<std::string(*)(float)>("run", &run);
+
+  std::string code = R"(run(3.14))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<float>", result.str());
+}
+
+// Test: float should be preferred over unsigned int for Ruby Integer
+TESTCASE(FloatPreferredOverUnsignedInt_ForInteger)
+{
+  Module m = define_module("Testing");
+
+  define_global_function<std::string(*)(unsigned int)>("run", &run);
+  define_global_function<std::string(*)(float)>("run", &run);
+
+  std::string code = R"(run(42))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<float>", result.str());
+}
+
+// Test: double should be preferred over float for Ruby Float
+TESTCASE(DoublePreferredOverFloat_ForFloat)
+{
+  Module m = define_module("Testing");
+
+  define_global_function<std::string(*)(double)>("run", &run);
+  define_global_function<std::string(*)(float)>("run", &run);
+
+  std::string code = R"(run(3.14))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<double>", result.str());
+}
+
+// Test: long long should be preferred over double for Ruby Integer
+TESTCASE(LongLongPreferredOverDouble_ForInteger)
+{
+  Module m = define_module("Testing");
+
+  define_global_function<std::string(*)(long long)>("run", &run);
+  define_global_function<std::string(*)(double)>("run", &run);
+
+  std::string code = R"(run(42))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<long long>", result.str());
+}
+
+// Test: double should be preferred over long long for Ruby Float
+TESTCASE(DoublePreferredOverLongLong_ForFloat)
+{
+  Module m = define_module("Testing");
+
+  define_global_function<std::string(*)(long long)>("run", &run);
+  define_global_function<std::string(*)(double)>("run", &run);
+
+  std::string code = R"(run(3.14))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<double>", result.str());
+}
+
+// Test: double should be preferred over unsigned long long for Ruby Integer
+TESTCASE(DoublePreferredOverUnsignedLongLong_ForInteger)
+{
+  Module m = define_module("Testing");
+
+  define_global_function<std::string(*)(unsigned long long)>("run", &run);
+  define_global_function<std::string(*)(double)>("run", &run);
+
+  std::string code = R"(run(42))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<double>", result.str());
 }

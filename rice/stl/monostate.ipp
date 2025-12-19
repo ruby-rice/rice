@@ -65,9 +65,9 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
-      return value == Qnil ? Convertible::Exact : Convertible::None;
+      return value == Qnil ? 1.0 : 0.0;
     }
 
     std::monostate convert(VALUE value)
@@ -96,9 +96,9 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
-      return value == Qnil ? Convertible::Exact : Convertible::None;
+      return value == Qnil ? 1.0 : 0.0;
     }
 
     std::monostate& convert(VALUE value)

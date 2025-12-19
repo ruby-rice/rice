@@ -102,9 +102,7 @@ namespace Rice
       }
       default:
       {
-        if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end() ||
-            RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end() ||
-            RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
+        if (detail::From_Ruby<detail::remove_cv_recursive_t<T>>().is_convertible(value))
         {
           // The Ruby method may return a different type - for example Ruby floats
           // are converted to double and not float - so we need a typecast.
