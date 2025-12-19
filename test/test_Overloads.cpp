@@ -885,17 +885,17 @@ TESTCASE(Keywords)
                         pixel.rgb)";
 
   Object result = m.module_eval(code);
-  ASSERT_EQUAL(0xFFFFFF, detail::From_Ruby<size_t>().convert(result.value()));
+  ASSERT_EQUAL(0xFFFFFFull, detail::From_Ruby<size_t>().convert(result.value()));
 
   code = R"(pixel = Pixel.new(128, 128, 128)
             pixel.rgb)";
 
   result = m.module_eval(code);
-  ASSERT_EQUAL(0x808080, detail::From_Ruby<size_t>().convert(result.value()));
+  ASSERT_EQUAL(0x808080ull, detail::From_Ruby<size_t>().convert(result.value()));
 
   code = R"(pixel = Pixel.new(green: 80, red: 160, blue: 40)
             pixel.rgb)";
 
   result = m.module_eval(code);
-  ASSERT_EQUAL(0xA05028, detail::From_Ruby<size_t>().convert(result.value()));
+  ASSERT_EQUAL(0xA05028ull, detail::From_Ruby<size_t>().convert(result.value()));
 }
