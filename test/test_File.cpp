@@ -47,7 +47,7 @@ namespace
     return result.str();
   }
 
-  bool closeFile(FILE* fptr)
+  bool closeFile(FILE*)
   {
     // crashes on windows due to Ruby overriding and mixing UCRTs
     //fclose(fptr);

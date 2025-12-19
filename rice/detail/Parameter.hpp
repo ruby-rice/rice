@@ -8,7 +8,6 @@ namespace Rice::detail
   class ParameterAbstract
   {
   public:
-    ParameterAbstract() = default;
     ParameterAbstract(std::unique_ptr<Arg>&& arg);
     virtual ~ParameterAbstract() = default;
 
@@ -16,6 +15,7 @@ namespace Rice::detail
     ParameterAbstract(ParameterAbstract&& other) = default;
     ParameterAbstract& operator=(ParameterAbstract&& other) = default;
 
+    virtual VALUE defaultValueRuby() = 0;
     virtual Convertible matches(std::optional<VALUE>& valueOpt) = 0;
     virtual std::string cppTypeName() = 0;
     virtual VALUE klass() = 0;
@@ -32,14 +32,14 @@ namespace Rice::detail
    public:
      using Type = T;
 
-     Parameter() = default;
      Parameter(std::unique_ptr<Arg>&& arg);
      Parameter(const Parameter& other) = default;
      Parameter(Parameter&& other) = default;
      Parameter& operator=(Parameter&& other) = default;
 
      T convertToNative(std::optional<VALUE>& valueOpt);
-     VALUE convertToRuby(T object);
+     VALUE convertToRuby(T& object);
+     VALUE defaultValueRuby() override;
 
      Convertible matches(std::optional<VALUE>& valueOpt) override;
      std::string cppTypeName() override;

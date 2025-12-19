@@ -26,7 +26,7 @@ namespace Rice::detail
   }
 
   template<typename T, typename Iterator_Func_T>
-  inline Resolved NativeIterator<T, Iterator_Func_T>::matches(size_t, const VALUE*)
+  inline Resolved NativeIterator<T, Iterator_Func_T>::matches(std::map<std::string, VALUE>&)
   {
     return Resolved{ Convertible::Exact, 1.0, this };
   }
@@ -72,7 +72,7 @@ namespace Rice::detail
   }
 
   template<typename T, typename Iterator_Func_T>
-  inline VALUE NativeIterator<T, Iterator_Func_T>::operator()(size_t, const VALUE*, VALUE self)
+  inline VALUE NativeIterator<T, Iterator_Func_T>::operator()(std::map<std::string, VALUE>&, VALUE self)
   {
     if (!protect(rb_block_given_p))
     {

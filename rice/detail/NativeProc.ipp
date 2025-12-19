@@ -39,8 +39,9 @@ namespace Rice::detail
   {
     return cpp_protect([&]
     {
+      std::map<std::string, VALUE> values = readRubyArgs(argc, argv);
       NativeProc_T * native = (NativeProc_T*)callback_arg;
-      return (*native)(argc, argv, Qnil);
+      return (*native)(values, Qnil);
     });
   }
 
@@ -102,10 +103,10 @@ namespace Rice::detail
   }
 
   template<typename Proc_T>
-  VALUE NativeProc<Proc_T>::operator()(size_t argc, const VALUE* argv, VALUE)
+  VALUE NativeProc<Proc_T>::operator()(std::map<std::string, VALUE>& values, VALUE)
   {
     // Get the ruby values and make sure we have the correct number
-    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, true);
+    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(values, true);
 
     auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Ts>>{};
 

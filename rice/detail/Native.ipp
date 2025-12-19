@@ -65,6 +65,8 @@ namespace Rice::detail
     // Execute the function but make sure to catch any C++ exceptions!
     return cpp_protect([&]()
     {
+      std::map<std::string, VALUE> values = readRubyArgs(argc, argv);
+
       const std::vector<std::unique_ptr<Native>>& natives = Registries::instance.natives.lookup(klass, methodId);
 
       if (natives.size() == 1)
@@ -86,7 +88,7 @@ namespace Rice::detail
           std::back_inserter(resolves), 
           [&](const std::unique_ptr<Native>& native)
           {
-            return native->matches(argc, argv);
+            return native->matches(values);
           });
 
         // Now sort from best to worst
@@ -146,7 +148,7 @@ namespace Rice::detail
       }
 
       // Call the C++ function
-      return (*native)(argc, argv, self);
+      return (*native)(values, self);
     });
   }
 
@@ -290,14 +292,8 @@ namespace Rice::detail
     // Fill in missing args
     for (size_t i = argsVector.size(); i < std::tuple_size_v<Parameter_Tuple>; i++)
     {
-      argsVector.emplace_back(std::make_unique<Arg>("arg_" + std::to_string(i)));
-    }
-
-    // TODO - there has to be a better way!
-    for (size_t i = 0; i < argsVector.size(); i++)
-    {
-      std::unique_ptr<Arg>& arg = argsVector[i];
-      arg->position = (int32_t)i;
+      std::string argName = "arg_" + std::to_string(i);
+      argsVector.emplace_back(std::make_unique<Arg>(argName));
     }
 
     auto indices = std::make_index_sequence<std::tuple_size_v<Parameter_Tuple>>{};
@@ -328,11 +324,9 @@ namespace Rice::detail
     return result;
   }
 
-  inline std::vector<std::optional<VALUE>> Native::getRubyValues(size_t argc, const VALUE* argv, bool validate)
+  inline std::map<std::string, VALUE> Native::readRubyArgs(size_t argc, const VALUE* argv)
   {
-#undef max
-    size_t size = std::max(this->parameters_.size(), argc);
-    std::vector<std::optional<VALUE>> result(size);
+    std::map<std::string, VALUE> result;
 
     // Keyword handling
     if (rb_keyword_given_p())
@@ -340,65 +334,106 @@ namespace Rice::detail
       // Keywords are stored in the last element in a hash
       size_t actualArgc = argc - 1;
 
-      VALUE value = argv[actualArgc];
-      Hash keywords(value);
-
       // Copy over leading non-keyword arguments
       for (size_t i = 0; i < actualArgc; i++)
       {
-        result[i] = argv[i];
+        std::string key = "arg_" + std::to_string(i);
+        result[key] = argv[i];
       }
+
+      VALUE value = argv[actualArgc];
+      Hash keywords(value);
 
       // Copy over keyword arguments
       for (auto pair : keywords)
       {
-        Symbol key(pair.first);
-        ParameterAbstract* parameter = this->getParameterByName(key.str());
-        if (!parameter)
-        {
-          throw std::invalid_argument("Unknown keyword: " + key.str());
-        }
-
-        const Arg* arg = parameter->arg();
-
-        result[arg->position] = pair.second.value();
+        result[pair.first.to_s().str()] = pair.second.value();
       }
     }
     else
     {
-      std::copy(argv, argv + argc, result.begin());
+      // Copy over leading non-keyword arguments
+      for (size_t i = 0; i < argc; i++)
+      {
+        std::string key = "arg_" + std::to_string(i);
+        result[key] = argv[i];
+      }
     }
 
     // Block handling. If we find a block and the last parameter is missing then
     // set it to the block
-    if (rb_block_given_p() && result.size() > 0 && !result.back().has_value())
+    if (rb_block_given_p())// FIXME && result.size() > 0 && !result.back().second.has_value())
     {
       VALUE proc = rb_block_proc();
-      result.back() = proc;
+      std::string key = "arg_" + std::to_string(result.size());
+      result[key] = proc;
     }
 
-    if (validate)
+    return result;
+  }
+
+  inline std::vector<std::optional<VALUE>> Native::getRubyValues(std::map<std::string, VALUE> values, bool validate)
+  {
+    // !!!NOTE!!! We copied the values parameter because we are going to modify it!
+
+    // Protect against user sending too many arguments
+    if (values.size() > this->parameters_.size())
     {
-      // Protect against user sending too many arguments
-      if (argc > this->parameters_.size())
+      std::string message = "wrong number of arguments (given " +
+        std::to_string(values.size()) + ", expected " + std::to_string(this->parameters_.size()) + ")";
+      throw std::invalid_argument(message);
+    }
+
+    std::vector<std::optional<VALUE>> result(this->parameters_.size());
+
+    for (size_t i=0; i< this->parameters_.size(); i++)
+    {
+      std::unique_ptr<ParameterAbstract>& parameter = this->parameters_[i];
+      Arg* arg = parameter->arg();
+
+      // If using keywords arguments, then the value key will be arg->name(). If using positional 
+      // arguments then they key will be "arg_<position>"
+      std::string keywordKey = arg->name;
+      std::string positionKey = "arg_" + std::to_string(i);
+
+      auto iter = values.find(keywordKey);
+      if (iter == values.end() && keywordKey != positionKey)
       {
-        std::string message = "wrong number of arguments (given " +
-          std::to_string(argc) + ", expected " + std::to_string(this->parameters_.size()) + ")";
+        iter = values.find(positionKey);
+      }
+
+      if (iter != values.end())
+      {
+        result[i] = iter->second;
+        // Remove the value
+        values.erase(iter);
+      }
+      else if (arg->hasDefaultValue())
+      {
+        result[i] = parameter->defaultValueRuby();
+      }
+      else if (validate)
+      {
+        std::string message = "Missing argument. Name: " + arg->name + ". Index: " + std::to_string(i) + ".";
         throw std::invalid_argument(message);
       }
+    }
 
-      for (size_t i = 0; i < result.size(); i++)
+    // Check for unknown arguments
+    if (validate && values.size() > 0)
+    {
+      // There are unknown arguments
+      std::ostringstream message;
+      message << "Unknown argument(s): ";
+      size_t count = 0;
+      for (const std::pair<const std::string, VALUE>& pair : values)
       {
-        std::optional<VALUE> value = result[i];
-        ParameterAbstract* parameter = this->parameters_[i].get();
-
-        if (!parameter->arg()->hasDefaultValue() && !value.has_value())
-        {
-          std::string message;
-          message = "Missing argument. Name: " + parameter->arg()->name + ". Index: " + std::to_string(parameter->arg()->position) + ".";
-          throw std::invalid_argument(message);
-        }
+        if (count > 0)
+          message << ", ";
+        message << pair.first;
+        count++;
       }
+      throw std::invalid_argument(message.str());
     }
 
     return result;
@@ -416,25 +451,20 @@ namespace Rice::detail
     return result;
   }
 
-  inline Resolved Native::matches(size_t argc, const VALUE* argv)
+  inline Resolved Native::matches(std::map<std::string, VALUE>& values)
   {
     // Return false if Ruby provided more arguments than the C++ method takes
-    if (argc > this->parameters_.size())
+    if (values.size() > this->parameters_.size())
       return Resolved{ Convertible::None, 0, this };
 
     Resolved result{ Convertible::Exact, 1, this };
 
-    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(argc, argv, false);
+    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(values, false);
     result.convertible = this->matchParameters(rubyValues);
 
     if (this->parameters_.size() > 0)
     {
-      size_t providedValues = std::count_if(rubyValues.begin(), rubyValues.end(), [](std::optional<VALUE>& value)
-      {
-        return value.has_value();
-      });
-
-      result.parameterMatch = providedValues / (double)this->parameters_.size();
+      result.parameterMatch = values.size() / (double)this->parameters_.size();
     }
     return result;
   }

@@ -243,7 +243,7 @@ namespace Rice::detail
   }
 
   template<typename Return_T, typename ...Parameter_Ts>
-  inline VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::operator()(size_t, const VALUE*, VALUE)
+  inline VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::operator()(std::map<std::string, VALUE>&, VALUE)
   {
     return Qnil;
   }

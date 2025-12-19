@@ -1,8 +1,6 @@
 #ifndef Rice__detail__InstanceRegistry__hpp_
 #define Rice__detail__InstanceRegistry__hpp_
 
-#include <map>
-
 namespace Rice::detail
 {
   class InstanceRegistry

@@ -130,7 +130,7 @@ if(NOT _Ruby_CMP0185 STREQUAL "NEW")
 endif()
 
 # Uncomment the following line to get debug output for this file
-# set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
+set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 
 # Determine the list of possible names of the ruby executable depending
 # on which version of ruby is required
@@ -354,17 +354,18 @@ if (Ruby_EXECUTABLE AND NOT Ruby_EXECUTABLE STREQUAL "${_Ruby_EXECUTABLE_LAST_QU
   _RUBY_CONFIG_VAR("rubyhdrdir" Ruby_HDR_DIR)
   _RUBY_CONFIG_VAR("rubyarchhdrdir" Ruby_ARCHHDR_DIR)
 
-  # Ruby library location (libruby.so)
+  # Ruby library - libruby.so information
   _RUBY_CONFIG_VAR("libdir" _Ruby_POSSIBLE_LIB_DIR)
-  # Shared library name
-  _RUBY_CONFIG_VAR("LIBRUBY_SO" _Ruby_LIBRUBY_SO)
-  # Share libary extension
-  _RUBY_CONFIG_VAR("SOEXT" _Ruby_SOEXT)
+  _RUBY_CONFIG_VAR("RUBY_SO_NAME" _Ruby_SO_NAME)
 
+  # Ruby extensions information
   # Machine architecture: x86_64-linux, arm64-darwin, x64-mswin64_140 etc
   _RUBY_CONFIG_VAR("arch" Ruby_ARCH)
   # Ruby extension directory (so .so, .bundle files)
   _RUBY_CONFIG_VAR("archdir" Ruby_ARCH_DIR)
+  # Ruby extension suffix (so, bundle, *not* dll)
+  _RUBY_CONFIG_VAR("DLEXT" _Ruby_DLEXT)
+
 
   # Ruby directory for ruby files (*.rb). TODO - not relevant should be removed
   _RUBY_CONFIG_VAR("rubylibdir" Ruby_RUBY_LIB_DIR)
@@ -392,8 +393,8 @@ if (Ruby_EXECUTABLE AND NOT Ruby_EXECUTABLE STREQUAL "${_Ruby_EXECUTABLE_LAST_QU
   set(Ruby_ARCHHDR_DIR ${Ruby_ARCHHDR_DIR} CACHE PATH "The Ruby arch header dir (2.0+)" FORCE)
   set(_Ruby_POSSIBLE_LIB_DIR ${_Ruby_POSSIBLE_LIB_DIR} CACHE PATH "The Ruby lib dir" FORCE)
   set(Ruby_RUBY_LIB_DIR ${Ruby_RUBY_LIB_DIR} CACHE PATH "The Ruby ruby-lib dir" FORCE)
-  set(_Ruby_LIBRUBY_SO ${_Ruby_LIBRUBY_SO} CACHE PATH "The Ruby shared library name" FORCE)
-  set(_Ruby_SOEXT ${_Ruby_SOEXT} CACHE PATH "The Ruby shared library extension" FORCE)
+  set(_Ruby_SO_NAME ${_Ruby_SO_NAME} CACHE PATH "The Ruby shared library name" FORCE)
+  set(_Ruby_DLEXT ${_Ruby_DLEXT} CACHE PATH "Ruby extensions extension" FORCE)
   set(Ruby_SITEARCH_DIR ${Ruby_SITEARCH_DIR} CACHE PATH "The Ruby site arch dir" FORCE)
   set(Ruby_SITELIB_DIR ${Ruby_SITELIB_DIR} CACHE PATH "The Ruby site lib dir" FORCE)
   set(Ruby_HAS_VENDOR_RUBY ${Ruby_HAS_VENDOR_RUBY} CACHE BOOL "Vendor Ruby is available" FORCE)
@@ -407,8 +408,8 @@ if (Ruby_EXECUTABLE AND NOT Ruby_EXECUTABLE STREQUAL "${_Ruby_EXECUTABLE_LAST_QU
       Ruby_ARCHHDR_DIR
       _Ruby_POSSIBLE_LIB_DIR
       Ruby_RUBY_LIB_DIR
-      _Ruby_LIBRUBY_SO
-      _Ruby_SOEXT
+      _Ruby_SO_NAME
+      _Ruby_DLEXT
       Ruby_SITEARCH_DIR
       Ruby_SITELIB_DIR
       Ruby_HAS_VENDOR_RUBY
@@ -472,7 +473,7 @@ set(_Ruby_CMAKE_FIND_FRAMEWORK_ORIGINAL ${CMAKE_FIND_FRAMEWORK})
 set(CMAKE_FIND_FRAMEWORK LAST)
 
 find_library(Ruby_LIBRARY
-        NAMES ${_Ruby_LIBRUBY_SO}
+        NAMES "${_Ruby_SO_NAME}"
         HINTS ${_Ruby_POSSIBLE_LIB_DIR})
 
 set(_Ruby_REQUIRED_VARS Ruby_EXECUTABLE Ruby_INCLUDE_DIR Ruby_LIBRARY)
@@ -486,8 +487,8 @@ set(CMAKE_FIND_FRAMEWORK ${_Ruby_CMAKE_FIND_FRAMEWORK_ORIGINAL})
 message(DEBUG "--------FindRuby.cmake debug------------")
 message(DEBUG "_Ruby_POSSIBLE_EXECUTABLE_NAMES: ${_Ruby_POSSIBLE_EXECUTABLE_NAMES}")
 message(DEBUG "_Ruby_POSSIBLE_LIB_DIR: ${_Ruby_POSSIBLE_LIB_DIR}")
-message(DEBUG "Ruby_LIBRUBY_SO: ${_Ruby_LIBRUBY_SO}")
-message(DEBUG "Ruby_SOEXT: ${_Ruby_SOEXT}")
+message(DEBUG "Ruby_LIBRUBY_SO: ${_Ruby_SO_NAME}")
+message(DEBUG "_Ruby_DLEXT: ${_Ruby_DLEXT}")
 message(DEBUG "Ruby_FIND_VIRTUALENV=${Ruby_FIND_VIRTUALENV}")
 message(DEBUG "Ruby_ENV: ${Ruby_ENV}")
 message(DEBUG "Found Ruby_VERSION: \"${Ruby_VERSION}\"")
@@ -514,7 +515,7 @@ if (Ruby_FOUND)
             INTERFACE_INCLUDE_DIRECTORIES "${Ruby_INCLUDE_DIRS}"
 
             # Custom property for extension suffix (with dot), e.g. ".so", ".bundle"
-            INTERFACE_RUBY_EXTENSION_SUFFIX "${_Ruby_SOEXT}"
+            INTERFACE_RUBY_EXTENSION_SUFFIX ".${_Ruby_DLEXT}"
 
             # Hide symbols by default with GCC/Clang on *nix-ish platforms
             INTERFACE_C_VISIBILITY_PRESET hidden

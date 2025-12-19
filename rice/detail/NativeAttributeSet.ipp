@@ -31,23 +31,23 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline Resolved NativeAttributeSet<Attribute_T>::matches(size_t argc, const VALUE*)
+  inline Resolved NativeAttributeSet<Attribute_T>::matches(std::map<std::string, VALUE>& values)
   {
-    if (argc == 1)
+    if (values.size() == 1)
       return Resolved{ Convertible::Exact, 1, this };
     else
       return Resolved{ Convertible::None, 0, this };
   }
 
   template<typename Attribute_T>
-  inline VALUE NativeAttributeSet<Attribute_T>::operator()(size_t argc, const VALUE* argv, VALUE self)
+  inline VALUE NativeAttributeSet<Attribute_T>::operator()(std::map<std::string, VALUE>& values, VALUE self)
   {
-    if (argc != 1)
+    if (values.size() != 1)
     {
       throw std::runtime_error("Incorrect number of parameters for setting attribute. Attribute: " + this->name_);
     }
 
-    VALUE value = argv[0];
+    VALUE value = values.begin()->second;
 
     if constexpr (!std::is_null_pointer_v<Receiver_T>)
     {

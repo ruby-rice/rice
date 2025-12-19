@@ -852,3 +852,50 @@ TESTCASE(PointerBuffer)
   String result = m.module_eval(code);
   ASSERT_EQUAL("pointerBuffer", result.str());
 }
+
+namespace
+{
+  class Pixel
+  {
+  public:
+    Pixel(uint32_t rgb)
+    {
+      this->rgb = rgb;
+    }
+
+    Pixel(uint8_t red, uint8_t green, uint8_t blue)
+    {
+      this->rgb = (red << 16) | (green << 8) | blue;
+    }
+
+    uint32_t rgb = 0;
+  };
+}
+
+TESTCASE(Keywords)
+{
+  Module m = define_module("Testing");
+
+  define_class<Pixel>("Pixel").
+    define_constructor(Constructor<Pixel, uint32_t>()).
+    define_constructor(Constructor<Pixel, uint8_t, uint8_t, uint8_t>(), Arg("red"), Arg("green"), Arg("blue")).
+    define_attr("rgb", &Pixel::rgb);
+
+  std::string code = R"(pixel = Pixel.new(0xFFFFFF)
+                        pixel.rgb)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(0xFFFFFF, detail::From_Ruby<size_t>().convert(result.value()));
+
+  code = R"(pixel = Pixel.new(128, 128, 128)
+            pixel.rgb)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(0x808080, detail::From_Ruby<size_t>().convert(result.value()));
+
+  code = R"(pixel = Pixel.new(green: 80, red: 160, blue: 40)
+            pixel.rgb)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(0xA05028, detail::From_Ruby<size_t>().convert(result.value()));
+}

@@ -1,7 +1,6 @@
 #ifndef Rice__detail__NativeRegistry__hpp
 #define Rice__detail__NativeRegistry__hpp
 
-#include <map>
 #include <memory>
 #include <utility>
 

@@ -27,9 +27,9 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline Resolved NativeAttributeGet<Attribute_T>::matches(size_t argc, const VALUE*)
+  inline Resolved NativeAttributeGet<Attribute_T>::matches(std::map<std::string, VALUE>& values)
   {
-    if (argc == 0)
+    if (values.size() == 0)
       return Resolved { Convertible::Exact, 1, this };
     else
       return Resolved{ Convertible::None, 0, this };
@@ -43,7 +43,7 @@ namespace Rice::detail
   }
 
   template<typename Attribute_T>
-  inline VALUE NativeAttributeGet<Attribute_T>::operator()(size_t, const VALUE*, VALUE self)
+  inline VALUE NativeAttributeGet<Attribute_T>::operator()(std::map<std::string, VALUE>&, VALUE self)
   {
     if constexpr (std::is_member_object_pointer_v<Attribute_T>)
     {

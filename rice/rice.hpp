@@ -7,6 +7,7 @@
 // C++ headers have to come after Ruby on MacOS for reasons I do not understand
 #include <cstdio>
 #include <cstring> // For std::memset
+#include <map>
 #include <string>
 #include <typeinfo>
 #include <typeindex>
