@@ -54,7 +54,7 @@ module Rice
 								 else
 									 "attr_writer"
 								 end
-			"#{attr_type} #{native_attributes.first.name}: #{native_attributes.first.return_type}"
+			"#{attr_type} #{native_attributes.first.name}: #{native_attributes.first.return_klass}"
 		end
 
 		def method_sigs(native_methods, indent = 0)
@@ -69,7 +69,7 @@ module Rice
 			params = native.parameters.map do |parameter|
 				"#{parameter.arg.name}: #{parameter.klass}"
 			end.join(", ")
-			"(#{params}) -> #{native.return_type}"
+			"(#{params}) -> #{native.return_klass}"
 		end
 
 		def render_template(template, local_variables = {})
