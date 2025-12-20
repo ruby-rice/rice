@@ -416,4 +416,4 @@ For more information refer to the [Exceptions](bindings/exceptions.md) section.
 
 ## Next Steps
 
-Hopefully this tutorial will help get you started wrapping C++ libraries for use in Ruby. For more detailed information refer to the [Wrapping C++](bindings/constructors.md) section.
+Hopefully this tutorial will help get you started wrapping C++ libraries for use in Ruby. For more detailed information refer to the [Wrapping C++](bindings/overview.md) section.

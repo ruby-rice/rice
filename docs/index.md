@@ -20,6 +20,18 @@ Bug tracking is also hosted on GitHub: <https://github.com/ruby-rice/rice/issues
 
 API documentation: <https://ruby-rice.github.io/4.x>
 
+## Example Project
+
+For a complete, real-world example of a Rice extension, see [BitmapPlusPlus-ruby](https://github.com/ruby-rice/BitmapPlusPlus-ruby). This gem provides Ruby bindings for a C++ image manipulation library and demonstrates many Rice features including:
+
+- Constructor overloading
+- Operator exposure
+- STL integration
+- Iterator support
+- Exception handling
+
+The well-commented binding code makes it a valuable learning resource for developers building their own C++ extensions.
+
 ## Next Steps
 
 - [Installation](installation.md) - How to install Rice
