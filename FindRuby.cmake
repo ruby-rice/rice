@@ -585,9 +585,8 @@ if (Ruby_FOUND)
         INTERFACE_RUBY_EXTENSION_SUFFIX ".${_Ruby_DLEXT}"
       )
     endif ()
+
     # Ruby::Module - For building Ruby extension modules
-    # On Windows, extensions must link to the Ruby shared library
-    # On Unix-like systems, extensions use undefined symbols resolved by the interpreter
     if (NOT TARGET Ruby::Module)
       if (WIN32)
         add_library(Ruby::Module UNKNOWN IMPORTED)
@@ -602,11 +601,27 @@ if (Ruby_FOUND)
         INTERFACE_INCLUDE_DIRECTORIES "${Ruby_INCLUDE_DIRS}"
         # Custom property for extension suffix (with dot), e.g. ".so", ".bundle"
         INTERFACE_RUBY_EXTENSION_SUFFIX ".${_Ruby_DLEXT}"
-        # Hide symbols by default - important for extensions to avoid conflicts
         INTERFACE_C_VISIBILITY_PRESET hidden
         INTERFACE_CXX_VISIBILITY_PRESET hidden
         INTERFACE_VISIBILITY_INLINES_HIDDEN ON
       )
+
+      # macOS: allow unresolved Ruby API symbols; resolved when Ruby loads the bundle.
+      if (APPLE)
+        target_link_options(Ruby::Module INTERFACE
+          "LINKER:-undefined,dynamic_lookup"
+        )
+      endif ()
+
+      # Linux (and other ELF platforms):
+      # Normally undefined Ruby API symbols are allowed in shared objects and resolved at dlopen().
+      # But if the toolchain/preset adds -Wl,--no-undefined, linking will fail.
+      # This counteracts that.
+      if (UNIX AND NOT APPLE)
+        target_link_options(Ruby::Module INTERFACE
+          "LINKER:--unresolved-symbols=ignore-all"
+        )
+      endif ()
     endif ()
   endif ()
 endif ()
