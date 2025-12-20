@@ -23,22 +23,6 @@ jobs:
       - name: Build documentation
         run: mkdocs build --strict
 
-      - name: Create root redirect
-        run: |
-          mkdir -p ./root
-          cat > ./root/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta http-equiv="refresh" content="0; url=/4.x/">
-            <link rel="canonical" href="https://ruby-rice.github.io/4.x/">
-          </head>
-          <body>
-            <p>Redirecting to <a href="/4.x/">documentation</a>...</p>
-          </body>
-          </html>
-          EOF
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
