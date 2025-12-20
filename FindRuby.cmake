@@ -488,6 +488,12 @@ endif ()
 # FIXME: Currently we require both the interpreter and development components to be found
 # in order to use either.  See issue #20474.
 
+# Save CMAKE_FIND_FRAMEWORK
+set(_Ruby_CMAKE_FIND_FRAMEWORK_ORIGINAL ${CMAKE_FIND_FRAMEWORK})
+
+# Avoid finding the ancient Ruby framework included in macOS.
+set(CMAKE_FIND_FRAMEWORK LAST)
+
 find_path(Ruby_INCLUDE_DIR
         NAMES ruby.h
         HINTS ${Ruby_HDR_DIR})
@@ -497,12 +503,6 @@ find_path(Ruby_CONFIG_INCLUDE_DIR
         HINTS ${Ruby_ARCHHDR_DIR})
 
 set(Ruby_INCLUDE_DIRS ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})
-
-# Save CMAKE_FIND_FRAMEWORK
-set(_Ruby_CMAKE_FIND_FRAMEWORK_ORIGINAL ${CMAKE_FIND_FRAMEWORK})
-
-# Avoid finding the ancient Ruby framework included in macOS.
-set(CMAKE_FIND_FRAMEWORK LAST)
 
 find_library(Ruby_LIBRARY
         NAMES "${_Ruby_SO_NAME}"
