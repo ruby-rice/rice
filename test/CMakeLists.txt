@@ -73,7 +73,7 @@ add_executable(${PROJECT_NAME}
 # Ruby
 #find_package(Ruby Required)
 include("../FindRuby.cmake")
-target_link_libraries(${PROJECT_NAME} PRIVATE Ruby::Ruby)
+target_link_libraries(${PROJECT_NAME} PRIVATE Ruby::Module)
 
 # FFI
 if (MSVC) # This will include Clang on Windows

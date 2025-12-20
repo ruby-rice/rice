@@ -9,11 +9,45 @@ Finds Ruby installation and the locations of its include files and libraries:
 
 .. code-block:: cmake
 
-  find_package(Ruby [<version>] [...])
+  find_package(Ruby [<version>] [COMPONENTS <components>...] [...])
 
 Ruby is a general-purpose programming language.  This module supports Ruby
 1.8 through 3.4.  Virtual environments, such as RVM or RBENV, are also
 supported.
+
+Components
+^^^^^^^^^^
+
+This module supports the following components:
+
+``Interpreter``
+  The Ruby interpreter executable.
+
+``Development``
+  Headers and libraries needed to build Ruby extensions or embed Ruby.
+
+If no components are specified, both ``Interpreter`` and ``Development``
+are searched for.
+
+Imported Targets
+^^^^^^^^^^^^^^^^
+
+This module defines the following :prop_tgt:`IMPORTED` targets:
+
+``Ruby::Interpreter``
+  Ruby interpreter. Target defined if component ``Interpreter`` is found.
+
+``Ruby::Ruby``
+  Ruby library for embedding Ruby in C/C++ applications.
+  Target defined if component ``Development`` is found.
+
+``Ruby::Module``
+  Ruby library for building Ruby extension modules.
+  Target defined if component ``Development`` is found.
+  Use this target when creating native extensions that will be
+  loaded into Ruby via ``require``. On most platforms, extension
+  modules do not link directly to libruby. Includes appropriate
+  symbol visibility settings.
 
 Result Variables
 ^^^^^^^^^^^^^^^^
@@ -130,7 +164,7 @@ if(NOT _Ruby_CMP0185 STREQUAL "NEW")
 endif()
 
 # Uncomment the following line to get debug output for this file
-# set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
+set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 
 # Determine the list of possible names of the ruby executable depending
 # on which version of ruby is required
@@ -474,11 +508,6 @@ find_library(Ruby_LIBRARY
         NAMES "${_Ruby_SO_NAME}"
         HINTS ${_Ruby_POSSIBLE_LIB_DIR})
 
-set(_Ruby_REQUIRED_VARS Ruby_EXECUTABLE Ruby_INCLUDE_DIR Ruby_LIBRARY)
-if (_Ruby_VERSION_SHORT_NODOT GREATER 18)
-  list(APPEND _Ruby_REQUIRED_VARS Ruby_CONFIG_INCLUDE_DIR)
-endif ()
-
 # Restore CMAKE_FIND_FRAMEWORK
 set(CMAKE_FIND_FRAMEWORK ${_Ruby_CMAKE_FIND_FRAMEWORK_ORIGINAL})
 
@@ -499,12 +528,87 @@ message(DEBUG "Ruby_ARCH_DIR: ${Ruby_ARCH_DIR}")
 message(DEBUG "Ruby_ARCHHDR_DIR: ${Ruby_ARCHHDR_DIR}")
 message(DEBUG "--------------------")
 
+# Components
+#
+# If the caller does not request components, preserve legacy behavior
+if (NOT Ruby_FIND_COMPONENTS)
+  set(Ruby_FIND_COMPONENTS Interpreter Development)
+endif ()
+
+set(_Ruby_WANT_INTERPRETER FALSE)
+set(_Ruby_WANT_DEVELOPMENT FALSE)
+set(_Ruby_REQUIRED_VARS "")
+
+foreach (component IN LISTS Ruby_FIND_COMPONENTS)
+  if (component STREQUAL "Interpreter")
+    set(_Ruby_WANT_INTERPRETER TRUE)
+    list(APPEND _Ruby_REQUIRED_VARS Ruby_EXECUTABLE)
+  elseif (component STREQUAL "Development")
+    set(_Ruby_WANT_DEVELOPMENT TRUE)
+    list(APPEND _Ruby_REQUIRED_VARS Ruby_INCLUDE_DIR Ruby_CONFIG_INCLUDE_DIR Ruby_LIBRARY)
+  else ()
+    message(FATAL_ERROR
+            "FindRuby: Unsupported component '${component}'. Supported components are: Interpreter, Development")
+  endif ()
+endforeach ()
+
+# Set component found flags
+set(Ruby_Interpreter_FOUND ${Ruby_EXECUTABLE})
+if (Ruby_INCLUDE_DIR AND Ruby_CONFIG_INCLUDE_DIR AND Ruby_LIBRARY)
+    set(Ruby_Development_FOUND TRUE)
+else ()
+    set(Ruby_Development_FOUND FALSE)
+endif ()
+
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Ruby REQUIRED_VARS ${_Ruby_REQUIRED_VARS}
-                                  VERSION_VAR Ruby_VERSION)
+find_package_handle_standard_args(Ruby
+                                  REQUIRED_VARS ${_Ruby_REQUIRED_VARS}
+                                  VERSION_VAR Ruby_VERSION
+                                  HANDLE_COMPONENTS)
 
 if (Ruby_FOUND)
-  set(Ruby_LIBRARIES ${Ruby_LIBRARY})
+  if (NOT TARGET Ruby::Interpreter)
+    add_executable(Ruby::Interpreter IMPORTED GLOBAL)
+    set_target_properties(Ruby::Interpreter PROPERTIES
+      IMPORTED_LOCATION "${Ruby_EXECUTABLE}"
+    )
+  endif ()
+
+  if (Ruby_Development_FOUND)
+    set(Ruby_LIBRARIES ${Ruby_LIBRARY})
+    if (NOT TARGET Ruby::Ruby)
+      add_library(Ruby::Ruby UNKNOWN IMPORTED)
+      set_target_properties(Ruby::Ruby PROPERTIES
+        IMPORTED_LOCATION "${Ruby_LIBRARY}"
+        INTERFACE_INCLUDE_DIRECTORIES "${Ruby_INCLUDE_DIRS}"
+        # Custom property for extension suffix (with dot), e.g. ".so", ".bundle"
+        INTERFACE_RUBY_EXTENSION_SUFFIX ".${_Ruby_DLEXT}"
+      )
+    endif ()
+    # Ruby::Module - For building Ruby extension modules
+    # On Windows, extensions must link to the Ruby shared library
+    # On Unix-like systems, extensions use undefined symbols resolved by the interpreter
+    if (NOT TARGET Ruby::Module)
+      if (WIN32)
+        add_library(Ruby::Module UNKNOWN IMPORTED)
+        set_target_properties(Ruby::Module PROPERTIES
+          IMPORTED_LOCATION "${Ruby_LIBRARY}"
+        )
+      else ()
+        add_library(Ruby::Module INTERFACE IMPORTED)
+      endif ()
+
+      set_target_properties(Ruby::Module PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${Ruby_INCLUDE_DIRS}"
+        # Custom property for extension suffix (with dot), e.g. ".so", ".bundle"
+        INTERFACE_RUBY_EXTENSION_SUFFIX ".${_Ruby_DLEXT}"
+        # Hide symbols by default - important for extensions to avoid conflicts
+        INTERFACE_C_VISIBILITY_PRESET hidden
+        INTERFACE_CXX_VISIBILITY_PRESET hidden
+        INTERFACE_VISIBILITY_INLINES_HIDDEN ON
+      )
+    endif ()
+  endif ()
 endif ()
 
 mark_as_advanced(
