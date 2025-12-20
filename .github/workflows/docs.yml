@@ -31,12 +31,3 @@ jobs:
           publish_branch: main
           publish_dir: ./site
           destination_dir: 4.x
-
-      - name: Deploy root redirect
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          deploy_key: ${{ secrets.DOCS_DEPLOY_KEY }}
-          external_repository: ruby-rice/ruby-rice.github.io
-          publish_branch: main
-          publish_dir: ./root
-          keep_files: true
