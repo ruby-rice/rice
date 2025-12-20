@@ -143,6 +143,10 @@ namespace Rice
     template<typename T>
     constexpr bool is_const_any_v = std::is_const_v<std::remove_pointer_t<std::remove_pointer_t<std::remove_reference_t<T>>>>;
 
+    // Helper to detect char types
+    template<typename T>
+    constexpr bool is_char_type_v = std::is_same_v<T, char> || std::is_same_v<T, signed char> || std::is_same_v<T, unsigned char>;
+
     // Recursively remove const/volatile
     template<typename T>
     struct remove_cv_recursive
@@ -1399,13 +1403,15 @@ namespace Rice::detail
   template <typename T>
   class From_Ruby;
 
-  enum class Convertible: uint8_t
+  // Overload resolution scoring constants
+  struct Convertible
   {
-      None   = 0b0000,
-      Narrow = 0b0001,
-      Cast   = 0b0011,
-      Const  = 0b0111,
-      Exact  = 0b1111
+    static constexpr double Exact = 1.0;           // Perfect type match
+    static constexpr double None = 0.0;            // Cannot convert
+    static constexpr double IntToFloat = 0.9;      // Domain change penalty when converting int to float
+    static constexpr double SignedToUnsigned = 0.5;// Penalty for signed to unsigned (can't represent negatives)
+    static constexpr double FloatToInt = 0.5;      // Domain change penalty when converting float to int (lossy)
+    static constexpr double ConstMismatch = 0.99;  // Penalty for const mismatch
   };
 }
 
@@ -1440,7 +1446,7 @@ namespace Rice::detail
     ParameterAbstract& operator=(ParameterAbstract&& other) = default;
 
     virtual VALUE defaultValueRuby() = 0;
-    virtual Convertible matches(std::optional<VALUE>& valueOpt) = 0;
+    virtual double matches(std::optional<VALUE>& valueOpt) = 0;
     virtual std::string cppTypeName() = 0;
     virtual VALUE klass() = 0;
 
@@ -1465,7 +1471,7 @@ namespace Rice::detail
      VALUE convertToRuby(T& object);
      VALUE defaultValueRuby() override;
 
-     Convertible matches(std::optional<VALUE>& valueOpt) override;
+     double matches(std::optional<VALUE>& valueOpt) override;
      std::string cppTypeName() override;
      VALUE klass() override;
 
@@ -2852,8 +2858,7 @@ namespace Rice::detail
     inline bool operator<(Resolved other);
     inline bool operator>(Resolved other);
 
-    Convertible convertible;
-    double parameterMatch;
+    double score;  // Combined score: minParameterScore * parameterMatch
     Native* native;
   };
 
@@ -2900,7 +2905,7 @@ namespace Rice::detail
     static std::map<std::string, VALUE> readRubyArgs(size_t argc, const VALUE* argv);
     std::vector<std::optional<VALUE>> getRubyValues(std::map<std::string, VALUE> values, bool validate);
     ParameterAbstract* getParameterByName(std::string name);
-    Convertible matchParameters(std::vector<std::optional<VALUE>>& values);
+    double matchParameters(std::vector<std::optional<VALUE>>& values, size_t argc);
 
     template<typename Parameter_Tuple, typename... Arg_Ts>
     static std::vector<std::unique_ptr<ParameterAbstract>> create_parameters(Arg_Ts&& ...args);
@@ -3458,9 +3463,6 @@ namespace Rice::detail
     using FromRuby_T = bool(*)(VALUE);
 
     static inline FromRuby_T fromRuby = RB_TEST;
-    static inline std::set<ruby_value_type> Exact = { RUBY_T_TRUE, RUBY_T_FALSE };
-    static inline std::set<ruby_value_type> Castable = { RUBY_T_NIL };
-    static inline std::set<ruby_value_type> Narrowable = {  };
     static inline std::string packTemplate = "not supported";
     static inline std::string name = "bool";
   };
@@ -3472,9 +3474,6 @@ namespace Rice::detail
     using FromRuby_T = char(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2char_inline;
-    static inline std::set<ruby_value_type> Exact = { };
-    static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
-    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = CHAR_MIN < 0 ? "c*" : "C*";
     static inline std::string name = "String";
   };
@@ -3486,9 +3485,6 @@ namespace Rice::detail
     using FromRuby_T =  char(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2char_inline;
-    static inline std::set<ruby_value_type> Exact = { };
-    static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
-    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "c*";
     static inline std::string name = "String";
   };
@@ -3500,9 +3496,6 @@ namespace Rice::detail
     using FromRuby_T = char(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2char_inline;
-    static inline std::set<ruby_value_type> Exact = { };
-    static inline std::set<ruby_value_type> Castable = { RUBY_T_STRING };
-    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "C*";
     static inline std::string name = "String";
   };
@@ -3514,9 +3507,6 @@ namespace Rice::detail
     using FromRuby_T = short(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2short_inline;
-    static inline std::set<ruby_value_type> Exact = { };
-    static inline std::set<ruby_value_type> Castable = { };
-    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "s*";
     static inline std::string name = "Integer";
   };
@@ -3528,9 +3518,6 @@ namespace Rice::detail
     using FromRuby_T = unsigned short(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2ushort;
-    static inline std::set<ruby_value_type> Exact = { };
-    static inline std::set<ruby_value_type> Castable = { };
-    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FIXNUM };
     static inline std::string packTemplate = "S*";
     static inline std::string name = "Integer";
   };
@@ -3542,11 +3529,6 @@ namespace Rice::detail
     using FromRuby_T = int(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2int_inline;
-    static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM };
-    static inline std::set<ruby_value_type> Castable = { };
-    // We allow bignum to integer because Ruby switches to bignum at about 2 billion on 64 bit systems,
-    // while int can go up to 4 billion
-    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "i*";
     static inline std::string name = "Integer";
   };
@@ -3558,11 +3540,6 @@ namespace Rice::detail
     using FromRuby_T = unsigned int(*)(VALUE);
 
     static inline FromRuby_T fromRuby = RB_NUM2UINT;
-    static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM };
-    static inline std::set<ruby_value_type> Castable = { };
-    // We allow bignum to integer because Ruby switches to bignum at about 2 billion on 64 bit systems,
-    // while int can go up to 4 billion
-    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "I*";
     static inline std::string name = "Integer";
   };
@@ -3574,9 +3551,6 @@ namespace Rice::detail
     using FromRuby_T = long(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2long_inline;
-    static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM };
-    static inline std::set<ruby_value_type> Castable = { };
-    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM };
     static inline std::string packTemplate = "l_*";
     static inline std::string name = "Integer";
   };
@@ -3588,9 +3562,6 @@ namespace Rice::detail
     using FromRuby_T = unsigned long(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2ulong_inline;
-    static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM  };
-    static inline std::set<ruby_value_type> Castable = { };
-    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_BIGNUM};
     static inline std::string packTemplate = "L_*";
     static inline std::string name = "Integer";
   };
@@ -3602,9 +3573,6 @@ namespace Rice::detail
     using FromRuby_T = long long(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2ll_inline;
-    static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM, RUBY_T_BIGNUM };
-    static inline std::set<ruby_value_type> Castable = { };
-    static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "q_*";
     static inline std::string name = "Integer";
   };
@@ -3616,9 +3584,6 @@ namespace Rice::detail
     using FromRuby_T = unsigned long long(*)(VALUE);
 
     static inline FromRuby_T fromRuby = RB_NUM2ULL;
-    static inline std::set<ruby_value_type> Exact = { RUBY_T_FIXNUM, RUBY_T_BIGNUM };
-    static inline std::set<ruby_value_type> Castable = { };
-    static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "Q_*";
     static inline std::string name = "Integer";
   };
@@ -3630,9 +3595,6 @@ namespace Rice::detail
     using FromRuby_T = double(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2dbl;
-    static inline std::set<ruby_value_type> Exact = { };
-    static inline std::set<ruby_value_type> Castable = { RUBY_T_FIXNUM };
-    static inline std::set<ruby_value_type> Narrowable = { RUBY_T_FLOAT };
     static inline std::string packTemplate = "f*";
     static inline std::string name = "Float";
   };
@@ -3644,9 +3606,6 @@ namespace Rice::detail
     using FromRuby_T = double(*)(VALUE);
 
     static inline FromRuby_T fromRuby = rb_num2dbl;
-    static inline std::set<ruby_value_type> Exact = { RUBY_T_FLOAT };
-    static inline std::set<ruby_value_type> Castable = { RUBY_T_FIXNUM, RUBY_T_BIGNUM };
-    static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string packTemplate = "d*";
     static inline std::string name = "Float";
   };
@@ -3655,12 +3614,10 @@ namespace Rice::detail
   class RubyType<void>
   {
   public:
-    static inline std::set<ruby_value_type> Exact = { };
-    static inline std::set<ruby_value_type> Castable = { };
-    static inline std::set<ruby_value_type> Narrowable = { };
     static inline std::string name = "void";
   };
 }
+
 // Registries
 
 // =========   TypeRegistry.hpp   =========
@@ -3967,49 +3924,40 @@ namespace Rice::detail
   }
 
   template<typename T>
-  inline Convertible Parameter<T>::matches(std::optional<VALUE>& valueOpt)
+  inline double Parameter<T>::matches(std::optional<VALUE>& valueOpt)
   {
-    Convertible result = Convertible::None;
-
-    // Is a VALUE being passed directly to C++ ?
-    if (valueOpt.has_value())
+    if (!valueOpt.has_value())
     {
-      VALUE value = valueOpt.value();
-      if (this->arg()->isValue())
-      {
-        result = Convertible::Exact;
-      }
-      // If index is less than argc then check with FromRuby if the VALUE is convertible
-      // to C++.
-      else
-      {
-        result = this->fromRuby_.is_convertible(value);
-
-        // If this is an exact match check if the const-ness of the value and the parameter match.
-        // One caveat - procs are also RUBY_T_DATA so don't check if this is a function type
-        if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA && !std::is_function_v<std::remove_pointer_t<T>>)
-        {
-          // Check the constness of the Ruby wrapped value and the parameter
-          WrapperBase* wrapper = getWrapper(value);
-
-          // Do not send a const value to a non-const parameter
-          if (wrapper->isConst() && !is_const_any_v<T>)
-          {
-            result = Convertible::None;
-          }
-          // It is ok to send a non-const value to a const parameter but
-          // prefer non-const to non-const by slighly decreasing the convertible value
-          else if (!wrapper->isConst() && is_const_any_v<T>)
-          {
-            result = Convertible::Const;
-          }
-        }
-      }
+      return Convertible::Exact;  // Default match - doesn't affect minimum
     }
-    // Last check if a default value has been set
-    else if (this->arg()->hasDefaultValue())
+    else if (this->arg()->isValue())
     {
-      result = Convertible::Exact;
+      return Convertible::Exact;
+    }
+
+    VALUE value = valueOpt.value();
+
+    // Check with FromRuby if the VALUE is convertible to C++
+    double result = this->fromRuby_.is_convertible(value);
+
+    // If this is an exact match check if the const-ness of the value and the parameter match.
+    // One caveat - procs are also RUBY_T_DATA so don't check if this is a function type
+    if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA && !std::is_function_v<std::remove_pointer_t<T>>)
+    {
+      // Check the constness of the Ruby wrapped value and the parameter
+      WrapperBase* wrapper = getWrapper(value);
+
+      // Do not send a const value to a non-const parameter
+      if (wrapper->isConst() && !is_const_any_v<T>)
+      {
+        result = Convertible::None;
+      }
+      // It is ok to send a non-const value to a const parameter but
+      // prefer non-const to non-const by slightly decreasing the score
+      else if (!wrapper->isConst() && is_const_any_v<T>)
+      {
+        result = Convertible::ConstMismatch;
+      }
     }
 
     return result;
@@ -4473,9 +4421,7 @@ namespace Rice
       }
       default:
       {
-        if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end() ||
-            RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end() ||
-            RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
+        if (detail::From_Ruby<detail::remove_cv_recursive_t<T>>().is_convertible(value))
         {
           // The Ruby method may return a different type - for example Ruby floats
           // are converted to double and not float - so we need a typecast.
@@ -6827,57 +6773,101 @@ namespace Rice
 #include <optional>
 #include <stdexcept>
 
-/* This file implements conversions from Ruby to native values fo fundamental types 
+/* This file implements conversions from Ruby to native values fo fundamental types
    such as bool, int, float, etc. It also includes conversions for chars and strings */
 namespace Rice::detail
 {
-  inline Convertible operator&(Convertible left, Convertible right)
+  // Get precision bits for a Ruby numeric value
+  inline int rubyPrecisionBits(VALUE value)
   {
-    return static_cast<Convertible>(static_cast<uint8_t>(left) & static_cast<uint8_t>(right));
+    switch (rb_type(value))
+    {
+      // Ruby integers - use long long precision (63 bits)
+      case RUBY_T_FIXNUM:
+      case RUBY_T_BIGNUM:
+        return std::numeric_limits<long long>::digits;
+
+      // Ruby floats are C doubles (53 bit mantissa)
+      case RUBY_T_FLOAT:
+        return std::numeric_limits<double>::digits;
+      
+      // Everything else...
+      default:
+        return 0;
+    }
   }
 
-  inline Convertible operator|(Convertible left, Convertible right)
-  {
-    return static_cast<Convertible>(static_cast<uint8_t>(left) | static_cast<uint8_t>(right));
-  }
-
-  inline bool operator<(Convertible left, Convertible right)
-  {
-    return static_cast<uint8_t>(left) < static_cast<uint8_t>(right);
-  }
-
-  // ===========  Helpers  ============
+  // Precision score for converting Ruby numeric value to C++ type T
   template<typename T>
+  inline double precisionScore(VALUE value)
+  {
+    int sourceBits = rubyPrecisionBits(value);
+    if (sourceBits == 0)
+    {
+      return Convertible::None;
+    }
+
+    constexpr int targetBits = std::numeric_limits<T>::digits;
+    return (targetBits >= sourceBits) ? Convertible::Exact : static_cast<double>(targetBits) / sourceBits;
+  }
+
+  // Primary template for integral types
+  template<typename T, typename Enable = void>
   class FromRubyFundamental
   {
   public:
-    using RubyType_T = RubyType<T>;
-
-    static Convertible is_convertible(VALUE value)
+    static double is_convertible(VALUE value)
     {
-      ruby_value_type valueType = rb_type(value);
+      double score = precisionScore<T>(value);
+      if (score > Convertible::None)
+      {
+        if (rb_type(value) == RUBY_T_FLOAT)
+        {
+          score *= Convertible::FloatToInt;
+        }
+        else if constexpr (std::is_unsigned_v<T>)
+        {
+          // Ruby integers are signed, so penalize conversion to unsigned types
+          score *= Convertible::SignedToUnsigned;
+        }
+        return score;
+      }
 
-      if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end())
+      if constexpr (is_char_type_v<T>)
       {
-        return Convertible::Exact;
+        if (rb_type(value) == RUBY_T_STRING)
+        {
+          return Convertible::Exact;
+        }
       }
-      else if (RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end())
-      {
-        return Convertible::Cast;
-      }
-      else if (RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
-      {
-        return Convertible::Narrow;
-      }
-      else
-      {
-        return Convertible::None;
-      }
+
+      return Convertible::None;
     }
 
     static T convert(VALUE value)
     {
-      return (T)protect(RubyType_T::fromRuby, value);
+      return (T)protect(RubyType<T>::fromRuby, value);
+    }
+  };
+
+  // Specialization for floating point types
+  template<typename T>
+  class FromRubyFundamental<T, std::enable_if_t<std::is_floating_point_v<T>>>
+  {
+  public:
+    static double is_convertible(VALUE value)
+    {
+      double score = precisionScore<T>(value);
+      if (score > Convertible::None && rb_type(value) != RUBY_T_FLOAT)
+      {
+        score *= Convertible::IntToFloat;
+      }
+      return score;
+    }
+
+    static T convert(VALUE value)
+    {
+      return (T)protect(RubyType<T>::fromRuby, value);
     }
   };
 
@@ -6885,7 +6875,7 @@ namespace Rice::detail
   class FromRubyFundamental<T*>
   {
   public:
-    static Convertible is_convertible(VALUE value)
+    static double is_convertible(VALUE value)
     {
       ruby_value_type valueType = rb_type(value);
 
@@ -6894,7 +6884,6 @@ namespace Rice::detail
         case RUBY_T_NIL:
         {
           return Convertible::Exact;
-          break;
         }
         case RUBY_T_DATA:
         {
@@ -6944,7 +6933,7 @@ namespace Rice::detail
   class FromRubyFundamental<T**>
   {
   public:
-    static Convertible is_convertible(VALUE value)
+    static double is_convertible(VALUE value)
     {
       ruby_value_type valueType = rb_type(value);
 
@@ -6953,7 +6942,6 @@ namespace Rice::detail
         case RUBY_T_NIL:
         {
           return Convertible::Exact;
-          break;
         }
         case RUBY_T_DATA:
         {
@@ -7010,14 +6998,22 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
-      return FromRubyFundamental<bool>::is_convertible(value);
+      switch (rb_type(value))
+      {
+        case RUBY_T_TRUE:
+        case RUBY_T_FALSE:
+        case RUBY_T_NIL:
+          return Convertible::Exact;
+        default:
+          return Convertible::None;
+      }
     }
 
     bool convert(VALUE value)
     {
-      return FromRubyFundamental<bool>::convert(value);
+      return protect(RubyType<bool>::fromRuby, value);
     }
 
   private:
@@ -7036,7 +7032,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -7050,7 +7046,7 @@ namespace Rice::detail
         }
         default:
         {
-          return FromRubyFundamental<bool>::is_convertible(value);
+          return this->from_.is_convertible(value);
         }
       }
     }
@@ -7069,13 +7065,14 @@ namespace Rice::detail
         }
         default:
         {
-          this->converted_ = FromRubyFundamental<bool>::convert(value);
+          this->converted_ = this->from_.convert(value);
           return this->converted_;
         }
       }
     }
 
   private:
+    From_Ruby<bool> from_;
     Arg* arg_ = nullptr;
     bool converted_ = false;
   };
@@ -7091,7 +7088,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<char>::is_convertible(value);
     }
@@ -7117,7 +7114,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -7171,7 +7168,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -7227,7 +7224,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned char>::is_convertible(value);
     }
@@ -7253,7 +7250,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -7308,7 +7305,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<signed char>::is_convertible(value);
     }
@@ -7334,7 +7331,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -7389,7 +7386,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<double>::is_convertible(value);
     }
@@ -7415,7 +7412,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -7470,7 +7467,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<float>::is_convertible(value);
     }
@@ -7496,7 +7493,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -7551,9 +7548,9 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
-      Convertible result = FromRubyFundamental<int>::is_convertible(value);
+      double result = FromRubyFundamental<int>::is_convertible(value);
 
       // Is this an enum? If so we want to support converting it to an integer
       if (result == Convertible::None && rb_type(value) == RUBY_T_DATA)
@@ -7561,7 +7558,7 @@ namespace Rice::detail
         static ID id = protect(rb_intern, "to_int");
         if (protect(rb_respond_to, value, id))
         {
-          result = Convertible::Cast;
+          result = Convertible::Exact;
         }
       }
       return result;
@@ -7571,7 +7568,7 @@ namespace Rice::detail
     {
       return FromRubyFundamental<int>::convert(value);
     }
-  
+
   private:
     Arg* arg_ = nullptr;
   };
@@ -7588,7 +7585,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -7643,7 +7640,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned int>::is_convertible(value);
     }
@@ -7669,7 +7666,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -7724,7 +7721,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<long>::is_convertible(value);
     }
@@ -7750,7 +7747,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -7805,7 +7802,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned long>::is_convertible(value);
     }
@@ -7838,7 +7835,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -7893,7 +7890,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned long long>::is_convertible(value);
     }
@@ -7926,7 +7923,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -7981,7 +7978,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<long long>::is_convertible(value);
     }
@@ -8007,7 +8004,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -8062,7 +8059,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<short>::is_convertible(value);
     }
@@ -8088,7 +8085,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -8143,7 +8140,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned short>::is_convertible(value);
     }
@@ -8169,7 +8166,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -8228,7 +8225,7 @@ namespace Rice::detail
       }
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       if (this->arg_ && this->arg_->isOpaque())
       {
@@ -8296,7 +8293,7 @@ namespace Rice::detail
       }
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -8336,7 +8333,7 @@ namespace Rice::detail
       }
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       if (this->arg_ && this->arg_->isOpaque())
       {
@@ -8347,21 +8344,22 @@ namespace Rice::detail
       {
         case RUBY_T_DATA:
         {
-          return Convertible::Cast;
-          break;
+          return Convertible::Exact;
         }
         case RUBY_T_STRING:
         {
           if (RB_ENCODING_IS_ASCII8BIT(value))
+          {
             return Convertible::Exact;
+          }
           else
+          {
             return Convertible::None;
-          break;
+          }
         }
         case RUBY_T_NIL:
         {
           return Convertible::Exact;
-          break;
         }
         default:
         {
@@ -9595,56 +9593,40 @@ namespace Rice::detail
 {
   inline bool Resolved::operator<(Resolved other)
   {
-    if (this->convertible != other.convertible)
-    {
-      return this->convertible < other.convertible;
-    }
-    else
-    {
-      return this->parameterMatch < other.parameterMatch;
-    }
+    return this->score < other.score;
   }
 
   inline bool Resolved::operator>(Resolved other)
   {
-    if (this->convertible != other.convertible)
-    {
-      return this->convertible > other.convertible;
-    }
-    else
-    {
-      return this->parameterMatch > other.parameterMatch;
-    }
+    return this->score > other.score;
   }
 
   inline VALUE Native::resolve(int argc, VALUE* argv, VALUE self)
   {
     /* This method is called from Ruby and is responsible for determining the correct
-       Native object (ie, NativeFunction, NativeIterator, NativeAttributeGet and 
-       NativeAttributeSet) that shoudl be used to invoke the underlying C++ code.
+       Native object (ie, NativeFunction, NativeIterator, NativeAttributeGet and
+       NativeAttributeSet) that should be used to invoke the underlying C++ code.
        Most of the time there will be a single Native object registered for a C++ function,
-       method, constructor, iterator or attribute. However, there can be multiple Natives 
-       when a C++ function/method/construtor is overloaded.
+       method, constructor, iterator or attribute. However, there can be multiple Natives
+       when a C++ function/method/constructor is overloaded.
 
        In that case, the code iterates over each Native and calls its matches method. The matches
-       method returns a Resolved object which includes a Convertible field and parameterMatch field.
-       The Convertible field is an enum that specifies if the types of the values supplied by Ruby
-       match the types of the C++ function parameters. Allowed values include  can be Exact (example Ruby into to C++ int),
-       TypeCast (example Ruby into to C++ float) or None (cannot be converted). 
+       method returns a Resolved object with a numeric score (0.0 to 1.0). The score is computed as:
 
-       The parameterMatch field is simply the number or arguments provided by Ruby divided by the
-       number of arguments required by C++. These numbers can be different because C++ method 
-       parameters can have default values.
+         score = minParameterScore * parameterMatch
 
-       Taking these two values into account, the method sorts the Natives and picks the one with the 
-       highest score (Convertible::Exact and 1.0 for parameterMatch). Thus given these two C++ functions:
+       where minParameterScore is the minimum score across all passed parameters (using precision-based
+       scoring for numeric types), and parameterMatch applies a small penalty (0.99) for each default
+       parameter used. If not enough arguments are provided and missing parameters don't have defaults,
+       the method returns 0 (not viable).
+
+       The method sorts the Natives and picks the one with the highest score. Given these two C++ functions:
 
        void some_method(int a);
-       void some_mtehod(int a, float b = 2.0).
+       void some_method(int a, float b = 2.0);
 
-       A call from ruby of some_method(1) will exactly match both signatures, but the first one 
-       will be chosen because the parameterMatch will be 1.0 for the first overload but 0.5
-       for the second. */
+       A call from ruby of some_method(1) will match both signatures, but the first one
+       will be chosen because parameterMatch = 1.0 for the first overload but 0.99 for the second. */
 
     Native* native = nullptr;
 
@@ -9712,7 +9694,7 @@ namespace Rice::detail
         }*/
 
         // Did it match?
-        if (resolved.convertible != Convertible::None)
+        if (resolved.score > Convertible::None)
         {
           native = resolved.native;
         }
@@ -10032,34 +10014,63 @@ namespace Rice::detail
     return result;
   }
 
-  inline Convertible Native::matchParameters(std::vector<std::optional<VALUE>>& values)
+  inline double Native::matchParameters(std::vector<std::optional<VALUE>>& values, size_t argc)
   {
-    Convertible result = Convertible::Exact;
-    for (size_t i = 0; i < this->parameters_.size(); i++)
+    // Only score arguments actually passed (not defaults)
+    double minScore = Convertible::Exact;
+
+    for (size_t i = 0; i < argc && i < this->parameters_.size(); i++)
     {
       ParameterAbstract* parameter = this->parameters_[i].get();
       std::optional<VALUE>& value = values[i];
-      result = result & parameter->matches(value);
+      double score = parameter->matches(value);
+      minScore = (std::min)(minScore, score);
     }
-    return result;
+
+    return minScore;
   }
 
   inline Resolved Native::matches(std::map<std::string, VALUE>& values)
   {
-    // Return false if Ruby provided more arguments than the C++ method takes
+    // Return Convertible::None if Ruby provided more arguments than the C++ method takes
     if (values.size() > this->parameters_.size())
-      return Resolved{ Convertible::None, 0, this };
-
-    Resolved result{ Convertible::Exact, 1, this };
-
-    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(values, false);
-    result.convertible = this->matchParameters(rubyValues);
-
-    if (this->parameters_.size() > 0)
     {
-      result.parameterMatch = values.size() / (double)this->parameters_.size();
+      return Resolved{ Convertible::None, this };
     }
-    return result;
+
+    // Get Ruby values for each parameter and see how they match
+    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(values, false);
+    double minScore = this->matchParameters(rubyValues, values.size());
+
+    // If zero score return then stop
+    if (minScore == 0)
+    {
+      return Resolved{ Convertible::None, this };
+    }
+
+    // How many actual values do we have?
+    size_t actualValuesCount = std::count_if(rubyValues.begin(), rubyValues.end(),
+      [](std::optional<VALUE>& optional)
+      {
+        return optional.has_value();
+      });
+
+    // If we don't have enough parameters return
+    if (actualValuesCount < this->parameters_.size())
+      return Resolved{ Convertible::None, this };
+
+    // Penalize use of default parameters
+    double parameterMatch = Convertible::Exact;
+    size_t defaultParameterCount = actualValuesCount - values.size();
+    for (size_t i = 0; i < defaultParameterCount; i++)
+    {
+      parameterMatch *= 0.99;  // Small penalty per default used
+    }
+
+    // Final score: minScore * parameterMatch
+    double finalScore = minScore * parameterMatch;
+
+    return Resolved{ finalScore, this };
   }
 
   inline std::vector<const ParameterAbstract*> Native::parameters()
@@ -10109,9 +10120,9 @@ namespace Rice::detail
   inline Resolved NativeAttributeGet<Attribute_T>::matches(std::map<std::string, VALUE>& values)
   {
     if (values.size() == 0)
-      return Resolved { Convertible::Exact, 1, this };
+      return Resolved{ Convertible::Exact, this };
     else
-      return Resolved{ Convertible::None, 0, this };
+      return Resolved{ Convertible::None, this };
   }
   
   template<typename Attribute_T>
@@ -10236,9 +10247,9 @@ namespace Rice::detail
   inline Resolved NativeAttributeSet<Attribute_T>::matches(std::map<std::string, VALUE>& values)
   {
     if (values.size() == 1)
-      return Resolved{ Convertible::Exact, 1, this };
+      return Resolved{ Convertible::Exact, this };
     else
-      return Resolved{ Convertible::None, 0, this };
+      return Resolved{ Convertible::None, this };
   }
 
   template<typename Attribute_T>
@@ -10646,7 +10657,7 @@ namespace Rice::detail
   template<typename T, typename Iterator_Func_T>
   inline Resolved NativeIterator<T, Iterator_Func_T>::matches(std::map<std::string, VALUE>&)
   {
-    return Resolved{ Convertible::Exact, 1.0, this };
+    return Resolved{ Convertible::Exact, this };
   }
 
   template<typename T, typename Iterator_Func_T>
@@ -11704,7 +11715,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       if (protect(rb_obj_is_proc, value) == Qtrue || protect(rb_proc_lambda_p, value) == Qtrue)
       {
@@ -12037,7 +12048,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -12221,7 +12232,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -12664,7 +12675,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -12946,7 +12957,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -13081,15 +13092,15 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
         case RUBY_T_SYMBOL:
           return Convertible::Exact;
           break;
-      case RUBY_T_STRING:
-          return Convertible::Cast;
+        case RUBY_T_STRING:
+          return Convertible::Exact;
           break;
         default:
           return Convertible::None;
@@ -14714,7 +14725,7 @@ namespace Rice::detail
     {
     }
     
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -14765,7 +14776,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -14808,7 +14819,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -14854,7 +14865,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       bool isBuffer = dynamic_cast<ArgBuffer*>(this->arg_) ? true : false;
 
@@ -14937,7 +14948,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -14986,7 +14997,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       bool isBuffer = dynamic_cast<ArgBuffer*>(this->arg_) ? true : false;
 
@@ -15060,7 +15071,7 @@ namespace Rice::detail
                   "Please include rice/stl.hpp header for STL support");
 
   public:
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {

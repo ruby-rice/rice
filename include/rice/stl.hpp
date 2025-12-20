@@ -321,7 +321,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -353,7 +353,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -387,7 +387,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -421,7 +421,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -516,7 +516,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -615,7 +615,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -649,7 +649,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -821,7 +821,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -859,7 +859,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -942,7 +942,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return this->converter_.is_convertible(value);
     }
@@ -1408,7 +1408,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -1416,7 +1416,7 @@ namespace Rice
             return Data_Type<std::map<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
-            return Convertible::Cast;
+            return Convertible::Exact;
             break;
           default:
             return Convertible::None;
@@ -1462,7 +1462,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -1470,7 +1470,7 @@ namespace Rice
             return Data_Type<std::map<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
-            return Convertible::Cast;
+            return Convertible::Exact;
             break;
           default:
             return Convertible::None;
@@ -1518,7 +1518,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -1529,7 +1529,7 @@ namespace Rice
             return Convertible::Exact;
             break;
           case RUBY_T_HASH:
-            return Convertible::Cast;
+            return Convertible::Exact;
             break;
           default:
             return Convertible::None;
@@ -1640,9 +1640,9 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
-      return value == Qnil ? Convertible::Exact : Convertible::None;
+      return value == Qnil ? 1.0 : 0.0;
     }
 
     std::monostate convert(VALUE value)
@@ -1671,9 +1671,9 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
-      return value == Qnil ? Convertible::Exact : Convertible::None;
+      return value == Qnil ? 1.0 : 0.0;
     }
 
     std::monostate& convert(VALUE value)
@@ -1991,7 +1991,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -1999,7 +1999,7 @@ namespace Rice
             return Data_Type<std::multimap<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
-            return Convertible::Cast;
+            return Convertible::Exact;
             break;
           default:
             return Convertible::None;
@@ -2045,7 +2045,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -2053,7 +2053,7 @@ namespace Rice
             return Data_Type<std::multimap<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
-            return Convertible::Cast;
+            return Convertible::Exact;
             break;
           default:
             return Convertible::None;
@@ -2101,7 +2101,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -2112,7 +2112,7 @@ namespace Rice
             return Convertible::Exact;
             break;
           case RUBY_T_HASH:
-            return Convertible::Cast;
+            return Convertible::Exact;
             break;
           default:
             return Convertible::None;
@@ -2471,7 +2471,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -2483,7 +2483,7 @@ namespace Rice
             Object object(value);
             if (object.class_name().str() == setName)
             {
-              return Convertible::Cast;
+              return Convertible::Exact;
             }
           }
           default:
@@ -2535,7 +2535,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -2547,7 +2547,7 @@ namespace Rice
             Object object(value);
             if (object.class_name().str() == setName)
             {
-              return Convertible::Cast;
+              return Convertible::Exact;
             }
           }
           default:
@@ -2604,7 +2604,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -2619,7 +2619,7 @@ namespace Rice
             Object object(value);
             if (object.class_name().str() == setName)
             {
-              return Convertible::Cast;
+              return Convertible::Exact;
             }
           }
           default:
@@ -2843,7 +2843,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -2915,7 +2915,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -3059,23 +3059,22 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
-      Convertible result = Convertible::None;
-
       // The ruby value must be an array of the correct size
       if (rb_type(value) != RUBY_T_ARRAY || Array(value).size() != std::tuple_size_v<Tuple_T>)
       {
-        return result;
+        return Convertible::None;
       }
-      
-      // Now check that each tuple type is convertible
+
+      // Now check that each tuple type is convertible - use minimum score
+      double result = Convertible::Exact;
       Array array(value);
       int i = 0;
       for_each_tuple(this->fromRubys_,
         [&](auto& fromRuby)
         {
-          result = result | fromRuby.is_convertible(array[i].value());
+          result = (std::min)(result, fromRuby.is_convertible(array[i].value()));
           i++;
         });
 
@@ -3365,14 +3364,14 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
-      Convertible result = Convertible::None;
+      double result = Convertible::None;
 
       for_each_tuple(this->fromRubys_,
         [&](auto& fromRuby)
         {
-          result = result | fromRuby.is_convertible(value);
+          result = std::max(result, fromRuby.is_convertible(value));
         });
 
       return result;
@@ -3384,17 +3383,17 @@ namespace Rice::detail
     {
       int i = 0;
       int index = -1;
-      Convertible foundConversion = Convertible::None;
+      double foundScore = Convertible::None;
 
       for_each_tuple(this->fromRubys_,
         [&](auto& fromRuby)
         {
-          Convertible isConvertible = fromRuby.is_convertible(value);
+          double score = fromRuby.is_convertible(value);
 
-          if (isConvertible > foundConversion)
+          if (score > foundScore)
           {
             index = i;
-            foundConversion = isConvertible;
+            foundScore = score;
           }
           i++;
         });
@@ -3585,10 +3584,12 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       if (!is_same_smart_ptr(value))
+      {
         return Convertible::None;
+      }
 
       switch (rb_type(value))
       {
@@ -3631,10 +3632,12 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       if (!is_same_smart_ptr(value))
+      {
         return Convertible::None;
+      }
 
       switch (rb_type(value))
       {
@@ -4002,7 +4005,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -4010,7 +4013,7 @@ namespace Rice
             return Data_Type<std::unordered_map<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
-            return Convertible::Cast;
+            return Convertible::Exact;
             break;
           default:
             return Convertible::None;
@@ -4056,7 +4059,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -4064,7 +4067,7 @@ namespace Rice
             return Data_Type<std::unordered_map<T, U>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_HASH:
-            return Convertible::Cast;
+            return Convertible::Exact;
             break;
           default:
             return Convertible::None;
@@ -4112,7 +4115,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -4123,7 +4126,7 @@ namespace Rice
             return Convertible::Exact;
             break;
           case RUBY_T_HASH:
-            return Convertible::Cast;
+            return Convertible::Exact;
             break;
           default:
             return Convertible::None;
@@ -4657,7 +4660,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -4667,7 +4670,7 @@ namespace Rice
           case RUBY_T_ARRAY:
             if constexpr (std::is_default_constructible_v<T>)
             {
-              return Convertible::Cast;
+              return Convertible::Exact;
             }
           default:
             return Convertible::None;
@@ -4713,7 +4716,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -4723,7 +4726,7 @@ namespace Rice
           case RUBY_T_ARRAY:
             if constexpr (std::is_default_constructible_v<T>)
             {
-              return Convertible::Cast;
+              return Convertible::Exact;
             }
           default:
             return Convertible::None;
@@ -4771,7 +4774,7 @@ namespace Rice
       {
       }
 
-      Convertible is_convertible(VALUE value)
+      double is_convertible(VALUE value)
       {
         switch (rb_type(value))
         {
@@ -4784,7 +4787,7 @@ namespace Rice
           case RUBY_T_ARRAY:
             if constexpr (std::is_default_constructible_v<T>)
             {
-              return Convertible::Cast;
+              return Convertible::Exact;
             }
           default:
             return Convertible::None;
