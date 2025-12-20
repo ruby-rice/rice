@@ -361,7 +361,7 @@ namespace Rice::detail
     {
     }
     
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -412,7 +412,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -455,7 +455,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -501,7 +501,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       bool isBuffer = dynamic_cast<ArgBuffer*>(this->arg_) ? true : false;
 
@@ -584,7 +584,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -633,7 +633,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       bool isBuffer = dynamic_cast<ArgBuffer*>(this->arg_) ? true : false;
 
@@ -707,7 +707,7 @@ namespace Rice::detail
                   "Please include rice/stl.hpp header for STL support");
 
   public:
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {

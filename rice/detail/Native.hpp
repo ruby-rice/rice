@@ -11,8 +11,7 @@ namespace Rice::detail
     inline bool operator<(Resolved other);
     inline bool operator>(Resolved other);
 
-    Convertible convertible;
-    double parameterMatch;
+    double score;  // Combined score: minParameterScore * parameterMatch
     Native* native;
   };
 
@@ -59,7 +58,7 @@ namespace Rice::detail
     static std::map<std::string, VALUE> readRubyArgs(size_t argc, const VALUE* argv);
     std::vector<std::optional<VALUE>> getRubyValues(std::map<std::string, VALUE> values, bool validate);
     ParameterAbstract* getParameterByName(std::string name);
-    Convertible matchParameters(std::vector<std::optional<VALUE>>& values);
+    double matchParameters(std::vector<std::optional<VALUE>>& values, size_t argc);
 
     template<typename Parameter_Tuple, typename... Arg_Ts>
     static std::vector<std::unique_ptr<ParameterAbstract>> create_parameters(Arg_Ts&& ...args);

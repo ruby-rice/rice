@@ -30,9 +30,9 @@ namespace Rice::detail
   inline Resolved NativeAttributeGet<Attribute_T>::matches(std::map<std::string, VALUE>& values)
   {
     if (values.size() == 0)
-      return Resolved { Convertible::Exact, 1, this };
+      return Resolved{ Convertible::Exact, this };
     else
-      return Resolved{ Convertible::None, 0, this };
+      return Resolved{ Convertible::None, this };
   }
   
   template<typename Attribute_T>

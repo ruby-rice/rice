@@ -88,10 +88,12 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       if (!is_same_smart_ptr(value))
+      {
         return Convertible::None;
+      }
 
       switch (rb_type(value))
       {
@@ -134,10 +136,12 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       if (!is_same_smart_ptr(value))
+      {
         return Convertible::None;
+      }
 
       switch (rb_type(value))
       {

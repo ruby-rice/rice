@@ -8,8 +8,8 @@ module Rice
 			self.native_by_kind(klass, [Rice::NativeKind::Method])
 		end
 
-		def native_singleton_functions(klass)
-			self.native_by_kind(klass.singleton_class, [Rice::NativeKind::Function])
+		def native_functions(klass)
+			self.native_by_kind(klass, [Rice::NativeKind::Function])
 		end
 
 		def native_by_kind(klass, kinds)

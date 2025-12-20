@@ -2,57 +2,101 @@
 #include <optional>
 #include <stdexcept>
 
-/* This file implements conversions from Ruby to native values fo fundamental types 
+/* This file implements conversions from Ruby to native values fo fundamental types
    such as bool, int, float, etc. It also includes conversions for chars and strings */
 namespace Rice::detail
 {
-  inline Convertible operator&(Convertible left, Convertible right)
+  // Get precision bits for a Ruby numeric value
+  inline int rubyPrecisionBits(VALUE value)
   {
-    return static_cast<Convertible>(static_cast<uint8_t>(left) & static_cast<uint8_t>(right));
+    switch (rb_type(value))
+    {
+      // Ruby integers - use long long precision (63 bits)
+      case RUBY_T_FIXNUM:
+      case RUBY_T_BIGNUM:
+        return std::numeric_limits<long long>::digits;
+
+      // Ruby floats are C doubles (53 bit mantissa)
+      case RUBY_T_FLOAT:
+        return std::numeric_limits<double>::digits;
+      
+      // Everything else...
+      default:
+        return 0;
+    }
   }
 
-  inline Convertible operator|(Convertible left, Convertible right)
-  {
-    return static_cast<Convertible>(static_cast<uint8_t>(left) | static_cast<uint8_t>(right));
-  }
-
-  inline bool operator<(Convertible left, Convertible right)
-  {
-    return static_cast<uint8_t>(left) < static_cast<uint8_t>(right);
-  }
-
-  // ===========  Helpers  ============
+  // Precision score for converting Ruby numeric value to C++ type T
   template<typename T>
+  inline double precisionScore(VALUE value)
+  {
+    int sourceBits = rubyPrecisionBits(value);
+    if (sourceBits == 0)
+    {
+      return Convertible::None;
+    }
+
+    constexpr int targetBits = std::numeric_limits<T>::digits;
+    return (targetBits >= sourceBits) ? Convertible::Exact : static_cast<double>(targetBits) / sourceBits;
+  }
+
+  // Primary template for integral types
+  template<typename T, typename Enable = void>
   class FromRubyFundamental
   {
   public:
-    using RubyType_T = RubyType<T>;
-
-    static Convertible is_convertible(VALUE value)
+    static double is_convertible(VALUE value)
     {
-      ruby_value_type valueType = rb_type(value);
+      double score = precisionScore<T>(value);
+      if (score > Convertible::None)
+      {
+        if (rb_type(value) == RUBY_T_FLOAT)
+        {
+          score *= Convertible::FloatToInt;
+        }
+        else if constexpr (std::is_unsigned_v<T>)
+        {
+          // Ruby integers are signed, so penalize conversion to unsigned types
+          score *= Convertible::SignedToUnsigned;
+        }
+        return score;
+      }
 
-      if (RubyType_T::Exact.find(valueType) != RubyType_T::Exact.end())
+      if constexpr (is_char_type_v<T>)
       {
-        return Convertible::Exact;
+        if (rb_type(value) == RUBY_T_STRING)
+        {
+          return Convertible::Exact;
+        }
       }
-      else if (RubyType_T::Castable.find(valueType) != RubyType_T::Castable.end())
-      {
-        return Convertible::Cast;
-      }
-      else if (RubyType_T::Narrowable.find(valueType) != RubyType_T::Narrowable.end())
-      {
-        return Convertible::Narrow;
-      }
-      else
-      {
-        return Convertible::None;
-      }
+
+      return Convertible::None;
     }
 
     static T convert(VALUE value)
     {
-      return (T)protect(RubyType_T::fromRuby, value);
+      return (T)protect(RubyType<T>::fromRuby, value);
+    }
+  };
+
+  // Specialization for floating point types
+  template<typename T>
+  class FromRubyFundamental<T, std::enable_if_t<std::is_floating_point_v<T>>>
+  {
+  public:
+    static double is_convertible(VALUE value)
+    {
+      double score = precisionScore<T>(value);
+      if (score > Convertible::None && rb_type(value) != RUBY_T_FLOAT)
+      {
+        score *= Convertible::IntToFloat;
+      }
+      return score;
+    }
+
+    static T convert(VALUE value)
+    {
+      return (T)protect(RubyType<T>::fromRuby, value);
     }
   };
 
@@ -60,7 +104,7 @@ namespace Rice::detail
   class FromRubyFundamental<T*>
   {
   public:
-    static Convertible is_convertible(VALUE value)
+    static double is_convertible(VALUE value)
     {
       ruby_value_type valueType = rb_type(value);
 
@@ -69,7 +113,6 @@ namespace Rice::detail
         case RUBY_T_NIL:
         {
           return Convertible::Exact;
-          break;
         }
         case RUBY_T_DATA:
         {
@@ -119,7 +162,7 @@ namespace Rice::detail
   class FromRubyFundamental<T**>
   {
   public:
-    static Convertible is_convertible(VALUE value)
+    static double is_convertible(VALUE value)
     {
       ruby_value_type valueType = rb_type(value);
 
@@ -128,7 +171,6 @@ namespace Rice::detail
         case RUBY_T_NIL:
         {
           return Convertible::Exact;
-          break;
         }
         case RUBY_T_DATA:
         {
@@ -185,14 +227,22 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
-      return FromRubyFundamental<bool>::is_convertible(value);
+      switch (rb_type(value))
+      {
+        case RUBY_T_TRUE:
+        case RUBY_T_FALSE:
+        case RUBY_T_NIL:
+          return Convertible::Exact;
+        default:
+          return Convertible::None;
+      }
     }
 
     bool convert(VALUE value)
     {
-      return FromRubyFundamental<bool>::convert(value);
+      return protect(RubyType<bool>::fromRuby, value);
     }
 
   private:
@@ -211,7 +261,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -225,7 +275,7 @@ namespace Rice::detail
         }
         default:
         {
-          return FromRubyFundamental<bool>::is_convertible(value);
+          return this->from_.is_convertible(value);
         }
       }
     }
@@ -244,13 +294,14 @@ namespace Rice::detail
         }
         default:
         {
-          this->converted_ = FromRubyFundamental<bool>::convert(value);
+          this->converted_ = this->from_.convert(value);
           return this->converted_;
         }
       }
     }
 
   private:
+    From_Ruby<bool> from_;
     Arg* arg_ = nullptr;
     bool converted_ = false;
   };
@@ -266,7 +317,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<char>::is_convertible(value);
     }
@@ -292,7 +343,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -346,7 +397,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -402,7 +453,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned char>::is_convertible(value);
     }
@@ -428,7 +479,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -483,7 +534,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<signed char>::is_convertible(value);
     }
@@ -509,7 +560,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -564,7 +615,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<double>::is_convertible(value);
     }
@@ -590,7 +641,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -645,7 +696,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<float>::is_convertible(value);
     }
@@ -671,7 +722,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -726,9 +777,9 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
-      Convertible result = FromRubyFundamental<int>::is_convertible(value);
+      double result = FromRubyFundamental<int>::is_convertible(value);
 
       // Is this an enum? If so we want to support converting it to an integer
       if (result == Convertible::None && rb_type(value) == RUBY_T_DATA)
@@ -736,7 +787,7 @@ namespace Rice::detail
         static ID id = protect(rb_intern, "to_int");
         if (protect(rb_respond_to, value, id))
         {
-          result = Convertible::Cast;
+          result = Convertible::Exact;
         }
       }
       return result;
@@ -746,7 +797,7 @@ namespace Rice::detail
     {
       return FromRubyFundamental<int>::convert(value);
     }
-  
+
   private:
     Arg* arg_ = nullptr;
   };
@@ -763,7 +814,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -818,7 +869,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned int>::is_convertible(value);
     }
@@ -844,7 +895,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -899,7 +950,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<long>::is_convertible(value);
     }
@@ -925,7 +976,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -980,7 +1031,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned long>::is_convertible(value);
     }
@@ -1013,7 +1064,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -1068,7 +1119,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned long long>::is_convertible(value);
     }
@@ -1101,7 +1152,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -1156,7 +1207,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<long long>::is_convertible(value);
     }
@@ -1182,7 +1233,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -1237,7 +1288,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<short>::is_convertible(value);
     }
@@ -1263,7 +1314,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -1318,7 +1369,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       return FromRubyFundamental<unsigned short>::is_convertible(value);
     }
@@ -1344,7 +1395,7 @@ namespace Rice::detail
     {
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -1403,7 +1454,7 @@ namespace Rice::detail
       }
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       if (this->arg_ && this->arg_->isOpaque())
       {
@@ -1471,7 +1522,7 @@ namespace Rice::detail
       }
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       switch (rb_type(value))
       {
@@ -1511,7 +1562,7 @@ namespace Rice::detail
       }
     }
 
-    Convertible is_convertible(VALUE value)
+    double is_convertible(VALUE value)
     {
       if (this->arg_ && this->arg_->isOpaque())
       {
@@ -1522,21 +1573,22 @@ namespace Rice::detail
       {
         case RUBY_T_DATA:
         {
-          return Convertible::Cast;
-          break;
+          return Convertible::Exact;
         }
         case RUBY_T_STRING:
         {
           if (RB_ENCODING_IS_ASCII8BIT(value))
+          {
             return Convertible::Exact;
+          }
           else
+          {
             return Convertible::None;
-          break;
+          }
         }
         case RUBY_T_NIL:
         {
           return Convertible::Exact;
-          break;
         }
         default:
         {

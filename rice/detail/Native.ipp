@@ -2,56 +2,40 @@ namespace Rice::detail
 {
   inline bool Resolved::operator<(Resolved other)
   {
-    if (this->convertible != other.convertible)
-    {
-      return this->convertible < other.convertible;
-    }
-    else
-    {
-      return this->parameterMatch < other.parameterMatch;
-    }
+    return this->score < other.score;
   }
 
   inline bool Resolved::operator>(Resolved other)
   {
-    if (this->convertible != other.convertible)
-    {
-      return this->convertible > other.convertible;
-    }
-    else
-    {
-      return this->parameterMatch > other.parameterMatch;
-    }
+    return this->score > other.score;
   }
 
   inline VALUE Native::resolve(int argc, VALUE* argv, VALUE self)
   {
     /* This method is called from Ruby and is responsible for determining the correct
-       Native object (ie, NativeFunction, NativeIterator, NativeAttributeGet and 
-       NativeAttributeSet) that shoudl be used to invoke the underlying C++ code.
+       Native object (ie, NativeFunction, NativeIterator, NativeAttributeGet and
+       NativeAttributeSet) that should be used to invoke the underlying C++ code.
        Most of the time there will be a single Native object registered for a C++ function,
-       method, constructor, iterator or attribute. However, there can be multiple Natives 
-       when a C++ function/method/construtor is overloaded.
+       method, constructor, iterator or attribute. However, there can be multiple Natives
+       when a C++ function/method/constructor is overloaded.
 
        In that case, the code iterates over each Native and calls its matches method. The matches
-       method returns a Resolved object which includes a Convertible field and parameterMatch field.
-       The Convertible field is an enum that specifies if the types of the values supplied by Ruby
-       match the types of the C++ function parameters. Allowed values include  can be Exact (example Ruby into to C++ int),
-       TypeCast (example Ruby into to C++ float) or None (cannot be converted). 
+       method returns a Resolved object with a numeric score (0.0 to 1.0). The score is computed as:
 
-       The parameterMatch field is simply the number or arguments provided by Ruby divided by the
-       number of arguments required by C++. These numbers can be different because C++ method 
-       parameters can have default values.
+         score = minParameterScore * parameterMatch
 
-       Taking these two values into account, the method sorts the Natives and picks the one with the 
-       highest score (Convertible::Exact and 1.0 for parameterMatch). Thus given these two C++ functions:
+       where minParameterScore is the minimum score across all passed parameters (using precision-based
+       scoring for numeric types), and parameterMatch applies a small penalty (0.99) for each default
+       parameter used. If not enough arguments are provided and missing parameters don't have defaults,
+       the method returns 0 (not viable).
+
+       The method sorts the Natives and picks the one with the highest score. Given these two C++ functions:
 
        void some_method(int a);
-       void some_mtehod(int a, float b = 2.0).
+       void some_method(int a, float b = 2.0);
 
-       A call from ruby of some_method(1) will exactly match both signatures, but the first one 
-       will be chosen because the parameterMatch will be 1.0 for the first overload but 0.5
-       for the second. */
+       A call from ruby of some_method(1) will match both signatures, but the first one
+       will be chosen because parameterMatch = 1.0 for the first overload but 0.99 for the second. */
 
     Native* native = nullptr;
 
@@ -119,7 +103,7 @@ namespace Rice::detail
         }*/
 
         // Did it match?
-        if (resolved.convertible != Convertible::None)
+        if (resolved.score > Convertible::None)
         {
           native = resolved.native;
         }
@@ -439,34 +423,63 @@ namespace Rice::detail
     return result;
   }
 
-  inline Convertible Native::matchParameters(std::vector<std::optional<VALUE>>& values)
+  inline double Native::matchParameters(std::vector<std::optional<VALUE>>& values, size_t argc)
   {
-    Convertible result = Convertible::Exact;
-    for (size_t i = 0; i < this->parameters_.size(); i++)
+    // Only score arguments actually passed (not defaults)
+    double minScore = Convertible::Exact;
+
+    for (size_t i = 0; i < argc && i < this->parameters_.size(); i++)
     {
       ParameterAbstract* parameter = this->parameters_[i].get();
       std::optional<VALUE>& value = values[i];
-      result = result & parameter->matches(value);
+      double score = parameter->matches(value);
+      minScore = (std::min)(minScore, score);
     }
-    return result;
+
+    return minScore;
   }
 
   inline Resolved Native::matches(std::map<std::string, VALUE>& values)
   {
-    // Return false if Ruby provided more arguments than the C++ method takes
+    // Return Convertible::None if Ruby provided more arguments than the C++ method takes
     if (values.size() > this->parameters_.size())
-      return Resolved{ Convertible::None, 0, this };
-
-    Resolved result{ Convertible::Exact, 1, this };
-
-    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(values, false);
-    result.convertible = this->matchParameters(rubyValues);
-
-    if (this->parameters_.size() > 0)
     {
-      result.parameterMatch = values.size() / (double)this->parameters_.size();
+      return Resolved{ Convertible::None, this };
     }
-    return result;
+
+    // Get Ruby values for each parameter and see how they match
+    std::vector<std::optional<VALUE>> rubyValues = this->getRubyValues(values, false);
+    double minScore = this->matchParameters(rubyValues, values.size());
+
+    // If zero score return then stop
+    if (minScore == 0)
+    {
+      return Resolved{ Convertible::None, this };
+    }
+
+    // How many actual values do we have?
+    size_t actualValuesCount = std::count_if(rubyValues.begin(), rubyValues.end(),
+      [](std::optional<VALUE>& optional)
+      {
+        return optional.has_value();
+      });
+
+    // If we don't have enough parameters return
+    if (actualValuesCount < this->parameters_.size())
+      return Resolved{ Convertible::None, this };
+
+    // Penalize use of default parameters
+    double parameterMatch = Convertible::Exact;
+    size_t defaultParameterCount = actualValuesCount - values.size();
+    for (size_t i = 0; i < defaultParameterCount; i++)
+    {
+      parameterMatch *= 0.99;  // Small penalty per default used
+    }
+
+    // Final score: minScore * parameterMatch
+    double finalScore = minScore * parameterMatch;
+
+    return Resolved{ finalScore, this };
   }
 
   inline std::vector<const ParameterAbstract*> Native::parameters()

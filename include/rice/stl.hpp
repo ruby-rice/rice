@@ -1697,8 +1697,6 @@ namespace Rice::detail
 
 // =========   multimap.hpp   =========
 
-#include <map>
-
 namespace Rice
 {
   template<typename K, typename T>
@@ -2764,12 +2762,25 @@ namespace Rice::detail
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return Type<Pointer<T>>::verify();
+        Type<Pointer<T>>::verify();
+        Type<Buffer<T>>::verify();
       }
       else
       {
-        return Type<T>::verify();
+        if (!Type<intrinsic_type<T>>::verify())
+        {
+          return false;
+        }
       }
+
+      if constexpr (!std::is_void_v<T>)
+      {
+        if (!Data_Type<std::shared_ptr<T>>::is_defined())
+        {
+          define_shared_ptr<T>();
+        }
+      }
+      return true;
     }
 
     static VALUE rubyKlass()

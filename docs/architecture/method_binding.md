@@ -27,10 +27,10 @@ public:
   static VALUE resolve(int argc, VALUE* argv, VALUE self);
 
   // Check if this native matches the given arguments
-  virtual Resolved matches(size_t argc, const VALUE* argv);
+  virtual Resolved matches(std::map<std::string, VALUE>& values);
 
   // Invoke the C++ callable
-  virtual VALUE operator()(size_t argc, const VALUE* argv, VALUE self) = 0;
+  virtual VALUE operator()(std::map<std::string, VALUE>& values, VALUE self) = 0;
 
 protected:
   std::string name_;
@@ -83,7 +83,7 @@ Overload 1 wins with the `Exact` match.
 When a `Native` is invoked:
 
 ```cpp
-VALUE NativeMethod<T, Func>::operator()(size_t argc, const VALUE* argv, VALUE self)
+VALUE NativeMethod<T, Func>::operator()(std::map<std::string, VALUE>& values, VALUE self)
 {
   // 1. Get the C++ receiver object
   T* receiver = From_Ruby<T*>().convert(self);
