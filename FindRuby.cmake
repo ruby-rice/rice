@@ -130,7 +130,7 @@ if(NOT _Ruby_CMP0185 STREQUAL "NEW")
 endif()
 
 # Uncomment the following line to get debug output for this file
-set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
+# set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 
 # Determine the list of possible names of the ruby executable depending
 # on which version of ruby is required
@@ -350,31 +350,19 @@ if (Ruby_EXECUTABLE AND NOT Ruby_EXECUTABLE STREQUAL "${_Ruby_EXECUTABLE_LAST_QU
   _RUBY_CONFIG_VAR("MINOR" Ruby_VERSION_MINOR)
   _RUBY_CONFIG_VAR("TEENY" Ruby_VERSION_PATCH)
 
-  # Headers
+  # query the different directories
+  _RUBY_CONFIG_VAR("archdir" Ruby_ARCH_DIR)
+  _RUBY_CONFIG_VAR("arch" Ruby_ARCH)
   _RUBY_CONFIG_VAR("rubyhdrdir" Ruby_HDR_DIR)
   _RUBY_CONFIG_VAR("rubyarchhdrdir" Ruby_ARCHHDR_DIR)
-
-  # Ruby library - libruby.so information
   _RUBY_CONFIG_VAR("libdir" _Ruby_POSSIBLE_LIB_DIR)
-  _RUBY_CONFIG_VAR("RUBY_SO_NAME" _Ruby_SO_NAME)
-
-  # Ruby extensions information
-  # Machine architecture: x86_64-linux, arm64-darwin, x64-mswin64_140 etc
-  _RUBY_CONFIG_VAR("arch" Ruby_ARCH)
-  # Ruby extension directory (so .so, .bundle files)
-  _RUBY_CONFIG_VAR("archdir" Ruby_ARCH_DIR)
-  # Ruby extension suffix (so, bundle, *not* dll)
-  _RUBY_CONFIG_VAR("DLEXT" _Ruby_DLEXT)
-
-
-  # Ruby directory for ruby files (*.rb). TODO - not relevant should be removed
   _RUBY_CONFIG_VAR("rubylibdir" Ruby_RUBY_LIB_DIR)
 
-  # site_ruby - TODO - not relevant and should be removed
+  # site_ruby
   _RUBY_CONFIG_VAR("sitearchdir" Ruby_SITEARCH_DIR)
   _RUBY_CONFIG_VAR("sitelibdir" Ruby_SITELIB_DIR)
 
-  # vendor_ruby available - TODO - Not relevant and should be removed.
+  # vendor_ruby available ?
   execute_process(COMMAND ${Ruby_EXECUTABLE} -r vendor-specific -e "print 'true'"
                   OUTPUT_VARIABLE Ruby_HAS_VENDOR_RUBY ERROR_QUIET)
 
@@ -388,18 +376,16 @@ if (Ruby_EXECUTABLE AND NOT Ruby_EXECUTABLE STREQUAL "${_Ruby_EXECUTABLE_LAST_QU
   set(Ruby_VERSION_MAJOR ${Ruby_VERSION_MAJOR} CACHE PATH "The Ruby major version" FORCE)
   set(Ruby_VERSION_MINOR ${Ruby_VERSION_MINOR} CACHE PATH "The Ruby minor version" FORCE)
   set(Ruby_VERSION_PATCH ${Ruby_VERSION_PATCH} CACHE PATH "The Ruby patch version" FORCE)
-  set(Ruby_ARCH_DIR ${Ruby_ARCH_DIR} CACHE PATH "The Ruby arch dir" FORCE)
-  set(Ruby_HDR_DIR ${Ruby_HDR_DIR} CACHE PATH "The Ruby header dir (1.9+)" FORCE)
-  set(Ruby_ARCHHDR_DIR ${Ruby_ARCHHDR_DIR} CACHE PATH "The Ruby arch header dir (2.0+)" FORCE)
-  set(_Ruby_POSSIBLE_LIB_DIR ${_Ruby_POSSIBLE_LIB_DIR} CACHE PATH "The Ruby lib dir" FORCE)
-  set(Ruby_RUBY_LIB_DIR ${Ruby_RUBY_LIB_DIR} CACHE PATH "The Ruby ruby-lib dir" FORCE)
-  set(_Ruby_SO_NAME ${_Ruby_SO_NAME} CACHE PATH "The Ruby shared library name" FORCE)
-  set(_Ruby_DLEXT ${_Ruby_DLEXT} CACHE PATH "Ruby extensions extension" FORCE)
-  set(Ruby_SITEARCH_DIR ${Ruby_SITEARCH_DIR} CACHE PATH "The Ruby site arch dir" FORCE)
-  set(Ruby_SITELIB_DIR ${Ruby_SITELIB_DIR} CACHE PATH "The Ruby site lib dir" FORCE)
+  set(Ruby_ARCH_DIR ${Ruby_ARCH_DIR} CACHE INTERNAL "The Ruby arch dir" FORCE)
+  set(Ruby_HDR_DIR ${Ruby_HDR_DIR} CACHE INTERNAL "The Ruby header dir (1.9+)" FORCE)
+  set(Ruby_ARCHHDR_DIR ${Ruby_ARCHHDR_DIR} CACHE INTERNAL "The Ruby arch header dir (2.0+)" FORCE)
+  set(_Ruby_POSSIBLE_LIB_DIR ${_Ruby_POSSIBLE_LIB_DIR} CACHE INTERNAL "The Ruby lib dir" FORCE)
+  set(Ruby_RUBY_LIB_DIR ${Ruby_RUBY_LIB_DIR} CACHE INTERNAL "The Ruby ruby-lib dir" FORCE)
+  set(Ruby_SITEARCH_DIR ${Ruby_SITEARCH_DIR} CACHE INTERNAL "The Ruby site arch dir" FORCE)
+  set(Ruby_SITELIB_DIR ${Ruby_SITELIB_DIR} CACHE INTERNAL "The Ruby site lib dir" FORCE)
   set(Ruby_HAS_VENDOR_RUBY ${Ruby_HAS_VENDOR_RUBY} CACHE BOOL "Vendor Ruby is available" FORCE)
-  set(Ruby_VENDORARCH_DIR ${Ruby_VENDORARCH_DIR} CACHE PATH "The Ruby vendor arch dir" FORCE)
-  set(Ruby_VENDORLIB_DIR ${Ruby_VENDORLIB_DIR} CACHE PATH "The Ruby vendor lib dir" FORCE)
+  set(Ruby_VENDORARCH_DIR ${Ruby_VENDORARCH_DIR} CACHE INTERNAL "The Ruby vendor arch dir" FORCE)
+  set(Ruby_VENDORLIB_DIR ${Ruby_VENDORLIB_DIR} CACHE INTERNAL "The Ruby vendor lib dir" FORCE)
 
   mark_as_advanced(
       Ruby_ARCH_DIR
@@ -408,8 +394,6 @@ if (Ruby_EXECUTABLE AND NOT Ruby_EXECUTABLE STREQUAL "${_Ruby_EXECUTABLE_LAST_QU
       Ruby_ARCHHDR_DIR
       _Ruby_POSSIBLE_LIB_DIR
       Ruby_RUBY_LIB_DIR
-      _Ruby_SO_NAME
-      _Ruby_DLEXT
       Ruby_SITEARCH_DIR
       Ruby_SITELIB_DIR
       Ruby_HAS_VENDOR_RUBY
@@ -466,6 +450,39 @@ find_path(Ruby_CONFIG_INCLUDE_DIR
 
 set(Ruby_INCLUDE_DIRS ${Ruby_INCLUDE_DIR} ${Ruby_CONFIG_INCLUDE_DIR})
 
+# Determine the list of possible names for the ruby library
+set(_Ruby_POSSIBLE_LIB_NAMES
+  ruby
+  ruby-static
+  ruby-${Ruby_VERSION}
+  ruby${_Ruby_VERSION_NODOT}
+  ruby${_Ruby_VERSION_NODOT_ZERO_PATCH}
+  ruby-${_Ruby_VERSION_SHORT}
+  ruby${_Ruby_VERSION_SHORT}
+  ruby${_Ruby_VERSION_SHORT_NODOT}
+)
+
+if (WIN32)
+  set(_Ruby_POSSIBLE_RUNTIMES "ucrt;msvcrt;vcruntime140;vcruntime140_1;vcruntime${MSVC_TOOLSET_VERSION}")
+  set(_Ruby_POSSIBLE_VERSION_SUFFIXES "${_Ruby_VERSION_NODOT};${_Ruby_VERSION_NODOT_ZERO_PATCH}")
+
+  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(_Ruby_POSSIBLE_ARCH_PREFIXES "libx64-;x64-")
+  else ()
+    set(_Ruby_POSSIBLE_ARCH_PREFIXES "lib")
+  endif ()
+
+  foreach (_Ruby_RUNTIME ${_Ruby_POSSIBLE_RUNTIMES})
+    foreach (_Ruby_VERSION_SUFFIX ${_Ruby_POSSIBLE_VERSION_SUFFIXES})
+      foreach (_Ruby_ARCH_PREFIX ${_Ruby_POSSIBLE_ARCH_PREFIXES})
+        list(APPEND _Ruby_POSSIBLE_LIB_NAMES
+             "${_Ruby_ARCH_PREFIX}${_Ruby_RUNTIME}-ruby${_Ruby_VERSION_SUFFIX}"
+             "${_Ruby_ARCH_PREFIX}${_Ruby_RUNTIME}-ruby${_Ruby_VERSION_SUFFIX}-static")
+      endforeach ()
+    endforeach ()
+  endforeach ()
+endif ()
+
 # Save CMAKE_FIND_FRAMEWORK
 set(_Ruby_CMAKE_FIND_FRAMEWORK_ORIGINAL ${CMAKE_FIND_FRAMEWORK})
 
@@ -473,7 +490,7 @@ set(_Ruby_CMAKE_FIND_FRAMEWORK_ORIGINAL ${CMAKE_FIND_FRAMEWORK})
 set(CMAKE_FIND_FRAMEWORK LAST)
 
 find_library(Ruby_LIBRARY
-        NAMES "${_Ruby_SO_NAME}"
+        NAMES ${_Ruby_POSSIBLE_LIB_NAMES}
         HINTS ${_Ruby_POSSIBLE_LIB_DIR})
 
 set(_Ruby_REQUIRED_VARS Ruby_EXECUTABLE Ruby_INCLUDE_DIR Ruby_LIBRARY)
@@ -487,8 +504,7 @@ set(CMAKE_FIND_FRAMEWORK ${_Ruby_CMAKE_FIND_FRAMEWORK_ORIGINAL})
 message(DEBUG "--------FindRuby.cmake debug------------")
 message(DEBUG "_Ruby_POSSIBLE_EXECUTABLE_NAMES: ${_Ruby_POSSIBLE_EXECUTABLE_NAMES}")
 message(DEBUG "_Ruby_POSSIBLE_LIB_DIR: ${_Ruby_POSSIBLE_LIB_DIR}")
-message(DEBUG "Ruby_LIBRUBY_SO: ${_Ruby_SO_NAME}")
-message(DEBUG "_Ruby_DLEXT: ${_Ruby_DLEXT}")
+message(DEBUG "_Ruby_POSSIBLE_LIB_NAMES: ${_Ruby_POSSIBLE_LIB_NAMES}")
 message(DEBUG "Ruby_FIND_VIRTUALENV=${Ruby_FIND_VIRTUALENV}")
 message(DEBUG "Ruby_ENV: ${Ruby_ENV}")
 message(DEBUG "Found Ruby_VERSION: \"${Ruby_VERSION}\"")
@@ -507,22 +523,6 @@ find_package_handle_standard_args(Ruby REQUIRED_VARS ${_Ruby_REQUIRED_VARS}
 
 if (Ruby_FOUND)
   set(Ruby_LIBRARIES ${Ruby_LIBRARY})
-
-  if (NOT TARGET Ruby::Ruby)
-    add_library(Ruby::Ruby UNKNOWN IMPORTED)
-    set_target_properties(Ruby::Ruby PROPERTIES
-            IMPORTED_LOCATION "${Ruby_LIBRARY}"
-            INTERFACE_INCLUDE_DIRECTORIES "${Ruby_INCLUDE_DIRS}"
-
-            # Custom property for extension suffix (with dot), e.g. ".so", ".bundle"
-            INTERFACE_RUBY_EXTENSION_SUFFIX ".${_Ruby_DLEXT}"
-
-            # Hide symbols by default with GCC/Clang on *nix-ish platforms
-            INTERFACE_C_VISIBILITY_PRESET hidden
-            INTERFACE_CXX_VISIBILITY_PRESET hidden
-            INTERFACE_VISIBILITY_INLINES_HIDDEN ON
-    )
-  endif ()
 endif ()
 
 mark_as_advanced(
