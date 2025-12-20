@@ -144,7 +144,7 @@ Finding Ruby and specifying the minimum required version:
   find_package(Ruby 3.2)
 #]=======================================================================]
 
-cmake_policy(GET CMP0185 _Ruby_CMP0185)
+#cmake_policy(GET CMP0185 _Ruby_CMP0185)
 
 if(NOT _Ruby_CMP0185 STREQUAL "NEW")
   # Backwards compatibility
