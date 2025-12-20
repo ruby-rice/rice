@@ -44,6 +44,7 @@ nav:
     - index.md
     - Installation: installation.md
     - Why Rice?: why_rice.md
+    - Projects: projects.md
     - History: history.md
     - Migration: migration.md
     - Changelog: changelog.md
