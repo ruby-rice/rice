@@ -143,7 +143,7 @@ size_t len = s.length();  // 5
 
 ---
 
-### operator[](ptrdiff_t index) const → char
+### `operator[](ptrdiff_t index) const` → char
 
 Get the character at the given index.
 

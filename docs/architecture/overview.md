@@ -62,6 +62,9 @@ Rice is organized into several subsystems:
 [Method Binding](method_binding.md)
   `Native` hierarchy - Binding C++ functions and methods to Ruby.
 
+[Overload Resolution](overload_resolution.md)
+  How Rice selects the correct C++ overload based on Ruby arguments using precision-based scoring.
+
 [Types Overview](../types/overview.md)
   `From_Ruby<T>` and `To_Ruby<T>` - Converting values between languages.
 

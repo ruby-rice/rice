@@ -47,8 +47,8 @@ nav:
     - History: history.md
     - Migration: migration.md
     - Changelog: changelog.md
-  - Tutorial: tutorial.md
-  - Types:
+  - Getting Started: tutorial.md
+  - Type Conversion:
     - Overview: types/overview.md
     - Type Conversion: types/conversion.md
     - Wrapping Types: types/wrapping.md
@@ -56,7 +56,8 @@ nav:
     - Type Naming: types/naming.md
     - Custom Converters: types/converters.md
     - Type Verification: types/verification.md
-  - Bindings:
+  - Wrapping C++:
+    - Overview: bindings/overview.md
     - Constructors: bindings/constructors.md
     - Methods: bindings/methods.md
     - Overloaded Methods: bindings/overloaded_methods.md
@@ -74,7 +75,7 @@ nav:
     - Inheritance: bindings/inheritance.md
     - Callbacks: bindings/callbacks.md
     - Instance Registry: bindings/instance_registry.md
-  - STL:
+  - STL Support:
     - Overview: stl/stl.md
     - std::complex: stl/complex.md
     - std::exception: stl/exception.md
@@ -94,7 +95,7 @@ nav:
     - std::unordered_map: stl/unordered_map.md
     - std::variant: stl/variant.md
     - std::vector: stl/vector.md
-  - C++ API:
+  - Rice Classes:
     - Overview: cpp_api/overview.md
     - Object: cpp_api/object.md
     - Module: cpp_api/module.md
@@ -105,7 +106,7 @@ nav:
     - Symbol: cpp_api/symbol.md
     - Struct: cpp_api/struct.md
     - Identifier: cpp_api/identifier.md
-  - Ruby API:
+  - Ruby Runtime:
     - Overview: ruby_api/overview.md
     - Buffer: ruby_api/buffer.md
     - Pointer: ruby_api/pointer.md
@@ -125,5 +126,6 @@ nav:
     - Overview: architecture/overview.md
     - Type Binding: architecture/type_binding.md
     - Method Binding: architecture/method_binding.md
+    - Overload Resolution: architecture/overload_resolution.md
     - Registries: architecture/registries.md
     - Enumerators: architecture/enumerators.md

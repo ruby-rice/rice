@@ -118,7 +118,7 @@ long sz = a.size();  // 2
 
 ---
 
-### operator[](long index) const → Object
+### `operator[](long index) const` → Object
 
 Get the element at the given index (read-only).
 
@@ -139,7 +139,7 @@ Object last = a[-1];  // "hello"
 
 ---
 
-### operator[](long index) → Proxy
+### `operator[](long index)` → Proxy
 
 Get a proxy for the element at the given index (read-write).
 

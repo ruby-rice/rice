@@ -192,7 +192,7 @@ Struct::Instance instance(myStruct, existing_instance);
 
 ---
 
-### operator[](T index) -> Object
+### `operator[](T index)` -> Object
 
 Get a member by index or name.
 

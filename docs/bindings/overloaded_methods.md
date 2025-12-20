@@ -12,14 +12,14 @@ For example, consider this C++ class with a getter and setter that have the same
 class Container
 {
 public:
-  size_t capacity(Rect)
+  size_t capacity()
   {
     return this->capacity_;
   }
 
   void capacity(size_t value)
   {
-    this->capacity_ - value;
+    this->capacity_ = value;
   }
 
 private:
@@ -57,8 +57,8 @@ Notice the addition of the template specializations in side the `<` and '>' brac
 Another solution is provided by the C++ keyword `using`, like this:
 
 ```cpp
-using Getter_T - size_t(Container::*)();
-using Setter_T - void(Container::*)(size_t);
+using Getter_T = size_t(Container::*)();
+using Setter_T = void(Container::*)(size_t);
 
 Class c = define_class<Container>("Container")
   .define_constructor(Constructor<Container>())
@@ -69,8 +69,8 @@ Class c = define_class<Container>("Container")
 Or even like this:
 
 ```cpp
-using Getter_T - size_t(Container::*)();
-using Setter_T - void(Container::*)(size_t);
+using Getter_T = size_t(Container::*)();
+using Setter_T = void(Container::*)(size_t);
 
 Class c = define_class<Container>("Container")
   .define_constructor(Constructor<Container>())
@@ -100,39 +100,48 @@ void Init_Container()
 
 Ruby does not natively support method overloading. Thus Rice implements overloading support itself. It does this by maintaining a global registry (see [NativeRegistry](https://github.com/ruby-rice/rice/blob/master/rice/detail/NativeRegistry.hpp)) of methods keyed on class and method name. For the example above, the key would be `Container::capacity` and the value is an array of two [NativeFunction](https://github.com/ruby-rice/rice/blob/master/rice/detail/NativeFunction.hpp) instances, where each `NativeFunction` instance maps to one C++ member function.
 
-At runtime, Rice evaluates the method parameters sent from Ruby to the `intersects` method and determines the best match. It does this by looping over the native `NativeFunction` instances and calls their `matches` method. The matches method, in turn, loops over the passed-in parameters and sends them to its array of `From_Ruby` instances (for more information see the [type conversion](../types/conversion.md) section).
+At runtime, Rice evaluates the method parameters sent from Ruby and determines which overloaded C++ method is the best match. It does this by looping over the native `NativeFunction` instances and calls their `matches` method. The matches method, in turn, loops over the passed-in parameters and evaluates each one (for more information see the [type conversion](../types/conversion.md) section).
 
-Each `From_Ruby` instance defines a `convertible` method that returns one of five results:
+Matches are scored on a scale of 0.0 to 1.0:
 
-* Exact - The types match exactly
-* Const - The types only differ by `const`
-* Cast - The types do not match but can be converted to each other (for example an integer to a double)
-* Narrow - The types do not match but can be converted using a narrowing cast (for example a long to an int)
-* None - The types do not match and cannot be converted (for example a string to an integer)
+* **1.0 (Exact)** - The types match exactly
+* **0.99 (ConstMismatch)** - Passing a non-const value to a const parameter
+* **0.9 (IntToFloat)** - Domain change penalty when converting integer to float
+* **0.5 (SignedToUnsigned)** - Penalty when converting signed Ruby Integer to unsigned C++ type
+* **0.5 (FloatToInt)** - Domain change penalty when converting float to integer (lossy)
+* **0.0 (None)** - The types do not match and cannot be converted
 
-Based on the results for each parameter, each overloaded C++ method is sorted from best match to worst match. The best matching function is then called.
+For numeric types, Rice uses precision-based scoring. The score is calculated as `targetBits / sourceBits` when narrowing (e.g., Ruby Integer with 63 bits to C++ `int` with 31 bits scores 31/63 ≈ 0.49). Cross-domain conversions (int↔float) multiply the precision score by the domain penalty.
+
+The final score for each overload is: `min(all parameter scores) × 0.99^(number of defaults used)`.
+
+Based on these scores, each overloaded C++ method is sorted from best match to worst match. The best matching function is then called.
+
+For more in-depth information about the resolution algorithm, see the [Overload Resolution Architecture](../architecture/overload_resolution.md) documentation.
 
 ## Type Mapping
 
-The following table shows how Ruby types are mapped to C++ types. E is exact, C is cast and N is narrow.
+The following table shows how Ruby types are mapped to C++ types. Ruby Integer has 63 bits precision (like `long long`), and Ruby Float has 53 bits (like `double` mantissa).
 
-|                      | True | False | Nil | String | Integer | BigNum | Float |
-|----------------------|:----:|:-----:|:---:|:------:|:-------:|:------:|:-----:|
-| bool                 |  E   |   E   |  E  |        |         |        |       |
-| char                 |      |       |     |   C    |    N    |        |       |
-| signed char          |      |       |     |   C    |    N    |        |       |
-| unsigned char        |      |       |     |   C    |    N    |        |       |
-| short                |      |       |     |        |    N    |        |       |
-| unsigned short       |      |       |     |        |    N    |        |       |
-| int                  |      |       |     |        |    E    |   N    |       |
-| unsigned int         |      |       |     |        |    E    |   N    |       |
-| long                 |      |       |     |        |    E    |   N    |       |
-| unsigned long        |      |       |     |        |    E    |   N    |       |
-| long long            |      |       |     |        |    E    |   E    |       |
-| unsigned long long   |      |       |     |        |    E    |   E    |       |
-| float                |      |       |     |        |    C    |        |   N   |
-| double               |      |       |     |        |    C    |   C    |   E   |
+| C++ Type           | True | False | Nil | String | Integer | Float |
+|--------------------|:----:|:-----:|:---:|:------:|:-------:|:-----:|
+| bool               | 1.0  |  1.0  | 1.0 |        |         |       |
+| char               |      |       |     |  1.0   |  0.11   | 0.07  |
+| signed char        |      |       |     |  1.0   |  0.11   | 0.07  |
+| unsigned char      |      |       |     |  1.0   |  0.06   | 0.08  |
+| short              |      |       |     |        |  0.24   | 0.14  |
+| unsigned short     |      |       |     |        |  0.13   | 0.15  |
+| int                |      |       |     |        |  0.49   | 0.29  |
+| unsigned int       |      |       |     |        |  0.25   | 0.30  |
+| long*              |      |       |     |        |  0.49   | 0.29  |
+| unsigned long*     |      |       |     |        |  0.25   | 0.30  |
+| long long          |      |       |     |        |  1.0    | 0.50  |
+| unsigned long long |      |       |     |        |  0.50   | 0.50  |
+| float              |      |       |     |        |  0.34   | 0.45  |
+| double             |      |       |     |        |  0.76   | 1.0   |
 
-If multiple matches are possible, the first one wins. That means the order in which native functions are defined using `define_method` is important.
+\* `long` is platform-dependent. On 64-bit systems: `long` = 63 bits (score 1.0), `unsigned long` = 64 bits (score 0.50).
 
-Note Rice will *not* convert a float to an integer type.
+See the [Type Mapping Reference](../architecture/overload_resolution.md#type-mapping-reference) for the underlying calculations.
+
+If multiple overloads have equal scores, the first one defined wins.

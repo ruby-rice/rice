@@ -54,7 +54,7 @@ size_t sz = h.size();  // 2
 
 ---
 
-### operator[](Key_T const& key) const -> Proxy const
+### `operator[](Key_T const& key) const` -> Proxy const
 
 Get the value for the given key (read-only).
 
@@ -78,7 +78,7 @@ Object value = h["name"];  // "Alice"
 
 ---
 
-### operator[](Key_T const& key) -> Proxy
+### `operator[](Key_T const& key)` -> Proxy
 
 Get a proxy for the value at the given key (read-write).
 

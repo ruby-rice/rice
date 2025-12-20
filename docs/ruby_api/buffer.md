@@ -187,7 +187,7 @@ buffer.to_ary(3)  #=> [1, 2, 3]
 
 ---
 
-### [](index) → Object
+### `[](index)` → Object
 
 Returns the element at the specified index.
 
@@ -213,7 +213,7 @@ buffer[2]  #=> 30
 
 ---
 
-### []=(index, value) → value
+### `[]=(index, value)` → value
 
 Sets the element at the specified index.
 
