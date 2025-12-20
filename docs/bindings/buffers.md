@@ -104,7 +104,7 @@ Buffer's have the following Ruby API:
 * bytes(count) - A Ruby string with a binary encoding of the specified length
 * to_ary - A Ruby array. Buffer#size must be set
 * to_ary(count) - A Ruby array of the specified length
-* [](index) - Get the item at the specified index
-* []=(index) - Update the item at the specified index
+* `[](index)` - Get the item at the specified index
+* `[]=(index)` - Update the item at the specified index
 * data - Get a `Pointer<T>` object to the Buffer's managed memory that can be passed to C++ APIs
 * release - Same as #data but tells the buffer to release ownership of its memory

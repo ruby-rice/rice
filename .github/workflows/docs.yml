@@ -1,0 +1,33 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install mkdocs and dependencies
+        run: |
+          pip install mkdocs-material
+
+      - name: Build documentation
+        run: mkdocs build --strict
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          deploy_key: ${{ secrets.DOCS_DEPLOY_KEY }}
+          external_repository: ruby-rice/ruby-rice.github.io
+          publish_branch: main
+          publish_dir: ./site
+          destination_dir: 4.x
