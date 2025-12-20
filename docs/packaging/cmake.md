@@ -79,7 +79,7 @@ add_library(MyExtension SHARED
             "MyExtension.cpp")
 
 # Link to Ruby using the modern imported target
-target_link_libraries(MyExtension PRIVATE Ruby::Ruby)
+target_link_libraries(MyExtension PRIVATE Ruby::Module)
 
 # Add in Rice headers
 target_include_directories(MyExtension PRIVATE <path-to-rice-headers>)
@@ -91,7 +91,7 @@ target_link_libraries(MyExtension PRIVATE <library-name>)
 
 Currently you will need to manually specify where the Rice [header files](packaging.md#header-files) are located.
 
-Note that using the `Ruby::Ruby` imported target (available in CMake 3.18+) is preferred over manually specifying include directories and libraries, as it automatically sets up all necessary include paths and link libraries.
+Note that using the `Ruby::Module` imported target is preferred over manually specifying include directories and libraries, as it automatically sets up all necessary include paths and compiler settings for building Ruby extensions.
 
 ## Compiler Settings
 
@@ -137,6 +137,22 @@ find_package(Ruby REQUIRED)
 
 Rice's `FindRuby.cmake` is also useful for older versions of CMake that lack good Ruby support.
 
+### FindRuby Imported Targets
+
+Rice's `FindRuby.cmake` provides modern CMake imported targets:
+
+| Target | Description |
+|--------|-------------|
+| `Ruby::Interpreter` | Ruby interpreter executable |
+| `Ruby::Module` | For building Ruby extension modules. Use this for gems with native extensions. On Unix, does not link to libruby (symbols resolved at load time). Includes hidden visibility settings. |
+| `Ruby::Ruby` | For embedding Ruby in C/C++ applications. Links to libruby. |
+
+For building Ruby extensions, use `Ruby::Module`:
+
+```cmake
+target_link_libraries(MyExtension PRIVATE Ruby::Module)
+```
+
 ### FindRuby Variables
 
 The following CMake variables are set by FindRuby:
@@ -157,3 +173,28 @@ The following CMake variables are set by FindRuby:
 | Ruby_INCLUDE_DIR | Ruby include directory |
 | Ruby_CONFIG_INCLUDE_DIR | Ruby config include directory |
 | Ruby_INCLUDE_DIRS | Include and config directories |
+
+## Rice CMake Target
+
+Rice provides the `rice::rice` imported target for including Rice headers:
+
+```cmake
+target_link_libraries(MyExtension PRIVATE rice::rice)
+```
+
+This target:
+
+* Adds Rice include directories
+* Requires C++17 or higher
+
+## Complete Example
+
+For a complete, real-world example of using CMake with Rice, see [BitmapPlusPlus-ruby](https://github.com/ruby-rice/BitmapPlusPlus-ruby/blob/main/ext/CMakeLists.txt).
+
+This example demonstrates:
+
+* Fetching Rice via `FetchContent`
+* Using `Ruby::Module` for extension modules
+* Using `rice::rice` for Rice headers
+* Setting the correct extension suffix
+* Configuring output directories
