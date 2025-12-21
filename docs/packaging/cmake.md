@@ -9,7 +9,7 @@ For more complex C++ extensions, you may wish to use `CMake` to build your exten
 
 ## CMakePresets.json
 
-Rice includes a `CMakePresets.json` file (in the `test` directory) that provides pre-configured build settings for various platforms and compilers. Using presets is highly recommended as they encode the correct compiler flags for each platform.
+Rice includes a `CMakePresets.json` file that provides pre-configured build settings for various platforms and compilers. Using presets is highly recommended as they encode the correct compiler flags for each platform.
 
 The available presets include:
 

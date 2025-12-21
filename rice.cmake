@@ -1,5 +1,5 @@
-add_library(rice INTERFACE)
-add_library(rice::rice ALIAS rice)
+add_library(Rice INTERFACE)
+add_library(Rice::Rice ALIAS Rice)
 
 target_include_directories(rice INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
