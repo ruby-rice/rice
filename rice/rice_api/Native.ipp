@@ -45,6 +45,9 @@ inline void Init_Native()
           case detail::NativeKind::Proc:
             stream << "Proc";
             break;
+          case detail::NativeKind::Callback:
+            stream << "Callback";
+            break;
         }
 
         stream << "<" << self.name() << "> ";

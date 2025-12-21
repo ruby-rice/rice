@@ -44,7 +44,7 @@ The second option is to simply copy them from [github](https://github.com/ruby-r
 
 ## Compiler Settings
 
-Rice extensions requires several compiler settings to be set. These are captured in the [CMakePresets.json](https://github.com/ruby-rice/rice/blob/master/test/CMakePresets.json) file for all supported platforms.
+Rice extensions requires several compiler settings to be set. These are captured in the [CMakePresets.json](https://github.com/ruby-rice/rice/blob/master/CMakePresets.json) file for all supported platforms.
 
 For Clang and GCC:
 
