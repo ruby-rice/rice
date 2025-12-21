@@ -4,8 +4,8 @@ module Rice
 			ROOT = "https://ruby-rice.github.io/4.x"
 
 			CLASS_DOCS = {
-				/^Rice::Buffer/ => "reference/buffer.html",
-				/^Rice::Pointer/ => "reference/pointer.html"
+				/^Rice::Buffer/ => "ruby_api/buffer",
+				/^Rice::Pointer/ => "ruby_api/pointer"
 			}
 
 			def class_url(klass)
