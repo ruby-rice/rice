@@ -105,7 +105,7 @@ This module accepts the following variables:
   Virtual environments may be provided by:
 
   ``rvm``
-    Requires that the ``MY_RUBY_HOME`` environment environment is defined.
+    Requires that the ``MY_RUBY_HOME`` environment is defined.
 
   ``rbenv``
     Requires that ``rbenv`` is installed in ``~/.rbenv/bin``
@@ -171,13 +171,15 @@ endif()
 set(_Ruby_POSSIBLE_EXECUTABLE_NAMES ruby)
 
 # If the user has not specified a Ruby version, create a list of Ruby versions
-# to check going from 1.8 to 3.4
+# to check going from 1.8 to 4.0
 if (NOT Ruby_FIND_VERSION_EXACT)
-  foreach (_ruby_version RANGE 34 18 -1)
+  foreach (_ruby_version RANGE 40 18 -1)
     string(SUBSTRING "${_ruby_version}" 0 1 _ruby_major_version)
     string(SUBSTRING "${_ruby_version}" 1 1 _ruby_minor_version)
     # Append both rubyX.Y and rubyXY (eg: ruby3.4 ruby34)
-    list(APPEND _Ruby_POSSIBLE_EXECUTABLE_NAMES ruby${_ruby_major_version}.${_ruby_minor_version} ruby${_ruby_major_version}${_ruby_minor_version})
+    list(APPEND _Ruby_POSSIBLE_EXECUTABLE_NAMES 
+         ruby${_ruby_major_version}.${_ruby_minor_version} 
+         ruby${_ruby_major_version}${_ruby_minor_version})
   endforeach ()
 endif ()
 
@@ -417,9 +419,9 @@ if (Ruby_EXECUTABLE AND NOT Ruby_EXECUTABLE STREQUAL "${_Ruby_EXECUTABLE_LAST_QU
 
   # save the results in the cache so we don't have to run ruby the next time again
   set(_Ruby_EXECUTABLE_LAST_QUERIED "${Ruby_EXECUTABLE}" CACHE INTERNAL "The ruby executable last queried for version and path info")
-  set(Ruby_VERSION_MAJOR ${Ruby_VERSION_MAJOR} CACHE PATH "The Ruby major version" FORCE)
-  set(Ruby_VERSION_MINOR ${Ruby_VERSION_MINOR} CACHE PATH "The Ruby minor version" FORCE)
-  set(Ruby_VERSION_PATCH ${Ruby_VERSION_PATCH} CACHE PATH "The Ruby patch version" FORCE)
+  set(Ruby_VERSION_MAJOR ${Ruby_VERSION_MAJOR} CACHE STRING "The Ruby major version" FORCE)
+  set(Ruby_VERSION_MINOR ${Ruby_VERSION_MINOR} CACHE STRING "The Ruby minor version" FORCE)
+  set(Ruby_VERSION_PATCH ${Ruby_VERSION_PATCH} CACHE STRING "The Ruby patch version" FORCE)
   set(Ruby_ARCH_DIR ${Ruby_ARCH_DIR} CACHE INTERNAL "The Ruby arch dir" FORCE)
   set(Ruby_HDR_DIR ${Ruby_HDR_DIR} CACHE INTERNAL "The Ruby header dir (1.9+)" FORCE)
   set(Ruby_ARCHHDR_DIR ${Ruby_ARCHHDR_DIR} CACHE INTERNAL "The Ruby arch header dir (2.0+)" FORCE)
@@ -468,12 +470,12 @@ if (Ruby_EXECUTABLE AND NOT Ruby_VERSION_MAJOR)
   # check whether we found 2.[0-7].x
   if (${Ruby_EXECUTABLE} MATCHES "ruby2")
     set(Ruby_VERSION_MAJOR 2)
-    string(REGEX_REPLACE ${Ruby_EXECUTABLE} "ruby2\\.?([0-7])" "\\1" Ruby_VERSION_MINOR)
+    string(REGEX REPLACE ${Ruby_EXECUTABLE} "ruby2\\.?([0-7])" "\\1" Ruby_VERSION_MINOR)
   endif ()
   # check whether we found 3.[0-1].x
   if (${Ruby_EXECUTABLE} MATCHES "ruby3")
     set(Ruby_VERSION_MAJOR 3)
-    string(REGEX_REPLACE ${Ruby_EXECUTABLE} "ruby3\\.?([0-1])" "\\1" Ruby_VERSION_MINOR)
+    string(REGEX REPLACE ${Ruby_EXECUTABLE} "ruby3\\.?([0-4])" "\\1" Ruby_VERSION_MINOR)
   endif ()
 endif ()
 
@@ -545,7 +547,10 @@ foreach (component IN LISTS Ruby_FIND_COMPONENTS)
     list(APPEND _Ruby_REQUIRED_VARS Ruby_EXECUTABLE)
   elseif (component STREQUAL "Development")
     set(_Ruby_WANT_DEVELOPMENT TRUE)
-    list(APPEND _Ruby_REQUIRED_VARS Ruby_INCLUDE_DIR Ruby_CONFIG_INCLUDE_DIR Ruby_LIBRARY)
+    list(APPEND _Ruby_REQUIRED_VARS Ruby_INCLUDE_DIR Ruby_CONFIG_INCLUDE_DIR)
+    if (WIN32)
+      list(APPEND _Ruby_REQUIRED_VARS Ruby_LIBRARY)
+    endif ()
   else ()
     message(FATAL_ERROR
             "FindRuby: Unsupported component '${component}'. Supported components are: Interpreter, Development")
@@ -554,10 +559,10 @@ endforeach ()
 
 # Set component found flags
 set(Ruby_Interpreter_FOUND ${Ruby_EXECUTABLE})
-if (Ruby_INCLUDE_DIR AND Ruby_CONFIG_INCLUDE_DIR AND Ruby_LIBRARY)
-    set(Ruby_Development_FOUND TRUE)
+if (Ruby_INCLUDE_DIR AND Ruby_CONFIG_INCLUDE_DIR AND (Ruby_LIBRARY OR NOT WIN32))
+  set(Ruby_Development_FOUND TRUE)
 else ()
-    set(Ruby_Development_FOUND FALSE)
+  set(Ruby_Development_FOUND FALSE)
 endif ()
 
 include(FindPackageHandleStandardArgs)
@@ -576,7 +581,8 @@ if (Ruby_FOUND)
 
   if (Ruby_Development_FOUND)
     set(Ruby_LIBRARIES ${Ruby_LIBRARY})
-    if (NOT TARGET Ruby::Ruby)
+
+    if (Ruby_LIBRARY AND NOT TARGET Ruby::Ruby)
       add_library(Ruby::Ruby UNKNOWN IMPORTED)
       set_target_properties(Ruby::Ruby PROPERTIES
         IMPORTED_LOCATION "${Ruby_LIBRARY}"

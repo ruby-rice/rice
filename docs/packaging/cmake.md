@@ -147,6 +147,10 @@ Rice's `FindRuby.cmake` provides modern CMake imported targets:
 | `Ruby::Module` | For building Ruby extension modules. Use this for gems with native extensions. On Unix, does not link to libruby (symbols resolved at load time). Includes hidden visibility settings. |
 | `Ruby::Ruby` | For embedding Ruby in C/C++ applications. Links to libruby. |
 
+Embedding Ruby (including Rice's C++ test runner) requires a shared Ruby library to be available.
+Extension-only modules should link `Ruby::Module` and can build on macOS/Linux without a shared
+libruby.
+
 For building Ruby extensions, use `Ruby::Module`:
 
 ```cmake
@@ -176,10 +180,10 @@ The following CMake variables are set by FindRuby:
 
 ## Rice CMake Target
 
-Rice provides the `rice::rice` imported target for including Rice headers:
+Rice provides the `Rice::Rice` imported target for including Rice headers:
 
 ```cmake
-target_link_libraries(MyExtension PRIVATE rice::rice)
+target_link_libraries(MyExtension PRIVATE Rice::Rice)
 ```
 
 This target:
@@ -195,6 +199,6 @@ This example demonstrates:
 
 * Fetching Rice via `FetchContent`
 * Using `Ruby::Module` for extension modules
-* Using `rice::rice` for Rice headers
+* Using `Rice::Rice` for Rice headers
 * Setting the correct extension suffix
 * Configuring output directories
