@@ -1,9 +1,18 @@
 # Changelog 
 
-## 4.8.0 (2025-11-28)
-The release focuses on compilation times and library sizes. Compilation times are approximately 2x faster than version 4.7 and a bit faster than 4.6. Library sizes are about 30% smaller.
+## 4.8.0 (2025-12-21)
+This release focuses on making Rice easier to use:
 
-However, these updates required some breaking changes, which include:
+* Compilation times are approximately 2x faster than version 4.7
+* Compiled library sizes are about 30% smaller
+* Improved keyword argument support
+* Improved method override support
+* Improved CMake support
+* Improved rbs generation support
+* Improved api documentation generation support
+* Expanded and improved documentation
+
+However, these changes did require some breaking changes, which include:
 
 * `Return().isBuffer()` is replaced by `ReturnBuffer()`
 * `Arg("").isBuffer()` is replaced by `ArgBuffer("")`
