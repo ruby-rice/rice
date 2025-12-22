@@ -191,7 +191,7 @@ namespace Rice::detail
       for_each_tuple(this->fromRubys_,
         [&](auto& fromRuby)
         {
-          result = std::max(result, fromRuby.is_convertible(value));
+          result = (std::max)(result, fromRuby.is_convertible(value));
         });
 
       return result;
