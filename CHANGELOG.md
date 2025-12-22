@@ -11,14 +11,19 @@ This release focuses on making Rice easier to use:
 * Improved rbs generation support
 * Improved api documentation generation support
 * Expanded and improved documentation
+* Enum values can now be compared against their underlying type (e.g., `Season::Red == 0`)
+* STL containers now support `==` and `eql?` for equality comparison
+* Automatic creation of `std::shared_ptr<T>` Ruby classes
+* Support for C++ references in callbacks
+* Array class now supports random iterators
+* Fixed Ruby detection for Homebrew installations on macOS
 
 However, these changes did require some breaking changes, which include:
 
 * `Return().isBuffer()` is replaced by `ReturnBuffer()`
 * `Arg("").isBuffer()` is replaced by `ArgBuffer("")`
 * `Function().noGVL()` is replaced by `NoGvL()`
-
-See the pointer documentation for information on how to use them.
+* `is_convertible` methods must now return a `double` instead of a `Convertible` enum
 
 ## 4.7.1 (2025-10-28)
 Updates:
