@@ -570,6 +570,24 @@ TESTCASE(int_conversion_1)
 #endif
 
   ASSERT_EQUAL(expected, result.str());
+
+  code = R"(my_class = MyClass3.new
+            value = 2**64
+            my_class.run(value))";
+
+  std::string expected2 = R"(Could not resolve method call for MyClass3#run
+  5 overload(s) were evaluated based on the types of Ruby parameters provided:
+     std::string AnonymousNamespace::MyClass3*::run(char*)
+     std::string AnonymousNamespace::MyClass3*::run(unsigned char*)
+     std::string AnonymousNamespace::MyClass3*::run(short)
+     std::string AnonymousNamespace::MyClass3*::run(long)
+     std::string AnonymousNamespace::MyClass3*::run(__int64))";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    result = m.module_eval(code),
+    ASSERT_EQUAL(expected2, ex.what()));
+
 }
 
 TESTCASE(int_conversion_2)
@@ -585,7 +603,7 @@ TESTCASE(int_conversion_2)
                         value = 1
                         my_class.run(value))";
   String result = m.module_eval(code);
-  ASSERT_EQUAL("run<float>", result.str());
+  ASSERT_EQUAL("run<short>", result.str());
 
   code = R"(my_class = MyClass3.new
             value = 2**64
@@ -1026,8 +1044,8 @@ TESTCASE(FloatPreferredOverInt_ForFloat)
   ASSERT_EQUAL("run<float>", result.str());
 }
 
-// Test: float should be preferred over unsigned int for Ruby Integer
-TESTCASE(FloatPreferredOverUnsignedInt_ForInteger)
+// Test: unsigned int should be preferred over float for Ruby Integer (integers prefer integer types)
+TESTCASE(UnsignedIntPreferredOverFloat_ForInteger)
 {
   Module m = define_module("Testing");
 
@@ -1036,7 +1054,7 @@ TESTCASE(FloatPreferredOverUnsignedInt_ForInteger)
 
   std::string code = R"(run(42))";
   String result = m.module_eval(code);
-  ASSERT_EQUAL("run<float>", result.str());
+  ASSERT_EQUAL("run<unsigned int>", result.str());
 }
 
 // Test: double should be preferred over float for Ruby Float
@@ -1078,8 +1096,8 @@ TESTCASE(DoublePreferredOverLongLong_ForFloat)
   ASSERT_EQUAL("run<double>", result.str());
 }
 
-// Test: double should be preferred over unsigned long long for Ruby Integer
-TESTCASE(DoublePreferredOverUnsignedLongLong_ForInteger)
+// Test: unsigned long long should be preferred over double for Ruby Integer (integers prefer integer types)
+TESTCASE(UnsignedLongLongPreferredOverDouble_ForInteger)
 {
   Module m = define_module("Testing");
 
@@ -1088,5 +1106,5 @@ TESTCASE(DoublePreferredOverUnsignedLongLong_ForInteger)
 
   std::string code = R"(run(42))";
   String result = m.module_eval(code);
-  ASSERT_EQUAL("run<double>", result.str());
+  ASSERT_EQUAL("run<unsigned long long>", result.str());
 }
