@@ -10,36 +10,36 @@ Since they are copied, instances of fundamental types are disconnected. If a Rub
 
 Rice supports all fundamental types out of the box. It also includes special handling for `char*` which is converted to a Ruby String. In addition, various STL classes are also converted as described in the [STL documentation](../stl/stl.md).
 
-| C++ Type | Other Name | Ruby Type |
-|----------|------------|-----------|
-| bool | | TrueClass / FalseClass |
-| int8_t / uint8_t | char | String (binary encoding) |
-| int8_t / uint8_t | char[] | String (binary encoding) |
-| int8_t / uint8_t | char* | String (binary encoding) |
-| int8_t | signed char | String (binary encoding) |
-| int8_t[] | signed char[] | String (binary encoding) |
-| int8_t | unsigned char | String (binary encoding) |
-| int8_t[] | unsigned char[] | String (binary encoding) |
-| int16_t | short | Integer |
-| int16_t[] | short[] | String (binary encoding) |
-| uint16_t | unsigned short | Integer |
-| uint16_t[] | unsigned short[] | String (binary encoding) |
-| int32_t | int | Integer |
-| int32_t[] | int[] | String (binary encoding) |
-| uint32_t | unsigned int | Integer |
-| uint32_t[] | unsigned int[] | String (binary encoding) |
-| int64_t | long | Integer |
-| int64_t[] | long[] | String (binary encoding) |
-| uint64_t | unsigned long | Integer |
-| int64_t[] | unsigned long[] | String (binary encoding) |
-| int64_t | long long | Integer |
-| int64_t[] | long long[] | String (binary encoding) |
-| uint64_t | unsigned long long | Integer |
-| int64_t[] | unsigned long long[] | String (binary encoding) |
-| float | | Float |
-| float[] | | String (binary encoding) |
-| double | | Float |
-| double[] | | String (binary encoding) |
+| C++ Type         | Other Name           | Ruby Type                |
+|------------------|----------------------|--------------------------|
+| bool             |                      | TrueClass / FalseClass   |
+| int8_t / uint8_t | char                 | String (binary encoding) |
+| int8_t / uint8_t | char[]               | String (binary encoding) |
+| int8_t / uint8_t | char*                | String (binary encoding) |
+| int8_t           | signed char          | String (binary encoding) |
+| int8_t[]         | signed char[]        | String (binary encoding) |
+| int8_t           | unsigned char        | String (binary encoding) |
+| int8_t[]         | unsigned char[]      | String (binary encoding) |
+| int16_t          | short                | Integer                  |
+| int16_t[]        | short[]              | String (binary encoding) |
+| uint16_t         | unsigned short       | Integer                  |
+| uint16_t[]       | unsigned short[]     | String (binary encoding) |
+| int32_t          | int                  | Integer                  |
+| int32_t[]        | int[]                | String (binary encoding) |
+| uint32_t         | unsigned int         | Integer                  |
+| uint32_t[]       | unsigned int[]       | String (binary encoding) |
+| int64_t          | long                 | Integer                  |
+| int64_t[]        | long[]               | String (binary encoding) |
+| uint64_t         | unsigned long        | Integer                  |
+| int64_t[]        | unsigned long[]      | String (binary encoding) |
+| int64_t          | long long            | Integer                  |
+| int64_t[]        | long long[]          | String (binary encoding) |
+| uint64_t         | unsigned long long   | Integer                  |
+| int64_t[]        | unsigned long long[] | String (binary encoding) |
+| float            |                      | Float                    |
+| float[]          |                      | String (binary encoding) |
+| double           |                      | Float                    |
+| double[]         |                      | String (binary encoding) |
 
 ## Memory Management
 

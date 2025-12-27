@@ -26,28 +26,28 @@ struct Convertible
 
 Ruby numeric types have precision defined in terms of bits:
 
-| Ruby Type | Precision Bits | Notes |
-|-----------|----------------|-------|
-| Integer (Fixnum/Bignum) | 63 | Same as C++ long long |
-| Float | 53 | Same as C++ double mantissa |
+| Ruby Type               | Precision Bits  | Notes                       |
+|-------------------------|-----------------|-----------------------------|
+| Integer (Fixnum/Bignum) | 63              | Same as C++ long long       |
+| Float                   | 53              | Same as C++ double mantissa |
 
 C++ types use `std::numeric_limits<T>::digits`:
 
-| C++ Type | Precision Bits |
-|----------|----------------|
-| char | 7 |
-| signed char | 7 |
-| unsigned char | 8 |
-| short | 15 |
-| unsigned short | 16 |
-| int | 31 |
-| unsigned int | 32 |
-| long | 31 or 63* |
-| unsigned long | 32 or 64* |
-| long long | 63 |
-| unsigned long long | 64 |
-| float | 24 (mantissa) |
-| double | 53 (mantissa) |
+| C++ Type           | Precision Bits |
+|--------------------|----------------|
+| char               | 7              |
+| signed char        | 7              |
+| unsigned char      | 8              |
+| short              | 15             |
+| unsigned short     | 16             |
+| int                | 31             |
+| unsigned int       | 32             |
+| long               | 31 or 63*      |
+| unsigned long      | 32 or 64*      |
+| long long          | 63             |
+| unsigned long long | 64             |
+| float              | 24 (mantissa)  |
+| double             | 53 (mantissa)  |
 
 \* Platform dependent
 
@@ -81,10 +81,10 @@ Score = 0.508 * 0.5 = 0.254
 
 This ensures signed types are preferred over unsigned types. For example, given overloads `foo(int)` and `foo(unsigned int)`:
 
-| Overload | Score | Calculation |
-|----------|-------|-------------|
-| foo(int) | 0.49 | 31/63 |
-| foo(unsigned int) | 0.25 | 32/63 × 0.5 |
+| Overload          | Score  | Calculation |
+|-------------------|--------|-------------|
+| foo(int)          | 0.49   | 31/63       |
+| foo(unsigned int) | 0.25   | 32/63 × 0.5 |
 
 Result: `foo(int)` is selected.
 
@@ -136,22 +136,22 @@ Score = 1.0 * 0.5 = 0.5
 
 The following table shows conversion scores for all Ruby-to-C++ type combinations, with the underlying calculations.
 
-| C++ Type           | Bits | True | False | Nil | String | Integer | Float |
-|--------------------|:----:|:----:|:-----:|:---:|:------:|:-------:|:-----:|
-| bool               |  -   | 1.0  |  1.0  | 1.0 |        |         |       |
-| char               |  7   |      |       |     |  1.0   | 0.11 = 7/63 | 0.07 = 7/53×0.5 |
-| signed char        |  7   |      |       |     |  1.0   | 0.11 = 7/63 | 0.07 = 7/53×0.5 |
-| unsigned char      |  8   |      |       |     |  1.0   | 0.06 = 8/63×0.5 | 0.08 = 8/53×0.5 |
-| short              | 15   |      |       |     |        | 0.24 = 15/63 | 0.14 = 15/53×0.5 |
+| C++ Type           | Bits | True | False | Nil | String |     Integer      |      Float       |
+|--------------------|:----:|:----:|:-----:|:---:|:------:|:----------------:|:----------------:|
+| bool               |  -   | 1.0  |  1.0  | 1.0 |        |                  |                  |
+| char               |  7   |      |       |     |  1.0   |   0.11 = 7/63    | 0.07 = 7/53×0.5  |
+| signed char        |  7   |      |       |     |  1.0   |   0.11 = 7/63    | 0.07 = 7/53×0.5  |
+| unsigned char      |  8   |      |       |     |  1.0   | 0.06 = 8/63×0.5  | 0.08 = 8/53×0.5  |
+| short              | 15   |      |       |     |        |   0.24 = 15/63   | 0.14 = 15/53×0.5 |
 | unsigned short     | 16   |      |       |     |        | 0.13 = 16/63×0.5 | 0.15 = 16/53×0.5 |
-| int                | 31   |      |       |     |        | 0.49 = 31/63 | 0.29 = 31/53×0.5 |
+| int                | 31   |      |       |     |        |   0.49 = 31/63   | 0.29 = 31/53×0.5 |
 | unsigned int       | 32   |      |       |     |        | 0.25 = 32/63×0.5 | 0.30 = 32/53×0.5 |
-| long*              | 31   |      |       |     |        | 0.49 = 31/63 | 0.29 = 31/53×0.5 |
+| long*              | 31   |      |       |     |        |   0.49 = 31/63   | 0.29 = 31/53×0.5 |
 | unsigned long*     | 32   |      |       |     |        | 0.25 = 32/63×0.5 | 0.30 = 32/53×0.5 |
-| long long          | 63   |      |       |     |        | 1.0 = 63/63 | 0.50 = 1.0×0.5 |
-| unsigned long long | 64   |      |       |     |        | 0.50 = 1.0×0.5 | 0.50 = 1.0×0.5 |
-| float              | 24   |      |       |     |        | 0.34 = 24/63×0.9 | 0.45 = 24/53 |
-| double             | 53   |      |       |     |        | 0.76 = 53/63×0.9 | 1.0 = 53/53 |
+| long long          | 63   |      |       |     |        |   1.0 = 63/63    |  0.50 = 1.0×0.5  |
+| unsigned long long | 64   |      |       |     |        |  0.50 = 1.0×0.5  |  0.50 = 1.0×0.5  |
+| float              | 24   |      |       |     |        | 0.34 = 24/63×0.9 |   0.45 = 24/53   |
+| double             | 53   |      |       |     |        | 0.76 = 53/63×0.9 |   1.0 = 53/53    |
 
 \* `long` is platform-dependent. On 64-bit systems: `long` = 63 bits, `unsigned long` = 64 bits.
 
