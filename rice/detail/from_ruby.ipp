@@ -11,10 +11,17 @@ namespace Rice::detail
   {
     switch (rb_type(value))
     {
-      // Ruby integers - use long long precision (63 bits)
+      // Ruby fixnums fit in long long (63 bits)
       case RUBY_T_FIXNUM:
-      case RUBY_T_BIGNUM:
         return std::numeric_limits<long long>::digits;
+
+      // Ruby bignums can be arbitrarily large - return actual size
+      case RUBY_T_BIGNUM:
+      {
+        int nlz = 0;
+        size_t bytes = rb_absint_size(value, &nlz);
+        return static_cast<int>(bytes * CHAR_BIT - nlz);
+      }
 
       // Ruby floats are C doubles (53 bit mantissa)
       case RUBY_T_FLOAT:
@@ -50,15 +57,33 @@ namespace Rice::detail
       double score = precisionScore<T>(value);
       if (score > Convertible::None)
       {
-        if (rb_type(value) == RUBY_T_FLOAT)
+        switch (rb_type(value))
         {
-          score *= Convertible::FloatToInt;
+          case RUBY_T_BIGNUM:
+          {
+            constexpr int targetBits = std::numeric_limits<T>::digits;
+            int sourceBits = rubyPrecisionBits(value);
+            if (sourceBits > targetBits)
+            {
+              return Convertible::None;
+            }
+            [[fallthrough]];
+          }
+          case RUBY_T_FIXNUM:
+          {
+            if constexpr (std::is_unsigned_v<T>)
+            {
+              score *= Convertible::SignedToUnsigned;
+            }
+            break;
+          }
+          case RUBY_T_FLOAT:
+          {
+            score *= Convertible::FloatToInt;
+            break;
+          }
         }
-        else if constexpr (std::is_unsigned_v<T>)
-        {
-          // Ruby integers are signed, so penalize conversion to unsigned types
-          score *= Convertible::SignedToUnsigned;
-        }
+
         return score;
       }
 
