@@ -22,38 +22,22 @@ namespace Rice
     }
 
     Identifier id(klassName);
-    Data_Type_T result = define_class_under<detail::intrinsic_type<SharedPtr_T>>(rb_mStd, id).
-      define_constructor(Constructor<SharedPtr_T, typename SharedPtr_T::element_type*>(), Arg("value").takeOwnership());
+    Data_Type_T result = define_class_under<SharedPtr_T>(rb_mStd, id);
+
+    // std::shared_ptr<void> cannot be constructed from void* because void is incomplete
+    // and the deleter cannot be determined. So skip the constructor for void.
+    // std::shared_ptr<T[]> (array types) also skip constructor - arrays need special handling.
+    if constexpr (!std::is_void_v<T> && !std::is_array_v<T>)
+    {
+      result.define_constructor(Constructor<SharedPtr_T, typename SharedPtr_T::element_type*>(), Arg("value").takeOwnership());
+    }
+
+    result.
+      define_method("get", &SharedPtr_T::get).
+      define_method("use_count", &SharedPtr_T::use_count).
+      define_method("empty?", &SharedPtr_T::operator bool);
 
     return result;
-  }
-}
-
-// --------- Wrapper ---------
-namespace Rice::detail
-{
-  template<typename T>
-  inline Wrapper<std::shared_ptr<T>>::Wrapper(const std::shared_ptr<T>& data)
-    : data_(data)
-  {
-  }
-
-  template<typename T>
-  inline Wrapper<std::shared_ptr<T>>::~Wrapper()
-  {
-    Registries::instance.instances.remove(this->get());
-  }
-
-  template<typename T>
-  inline void* Wrapper<std::shared_ptr<T>>::get()
-  {
-    return (void*)this->data_.get();
-  }
-
-  template<typename T>
-  inline std::shared_ptr<T>& Wrapper<std::shared_ptr<T>>::data()
-  {
-    return data_;
   }
 }
 
@@ -78,189 +62,34 @@ namespace Rice::detail
         }
       }
 
-      if constexpr (!std::is_void_v<T>)
-      {
-        if (!Data_Type<std::shared_ptr<T>>::is_defined())
-        {
-          define_shared_ptr<T>();
-        }
-      }
+      define_shared_ptr<T>();
+
       return true;
     }
-
-    static VALUE rubyKlass()
-    {
-      if (Data_Type<std::shared_ptr<T>>::is_defined())
-      {
-        std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<std::shared_ptr<T>>();
-        return pair.first;
-      }
-      else
-      {
-        TypeMapper<T> typeMapper;
-        return typeMapper.rubyKlass();
-      }
-    }
   };
 
-  template <typename T>
-  class To_Ruby<std::shared_ptr<T>>
+  // Specialization for array types std::shared_ptr<T[]>
+  template<typename T>
+  struct Type<std::shared_ptr<T[]>>
   {
-  public:
-    To_Ruby() = default;
-
-    explicit To_Ruby(Arg*)
-    {
-    }
-
-    VALUE convert(std::shared_ptr<T>& data)
+    static bool verify()
     {
       if constexpr (std::is_fundamental_v<T>)
       {
-        return detail::wrap<std::shared_ptr<T>>(Data_Type<Pointer<T>>::klass(), Data_Type<Pointer<T>>::ruby_data_type(), data, true);
+        Type<Pointer<T>>::verify();
+        Type<Buffer<T>>::verify();
       }
       else
       {
-        return detail::wrap<std::shared_ptr<T>>(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
+        if (!Type<intrinsic_type<T>>::verify())
+        {
+          return false;
+        }
       }
+
+      define_shared_ptr<T[]>();
+
+      return true;
     }
-
-    VALUE convert(std::shared_ptr<T>&& data)
-    {
-      if constexpr (std::is_fundamental_v<T>)
-      {
-        return detail::wrap<std::shared_ptr<T>>(Data_Type<Pointer<T>>::klass(), Data_Type<Pointer<T>>::ruby_data_type(), data, true);
-      }
-      else
-      {
-        return detail::wrap<std::shared_ptr<T>>(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
-      }
-    }
-  };
-
-  template <typename T>
-  class From_Ruby<std::shared_ptr<T>>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg * arg) : arg_(arg)
-    {
-    }
-
-    double is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_DATA:
-          return Convertible::Exact;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    std::shared_ptr<T> convert(VALUE value)
-    {
-      // Get the wrapper
-      WrapperBase* wrapperBase = detail::getWrapper(value);
-
-      // Was this shared_ptr created by the user from Ruby? If so it will
-      // be wrapped as a pointer, std::shared_ptr<T>*. In the case just
-      // return the shared pointer
-      if (dynamic_cast<Wrapper<std::shared_ptr<T>*>*>(wrapperBase))
-      {
-        // Use unwrap to validate the underlying wrapper is the correct type
-        std::shared_ptr<T>* ptr = unwrap<std::shared_ptr<T>>(value, Data_Type<std::shared_ptr<T>>::ruby_data_type(), false);
-        return *ptr;
-      }
-      else if (std::is_fundamental_v<T>)
-      {
-        // Get the wrapper again to validate T's type
-        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<Pointer<T>>::ruby_data_type());
-        return wrapper->data();
-      }
-      else
-      {
-        // Get the wrapper again to validate T's type
-        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
-        return wrapper->data();
-      }
-    }
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template <typename T>
-  class To_Ruby<std::shared_ptr<T>&>
-  {
-  public:
-    To_Ruby() = default;
-
-    explicit To_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    VALUE convert(std::shared_ptr<T>& data)
-    {
-      return detail::wrap(Data_Type<T>::klass(), Data_Type<T>::ruby_data_type(), data, true);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template <typename T>
-  class From_Ruby<std::shared_ptr<T>&>
-  {
-  public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg * arg) : arg_(arg)
-    {
-    }
-
-    double is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_DATA:
-          return Convertible::Exact;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    std::shared_ptr<T>& convert(VALUE value)
-    {
-      // Get the wrapper
-      WrapperBase* wrapperBase = detail::getWrapper(value);
-
-      // Was this shared_ptr created by the user from Ruby? If so it will
-      // be wrapped as a pointer, std::shared_ptr<T>*. In the case just
-      // return the shared pointer
-      if (dynamic_cast<Wrapper<std::shared_ptr<T>*>*>(wrapperBase))
-      {
-        // Use unwrap to validate the underlying wrapper is the correct type
-        std::shared_ptr<T>* ptr = unwrap<std::shared_ptr<T>>(value, Data_Type<std::shared_ptr<T>>::ruby_data_type(), false);
-        return *ptr;
-      }
-      else if (std::is_fundamental_v<T>)
-      {
-        // Get the wrapper again to validate T's type
-        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<Pointer<T>>::ruby_data_type());
-        return wrapper->data();
-      }
-      else
-      {
-        // Get the wrapper again to validate T's type
-        Wrapper<std::shared_ptr<T>>* wrapper = getWrapper<Wrapper<std::shared_ptr<T>>>(value, Data_Type<T>::ruby_data_type());
-        return wrapper->data();
-      }
-    }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 }

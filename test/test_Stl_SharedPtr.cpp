@@ -182,9 +182,9 @@ TESTCASE(ShareOwnership)
   std::string code = R"(ary = Array.new
                         factory = Factory.new
                         10.times do |i|
-                          my_class = factory.share
-                          my_class.set_flag(i)
-                          ary << my_class
+                          ptr = factory.share
+                          ptr.get.set_flag(i)
+                          ary << ptr
                         end)";
 
   ASSERT_EQUAL(0, Factory::instance_.use_count());
@@ -211,8 +211,8 @@ TESTCASE(ShareOwnership2)
   // Create ruby objects that point to the same instance of MyClass
   std::string code = R"(factory = Factory.new
                         10.times do |i|
-                          my_class = factory.share
-                          my_class.set_flag(i)
+                          ptr = factory.share
+                          ptr.get.set_flag(i)
                         end)";
 
   Factory factory;
@@ -222,9 +222,9 @@ TESTCASE(ShareOwnership2)
   // Call some ruby code
   Data_Object<Factory> wrapper(factory);
   ASSERT_EQUAL(2, Factory::instance_.use_count());
-  wrapper.instance_eval("self.share_ref.set_flag(1)");
+  wrapper.instance_eval("share_ref.get.set_flag(1)");
 
-  ASSERT_EQUAL(3, Factory::instance_.use_count());
+  ASSERT_EQUAL(2, Factory::instance_.use_count());
   rb_gc_start();
   ASSERT_EQUAL(2, Factory::instance_.use_count());
 }
@@ -237,9 +237,9 @@ TESTCASE(PtrParameter)
   Module m = define_module("TestingModule");
 
   std::string code = R"(factory = Factory.new
-                        my_class = factory.share
-                        my_class.set_flag(8)
-                        extract_flag_shared_ptr(my_class))";
+                        ptr = factory.share
+                        ptr.get.set_flag(8)
+                        extract_flag_shared_ptr(ptr))";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(8, detail::From_Ruby<int>().convert(result));
@@ -253,9 +253,9 @@ TESTCASE(RefParameter)
   Module m = define_module("TestingModule");
 
   std::string code = R"(factory = Factory.new
-                        my_class = factory.share
-                        my_class.set_flag(9)
-                        extract_flag_shared_ptr_ref(my_class))";
+                        ptr = factory.share
+                        ptr.get.set_flag(9)
+                        extract_flag_shared_ptr_ref(ptr))";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(9, detail::From_Ruby<int>().convert(result));
@@ -269,8 +269,8 @@ TESTCASE(DefaultParameter)
   Module m = define_module("TestingModule");
 
   std::string code = R"(factory = Factory.new
-                        my_class = factory.share
-                        my_class.set_flag(7)
+                        ptr = factory.share
+                        ptr.get.set_flag(7)
                         extract_flag_shared_ptr_with_default())";
 
   Object result = m.module_eval(code);
@@ -286,8 +286,8 @@ TESTCASE(RefDefaultParameter)
   Module m = define_module("TestingModule");
 
   std::string code = R"(factory = Factory.new
-                        my_class = factory.share
-                        my_class.set_flag(7)
+                        ptr = factory.share
+                        ptr.get.set_flag(7)
                         extract_flag_shared_ptr_ref_with_default())";
 
   Object result = m.module_eval(code);
@@ -334,14 +334,14 @@ TESTCASE(Update)
 
   // Create ruby objects that point to the same instance of MyClass
   std::string code = R"(factory = Factory.new
-                        my_class1 = factory.share
-                        my_class1.set_flag(7)
+                        ptr1 = factory.share
+                        ptr1.get.set_flag(7)
 
-                        my_class2 = MyClass.new
-                        my_class2.set_flag(14)
+                        myclass = MyClass.new
+                        myclass.set_flag(14)
 
                         sink = Sink.new
-                        sink.update_pointer(my_class1, my_class2))";
+                        sink.update_pointer(ptr1, myclass))";
 
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(14, detail::From_Ruby<long>().convert(result.value()));
@@ -402,7 +402,19 @@ namespace
     return shared;
   }
 
+  const std::shared_ptr<int> createConstPointer(int value)
+  {
+    int* sharedInt = new int(value);
+    const std::shared_ptr<int> shared(sharedInt);
+    return shared;
+  }
+
   int getPointerValue(std::shared_ptr<int> ptr)
+  {
+    return *ptr;
+  }
+
+  int getConstPointerValue(const std::shared_ptr<int>& ptr)
   {
     return *ptr;
   }
@@ -418,13 +430,27 @@ TESTCASE(PointerToInt)
 {
   Module m = define_module("SharedPtrInt").
     define_module_function("create_pointer", &createPointer).
-    define_module_function("get_pointer_value", &getPointerValue);
+    define_module_function("create_const_pointer", &createConstPointer).
+    define_module_function("get_pointer_value", &getPointerValue).
+    define_module_function("get_const_pointer_value", &getConstPointerValue);
 
   std::string code = R"(ptr = create_pointer(44)
                         get_pointer_value(ptr))";
 
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(44, detail::From_Ruby<int>().convert(result.value()));
+
+  code = R"(ptr = create_const_pointer(45)
+            get_const_pointer_value(ptr))";
+
+  result = m.instance_eval(code);
+  ASSERT_EQUAL(45, detail::From_Ruby<int>().convert(result.value()));
+
+  code = R"(ptr = create_const_pointer(46)
+            get_pointer_value(ptr))";
+
+  result = m.instance_eval(code);
+  ASSERT_EQUAL(46, detail::From_Ruby<int>().convert(result.value()));
 }
 
 TESTCASE(CreatePointerToInt)
@@ -459,7 +485,7 @@ TESTCASE(ReadPointerToInt)
              define_module_function("create_pointer", &createPointer);
 
   std::string code = R"(ptr = create_pointer(50)
-                        ptr.buffer.to_ary(1))";
+                        ptr.get.buffer.to_ary(1))";
 
   Array array = m.instance_eval(code);
   std::vector<int> actual = array.to_vector<int>();
