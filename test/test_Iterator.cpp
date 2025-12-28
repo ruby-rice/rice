@@ -335,6 +335,38 @@ TESTCASE(to_enum)
   ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(element));
 }
 
+TESTCASE(to_a)
+{
+  define_class<Data>("Data")
+    .define_constructor(Constructor<Data, uint32_t>())
+    .define_attr("index", &Data::index, Rice::AttrAccess::Read);
+
+  define_class<ContainerPointers>("ContainerPointers")
+    .define_constructor(Constructor<ContainerPointers>())
+    .define_iterator(&ContainerPointers::begin, &ContainerPointers::end);
+
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(container = ContainerPointers.new
+                        container.to_a)";
+
+  Array a = m.module_eval(code);
+
+  ASSERT_EQUAL(3, a.size());
+
+  Object element = a[0];
+  Object index = element.call("index");
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(index));
+
+  element = a[1];
+  index = element.call("index");
+  ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(index));
+
+  element = a[2];
+  index = element.call("index");
+  ASSERT_EQUAL(3, detail::From_Ruby<int>().convert(index));
+}
+
 TESTCASE(IterateNoCopy)
 {
   define_class<Data>("Data")

@@ -70,6 +70,12 @@ namespace Rice
     //! Returns if the argument should be treated as a value
     bool isValue() const;
 
+    //! Specifies if the argument should capture a block
+    virtual Arg& setBlock();
+
+    //! Returns if the argument should capture a block
+    bool isBlock() const;
+
     //! Specifies if the argument is opaque and Rice should not convert it from Ruby to C++ or vice versa.
     //! This is useful for callbacks and user provided data paramameters.
     virtual Arg& setOpaque();
@@ -88,6 +94,7 @@ namespace Rice
     //! Our saved default value
     std::any defaultValue_;
     bool isValue_ = false;
+    bool isBlock_ = false;
     bool isKeepAlive_ = false;
     bool isOwner_ = false;
     bool isOpaque_ = false;

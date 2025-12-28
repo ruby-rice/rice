@@ -344,15 +344,6 @@ namespace Rice::detail
       }
     }
 
-    // Block handling. If we find a block and the last parameter is missing then
-    // set it to the block
-    if (rb_block_given_p())// FIXME && result.size() > 0 && !result.back().second.has_value())
-    {
-      VALUE proc = rb_block_proc();
-      std::string key = "arg_" + std::to_string(result.size());
-      result[key] = proc;
-    }
-
     return result;
   }
 
@@ -395,6 +386,10 @@ namespace Rice::detail
       else if (arg->hasDefaultValue())
       {
         result[i] = parameter->defaultValueRuby();
+      }
+      else if (arg->isBlock() && rb_block_given_p())
+      {
+        result[i] = protect(rb_block_proc);
       }
       else if (validate)
       {

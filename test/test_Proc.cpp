@@ -20,11 +20,24 @@ TEARDOWN(Proc)
 
 namespace
 {
+  int squareWithBlock(int i)
+  {
+    VALUE result = detail::protect(rb_yield, detail::To_Ruby<int>().convert(i));
+    return detail::From_Ruby<int>().convert(result);
+  }
+
+  int squareWithProc(int i, VALUE proc)
+  {
+    VALUE result = detail::protect(rb_funcall, proc, rb_intern("call"), 1, detail::To_Ruby<int>().convert(i));
+    return detail::From_Ruby<int>().convert(result);
+  }
+
   int square(int i)
   {
     return i * i;
   }
 
+  // Returns a function pointer that Ruby wraps in NativeProc
   auto squareProc()
   {
     return square;
@@ -42,3 +55,44 @@ TESTCASE(SquareProc)
   Object result = m.module_eval(code);
   ASSERT_EQUAL(81, detail::From_Ruby<int>().convert(result));
 }
+
+TESTCASE(SquareWithBlock)
+{
+  Module m = define_module("TestingModuleMakeBlock");
+  m.define_module_function("square_with_block", squareWithBlock);
+
+  std::string code = R"(square_with_block(7) do |i|
+                          i * i
+                        end)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(49, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(SquareWithCapturedBlock)
+{
+  Module m = define_module("TestingModuleMakeBlock");
+  m.define_module_function("square_with_captured_block", squareWithProc, Arg("i"), Arg("proc").setBlock());
+
+  std::string code = R"(square_with_captured_block(4) do |i|
+                          i * i
+                        end)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(16, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(SquareWithProc)
+{
+  Module m = define_module("TestingModuleMakeBlock");
+  m.define_module_function("square_with_proc", squareWithProc, Arg("i"), Arg("proc").setBlock());
+
+  std::string code = R"(proc = Proc.new do |i|
+                          i * i
+                        end
+                        square_with_proc(4, proc))";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(16, detail::From_Ruby<int>().convert(result));
+}
+
