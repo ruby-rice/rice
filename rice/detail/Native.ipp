@@ -396,6 +396,11 @@ namespace Rice::detail
         std::string message = "Missing argument. Name: " + arg->name + ". Index: " + std::to_string(i) + ".";
         throw std::invalid_argument(message);
       }
+      else
+      {
+        // No point in continuing - this native is not going to match
+        return result;
+      }
     }
 
     // Check for unknown arguments
