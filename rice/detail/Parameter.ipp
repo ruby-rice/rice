@@ -27,7 +27,7 @@ namespace Rice::detail
   {
     if (!valueOpt.has_value())
     {
-      return Convertible::Exact;  // Default match - doesn't affect minimum
+      return Convertible::None;
     }
     else if (this->arg()->isValue())
     {
