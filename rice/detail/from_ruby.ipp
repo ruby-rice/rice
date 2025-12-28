@@ -19,7 +19,7 @@ namespace Rice::detail
       case RUBY_T_BIGNUM:
       {
         int nlz = 0;
-        size_t bytes = rb_absint_size(value, &nlz);
+        size_t bytes = protect(rb_absint_size, value, &nlz);
         return static_cast<int>(bytes * CHAR_BIT - nlz);
       }
 
