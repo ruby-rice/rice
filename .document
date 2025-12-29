@@ -1,0 +1,10 @@
+# This file tells RDoc which files to parse for documentation.
+# We exclude the docs/ directory because it contains markdown files
+# with C++ code snippets that confuse RDoc's encoding detection
+# (e.g., "Encoding::utf8()" is misinterpreted as an encoding declaration).
+#
+# Rice extensions generate their own documentation using rice-doc,
+# which is a separate system from RDoc. RDoc is not used to document
+# the C++ code.
+lib/**/*.rb
+README.md
