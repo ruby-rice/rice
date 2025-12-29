@@ -6,6 +6,9 @@ namespace Rice
   template<typename T>
   class Reference
   {
+    static_assert(!detail::is_wrapped_v<detail::intrinsic_type<T>>,
+      "Reference can only be used with fundamental types");
+
   public:
     Reference();
     Reference(T& data);
