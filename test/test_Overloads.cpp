@@ -585,7 +585,7 @@ TESTCASE(int_conversion_1)
             value = 2**64
             my_class.run(value))";
 
-#ifdef _WIN32
+#ifdef _MSC_VER 
   std::string expected2 = R"(Could not resolve method call for MyClass3#run
   5 overload(s) were evaluated based on the types of Ruby parameters provided:
      std::string AnonymousNamespace::MyClass3*::run(char*)
@@ -607,7 +607,6 @@ TESTCASE(int_conversion_1)
     Exception,
     result = m.module_eval(code),
     ASSERT_EQUAL(expected2, ex.what()));
-
 }
 
 TESTCASE(int_conversion_2)
