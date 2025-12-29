@@ -5,7 +5,8 @@ module Rice
 
 			CLASS_DOCS = {
 				/^Rice::Buffer/ => "ruby_api/buffer",
-				/^Rice::Pointer/ => "ruby_api/pointer"
+				/^Rice::Pointer/ => "ruby_api/pointer",
+				/^Rice::Reference/ => "ruby_api/reference"
 			}
 
 			def class_url(klass)
