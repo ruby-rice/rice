@@ -88,7 +88,7 @@ TESTCASE(modify_reference_object)
 
   std::string code = R"(ref = Rice::Reference≺int≻.new(7)
                         update_int_ref(ref)
-                        ref.get)";
+                        ref.value)";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));

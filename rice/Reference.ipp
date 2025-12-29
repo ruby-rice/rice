@@ -75,7 +75,7 @@ namespace Rice
 
     Data_Type<Reference<T>> result = define_class_under<Reference_T>(rb_mRice, klassName).
       define_constructor(Constructor<Reference_T, T>()).
-      define_method("get", &Reference_T::get);
+      define_method("value", &Reference_T::get);
 
     return result;
   }
