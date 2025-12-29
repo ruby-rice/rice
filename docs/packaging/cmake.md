@@ -39,7 +39,7 @@ end
 
 ## CMakePresets.json
 
-Next, it is recommended to add a [CMakePresets.json](https://github.com/ruby-rice/BitmapPlusPlus-ruby/blob/main/ext/CMakePresets.json) to your gem. A `CMakePresets.json` makes it easier to define all the [compiler settings](packaging.md#compiler-settings) your gem will need to build with commonly used operating systems and compilers.
+Next, it is recommended to add a [CMakePresets.json](https://github.com/ruby-rice/BitmapPlusPlus-ruby/blob/main/ext/CMakePresets.json) to your gem. A `CMakePresets.json` makes it easier to define all the [compiler settings](build_settings.md#compiler-settings) your gem will need to build with commonly used operating systems and compilers.
 
 Once again, the [bitmap-plus-plus](https://github.com/ruby-rice/BitmapPlusPlus-ruby) gem includes an [example](https://github.com/ruby-rice/BitmapPlusPlus-ruby/blob/main/ext/CMakePresets.json) that you can copy. It includes the following presets:
 

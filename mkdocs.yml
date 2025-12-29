@@ -74,6 +74,7 @@ nav:
       - Directors: bindings/directors.md
       - GVL: bindings/gvl.md
       - Class Templates: bindings/class_templates.md
+      - References: bindings/references.md
       - Pointers: bindings/pointers.md
       - Buffers: bindings/buffers.md
       - Memory Management: bindings/memory_management.md
@@ -113,6 +114,7 @@ nav:
     - Overview: ruby_api/overview.md
     - Buffer: ruby_api/buffer.md
     - Pointer: ruby_api/pointer.md
+    - Reference: ruby_api/reference.md
     - Registries: ruby_api/registries.md
     - Native Registry: ruby_api/native_registry.md
     - Type Registry: ruby_api/type_registry.md

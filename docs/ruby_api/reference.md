@@ -51,13 +51,13 @@ ref = Rice::Reference<double>.new(3.14159)
 
 ## Instance Methods
 
-### `get`
+### `value`
 
 Returns the current value stored in the reference.
 
 ```ruby
 ref = Rice::Reference<int>.new(42)
-ref.get  #=> 42
+ref.value  #=> 42
 ```
 
 After passing the reference to a C++ method that modifies it:
@@ -65,7 +65,7 @@ After passing the reference to a C++ method that modifies it:
 ```ruby
 ref = Rice::Reference<int>.new(7)
 cpp_object.update_value(ref)  # C++ sets ref to 42
-ref.get  #=> 42
+ref.value  #=> 42
 ```
 
 ---
@@ -82,7 +82,7 @@ ref = Rice::Reference<int>.new(7)
 updater.set_to_42(ref)
 
 # Check the modified value
-ref.get  #=> 42
+ref.value  #=> 42
 ```
 
 **Disambiguating overloaded methods**

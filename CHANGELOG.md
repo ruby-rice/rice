@@ -1,6 +1,6 @@
 # Changelog 
 
-## 4.8.0 (2025-12-21)
+## 4.8.0 (2025-12-29)
 This release focuses on making Rice easier to use:
 
 * Compilation times are approximately 2x faster than version 4.7
@@ -17,6 +17,7 @@ This release focuses on making Rice easier to use:
 * Support for C++ references in callbacks
 * Array class now supports random iterators
 * Fixed Ruby detection for Homebrew installations on macOS
+* Added support for references to fundamental types
 
 However, these changes did require some breaking changes, which include:
 
