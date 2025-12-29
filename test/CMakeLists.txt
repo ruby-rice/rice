@@ -11,6 +11,11 @@ project(unittest LANGUAGES CXX)
 add_executable(${PROJECT_NAME}
                "unittest.cpp"
                "embed_ruby.cpp"
+               "test_Address_Registration_Guard.cpp"
+               "test_Array.cpp"
+               "test_Attribute.cpp"
+               "test_Buffer.cpp"
+               "test_Builtin_Object.cpp"
                "test_Callback.cpp"
                "test_Class.cpp"
                "test_Constructor.cpp"
