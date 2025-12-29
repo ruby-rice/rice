@@ -275,46 +275,10 @@ TESTCASE(pointer_of_doubles)
 
 namespace
 {
-  void updateRef(int& ref)
-  {
-    ref = 4;
-  }
-
   void updatePtr(int* ptr)
   {
     *ptr = 5;
   }
-}
-
-TESTCASE(update_reference)
-{
-  define_buffer<int>();
-  Module m = define_module("Testing");
-  m.define_module_function("update_reference", &updateRef);
-
-  std::string code = R"(buffer = Rice::Buffer≺int≻.new(0)
-                        update_reference(buffer.data)
-                        buffer.to_ary(1).first)";
-
-  Object result = m.module_eval(code);
-  ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(result));
-
-  code = R"(buffer = Rice::Buffer≺int≻.new(0)
-            update_reference(buffer.data)
-            buffer[0])";
-
-  result = m.module_eval(code);
-  ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(result));
-
-  code = R"(buffer = Rice::Buffer≺int≻.new(0)
-            update_reference(buffer.data)
-            buffer[1])";
-
-  ASSERT_EXCEPTION_CHECK(
-    Exception,
-    m.module_eval(code),
-    ASSERT_EQUAL("index 1 outside of bounds: 0..1", ex.what())
-  );
 }
 
 TESTCASE(update_ptr)

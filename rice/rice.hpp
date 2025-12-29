@@ -80,11 +80,13 @@
 #include "Constructor.hpp"
 #include "Buffer.hpp"
 #include "Pointer.hpp"
+#include "Reference.hpp"
 #include "Buffer.ipp"
 #include "Pointer.ipp"
 #include "detail/Types.ipp"
 #include "detail/to_ruby.ipp"
 #include "detail/from_ruby.ipp"
+#include "Reference.ipp"
 #include "detail/Proc.hpp"
 
 // Registries

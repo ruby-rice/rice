@@ -173,7 +173,7 @@ namespace
   {
     return "run<double>";
   }
-} // namespace
+}
 
 void create_globals()
 {
@@ -528,6 +528,16 @@ namespace
     {
       return "run<long long>";
     }
+
+    std::string run(int&)
+    {
+      return "run<int&>";
+    }
+
+    std::string run(int*)
+    {
+      return "run<int*>";
+    }
   };
 } // namespace
 
@@ -575,6 +585,7 @@ TESTCASE(int_conversion_1)
             value = 2**64
             my_class.run(value))";
 
+#ifdef _WIN32
   std::string expected2 = R"(Could not resolve method call for MyClass3#run
   5 overload(s) were evaluated based on the types of Ruby parameters provided:
      std::string AnonymousNamespace::MyClass3*::run(char*)
@@ -582,6 +593,15 @@ TESTCASE(int_conversion_1)
      std::string AnonymousNamespace::MyClass3*::run(short)
      std::string AnonymousNamespace::MyClass3*::run(long)
      std::string AnonymousNamespace::MyClass3*::run(__int64))";
+#else
+  std::string expected2 = R"(Could not resolve method call for MyClass3#run
+  5 overload(s) were evaluated based on the types of Ruby parameters provided:
+     std::string AnonymousNamespace::MyClass3*::run(char*)
+     std::string AnonymousNamespace::MyClass3*::run(unsigned char*)
+     std::string AnonymousNamespace::MyClass3*::run(short)
+     std::string AnonymousNamespace::MyClass3*::run(long)
+     std::string AnonymousNamespace::MyClass3*::run(long long))";
+#endif
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
@@ -708,6 +728,28 @@ TESTCASE(int_conversion_6)
                         my_class.run(buffer.data))";
   String result = m.module_eval(code);
   ASSERT_EQUAL("run<unsigned char*>", result.str());
+}
+
+TESTCASE(int_conversion_7)
+{
+  Class c = define_class<MyClass3>("MyClass3").
+    define_constructor(Constructor<MyClass3>()).
+    define_method<std::string(MyClass3::*)(int&)>("run", &MyClass3::run).
+    define_method<std::string(MyClass3::*)(int*)>("run", &MyClass3::run);
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(my_class = MyClass3.new
+                        buffer = Rice::Buffer≺int≻.new("99")
+                        my_class.run(buffer.data))";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("run<int*>", result.str());
+
+  code = R"(my_class = MyClass3.new
+            ref = Rice::Reference≺int≻.new(99)
+            my_class.run(ref))";
+  result = m.module_eval(code);
+  ASSERT_EQUAL("run<int&>", result.str());
 }
 
 namespace

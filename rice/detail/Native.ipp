@@ -193,29 +193,31 @@ namespace Rice::detail
   template<typename T, bool isBuffer>
   inline void Native::verify_type()
   {
-    using Base_T = std::remove_pointer_t<remove_cv_recursive_t<T>>;
-
     detail::verifyType<T>();
 
-    if constexpr (std::is_pointer_v<T> && std::is_fundamental_v<std::remove_pointer_t<T>>)
+    if constexpr (std::is_pointer_v<T>)
     {
-      Type<Pointer<Base_T>>::verify();
-      Type<Buffer<Base_T>>::verify();
+      using Base_T = std::remove_pointer_t<remove_cv_recursive_t<T>>;
+
+      if constexpr (std::is_fundamental_v<Base_T> || std::is_pointer_v<Base_T> || isBuffer)
+      {
+        Type<Pointer<Base_T>>::verify();
+      }
     }
-    else if constexpr (std::is_pointer_v<Base_T>)
+    else if constexpr (std::is_reference_v<T>)
     {
-      Type<Pointer<Base_T>>::verify();
-      Type<Buffer<Base_T>>::verify();
+      using Base_T = std::remove_reference_t<remove_cv_recursive_t<T>>;
+
+      if constexpr (std::is_fundamental_v<Base_T>)
+      {
+        Type<Reference<Base_T>>::verify();
+      }
     }
     else if constexpr (std::is_array_v<T>)
     {
-      Type<Pointer<std::remove_extent_t<remove_cv_recursive_t<T>>>>::verify();
-      Type<Buffer<std::remove_extent_t<remove_cv_recursive_t<T>>>>::verify();
-    }
-    else if constexpr (isBuffer)
-    {
+      using Base_T = std::remove_extent_t<remove_cv_recursive_t<T>>;
+
       Type<Pointer<Base_T>>::verify();
-      Type<Buffer<Base_T>>::verify();
     }
   }
 
