@@ -20,10 +20,6 @@ module Rice
 		end
 
 		def process_class(klass)
-			if ['Rice', 'Std'].include?(klass.name.split('::').first)
-				return
-			end
-
 			STDOUT << "  " << klass << "\n"
 
 			native_attributes = Registries.instance.natives.native_attributes(klass).sort.group_by(&:name)
