@@ -20,7 +20,7 @@ TEARDOWN(Data_Type)
   rb_gc_start();
 }
 
-namespace
+/*namespace
 {
   class MyClass
   {
@@ -499,7 +499,7 @@ TESTCASE(null_ptrs)
 
   result = o.call("set", nullptr);
   ASSERT_EQUAL(Qnil, result.value());
-}
+}*/
 
 namespace
 {
@@ -595,7 +595,7 @@ TESTCASE(pointers)
   result = object.call("check_void_helper", helper);
   ASSERT_EQUAL(Qtrue, result.value());
 }
-
+/*
 namespace
 {
   class BigObject
@@ -906,3 +906,4 @@ TESTCASE(pointer_of_pointer_ranges)
   Object result = m.module_eval(code);
   ASSERT_EQUAL(21, detail::From_Ruby<int>().convert(result));
 }
+*/

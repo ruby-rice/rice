@@ -59,23 +59,26 @@ nav:
     - Type Verification: types/verification.md
   - Wrapping C++:
     - Overview: bindings/overview.md
+    - Classes: bindings/classes.md
     - Constructors: bindings/constructors.md
     - Methods: bindings/methods.md
     - Overloaded Methods: bindings/overloaded_methods.md
-    - GVL: bindings/gvl.md
     - Attributes: bindings/attributes.md
-    - Enums: bindings/enums.md
     - Constants: bindings/constants.md
     - Iterators: bindings/iterators.md
-    - Pointers: bindings/pointers.md
-    - Buffers: bindings/buffers.md
-    - Class Templates: bindings/class_templates.md
+    - Enums: bindings/enums.md
     - Operators: bindings/operators.md
     - Exceptions: bindings/exceptions.md
-    - Memory Management: bindings/memory_management.md
-    - Inheritance: bindings/inheritance.md
     - Callbacks: bindings/callbacks.md
-    - Instance Registry: bindings/instance_registry.md
+    - Advanced:
+      - Directors: bindings/directors.md
+      - GVL: bindings/gvl.md
+      - Class Templates: bindings/class_templates.md
+      - References: bindings/references.md
+      - Pointers: bindings/pointers.md
+      - Buffers: bindings/buffers.md
+      - Memory Management: bindings/memory_management.md
+      - Instance Registry: bindings/instance_registry.md
   - STL Support:
     - Overview: stl/stl.md
     - std::complex: stl/complex.md
@@ -111,6 +114,7 @@ nav:
     - Overview: ruby_api/overview.md
     - Buffer: ruby_api/buffer.md
     - Pointer: ruby_api/pointer.md
+    - Reference: ruby_api/reference.md
     - Registries: ruby_api/registries.md
     - Native Registry: ruby_api/native_registry.md
     - Type Registry: ruby_api/type_registry.md
@@ -119,6 +123,7 @@ nav:
     - Arg: ruby_api/arg.md
   - Packaging:
     - Overview: packaging/packaging.md
+    - Build Settings: packaging/build_settings.md
     - extconf.rb: packaging/extconf.rb.md
     - CMake: packaging/cmake.md
     - RBS: packaging/rbs.md

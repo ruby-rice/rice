@@ -27,7 +27,7 @@ namespace Rice::detail
   {
     if (!valueOpt.has_value())
     {
-      return Convertible::Exact;  // Default match - doesn't affect minimum
+      return Convertible::None;
     }
     else if (this->arg()->isValue())
     {
@@ -141,7 +141,7 @@ namespace Rice::detail
       else if (this->arg()->hasDefaultValue())
       {
         T defaultValue = this->arg()->template defaultValue<T>();
-        return this->toRuby_.convert(defaultValue);
+        return this->toRuby_.convert((remove_cv_recursive_t<T>)defaultValue);
       }
     }
 

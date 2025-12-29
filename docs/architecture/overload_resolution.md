@@ -15,7 +15,7 @@ struct Convertible
 {
   static constexpr double Exact = 1.0;           // Perfect type match
   static constexpr double None = 0.0;            // Cannot convert
-  static constexpr double IntToFloat = 0.9;      // Penalty for int to float conversion
+  static constexpr double IntToFloat = 0.5;      // Penalty for int to float conversion
   static constexpr double SignedToUnsigned = 0.5;// Penalty for signed to unsigned (can't represent negatives)
   static constexpr double FloatToInt = 0.5;      // Penalty for float to int conversion
   static constexpr double ConstMismatch = 0.99;  // Penalty for const mismatch
@@ -26,28 +26,28 @@ struct Convertible
 
 Ruby numeric types have precision defined in terms of bits:
 
-| Ruby Type | Precision Bits | Notes |
-|-----------|----------------|-------|
-| Integer (Fixnum/Bignum) | 63 | Same as C++ long long |
-| Float | 53 | Same as C++ double mantissa |
+| Ruby Type               | Precision Bits  | Notes                       |
+|-------------------------|-----------------|-----------------------------|
+| Integer (Fixnum/Bignum) | 63              | Same as C++ long long       |
+| Float                   | 53              | Same as C++ double mantissa |
 
 C++ types use `std::numeric_limits<T>::digits`:
 
-| C++ Type | Precision Bits |
-|----------|----------------|
-| char | 7 |
-| signed char | 7 |
-| unsigned char | 8 |
-| short | 15 |
-| unsigned short | 16 |
-| int | 31 |
-| unsigned int | 32 |
-| long | 31 or 63* |
-| unsigned long | 32 or 64* |
-| long long | 63 |
-| unsigned long long | 64 |
-| float | 24 (mantissa) |
-| double | 53 (mantissa) |
+| C++ Type           | Precision Bits |
+|--------------------|----------------|
+| char               | 7              |
+| signed char        | 7              |
+| unsigned char      | 8              |
+| short              | 15             |
+| unsigned short     | 16             |
+| int                | 31             |
+| unsigned int       | 32             |
+| long               | 31 or 63*      |
+| unsigned long      | 32 or 64*      |
+| long long          | 63             |
+| unsigned long long | 64             |
+| float              | 24 (mantissa)  |
+| double             | 53 (mantissa)  |
 
 \* Platform dependent
 
@@ -81,10 +81,10 @@ Score = 0.508 * 0.5 = 0.254
 
 This ensures signed types are preferred over unsigned types. For example, given overloads `foo(int)` and `foo(unsigned int)`:
 
-| Overload | Score | Calculation |
-|----------|-------|-------------|
-| foo(int) | 0.49 | 31/63 |
-| foo(unsigned int) | 0.25 | 32/63 × 0.5 |
+| Overload          | Score  | Calculation |
+|-------------------|--------|-------------|
+| foo(int)          | 0.49   | 31/63       |
+| foo(unsigned int) | 0.25   | 32/63 × 0.5 |
 
 Result: `foo(int)` is selected.
 
@@ -96,24 +96,24 @@ When converting a Ruby Integer to a C++ float type, the score combines precision
 
 ```
 Score = precisionScore * IntToFloat
-      = precisionScore * 0.9
+      = precisionScore * 0.5
 ```
 
 Example: Ruby Integer (63 bits) to C++ double (53 bits)
 ```
 precisionScore = min(63, 53) / 63 = 53/63 = 0.841
-Score = 0.841 * 0.9 = 0.757
+Score = 0.841 * 0.5 = 0.42
 ```
 
 Example: Ruby Integer (63 bits) to C++ float (24 bits)
 ```
 precisionScore = min(63, 24) / 63 = 24/63 = 0.381
-Score = 0.381 * 0.9 = 0.343
+Score = 0.381 * 0.5 = 0.19
 ```
 
 ### Float to Integer
 
-When converting a Ruby Float to a C++ integer type, a larger penalty is applied because the fractional part is lost:
+When converting a Ruby Float to a C++ integer type, a penalty is applied because the fractional part is lost:
 
 ```
 Score = precisionScore * FloatToInt
@@ -136,29 +136,29 @@ Score = 1.0 * 0.5 = 0.5
 
 The following table shows conversion scores for all Ruby-to-C++ type combinations, with the underlying calculations.
 
-| C++ Type           | Bits | True | False | Nil | String | Integer | Float |
-|--------------------|:----:|:----:|:-----:|:---:|:------:|:-------:|:-----:|
-| bool               |  -   | 1.0  |  1.0  | 1.0 |        |         |       |
-| char               |  7   |      |       |     |  1.0   | 0.11 = 7/63 | 0.07 = 7/53×0.5 |
-| signed char        |  7   |      |       |     |  1.0   | 0.11 = 7/63 | 0.07 = 7/53×0.5 |
-| unsigned char      |  8   |      |       |     |  1.0   | 0.06 = 8/63×0.5 | 0.08 = 8/53×0.5 |
-| short              | 15   |      |       |     |        | 0.24 = 15/63 | 0.14 = 15/53×0.5 |
+| C++ Type           | Bits | True | False | Nil | String |     Integer      |      Float       |
+|--------------------|:----:|:----:|:-----:|:---:|:------:|:----------------:|:----------------:|
+| bool               |  -   | 1.0  |  1.0  | 1.0 |        |                  |                  |
+| char               |  7   |      |       |     |  1.0   |   0.11 = 7/63    | 0.07 = 7/53×0.5  |
+| signed char        |  7   |      |       |     |  1.0   |   0.11 = 7/63    | 0.07 = 7/53×0.5  |
+| unsigned char      |  8   |      |       |     |  1.0   | 0.06 = 8/63×0.5  | 0.08 = 8/53×0.5  |
+| short              | 15   |      |       |     |        |   0.24 = 15/63   | 0.14 = 15/53×0.5 |
 | unsigned short     | 16   |      |       |     |        | 0.13 = 16/63×0.5 | 0.15 = 16/53×0.5 |
-| int                | 31   |      |       |     |        | 0.49 = 31/63 | 0.29 = 31/53×0.5 |
+| int                | 31   |      |       |     |        |   0.49 = 31/63   | 0.29 = 31/53×0.5 |
 | unsigned int       | 32   |      |       |     |        | 0.25 = 32/63×0.5 | 0.30 = 32/53×0.5 |
-| long*              | 31   |      |       |     |        | 0.49 = 31/63 | 0.29 = 31/53×0.5 |
+| long*              | 31   |      |       |     |        |   0.49 = 31/63   | 0.29 = 31/53×0.5 |
 | unsigned long*     | 32   |      |       |     |        | 0.25 = 32/63×0.5 | 0.30 = 32/53×0.5 |
-| long long          | 63   |      |       |     |        | 1.0 = 63/63 | 0.50 = 1.0×0.5 |
-| unsigned long long | 64   |      |       |     |        | 0.50 = 1.0×0.5 | 0.50 = 1.0×0.5 |
-| float              | 24   |      |       |     |        | 0.34 = 24/63×0.9 | 0.45 = 24/53 |
-| double             | 53   |      |       |     |        | 0.76 = 53/63×0.9 | 1.0 = 53/53 |
+| long long          | 63   |      |       |     |        |   1.0 = 63/63    |  0.50 = 1.0×0.5  |
+| unsigned long long | 64   |      |       |     |        |  0.50 = 1.0×0.5  |  0.50 = 1.0×0.5  |
+| float              | 24   |      |       |     |        | 0.19 = 24/63×0.5 |   0.45 = 24/53   |
+| double             | 53   |      |       |     |        | 0.42 = 53/63×0.5 |   1.0 = 53/53    |
 
 \* `long` is platform-dependent. On 64-bit systems: `long` = 63 bits, `unsigned long` = 64 bits.
 
 **Score formulas:**
 - **Integer → signed integer**: `targetBits / 63` (narrowing) or `1.0` (widening)
 - **Integer → unsigned integer**: `(targetBits / 63) × 0.5` (SignedToUnsigned penalty)
-- **Integer → float**: `min(targetBits, 63) / 63 × 0.9` (IntToFloat penalty)
+- **Integer → float**: `min(targetBits, 63) / 63 × 0.5` (IntToFloat penalty)
 - **Float → integer**: `min(targetBits, 53) / 53 × 0.5` (FloatToInt penalty)
 - **Float → float**: `targetBits / 53` (narrowing) or `1.0` (widening)
 
@@ -219,7 +219,7 @@ Called with Ruby Integer `foo(42)`:
 | Overload | Parameter Score | Final Score |
 |----------|-----------------|-------------|
 | foo(int) | 1.0 (exact) | 1.0 |
-| foo(double) | 0.9 (int to float) | 0.9 |
+| foo(double) | 0.42 (int to float) | 0.42 |
 
 Result: `foo(int)` is selected.
 
@@ -288,7 +288,7 @@ Called with `qux(1, 2.0)` (Integer, Float):
 | Overload | Scores | Min Score | Final |
 |----------|--------|-----------|-------|
 | qux(int, double) | 1.0, 1.0 | 1.0 | 1.0 |
-| qux(double, int) | 0.9, 0.5 | 0.5 | 0.5 |
+| qux(double, int) | 0.42, 0.5 | 0.42 | 0.42 |
 
 Result: `qux(int, double)` is selected.
 
@@ -296,7 +296,7 @@ Called with `qux(1.0, 2)` (Float, Integer):
 
 | Overload | Scores | Min Score | Final |
 |----------|--------|-----------|-------|
-| qux(int, double) | 0.5, 0.9 | 0.5 | 0.5 |
+| qux(int, double) | 0.5, 0.42 | 0.42 | 0.42 |
 | qux(double, int) | 1.0, 1.0 | 1.0 | 1.0 |
 
 Result: `qux(double, int)` is selected.

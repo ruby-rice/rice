@@ -136,7 +136,7 @@ Note the prefix `rb_c` on the name of the class. This is a convention that the R
 
 Also note that we don't include "ruby.h" directly. Rice has a wrapper for ruby.h that handles some compatibility issues across platforms and Ruby versions. Always include the Rice headers before including anything that might include "ruby.h".
 
-## Defining methods
+## Defining Methods
 
 Now let's add a method to our class:
 
@@ -201,7 +201,7 @@ Note that we're chaining calls on the `Class` object. Most member functions in `
 
 For more information refer to the [methods](bindings/methods.md) section.
 
-## Defining methods with lambdas
+## Defining Methods with Lambdas
 
 It is also possible to define_methods using C++ lambdas. Similar to define_method, the lambda takes self as an implicit parameter:
 
@@ -217,7 +217,7 @@ Note that we pass self as a reference since we do not want to copy it!
 
 For more information refer to the [methods](bindings/methods.md) section.
 
-## Defining functions
+## Defining Functions
 
 It is also possible to add methods to a Ruby class using `define_function`. The difference is that no implicit self parameter is passed. Once again, you can use function pointers
 or lambdas:
@@ -284,7 +284,7 @@ Next, we define a function `static_hello` that is implemented by a C++ static me
 
 Last, we define a method `hello` that is implemented by a C++ member function. When Ruby calls this function, instead of passing an implicit self parameter, Rice is smart enough to direct the call to the correct C++ Test instance.
 
-## Defining attributes
+## Defining Attributes
 
 C++ structures, and sometimes classes, often have public member variables that store data. Rice makes it easy to wrap these member variables via the use of `define_attr`:
 
@@ -347,7 +347,7 @@ b = MyStruct.read_write
 
 For more information refer to the [Attributes](bindings/attributes.md) section.
 
-## Type conversions
+## Type Conversions
 
 Rice is smart enough to convert between most Ruby and C++ objects. Let's look again at our example class:
 

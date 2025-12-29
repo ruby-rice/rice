@@ -35,7 +35,7 @@ namespace Rice::detail
   {
     static constexpr double Exact = 1.0;           // Perfect type match
     static constexpr double None = 0.0;            // Cannot convert
-    static constexpr double IntToFloat = 0.9;      // Domain change penalty when converting int to float
+    static constexpr double IntToFloat = 0.5;      // Domain change penalty when converting int to float
     static constexpr double SignedToUnsigned = 0.5;// Penalty for signed to unsigned (can't represent negatives)
     static constexpr double FloatToInt = 0.5;      // Domain change penalty when converting float to int (lossy)
     static constexpr double ConstMismatch = 0.99;  // Penalty for const mismatch

@@ -35,6 +35,46 @@ module Rice
 						write_class(klass)
 					end
 				end
+
+				create_indexes
+			end
+
+			def create_indexes
+				# Find all directories (including output root)
+				directories = Dir.glob(File.join(@output, '**', '*')).select { |f| File.directory?(f) }
+				directories.unshift(@output)
+
+				directories.each do |dir|
+					entries = []
+					has_index = File.exist?(File.join(dir, 'index.md'))
+
+					# Get all .md files in this directory (excluding index.md)
+					Dir.glob(File.join(dir, '*.md')).each do |file|
+						basename = File.basename(file)
+						entries << basename unless basename == 'index.md'
+					end
+
+					# Get all subdirectories
+					Dir.glob(File.join(dir, '*')).each do |path|
+						if File.directory?(path)
+							entries << File.basename(path)
+						end
+					end
+
+					# Sort alphabetically
+					entries.sort!
+
+					# Prepend index.md if it exists
+					entries.unshift('index.md') if has_index
+
+					pages_path = File.join(dir, '.pages')
+					File.open(pages_path, 'w') do |file|
+						file << "nav:\n"
+						entries.each do |entry|
+							file << "  - #{entry}\n"
+						end
+					end
+				end
 			end
 
 			def output_path(klass)
@@ -164,10 +204,16 @@ module Rice
 
 				name = ESCAPE_METHODS[native.name] || native.name
 
-				if url
-					"[#{name}](#{url})(#{parameters_sig(klass, native)}) -> #{return_sig(klass, native)}"
+				parameters_string = if native.parameters.empty?
+															""
+														else
+															"(#{parameters_sig(klass, native)})"
+														end
+
+  			if url
+					"[#{name}](#{url})#{parameters_string} -> #{return_sig(klass, native)}"
 				else
-					"#{name}(#{parameters_sig(klass, native)}) -> #{return_sig(klass, native)}"
+					"#{name}#{parameters_string} -> #{return_sig(klass, native)}"
 				end
 			end
 
@@ -195,24 +241,23 @@ module Rice
 			end
 
 			def write_module(a_module)
-				native_singleton_functions = Registries.instance.natives.native_singleton_functions(a_module).sort.group_by(&:name)
+				native_singleton_functions = Registries.instance.natives.native_functions(a_module.singleton_class).sort.group_by(&:name)
+				return if native_singleton_functions.empty?
 
 				path = output_path(a_module)
 				File.open(path, 'w') do |file|
 					file << "#" << a_module.name << "\n"
-					unless native_singleton_functions.empty?
-						file << "## Singleton Methods" << "\n"
-						native_singleton_functions.each do |name, natives|
-							file << method_sigs(a_module, natives, false) << "\n\n"
-						end
-						file << "\n"
+ 				  file << "## Singleton Methods" << "\n"
+					native_singleton_functions.each do |name, natives|
+						file << method_sigs(a_module, natives, false) << "\n\n"
 					end
-				end
+					file << "\n"
+ 					end
 			end
 
 			def write_class(klass)
 				native_attributes = Registries.instance.natives.native_attributes(klass).sort.group_by(&:name)
-				native_singleton_functions = Registries.instance.natives.native_singleton_functions(klass).sort.group_by(&:name)
+				native_singleton_functions = Registries.instance.natives.native_functions(klass.singleton_class).sort.group_by(&:name)
 				native_methods = Registries.instance.natives.native_methods(klass).sort.group_by(&:name)
 
 				path = output_path(klass)
@@ -229,7 +274,7 @@ module Rice
 					end
 
 					# Constructors
-					constructors = native_methods["initialize"]
+					constructors = native_methods.delete("initialize")
 					if constructors
 						file << "## Constructors" << "\n"
 						constructors.each do |constructor|
@@ -251,7 +296,6 @@ module Rice
 					unless native_methods.empty?
 						file << "## Methods" << "\n"
 						native_methods.each do |name, natives|
-							next if name == "initialize"
 							file << method_sigs(klass, natives, false) << "\n\n"
 						end
 						file << "\n"

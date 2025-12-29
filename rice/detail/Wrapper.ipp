@@ -29,6 +29,7 @@ namespace Rice::detail
   template <typename T>
   inline Wrapper<T>::Wrapper(T& data): data_(data)
   {
+    this->isConst_ = std::is_const_v<std::remove_reference_t<T>>;
   }
 
   template <typename T>

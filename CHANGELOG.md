@@ -1,15 +1,30 @@
 # Changelog 
 
-## 4.8.0 (2025-11-28)
-The release focuses on compilation times and library sizes. Compilation times are approximately 2x faster than version 4.7 and a bit faster than 4.6. Library sizes are about 30% smaller.
+## 4.8.0 (2025-12-29)
+This release focuses on making Rice easier to use:
 
-However, these updates required some breaking changes, which include:
+* Compilation times are approximately 2x faster than version 4.7
+* Compiled library sizes are about 30% smaller
+* Improved keyword argument support
+* Improved method override support
+* Improved CMake support
+* Improved rbs generation support
+* Improved api documentation generation support
+* Expanded and improved documentation
+* Enum values can now be compared against their underlying type (e.g., `Season::Red == 0`)
+* STL containers now support `==` and `eql?` for equality comparison
+* Automatic creation of `std::shared_ptr<T>` Ruby classes
+* Support for C++ references in callbacks
+* Array class now supports random iterators
+* Fixed Ruby detection for Homebrew installations on macOS
+* Added support for references to fundamental types
+
+However, these changes did require some breaking changes, which include:
 
 * `Return().isBuffer()` is replaced by `ReturnBuffer()`
 * `Arg("").isBuffer()` is replaced by `ArgBuffer("")`
 * `Function().noGVL()` is replaced by `NoGvL()`
-
-See the pointer documentation for information on how to use them.
+* `is_convertible` methods must now return a `double` instead of a `Convertible` enum
 
 ## 4.7.1 (2025-10-28)
 Updates:

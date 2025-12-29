@@ -42,7 +42,7 @@ Rice automatically converts between C++ and Ruby types. For fundamental types (i
 - [Attributes](attributes.md) - Exposing C++ member variables
 - [Enums](enums.md) - Wrapping C++ enumerations
 - [Constants](constants.md) - Defining Ruby constants
-- [Inheritance](inheritance.md) - Mapping C++ class hierarchies to Ruby
+- [Inheritance](directors.md) - Mapping C++ class hierarchies to Ruby
 - [Operators](operators.md) - Wrapping C++ operators
 - [Iterators](iterators.md) - Exposing C++ iterators to Ruby
 - [Pointers](pointers.md) - Working with C++ pointers

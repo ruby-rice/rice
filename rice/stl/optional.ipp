@@ -58,6 +58,18 @@ namespace Rice::detail
       }
     }
 
+    VALUE convert(const std::optional<T>& data)
+    {
+      if (data.has_value())
+      {
+        return To_Ruby<T>().convert(data.value());
+      }
+      else
+      {
+        return Qnil;
+      }
+    }
+
   private:
     Arg* arg_ = nullptr;
   };

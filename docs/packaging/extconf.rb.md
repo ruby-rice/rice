@@ -4,7 +4,7 @@ The default way to build `RubyGem` extensions is to use `extconf.rb`. However, `
 
 * Uses a C++ compiler instead of a C compiler
 * Includes Rice header files automatically
-* Sets required [compiler settings](packaging.md#compiler-settings)
+* Sets required [compiler settings](build_settings.md#compiler-settings)
 * Links to the standard C++ library
 
 ## Enabling

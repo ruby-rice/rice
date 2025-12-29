@@ -193,29 +193,31 @@ namespace Rice::detail
   template<typename T, bool isBuffer>
   inline void Native::verify_type()
   {
-    using Base_T = std::remove_pointer_t<remove_cv_recursive_t<T>>;
-
     detail::verifyType<T>();
 
-    if constexpr (std::is_pointer_v<T> && std::is_fundamental_v<std::remove_pointer_t<T>>)
+    if constexpr (std::is_pointer_v<T>)
     {
-      Type<Pointer<Base_T>>::verify();
-      Type<Buffer<Base_T>>::verify();
+      using Base_T = std::remove_pointer_t<remove_cv_recursive_t<T>>;
+
+      if constexpr (std::is_fundamental_v<Base_T> || std::is_pointer_v<Base_T> || isBuffer)
+      {
+        Type<Pointer<Base_T>>::verify();
+      }
     }
-    else if constexpr (std::is_pointer_v<Base_T>)
+    else if constexpr (std::is_reference_v<T>)
     {
-      Type<Pointer<Base_T>>::verify();
-      Type<Buffer<Base_T>>::verify();
+      using Base_T = std::remove_reference_t<remove_cv_recursive_t<T>>;
+
+      if constexpr (std::is_fundamental_v<Base_T>)
+      {
+        Type<Reference<Base_T>>::verify();
+      }
     }
     else if constexpr (std::is_array_v<T>)
     {
-      Type<Pointer<std::remove_extent_t<remove_cv_recursive_t<T>>>>::verify();
-      Type<Buffer<std::remove_extent_t<remove_cv_recursive_t<T>>>>::verify();
-    }
-    else if constexpr (isBuffer)
-    {
+      using Base_T = std::remove_extent_t<remove_cv_recursive_t<T>>;
+
       Type<Pointer<Base_T>>::verify();
-      Type<Buffer<Base_T>>::verify();
     }
   }
 
@@ -344,15 +346,6 @@ namespace Rice::detail
       }
     }
 
-    // Block handling. If we find a block and the last parameter is missing then
-    // set it to the block
-    if (rb_block_given_p())// FIXME && result.size() > 0 && !result.back().second.has_value())
-    {
-      VALUE proc = rb_block_proc();
-      std::string key = "arg_" + std::to_string(result.size());
-      result[key] = proc;
-    }
-
     return result;
   }
 
@@ -396,10 +389,19 @@ namespace Rice::detail
       {
         result[i] = parameter->defaultValueRuby();
       }
+      else if (arg->isBlock() && rb_block_given_p())
+      {
+        result[i] = protect(rb_block_proc);
+      }
       else if (validate)
       {
         std::string message = "Missing argument. Name: " + arg->name + ". Index: " + std::to_string(i) + ".";
         throw std::invalid_argument(message);
+      }
+      else
+      {
+        // No point in continuing - this native is not going to match
+        return result;
       }
     }
 
