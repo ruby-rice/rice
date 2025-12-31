@@ -72,4 +72,33 @@ namespace Rice::detail
     // Lookup items for method
     return this->natives_[key];
   }
+
+  inline std::vector<std::string> NativeRegistry::lookup(VALUE klass, NativeKind kind)
+  {
+    std::vector<std::string> result;
+
+    if (rb_type(klass) == T_ICLASS)
+    {
+      klass = detail::protect(rb_class_of, klass);
+    }
+
+    for (auto& pair : this->natives_)
+    {
+      const std::pair<VALUE, ID>& key = pair.first;
+
+      if (klass == key.first)
+      {
+        const std::vector<std::unique_ptr<Native>>& natives = pair.second;
+        for (auto& native : natives)
+        {
+          if (native->kind() == kind)
+          {
+            result.push_back(native->name());
+          }
+        }
+      }
+    }
+
+    return result;
+  }
 }

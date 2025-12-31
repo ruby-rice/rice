@@ -2,6 +2,10 @@
 
 namespace Rice::detail
 {
+  inline WrapperBase::WrapperBase(rb_data_type_t* rb_data_type) : rb_data_type_(rb_data_type)
+  {
+  }
+
   inline bool WrapperBase::isConst()
   {
     return this->isConst_;
@@ -27,31 +31,40 @@ namespace Rice::detail
 
   // ----  Wrapper -----
   template <typename T>
-  inline Wrapper<T>::Wrapper(T& data): data_(data)
+  inline Wrapper<T>::Wrapper(rb_data_type_t* rb_data_type, T& data) : WrapperBase(rb_data_type), data_(data)
   {
     this->isConst_ = std::is_const_v<std::remove_reference_t<T>>;
   }
 
   template <typename T>
-  inline Wrapper<T>::Wrapper(T&& data) : data_(std::move(data))
+  inline Wrapper<T>::Wrapper(rb_data_type_t* rb_data_type, T&& data) : WrapperBase(rb_data_type), data_(std::move(data))
   {
   }
 
   template <typename T>
   inline Wrapper<T>::~Wrapper()
   {
-    Registries::instance.instances.remove(this->get());
+    Registries::instance.instances.remove(this->get(this->rb_data_type_));
   }
 
   template <typename T>
-  inline void* Wrapper<T>::Wrapper::get()
+  inline void* Wrapper<T>::get(rb_data_type_t* requestedType)
   {
-    return (void*)&this->data_;
+    if (rb_typeddata_inherited_p(this->rb_data_type_, requestedType))
+    {
+      return (void*)&this->data_;
+    }
+    else
+    {
+      throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+                      this->rb_data_type_->wrap_struct_name,
+                      requestedType->wrap_struct_name);
+    }
   }
 
   // ----  Wrapper& -----
   template <typename T>
-  inline Wrapper<T&>::Wrapper(T& data): data_(data)
+  inline Wrapper<T&>::Wrapper(rb_data_type_t* rb_data_type, T& data) : WrapperBase(rb_data_type), data_(data)
   {
     this->isConst_ = std::is_const_v<std::remove_reference_t<T>>;
   }
@@ -59,18 +72,27 @@ namespace Rice::detail
   template <typename T>
   inline Wrapper<T&>::~Wrapper()
   {
-    Registries::instance.instances.remove(this->get());
+    Registries::instance.instances.remove(this->get(this->rb_data_type_));
   }
 
   template <typename T>
-  inline void* Wrapper<T&>::get()
+  inline void* Wrapper<T&>::get(rb_data_type_t* requestedType)
   {
-    return (void*)&this->data_;
+    if (rb_typeddata_inherited_p(this->rb_data_type_, requestedType))
+    {
+      return (void*)&this->data_;
+    }
+    else
+    {
+      throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+                      this->rb_data_type_->wrap_struct_name,
+                      requestedType->wrap_struct_name);
+    }
   }
 
   // ----  Wrapper* -----
   template <typename T>
-  inline Wrapper<T*>::Wrapper(T* data, bool isOwner) : data_(data)
+  inline Wrapper<T*>::Wrapper(rb_data_type_t* rb_data_type, T* data, bool isOwner) : WrapperBase(rb_data_type), data_(data)
   {
     this->isOwner_ = isOwner;
     this->isConst_ = std::is_const_v<std::remove_pointer_t<T>>;
@@ -79,7 +101,8 @@ namespace Rice::detail
   template <typename T>
   inline Wrapper<T*>::~Wrapper()
   {
-    Registries::instance.instances.remove(this->get());
+    Registries::instance.instances.remove(this->get(this->rb_data_type_));
+
     if constexpr (std::is_destructible_v<T>)
     {
       if (this->isOwner_)
@@ -90,14 +113,23 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void* Wrapper<T*>::get()
+  inline void* Wrapper<T*>::get(rb_data_type_t* requestedType)
   {
-    return (void*)this->data_;
+    if (rb_typeddata_inherited_p(this->rb_data_type_, requestedType))
+    {
+      return (void*)this->data_;
+    }
+    else
+    {
+      throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+                      this->rb_data_type_->wrap_struct_name,
+                      requestedType->wrap_struct_name);
+    }
   }
 
   // ----  Wrapper** -----
   template <typename T>
-  inline Wrapper<T**>::Wrapper(T** data, bool isOwner) : data_(data)
+  inline Wrapper<T**>::Wrapper(rb_data_type_t* rb_data_type, T** data, bool isOwner) : WrapperBase(rb_data_type), data_(data)
   {
     this->isOwner_ = isOwner;
     this->isConst_ = std::is_const_v<std::remove_pointer_t<std::remove_pointer_t<T>>>;
@@ -106,7 +138,8 @@ namespace Rice::detail
   template <typename T>
   inline Wrapper<T**>::~Wrapper()
   {
-    Registries::instance.instances.remove(this->get());
+    Registries::instance.instances.remove(this->get(this->rb_data_type_));
+
     if constexpr (std::is_destructible_v<T>)
     {
       if (this->isOwner_)
@@ -117,9 +150,18 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void* Wrapper<T**>::get()
+  inline void* Wrapper<T**>::get(rb_data_type_t* requestedType)
   {
-    return (void*)this->data_;
+    if (rb_typeddata_inherited_p(this->rb_data_type_, requestedType))
+    {
+      return (void*)this->data_;
+    }
+    else
+    {
+      throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+                      this->rb_data_type_->wrap_struct_name,
+                      requestedType->wrap_struct_name);
+    }
   }
 
   // ---- Helper Functions -------
@@ -136,7 +178,7 @@ namespace Rice::detail
     // If Ruby is not the owner then wrap the reference
     if (!isOwner)
     {
-      wrapper = new Wrapper<T&>(data);
+      wrapper = new Wrapper<T&>(rb_data_type, data);
       result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
@@ -145,12 +187,12 @@ namespace Rice::detail
     {
       if constexpr (std::is_copy_constructible_v<typename T::value_type>)
       {
-        wrapper = new Wrapper<T>(data);
+        wrapper = new Wrapper<T>(rb_data_type, data);
         result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
       }
       else
       {
-        wrapper = new Wrapper<T>(std::move(data));
+        wrapper = new Wrapper<T>(rb_data_type, std::move(data));
         result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
       }
     }
@@ -158,14 +200,14 @@ namespace Rice::detail
     // Ruby is the owner so copy data
     else if constexpr (std::is_copy_constructible_v<T>)
     {
-      wrapper = new Wrapper<T>(data);
+      wrapper = new Wrapper<T>(rb_data_type, data);
       result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
     // Ruby is the owner so move data
     else if constexpr (std::is_move_constructible_v<T>)
     {
-      wrapper = new Wrapper<T>(std::move(data));
+      wrapper = new Wrapper<T>(rb_data_type, std::move(data));
       result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
@@ -177,7 +219,7 @@ namespace Rice::detail
       throw std::runtime_error(message);
     }
 
-    Registries::instance.instances.add(wrapper->get(), result);
+    Registries::instance.instances.add(wrapper->get(rb_data_type), result);
 
     return result;
   };
@@ -190,38 +232,40 @@ namespace Rice::detail
     if (result != Qnil)
       return result;
 
-    WrapperBase* wrapper = new Wrapper<T*>(data, isOwner);
+    WrapperBase* wrapper = new Wrapper<T*>(rb_data_type, data, isOwner);
     result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
 
-    Registries::instance.instances.add(wrapper->get(), result);
+    Registries::instance.instances.add(wrapper->get(rb_data_type), result);
     return result;
   };
 
   template <typename T>
   inline T* unwrap(VALUE value, rb_data_type_t* rb_data_type, bool takeOwnership)
   {
-    if (rb_type(value) != RUBY_T_DATA)
+    if (!RTYPEDDATA_P(value))
     {
       std::string message = "The Ruby object does not wrap a C++ object. It is actually a " +
         std::string(detail::protect(rb_obj_classname, value)) + ".";
       throw std::runtime_error(message);
     }
 
-    WrapperBase* wrapper = getWrapper(value, rb_data_type);
+    WrapperBase* wrapper = static_cast<WrapperBase*>(RTYPEDDATA_DATA(value));
 
     if (wrapper == nullptr)
     {
-      std::string message = "Wrapped C++ object is nil. Did you override " + 
-                            std::string(detail::protect(rb_obj_classname, value)) + 
+      std::string message = "Wrapped C++ object is nil. Did you override " +
+                            std::string(detail::protect(rb_obj_classname, value)) +
                             "#initialize and forget to call super?";
 
       throw std::runtime_error(message);
     }
 
     if (takeOwnership)
+    {
       wrapper->setOwner(false);
+    }
 
-    return static_cast<T*>(wrapper->get());
+    return static_cast<T*>(wrapper->get(rb_data_type));
   }
     
   template <typename Wrapper_T>
@@ -243,7 +287,8 @@ namespace Rice::detail
     if (!RTYPEDDATA_P(value))
     {
       throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
-        detail::protect(rb_obj_classname, value), "wrapped C++ object");
+                      detail::protect(rb_obj_classname, value),
+                      "wrapped C++ object");
     }
 
     return static_cast<WrapperBase*>(RTYPEDDATA_DATA(value));
@@ -257,18 +302,18 @@ namespace Rice::detail
   inline void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data)
   {
     using Wrapper_T = Wrapper<T*>;
-    
+
     Wrapper_T* wrapper = nullptr;
     TypedData_Get_Struct(value, Wrapper_T, rb_data_type, wrapper);
     if (wrapper)
     {
-      Registries::instance.instances.remove(wrapper->get());
+      Registries::instance.instances.remove(wrapper->get(rb_data_type));
       delete wrapper;
     }
 
-    wrapper = new Wrapper_T(data, true);
+    wrapper = new Wrapper_T(rb_data_type, data, true);
     RTYPEDDATA_DATA(value) = wrapper;
 
     Registries::instance.instances.add(data, value);
   }
-} // namespace
+}

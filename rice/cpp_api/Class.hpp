@@ -37,6 +37,11 @@ namespace Rice
      */
     const std::string base_name() const;
 
+    //! Return the superclass of this class
+    /*! \return Class.
+     */
+    Class superclass() const;
+
 #include "shared_methods.hpp"
   };
 

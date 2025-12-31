@@ -33,6 +33,11 @@ namespace Rice
     return result;
   }
 
+  inline Class Class::superclass() const
+  {
+    return detail::protect(rb_class_superclass, this->value());
+  }
+
   inline Class define_class_under(Object parent, Identifier id, const Class& superclass)
   {
     VALUE klass = detail::protect(rb_define_class_id_under, parent.value(), id, superclass.value());

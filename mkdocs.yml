@@ -90,12 +90,13 @@ nav:
     - std::pair: stl/pair.md
     - std::reference_wrapper: stl/reference_wrapper.md
     - std::set: stl/set.md
-    - Smart Pointers: stl/smart_pointers.md
+    - std::shared_ptr: stl/shared_ptr.md
     - std::string: stl/string.md
     - std::string_view: stl/string_view.md
     - std::tuple: stl/tuple.md
     - std::type_index: stl/type_index.md
     - std::type_info: stl/type_info.md
+    - std::unique_ptr: stl/unique_ptr.md
     - std::unordered_map: stl/unordered_map.md
     - std::variant: stl/variant.md
     - std::vector: stl/vector.md
@@ -135,3 +136,4 @@ nav:
     - Overload Resolution: architecture/overload_resolution.md
     - Registries: architecture/registries.md
     - Enumerators: architecture/enumerators.md
+    - Smart Pointers: architecture/smart_pointers.md

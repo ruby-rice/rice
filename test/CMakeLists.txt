@@ -42,6 +42,7 @@ add_executable(${PROJECT_NAME}
                "test_Overloads.cpp"
                "test_Ownership.cpp"
                "test_Proc.cpp"
+               "test_Reference.cpp"
                "test_Self.cpp"
                "test_String.cpp"
                "test_Struct.cpp"

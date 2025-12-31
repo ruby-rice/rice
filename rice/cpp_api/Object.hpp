@@ -9,6 +9,7 @@
 namespace Rice
 {
   class Class;
+  class Module;
   class String;
   class Array;
 
@@ -115,6 +116,11 @@ namespace Rice
      *  class/module or one of its descendants.
      */
     bool is_a(Object klass) const;
+
+    //! Extend the object with a module.
+    /*! \param mod the module to extend with.
+     */
+    void extend(Module const& mod);
 
     //! Determine if the objects responds to a method.
     /*! \param id the name of the method

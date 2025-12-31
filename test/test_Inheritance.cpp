@@ -128,12 +128,12 @@ TESTCASE(base_pointer_method_call)
 
   Module m = define_module("Testing");
 
-  Object message = m.module_eval(R"EOS(notification = EmailNotification.new
-                                         notification.message)EOS");
+  Object message = m.module_eval(R"(notification = EmailNotification.new
+                                    notification.message)");
   ASSERT_EQUAL("Email", detail::From_Ruby<std::string>().convert(message));
 
-  message = m.module_eval(R"EOS(notification = PushNotification.new
-                                  notification.message)EOS");
+  message = m.module_eval(R"(notification = PushNotification.new
+                             notification.message)");
   ASSERT_EQUAL("Push", detail::From_Ruby<std::string>().convert(message));
 }
 
@@ -151,12 +151,12 @@ TESTCASE(base_pointer_function_argument)
   define_global_function("process_notification", &processNotification);
 
   Module m = define_module("Testing");
-  Object message = m.module_eval(R"EOS(notification = EmailNotification.new
-                                         process_notification(notification))EOS");
+  Object message = m.module_eval(R"(notification = EmailNotification.new
+                                    process_notification(notification))");
   ASSERT_EQUAL("Email", detail::From_Ruby<std::string>().convert(message));
 
-  message = m.module_eval(R"EOS(notification = PushNotification.new
-                                  process_notification(notification))EOS");
+  message = m.module_eval(R"(notification = PushNotification.new
+                             process_notification(notification))");
   ASSERT_EQUAL("Push", detail::From_Ruby<std::string>().convert(message));
 }
 
@@ -175,12 +175,12 @@ TESTCASE(module_base_pointer_method_call)
 
   Module m = define_module("Testing");
 
-  Object message = m.module_eval(R"EOS(notification = Inheritance::EmailNotification.new
-                                       notification.message)EOS");
+  Object message = m.module_eval(R"(notification = Inheritance::EmailNotification.new
+                                    notification.message)");
   ASSERT_EQUAL("Email", detail::From_Ruby<std::string>().convert(message));
 
-  message = m.module_eval(R"EOS(notification = Inheritance::PushNotification.new
-                                  notification.message)EOS");
+  message = m.module_eval(R"(notification = Inheritance::PushNotification.new
+                             notification.message)");
   ASSERT_EQUAL("Push", detail::From_Ruby<std::string>().convert(message));
 }
 
@@ -219,8 +219,8 @@ TESTCASE(base_pointer_constructor)
 
   Module m = define_module("Testing");
 
-  Object result = m.module_eval(R"EOS(notification = PushNotification.new
+  Object result = m.module_eval(R"(notification = PushNotification.new
                                         processor = Processor.new(notification)
-                                        processor.process)EOS");
+                                        processor.process)");
   ASSERT_EQUAL("Push", detail::From_Ruby<std::string>().convert(result));
 }
