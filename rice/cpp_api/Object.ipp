@@ -99,6 +99,11 @@ namespace Rice
     return RB_TEST(result);
   }
 
+  inline void Object::extend(Module const& mod)
+  {
+    detail::protect(rb_extend_object, this->value(), mod.value());
+  }
+
   inline bool Object::respond_to(Identifier id) const
   {
     return bool(rb_respond_to(this->value(), id.id()));
