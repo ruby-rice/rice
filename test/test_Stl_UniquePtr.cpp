@@ -1,4 +1,4 @@
-#include "unittest.hpp"
+﻿#include "unittest.hpp"
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
@@ -55,6 +55,11 @@ namespace
     {
       this->flag = value;
     }
+
+    int getFlag()
+    {
+      return this->flag;
+    }
   };
 
   class Factory
@@ -97,7 +102,8 @@ SETUP(UniquePtr)
 
   define_class<MyClass>("MyClass").
     define_constructor(Constructor<MyClass>()).
-    define_method("set_flag", &MyClass::setFlag);
+    define_method("set_flag", &MyClass::setFlag).
+    define_method("get_flag", &MyClass::getFlag);
 
   define_class<Factory>("Factory").
     define_constructor(Constructor<Factory>()).
@@ -203,8 +209,47 @@ TESTCASE(Update)
 
 TESTCASE(Klass)
 {
+  define_unique_ptr<MyClass>();
   detail::TypeMapper<std::unique_ptr<MyClass>> typeMapper;
-  Object expected = Object(rb_cObject).const_get("MyClass");
+  Module aModule("Std");
+  Object expected = aModule.const_get("UniquePtr≺AnonymousNamespace꞉꞉MyClass≻");
   VALUE actual = typeMapper.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
+}
+
+TESTCASE(Empty)
+{
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(factory = Factory.new
+                        unique_ptr = factory.transfer
+                        unique_ptr.empty?)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(Qfalse, result.value());
+}
+
+TESTCASE(Release)
+{
+  MyClass::reset();
+
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(factory = Factory.new
+                        $unique_ptr = factory.transfer
+                        $unique_ptr.release)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL("MyClass", result.class_name().str());
+
+  code = R"($unique_ptr.empty?)";
+  result = m.module_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  code = R"($unique_ptr.set_flag(8))";
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval(code),
+    ASSERT(std::string(ex.what()).find("undefined method") == 0));
 }

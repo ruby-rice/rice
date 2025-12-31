@@ -209,6 +209,10 @@ namespace Rice::detail
     std::regex equalRegex(R"(,\s*std::equal_to)");
     removeGroup(base, equalRegex);
 
+    // Remove default_delete (std::unique_ptr)
+    std::regex defaultDeleteRegex(R"(,\s*std::default_delete)");
+    removeGroup(base, defaultDeleteRegex);
+
     // Remove spaces before pointers
     std::regex ptrRegex = std::regex(R"(\s+\*)");
     base = std::regex_replace(base, ptrRegex, "*");

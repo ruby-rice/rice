@@ -1,6 +1,5 @@
 #include <memory>
 
-// --------- Enable creation of std::shared_ptr from Ruby ---------
 namespace Rice
 {
   template<typename T>
@@ -22,26 +21,75 @@ namespace Rice
     }
 
     Identifier id(klassName);
-    Data_Type_T result = define_class_under<SharedPtr_T>(rb_mStd, id);
+    Data_Type_T result = define_class_under<detail::intrinsic_type<SharedPtr_T>>(rb_mStd, id).
+      define_method("get", &SharedPtr_T::get).
+      define_method("swap", &SharedPtr_T::swap).
+      define_method("use_count", &SharedPtr_T::use_count).
+      define_method("empty?", [](SharedPtr_T& self)->bool
+      {
+        return !self;
+      });
 
-    // std::shared_ptr<void> cannot be constructed from void* because void is incomplete
-    // and the deleter cannot be determined. So skip the constructor for void.
-    // std::shared_ptr<T[]> (array types) also skip constructor - arrays need special handling.
-    if constexpr (!std::is_void_v<T> && !std::is_array_v<T>)
+    if constexpr (!std::is_void_v<T>)
     {
       result.define_constructor(Constructor<SharedPtr_T, typename SharedPtr_T::element_type*>(), Arg("value").takeOwnership());
     }
 
-    result.
-      define_method("get", &SharedPtr_T::get).
-      define_method("use_count", &SharedPtr_T::use_count).
-      define_method("empty?", &SharedPtr_T::operator bool);
+    // Setup delegation to forward T's methods via get (only for non-fundamental, non-void types)
+    if constexpr (!std::is_void_v<T> && !std::is_fundamental_v<T>)
+    {
+      detail::define_forwarding(result.klass(), Data_Type<T>::klass());
+    }
 
     return result;
   }
 }
 
-// --------- Type/To_Ruby/From_Ruby ---------
+// --------- Wrapper ---------
+namespace Rice::detail
+{
+  template<typename T>
+  Wrapper<std::shared_ptr<T>>::Wrapper(rb_data_type_t* rb_data_type, const std::shared_ptr<T>& data)
+    : WrapperBase(rb_data_type), data_(data)
+  {
+    using Intrinsic_T = intrinsic_type<T>;
+
+    if constexpr (std::is_fundamental_v<Intrinsic_T>)
+    {
+      inner_rb_data_type_ = Data_Type<Pointer<Intrinsic_T>>::ruby_data_type();
+    }
+    else
+    {
+      inner_rb_data_type_ = Data_Type<Intrinsic_T>::ruby_data_type();
+    }
+  }
+
+  template<typename T>
+  Wrapper<std::shared_ptr<T>>::~Wrapper()
+  {
+    Registries::instance.instances.remove(this->get(this->rb_data_type_));
+  }
+
+  template<typename T>
+  void* Wrapper<std::shared_ptr<T>>::get(rb_data_type_t* requestedType)
+  {
+    if (rb_typeddata_inherited_p(this->rb_data_type_, requestedType))
+    {
+      return &this->data_;
+    }
+    else if (rb_typeddata_inherited_p(this->inner_rb_data_type_, requestedType))
+    {
+      return this->data_.get();
+    }
+    else
+    {
+      throw Exception(rb_eTypeError, "wrong argument type (expected %s)",
+          requestedType->wrap_struct_name);
+    }
+  }
+}
+
+// --------- Type ---------
 namespace Rice::detail
 {
   template<typename T>
@@ -49,47 +97,22 @@ namespace Rice::detail
   {
     static bool verify()
     {
+      bool result = true;
       if constexpr (std::is_fundamental_v<T>)
       {
-        Type<Pointer<T>>::verify();
-        Type<Buffer<T>>::verify();
+        result = result && Type<Pointer<T>>::verify();
       }
       else
       {
-        if (!Type<intrinsic_type<T>>::verify())
-        {
-          return false;
-        }
+        result = result && Type<T>::verify();
       }
 
-      define_shared_ptr<T>();
-
-      return true;
-    }
-  };
-
-  // Specialization for array types std::shared_ptr<T[]>
-  template<typename T>
-  struct Type<std::shared_ptr<T[]>>
-  {
-    static bool verify()
-    {
-      if constexpr (std::is_fundamental_v<T>)
+      if (result)
       {
-        Type<Pointer<T>>::verify();
-        Type<Buffer<T>>::verify();
-      }
-      else
-      {
-        if (!Type<intrinsic_type<T>>::verify())
-        {
-          return false;
-        }
+        define_shared_ptr<T>();
       }
 
-      define_shared_ptr<T[]>();
-
-      return true;
+      return result;
     }
   };
 }

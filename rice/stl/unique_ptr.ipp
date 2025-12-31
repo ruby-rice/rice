@@ -1,87 +1,123 @@
 #include <memory>
 
+namespace Rice
+{
+  template<typename T>
+  Data_Type<std::unique_ptr<T>> define_unique_ptr(std::string klassName)
+  {
+    using UniquePtr_T = std::unique_ptr<T>;
+    using Data_Type_T = Data_Type<UniquePtr_T>;
+
+    if (klassName.empty())
+    {
+      detail::TypeMapper<UniquePtr_T> typeMapper;
+      klassName = typeMapper.rubyName();
+    }
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type_T::check_defined(klassName, rb_mStd))
+    {
+      return Data_Type_T();
+    }
+
+    Identifier id(klassName);
+    Data_Type_T result = define_class_under<detail::intrinsic_type<UniquePtr_T>>(rb_mStd, id).
+      define_method("get", &UniquePtr_T::get).
+      define_method("release", &UniquePtr_T::release).
+      define_method("reset", &UniquePtr_T::reset).
+      define_method("swap", &UniquePtr_T::swap).
+      define_method("empty?", [](UniquePtr_T& self)->bool
+      {
+        return !self;
+      });
+
+    // Setup delegation to forward T's methods via get (only for non-fundamental, non-void types)
+    if constexpr (!std::is_void_v<T> && !std::is_fundamental_v<T>)
+    {
+      detail::define_forwarding(result.klass(), Data_Type<T>::klass());
+    }
+
+    return result;
+  }
+}
+
+// --------- Wrapper ---------
 namespace Rice::detail
 {
   template<typename T>
-  inline Wrapper<std::unique_ptr<T>>::Wrapper(std::unique_ptr<T>&& data)
-    : data_(std::move(data))
+  Wrapper<std::unique_ptr<T>>::Wrapper(rb_data_type_t* rb_data_type, std::unique_ptr<T>&& data)
+    : WrapperBase(rb_data_type), data_(std::move(data))
   {
+    using Intrinsic_T = intrinsic_type<T>;
+
+    if constexpr (std::is_fundamental_v<Intrinsic_T>)
+    {
+      inner_rb_data_type_ = Data_Type<Pointer<Intrinsic_T>>::ruby_data_type();
+    }
+    else
+    {
+      inner_rb_data_type_ = Data_Type<Intrinsic_T>::ruby_data_type();
+    }
   }
 
   template<typename T>
-  inline Wrapper<std::unique_ptr<T>>::~Wrapper()
+  Wrapper<std::unique_ptr<T>>::~Wrapper()
   {
-    Registries::instance.instances.remove(this->get());
+    Registries::instance.instances.remove(this->get(this->rb_data_type_));
   }
 
   template<typename T>
-  inline void* Wrapper<std::unique_ptr<T>>::get()
+  void* Wrapper<std::unique_ptr<T>>::get(rb_data_type_t* requestedType)
   {
-    return (void*)this->data_.get();
+    if (rb_typeddata_inherited_p(this->rb_data_type_, requestedType))
+    {
+      return &this->data_;
+    }
+    else if (rb_typeddata_inherited_p(this->inner_rb_data_type_, requestedType))
+    {
+      return this->data_.get();
+    }
+    else
+    {
+      throw Exception(rb_eTypeError, "wrong argument type (expected %s)",
+          requestedType->wrap_struct_name);
+    }
   }
 
+}
+
+// --------- Type ---------
+namespace Rice::detail
+{
   template<typename T>
-  inline std::unique_ptr<T>& Wrapper<std::unique_ptr<T>>::data()
+  struct Type<std::unique_ptr<T>>
   {
-    return data_;
-  }
-
-  template <typename T>
-  class To_Ruby<std::unique_ptr<T>>
-  {
-  public:
-    To_Ruby() = default;
-
-    explicit To_Ruby(Arg* arg) : arg_(arg)
+    static bool verify()
     {
-    }
+      bool result = true;
+      if constexpr (std::is_fundamental_v<T>)
+      {
+        result = result && Type<Pointer<T>>::verify();
+      }
+      else
+      {
+        result = result && Type<T>::verify();
+      }
 
-    VALUE convert(std::unique_ptr<T>& data)
-    {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-      return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
-    }
+      if (result)
+      {
+        define_unique_ptr<T>();
+      }
 
-    VALUE convert(std::unique_ptr<T>&& data)
-    {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-      return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
+      return result;
     }
-
-  private:
-    Arg* arg_ = nullptr;
   };
 
-  template <typename T>
-  class To_Ruby<std::unique_ptr<T>&>
-  {
-  public:
-    To_Ruby() = default;
-
-    explicit To_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    VALUE convert(std::unique_ptr<T>& data)
-    {
-      std::pair<VALUE, rb_data_type_t*> rubyTypeInfo = detail::Registries::instance.types.figureType<T>(*data);
-      return detail::wrap<std::unique_ptr<T>>(rubyTypeInfo.first, rubyTypeInfo.second, data, true);
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
+  // --------- From_Ruby ---------
   template <typename T>
   class From_Ruby<std::unique_ptr<T>>
   {
   public:
-    Wrapper<std::unique_ptr<T>>* is_same_smart_ptr(VALUE value)
-    {
-      WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-      return dynamic_cast<Wrapper<std::unique_ptr<T>>*>(wrapper);
-    }
-
     From_Ruby() = default;
 
     explicit From_Ruby(Arg* arg) : arg_(arg)
@@ -90,11 +126,6 @@ namespace Rice::detail
 
     double is_convertible(VALUE value)
     {
-      if (!is_same_smart_ptr(value))
-      {
-        return Convertible::None;
-      }
-
       switch (rb_type(value))
       {
         case RUBY_T_DATA:
@@ -107,87 +138,12 @@ namespace Rice::detail
 
     std::unique_ptr<T> convert(VALUE value)
     {
-      Wrapper<std::unique_ptr<T>>* wrapper = is_same_smart_ptr(value);
-      if (!wrapper)
-      {
-        std::string message = "Invalid smart pointer wrapper";
-        throw std::runtime_error(message.c_str());
-      }
-      return std::move(wrapper->data());
+      std::unique_ptr<T>* result = detail::unwrap<std::unique_ptr<T>>(value, Data_Type<std::unique_ptr<T>>::ruby_data_type(), this->arg_ && this->arg_->isOwner());
+      // The reason we need this overriden From_Ruby is to do this std::move.
+      return std::move(*result);
     }
 
   private:
     Arg* arg_ = nullptr;
-  };
-
-  template <typename T>
-  class From_Ruby<std::unique_ptr<T>&>
-  {
-  public:
-    Wrapper<std::unique_ptr<T>>* is_same_smart_ptr(VALUE value)
-    {
-      WrapperBase* wrapper = detail::getWrapper(value, Data_Type<T>::ruby_data_type());
-      return dynamic_cast<Wrapper<std::unique_ptr<T>>*>(wrapper);
-    }
-
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
-    {
-    }
-
-    double is_convertible(VALUE value)
-    {
-      if (!is_same_smart_ptr(value))
-      {
-        return Convertible::None;
-      }
-
-      switch (rb_type(value))
-      {
-        case RUBY_T_DATA:
-          return Convertible::Exact;
-          break;
-        default:
-          return Convertible::None;
-      }
-    }
-
-    std::unique_ptr<T>& convert(VALUE value)
-    {
-      Wrapper<std::unique_ptr<T>>* wrapper = is_same_smart_ptr(value);
-      if (!wrapper)
-      {
-        std::string message = "Invalid smart pointer wrapper";
-        throw std::runtime_error(message.c_str());
-      }
-      return wrapper->data();
-    }
-
-  private:
-    Arg* arg_ = nullptr;
-  };
-
-  template<typename T>
-  struct Type<std::unique_ptr<T>>
-  {
-    static bool verify()
-    {
-      if constexpr (std::is_fundamental_v<T>)
-      {
-        return Type<Pointer<T>>::verify();
-        return Type<Buffer<T>>::verify();
-      }
-      else
-      {
-        return Type<T>::verify();
-      }
-    }
-
-    static VALUE rubyKlass()
-    {
-      TypeMapper<T> typeMapper;
-      return typeMapper.rubyKlass();
-    }
   };
 }

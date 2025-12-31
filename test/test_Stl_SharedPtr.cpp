@@ -29,6 +29,8 @@ namespace
 
   public:
     int flag = 0;
+    std::string name = "default";
+    int threshold = 0;
 
   public:
     MyClass()
@@ -54,6 +56,17 @@ namespace
     void setFlag(int value)
     {
       this->flag = value;
+    }
+  };
+
+  class MyClassInherited : public MyClass
+  {
+  public:
+    int extra = 0;
+
+    void setExtra(int value)
+    {
+      this->extra = value;
     }
   };
 
@@ -85,6 +98,11 @@ namespace
         instance_ = std::make_shared<MyClass>();
       }
       return instance_;
+    }
+
+    std::shared_ptr<MyClassInherited> share_inherited()
+    {
+      return std::make_shared<MyClassInherited>();
     }
 
   public:
@@ -138,12 +156,20 @@ SETUP(SharedPtr)
 
   define_class<MyClass>("MyClass").
     define_constructor(Constructor<MyClass>()).
-    define_method("set_flag", &MyClass::setFlag);
+    define_method("set_flag", &MyClass::setFlag).
+    define_attr("name", &MyClass::name, Rice::AttrAccess::Read).
+    define_attr("threshold", &MyClass::threshold);
+
+  define_class<MyClassInherited, MyClass>("MyClassInherited").
+    define_constructor(Constructor<MyClassInherited>()).
+    define_method("set_extra", &MyClassInherited::setExtra).
+    define_attr("extra", &MyClassInherited::extra);
 
   define_class<Factory>("Factory").
     define_constructor(Constructor<Factory>()).
     define_method("share", &Factory::share).
-    define_method("share_ref", &Factory::share_ref);
+    define_method("share_ref", &Factory::share_ref).
+    define_method("share_inherited", &Factory::share_inherited);
 
   define_class<Sink>("Sink").
     define_constructor(Constructor<Sink>()).
@@ -173,8 +199,8 @@ TEARDOWN(SharedPtr)
 
 TESTCASE(ShareOwnership)
 {
-  MyClass::reset();
   Factory::reset();
+  MyClass::reset();
 
   Module m = define_module("TestingModule");
 
@@ -182,9 +208,9 @@ TESTCASE(ShareOwnership)
   std::string code = R"(ary = Array.new
                         factory = Factory.new
                         10.times do |i|
-                          ptr = factory.share
-                          ptr.get.set_flag(i)
-                          ary << ptr
+                          my_class = factory.share
+                          my_class.set_flag(i)
+                          ary << my_class
                         end)";
 
   ASSERT_EQUAL(0, Factory::instance_.use_count());
@@ -203,43 +229,44 @@ TESTCASE(ShareOwnership)
 
 TESTCASE(ShareOwnership2)
 {
-  MyClass::reset();
   Factory::reset();
+  MyClass::reset();
 
   Module m = define_module("TestingModule");
 
   // Create ruby objects that point to the same instance of MyClass
   std::string code = R"(factory = Factory.new
                         10.times do |i|
-                          ptr = factory.share
-                          ptr.get.set_flag(i)
+                          my_class = factory.share
+                          my_class.set_flag(i)
                         end)";
 
-  Factory factory;
-  std::shared_ptr<MyClass> myClass = factory.share();
-  ASSERT_EQUAL(2, Factory::instance_.use_count());
+  ASSERT_EQUAL(0, Factory::instance_.use_count());
+  m.module_eval(code);
 
-  // Call some ruby code
-  Data_Object<Factory> wrapper(factory);
-  ASSERT_EQUAL(2, Factory::instance_.use_count());
-  wrapper.instance_eval("share_ref.get.set_flag(1)");
-
-  ASSERT_EQUAL(2, Factory::instance_.use_count());
+  ASSERT_EQUAL(11, Factory::instance_.use_count());
   rb_gc_start();
-  ASSERT_EQUAL(2, Factory::instance_.use_count());
+  ASSERT_EQUAL(1, Factory::instance_.use_count());
+
+  ASSERT_EQUAL(1, MyClass::constructorCalls);
+  ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
+  ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
+  ASSERT_EQUAL(0, MyClass::destructorCalls);
+  ASSERT_EQUAL(9, Factory::instance_->flag);
+
 }
 
 TESTCASE(PtrParameter)
 {
-  MyClass::reset();
   Factory::reset();
+  MyClass::reset();
 
   Module m = define_module("TestingModule");
 
   std::string code = R"(factory = Factory.new
-                        ptr = factory.share
-                        ptr.get.set_flag(8)
-                        extract_flag_shared_ptr(ptr))";
+                        my_class = factory.share
+                        my_class.set_flag(8)
+                        extract_flag_shared_ptr(my_class))";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(8, detail::From_Ruby<int>().convert(result));
@@ -247,15 +274,15 @@ TESTCASE(PtrParameter)
 
 TESTCASE(RefParameter)
 {
-  MyClass::reset();
   Factory::reset();
+  MyClass::reset();
 
   Module m = define_module("TestingModule");
 
   std::string code = R"(factory = Factory.new
-                        ptr = factory.share
-                        ptr.get.set_flag(9)
-                        extract_flag_shared_ptr_ref(ptr))";
+                        my_class = factory.share
+                        my_class.set_flag(9)
+                        extract_flag_shared_ptr_ref(my_class))";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(9, detail::From_Ruby<int>().convert(result));
@@ -263,14 +290,14 @@ TESTCASE(RefParameter)
 
 TESTCASE(DefaultParameter)
 {
-  MyClass::reset();
   Factory::reset();
+  MyClass::reset();
 
   Module m = define_module("TestingModule");
 
   std::string code = R"(factory = Factory.new
-                        ptr = factory.share
-                        ptr.get.set_flag(7)
+                        my_class = factory.share
+                        my_class.set_flag(7)
                         extract_flag_shared_ptr_with_default())";
 
   Object result = m.module_eval(code);
@@ -280,14 +307,14 @@ TESTCASE(DefaultParameter)
 
 TESTCASE(RefDefaultParameter)
 {
-  MyClass::reset();
   Factory::reset();
+  MyClass::reset();
 
   Module m = define_module("TestingModule");
 
   std::string code = R"(factory = Factory.new
-                        ptr = factory.share
-                        ptr.get.set_flag(7)
+                        my_class = factory.share
+                        my_class.set_flag(7)
                         extract_flag_shared_ptr_ref_with_default())";
 
   Object result = m.module_eval(code);
@@ -299,13 +326,13 @@ TESTCASE(RefDefaultParameter)
   ASSERT_EQUAL(1, MyClass::constructorCalls);
   ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
   ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
-  ASSERT_EQUAL(1, MyClass::destructorCalls);
+  ASSERT_EQUAL(0, MyClass::destructorCalls);
 }
 
 TESTCASE(RoundTrip)
 {
-  MyClass::reset();
   Factory::reset();
+  MyClass::reset();
 
   Module m = define_module("TestingModule");
 
@@ -322,26 +349,26 @@ TESTCASE(RoundTrip)
   ASSERT_EQUAL(1, MyClass::constructorCalls);
   ASSERT_EQUAL(0, MyClass::copyConstructorCalls);
   ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
-  ASSERT_EQUAL(1, MyClass::destructorCalls);
+  ASSERT_EQUAL(0, MyClass::destructorCalls);
 }
 
 TESTCASE(Update)
 {
-  MyClass::reset();
   Factory::reset();
+  MyClass::reset();
 
   Module m = define_module("TestingModule");
 
   // Create ruby objects that point to the same instance of MyClass
   std::string code = R"(factory = Factory.new
-                        ptr1 = factory.share
-                        ptr1.get.set_flag(7)
+                        my_class1 = factory.share
+                        my_class1.set_flag(7)
 
-                        myclass = MyClass.new
-                        myclass.set_flag(14)
+                        my_class2 = MyClass.new
+                        my_class2.set_flag(14)
 
                         sink = Sink.new
-                        sink.update_pointer(ptr1, myclass))";
+                        sink.update_pointer(my_class1, my_class2))";
 
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(14, detail::From_Ruby<long>().convert(result.value()));
@@ -370,8 +397,8 @@ TESTCASE(KlassSharedPtr)
 
 TESTCASE(Void)
 {
-  MyClass::reset();
   Factory::reset();
+  MyClass::reset();
 
   Module m = define_module("TestingModule");
 
@@ -482,13 +509,101 @@ TESTCASE(UpdatePointerToInt)
 TESTCASE(ReadPointerToInt)
 {
   Module m = define_module("ReadPointerToInt").
-             define_module_function("create_pointer", &createPointer);
+    define_module_function("create_pointer", &createPointer);
 
   std::string code = R"(ptr = create_pointer(50)
                         ptr.get.buffer.to_ary(1))";
 
   Array array = m.instance_eval(code);
   std::vector<int> actual = array.to_vector<int>();
-  std::vector<int> expected { 50 };
+  std::vector<int> expected{ 50 };
   ASSERT_EQUAL(expected, actual);
+}
+
+TESTCASE(AttributeForwarding)
+{
+  Factory::reset();
+  MyClass::reset();
+
+  Module m = define_module("TestingModule");
+
+  // Test read-only attribute
+  std::string code = R"(factory = Factory.new
+                        ptr = factory.share
+                        ptr.name)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL("default", detail::From_Ruby<std::string>().convert(result));
+
+  // Test read/write attribute - read
+  code = R"(factory = Factory.new
+            ptr = factory.share
+            ptr.threshold)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(0, detail::From_Ruby<int>().convert(result));
+
+  // Test read/write attribute - write and read back
+  code = R"(factory = Factory.new
+            ptr = factory.share
+            ptr.threshold = 42
+            ptr.threshold)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(InheritedForwarding)
+{
+  Factory::reset();
+  MyClass::reset();
+
+  Module m = define_module("TestingModule");
+
+  // Test inherited method from MyClass via forwarding
+  std::string code = R"(factory = Factory.new
+                        $ptr = factory.share_inherited
+                        $ptr.set_flag(99))";
+
+  m.module_eval(code);
+
+  // Verify via C++ that set_flag worked
+  std::shared_ptr<MyClassInherited>* ptr = detail::From_Ruby<std::shared_ptr<MyClassInherited>*>().convert(
+    m.module_eval("$ptr"));
+  ASSERT_EQUAL(99, (*ptr)->flag);
+
+  // Test inherited read-only attribute from MyClass
+  code = R"(factory = Factory.new
+            ptr = factory.share_inherited
+            ptr.name)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL("default", detail::From_Ruby<std::string>().convert(result));
+
+  // Test inherited read/write attribute from MyClass
+  code = R"(factory = Factory.new
+            ptr = factory.share_inherited
+            ptr.threshold = 77
+            ptr.threshold)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(77, detail::From_Ruby<int>().convert(result));
+
+  // Test own method on MyClassInherited via forwarding
+  code = R"(factory = Factory.new
+            ptr = factory.share_inherited
+            ptr.set_extra(123)
+            ptr.extra)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(123, detail::From_Ruby<int>().convert(result));
+
+  // Test own attribute on MyClassInherited via forwarding
+  code = R"(factory = Factory.new
+            ptr = factory.share_inherited
+            ptr.extra = 456
+            ptr.extra)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(456, detail::From_Ruby<int>().convert(result));
 }

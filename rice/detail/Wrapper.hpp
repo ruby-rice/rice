@@ -6,9 +6,9 @@ namespace Rice::detail
   class WrapperBase
   {
   public:
-    WrapperBase() = default;
+    WrapperBase(rb_data_type_t* rb_data_type);
     virtual ~WrapperBase() = default;
-    virtual void* get() = 0;
+    virtual void* get(rb_data_type_t* requestedType) = 0;
     bool isConst();
 
     void ruby_mark();
@@ -16,6 +16,7 @@ namespace Rice::detail
     void setOwner(bool value);
 
   protected:
+    rb_data_type_t* rb_data_type_;
     bool isOwner_ = false;
     bool isConst_ = false;
 
@@ -30,10 +31,10 @@ namespace Rice::detail
   class Wrapper : public WrapperBase
   {
   public:
-    Wrapper(T& data);
-    Wrapper(T&& data);
+    Wrapper(rb_data_type_t* rb_data_type, T& data);
+    Wrapper(rb_data_type_t* rb_data_type, T&& data);
     ~Wrapper();
-    void* get() override;
+    void* get(rb_data_type_t* requestedType) override;
 
   private:
     T data_;
@@ -43,9 +44,9 @@ namespace Rice::detail
   class Wrapper<T&> : public WrapperBase
   {
   public:
-    Wrapper(T& data);
+    Wrapper(rb_data_type_t* rb_data_type, T& data);
     ~Wrapper();
-    void* get() override;
+    void* get(rb_data_type_t* requestedType) override;
 
   private:
     T& data_;
@@ -55,9 +56,9 @@ namespace Rice::detail
   class Wrapper<T*> : public WrapperBase
   {
   public:
-    Wrapper(T* data, bool isOwner);
+    Wrapper(rb_data_type_t* rb_data_type, T* data, bool isOwner);
     ~Wrapper();
-    void* get() override;
+    void* get(rb_data_type_t* requestedType) override;
 
   private:
     T* data_ = nullptr;
@@ -67,9 +68,9 @@ namespace Rice::detail
   class Wrapper<T**> : public WrapperBase
   {
   public:
-    Wrapper(T** data, bool isOwner);
+    Wrapper(rb_data_type_t* rb_data_type, T** data, bool isOwner);
     ~Wrapper();
-    void* get() override;
+    void* get(rb_data_type_t* requestedType) override;
 
   private:
     T** data_ = nullptr;

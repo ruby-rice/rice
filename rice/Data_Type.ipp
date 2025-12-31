@@ -12,7 +12,7 @@ namespace Rice
 
       // Get the underlying data and call custom mark function (if any)
       // Use the wrapper's stored rb_data_type to avoid type mismatch
-      T* data = static_cast<T*>(wrapper->get(wrapper->rb_data_type_));
+      T* data = static_cast<T*>(wrapper->get(Data_Type<T>::ruby_data_type()));
       ruby_mark<T>(data);
     });
   }
