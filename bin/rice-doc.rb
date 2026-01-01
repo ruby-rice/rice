@@ -114,6 +114,8 @@ unless Dir.exist?(config.output)
 	FileUtils.mkdir_p(config.output)
 end
 
+# Add the extension directory the path in case it ships with extra libraries
+ENV["PATH"] = "#{File.dirname(config.extension)}#{File::PATH_SEPARATOR}#{ENV["PATH"]}"
 # Load the extension
 require config.extension
 

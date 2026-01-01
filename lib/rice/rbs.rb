@@ -12,7 +12,11 @@ module Rice
 
 		def generate
 			STDOUT << "Writing rbs files to #{@output}" << "\n"
+
+			# Add the extension directory the path in case it ships with extra libraries
+			ENV["PATH"] = "#{File.dirname(self.extension)}#{File::PATH_SEPARATOR}#{ENV["PATH"]}"
 			require self.extension
+
 			types = Registries.instance.types
 			types.klasses.each do |klass|
 				process_class(klass)
