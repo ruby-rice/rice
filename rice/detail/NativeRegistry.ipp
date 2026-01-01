@@ -73,9 +73,9 @@ namespace Rice::detail
     return this->natives_[key];
   }
 
-  inline std::vector<std::string> NativeRegistry::lookup(VALUE klass, NativeKind kind)
+  inline std::vector<Native*> NativeRegistry::lookup(VALUE klass, NativeKind kind)
   {
-    std::vector<std::string> result;
+    std::vector<Native*> result;
 
     if (rb_type(klass) == T_ICLASS)
     {
@@ -93,7 +93,7 @@ namespace Rice::detail
         {
           if (native->kind() == kind)
           {
-            result.push_back(native->name());
+            result.push_back(native.get());
           }
         }
       }
