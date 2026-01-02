@@ -1,6 +1,6 @@
 # Introduction
 
-Rice is a C++ 17 header-only library that serves dual purposes. First, it makes it much easier to create Ruby bindings for existing C++ libraries. Second, it provides an object oriented interface to Ruby's C API that makes it easy to embed Ruby and write Ruby extensions in C++.
+Rice is a C++ 17 header-only library that serves dual purposes. First, it makes it much easier to create Ruby bindings for existing C++ libraries. Second, it provides an object-oriented interface to Ruby's C API that makes it easy to embed Ruby and write Ruby extensions in C++.
 
 Rice is similar to [Boost.Python](https://github.com/boostorg/python) and [pybind11](https://github.com/pybind/pybind11) in that it minimizes boilerplate code needed to interface with C++. It does this by automatically determining type information allowing Ruby objects to be converted to C++ and vice versa.
 
@@ -11,6 +11,8 @@ Rice provides:
 * Automatic exception handling between C++ and Ruby
 * Smart pointers for handling garbage collection
 * A C++ API to wrap Ruby's C API
+
+Rice is also part of a larger [ecosystem](ecosystem.md) of tools that together provide a complete pipeline from C++ headers to documented, type-annotated Ruby gems.
 
 ## Project Details
 
