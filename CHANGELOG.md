@@ -1,11 +1,11 @@
 # Changelog 
 
-## 4.9.0 (2025-12-31
+## 4.9.0 (2026-01-01)
 This release revamps smart pointer support for `std::shared_ptr` and `std::unique_ptr`.
 
 Rice now always creates wrapper classes for smart pointers under the `Std` module (e.g., `Std::SharedPtr≺MyClass≻`, `Std::UniquePtr≺MyClass≻`). These wrapper classes expose methods like `empty?`, `get`, `swap`, and for shared_ptr, `use_count`. Methods defined on the managed type are automatically forwarded to the wrapper class using Ruby's `Forwardable` module.
 
-This change is backwards compatible for Ruby code but not C++ code. If you implemented your own Smart Pointer wrapper then please read the Smart Pointer documentation for more information.
+This change is backwards compatible for Ruby code but not C++ code. If you have implemented your own Smart Pointer wrapper then please read the Smart Pointer documentation for more information on how to update it.
 
 ## 4.8.0 (2025-12-29)
 This release focuses on making Rice easier to use:
