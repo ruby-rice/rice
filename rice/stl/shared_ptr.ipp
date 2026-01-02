@@ -115,4 +115,18 @@ namespace Rice::detail
       return result;
     }
   };
+
+#ifdef __GLIBCXX__
+  // libstdc++ implementation detail: std::shared_ptr inherits from
+  // std::__shared_ptr<T, _Lock_policy>. Methods like swap() expose this
+  // internal type through their parameter signatures.
+  template<typename T, __gnu_cxx::_Lock_policy Policy>
+  struct Type<std::__shared_ptr<T, Policy>>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
+#endif
 }
