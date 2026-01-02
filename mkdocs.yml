@@ -30,7 +30,11 @@ theme:
 markdown_extensions:
   - admonition
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
@@ -44,6 +48,7 @@ nav:
     - index.md
     - Installation: installation.md
     - Why Rice?: why_rice.md
+    - Ecosystem: ecosystem.md
     - Projects: projects.md
     - History: history.md
     - Migration: migration.md

@@ -32,6 +32,7 @@ However, these changes did require some breaking changes, which include:
 * `Arg("").isBuffer()` is replaced by `ArgBuffer("")`
 * `Function().noGVL()` is replaced by `NoGvL()`
 * `is_convertible` methods must now return a `double` instead of a `Convertible` enum
+* All function/method parameter default values are verified. You may see errors like "ArgumentError: Type is not registered with Rice" or "Invalid AnyCast". In either case, make sure to check that specified default values are correct.
 
 ## 4.7.1 (2025-10-28)
 Updates:
