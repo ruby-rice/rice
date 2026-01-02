@@ -35,7 +35,7 @@ namespace Rice::detail
 
     const std::vector<Native*> lookup(VALUE klass);
     const std::vector<std::unique_ptr<Native>>& lookup(VALUE klass, ID methodId);
-    std::vector<std::string> lookup(VALUE klass, NativeKind kind);
+    std::vector<Native*> lookup(VALUE klass, NativeKind kind);
 
   private:
     // Key - Ruby klass/method

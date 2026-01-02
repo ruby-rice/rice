@@ -600,9 +600,9 @@ namespace Rice::detail
   class WrapperBase
   {
   public:
-    WrapperBase() = default;
+    WrapperBase(rb_data_type_t* rb_data_type);
     virtual ~WrapperBase() = default;
-    virtual void* get() = 0;
+    virtual void* get(rb_data_type_t* requestedType) = 0;
     bool isConst();
 
     void ruby_mark();
@@ -610,6 +610,7 @@ namespace Rice::detail
     void setOwner(bool value);
 
   protected:
+    rb_data_type_t* rb_data_type_;
     bool isOwner_ = false;
     bool isConst_ = false;
 
@@ -624,10 +625,10 @@ namespace Rice::detail
   class Wrapper : public WrapperBase
   {
   public:
-    Wrapper(T& data);
-    Wrapper(T&& data);
+    Wrapper(rb_data_type_t* rb_data_type, T& data);
+    Wrapper(rb_data_type_t* rb_data_type, T&& data);
     ~Wrapper();
-    void* get() override;
+    void* get(rb_data_type_t* requestedType) override;
 
   private:
     T data_;
@@ -637,9 +638,9 @@ namespace Rice::detail
   class Wrapper<T&> : public WrapperBase
   {
   public:
-    Wrapper(T& data);
+    Wrapper(rb_data_type_t* rb_data_type, T& data);
     ~Wrapper();
-    void* get() override;
+    void* get(rb_data_type_t* requestedType) override;
 
   private:
     T& data_;
@@ -649,9 +650,9 @@ namespace Rice::detail
   class Wrapper<T*> : public WrapperBase
   {
   public:
-    Wrapper(T* data, bool isOwner);
+    Wrapper(rb_data_type_t* rb_data_type, T* data, bool isOwner);
     ~Wrapper();
-    void* get() override;
+    void* get(rb_data_type_t* requestedType) override;
 
   private:
     T* data_ = nullptr;
@@ -661,9 +662,9 @@ namespace Rice::detail
   class Wrapper<T**> : public WrapperBase
   {
   public:
-    Wrapper(T** data, bool isOwner);
+    Wrapper(rb_data_type_t* rb_data_type, T** data, bool isOwner);
     ~Wrapper();
-    void* get() override;
+    void* get(rb_data_type_t* requestedType) override;
 
   private:
     T** data_ = nullptr;
@@ -1609,6 +1610,7 @@ namespace Rice
 namespace Rice
 {
   class Class;
+  class Module;
   class String;
   class Array;
 
@@ -1715,6 +1717,11 @@ namespace Rice
      *  class/module or one of its descendants.
      */
     bool is_a(Object klass) const;
+
+    //! Extend the object with a module.
+    /*! \param mod the module to extend with.
+     */
+    void extend(Module const& mod);
 
     //! Determine if the objects responds to a method.
     /*! \param id the name of the method
@@ -2696,6 +2703,11 @@ namespace Rice
     /*! \return std::string.
      */
     const std::string base_name() const;
+
+    //! Return the superclass of this class
+    /*! \return Class.
+     */
+    Class superclass() const;
 
 // Include these methods to call methods from Module but return
 // an instance of the current classes. This is an alternative to
@@ -3796,6 +3808,7 @@ namespace Rice::detail
 
     const std::vector<Native*> lookup(VALUE klass);
     const std::vector<std::unique_ptr<Native>>& lookup(VALUE klass, ID methodId);
+    std::vector<Native*> lookup(VALUE klass, NativeKind kind);
 
   private:
     // Key - Ruby klass/method
@@ -8985,6 +8998,35 @@ namespace Rice::detail
     // Lookup items for method
     return this->natives_[key];
   }
+
+  inline std::vector<Native*> NativeRegistry::lookup(VALUE klass, NativeKind kind)
+  {
+    std::vector<Native*> result;
+
+    if (rb_type(klass) == T_ICLASS)
+    {
+      klass = detail::protect(rb_class_of, klass);
+    }
+
+    for (auto& pair : this->natives_)
+    {
+      const std::pair<VALUE, ID>& key = pair.first;
+
+      if (klass == key.first)
+      {
+        const std::vector<std::unique_ptr<Native>>& natives = pair.second;
+        for (auto& native : natives)
+        {
+          if (native->kind() == kind)
+          {
+            result.push_back(native.get());
+          }
+        }
+      }
+    }
+
+    return result;
+  }
 }
 
 // =========   Registries.ipp   =========
@@ -9206,6 +9248,10 @@ namespace Rice::detail
     // Remove equal_to (std::unordered_map)
     std::regex equalRegex(R"(,\s*std::equal_to)");
     removeGroup(base, equalRegex);
+
+    // Remove default_delete (std::unique_ptr)
+    std::regex defaultDeleteRegex(R"(,\s*std::default_delete)");
+    removeGroup(base, defaultDeleteRegex);
 
     // Remove spaces before pointers
     std::regex ptrRegex = std::regex(R"(\s+\*)");
@@ -9531,6 +9577,10 @@ namespace Rice::detail
 
 namespace Rice::detail
 {
+  inline WrapperBase::WrapperBase(rb_data_type_t* rb_data_type) : rb_data_type_(rb_data_type)
+  {
+  }
+
   inline bool WrapperBase::isConst()
   {
     return this->isConst_;
@@ -9556,31 +9606,40 @@ namespace Rice::detail
 
   // ----  Wrapper -----
   template <typename T>
-  inline Wrapper<T>::Wrapper(T& data): data_(data)
+  inline Wrapper<T>::Wrapper(rb_data_type_t* rb_data_type, T& data) : WrapperBase(rb_data_type), data_(data)
   {
     this->isConst_ = std::is_const_v<std::remove_reference_t<T>>;
   }
 
   template <typename T>
-  inline Wrapper<T>::Wrapper(T&& data) : data_(std::move(data))
+  inline Wrapper<T>::Wrapper(rb_data_type_t* rb_data_type, T&& data) : WrapperBase(rb_data_type), data_(std::move(data))
   {
   }
 
   template <typename T>
   inline Wrapper<T>::~Wrapper()
   {
-    Registries::instance.instances.remove(this->get());
+    Registries::instance.instances.remove(this->get(this->rb_data_type_));
   }
 
   template <typename T>
-  inline void* Wrapper<T>::Wrapper::get()
+  inline void* Wrapper<T>::get(rb_data_type_t* requestedType)
   {
-    return (void*)&this->data_;
+    if (rb_typeddata_inherited_p(this->rb_data_type_, requestedType))
+    {
+      return (void*)&this->data_;
+    }
+    else
+    {
+      throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+                      this->rb_data_type_->wrap_struct_name,
+                      requestedType->wrap_struct_name);
+    }
   }
 
   // ----  Wrapper& -----
   template <typename T>
-  inline Wrapper<T&>::Wrapper(T& data): data_(data)
+  inline Wrapper<T&>::Wrapper(rb_data_type_t* rb_data_type, T& data) : WrapperBase(rb_data_type), data_(data)
   {
     this->isConst_ = std::is_const_v<std::remove_reference_t<T>>;
   }
@@ -9588,18 +9647,27 @@ namespace Rice::detail
   template <typename T>
   inline Wrapper<T&>::~Wrapper()
   {
-    Registries::instance.instances.remove(this->get());
+    Registries::instance.instances.remove(this->get(this->rb_data_type_));
   }
 
   template <typename T>
-  inline void* Wrapper<T&>::get()
+  inline void* Wrapper<T&>::get(rb_data_type_t* requestedType)
   {
-    return (void*)&this->data_;
+    if (rb_typeddata_inherited_p(this->rb_data_type_, requestedType))
+    {
+      return (void*)&this->data_;
+    }
+    else
+    {
+      throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+                      this->rb_data_type_->wrap_struct_name,
+                      requestedType->wrap_struct_name);
+    }
   }
 
   // ----  Wrapper* -----
   template <typename T>
-  inline Wrapper<T*>::Wrapper(T* data, bool isOwner) : data_(data)
+  inline Wrapper<T*>::Wrapper(rb_data_type_t* rb_data_type, T* data, bool isOwner) : WrapperBase(rb_data_type), data_(data)
   {
     this->isOwner_ = isOwner;
     this->isConst_ = std::is_const_v<std::remove_pointer_t<T>>;
@@ -9608,7 +9676,8 @@ namespace Rice::detail
   template <typename T>
   inline Wrapper<T*>::~Wrapper()
   {
-    Registries::instance.instances.remove(this->get());
+    Registries::instance.instances.remove(this->get(this->rb_data_type_));
+
     if constexpr (std::is_destructible_v<T>)
     {
       if (this->isOwner_)
@@ -9619,14 +9688,23 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void* Wrapper<T*>::get()
+  inline void* Wrapper<T*>::get(rb_data_type_t* requestedType)
   {
-    return (void*)this->data_;
+    if (rb_typeddata_inherited_p(this->rb_data_type_, requestedType))
+    {
+      return (void*)this->data_;
+    }
+    else
+    {
+      throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+                      this->rb_data_type_->wrap_struct_name,
+                      requestedType->wrap_struct_name);
+    }
   }
 
   // ----  Wrapper** -----
   template <typename T>
-  inline Wrapper<T**>::Wrapper(T** data, bool isOwner) : data_(data)
+  inline Wrapper<T**>::Wrapper(rb_data_type_t* rb_data_type, T** data, bool isOwner) : WrapperBase(rb_data_type), data_(data)
   {
     this->isOwner_ = isOwner;
     this->isConst_ = std::is_const_v<std::remove_pointer_t<std::remove_pointer_t<T>>>;
@@ -9635,7 +9713,8 @@ namespace Rice::detail
   template <typename T>
   inline Wrapper<T**>::~Wrapper()
   {
-    Registries::instance.instances.remove(this->get());
+    Registries::instance.instances.remove(this->get(this->rb_data_type_));
+
     if constexpr (std::is_destructible_v<T>)
     {
       if (this->isOwner_)
@@ -9646,9 +9725,18 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void* Wrapper<T**>::get()
+  inline void* Wrapper<T**>::get(rb_data_type_t* requestedType)
   {
-    return (void*)this->data_;
+    if (rb_typeddata_inherited_p(this->rb_data_type_, requestedType))
+    {
+      return (void*)this->data_;
+    }
+    else
+    {
+      throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+                      this->rb_data_type_->wrap_struct_name,
+                      requestedType->wrap_struct_name);
+    }
   }
 
   // ---- Helper Functions -------
@@ -9665,7 +9753,7 @@ namespace Rice::detail
     // If Ruby is not the owner then wrap the reference
     if (!isOwner)
     {
-      wrapper = new Wrapper<T&>(data);
+      wrapper = new Wrapper<T&>(rb_data_type, data);
       result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
@@ -9674,12 +9762,12 @@ namespace Rice::detail
     {
       if constexpr (std::is_copy_constructible_v<typename T::value_type>)
       {
-        wrapper = new Wrapper<T>(data);
+        wrapper = new Wrapper<T>(rb_data_type, data);
         result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
       }
       else
       {
-        wrapper = new Wrapper<T>(std::move(data));
+        wrapper = new Wrapper<T>(rb_data_type, std::move(data));
         result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
       }
     }
@@ -9687,14 +9775,14 @@ namespace Rice::detail
     // Ruby is the owner so copy data
     else if constexpr (std::is_copy_constructible_v<T>)
     {
-      wrapper = new Wrapper<T>(data);
+      wrapper = new Wrapper<T>(rb_data_type, data);
       result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
     // Ruby is the owner so move data
     else if constexpr (std::is_move_constructible_v<T>)
     {
-      wrapper = new Wrapper<T>(std::move(data));
+      wrapper = new Wrapper<T>(rb_data_type, std::move(data));
       result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
@@ -9706,7 +9794,7 @@ namespace Rice::detail
       throw std::runtime_error(message);
     }
 
-    Registries::instance.instances.add(wrapper->get(), result);
+    Registries::instance.instances.add(wrapper->get(rb_data_type), result);
 
     return result;
   };
@@ -9719,38 +9807,40 @@ namespace Rice::detail
     if (result != Qnil)
       return result;
 
-    WrapperBase* wrapper = new Wrapper<T*>(data, isOwner);
+    WrapperBase* wrapper = new Wrapper<T*>(rb_data_type, data, isOwner);
     result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
 
-    Registries::instance.instances.add(wrapper->get(), result);
+    Registries::instance.instances.add(wrapper->get(rb_data_type), result);
     return result;
   };
 
   template <typename T>
   inline T* unwrap(VALUE value, rb_data_type_t* rb_data_type, bool takeOwnership)
   {
-    if (rb_type(value) != RUBY_T_DATA)
+    if (!RTYPEDDATA_P(value))
     {
       std::string message = "The Ruby object does not wrap a C++ object. It is actually a " +
         std::string(detail::protect(rb_obj_classname, value)) + ".";
       throw std::runtime_error(message);
     }
 
-    WrapperBase* wrapper = getWrapper(value, rb_data_type);
+    WrapperBase* wrapper = static_cast<WrapperBase*>(RTYPEDDATA_DATA(value));
 
     if (wrapper == nullptr)
     {
-      std::string message = "Wrapped C++ object is nil. Did you override " + 
-                            std::string(detail::protect(rb_obj_classname, value)) + 
+      std::string message = "Wrapped C++ object is nil. Did you override " +
+                            std::string(detail::protect(rb_obj_classname, value)) +
                             "#initialize and forget to call super?";
 
       throw std::runtime_error(message);
     }
 
     if (takeOwnership)
+    {
       wrapper->setOwner(false);
+    }
 
-    return static_cast<T*>(wrapper->get());
+    return static_cast<T*>(wrapper->get(rb_data_type));
   }
     
   template <typename Wrapper_T>
@@ -9772,7 +9862,8 @@ namespace Rice::detail
     if (!RTYPEDDATA_P(value))
     {
       throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
-        detail::protect(rb_obj_classname, value), "wrapped C++ object");
+                      detail::protect(rb_obj_classname, value),
+                      "wrapped C++ object");
     }
 
     return static_cast<WrapperBase*>(RTYPEDDATA_DATA(value));
@@ -9786,21 +9877,21 @@ namespace Rice::detail
   inline void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data)
   {
     using Wrapper_T = Wrapper<T*>;
-    
+
     Wrapper_T* wrapper = nullptr;
     TypedData_Get_Struct(value, Wrapper_T, rb_data_type, wrapper);
     if (wrapper)
     {
-      Registries::instance.instances.remove(wrapper->get());
+      Registries::instance.instances.remove(wrapper->get(rb_data_type));
       delete wrapper;
     }
 
-    wrapper = new Wrapper_T(data, true);
+    wrapper = new Wrapper_T(rb_data_type, data, true);
     RTYPEDDATA_DATA(value) = wrapper;
 
     Registries::instance.instances.add(data, value);
   }
-} // namespace
+}
 
 // =========   Native.ipp   =========
 namespace Rice::detail
@@ -12119,6 +12210,11 @@ namespace Rice
     return RB_TEST(result);
   }
 
+  inline void Object::extend(Module const& mod)
+  {
+    detail::protect(rb_extend_object, this->value(), mod.value());
+  }
+
   inline bool Object::respond_to(Identifier id) const
   {
     return bool(rb_respond_to(this->value(), id.id()));
@@ -13513,6 +13609,11 @@ namespace Rice
     return result;
   }
 
+  inline Class Class::superclass() const
+  {
+    return detail::protect(rb_class_superclass, this->value());
+  }
+
   inline Class define_class_under(Object parent, Identifier id, const Class& superclass)
   {
     VALUE klass = detail::protect(rb_define_class_id_under, parent.value(), id, superclass.value());
@@ -14067,17 +14168,22 @@ namespace Rice
   template<typename T>
   inline void ruby_mark_internal(detail::WrapperBase* wrapper)
   {
-    // Tell the wrapper to mark the objects its keeping alive
-    wrapper->ruby_mark();
+    detail::cpp_protect([&]
+    {
+      // Tell the wrapper to mark the objects its keeping alive
+      wrapper->ruby_mark();
 
-    // Get the underlying data and call custom mark function (if any)
-    T* data = static_cast<T*>(wrapper->get());
-    ruby_mark<T>(data);
+      // Get the underlying data and call custom mark function (if any)
+      // Use the wrapper's stored rb_data_type to avoid type mismatch
+      T* data = static_cast<T*>(wrapper->get(Data_Type<T>::ruby_data_type()));
+      ruby_mark<T>(data);
+    });
   }
 
   template<typename T>
   inline void ruby_free_internal(detail::WrapperBase* wrapper)
   {
+    // Destructors are noexcept so we cannot use cpp_protect here
     delete wrapper;
   }
 
@@ -15661,6 +15767,86 @@ namespace Rice
     return detail::protect(rb_mod_module_eval, 1, &argv[0], this->value());
   }
 }
+
+// Dependent on Module, Array, Symbol - used by stl smart pointers
+
+// =========   Forwards.hpp   =========
+
+namespace Rice::detail
+{
+  // Setup method forwarding from a wrapper class to its wrapped type using Ruby's Forwardable.
+  // This allows calling methods on the wrapper that get delegated to the wrapped object via
+  // a "get" method that returns the wrapped object.
+  //
+  // Parameters:
+  //   wrapper_klass - The Ruby class to add forwarding to (e.g., SharedPtr_MyClass)
+  //   wrapped_klass - The Ruby class whose methods should be forwarded (e.g., MyClass)
+  void define_forwarding(VALUE wrapper_klass, VALUE wrapped_klass);
+}
+
+
+// ---------   Forwards.ipp   ---------
+namespace Rice::detail
+{
+  inline void define_forwarding(VALUE wrapper_klass, VALUE wrapped_klass)
+  {
+    protect(rb_require, "forwardable");
+    Object forwardable = Object(rb_cObject).const_get("Forwardable");
+    Object(wrapper_klass).extend(forwardable.value());
+
+    // Get wrapper class's method names to avoid conflicts
+    std::set<std::string> wrapperMethodSet;
+    for (Native* native : Registries::instance.natives.lookup(wrapper_klass, NativeKind::Method))
+    {
+      wrapperMethodSet.insert(native->name());
+    }
+    for (Native* native : Registries::instance.natives.lookup(wrapper_klass, NativeKind::AttributeReader))
+    {
+      wrapperMethodSet.insert(native->name());
+    }
+    for (Native* native : Registries::instance.natives.lookup(wrapper_klass, NativeKind::AttributeWriter))
+    {
+      wrapperMethodSet.insert(native->name() + "=");
+    }
+
+    // Get wrapped class's method names from the registry, including ancestor classes
+    std::set<std::string> wrappedMethodSet;
+    Class klass(wrapped_klass);
+    while (klass.value() != rb_cObject && klass.value() != Qnil)
+    {
+      for (Native* native : Registries::instance.natives.lookup(klass.value(), NativeKind::Method))
+      {
+        wrappedMethodSet.insert(native->name());
+      }
+      for (Native* native : Registries::instance.natives.lookup(klass.value(), NativeKind::AttributeReader))
+      {
+        wrappedMethodSet.insert(native->name());
+      }
+      for (Native* native : Registries::instance.natives.lookup(klass.value(), NativeKind::AttributeWriter))
+      {
+        wrappedMethodSet.insert(native->name() + "=");
+      }
+
+      klass = klass.superclass();
+    }
+
+    // Build the arguments array for def_delegators: [:get, :method1, :method2, ...]
+    // Skip methods that are already defined on the wrapper class
+    Array args;
+    args.push(Symbol("get"));
+    for (const std::string& method : wrappedMethodSet)
+    {
+      if (wrapperMethodSet.find(method) == wrapperMethodSet.end())
+      {
+        args.push(Symbol(method));
+      }
+    }
+
+    // Call def_delegators(*args)
+    Object(wrapper_klass).vcall("def_delegators", args);
+  }
+}
+
 
 // For now include libc support - maybe should be separate header file someday
 

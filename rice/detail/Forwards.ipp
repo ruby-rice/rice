@@ -8,14 +8,17 @@ namespace Rice::detail
 
     // Get wrapper class's method names to avoid conflicts
     std::set<std::string> wrapperMethodSet;
-    std::vector<std::string> wrapperMethods = Registries::instance.natives.lookup(wrapper_klass, NativeKind::Method);
-    wrapperMethodSet.insert(wrapperMethods.begin(), wrapperMethods.end());
-    std::vector<std::string> wrapperReaders = Registries::instance.natives.lookup(wrapper_klass, NativeKind::AttributeReader);
-    wrapperMethodSet.insert(wrapperReaders.begin(), wrapperReaders.end());
-    std::vector<std::string> wrapperWriters = Registries::instance.natives.lookup(wrapper_klass, NativeKind::AttributeWriter);
-    for (const std::string& writer : wrapperWriters)
+    for (Native* native : Registries::instance.natives.lookup(wrapper_klass, NativeKind::Method))
     {
-      wrapperMethodSet.insert(writer + "=");
+      wrapperMethodSet.insert(native->name());
+    }
+    for (Native* native : Registries::instance.natives.lookup(wrapper_klass, NativeKind::AttributeReader))
+    {
+      wrapperMethodSet.insert(native->name());
+    }
+    for (Native* native : Registries::instance.natives.lookup(wrapper_klass, NativeKind::AttributeWriter))
+    {
+      wrapperMethodSet.insert(native->name() + "=");
     }
 
     // Get wrapped class's method names from the registry, including ancestor classes
@@ -23,16 +26,17 @@ namespace Rice::detail
     Class klass(wrapped_klass);
     while (klass.value() != rb_cObject && klass.value() != Qnil)
     {
-      std::vector<std::string> methods = Registries::instance.natives.lookup(klass.value(), NativeKind::Method);
-      wrappedMethodSet.insert(methods.begin(), methods.end());
-
-      std::vector<std::string> readers = Registries::instance.natives.lookup(klass.value(), NativeKind::AttributeReader);
-      wrappedMethodSet.insert(readers.begin(), readers.end());
-
-      std::vector<std::string> writers = Registries::instance.natives.lookup(klass.value(), NativeKind::AttributeWriter);
-      for (const std::string& writer : writers)
+      for (Native* native : Registries::instance.natives.lookup(klass.value(), NativeKind::Method))
       {
-        wrappedMethodSet.insert(writer + "=");
+        wrappedMethodSet.insert(native->name());
+      }
+      for (Native* native : Registries::instance.natives.lookup(klass.value(), NativeKind::AttributeReader))
+      {
+        wrappedMethodSet.insert(native->name());
+      }
+      for (Native* native : Registries::instance.natives.lookup(klass.value(), NativeKind::AttributeWriter))
+      {
+        wrappedMethodSet.insert(native->name() + "=");
       }
 
       klass = klass.superclass();
