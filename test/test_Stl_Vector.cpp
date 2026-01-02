@@ -16,6 +16,7 @@ SETUP(Vector)
 
 TEARDOWN(Vector)
 {
+  Rice::detail::Registries::instance.natives.reset(rb_mKernel);
   rb_gc_start();
 }
 
@@ -215,7 +216,7 @@ TESTCASE(Indexing)
   vec.call("push", 0);
   vec.call("push", 1);
   vec.call("push", 2);
-  
+
   Object result = vec.call("size");
   ASSERT_EQUAL(3, detail::From_Ruby<int32_t>().convert(result));
 
@@ -520,7 +521,7 @@ TESTCASE(NotDefaultConstructable)
 {
   define_class<NotComparable>("NotComparable").
     define_constructor(Constructor<NotComparable, uint32_t>());
-    
+
   Class c = define_vector<NotComparable>("NotComparableVector");
   Object vec = c.call("new");
 
@@ -579,7 +580,7 @@ TESTCASE(Comparable)
   Class c = define_vector<Comparable>("ComparableVector");
 
   Object vec = c.call("new");
-  
+
   Comparable comparable1(1);
   vec.call("push", comparable1);
 
@@ -818,7 +819,7 @@ TESTCASE(DefaultValue)
 TESTCASE(ToArray)
 {
   Module m = define_module("Testing");
-  
+
   Class c = define_vector<std::string>("StringVector").
     define_constructor(Constructor<std::vector<std::string>>());
 
@@ -1252,4 +1253,61 @@ TESTCASE(TypeCheck)
     Exception,
     result = m.module_eval(code),
     ASSERT_EQUAL("wrong argument type Std::Vector≺int≻ (expected Std::Vector≺string≻)", ex.what()));
+}
+
+namespace
+{
+  class ClassA
+  {
+  public:
+    ClassA() = default;
+  };
+
+  class ClassB
+  {
+  public:
+    ClassB() = default;
+  };
+
+  std::string vectorOverload(std::vector<ClassA>& vec)
+  {
+    return "ClassA";
+  }
+
+  std::string vectorOverload(std::vector<ClassB>& vec)
+  {
+    return "ClassB";
+  }
+}
+
+TESTCASE(VectorOverloadResolution)
+{
+  define_class<ClassA>("ClassA").
+    define_constructor(Constructor<ClassA>());
+
+  define_class<ClassB>("ClassB").
+    define_constructor(Constructor<ClassB>());
+
+  define_global_function<std::string(*)(std::vector<ClassA>&)>("vector_overload", &vectorOverload);
+  define_global_function<std::string(*)(std::vector<ClassB>&)>("vector_overload", &vectorOverload);
+
+  Module m = define_module("Testing");
+
+  // When passing array with ClassA instance, should call ClassA overload
+  std::string code = R"(
+    a = ClassA.new
+    vector_overload([a])
+  )";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL("ClassA", detail::From_Ruby<std::string>().convert(result));
+
+  // When passing array with ClassB instance, should call ClassB overload
+  code = R"(
+    b = ClassB.new
+    vector_overload([b])
+  )";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL("ClassB", detail::From_Ruby<std::string>().convert(result));
 }

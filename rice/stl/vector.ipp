@@ -492,7 +492,19 @@ namespace Rice
           case RUBY_T_ARRAY:
             if constexpr (std::is_default_constructible_v<T>)
             {
-              return Convertible::Exact;
+              // For proper overload resolution when a function has multiple vector type
+              // overloads (e.g., vector<A>& and vector<B>&), we must check if the array
+              // elements can actually be converted to T. Otherwise all vector overloads
+              // score equally and the wrong one may be selected.
+              long size = RARRAY_LEN(value);
+              if (size == 0)
+              {
+                return Convertible::Exact;
+              }
+
+              From_Ruby<remove_cv_recursive_t<T>> fromRuby;
+              VALUE first = rb_ary_entry(value, 0);
+              return fromRuby.is_convertible(first);
             }
           default:
             return Convertible::None;
@@ -548,7 +560,19 @@ namespace Rice
           case RUBY_T_ARRAY:
             if constexpr (std::is_default_constructible_v<T>)
             {
-              return Convertible::Exact;
+              // For proper overload resolution when a function has multiple vector type
+              // overloads (e.g., vector<A>& and vector<B>&), we must check if the array
+              // elements can actually be converted to T. Otherwise all vector overloads
+              // score equally and the wrong one may be selected.
+              long size = RARRAY_LEN(value);
+              if (size == 0)
+              {
+                return Convertible::Exact;
+              }
+
+              From_Ruby<remove_cv_recursive_t<T>> fromRuby;
+              VALUE first = rb_ary_entry(value, 0);
+              return fromRuby.is_convertible(first);
             }
           default:
             return Convertible::None;
@@ -609,7 +633,19 @@ namespace Rice
           case RUBY_T_ARRAY:
             if constexpr (std::is_default_constructible_v<T>)
             {
-              return Convertible::Exact;
+              // For proper overload resolution when a function has multiple vector type
+              // overloads (e.g., vector<A>& and vector<B>&), we must check if the array
+              // elements can actually be converted to T. Otherwise all vector overloads
+              // score equally and the wrong one may be selected.
+              long size = RARRAY_LEN(value);
+              if (size == 0)
+              {
+                return Convertible::Exact;
+              }
+
+              From_Ruby<remove_cv_recursive_t<T>> fromRuby;
+              VALUE first = rb_ary_entry(value, 0);
+              return fromRuby.is_convertible(first);
             }
           default:
             return Convertible::None;
