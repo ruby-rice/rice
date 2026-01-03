@@ -403,33 +403,29 @@ TESTCASE(VariantWithTwoVectors)
   Module m = define_module("Testing");
 
   std::string code = R"(vector = Std::Vector≺string≻.new
-                          vector << "a" << "b" << "c"
-                          my_class = MyClass4.new
-                          my_class.variant_index(vector))";
+                        vector << "a" << "b" << "c"
+                        my_class = MyClass4.new
+                        my_class.variant_index(vector))";
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(0u, detail::From_Ruby<size_t>().convert(result));
 
   code = R"(vector = Std::Vector≺int≻.new
-              vector.push_back(4)
-              my_class = MyClass4.new
-              my_class.variant_index(vector))";
+            vector.push_back(4)
+            my_class = MyClass4.new
+            my_class.variant_index(vector))";
   result = m.module_eval(code);
   ASSERT_EQUAL(1u, detail::From_Ruby<size_t>().convert(result));
 
   code = R"(my_class = MyClass4.new
-              my_class.variant_index(["x", "y", "z"]))";
+            my_class.variant_index(["x", "y", "z"]))";
   result = m.module_eval(code);
   ASSERT_EQUAL(0u, detail::From_Ruby<size_t>().convert(result));
 
   code = R"(my_class = MyClass4.new
-              my_class.variant_index([5, 6]))";
-
-  ASSERT_EXCEPTION_CHECK(
-    Exception,
-    m.module_eval(code),
-    ASSERT_EQUAL("wrong argument type Integer (expected String)", ex.what())
-  );
+            my_class.variant_index([5, 6]))";
+  result = m.module_eval(code);
+  ASSERT_EQUAL(1u, detail::From_Ruby<size_t>().convert(result));
 }
 
 namespace
