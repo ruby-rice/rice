@@ -65,25 +65,25 @@ namespace Rice::detail
       throw std::runtime_error("Incorrect number of parameters for setting attribute. Attribute: " + this->name_);
     }
 
+    // Get the Ruby value and convert to native
     VALUE value = values.begin()->second;
+    std::optional<VALUE> valueOpt(value);
+    T_Unqualified nativeValue = this->parameter_->convertToNative(valueOpt);
 
     if constexpr (!std::is_null_pointer_v<Receiver_T>)
     {
       Receiver_T* nativeSelf = From_Ruby<Receiver_T*>().convert(self);
-
-      // Deal with pointers to pointes, see Parameter::convertToNative commment
-      if constexpr (is_pointer_pointer_v<Attr_T> && !std::is_convertible_v<remove_cv_recursive_t<Attr_T>, Attr_T>)
-      {
-        nativeSelf->*attribute_ = (Attr_T)From_Ruby<T_Unqualified>().convert(value);
-      }
-      else
-      {
-        nativeSelf->*attribute_ = From_Ruby<T_Unqualified>().convert(value);
-      }
+      nativeSelf->*attribute_ = nativeValue;
     }
     else
     {
-      *attribute_ = From_Ruby<T_Unqualified>().convert(value);
+      *attribute_ = nativeValue;
+    }
+
+    // Check if we need to prevent the value from being garbage collected
+    if (this->parameter_->arg()->isKeepAlive())
+    {
+      WrapperBase::addKeepAlive(self, value);
     }
 
     return value;
@@ -104,17 +104,7 @@ namespace Rice::detail
   template<typename Attribute_T>
   inline VALUE NativeAttributeSet<Attribute_T>::returnKlass()
   {
-    // Check if an array is being returned
-    bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
-    if (isBuffer)
-    {
-      TypeMapper<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Attr_T>>>> typeMapper;
-      return typeMapper.rubyKlass();
-    }
-    else
-    {
-      TypeMapper<Attr_T> typeMapper;
-      return typeMapper.rubyKlass();
-    }
+    TypeMapper<Attr_T> typeMapper;
+    return typeMapper.rubyKlass();
   }
 }
