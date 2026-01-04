@@ -31,10 +31,11 @@ namespace Rice::detail
     NativeRegistry& operator=(const NativeRegistry& other) = delete;
 
     void add(VALUE klass, ID methodId, std::unique_ptr<Native>& native);
+    void replace(VALUE klass, ID methodId, std::unique_ptr<Native>& native);
     void reset(VALUE klass);
 
-    const std::vector<Native*> lookup(VALUE klass);
-    const std::vector<std::unique_ptr<Native>>& lookup(VALUE klass, ID methodId);
+    std::vector<Native*> lookup(VALUE klass);
+    std::vector<std::unique_ptr<Native>>& lookup(VALUE klass, ID methodId);
     std::vector<Native*> lookup(VALUE klass, NativeKind kind);
 
   private:

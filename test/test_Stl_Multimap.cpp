@@ -691,3 +691,49 @@ TESTCASE(HashToMultimapMixedTypes)
     ASSERT_EQUAL("no implicit conversion of String into Integer", ex.what())
   );
 }
+
+namespace
+{
+  class MyClass2
+  {
+  public:
+    MyClass2(std::string name): name(name)
+    {
+    }
+    std::string name;
+  };
+}
+
+TESTCASE(KeepAlive)
+{
+  Class c = define_class<MyClass2>("MyClass2").
+    define_constructor(Constructor<MyClass2, std::string>()).
+    define_attr("name", &MyClass2::name, AttrAccess::Read);
+
+  define_multimap<std::string, MyClass2*>("MyClass2PointerMultimap");
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(
+    map = Std::MyClass2PointerMultimap.new
+
+    # Test insert
+    map.insert("one", MyClass2.new("instance1"))
+    map.insert("two", MyClass2.new("instance2"))
+    map.insert("three", MyClass2.new("instance3"))
+
+    GC.start
+
+    names = []
+    map.each do |pair|
+      names << pair.second.name
+    end
+    names.sort
+  )";
+
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL("instance1", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("instance2", detail::From_Ruby<std::string>().convert(result[1].value()));
+  ASSERT_EQUAL("instance3", detail::From_Ruby<std::string>().convert(result[2].value()));
+}

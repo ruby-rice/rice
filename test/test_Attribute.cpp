@@ -22,6 +22,21 @@ TEARDOWN(Attribute)
 
 namespace
 {
+  class MyClass2
+  {
+  public:
+    MyClass2(int value) : value(value)
+    {
+    }
+
+    ~MyClass2()
+    {
+      value = -1;
+    }
+
+    int value = 0;
+  };
+
   class SomeClass
   {
   };
@@ -70,6 +85,7 @@ namespace
     char buf[2] = { '0', '1' };
     OldEnum oldEnum = OldValue1;
     NewEnum newEnum = NewEnum::NewValue1;
+    MyClass2* myClass2 = nullptr;
 
     std::string inspect()
     {
@@ -496,4 +512,60 @@ TESTCASE(CounterBufferAttribute)
                         struct.counters_buffer.class)";
   Class klass = (Class)m.module_eval(code);
   ASSERT_EQUAL("Rice::Pointer≺AnonymousNamespace꞉꞉Counter≻", klass.name().c_str());
+}
+
+TESTCASE(TakeOwnership)
+{
+  Module m = define_module("Testing");
+
+  define_class<MyClass2>("MyClass2")
+    .define_constructor(Constructor<MyClass2, int>());
+
+  define_class<DataStruct>("DataStruct")
+    .define_constructor(Constructor<DataStruct>())
+    .define_attr("my_class2", &DataStruct::myClass2, Rice::AttrAccess::ReadWrite, Arg("value").takeOwnership());
+
+  // Create DataStruct, create MyClass2, assign it, nil it, GC, then verify MyClass2 is still alive
+  std::string code = R"(
+    data_struct = DataStruct.new
+    my_class2 = MyClass2.new(42)
+    data_struct.my_class2 = my_class2
+    my_class2 = nil
+    GC.start
+    data_struct
+  )";
+
+  Data_Object<DataStruct> dataStruct = m.module_eval(code);
+
+  // This should work because ownership was transferred - MyClass2 is now owned by C++
+  ASSERT_NOT_EQUAL(nullptr, dataStruct->myClass2);
+  ASSERT_EQUAL(42, dataStruct->myClass2->value);
+}
+
+TESTCASE(KeepAlive)
+{
+  Module m = define_module("Testing");
+
+  define_class<MyClass2>("MyClass2")
+    .define_constructor(Constructor<MyClass2, int>());
+
+  define_class<DataStruct>("DataStruct")
+    .define_constructor(Constructor<DataStruct>())
+    .define_attr("my_class2", &DataStruct::myClass2, Rice::AttrAccess::ReadWrite, Arg("value").keepAlive());
+
+  // Create DataStruct, create MyClass2, assign it, nil it, GC, then verify MyClass2 is still alive
+  std::string code = R"(
+    data_struct = DataStruct.new
+    my_class2 = MyClass2.new(43)
+    data_struct.my_class2 = my_class2
+    my_class2 = nil
+    GC.start
+    data_struct
+  )";
+
+  Data_Object<DataStruct> dataStruct = m.module_eval(code);
+
+  // This should work because keepAlive prevents MyClass2 from being GC'd
+  ASSERT_NOT_EQUAL(nullptr, dataStruct->myClass2);
+  ASSERT_EQUAL(43, dataStruct->myClass2->value);
 }

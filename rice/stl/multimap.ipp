@@ -14,6 +14,8 @@ namespace Rice
       using Size_T = typename T::size_type;
       using Difference_T = typename T::difference_type;
       using To_Ruby_T = typename detail::remove_cv_recursive_t<Mapped_T>;
+      // For pointer types, use the pointer directly; for non-pointer types, use a reference
+      using Mapped_Parameter_T = std::conditional_t<std::is_pointer_v<Mapped_T>, Mapped_T, Mapped_T&>;
 
     public:
       MultimapHelper(Data_Type<T> klass) : klass_(klass)
@@ -41,7 +43,7 @@ namespace Rice
 
         if constexpr (std::is_copy_constructible_v<Key_T> && std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_constructor(Constructor<T, const T&>());
+          klass_.define_constructor(Constructor<T, const T&>(), Arg("other"));
         }
       }
 
@@ -70,11 +72,11 @@ namespace Rice
             }
 
             return result;
-          })
+          }, Arg("key"))
           .define_method("include?", [](T& multimap, Key_T& key) -> bool
           {
               return multimap.find(key) != multimap.end();
-          })
+          }, Arg("key"))
           .define_method("keys", [](T& multimap) -> std::vector<Key_T>
             {
               std::vector<Key_T> result;
@@ -109,8 +111,8 @@ namespace Rice
           klass_.define_method("==", [](T& multimap, T& other)->bool
           {
             return multimap == other;
-          })
-          .define_method("value?", [](T& multimap, Mapped_T& value) -> bool
+          }, Arg("other"))
+          .define_method("value?", [](T& multimap, Mapped_Parameter_T value) -> bool
           {
             auto it = std::find_if(multimap.begin(), multimap.end(),
             [&value](auto& pair)
@@ -119,15 +121,15 @@ namespace Rice
               });
 
             return it != multimap.end();
-          });
+          }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
         }
         else
         {
-          klass_.define_method("value?", [](T&, Mapped_T&) -> bool
+          klass_.define_method("value?", [](T&, Mapped_Parameter_T) -> bool
           {
               return false;
-          });
+          }, Arg("value"));
         }
 
         rb_define_alias(klass_, "has_value", "value?");
@@ -150,13 +152,13 @@ namespace Rice
             {
               return std::nullopt;
             }
-          })
-          .define_method("insert", [](T& map, Key_T key, Mapped_T& value) -> Mapped_T
+          }, Arg("key"))
+          .define_method("insert", [](T& map, Key_T key, Mapped_Parameter_T value) -> Mapped_T
           {
             Value_T element{ key, value };
             map.insert(element);
             return value;
-          });
+          }, Arg("key").keepAlive(), Arg("value").keepAlive());
       }
 
       void define_enumerable()

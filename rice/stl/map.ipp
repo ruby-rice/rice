@@ -14,6 +14,8 @@ namespace Rice
       using Size_T = typename T::size_type;
       using Difference_T = typename T::difference_type;
       using To_Ruby_T = typename detail::remove_cv_recursive_t<Mapped_T>;
+      // For pointer types, use the pointer directly; for non-pointer types, use a reference
+      using Mapped_Parameter_T = std::conditional_t<std::is_pointer_v<Mapped_T>, Mapped_T, Mapped_T&>;
 
     public:
       MapHelper(Data_Type<T> klass) : klass_(klass)
@@ -42,7 +44,7 @@ namespace Rice
 
         if constexpr (std::is_copy_constructible_v<Key_T> && std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_constructor(Constructor<T, const T&>());
+          klass_.define_constructor(Constructor<T, const T&>(), Arg("other"));
         }
       }
 
@@ -71,11 +73,11 @@ namespace Rice
             {
               return std::nullopt;
             }
-          })
+          }, Arg("key"))
           .define_method("include?", [](T& map, Key_T& key) -> bool
           {
               return map.find(key) != map.end();
-          })
+          }, Arg("key"))
           .define_method("keys", [](T& map) -> std::vector<Key_T>
             {
               std::vector<Key_T> result;
@@ -110,8 +112,8 @@ namespace Rice
           klass_.define_method("==", [](T& map, T& other)->bool
           {
             return map == other;
-          })
-          .define_method("value?", [](T& map, Mapped_T& value) -> bool
+          }, Arg("other"))
+          .define_method("value?", [](T& map, Mapped_Parameter_T value) -> bool
           {
             auto it = std::find_if(map.begin(), map.end(),
             [&value](auto& pair)
@@ -120,15 +122,15 @@ namespace Rice
               });
 
             return it != map.end();
-          });
+          }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
         }
         else
         {
-          klass_.define_method("value?", [](T&, Mapped_T&) -> bool
+          klass_.define_method("value?", [](T&, Mapped_Parameter_T) -> bool
           {
               return false;
-          });
+          }, Arg("value"));
         }
 
         rb_define_alias(klass_, "has_value", "value?");
@@ -151,12 +153,12 @@ namespace Rice
               {
                 return std::nullopt;
               }
-            })
-          .define_method("[]=", [](T& map, Key_T key, Mapped_T& value) -> Mapped_T
+            }, Arg("key"))
+          .define_method("[]=", [](T& map, Key_T key, Mapped_Parameter_T value) -> Mapped_T
             {
               map[key] = value;
               return value;
-            });
+            }, Arg("key").keepAlive(), Arg("value").keepAlive());
 
           rb_define_alias(klass_, "store", "[]=");
       }

@@ -3,17 +3,21 @@ namespace Rice::detail
 {
   inline void NativeRegistry::add(VALUE klass, ID methodId, std::unique_ptr<Native>& native)
   {
-    if (rb_type(klass) == T_ICLASS)
-    {
-      klass = detail::protect(rb_class_of, klass);
-    }
-
-    // Create the key
-    std::pair<VALUE, ID> key = std::make_pair(klass, methodId);
-
     // Lookup items for method
-    std::vector<std::unique_ptr<Native>>& natives = this->natives_[key];
+    std::vector<std::unique_ptr<Native>>& natives = NativeRegistry::lookup(klass, methodId);
 
+    // Add new native
+    natives.push_back(std::move(native));
+  }
+
+  inline void NativeRegistry::replace(VALUE klass, ID methodId, std::unique_ptr<Native>& native)
+  {
+    // Lookup items for method
+    std::vector<std::unique_ptr<Native>>& natives = NativeRegistry::lookup(klass, methodId);
+
+    // Clear existing natives
+    natives.clear();
+    // Add new native
     natives.push_back(std::move(native));
   }
 
@@ -33,7 +37,7 @@ namespace Rice::detail
     }
   }
   
-  inline const std::vector<Native*> NativeRegistry::lookup(VALUE klass)
+  inline std::vector<Native*> NativeRegistry::lookup(VALUE klass)
   {
     std::vector<Native*> result;
 
@@ -59,7 +63,7 @@ namespace Rice::detail
     return result;
   }
 
-  inline const std::vector<std::unique_ptr<Native>>& NativeRegistry::lookup(VALUE klass, ID methodId)
+  inline std::vector<std::unique_ptr<Native>>& NativeRegistry::lookup(VALUE klass, ID methodId)
   {
     if (rb_type(klass) == T_ICLASS)
     {

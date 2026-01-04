@@ -15,8 +15,9 @@ namespace Rice
       using Receiver_T = typename attribute_traits<Attribute_T>::class_type;
 
     public:
-      // Register attribute getter/setter with Ruby
-      static void define(VALUE klass, std::string name, Attribute_T attribute);
+      // Register attribute setter with Ruby
+      template<typename...Arg_Ts>
+      static void define(VALUE klass, std::string name, Attribute_T attribute, Arg_Ts&...args);
 
     public:
       // Disallow creating/copying/moving
@@ -34,11 +35,12 @@ namespace Rice
       VALUE returnKlass() override;
 
     protected:
-      NativeAttributeSet(VALUE klass, std::string name, Attribute_T attr);
+      NativeAttributeSet(VALUE klass, std::string name, Attribute_T attr, std::unique_ptr<Parameter<T_Unqualified>> parameter);
 
     private:
       VALUE klass_;
       Attribute_T attribute_;
+      std::unique_ptr<Parameter<T_Unqualified>> parameter_;
     };
   } // detail
 } // Rice

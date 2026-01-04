@@ -176,16 +176,14 @@ namespace Rice::detail
       Arg* arg = parameters_[i]->arg();
       if (arg->isKeepAlive())
       {
-        static WrapperBase* selfWrapper = getWrapper(self);
-        selfWrapper->addKeepAlive(rubyValues[i].value());
+        WrapperBase::addKeepAlive(self, rubyValues[i].value());
       }
     }
 
     // Check return value
     if (this->returnInfo_->isKeepAlive())
     {
-      WrapperBase* returnWrapper = getWrapper(returnValue);
-      returnWrapper->addKeepAlive(self);
+      WrapperBase::addKeepAlive(returnValue, self);
     }
   }
 

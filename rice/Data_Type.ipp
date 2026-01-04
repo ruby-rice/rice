@@ -385,7 +385,7 @@ namespace Rice
       }
       else
       {
-        detail::NativeAttributeSet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute));
+        detail::NativeAttributeSet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute), args...);
       }
     }
 
