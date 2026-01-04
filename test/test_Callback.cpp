@@ -55,7 +55,10 @@ TESTCASE(LambdaCallBack)
   ASSERT((globalCallback != nullptr));
 
   int ref = 4;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wwrite-strings"
   char* result = triggerCallback(1, 2, true, "hello", ref);
+#pragma GCC diagnostic pop
   ASSERT_EQUAL("1 - 2.0 - true - hello - 4", result);
 }
 

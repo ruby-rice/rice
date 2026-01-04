@@ -107,30 +107,33 @@ namespace Rice::detail
     {
       return self;
     }
-    /* This case happens when a class wrapped by Rice is calling a method
-       defined on an ancestor class. For example, the std::map size method
-       is defined on _Tree not map. Rice needs to know the actual type
-       that was wrapped so it can correctly extract the C++ object from 
-       the Ruby object. */
-    else if constexpr (!std::is_same_v<intrinsic_type<Receiver_T>, Class_T> && 
-                        std::is_base_of_v<intrinsic_type<Receiver_T>, Class_T> &&
-                        std::is_pointer_v<Receiver_T>)
-    {
-      Class_T* instance = From_Ruby<Class_T*>().convert(self);
-      return dynamic_cast<Receiver_T>(instance);
-    }
-    else if constexpr (!std::is_same_v<intrinsic_type<Receiver_T>, Class_T> &&
-                        std::is_base_of_v<intrinsic_type<Receiver_T>, Class_T> &&
-                        std::is_reference_v<Receiver_T>)
-    {
-      Class_T& instance = From_Ruby<Class_T&>().convert(self);
-      return dynamic_cast<Receiver_T>(instance);
-    }
-    // Self parameter could be derived from Object or it is an C++ instance and
-    // needs to be unwrapped from Ruby
     else
     {
-      return From_Ruby<Receiver_T>().convert(self);
+      /* When a class wrapped by Rice calls a method defined on an ancestor class
+         (e.g., std::map calling a method from _Tree), we need to unwrap as Class_T
+         and dynamic_cast to the base class. Otherwise unwrap directly as Receiver_T. */
+      constexpr bool isDerived = !std::is_same_v<intrinsic_type<Receiver_T>, Class_T> &&
+                                  std::is_base_of_v<intrinsic_type<Receiver_T>, Class_T>;
+
+      if constexpr (isDerived)
+      {
+        if constexpr (std::is_pointer_v<Receiver_T>)
+        {
+          Class_T* instance = From_Ruby<Class_T*>().convert(self);
+          return dynamic_cast<Receiver_T>(instance);
+        }
+        else if constexpr (std::is_reference_v<Receiver_T>)
+        {
+          Class_T& instance = From_Ruby<Class_T&>().convert(self);
+          return dynamic_cast<Receiver_T>(instance);
+        }
+      }
+      else
+      {
+        // Note GCC has a false warning: function may return address of local variable [-Wreturn-local-addr].
+        // From_Ruby returns a reference to data in the Ruby object, not the temporary.
+        return From_Ruby<Receiver_T>().convert(self);
+      }
     }
   }
 
