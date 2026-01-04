@@ -23,7 +23,7 @@ namespace Rice
     Identifier id(klassName);
     Data_Type_T result = define_class_under<detail::intrinsic_type<SharedPtr_T>>(rb_mStd, id).
       define_method("get", &SharedPtr_T::get).
-      define_method("swap", &SharedPtr_T::swap).
+      define_method("swap", &SharedPtr_T::swap, Arg("r")).
       define_method("use_count", &SharedPtr_T::use_count).
       define_method("empty?", [](SharedPtr_T& self)->bool
       {

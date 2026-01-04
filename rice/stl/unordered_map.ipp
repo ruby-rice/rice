@@ -44,7 +44,7 @@ namespace Rice
 
         if constexpr (std::is_copy_constructible_v<Key_T> && std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_constructor(Constructor<T, const T&>());
+          klass_.define_constructor(Constructor<T, const T&>(), Arg("other"));
         }
       }
 
@@ -73,11 +73,11 @@ namespace Rice
             {
               return std::nullopt;
             }
-          })
+          }, Arg("key"))
           .define_method("include?", [](T& unordered_map, Key_T& key) -> bool
           {
               return unordered_map.find(key) != unordered_map.end();
-          })
+          }, Arg("key"))
           .define_method("keys", [](T& unordered_map) -> std::vector<Key_T>
             {
               std::vector<Key_T> result;
@@ -112,7 +112,7 @@ namespace Rice
           klass_.define_method("==", [](T& unordered_map, T& other)->bool
           {
             return unordered_map == other;
-          })
+          }, Arg("other"))
           .define_method("value?", [](T& unordered_map, Mapped_Parameter_T value) -> bool
             {
               auto it = std::find_if(unordered_map.begin(), unordered_map.end(),
@@ -122,7 +122,7 @@ namespace Rice
                 });
 
               return it != unordered_map.end();
-          });
+          }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
         }
         else
@@ -130,7 +130,7 @@ namespace Rice
           klass_.define_method("value?", [](T&, Mapped_Parameter_T) -> bool
           {
               return false;
-          });
+          }, Arg("value"));
         }
 
         rb_define_alias(klass_, "has_value", "value?");
@@ -153,7 +153,7 @@ namespace Rice
               {
                 return std::nullopt;
               }
-            })
+            }, Arg("key"))
           .define_method("[]=", [](T& unordered_map, Key_T key, Mapped_Parameter_T value) -> Mapped_T
             {
               unordered_map[key] = value;

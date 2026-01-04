@@ -11,7 +11,7 @@ namespace Rice
 
       define_class_under<std::filesystem::path>(rb_mFileSystem, "Path").
         define_constructor(Constructor<std::filesystem::path>()).
-        define_constructor(Constructor<std::filesystem::path, std::string>());
+        define_constructor(Constructor<std::filesystem::path, std::string>(), Arg("source"));
     }
   }
 }

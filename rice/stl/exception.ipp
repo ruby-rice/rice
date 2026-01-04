@@ -13,7 +13,7 @@ namespace Rice::stl
       define_method("message", &std::exception::what);
 
     define_class_under<std::runtime_error>(rb_mStd, "RuntimeError", rb_eRuntimeError).
-      define_constructor(Constructor<std::runtime_error, const char*>()).
+      define_constructor(Constructor<std::runtime_error, const char*>(), Arg("what")).
       define_method("message", &std::runtime_error::what);
   }
 }

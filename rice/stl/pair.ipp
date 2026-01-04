@@ -25,11 +25,11 @@ namespace Rice
       void define_constructors()
       {
         klass_.define_constructor(Constructor<T>())
-              .define_constructor(Constructor<T, First_Parameter_T, Second_Parameter_T>());
+              .define_constructor(Constructor<T, First_Parameter_T, Second_Parameter_T>(), Arg("x"), Arg("y"));
 
         if constexpr (std::is_copy_constructible_v<First_T> && std::is_copy_constructible_v<Second_T>)
         {
-          klass_.define_constructor(Constructor<T, const T&>());
+          klass_.define_constructor(Constructor<T, const T&>(), Arg("other"));
         }
       }
 

@@ -38,7 +38,7 @@ namespace Rice
       void define_constructors()
       {
         klass_.define_constructor(Constructor<T>())
-              .define_constructor(Constructor<T, const T&>());
+              .define_constructor(Constructor<T, const T&>(), Arg("other"));
       }
 
       void define_capacity_methods()
@@ -58,11 +58,11 @@ namespace Rice
           {
             auto iter = self.find(element);
             return iter != self.end();
-          })
+          }, Arg("key"))
           .define_method("count", [](T& self, const Key_T element) -> Size_T
           {
             return self.count(element);
-          });
+          }, Arg("key"));
       }
 
       void define_modify_methods()
@@ -73,7 +73,7 @@ namespace Rice
           {
             self.erase(key);
             return self;
-          })
+          }, Arg("key"))
           .define_method("insert", [](T& self, Parameter_T value) -> T&
           {
             self.insert(value);
@@ -83,7 +83,7 @@ namespace Rice
           {
             self.merge(other);
             return self;
-          });
+          }, Arg("source"));
 
         rb_define_alias(klass_, "erase", "delete");
       }
@@ -106,7 +106,7 @@ namespace Rice
             {
               return false;
             }
-          })
+          }, Arg("other"))
           .define_method("&", [](const T& self, const T& other) -> T
           {
             T result;
@@ -115,7 +115,7 @@ namespace Rice
                                   std::inserter(result, result.begin()));
 
             return result;
-          })
+          }, Arg("other"))
           .define_method("|", [](const T& self, const T& other) -> T
           {
             T result;
@@ -124,7 +124,7 @@ namespace Rice
                            std::inserter(result, result.begin()));
 
             return result;
-          })
+          }, Arg("other"))
           .define_method("-", [](const T& self, const T& other) -> T
           {
             T result;
@@ -133,7 +133,7 @@ namespace Rice
                                 std::inserter(result, result.begin()));
 
             return result;
-          })
+          }, Arg("other"))
           .define_method("^", [](const T& self, const T& other) -> T
           {
             T result;
@@ -142,17 +142,17 @@ namespace Rice
                                           std::inserter(result, result.begin()));
 
             return result;
-          })
+          }, Arg("other"))
           .define_method("<", [](const T& self, const T& other) -> bool
           {
             return std::includes(other.begin(), other.end(),
                                  self.begin(), self.end());
-          })
+          }, Arg("other"))
           .define_method(">", [](const T& self, const T& other) -> bool
           {
             return std::includes(self.begin(), self.end(),
                                  other.begin(), other.end());
-          });
+          }, Arg("other"));
         
           rb_define_alias(klass_, "eql?", "==");
           rb_define_alias(klass_, "intersection", "&");

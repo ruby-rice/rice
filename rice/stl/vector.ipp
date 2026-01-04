@@ -58,13 +58,13 @@ namespace Rice
 
         if constexpr (std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_constructor(Constructor<T, const T&>())
-                .define_constructor(Constructor<T, Size_T, const Parameter_T>());
+          klass_.define_constructor(Constructor<T, const T&>(), Arg("other"))
+                .define_constructor(Constructor<T, Size_T, const Parameter_T>(), Arg("count"), Arg("value"));
         }
 
         if constexpr (std::is_default_constructible_v<Value_T>)
         {
-          klass_.define_constructor(Constructor<T, Size_T>());
+          klass_.define_constructor(Constructor<T, Size_T>(), Arg("count"));
         }
 
         // Allow creation of a vector from a Ruby Array
@@ -93,18 +93,18 @@ namespace Rice
       {
         if constexpr (std::is_default_constructible_v<Value_T> && std::is_same_v<Value_T, bool>)
         {
-          klass_.define_method("resize", static_cast<void (T::*)(const size_t, bool)>(&T::resize));
+          klass_.define_method("resize", static_cast<void (T::*)(const size_t, bool)>(&T::resize), Arg("count"), Arg("value"));
         }
         else if constexpr (std::is_default_constructible_v<Value_T>)
         {
-          klass_.define_method("resize", static_cast<void (T::*)(const size_t)>(&T::resize));
+          klass_.define_method("resize", static_cast<void (T::*)(const size_t)>(&T::resize), Arg("count"));
         }
         else
         {
           klass_.define_method("resize", [](const T&, Size_T)
           {
             // Do nothing
-          });
+          }, Arg("count"));
         }
       }
 
@@ -113,13 +113,11 @@ namespace Rice
         klass_.define_method("empty?", &T::empty)
           .define_method("capacity", &T::capacity)
           .define_method("max_size", &T::max_size)
-          .define_method("reserve", &T::reserve)
+          .define_method("reserve", &T::reserve, Arg("new_cap"))
           .define_method("size", &T::size);
-        
+
         rb_define_alias(klass_, "count", "size");
         rb_define_alias(klass_, "length", "size");
-        //detail::protect(rb_define_alias, klass_, "count", "size");
-        //detail::protect(rb_define_alias, klass_, "length", "size");
       }
 
       void define_access_methods()
@@ -160,7 +158,7 @@ namespace Rice
             {
               return vector[index];
             }
-          })
+          }, Arg("pos"))
           .template define_method<Value_T*(T::*)()>("data", &T::data, ReturnBuffer());
         }
         else
@@ -199,7 +197,7 @@ namespace Rice
             {
               return vector[index];
             }
-          });
+          }, Arg("pos"));
         }
 
         klass_.define_method("[]", [this](T& vector, Difference_T start, Difference_T length) -> VALUE
@@ -232,7 +230,7 @@ namespace Rice
 
             return result;
           }
-        }, Return().setValue());
+        }, Arg("start"), Arg("length"), Return().setValue());
 
         rb_define_alias(klass_, "at", "[]");
       }
@@ -245,7 +243,7 @@ namespace Rice
           klass_.define_method("==", [](T& vector, T& other)->bool
           {
             return vector == other;
-          })
+          }, Arg("other"))
           .define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
           {
             auto iter = std::find(vector.begin(), vector.end(), element);
@@ -263,11 +261,11 @@ namespace Rice
             {
               return std::nullopt;
             }
-          })
+          }, Arg("value"))
           .define_method("include?", [](T& vector, Parameter_T element)
           {
             return std::find(vector.begin(), vector.end(), element) != vector.end();
-          })
+          }, Arg("value"))
           .define_method("index", [](T& vector, Parameter_T element) -> std::optional<Difference_T>
           {
             auto iter = std::find(vector.begin(), vector.end(), element);
@@ -279,7 +277,7 @@ namespace Rice
             {
               return iter - vector.begin();
             }
-          });
+          }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
         }
         else
@@ -287,15 +285,15 @@ namespace Rice
           klass_.define_method("delete", [](T&, Parameter_T) -> std::optional<Value_T>
           {
             return std::nullopt;
-          })
+          }, Arg("value"))
           .define_method("include?", [](const T&, Parameter_T)
           {
             return false;
-          })
+          }, Arg("value"))
           .define_method("index", [](const T&, Parameter_T) -> std::optional<Difference_T>
           {
             return std::nullopt;
-          });
+          }, Arg("value"));
         }
       }
 
@@ -317,7 +315,7 @@ namespace Rice
               vector.erase(iter);
               return std::nullopt;
             }
-          })
+          }, Arg("pos"))
           .define_method("insert", [this](T& vector, Difference_T index, Parameter_T element) -> T&
           {
             size_t normalized = normalizeIndex(vector.size(), index, true);
@@ -331,7 +329,7 @@ namespace Rice
             auto iter = vector.begin() + normalized;
             vector.insert(iter, std::move(element));
             return vector;
-          }, Arg("index"), Arg("element").keepAlive())
+          }, Arg("pos"), Arg("value").keepAlive())
           .define_method("pop", [](T& vector) -> std::optional<Value_T>
           {
             if constexpr (!std::is_copy_assignable_v<Value_T>)
@@ -354,13 +352,13 @@ namespace Rice
           {
             vector.push_back(std::move(element));
             return vector;
-          }, Arg("element").keepAlive())
+          }, Arg("value").keepAlive())
         .define_method("shrink_to_fit", &T::shrink_to_fit)
         .define_method("[]=", [this](T& vector, Difference_T index, Parameter_T element) -> void
           {
             index = normalizeIndex(vector.size(), index, true);
             vector[index] = std::move(element);
-          }, Arg("index"), Arg("element").keepAlive());
+          }, Arg("pos"), Arg("value").keepAlive());
 
         rb_define_alias(klass_, "push_back", "push");
         rb_define_alias(klass_, "<<", "push");

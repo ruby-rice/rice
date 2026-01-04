@@ -43,7 +43,7 @@ namespace Rice
 
         if constexpr (std::is_copy_constructible_v<Key_T> && std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_constructor(Constructor<T, const T&>());
+          klass_.define_constructor(Constructor<T, const T&>(), Arg("other"));
         }
       }
 
@@ -72,11 +72,11 @@ namespace Rice
             }
 
             return result;
-          })
+          }, Arg("key"))
           .define_method("include?", [](T& multimap, Key_T& key) -> bool
           {
               return multimap.find(key) != multimap.end();
-          })
+          }, Arg("key"))
           .define_method("keys", [](T& multimap) -> std::vector<Key_T>
             {
               std::vector<Key_T> result;
@@ -111,7 +111,7 @@ namespace Rice
           klass_.define_method("==", [](T& multimap, T& other)->bool
           {
             return multimap == other;
-          })
+          }, Arg("other"))
           .define_method("value?", [](T& multimap, Mapped_Parameter_T value) -> bool
           {
             auto it = std::find_if(multimap.begin(), multimap.end(),
@@ -121,7 +121,7 @@ namespace Rice
               });
 
             return it != multimap.end();
-          });
+          }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
         }
         else
@@ -129,7 +129,7 @@ namespace Rice
           klass_.define_method("value?", [](T&, Mapped_Parameter_T) -> bool
           {
               return false;
-          });
+          }, Arg("value"));
         }
 
         rb_define_alias(klass_, "has_value", "value?");
@@ -152,7 +152,7 @@ namespace Rice
             {
               return std::nullopt;
             }
-          })
+          }, Arg("key"))
           .define_method("insert", [](T& map, Key_T key, Mapped_Parameter_T value) -> Mapped_T
           {
             Value_T element{ key, value };

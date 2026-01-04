@@ -24,8 +24,8 @@ namespace Rice
     Data_Type_T result = define_class_under<detail::intrinsic_type<UniquePtr_T>>(rb_mStd, id).
       define_method("get", &UniquePtr_T::get).
       define_method("release", &UniquePtr_T::release).
-      define_method("reset", &UniquePtr_T::reset).
-      define_method("swap", &UniquePtr_T::swap).
+      define_method("reset", &UniquePtr_T::reset, Arg("ptr")).
+      define_method("swap", &UniquePtr_T::swap, Arg("other")).
       define_method("empty?", [](UniquePtr_T& self)->bool
       {
         return !self;

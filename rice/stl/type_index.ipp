@@ -6,7 +6,7 @@ namespace Rice::stl
   {
     Module rb_mStd = define_module("Std");
     return define_class_under<std::type_index>(rb_mStd, "TypeIndex").
-      define_constructor(Constructor<std::type_index, const std::type_info&>()).
+      define_constructor(Constructor<std::type_index, const std::type_info&>(), Arg("target")).
       define_method("hash_code", &std::type_index::hash_code).
       define_method("name", &std::type_index::name);
   }
