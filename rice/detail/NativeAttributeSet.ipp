@@ -73,7 +73,7 @@ namespace Rice::detail
     if constexpr (!std::is_null_pointer_v<Receiver_T>)
     {
       Receiver_T* nativeSelf = From_Ruby<Receiver_T*>().convert(self);
-      nativeSelf->*attribute_ = nativeValue;
+      nativeSelf->*attribute_ = (Attr_T)nativeValue;
     }
     else
     {
