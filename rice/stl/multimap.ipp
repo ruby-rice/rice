@@ -158,7 +158,7 @@ namespace Rice
             Value_T element{ key, value };
             map.insert(element);
             return value;
-          }, Arg("key"), Arg("value").keepAlive());
+          }, Arg("key").keepAlive(), Arg("value").keepAlive());
       }
 
       void define_enumerable()

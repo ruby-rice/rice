@@ -158,7 +158,7 @@ namespace Rice
             {
               map[key] = value;
               return value;
-            }, Arg("key"), Arg("value").keepAlive());
+            }, Arg("key").keepAlive(), Arg("value").keepAlive());
 
           rb_define_alias(klass_, "store", "[]=");
       }
