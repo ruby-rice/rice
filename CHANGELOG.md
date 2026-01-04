@@ -1,4 +1,20 @@
-# Changelog 
+# Changelog
+
+## 4.9.1 (unreleased)
+This release focuses on improving memory management for STL containers and attribute setters.
+
+Enhancements:
+* Support `takeOwnership` and `keepAlive` when setting attributes via `Arg("value").takeOwnership()` and `Arg("value").keepAlive()`
+* Add `Arg` parameter names to all STL container methods for keyword argument support
+* Add `keepAlive` support for STL container operations (vector push/insert, set insert, map/multimap store)
+* Add `keepAlive` for map/unordered_map/multimap keys to prevent GC of pointer-type keys
+
+Bug Fixes:
+* Fix error when multiple overloaded methods take different types of vectors
+* Fix type unknown errors when using `std::shared_ptr` with g++
+* Fix CMake `_Ruby_DLEXT` variable type (string, not path)
+* Fix crash caused by static variable in keepAlive implementation
+* Fix incorrect attribute overloading behavior
 
 ## 4.9.0 (2026-01-01)
 This release revamps smart pointer support for `std::shared_ptr` and `std::unique_ptr`.
