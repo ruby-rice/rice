@@ -72,18 +72,20 @@ namespace Rice
         {
           // Create a new vector from the array
           T* data = new T();
-          data->reserve(array.size());
 
+          // Wrap the vector
+          detail::Wrapper<T*>* wrapper = detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
+
+          // Now populate the vector
           detail::From_Ruby<Value_T> fromRuby;
+          data->reserve(array.size());
 
           for (long i = 0; i < array.size(); i++)
           {
             VALUE element = detail::protect(rb_ary_entry, array, i);
             data->push_back(fromRuby.convert(element));
+            wrapper->addKeepAlive(element);
           }
-
-          // Wrap the vector
-          detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
         });
       }
 
@@ -329,7 +331,7 @@ namespace Rice
             auto iter = vector.begin() + normalized;
             vector.insert(iter, std::move(element));
             return vector;
-          })
+          }, Arg("index"), Arg("element").keepAlive())
           .define_method("pop", [](T& vector) -> std::optional<Value_T>
           {
             if constexpr (!std::is_copy_assignable_v<Value_T>)
@@ -352,13 +354,13 @@ namespace Rice
           {
             vector.push_back(std::move(element));
             return vector;
-          })
+          }, Arg("element").keepAlive())
         .define_method("shrink_to_fit", &T::shrink_to_fit)
         .define_method("[]=", [this](T& vector, Difference_T index, Parameter_T element) -> void
           {
             index = normalizeIndex(vector.size(), index, true);
             vector[index] = std::move(element);
-          });
+          }, Arg("index"), Arg("element").keepAlive());
 
         rb_define_alias(klass_, "push_back", "push");
         rb_define_alias(klass_, "<<", "push");

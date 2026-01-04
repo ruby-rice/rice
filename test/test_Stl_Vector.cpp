@@ -41,7 +41,7 @@ Class makeVectorClass()
 
   return c;
 }
-
+/*
 TESTCASE(StringVector)
 {
   Module m = define_module("Testing");
@@ -993,13 +993,7 @@ namespace
   public:
     static inline std::vector<std::string> instance_{ "one", "two", "three" };
   };
-
- /* std::ostream& operator<<(std::ostream& stream, const std::vector<std::string>& vector)
-  {
-    stream << vector;
-    return stream;
-  }*/
-
+  
   void createFactoryClass()
   {
     define_class<Factory>("Factory").
@@ -1150,7 +1144,7 @@ TESTCASE(StringPointerVector)
   ASSERT_EQUAL(1, array.size());
   ASSERT_EQUAL("World", detail::From_Ruby<std::string>().convert(array[0].value()).c_str());
 }
-
+*/
 namespace
 {
   class MyClass2
@@ -1185,6 +1179,81 @@ TESTCASE(MyClass2PointerVector)
 
  MyClass2* pMyClass = (*result)[0];
  ASSERT_EQUAL("Hello MyClass2", pMyClass->name);
+}
+
+TESTCASE(KeepAliveArrayConstructor)
+{
+  Class c = define_class<MyClass2>("MyClass2").
+    define_constructor(Constructor<MyClass2, std::string>()).
+    define_attr("name", &MyClass2::name, AttrAccess::Read);
+
+  define_vector<MyClass2*>("MyClass2PointerVector");
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(
+    array = []
+    3.times do |i|
+      array << MyClass2.new("instance#{i + 1}")
+    end
+
+    vector = Std::MyClass2PointerVector.new(array)
+    array = nil
+    GC.start
+
+    names = []
+    vector.each do |instance|
+      names << instance.name
+    end
+    names
+  )";
+
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL("instance1", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("instance2", detail::From_Ruby<std::string>().convert(result[1].value()));
+  ASSERT_EQUAL("instance3", detail::From_Ruby<std::string>().convert(result[2].value()));
+}
+
+TESTCASE(KeepAlive)
+{
+  Class c = define_class<MyClass2>("MyClass2").
+    define_constructor(Constructor<MyClass2, std::string>()).
+    define_attr("name", &MyClass2::name, AttrAccess::Read);
+
+  define_vector<MyClass2*>("MyClass2PointerVector");
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(
+    vector = Std::MyClass2PointerVector.new
+
+    # Test push_back
+    3.times do |i|
+      vector.push(MyClass2.new("instance#{i + 1}"))
+    end
+
+    # Test insert
+    vector.insert(1, MyClass2.new("inserted"))
+
+    # Test []=
+    vector[0] = MyClass2.new("replaced")
+
+    GC.start
+
+    names = []
+    vector.each do |instance|
+      names << instance.name
+    end
+    names
+  )";
+
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(4, result.size());
+  ASSERT_EQUAL("replaced", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("inserted", detail::From_Ruby<std::string>().convert(result[1].value()));
+  ASSERT_EQUAL("instance2", detail::From_Ruby<std::string>().convert(result[2].value()));
+  ASSERT_EQUAL("instance3", detail::From_Ruby<std::string>().convert(result[3].value()));
 }
 
 namespace

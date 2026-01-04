@@ -14,6 +14,8 @@ namespace Rice
       using Size_T = typename T::size_type;
       using Difference_T = typename T::difference_type;
       using To_Ruby_T = typename detail::remove_cv_recursive_t<Mapped_T>;
+      // For pointer types, use the pointer directly; for non-pointer types, use a reference
+      using Mapped_Parameter_T = std::conditional_t<std::is_pointer_v<Mapped_T>, Mapped_T, Mapped_T&>;
 
     public:
       UnorderedMapHelper(Data_Type<T> klass) : klass_(klass)
@@ -33,7 +35,7 @@ namespace Rice
 
       void register_pair()
       {
-        define_pair<const Key_T, T>();
+        define_pair<const Key_T, Mapped_T>();
       }
 
       void define_constructors()
@@ -111,7 +113,7 @@ namespace Rice
           {
             return unordered_map == other;
           })
-          .define_method("value?", [](T& unordered_map, Mapped_T& value) -> bool
+          .define_method("value?", [](T& unordered_map, Mapped_Parameter_T value) -> bool
             {
               auto it = std::find_if(unordered_map.begin(), unordered_map.end(),
               [&value](auto& pair)
@@ -125,7 +127,7 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("value?", [](T&, Mapped_T&) -> bool
+          klass_.define_method("value?", [](T&, Mapped_Parameter_T) -> bool
           {
               return false;
           });
@@ -152,11 +154,11 @@ namespace Rice
                 return std::nullopt;
               }
             })
-          .define_method("[]=", [](T& unordered_map, Key_T key, Mapped_T& value) -> Mapped_T
+          .define_method("[]=", [](T& unordered_map, Key_T key, Mapped_Parameter_T value) -> Mapped_T
             {
               unordered_map[key] = value;
               return value;
-            });
+            }, Arg("key"), Arg("value").keepAlive());
 
           rb_define_alias(klass_, "store", "[]=");
       }

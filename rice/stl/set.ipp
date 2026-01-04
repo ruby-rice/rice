@@ -74,11 +74,11 @@ namespace Rice
             self.erase(key);
             return self;
           })
-          .define_method("insert", [](T& self, const Value_T value) -> T&
+          .define_method("insert", [](T& self, Parameter_T value) -> T&
           {
             self.insert(value);
             return self;
-          })
+          }, Arg("value").keepAlive())
           .define_method("merge", [](T& self, T& other) -> T&
           {
             self.merge(other);
@@ -91,11 +91,11 @@ namespace Rice
       void define_operators()
       {
         klass_
-          .define_method("<<", [](T& self, const Value_T value) -> T&
+          .define_method("<<", [](T& self, Parameter_T value) -> T&
           {
             self.insert(value);
             return self;
-          })
+          }, Arg("value").keepAlive())
           .define_method("==", [](const T& self, const T& other) -> bool
           {
             if constexpr (detail::is_comparable_v<Value_T>)

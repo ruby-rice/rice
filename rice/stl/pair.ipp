@@ -7,6 +7,12 @@ namespace Rice
     template<typename T>
     class PairHelper
     {
+      using First_T = typename T::first_type;
+      using Second_T = typename T::second_type;
+      // For pointer types, use the pointer directly; for non-pointer types, use a reference
+      using First_Parameter_T = std::conditional_t<std::is_pointer_v<First_T>, First_T, First_T&>;
+      using Second_Parameter_T = std::conditional_t<std::is_pointer_v<Second_T>, Second_T, Second_T&>;
+
     public:
       PairHelper(Data_Type<T> klass) : klass_(klass)
       {
@@ -19,9 +25,9 @@ namespace Rice
       void define_constructors()
       {
         klass_.define_constructor(Constructor<T>())
-              .define_constructor(Constructor<T, typename T::first_type&, typename T::second_type&>());
-      
-        if constexpr (std::is_copy_constructible_v<typename T::first_type> && std::is_copy_constructible_v<typename T::second_type>)
+              .define_constructor(Constructor<T, First_Parameter_T, Second_Parameter_T>());
+
+        if constexpr (std::is_copy_constructible_v<First_T> && std::is_copy_constructible_v<Second_T>)
         {
           klass_.define_constructor(Constructor<T, const T&>());
         }
@@ -30,22 +36,22 @@ namespace Rice
       void define_attributes()
       {
         // Access methods
-        if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::first_type>>>)
+        if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<First_T>>>)
         {
           klass_.define_attr("first", &T::first, Rice::AttrAccess::Read);
         }
         else
         {
-          klass_.define_attr("first", &T::first, Rice::AttrAccess::ReadWrite);
+          klass_.define_attr("first", &T::first, Rice::AttrAccess::ReadWrite, Arg("value").keepAlive());
         }
 
-        if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::second_type>>>)
+        if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<Second_T>>>)
         {
           klass_.define_attr("second", &T::second, Rice::AttrAccess::Read);
         }
         else
         {
-          klass_.define_attr("second", &T::second, Rice::AttrAccess::ReadWrite);
+          klass_.define_attr("second", &T::second, Rice::AttrAccess::ReadWrite, Arg("value").keepAlive());
         }
       }
 

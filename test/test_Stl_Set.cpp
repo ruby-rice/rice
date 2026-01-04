@@ -788,3 +788,37 @@ TESTCASE(Superset)
   Object result = m.instance_eval(code);
   ASSERT_EQUAL(Qtrue, result.value());
 }
+
+TESTCASE(KeepAlive)
+{
+  Class c = define_class<MyClass2>("MyClass2").
+    define_constructor(Constructor<MyClass2, std::string>()).
+    define_attr("name", &MyClass2::name, AttrAccess::Read);
+
+  define_set<MyClass2*>("MyClass2PointerSet");
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(
+    set = Std::MyClass2PointerSet.new
+
+    # Test insert
+    set.insert(MyClass2.new("instance1"))
+    set.insert(MyClass2.new("instance2"))
+    set.insert(MyClass2.new("instance3"))
+
+    GC.start
+
+    names = []
+    set.each do |instance|
+      names << instance.name
+    end
+    names.sort
+  )";
+
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL("instance1", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("instance2", detail::From_Ruby<std::string>().convert(result[1].value()));
+  ASSERT_EQUAL("instance3", detail::From_Ruby<std::string>().convert(result[2].value()));
+}

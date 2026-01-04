@@ -14,6 +14,8 @@ namespace Rice
       using Size_T = typename T::size_type;
       using Difference_T = typename T::difference_type;
       using To_Ruby_T = typename detail::remove_cv_recursive_t<Mapped_T>;
+      // For pointer types, use the pointer directly; for non-pointer types, use a reference
+      using Mapped_Parameter_T = std::conditional_t<std::is_pointer_v<Mapped_T>, Mapped_T, Mapped_T&>;
 
     public:
       MultimapHelper(Data_Type<T> klass) : klass_(klass)
@@ -110,7 +112,7 @@ namespace Rice
           {
             return multimap == other;
           })
-          .define_method("value?", [](T& multimap, Mapped_T& value) -> bool
+          .define_method("value?", [](T& multimap, Mapped_Parameter_T value) -> bool
           {
             auto it = std::find_if(multimap.begin(), multimap.end(),
             [&value](auto& pair)
@@ -124,7 +126,7 @@ namespace Rice
         }
         else
         {
-          klass_.define_method("value?", [](T&, Mapped_T&) -> bool
+          klass_.define_method("value?", [](T&, Mapped_Parameter_T) -> bool
           {
               return false;
           });
@@ -151,12 +153,12 @@ namespace Rice
               return std::nullopt;
             }
           })
-          .define_method("insert", [](T& map, Key_T key, Mapped_T& value) -> Mapped_T
+          .define_method("insert", [](T& map, Key_T key, Mapped_Parameter_T value) -> Mapped_T
           {
             Value_T element{ key, value };
             map.insert(element);
             return value;
-          });
+          }, Arg("key"), Arg("value").keepAlive());
       }
 
       void define_enumerable()

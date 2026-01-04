@@ -115,6 +115,26 @@ define_class<ListenerContainer>("ListenerContainer")
 
 With this change, when a listener is added to the container, the container keeps a reference to it and will call `rb_gc_mark` to keep it alive. This is exactly the same thing Ruby's collection classes, such as Arrays and Hashes, do. The `Listener` object will not be freed until the container itself goes out of scope.
 
+### Limitation: Removing Objects from Containers
+
+It is important to understand that `keepAlive` references are **not** released when objects are removed from containers. The reference persists until the container itself is garbage collected.
+
+For example:
+
+```ruby
+container = ListenerContainer.new
+listener = Listener.new
+container.add_listener(listener)    # keepAlive stores reference
+container.remove_listener(listener) # reference is NOT removed
+listener = nil
+GC.start
+# The original Listener is still alive, held by container's keepAlive list
+```
+
+This is a known trade-off shared by similar libraries like pybind11. Properly tracking removals would require intercepting every removal operation (erase, pop, clear, etc.) and maintaining a more complex reference tracking system.
+
+In practice, this means containers using `keepAlive` may hold references to objects longer than strictly necessary. If this causes memory pressure in your application, consider alternative approaches such as transferring ownership to C++ via `takeOwnership()` instead.
+
 Another example is when a returned object is dependent upon the original object. For example:
 
 ```cpp
