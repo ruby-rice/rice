@@ -600,6 +600,10 @@ namespace Rice::detail
   class WrapperBase
   {
   public:
+    static void addKeepAlive(VALUE object, VALUE keepAlive);
+    static bool isConst(VALUE object);
+
+  public:
     WrapperBase(rb_data_type_t* rb_data_type);
     virtual ~WrapperBase() = default;
     virtual void* get(rb_data_type_t* requestedType) = 0;
@@ -672,7 +676,7 @@ namespace Rice::detail
 
   // ---- Helper Functions ---------
   template <typename T>
-  void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data);
+  Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data);
 
   template <typename T>
   VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner);
@@ -3020,8 +3024,9 @@ namespace Rice
       using Receiver_T = typename attribute_traits<Attribute_T>::class_type;
 
     public:
-      // Register attribute getter/setter with Ruby
-      static void define(VALUE klass, std::string name, Attribute_T attribute);
+      // Register attribute setter with Ruby
+      template<typename...Arg_Ts>
+      static void define(VALUE klass, std::string name, Attribute_T attribute, Arg_Ts&...args);
 
     public:
       // Disallow creating/copying/moving
@@ -3039,11 +3044,12 @@ namespace Rice
       VALUE returnKlass() override;
 
     protected:
-      NativeAttributeSet(VALUE klass, std::string name, Attribute_T attr);
+      NativeAttributeSet(VALUE klass, std::string name, Attribute_T attr, std::unique_ptr<Parameter<T_Unqualified>> parameter);
 
     private:
       VALUE klass_;
       Attribute_T attribute_;
+      std::unique_ptr<Parameter<T_Unqualified>> parameter_;
     };
   } // detail
 } // Rice
@@ -3804,10 +3810,11 @@ namespace Rice::detail
     NativeRegistry& operator=(const NativeRegistry& other) = delete;
 
     void add(VALUE klass, ID methodId, std::unique_ptr<Native>& native);
+    void replace(VALUE klass, ID methodId, std::unique_ptr<Native>& native);
     void reset(VALUE klass);
 
-    const std::vector<Native*> lookup(VALUE klass);
-    const std::vector<std::unique_ptr<Native>>& lookup(VALUE klass, ID methodId);
+    std::vector<Native*> lookup(VALUE klass);
+    std::vector<std::unique_ptr<Native>>& lookup(VALUE klass, ID methodId);
     std::vector<Native*> lookup(VALUE klass, NativeKind kind);
 
   private:
@@ -3976,17 +3983,16 @@ namespace Rice::detail
     // One caveat - procs are also RUBY_T_DATA so don't check if this is a function type
     if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA && !std::is_function_v<std::remove_pointer_t<T>>)
     {
-      // Check the constness of the Ruby wrapped value and the parameter
-      WrapperBase* wrapper = getWrapper(value);
+      bool isConst = WrapperBase::isConst(value);
 
       // Do not send a const value to a non-const parameter
-      if (wrapper->isConst() && !is_const_any_v<T>)
+      if (isConst && !is_const_any_v<T>)
       {
         result = Convertible::None;
       }
       // It is ok to send a non-const value to a const parameter but
       // prefer non-const to non-const by slightly decreasing the score
-      else if (!wrapper->isConst() && is_const_any_v<T>)
+      else if (!isConst && is_const_any_v<T>)
       {
         result = Convertible::ConstMismatch;
       }
@@ -8929,17 +8935,21 @@ namespace Rice::detail
 {
   inline void NativeRegistry::add(VALUE klass, ID methodId, std::unique_ptr<Native>& native)
   {
-    if (rb_type(klass) == T_ICLASS)
-    {
-      klass = detail::protect(rb_class_of, klass);
-    }
-
-    // Create the key
-    std::pair<VALUE, ID> key = std::make_pair(klass, methodId);
-
     // Lookup items for method
-    std::vector<std::unique_ptr<Native>>& natives = this->natives_[key];
+    std::vector<std::unique_ptr<Native>>& natives = NativeRegistry::lookup(klass, methodId);
 
+    // Add new native
+    natives.push_back(std::move(native));
+  }
+
+  inline void NativeRegistry::replace(VALUE klass, ID methodId, std::unique_ptr<Native>& native)
+  {
+    // Lookup items for method
+    std::vector<std::unique_ptr<Native>>& natives = NativeRegistry::lookup(klass, methodId);
+
+    // Clear existing natives
+    natives.clear();
+    // Add new native
     natives.push_back(std::move(native));
   }
 
@@ -8959,7 +8969,7 @@ namespace Rice::detail
     }
   }
   
-  inline const std::vector<Native*> NativeRegistry::lookup(VALUE klass)
+  inline std::vector<Native*> NativeRegistry::lookup(VALUE klass)
   {
     std::vector<Native*> result;
 
@@ -8985,7 +8995,7 @@ namespace Rice::detail
     return result;
   }
 
-  inline const std::vector<std::unique_ptr<Native>>& NativeRegistry::lookup(VALUE klass, ID methodId)
+  inline std::vector<std::unique_ptr<Native>>& NativeRegistry::lookup(VALUE klass, ID methodId)
   {
     if (rb_type(klass) == T_ICLASS)
     {
@@ -9577,6 +9587,18 @@ namespace Rice::detail
 
 namespace Rice::detail
 {
+  inline void WrapperBase::addKeepAlive(VALUE object, VALUE keepAlive)
+  {
+    WrapperBase* wrapper = getWrapper(object);
+    wrapper->addKeepAlive(keepAlive);
+  }
+
+  inline bool WrapperBase::isConst(VALUE object)
+  {
+    WrapperBase* wrapper = getWrapper(object);
+    return wrapper->isConst();
+  }
+
   inline WrapperBase::WrapperBase(rb_data_type_t* rb_data_type) : rb_data_type_(rb_data_type)
   {
   }
@@ -9874,7 +9896,7 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data)
+  inline Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data)
   {
     using Wrapper_T = Wrapper<T*>;
 
@@ -9890,6 +9912,8 @@ namespace Rice::detail
     RTYPEDDATA_DATA(value) = wrapper;
 
     Registries::instance.instances.add(data, value);
+
+    return wrapper;
   }
 }
 
@@ -10072,16 +10096,14 @@ namespace Rice::detail
       Arg* arg = parameters_[i]->arg();
       if (arg->isKeepAlive())
       {
-        static WrapperBase* selfWrapper = getWrapper(self);
-        selfWrapper->addKeepAlive(rubyValues[i].value());
+        WrapperBase::addKeepAlive(self, rubyValues[i].value());
       }
     }
 
     // Check return value
     if (this->returnInfo_->isKeepAlive())
     {
-      WrapperBase* returnWrapper = getWrapper(returnValue);
-      returnWrapper->addKeepAlive(self);
+      WrapperBase::addKeepAlive(returnValue, self);
     }
   }
 
@@ -10420,7 +10442,7 @@ namespace Rice::detail
     // matches or calls function pointer. Instead Ruby can call the static call method defined on
     // this class (&NativeAttribute_T::get).
     Identifier identifier(name);
-    detail::Registries::instance.natives.add(klass, identifier.id(), native);
+    detail::Registries::instance.natives.replace(klass, identifier.id(), native);
   }
 
   template<typename Attribute_T>
@@ -10525,28 +10547,46 @@ namespace Rice::detail
 namespace Rice::detail
 {
   template<typename Attribute_T>
-  void NativeAttributeSet<Attribute_T>::define(VALUE klass, std::string name, Attribute_T attribute)
+  template<typename...Arg_Ts>
+  void NativeAttributeSet<Attribute_T>::define(VALUE klass, std::string name, Attribute_T attribute, Arg_Ts&...args)
   {
-    // Create a NativeAttributeSet that Ruby will call to read/write C++ variables
-    NativeAttribute_T* nativeAttribute = new NativeAttribute_T(klass, name, std::forward<Attribute_T>(attribute));
+    // Extract Arg from Arg_Ts if present, otherwise create default
+    using Arg_Tuple = std::tuple<Arg_Ts...>;
+    constexpr std::size_t index = tuple_element_index_v<Arg_Tuple, Arg, ArgBuffer>;
+
+    std::unique_ptr<Arg> arg;
+    if constexpr (index < std::tuple_size_v<Arg_Tuple>)
+    {
+      using Arg_T_Local = std::decay_t<std::tuple_element_t<index, Arg_Tuple>>;
+      const Arg_T_Local& argInfo = std::get<index>(std::forward_as_tuple(std::forward<Arg_Ts>(args)...));
+      arg = std::make_unique<Arg_T_Local>(argInfo);
+    }
+    else
+    {
+      arg = std::make_unique<Arg>("value");
+    }
+
+    // Create the parameter
+    auto parameter = std::make_unique<Parameter<T_Unqualified>>(std::move(arg));
+
+    // Create a NativeAttributeSet that Ruby will call to write C++ variables
+    NativeAttribute_T* nativeAttribute = new NativeAttribute_T(klass, name, std::forward<Attribute_T>(attribute), std::move(parameter));
     std::unique_ptr<Native> native(nativeAttribute);
 
     // Define the write method name
     std::string setter = name + "=";
 
-    // Tell Ruby to invoke the static method write to get the attribute value
+    // Tell Ruby to invoke the static method resolve to set the attribute value
     detail::protect(rb_define_method, klass, setter.c_str(), (RUBY_METHOD_FUNC)&Native::resolve, -1);
 
-    // Add to native registry. Since attributes cannot be overridden, there is no need to set the
-    // matches or calls function pointer. Instead Ruby can call the static call method defined on
-    // this class (&NativeAttribute_T::set).
+    // Add to native registry
     Identifier identifier(setter);
-    detail::Registries::instance.natives.add(klass, identifier.id(), native);
+    detail::Registries::instance.natives.replace(klass, identifier.id(), native);
   }
 
   template<typename Attribute_T>
-  NativeAttributeSet<Attribute_T>::NativeAttributeSet(VALUE klass, std::string name, Attribute_T attribute)
-    : Native(name), klass_(klass), attribute_(attribute)
+  NativeAttributeSet<Attribute_T>::NativeAttributeSet(VALUE klass, std::string name, Attribute_T attribute, std::unique_ptr<Parameter<T_Unqualified>> parameter)
+    : Native(name), klass_(klass), attribute_(attribute), parameter_(std::move(parameter))
   {
   }
 
@@ -10567,25 +10607,25 @@ namespace Rice::detail
       throw std::runtime_error("Incorrect number of parameters for setting attribute. Attribute: " + this->name_);
     }
 
+    // Get the Ruby value and convert to native
     VALUE value = values.begin()->second;
+    std::optional<VALUE> valueOpt(value);
+    T_Unqualified nativeValue = this->parameter_->convertToNative(valueOpt);
 
     if constexpr (!std::is_null_pointer_v<Receiver_T>)
     {
       Receiver_T* nativeSelf = From_Ruby<Receiver_T*>().convert(self);
-
-      // Deal with pointers to pointes, see Parameter::convertToNative commment
-      if constexpr (is_pointer_pointer_v<Attr_T> && !std::is_convertible_v<remove_cv_recursive_t<Attr_T>, Attr_T>)
-      {
-        nativeSelf->*attribute_ = (Attr_T)From_Ruby<T_Unqualified>().convert(value);
-      }
-      else
-      {
-        nativeSelf->*attribute_ = From_Ruby<T_Unqualified>().convert(value);
-      }
+      nativeSelf->*attribute_ = nativeValue;
     }
     else
     {
-      *attribute_ = From_Ruby<T_Unqualified>().convert(value);
+      *attribute_ = nativeValue;
+    }
+
+    // Check if we need to prevent the value from being garbage collected
+    if (this->parameter_->arg()->isKeepAlive())
+    {
+      WrapperBase::addKeepAlive(self, value);
     }
 
     return value;
@@ -10606,18 +10646,8 @@ namespace Rice::detail
   template<typename Attribute_T>
   inline VALUE NativeAttributeSet<Attribute_T>::returnKlass()
   {
-    // Check if an array is being returned
-    bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
-    if (isBuffer)
-    {
-      TypeMapper<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Attr_T>>>> typeMapper;
-      return typeMapper.rubyKlass();
-    }
-    else
-    {
-      TypeMapper<Attr_T> typeMapper;
-      return typeMapper.rubyKlass();
-    }
+    TypeMapper<Attr_T> typeMapper;
+    return typeMapper.rubyKlass();
   }
 }
 
@@ -14548,7 +14578,7 @@ namespace Rice
       }
       else
       {
-        detail::NativeAttributeSet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute));
+        detail::NativeAttributeSet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute), args...);
       }
     }
 

@@ -53,7 +53,7 @@ namespace Rice::stl
       define_method("message", &std::exception::what);
 
     define_class_under<std::runtime_error>(rb_mStd, "RuntimeError", rb_eRuntimeError).
-      define_constructor(Constructor<std::runtime_error, const char*>()).
+      define_constructor(Constructor<std::runtime_error, const char*>(), Arg("what")).
       define_method("message", &std::runtime_error::what);
   }
 }
@@ -694,7 +694,7 @@ namespace Rice
 
       define_class_under<std::filesystem::path>(rb_mFileSystem, "Path").
         define_constructor(Constructor<std::filesystem::path>()).
-        define_constructor(Constructor<std::filesystem::path, std::string>());
+        define_constructor(Constructor<std::filesystem::path, std::string>(), Arg("source"));
     }
   }
 }
@@ -990,6 +990,12 @@ namespace Rice
     template<typename T>
     class PairHelper
     {
+      using First_T = typename T::first_type;
+      using Second_T = typename T::second_type;
+      // For pointer types, use the pointer directly; for non-pointer types, use a reference
+      using First_Parameter_T = std::conditional_t<std::is_pointer_v<First_T>, First_T, First_T&>;
+      using Second_Parameter_T = std::conditional_t<std::is_pointer_v<Second_T>, Second_T, Second_T&>;
+
     public:
       PairHelper(Data_Type<T> klass) : klass_(klass)
       {
@@ -1002,33 +1008,33 @@ namespace Rice
       void define_constructors()
       {
         klass_.define_constructor(Constructor<T>())
-              .define_constructor(Constructor<T, typename T::first_type&, typename T::second_type&>());
-      
-        if constexpr (std::is_copy_constructible_v<typename T::first_type> && std::is_copy_constructible_v<typename T::second_type>)
+              .define_constructor(Constructor<T, First_Parameter_T, Second_Parameter_T>(), Arg("x").keepAlive(), Arg("y").keepAlive());
+
+        if constexpr (std::is_copy_constructible_v<First_T> && std::is_copy_constructible_v<Second_T>)
         {
-          klass_.define_constructor(Constructor<T, const T&>());
+          klass_.define_constructor(Constructor<T, const T&>(), Arg("other"));
         }
       }
 
       void define_attributes()
       {
         // Access methods
-        if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::first_type>>>)
+        if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<First_T>>>)
         {
           klass_.define_attr("first", &T::first, Rice::AttrAccess::Read);
         }
         else
         {
-          klass_.define_attr("first", &T::first, Rice::AttrAccess::ReadWrite);
+          klass_.define_attr("first", &T::first, Rice::AttrAccess::ReadWrite, Arg("value").keepAlive());
         }
 
-        if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<typename T::second_type>>>)
+        if constexpr (std::is_const_v<std::remove_reference_t<std::remove_pointer_t<Second_T>>>)
         {
           klass_.define_attr("second", &T::second, Rice::AttrAccess::Read);
         }
         else
         {
-          klass_.define_attr("second", &T::second, Rice::AttrAccess::ReadWrite);
+          klass_.define_attr("second", &T::second, Rice::AttrAccess::ReadWrite, Arg("value").keepAlive());
         }
       }
 
@@ -1130,6 +1136,8 @@ namespace Rice
       using Size_T = typename T::size_type;
       using Difference_T = typename T::difference_type;
       using To_Ruby_T = typename detail::remove_cv_recursive_t<Mapped_T>;
+      // For pointer types, use the pointer directly; for non-pointer types, use a reference
+      using Mapped_Parameter_T = std::conditional_t<std::is_pointer_v<Mapped_T>, Mapped_T, Mapped_T&>;
 
     public:
       MapHelper(Data_Type<T> klass) : klass_(klass)
@@ -1158,7 +1166,7 @@ namespace Rice
 
         if constexpr (std::is_copy_constructible_v<Key_T> && std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_constructor(Constructor<T, const T&>());
+          klass_.define_constructor(Constructor<T, const T&>(), Arg("other"));
         }
       }
 
@@ -1187,11 +1195,11 @@ namespace Rice
             {
               return std::nullopt;
             }
-          })
+          }, Arg("key"))
           .define_method("include?", [](T& map, Key_T& key) -> bool
           {
               return map.find(key) != map.end();
-          })
+          }, Arg("key"))
           .define_method("keys", [](T& map) -> std::vector<Key_T>
             {
               std::vector<Key_T> result;
@@ -1226,8 +1234,8 @@ namespace Rice
           klass_.define_method("==", [](T& map, T& other)->bool
           {
             return map == other;
-          })
-          .define_method("value?", [](T& map, Mapped_T& value) -> bool
+          }, Arg("other"))
+          .define_method("value?", [](T& map, Mapped_Parameter_T value) -> bool
           {
             auto it = std::find_if(map.begin(), map.end(),
             [&value](auto& pair)
@@ -1236,15 +1244,15 @@ namespace Rice
               });
 
             return it != map.end();
-          });
+          }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
         }
         else
         {
-          klass_.define_method("value?", [](T&, Mapped_T&) -> bool
+          klass_.define_method("value?", [](T&, Mapped_Parameter_T) -> bool
           {
               return false;
-          });
+          }, Arg("value"));
         }
 
         rb_define_alias(klass_, "has_value", "value?");
@@ -1267,12 +1275,12 @@ namespace Rice
               {
                 return std::nullopt;
               }
-            })
-          .define_method("[]=", [](T& map, Key_T key, Mapped_T& value) -> Mapped_T
+            }, Arg("key"))
+          .define_method("[]=", [](T& map, Key_T key, Mapped_Parameter_T value) -> Mapped_T
             {
               map[key] = value;
               return value;
-            });
+            }, Arg("key").keepAlive(), Arg("value").keepAlive());
 
           rb_define_alias(klass_, "store", "[]=");
       }
@@ -1733,6 +1741,8 @@ namespace Rice
       using Size_T = typename T::size_type;
       using Difference_T = typename T::difference_type;
       using To_Ruby_T = typename detail::remove_cv_recursive_t<Mapped_T>;
+      // For pointer types, use the pointer directly; for non-pointer types, use a reference
+      using Mapped_Parameter_T = std::conditional_t<std::is_pointer_v<Mapped_T>, Mapped_T, Mapped_T&>;
 
     public:
       MultimapHelper(Data_Type<T> klass) : klass_(klass)
@@ -1760,7 +1770,7 @@ namespace Rice
 
         if constexpr (std::is_copy_constructible_v<Key_T> && std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_constructor(Constructor<T, const T&>());
+          klass_.define_constructor(Constructor<T, const T&>(), Arg("other"));
         }
       }
 
@@ -1789,11 +1799,11 @@ namespace Rice
             }
 
             return result;
-          })
+          }, Arg("key"))
           .define_method("include?", [](T& multimap, Key_T& key) -> bool
           {
               return multimap.find(key) != multimap.end();
-          })
+          }, Arg("key"))
           .define_method("keys", [](T& multimap) -> std::vector<Key_T>
             {
               std::vector<Key_T> result;
@@ -1828,8 +1838,8 @@ namespace Rice
           klass_.define_method("==", [](T& multimap, T& other)->bool
           {
             return multimap == other;
-          })
-          .define_method("value?", [](T& multimap, Mapped_T& value) -> bool
+          }, Arg("other"))
+          .define_method("value?", [](T& multimap, Mapped_Parameter_T value) -> bool
           {
             auto it = std::find_if(multimap.begin(), multimap.end(),
             [&value](auto& pair)
@@ -1838,15 +1848,15 @@ namespace Rice
               });
 
             return it != multimap.end();
-          });
+          }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
         }
         else
         {
-          klass_.define_method("value?", [](T&, Mapped_T&) -> bool
+          klass_.define_method("value?", [](T&, Mapped_Parameter_T) -> bool
           {
               return false;
-          });
+          }, Arg("value"));
         }
 
         rb_define_alias(klass_, "has_value", "value?");
@@ -1869,13 +1879,13 @@ namespace Rice
             {
               return std::nullopt;
             }
-          })
-          .define_method("insert", [](T& map, Key_T key, Mapped_T& value) -> Mapped_T
+          }, Arg("key"))
+          .define_method("insert", [](T& map, Key_T key, Mapped_Parameter_T value) -> Mapped_T
           {
             Value_T element{ key, value };
             map.insert(element);
             return value;
-          });
+          }, Arg("key").keepAlive(), Arg("value").keepAlive());
       }
 
       void define_enumerable()
@@ -2214,7 +2224,7 @@ namespace Rice
       void define_constructors()
       {
         klass_.define_constructor(Constructor<T>())
-              .define_constructor(Constructor<T, const T&>());
+              .define_constructor(Constructor<T, const T&>(), Arg("other"));
       }
 
       void define_capacity_methods()
@@ -2234,11 +2244,11 @@ namespace Rice
           {
             auto iter = self.find(element);
             return iter != self.end();
-          })
+          }, Arg("key"))
           .define_method("count", [](T& self, const Key_T element) -> Size_T
           {
             return self.count(element);
-          });
+          }, Arg("key"));
       }
 
       void define_modify_methods()
@@ -2249,17 +2259,17 @@ namespace Rice
           {
             self.erase(key);
             return self;
-          })
-          .define_method("insert", [](T& self, const Value_T value) -> T&
+          }, Arg("key"))
+          .define_method("insert", [](T& self, Parameter_T value) -> T&
           {
             self.insert(value);
             return self;
-          })
+          }, Arg("value").keepAlive())
           .define_method("merge", [](T& self, T& other) -> T&
           {
             self.merge(other);
             return self;
-          });
+          }, Arg("source"));
 
         rb_define_alias(klass_, "erase", "delete");
       }
@@ -2267,11 +2277,11 @@ namespace Rice
       void define_operators()
       {
         klass_
-          .define_method("<<", [](T& self, const Value_T value) -> T&
+          .define_method("<<", [](T& self, Parameter_T value) -> T&
           {
             self.insert(value);
             return self;
-          })
+          }, Arg("value").keepAlive())
           .define_method("==", [](const T& self, const T& other) -> bool
           {
             if constexpr (detail::is_comparable_v<Value_T>)
@@ -2282,7 +2292,7 @@ namespace Rice
             {
               return false;
             }
-          })
+          }, Arg("other"))
           .define_method("&", [](const T& self, const T& other) -> T
           {
             T result;
@@ -2291,7 +2301,7 @@ namespace Rice
                                   std::inserter(result, result.begin()));
 
             return result;
-          })
+          }, Arg("other"))
           .define_method("|", [](const T& self, const T& other) -> T
           {
             T result;
@@ -2300,7 +2310,7 @@ namespace Rice
                            std::inserter(result, result.begin()));
 
             return result;
-          })
+          }, Arg("other"))
           .define_method("-", [](const T& self, const T& other) -> T
           {
             T result;
@@ -2309,7 +2319,7 @@ namespace Rice
                                 std::inserter(result, result.begin()));
 
             return result;
-          })
+          }, Arg("other"))
           .define_method("^", [](const T& self, const T& other) -> T
           {
             T result;
@@ -2318,17 +2328,17 @@ namespace Rice
                                           std::inserter(result, result.begin()));
 
             return result;
-          })
+          }, Arg("other"))
           .define_method("<", [](const T& self, const T& other) -> bool
           {
             return std::includes(other.begin(), other.end(),
                                  self.begin(), self.end());
-          })
+          }, Arg("other"))
           .define_method(">", [](const T& self, const T& other) -> bool
           {
             return std::includes(self.begin(), self.end(),
                                  other.begin(), other.end());
-          });
+          }, Arg("other"));
         
           rb_define_alias(klass_, "eql?", "==");
           rb_define_alias(klass_, "intersection", "&");
@@ -2730,7 +2740,7 @@ namespace Rice
     Identifier id(klassName);
     Data_Type_T result = define_class_under<detail::intrinsic_type<SharedPtr_T>>(rb_mStd, id).
       define_method("get", &SharedPtr_T::get).
-      define_method("swap", &SharedPtr_T::swap).
+      define_method("swap", &SharedPtr_T::swap, Arg("r")).
       define_method("use_count", &SharedPtr_T::use_count).
       define_method("empty?", [](SharedPtr_T& self)->bool
       {
@@ -2822,6 +2832,20 @@ namespace Rice::detail
       return result;
     }
   };
+
+#ifdef __GLIBCXX__
+  // libstdc++ implementation detail: std::shared_ptr inherits from
+  // std::__shared_ptr<T, _Lock_policy>. Methods like swap() expose this
+  // internal type through their parameter signatures.
+  template<typename T, __gnu_cxx::_Lock_policy Policy>
+  struct Type<std::__shared_ptr<T, Policy>>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+  };
+#endif
 }
 
 
@@ -2979,7 +3003,7 @@ namespace Rice::stl
   {
     Module rb_mStd = define_module("Std");
     return define_class_under<std::type_index>(rb_mStd, "TypeIndex").
-      define_constructor(Constructor<std::type_index, const std::type_info&>()).
+      define_constructor(Constructor<std::type_index, const std::type_info&>(), Arg("target")).
       define_method("hash_code", &std::type_index::hash_code).
       define_method("name", &std::type_index::name);
   }
@@ -3390,8 +3414,8 @@ namespace Rice
     Data_Type_T result = define_class_under<detail::intrinsic_type<UniquePtr_T>>(rb_mStd, id).
       define_method("get", &UniquePtr_T::get).
       define_method("release", &UniquePtr_T::release).
-      define_method("reset", &UniquePtr_T::reset).
-      define_method("swap", &UniquePtr_T::swap).
+      define_method("reset", &UniquePtr_T::reset, Arg("ptr")).
+      define_method("swap", &UniquePtr_T::swap, Arg("other")).
       define_method("empty?", [](UniquePtr_T& self)->bool
       {
         return !self;
@@ -3541,6 +3565,8 @@ namespace Rice
       using Size_T = typename T::size_type;
       using Difference_T = typename T::difference_type;
       using To_Ruby_T = typename detail::remove_cv_recursive_t<Mapped_T>;
+      // For pointer types, use the pointer directly; for non-pointer types, use a reference
+      using Mapped_Parameter_T = std::conditional_t<std::is_pointer_v<Mapped_T>, Mapped_T, Mapped_T&>;
 
     public:
       UnorderedMapHelper(Data_Type<T> klass) : klass_(klass)
@@ -3560,7 +3586,7 @@ namespace Rice
 
       void register_pair()
       {
-        define_pair<const Key_T, T>();
+        define_pair<const Key_T, Mapped_T>();
       }
 
       void define_constructors()
@@ -3569,7 +3595,7 @@ namespace Rice
 
         if constexpr (std::is_copy_constructible_v<Key_T> && std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_constructor(Constructor<T, const T&>());
+          klass_.define_constructor(Constructor<T, const T&>(), Arg("other"));
         }
       }
 
@@ -3598,11 +3624,11 @@ namespace Rice
             {
               return std::nullopt;
             }
-          })
+          }, Arg("key"))
           .define_method("include?", [](T& unordered_map, Key_T& key) -> bool
           {
               return unordered_map.find(key) != unordered_map.end();
-          })
+          }, Arg("key"))
           .define_method("keys", [](T& unordered_map) -> std::vector<Key_T>
             {
               std::vector<Key_T> result;
@@ -3637,8 +3663,8 @@ namespace Rice
           klass_.define_method("==", [](T& unordered_map, T& other)->bool
           {
             return unordered_map == other;
-          })
-          .define_method("value?", [](T& unordered_map, Mapped_T& value) -> bool
+          }, Arg("other"))
+          .define_method("value?", [](T& unordered_map, Mapped_Parameter_T value) -> bool
             {
               auto it = std::find_if(unordered_map.begin(), unordered_map.end(),
               [&value](auto& pair)
@@ -3647,15 +3673,15 @@ namespace Rice
                 });
 
               return it != unordered_map.end();
-          });
+          }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
         }
         else
         {
-          klass_.define_method("value?", [](T&, Mapped_T&) -> bool
+          klass_.define_method("value?", [](T&, Mapped_Parameter_T) -> bool
           {
               return false;
-          });
+          }, Arg("value"));
         }
 
         rb_define_alias(klass_, "has_value", "value?");
@@ -3678,12 +3704,12 @@ namespace Rice
               {
                 return std::nullopt;
               }
-            })
-          .define_method("[]=", [](T& unordered_map, Key_T key, Mapped_T& value) -> Mapped_T
+            }, Arg("key"))
+          .define_method("[]=", [](T& unordered_map, Key_T key, Mapped_Parameter_T value) -> Mapped_T
             {
               unordered_map[key] = value;
               return value;
-            });
+            }, Arg("key").keepAlive(), Arg("value").keepAlive());
 
           rb_define_alias(klass_, "store", "[]=");
       }
@@ -4062,13 +4088,13 @@ namespace Rice
 
         if constexpr (std::is_copy_constructible_v<Value_T>)
         {
-          klass_.define_constructor(Constructor<T, const T&>())
-                .define_constructor(Constructor<T, Size_T, const Parameter_T>());
+          klass_.define_constructor(Constructor<T, const T&>(), Arg("other"))
+                .define_constructor(Constructor<T, Size_T, const Parameter_T>(), Arg("count"), Arg("value"));
         }
 
         if constexpr (std::is_default_constructible_v<Value_T>)
         {
-          klass_.define_constructor(Constructor<T, Size_T>());
+          klass_.define_constructor(Constructor<T, Size_T>(), Arg("count"));
         }
 
         // Allow creation of a vector from a Ruby Array
@@ -4076,18 +4102,20 @@ namespace Rice
         {
           // Create a new vector from the array
           T* data = new T();
-          data->reserve(array.size());
 
+          // Wrap the vector
+          detail::Wrapper<T*>* wrapper = detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
+
+          // Now populate the vector
           detail::From_Ruby<Value_T> fromRuby;
+          data->reserve(array.size());
 
           for (long i = 0; i < array.size(); i++)
           {
             VALUE element = detail::protect(rb_ary_entry, array, i);
             data->push_back(fromRuby.convert(element));
+            wrapper->addKeepAlive(element);
           }
-
-          // Wrap the vector
-          detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
         });
       }
 
@@ -4095,18 +4123,18 @@ namespace Rice
       {
         if constexpr (std::is_default_constructible_v<Value_T> && std::is_same_v<Value_T, bool>)
         {
-          klass_.define_method("resize", static_cast<void (T::*)(const size_t, bool)>(&T::resize));
+          klass_.define_method("resize", static_cast<void (T::*)(const size_t, bool)>(&T::resize), Arg("count"), Arg("value"));
         }
         else if constexpr (std::is_default_constructible_v<Value_T>)
         {
-          klass_.define_method("resize", static_cast<void (T::*)(const size_t)>(&T::resize));
+          klass_.define_method("resize", static_cast<void (T::*)(const size_t)>(&T::resize), Arg("count"));
         }
         else
         {
           klass_.define_method("resize", [](const T&, Size_T)
           {
             // Do nothing
-          });
+          }, Arg("count"));
         }
       }
 
@@ -4115,13 +4143,11 @@ namespace Rice
         klass_.define_method("empty?", &T::empty)
           .define_method("capacity", &T::capacity)
           .define_method("max_size", &T::max_size)
-          .define_method("reserve", &T::reserve)
+          .define_method("reserve", &T::reserve, Arg("new_cap"))
           .define_method("size", &T::size);
-        
+
         rb_define_alias(klass_, "count", "size");
         rb_define_alias(klass_, "length", "size");
-        //detail::protect(rb_define_alias, klass_, "count", "size");
-        //detail::protect(rb_define_alias, klass_, "length", "size");
       }
 
       void define_access_methods()
@@ -4162,7 +4188,7 @@ namespace Rice
             {
               return vector[index];
             }
-          })
+          }, Arg("pos"))
           .template define_method<Value_T*(T::*)()>("data", &T::data, ReturnBuffer());
         }
         else
@@ -4201,7 +4227,7 @@ namespace Rice
             {
               return vector[index];
             }
-          });
+          }, Arg("pos"));
         }
 
         klass_.define_method("[]", [this](T& vector, Difference_T start, Difference_T length) -> VALUE
@@ -4234,7 +4260,7 @@ namespace Rice
 
             return result;
           }
-        }, Return().setValue());
+        }, Arg("start"), Arg("length"), Return().setValue());
 
         rb_define_alias(klass_, "at", "[]");
       }
@@ -4247,7 +4273,7 @@ namespace Rice
           klass_.define_method("==", [](T& vector, T& other)->bool
           {
             return vector == other;
-          })
+          }, Arg("other"))
           .define_method("delete", [](T& vector, Parameter_T element) -> std::optional<Value_T>
           {
             auto iter = std::find(vector.begin(), vector.end(), element);
@@ -4265,11 +4291,11 @@ namespace Rice
             {
               return std::nullopt;
             }
-          })
+          }, Arg("value"))
           .define_method("include?", [](T& vector, Parameter_T element)
           {
             return std::find(vector.begin(), vector.end(), element) != vector.end();
-          })
+          }, Arg("value"))
           .define_method("index", [](T& vector, Parameter_T element) -> std::optional<Difference_T>
           {
             auto iter = std::find(vector.begin(), vector.end(), element);
@@ -4281,7 +4307,7 @@ namespace Rice
             {
               return iter - vector.begin();
             }
-          });
+          }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
         }
         else
@@ -4289,15 +4315,15 @@ namespace Rice
           klass_.define_method("delete", [](T&, Parameter_T) -> std::optional<Value_T>
           {
             return std::nullopt;
-          })
+          }, Arg("value"))
           .define_method("include?", [](const T&, Parameter_T)
           {
             return false;
-          })
+          }, Arg("value"))
           .define_method("index", [](const T&, Parameter_T) -> std::optional<Difference_T>
           {
             return std::nullopt;
-          });
+          }, Arg("value"));
         }
       }
 
@@ -4319,7 +4345,7 @@ namespace Rice
               vector.erase(iter);
               return std::nullopt;
             }
-          })
+          }, Arg("pos"))
           .define_method("insert", [this](T& vector, Difference_T index, Parameter_T element) -> T&
           {
             size_t normalized = normalizeIndex(vector.size(), index, true);
@@ -4333,7 +4359,7 @@ namespace Rice
             auto iter = vector.begin() + normalized;
             vector.insert(iter, std::move(element));
             return vector;
-          })
+          }, Arg("pos"), Arg("value").keepAlive())
           .define_method("pop", [](T& vector) -> std::optional<Value_T>
           {
             if constexpr (!std::is_copy_assignable_v<Value_T>)
@@ -4356,13 +4382,13 @@ namespace Rice
           {
             vector.push_back(std::move(element));
             return vector;
-          })
+          }, Arg("value").keepAlive())
         .define_method("shrink_to_fit", &T::shrink_to_fit)
         .define_method("[]=", [this](T& vector, Difference_T index, Parameter_T element) -> void
           {
             index = normalizeIndex(vector.size(), index, true);
             vector[index] = std::move(element);
-          });
+          }, Arg("pos"), Arg("value").keepAlive());
 
         rb_define_alias(klass_, "push_back", "push");
         rb_define_alias(klass_, "<<", "push");
@@ -4496,7 +4522,19 @@ namespace Rice
           case RUBY_T_ARRAY:
             if constexpr (std::is_default_constructible_v<T>)
             {
-              return Convertible::Exact;
+              // For proper overload resolution when a function has multiple vector type
+              // overloads (e.g., vector<A>& and vector<B>&), we must check if the array
+              // elements can actually be converted to T. Otherwise all vector overloads
+              // score equally and the wrong one may be selected.
+              long size = RARRAY_LEN(value);
+              if (size == 0)
+              {
+                return Convertible::Exact;
+              }
+
+              From_Ruby<remove_cv_recursive_t<T>> fromRuby;
+              VALUE first = rb_ary_entry(value, 0);
+              return fromRuby.is_convertible(first);
             }
           default:
             return Convertible::None;
@@ -4552,7 +4590,19 @@ namespace Rice
           case RUBY_T_ARRAY:
             if constexpr (std::is_default_constructible_v<T>)
             {
-              return Convertible::Exact;
+              // For proper overload resolution when a function has multiple vector type
+              // overloads (e.g., vector<A>& and vector<B>&), we must check if the array
+              // elements can actually be converted to T. Otherwise all vector overloads
+              // score equally and the wrong one may be selected.
+              long size = RARRAY_LEN(value);
+              if (size == 0)
+              {
+                return Convertible::Exact;
+              }
+
+              From_Ruby<remove_cv_recursive_t<T>> fromRuby;
+              VALUE first = rb_ary_entry(value, 0);
+              return fromRuby.is_convertible(first);
             }
           default:
             return Convertible::None;
@@ -4613,7 +4663,19 @@ namespace Rice
           case RUBY_T_ARRAY:
             if constexpr (std::is_default_constructible_v<T>)
             {
-              return Convertible::Exact;
+              // For proper overload resolution when a function has multiple vector type
+              // overloads (e.g., vector<A>& and vector<B>&), we must check if the array
+              // elements can actually be converted to T. Otherwise all vector overloads
+              // score equally and the wrong one may be selected.
+              long size = RARRAY_LEN(value);
+              if (size == 0)
+              {
+                return Convertible::Exact;
+              }
+
+              From_Ruby<remove_cv_recursive_t<T>> fromRuby;
+              VALUE first = rb_ary_entry(value, 0);
+              return fromRuby.is_convertible(first);
             }
           default:
             return Convertible::None;
