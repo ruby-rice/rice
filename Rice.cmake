@@ -2,7 +2,8 @@ add_library(Rice INTERFACE)
 add_library(Rice::Rice ALIAS Rice)
 
 target_include_directories(Rice INTERFACE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:$<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}>>
+  $<BUILD_INTERFACE:$<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/include>>
   $<INSTALL_INTERFACE:include>
 )
 
