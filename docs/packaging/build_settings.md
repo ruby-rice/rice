@@ -71,3 +71,53 @@ This instructs the linker to ignore all unresolved symbols during linking. The s
 ### Windows
 
 On Windows, no special linker flags are required. The extension links directly against the Ruby library (e.g., `x64-vcruntime140-ruby320.lib`), which provides the necessary symbols at link time.
+
+## Link Time Optimization (LTO)
+
+Link Time Optimization is **highly recommended** for Rice extensions, especially for release builds. Rice makes extensive use of C++ templates, which can result in significant code duplication across translation units. LTO allows the linker to deduplicate template instantiations and perform whole-program optimizations.
+
+### Why LTO Matters for Rice
+
+Rice's template-heavy design means that each `.cpp` file that uses Rice generates its own copies of template instantiations. Without LTO, these duplicate instantiations remain in the final binary, dramatically increasing its size. LTO enables the linker to:
+
+- Deduplicate identical template instantiations across object files
+- Inline functions across translation unit boundaries
+- Remove dead code more effectively
+
+### Build Size Comparison
+
+The following table shows the impact of LTO on a real-world Rice extension (opencv-ruby bindings):
+
+| Platform | Debug  | Release (with LTO) | Size Reduction |
+|----------|--------|--------------------|----------------|
+| MSVC     | 140 MB | 70 MB              | 50%            |
+| macOS    | 324 MB | 164 MB             | 50%            |
+| MinGW    | 1.4 GB | 200 MB             | 86%            |
+
+As shown, LTO provides substantial size reductions across all platforms, with MinGW benefiting the most dramatically.
+
+Rice's `CMakePreset.json` automatically enables LTO by setting `CMAKE_INTERPROCEDURAL_OPTIMIZATION` to `ON`.
+
+If you are using `extconf.rb (Mkmf)` then:
+
+```ruby
+$CXXFLAGS << " -flto"
+$LDFLAGS << " -flto"
+```
+
+For MSVC:
+
+```ruby
+$CXXFLAGS << " /GL"
+$LDFLAGS << " /LTCG"
+```
+
+### Debug Symbol Splitting (GCC/Clang)
+
+For debug builds with GCC or Clang, consider using `-gsplit-dwarf` to separate debug information into `.dwo` files. This keeps the main binary smaller while preserving full debug capability:
+
+```cmake
+set(CMAKE_CXX_FLAGS_DEBUG "-g -gsplit-dwarf")
+```
+
+This is particularly useful for g++ where debug builds can exceed 1 GB without it.
