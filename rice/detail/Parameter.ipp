@@ -43,17 +43,16 @@ namespace Rice::detail
     // One caveat - procs are also RUBY_T_DATA so don't check if this is a function type
     if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA && !std::is_function_v<std::remove_pointer_t<T>>)
     {
-      // Check the constness of the Ruby wrapped value and the parameter
-      WrapperBase* wrapper = getWrapper(value);
+      bool isConst = WrapperBase::isConst(value);
 
       // Do not send a const value to a non-const parameter
-      if (wrapper->isConst() && !is_const_any_v<T>)
+      if (isConst && !is_const_any_v<T>)
       {
         result = Convertible::None;
       }
       // It is ok to send a non-const value to a const parameter but
       // prefer non-const to non-const by slightly decreasing the score
-      else if (!wrapper->isConst() && is_const_any_v<T>)
+      else if (!isConst && is_const_any_v<T>)
       {
         result = Convertible::ConstMismatch;
       }

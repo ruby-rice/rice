@@ -2,6 +2,18 @@
 
 namespace Rice::detail
 {
+  inline void WrapperBase::addKeepAlive(VALUE object, VALUE keepAlive)
+  {
+    WrapperBase* wrapper = getWrapper(object);
+    wrapper->addKeepAlive(keepAlive);
+  }
+
+  inline bool WrapperBase::isConst(VALUE object)
+  {
+    WrapperBase* wrapper = getWrapper(object);
+    return wrapper->isConst();
+  }
+
   inline WrapperBase::WrapperBase(rb_data_type_t* rb_data_type) : rb_data_type_(rb_data_type)
   {
   }
@@ -299,7 +311,7 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data)
+  inline Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data)
   {
     using Wrapper_T = Wrapper<T*>;
 
@@ -315,5 +327,7 @@ namespace Rice::detail
     RTYPEDDATA_DATA(value) = wrapper;
 
     Registries::instance.instances.add(data, value);
+
+    return wrapper;
   }
 }

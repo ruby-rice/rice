@@ -6,6 +6,10 @@ namespace Rice::detail
   class WrapperBase
   {
   public:
+    static void addKeepAlive(VALUE object, VALUE keepAlive);
+    static bool isConst(VALUE object);
+
+  public:
     WrapperBase(rb_data_type_t* rb_data_type);
     virtual ~WrapperBase() = default;
     virtual void* get(rb_data_type_t* requestedType) = 0;
@@ -78,7 +82,7 @@ namespace Rice::detail
 
   // ---- Helper Functions ---------
   template <typename T>
-  void wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data);
+  Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data);
 
   template <typename T>
   VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner);
