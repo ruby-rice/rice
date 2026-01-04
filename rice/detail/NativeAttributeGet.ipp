@@ -23,7 +23,7 @@ namespace Rice::detail
     // matches or calls function pointer. Instead Ruby can call the static call method defined on
     // this class (&NativeAttribute_T::get).
     Identifier identifier(name);
-    detail::Registries::instance.natives.add(klass, identifier.id(), native);
+    detail::Registries::instance.natives.replace(klass, identifier.id(), native);
   }
 
   template<typename Attribute_T>

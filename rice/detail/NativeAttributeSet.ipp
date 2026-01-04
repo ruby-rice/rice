@@ -5,28 +5,46 @@
 namespace Rice::detail
 {
   template<typename Attribute_T>
-  void NativeAttributeSet<Attribute_T>::define(VALUE klass, std::string name, Attribute_T attribute)
+  template<typename...Arg_Ts>
+  void NativeAttributeSet<Attribute_T>::define(VALUE klass, std::string name, Attribute_T attribute, Arg_Ts&...args)
   {
-    // Create a NativeAttributeSet that Ruby will call to read/write C++ variables
-    NativeAttribute_T* nativeAttribute = new NativeAttribute_T(klass, name, std::forward<Attribute_T>(attribute));
+    // Extract Arg from Arg_Ts if present, otherwise create default
+    using Arg_Tuple = std::tuple<Arg_Ts...>;
+    constexpr std::size_t index = tuple_element_index_v<Arg_Tuple, Arg, ArgBuffer>;
+
+    std::unique_ptr<Arg> arg;
+    if constexpr (index < std::tuple_size_v<Arg_Tuple>)
+    {
+      using Arg_T_Local = std::decay_t<std::tuple_element_t<index, Arg_Tuple>>;
+      const Arg_T_Local& argInfo = std::get<index>(std::forward_as_tuple(std::forward<Arg_Ts>(args)...));
+      arg = std::make_unique<Arg_T_Local>(argInfo);
+    }
+    else
+    {
+      arg = std::make_unique<Arg>("value");
+    }
+
+    // Create the parameter
+    auto parameter = std::make_unique<Parameter<T_Unqualified>>(std::move(arg));
+
+    // Create a NativeAttributeSet that Ruby will call to write C++ variables
+    NativeAttribute_T* nativeAttribute = new NativeAttribute_T(klass, name, std::forward<Attribute_T>(attribute), std::move(parameter));
     std::unique_ptr<Native> native(nativeAttribute);
 
     // Define the write method name
     std::string setter = name + "=";
 
-    // Tell Ruby to invoke the static method write to get the attribute value
+    // Tell Ruby to invoke the static method resolve to set the attribute value
     detail::protect(rb_define_method, klass, setter.c_str(), (RUBY_METHOD_FUNC)&Native::resolve, -1);
 
-    // Add to native registry. Since attributes cannot be overridden, there is no need to set the
-    // matches or calls function pointer. Instead Ruby can call the static call method defined on
-    // this class (&NativeAttribute_T::set).
+    // Add to native registry
     Identifier identifier(setter);
-    detail::Registries::instance.natives.add(klass, identifier.id(), native);
+    detail::Registries::instance.natives.replace(klass, identifier.id(), native);
   }
 
   template<typename Attribute_T>
-  NativeAttributeSet<Attribute_T>::NativeAttributeSet(VALUE klass, std::string name, Attribute_T attribute)
-    : Native(name), klass_(klass), attribute_(attribute)
+  NativeAttributeSet<Attribute_T>::NativeAttributeSet(VALUE klass, std::string name, Attribute_T attribute, std::unique_ptr<Parameter<T_Unqualified>> parameter)
+    : Native(name), klass_(klass), attribute_(attribute), parameter_(std::move(parameter))
   {
   }
 
