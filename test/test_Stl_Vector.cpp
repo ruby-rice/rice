@@ -1338,12 +1338,12 @@ namespace
     ClassB() = default;
   };
 
-  std::string vectorOverload(std::vector<ClassA>& vec)
+  std::string vectorOverload(std::vector<ClassA>&)
   {
     return "ClassA";
   }
 
-  std::string vectorOverload(std::vector<ClassB>& vec)
+  std::string vectorOverload(std::vector<ClassB>&)
   {
     return "ClassB";
   }
