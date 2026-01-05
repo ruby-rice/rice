@@ -50,7 +50,10 @@ namespace
 
     MyClass moveValue()
     {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpessimizing-move"
       return std::move(MyClass());
+#pragma GCC diagnostic pop
     }
 
     MyClass* instance()
