@@ -193,3 +193,19 @@ TESTCASE(single_default_argument)
   m.call("foo");
   ASSERT_EQUAL(4, the_one_default_arg);
 }
+
+namespace
+{
+  int noexcept_int_arg(int value) noexcept
+  {
+    return 3 * value;
+  }
+}
+
+TESTCASE(noexcept_function)
+{
+  define_global_function("noexcept_int_arg", &noexcept_int_arg);
+  Module m = Module(rb_mKernel);
+  Object result = m.call("noexcept_int_arg", 10);
+  ASSERT_EQUAL(30, detail::From_Ruby<int>().convert(result));
+}
