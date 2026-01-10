@@ -176,8 +176,8 @@ namespace Rice
               auto iter = multimap.begin();
 
               std::stringstream stream;
-              detail::TypeMapper<T> typeMapper;
-              stream << "<" << typeMapper.rubyName() << ":";
+              detail::TypeDetail<T> typeDetail;
+              stream << "<" << typeDetail.rubyName() << ":";
               stream << "{";
 
               for (; iter != multimap.end(); iter++)
@@ -215,8 +215,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<MultiMap_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<MultiMap_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mStd = define_module("Std");

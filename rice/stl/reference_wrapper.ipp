@@ -12,8 +12,8 @@ namespace Rice::detail
 
     static VALUE rubyKlass()
     {
-      TypeMapper<T> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<T> typeDetail;
+      return typeDetail.rubyKlass();
     }
   };
 

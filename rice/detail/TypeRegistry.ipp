@@ -48,7 +48,7 @@ namespace Rice::detail
     }
     else
     {
-      this->raiseUnverifiedType(TypeIndexParser::name<T>());
+      this->raiseUnverifiedType(TypeDetail<T>().name());
       // Make compiler happy
       return std::make_pair(Qnil, nullptr);
     }
@@ -108,7 +108,7 @@ namespace Rice::detail
       return result.value();
     }
 
-    raiseUnverifiedType(TypeIndexParser::name<T>());
+    raiseUnverifiedType(TypeDetail<T>().name());
 
     // Make the compiler happy
     return std::pair<VALUE, rb_data_type_t*>(Qnil, nullptr);
@@ -142,8 +142,8 @@ namespace Rice::detail
 
     for (const std::type_index& typeIndex : this->unverified_)
     {
-      detail::TypeIndexParser typeIndexParser(typeIndex);
-      stream << "  " << typeIndexParser.name() << "\n";
+      detail::TypeIndexParser typeDetail(typeIndex);
+      stream << "  " << typeDetail.name() << "\n";
     }
 
     throw std::invalid_argument(stream.str());

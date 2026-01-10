@@ -104,7 +104,7 @@ namespace Rice::detail
   template<typename Attribute_T>
   inline VALUE NativeAttributeSet<Attribute_T>::returnKlass()
   {
-    TypeMapper<Attr_T> typeMapper;
-    return typeMapper.rubyKlass();
+    TypeDetail<Attr_T> typeDetail;
+    return typeDetail.rubyKlass();
   }
 }

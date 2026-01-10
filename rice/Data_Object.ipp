@@ -15,7 +15,7 @@ namespace Rice
     else
     {
       return Exception(rb_eTypeError, "Wrong argument type. Expected %s. Received %s.",
-        detail::TypeIndexParser::name<T>().c_str(),
+        detail::TypeDetail<T>().name().c_str(),
         detail::protect(rb_obj_classname, value));
     }
   }

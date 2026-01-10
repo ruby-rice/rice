@@ -61,13 +61,13 @@ namespace Rice::detail
   {
     std::ostringstream result;
 
-    detail::TypeIndexParser typeIndexParserReturn(typeid(Return_T), std::is_fundamental_v<detail::intrinsic_type<Return_T>>);
-    result << typeIndexParserReturn.simplifiedName() << " ";
-    
+    detail::TypeDetail<Return_T> typeDetailReturn;
+    result << typeDetailReturn.simplifiedName() << " ";
+
     if (!std::is_null_pointer_v<Receiver_T>)
     {
-      detail::TypeIndexParser typeIndexParserReceiver(typeid(Receiver_T), std::is_fundamental_v<detail::intrinsic_type<Receiver_T>>);
-      result << typeIndexParserReceiver.simplifiedName() << "::";
+      detail::TypeDetail<Receiver_T> typeDetailReceiver;
+      result << typeDetailReceiver.simplifiedName() << "::";
     }
     
     result << this->name();
@@ -263,13 +263,13 @@ namespace Rice::detail
     bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
     if (isBuffer)
     {
-      TypeMapper<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Return_T>>>> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Return_T>>>> typeDetail;
+      return typeDetail.rubyKlass();
     }
     else
     {
-      TypeMapper<Return_T> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Return_T> typeDetail;
+      return typeDetail.rubyKlass();
     }
   }
 }

@@ -195,8 +195,8 @@ namespace Rice
             auto finish = self.end();
 
             std::stringstream stream;
-            detail::TypeMapper<T> typeMapper;
-            stream << "<" << typeMapper.rubyName() << ":";
+            detail::TypeDetail<T> typeDetail;
+            stream << "<" << typeDetail.rubyName() << ":";
             stream << "{";
 
             for (; iter != finish; iter++)
@@ -237,8 +237,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<Set_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<Set_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mStd = define_module("Std");

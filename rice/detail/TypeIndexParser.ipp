@@ -7,21 +7,6 @@
 namespace Rice::detail
 {
   // ---------- TypeIndexParser ------------
-  template<typename T>
-  inline std::string TypeIndexParser::name()
-  {
-    if constexpr (is_complete_v<T>)
-    {
-      TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<intrinsic_type<T>>);
-      return typeIndexParser.name();
-    }
-    else
-    {
-      TypeIndexParser typeIndexParser(typeid(T*), false);
-      return typeIndexParser.name();
-    }
-  }
-
   inline TypeIndexParser::TypeIndexParser(const std::type_index& typeIndex, bool isFundamental) :
     typeIndex_(typeIndex), isFundamental_(isFundamental)
   {
@@ -268,9 +253,47 @@ namespace Rice::detail
     }
   }
 
-  // ---------- TypeMapper ------------
+  // ---------- TypeDetail<T> ------------
   template<typename T>
-  inline std::string TypeMapper<T>::rubyTypeName()
+  inline std::type_index TypeDetail<T>::typeIndex()
+  {
+    if constexpr (is_complete_v<T>)
+    {
+      return typeid(T);
+    }
+    else
+    {
+      return typeid(T*);
+    }
+  }
+
+  template<typename T>
+  inline bool TypeDetail<T>::isFundamental()
+  {
+    if constexpr (is_complete_v<T>)
+    {
+      return std::is_fundamental_v<intrinsic_type<T>>;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  template<typename T>
+  inline std::string TypeDetail<T>::name()
+  {
+    return this->typeIndexParser_.name();
+  }
+
+  template<typename T>
+  inline std::string TypeDetail<T>::simplifiedName()
+  {
+    return this->typeIndexParser_.simplifiedName();
+  }
+
+  template<typename T>
+  inline std::string TypeDetail<T>::rubyTypeName()
   {
     using Intrinsic_T = detail::intrinsic_type<T>;
 
@@ -284,20 +307,20 @@ namespace Rice::detail
     }
     else
     {
-      detail::TypeIndexParser typeIndexParser(typeid(Intrinsic_T), std::is_fundamental_v<detail::intrinsic_type<Intrinsic_T>>);
-      return typeIndexParser.simplifiedName();
+      TypeDetail<Intrinsic_T> typeDetail;
+      return typeDetail.simplifiedName();
     }
   }
 
   template<typename T>
-  inline std::string TypeMapper<T>::rubyName()
+  inline std::string TypeDetail<T>::rubyName()
   {
     std::string base = this->rubyTypeName();
     return this->typeIndexParser_.rubyName(base);
   }
 
   template<typename T>
-  inline VALUE TypeMapper<T>::rubyKlass()
+  inline VALUE TypeDetail<T>::rubyKlass()
   {
     using Type_T = Type<std::remove_reference_t<detail::remove_cv_recursive_t<T>>>;
     using Intrinsic_T = detail::intrinsic_type<T>;
