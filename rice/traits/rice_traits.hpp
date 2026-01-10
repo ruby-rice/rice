@@ -141,6 +141,16 @@ namespace Rice
         }, std::forward<Tuple_T>(tuple));
     }
 
+    // Detect if a type is complete (has a known size) or incomplete (forward-declared only)
+    template<typename T, typename = void>
+    struct is_complete : std::false_type {};
+
+    template<typename T>
+    struct is_complete<T, std::void_t<decltype(sizeof(T))>> : std::true_type {};
+
+    template<typename T>
+    constexpr bool is_complete_v = is_complete<T>::value;
+
     template<typename T, typename = void>
     struct is_wrapped : std::true_type {};
 

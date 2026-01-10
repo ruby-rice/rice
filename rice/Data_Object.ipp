@@ -14,9 +14,8 @@ namespace Rice
     }
     else
     {
-      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
       return Exception(rb_eTypeError, "Wrong argument type. Expected %s. Received %s.",
-        typeIndexParser.simplifiedName().c_str(),
+        detail::TypeIndexParser::name<T>().c_str(),
         detail::protect(rb_obj_classname, value));
     }
   }

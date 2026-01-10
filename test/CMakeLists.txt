@@ -60,6 +60,7 @@ target_sources(${PROJECT_NAME} PRIVATE
                "test_Hash.cpp"
                "test_global_functions.cpp"
                "test_Identifier.cpp"
+               "test_Incomplete.cpp"
                "test_Inheritance.cpp"
                "test_Iterator.cpp"
                "test_Jump_Exception.cpp"

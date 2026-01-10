@@ -27,7 +27,14 @@ namespace Rice
   template<typename T>
   inline size_t ruby_size_internal(const T*)
   {
-    return sizeof(T);
+    if constexpr (detail::is_complete_v<T>)
+    {
+      return sizeof(T);
+    }
+    else
+    {
+      return 0;
+    }
   }
 
   template<>
@@ -42,8 +49,7 @@ namespace Rice
   {
     if (is_bound())
     {
-      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-      std::string message = "Type " + typeIndexParser.name() + " is already bound to a different type";
+      std::string message = "Type " + detail::TypeIndexParser::name<T>() + " is already bound to a different type";
       throw std::runtime_error(message.c_str());
     }
 
@@ -74,14 +80,17 @@ namespace Rice
 
     // Add a method to get the source C++ class name from Ruby
     Data_Type<T> dataType;
-    dataType.define_singleton_method("cpp_class", [](VALUE) -> VALUE
+    if constexpr (detail::is_complete_v<T>)
     {
-      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-      std::string cppClassName = typeIndexParser.simplifiedName();
-      Return returnInfo;
-      returnInfo.takeOwnership();
-      return detail::To_Ruby<char*>(&returnInfo).convert(cppClassName.c_str());
-    }, Arg("klass").setValue(), Return().setValue());
+      dataType.define_singleton_method("cpp_class", [](VALUE) -> VALUE
+      {
+        detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+        std::string cppClassName = typeIndexParser.simplifiedName();
+        Return returnInfo;
+        returnInfo.takeOwnership();
+        return detail::To_Ruby<char*>(&returnInfo).convert(cppClassName.c_str());
+      }, Arg("klass").setValue(), Return().setValue());
+    }
 
     return dataType;
   }
@@ -235,8 +244,7 @@ namespace Rice
   {
     if (!is_bound())
     {
-      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-      std::string message = "Type is not defined with Rice: " + typeIndexParser.name();
+      std::string message = "Type is not defined with Rice: " + detail::TypeIndexParser::name<T>();
       throw std::invalid_argument(message.c_str());
     }
   }
