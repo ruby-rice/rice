@@ -210,10 +210,10 @@ TESTCASE(Update)
 TESTCASE(Klass)
 {
   define_unique_ptr<MyClass>();
-  detail::TypeMapper<std::unique_ptr<MyClass>> typeMapper;
+  detail::TypeDetail<std::unique_ptr<MyClass>> typeDetail;
   Module aModule("Std");
   Object expected = aModule.const_get("UniquePtr≺AnonymousNamespace꞉꞉MyClass≻");
-  VALUE actual = typeMapper.rubyKlass();
+  VALUE actual = typeDetail.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 }
 

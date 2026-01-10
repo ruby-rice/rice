@@ -26,6 +26,7 @@
 // Wrap C++ objects as Ruby objects
 #include "detail/Wrapper.hpp"
 #include "detail/Type.hpp"
+#include "detail/TypeIndexParser.hpp"
 
 // Code for C++ to call Ruby
 #include "Exception.hpp"
@@ -99,6 +100,7 @@
 #include "detail/Registries.ipp"
 
 #include "detail/Type.ipp"
+#include "detail/TypeIndexParser.ipp"
 
 // Code for Ruby to call C++
 #include "Exception.ipp"

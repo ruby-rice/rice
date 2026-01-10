@@ -374,9 +374,9 @@ TESTCASE(RoundtripConstRef)
 
 TESTCASE(Klass)
 {
-  detail::TypeMapper<Variant_T> typeMapper;
+  detail::TypeDetail<Variant_T> typeDetail;
   Object expected = Object(rb_cObject).const_get("Object");
-  VALUE actual = typeMapper.rubyKlass();
+  VALUE actual = typeDetail.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 }
 

@@ -150,14 +150,14 @@ namespace Rice::detail
   template<typename T>
   inline std::string Parameter<T>::cppTypeName()
   {
-    detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-    return typeIndexParser.simplifiedName();
+    detail::TypeDetail<T> typeDetail;
+    return typeDetail.simplifiedName();
   }
 
   template<typename T>
   inline VALUE Parameter<T>::klass()
   {
-    TypeMapper<T> typeMapper;
-    return typeMapper.rubyKlass();
+    TypeDetail<T> typeDetail;
+    return typeDetail.rubyKlass();
   }
 }

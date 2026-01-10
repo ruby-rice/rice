@@ -595,7 +595,71 @@ TESTCASE(pointers)
   result = object.call("check_void_helper", helper);
   ASSERT_EQUAL(Qtrue, result.value());
 }
-/*
+
+namespace
+{
+  class NoexceptClass
+  {
+  public:
+    static inline bool noexcept_method_called = false;
+    static inline bool noexcept_static_called = false;
+
+    static void reset()
+    {
+      noexcept_method_called = false;
+      noexcept_static_called = false;
+    }
+
+    static int noexcept_static_function(int value) noexcept
+    {
+      noexcept_static_called = true;
+      return value * 4;
+    }
+
+    int noexcept_method(int value) noexcept
+    {
+      noexcept_method_called = true;
+      return value * 5;
+    }
+
+    int noexcept_const_method(int value) const noexcept
+    {
+      return value * 6;
+    }
+  };
+}
+
+TESTCASE(noexcept_member_function)
+{
+  Class c = define_class<NoexceptClass>("NoexceptClass")
+    .define_constructor(Constructor<NoexceptClass>())
+    .define_method("noexcept_method", &NoexceptClass::noexcept_method)
+    .define_method("noexcept_const_method", &NoexceptClass::noexcept_const_method);
+
+  NoexceptClass::reset();
+  Object o = c.call("new");
+
+  Object result = o.call("noexcept_method", 10);
+  ASSERT(NoexceptClass::noexcept_method_called);
+  ASSERT_EQUAL(50, detail::From_Ruby<int>().convert(result.value()));
+
+  result = o.call("noexcept_const_method", 10);
+  ASSERT_EQUAL(60, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(noexcept_static_singleton_function)
+{
+  Class c = define_class<NoexceptClass>("NoexceptClass")
+    .define_constructor(Constructor<NoexceptClass>())
+    .define_singleton_function("noexcept_static_function", &NoexceptClass::noexcept_static_function);
+
+  NoexceptClass::reset();
+
+  Object result = c.call("noexcept_static_function", 10);
+  ASSERT(NoexceptClass::noexcept_static_called);
+  ASSERT_EQUAL(40, detail::From_Ruby<int>().convert(result));
+}
+
 namespace
 {
   class BigObject
@@ -906,4 +970,3 @@ TESTCASE(pointer_of_pointer_ranges)
   Object result = m.module_eval(code);
   ASSERT_EQUAL(21, detail::From_Ruby<int>().convert(result));
 }
-*/

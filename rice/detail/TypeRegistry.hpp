@@ -47,7 +47,10 @@ namespace Rice::detail
     VALUE klasses();
 
   private:
-    std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
+    template <typename T>
+    std::type_index key();
+
+    std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(std::type_index typeIndex);
     void raiseUnverifiedType(const std::string& typeName);
 
     std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};

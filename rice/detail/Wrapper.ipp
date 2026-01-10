@@ -115,11 +115,14 @@ namespace Rice::detail
   {
     Registries::instance.instances.remove(this->get(this->rb_data_type_));
 
-    if constexpr (std::is_destructible_v<T>)
+    if constexpr (is_complete_v<T>)
     {
-      if (this->isOwner_)
+      if constexpr (std::is_destructible_v<T>)
       {
-        delete this->data_;
+        if (this->isOwner_)
+        {
+          delete this->data_;
+        }
       }
     }
   }
@@ -225,9 +228,9 @@ namespace Rice::detail
 
     else
     {
-      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+      detail::TypeDetail<T> typeDetail;
       std::string message = "Rice was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: " +
-        typeIndexParser.name();
+        typeDetail.name();
       throw std::runtime_error(message);
     }
 

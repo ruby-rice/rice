@@ -176,8 +176,8 @@ namespace Rice::detail
         }
         default:
         {
-          detail::TypeMapper<Pointer<T>> typeMapper;
-          std::string expected = typeMapper.rubyName();
+          detail::TypeDetail<Pointer<T>> typeDetail;
+          std::string expected = typeDetail.rubyName();
           throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }
@@ -234,8 +234,8 @@ namespace Rice::detail
         }
         default:
         {
-          detail::TypeMapper<Pointer<T*>> typeMapper;
-          std::string expected = typeMapper.rubyName();
+          detail::TypeDetail<Pointer<T*>> typeDetail;
+          std::string expected = typeDetail.rubyName();
           throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }

@@ -12,11 +12,12 @@ Finds Ruby installation and the locations of its include files and libraries:
   find_package(Ruby [<version>] [COMPONENTS <components>...] [...])
 
 Ruby is a general-purpose programming language.  This module supports Ruby
-1.8 through 3.4.  Virtual environments, such as RVM or RBENV, are also
+2.0 through 4.0.  Virtual environments, such as RVM or RBENV, are also
 supported.
 
 Components
 ^^^^^^^^^^
+  .. versionadded:: 4.2.2
 
 This module supports the following components:
 
@@ -31,6 +32,7 @@ are searched for.
 
 Imported Targets
 ^^^^^^^^^^^^^^^^
+  .. versionadded:: 4.2.2
 
 This module defines the following :prop_tgt:`IMPORTED` targets:
 
@@ -171,9 +173,11 @@ endif()
 set(_Ruby_POSSIBLE_EXECUTABLE_NAMES ruby)
 
 # If the user has not specified a Ruby version, create a list of Ruby versions
-# to check going from 1.8 to 4.0
+# to search (newest to oldest). Based on https://www.ruby-lang.org/en/downloads/releases/
 if (NOT Ruby_FIND_VERSION_EXACT)
-  foreach (_ruby_version RANGE 40 18 -1)
+  set(_Ruby_SUPPORTED_VERSIONS 40 35 34 33 32)
+  set(_Ruby_UNSUPPORTED_VERSIONS 31 30 27 26 25 24 23 22 21 20)
+  foreach (_ruby_version IN LISTS _Ruby_SUPPORTED_VERSIONS _Ruby_UNSUPPORTED_VERSIONS)
     string(SUBSTRING "${_ruby_version}" 0 1 _ruby_major_version)
     string(SUBSTRING "${_ruby_version}" 1 1 _ruby_minor_version)
     # Append both rubyX.Y and rubyXY (eg: ruby3.4 ruby34)
@@ -230,14 +234,6 @@ function(_RUBY_CONFIG_VAR RBVAR OUTVAR)
                   RESULT_VARIABLE _Ruby_SUCCESS
                   OUTPUT_VARIABLE _Ruby_OUTPUT
                   ERROR_QUIET)
-
-  # Config was deprecated in Ruby 1.9 and then removed in Ruby 2 - so this is for ancient code
-  if (_Ruby_SUCCESS OR _Ruby_OUTPUT STREQUAL "")
-    execute_process(COMMAND "${Ruby_EXECUTABLE}" -r rbconfig -e "print Config::CONFIG['${RBVAR}']"
-                    RESULT_VARIABLE _Ruby_SUCCESS
-                    OUTPUT_VARIABLE _Ruby_OUTPUT
-                    ERROR_QUIET)
-  endif ()
 
   set(${OUTVAR} "${_Ruby_OUTPUT}" PARENT_SCOPE)
 endfunction()
@@ -315,7 +311,7 @@ function(_RUBY_CHECK_BREW)
     return()
   endif ()
 
-  MESSAGE(DEBUG "Found brew at: ${_BREW_EXECUTABLE}")
+  message(DEBUG "Found brew at: ${_BREW_EXECUTABLE}")
 
   # Query Homebrew for the prefix of the 'ruby' formula.
   # If Ruby is not installed via Homebrew, this will fail.
@@ -326,7 +322,7 @@ function(_RUBY_CHECK_BREW)
           ERROR_QUIET
           OUTPUT_STRIP_TRAILING_WHITESPACE
   )
-  MESSAGE(DEBUG "Ruby BREW is: ${_Ruby_BREW_DIR}")
+  message(DEBUG "Ruby BREW is: ${_Ruby_BREW_DIR}")
 
   if (NOT _Ruby_BREW_RESULT EQUAL 0 OR _Ruby_BREW_DIR STREQUAL "")
     # No 'ruby' formula installed in Homebrew
@@ -427,7 +423,7 @@ if (Ruby_EXECUTABLE AND NOT Ruby_EXECUTABLE STREQUAL "${_Ruby_EXECUTABLE_LAST_QU
   set(Ruby_ARCHHDR_DIR ${Ruby_ARCHHDR_DIR} CACHE INTERNAL "The Ruby arch header dir (2.0+)" FORCE)
   set(_Ruby_POSSIBLE_LIB_DIR ${_Ruby_POSSIBLE_LIB_DIR} CACHE INTERNAL "The Ruby lib dir" FORCE)
   set(Ruby_RUBY_LIB_DIR ${Ruby_RUBY_LIB_DIR} CACHE INTERNAL "The Ruby ruby-lib dir" FORCE)
-  set(_Ruby_SO_NAME ${_Ruby_SO_NAME} CACHE PATH "The Ruby shared library name" FORCE)
+  set(_Ruby_SO_NAME ${_Ruby_SO_NAME} CACHE STRING "The Ruby shared library name" FORCE)
   set(_Ruby_DLEXT ${_Ruby_DLEXT} CACHE STRING "Ruby extensions extension" FORCE)
   set(Ruby_SITEARCH_DIR ${Ruby_SITEARCH_DIR} CACHE INTERNAL "The Ruby site arch dir" FORCE)
   set(Ruby_SITELIB_DIR ${Ruby_SITELIB_DIR} CACHE INTERNAL "The Ruby site lib dir" FORCE)
@@ -455,30 +451,6 @@ if (Ruby_EXECUTABLE AND NOT Ruby_EXECUTABLE STREQUAL "${_Ruby_EXECUTABLE_LAST_QU
   )
 endif ()
 
-# In case Ruby_EXECUTABLE could not be executed (e.g. cross compiling)
-# try to detect which version we found. This is not too good.
-if (Ruby_EXECUTABLE AND NOT Ruby_VERSION_MAJOR)
-  # by default assume 1.8.0
-  set(Ruby_VERSION_MAJOR 1)
-  set(Ruby_VERSION_MINOR 8)
-  set(Ruby_VERSION_PATCH 0)
-  # check whether we found 1.9.x
-  if (${Ruby_EXECUTABLE} MATCHES "ruby1\\.?9")
-    set(Ruby_VERSION_MAJOR 1)
-    set(Ruby_VERSION_MINOR 9)
-  endif ()
-  # check whether we found 2.[0-7].x
-  if (${Ruby_EXECUTABLE} MATCHES "ruby2")
-    set(Ruby_VERSION_MAJOR 2)
-    string(REGEX REPLACE ${Ruby_EXECUTABLE} "ruby2\\.?([0-7])" "\\1" Ruby_VERSION_MINOR)
-  endif ()
-  # check whether we found 3.[0-1].x
-  if (${Ruby_EXECUTABLE} MATCHES "ruby3")
-    set(Ruby_VERSION_MAJOR 3)
-    string(REGEX REPLACE ${Ruby_EXECUTABLE} "ruby3\\.?([0-4])" "\\1" Ruby_VERSION_MINOR)
-  endif ()
-endif ()
-
 if (Ruby_VERSION_MAJOR)
   set(Ruby_VERSION "${Ruby_VERSION_MAJOR}.${Ruby_VERSION_MINOR}.${Ruby_VERSION_PATCH}")
   set(_Ruby_VERSION_NODOT "${Ruby_VERSION_MAJOR}${Ruby_VERSION_MINOR}${Ruby_VERSION_PATCH}")
@@ -486,9 +458,6 @@ if (Ruby_VERSION_MAJOR)
   set(_Ruby_VERSION_SHORT "${Ruby_VERSION_MAJOR}.${Ruby_VERSION_MINOR}")
   set(_Ruby_VERSION_SHORT_NODOT "${Ruby_VERSION_MAJOR}${Ruby_VERSION_MINOR}")
 endif ()
-
-# FIXME: Currently we require both the interpreter and development components to be found
-# in order to use either.  See issue #20474.
 
 # Save CMAKE_FIND_FRAMEWORK
 set(_Ruby_CMAKE_FIND_FRAMEWORK_ORIGINAL ${CMAKE_FIND_FRAMEWORK})
@@ -516,7 +485,7 @@ set(CMAKE_FIND_FRAMEWORK ${_Ruby_CMAKE_FIND_FRAMEWORK_ORIGINAL})
 message(DEBUG "--------FindRuby.cmake debug------------")
 message(DEBUG "_Ruby_POSSIBLE_EXECUTABLE_NAMES: ${_Ruby_POSSIBLE_EXECUTABLE_NAMES}")
 message(DEBUG "_Ruby_POSSIBLE_LIB_DIR: ${_Ruby_POSSIBLE_LIB_DIR}")
-message(DEBUG "Ruby_LIBRUBY_SO: ${_Ruby_SO_NAME}")
+message(DEBUG "_Ruby_SO_NAME: ${_Ruby_SO_NAME}")
 message(DEBUG "_Ruby_DLEXT: ${_Ruby_DLEXT}")
 message(DEBUG "Ruby_FIND_VIRTUALENV=${Ruby_FIND_VIRTUALENV}")
 message(DEBUG "Ruby_ENV: ${Ruby_ENV}")
@@ -558,7 +527,12 @@ foreach (component IN LISTS Ruby_FIND_COMPONENTS)
 endforeach ()
 
 # Set component found flags
-set(Ruby_Interpreter_FOUND ${Ruby_EXECUTABLE})
+if (Ruby_EXECUTABLE)
+  set(Ruby_Interpreter_FOUND TRUE)
+else ()
+  set(Ruby_Interpreter_FOUND FALSE)
+endif ()
+
 if (Ruby_INCLUDE_DIR AND Ruby_CONFIG_INCLUDE_DIR AND (Ruby_LIBRARY OR NOT WIN32))
   set(Ruby_Development_FOUND TRUE)
 else ()

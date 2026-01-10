@@ -54,7 +54,7 @@ namespace Rice
   };
 
   template<typename T>
-  class Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>
+  class Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>
   {
   public:
     Buffer(T** pointer);
@@ -152,7 +152,7 @@ namespace Rice
     Buffer& operator=(Buffer&& other);
 
     size_t size() const;
-      
+
     VALUE bytes(size_t count) const;
     VALUE bytes() const;
 
@@ -163,6 +163,31 @@ namespace Rice
     bool m_owner = false;
     size_t m_size = 0;
     T* m_buffer = nullptr;
+  };
+
+  // Specialization for void* - can't create arrays of void, so this is a minimal wrapper
+  template<typename T>
+  class Buffer<T*, std::enable_if_t<std::is_void_v<T>>>
+  {
+  public:
+    Buffer(T** pointer);
+    Buffer(T** pointer, size_t size);
+
+    Buffer(const Buffer& other) = delete;
+    Buffer(Buffer&& other);
+
+    Buffer& operator=(const Buffer& other) = delete;
+    Buffer& operator=(Buffer&& other);
+
+    size_t size() const;
+
+    T** ptr();
+    T** release();
+
+  private:
+    bool m_owner = false;
+    size_t m_size = 0;
+    T** m_buffer = nullptr;
   };
 
   template<typename T>

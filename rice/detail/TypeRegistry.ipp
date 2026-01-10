@@ -7,39 +7,48 @@
 namespace Rice::detail
 {
   template <typename T>
+  inline std::type_index TypeRegistry::key()
+  {
+    if constexpr (is_complete_v<T>)
+    {
+      return std::type_index(typeid(T));
+    }
+    else
+    {
+      return std::type_index(typeid(T*));
+    }
+  }
+
+  template <typename T>
   inline void TypeRegistry::add(VALUE klass, rb_data_type_t* rbType)
   {
-    std::type_index key(typeid(T));
-    registry_[key] = std::pair(klass, rbType);
+    registry_[key<T>()] = std::pair(klass, rbType);
   }
 
   template <typename T>
   inline void TypeRegistry::remove()
   {
-    std::type_index key(typeid(T));
-    registry_.erase(key);
+    registry_.erase(key<T>());
   }
 
   template <typename T>
   inline bool TypeRegistry::isDefined()
   {
-    std::type_index key(typeid(T));
-    auto iter = registry_.find(key);
+    auto iter = registry_.find(key<T>());
     return iter != registry_.end();
   }
 
   template <typename T>
   std::pair<VALUE, rb_data_type_t*> TypeRegistry::getType()
   {
-    std::type_index key(typeid(T));
-    auto iter = registry_.find(key);
+    auto iter = registry_.find(key<T>());
     if (iter != registry_.end())
     {
       return iter->second;
     }
     else
     {
-      this->raiseUnverifiedType(typeid(T).name());
+      this->raiseUnverifiedType(TypeDetail<T>().name());
       // Make compiler happy
       return std::make_pair(Qnil, nullptr);
     }
@@ -54,17 +63,14 @@ namespace Rice::detail
     }
     else
     {
-      const std::type_info& typeInfo = typeid(T);
-      std::type_index key(typeInfo);
-      this->unverified_.insert(key);
+      this->unverified_.insert(key<T>());
       return false;
     }
   }
 
-  inline std::optional<std::pair<VALUE, rb_data_type_t*>> TypeRegistry::lookup(const std::type_info& typeInfo)
+  inline std::optional<std::pair<VALUE, rb_data_type_t*>> TypeRegistry::lookup(std::type_index typeIndex)
   {
-    std::type_index key(typeInfo);
-    auto iter = registry_.find(key);
+    auto iter = registry_.find(typeIndex);
 
     if (iter == registry_.end())
     {
@@ -79,26 +85,30 @@ namespace Rice::detail
   template <typename T>
   inline std::pair<VALUE, rb_data_type_t*> TypeRegistry::figureType(const T& object)
   {
-    // First check and see if the actual type of the object is registered
-    std::optional<std::pair<VALUE, rb_data_type_t*>> result = lookup(typeid(object));
+    std::optional<std::pair<VALUE, rb_data_type_t*>> result;
 
-    if (result)
+    // First check and see if the actual type of the object is registered.
+    // This requires a complete type for typeid to work.
+    if constexpr (is_complete_v<T>)
     {
-      return result.value();
+      result = lookup(std::type_index(typeid(object)));
+
+      if (result)
+      {
+        return result.value();
+      }
     }
 
     // If not, then we are willing to accept an ancestor class specified by T. This is needed
     // to support Directors. Classes inherited from Directors are never actually registered
     // with Rice - and what we really want it to return the C++ class they inherit from.
-    const std::type_info& typeInfo = typeid(T);
-    result = lookup(typeInfo);
+    result = lookup(key<T>());
     if (result)
     {
       return result.value();
     }
 
-    detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-    raiseUnverifiedType(typeIndexParser.name());
+    raiseUnverifiedType(TypeDetail<T>().name());
 
     // Make the compiler happy
     return std::pair<VALUE, rb_data_type_t*>(Qnil, nullptr);
@@ -132,8 +142,8 @@ namespace Rice::detail
 
     for (const std::type_index& typeIndex : this->unverified_)
     {
-      detail::TypeIndexParser typeIndexParser(typeIndex);
-      stream << "  " << typeIndexParser.name() << "\n";
+      detail::TypeIndexParser typeDetail(typeIndex);
+      stream << "  " << typeDetail.name() << "\n";
     }
 
     throw std::invalid_argument(stream.str());

@@ -437,8 +437,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<Vector_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<Vector_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mStd = define_module("Std");

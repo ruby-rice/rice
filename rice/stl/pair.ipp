@@ -88,8 +88,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<Pair_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<Pair_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mStd = define_module("Std");

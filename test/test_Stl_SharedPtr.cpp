@@ -377,21 +377,21 @@ TESTCASE(Update)
 TESTCASE(Klass)
 {
   define_shared_ptr<MyClass>(); 
-  detail::TypeMapper<std::shared_ptr<MyClass>> typeMapper;
+  detail::TypeDetail<std::shared_ptr<MyClass>> typeDetail;
   Module aModule("Std");
   Object expected = aModule.const_get("SharedPtr≺AnonymousNamespace꞉꞉MyClass≻");
-  VALUE actual = typeMapper.rubyKlass();
+  VALUE actual = typeDetail.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 }
 
 TESTCASE(KlassSharedPtr)
 {
   define_shared_ptr<MyClass>();
-  detail::TypeMapper<std::shared_ptr<MyClass>> typeMapper;
+  detail::TypeDetail<std::shared_ptr<MyClass>> typeDetail;
 
   Module stdModule("Std");
   Object expected = stdModule.const_get("SharedPtr≺AnonymousNamespace꞉꞉MyClass≻");
-  VALUE actual = typeMapper.rubyKlass();
+  VALUE actual = typeDetail.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 }
 

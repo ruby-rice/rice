@@ -8,8 +8,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<Pointer_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<Pointer_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mRice = define_module("Rice");

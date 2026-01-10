@@ -578,3 +578,49 @@ TESTCASE(pass_objects)
   result = m.module_eval(code);
   ASSERT_EQUAL(12, detail::From_Ruby<int>().convert(result));
 }
+
+namespace
+{
+  static int value1 = 42;
+  static int value2 = 84;
+  static void* voidPtrs[] = { &value1, &value2 };
+
+  void** getVoidPtrs()
+  {
+    return voidPtrs;
+  }
+
+  void setVoidPtr(void** ptr, void* value)
+  {
+    *ptr = value;
+  }
+}
+
+TESTCASE(void_pointer)
+{
+  // Test that Buffer<void*> can be created and used
+  // This is a minimal wrapper - no Ruby array conversion support
+  void** ptrs = getVoidPtrs();
+  Buffer<void*> buffer(ptrs, 2);
+
+  ASSERT_EQUAL(2, (int)buffer.size());
+  ASSERT_EQUAL(ptrs, buffer.ptr());
+  ASSERT_EQUAL(&value1, buffer.ptr()[0]);
+  ASSERT_EQUAL(&value2, buffer.ptr()[1]);
+
+  // Test release
+  void** released = buffer.release();
+  ASSERT_EQUAL(ptrs, released);
+}
+
+TESTCASE(void_pointer_function)
+{
+  // Test that functions with void** parameters can be wrapped
+  Module m = define_module("Testing");
+  m.define_module_function("get_void_ptrs", &getVoidPtrs, ReturnBuffer());
+  m.define_module_function("set_void_ptr", &setVoidPtr);
+
+  // This should compile and run without errors
+  void** result = getVoidPtrs();
+  ASSERT_EQUAL(&value1, result[0]);
+}
