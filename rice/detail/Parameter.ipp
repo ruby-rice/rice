@@ -97,6 +97,11 @@ namespace Rice::detail
         }
       }
     }
+    // Incomplete types can't have default values (std::any requires complete types)
+    else if constexpr (!is_complete_v<intrinsic_type<T>>)
+    {
+      // No default value possible for incomplete types
+    }
     else if constexpr (std::is_copy_constructible_v<T>)
     {
       if (this->arg()->hasDefaultValue())
@@ -122,7 +127,11 @@ namespace Rice::detail
   template<typename T>
   inline VALUE Parameter<T>::defaultValueRuby()
   {
-    if constexpr (std::is_constructible_v<std::remove_cv_t<T>, std::remove_cv_t<std::remove_reference_t<T>>&>)
+    if constexpr (!is_complete_v<intrinsic_type<T>>)
+    {
+      // Incomplete types can't have default values (std::any requires complete types)
+    }
+    else if constexpr (std::is_constructible_v<std::remove_cv_t<T>, std::remove_cv_t<std::remove_reference_t<T>>&>)
     {
       // Remember std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
       // So special case vector handling
@@ -144,7 +153,7 @@ namespace Rice::detail
       }
     }
 
-    throw std::runtime_error("No default value set for parameter " + this->arg()->name);
+    throw std::runtime_error("No default value set or allowed for parameter " + this->arg()->name);
   }
 
   template<typename T>

@@ -261,6 +261,12 @@ namespace Rice::detail
     {
       return typeid(T);
     }
+    else if constexpr (std::is_reference_v<T>)
+    {
+      // For incomplete reference types, strip the reference and use pointer.
+      // Can't use typeid(T&) because it still requires complete type on MSVC.
+      return typeid(std::remove_reference_t<T>*);
+    }
     else
     {
       return typeid(T*);
