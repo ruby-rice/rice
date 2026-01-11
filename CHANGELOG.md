@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.9.2 (unreleased)
+
+Enhancements:
+* Add support for incomplete types (PIMPL/opaque handle patterns). Rice now uses `typeid(T*)` for forward-declared types that are never fully defined.
+* Add support for `noexcept` functions, static members, and static member functions
+* Add support for `Buffer<void*>` and `Pointer<void*>`
+
+Internal:
+* Refactor type handling by merging `TypeMapper` into `TypeDetail` and simplifying class hierarchy
+
 ## 4.9.1 (2026-01-04)
 This release focuses on improving memory management for STL containers and attribute setters.
 
