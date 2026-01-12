@@ -18,6 +18,11 @@ namespace
   class MyClass;
   class MyClass2;
   class MyClass3;
+  class MyClass4;
+  class MyClass5;
+  class MyClass6;
+  class MyClass7;
+  class MyClass8;
 }
 
 TEARDOWN(Overloads)
@@ -25,9 +30,19 @@ TEARDOWN(Overloads)
   Data_Type<MyClass>::unbind();
   Data_Type<MyClass2>::unbind();
   Data_Type<MyClass3>::unbind();
+  Data_Type<MyClass4>::unbind();
+  Data_Type<MyClass5>::unbind();
+  Data_Type<MyClass6>::unbind();
+  Data_Type<MyClass7>::unbind();
+  Data_Type<MyClass8>::unbind();
   Rice::detail::Registries::instance.types.remove<MyClass>();
   Rice::detail::Registries::instance.types.remove<MyClass2>();
   Rice::detail::Registries::instance.types.remove<MyClass3>();
+  Rice::detail::Registries::instance.types.remove<MyClass4>();
+  Rice::detail::Registries::instance.types.remove<MyClass5>();
+  Rice::detail::Registries::instance.types.remove<MyClass6>();
+  Rice::detail::Registries::instance.types.remove<MyClass7>();
+  Rice::detail::Registries::instance.types.remove<MyClass8>();
   Rice::detail::Registries::instance.natives.reset(Module(rb_mKernel));
 
   rb_gc_start();
@@ -270,7 +285,7 @@ namespace
       return "run<float,int>";
     }
   };
-} // namespace
+}
 
 Class createMyClass()
 {
@@ -404,11 +419,11 @@ namespace
    
     std::string constructor;
   };
-} // namespace
+}
 
 Class createMyClass2()
 {
-  Class c = define_class<MyClass2>("MyClass")
+  Class c = define_class<MyClass2>("MyClass2")
     .define_constructor(Constructor<MyClass2>())
     .define_constructor(Constructor<MyClass2, int>())
     .define_constructor(Constructor<MyClass2, float>())
@@ -425,7 +440,7 @@ TESTCASE(constructor_zero_parameters)
   Module m = define_module("Testing");
   Class c = createMyClass2();
 
-  std::string code = R"(MyClass.new)";
+  std::string code = R"(MyClass2.new)";
 
   Rice::Object result = m.module_eval(code);
   Rice::String constructor = result.call("constructor");
@@ -437,19 +452,19 @@ TESTCASE(constructor_one_parameter)
   Module m = define_module("Testing");
   Class c = createMyClass2();
 
-  std::string code = R"(MyClass.new(1))";
+  std::string code = R"(MyClass2.new(1))";
 
   Rice::Object result = m.module_eval(code);
   Rice::String constructor = result.call("constructor");
   ASSERT_EQUAL("constructor<int>", constructor.str());
 
-  code = R"(my_class = MyClass.new(1.0))";
+  code = R"(my_class = MyClass2.new(1.0))";
 
   result = m.module_eval(code);
   constructor = result.call("constructor");
   ASSERT_EQUAL("constructor<float>", constructor.str());
 
-  code = R"(my_class = MyClass.new('hello'))";
+  code = R"(my_class = MyClass2.new('hello'))";
 
   result = m.module_eval(code);
   constructor = result.call("constructor");
@@ -461,13 +476,13 @@ TESTCASE(constructor_two_parameters)
   Module m = define_module("Testing");
   Class c = createMyClass2();
 
-  std::string code = R"(MyClass.new(1, 1.0))";
+  std::string code = R"(MyClass2.new(1, 1.0))";
 
   Rice::Object result = m.module_eval(code);
   Rice::String constructor = result.call("constructor");
   ASSERT_EQUAL("constructor<int,float>", constructor.str());
 
-  code = R"(my_class = MyClass.new(1.0, 1))";
+  code = R"(my_class = MyClass2.new(1.0, 1))";
 
   result = m.module_eval(code);
   constructor = result.call("constructor");
@@ -539,8 +554,7 @@ namespace
       return "run<int*>";
     }
   };
-} // namespace
-
+}
 
 TESTCASE(int_conversion_1)
 {
@@ -915,7 +929,7 @@ TESTCASE(PointerNotBuffer)
 {
   Module m = define_module("Testing");
 
-  define_class<MyClass6>("MyClass").
+  define_class<MyClass6>("MyClass6").
     define_constructor(Constructor<MyClass6>());
 
   m.define_module_function<std::string(*)(const MyClass6*)>("pointer", pointer).
@@ -932,7 +946,7 @@ TESTCASE(PointerBuffer)
 {
   Module m = define_module("Testing");
 
-  define_class<MyClass6>("MyClass").
+  define_class<MyClass6>("MyClass6").
     define_constructor(Constructor<MyClass6>());
 
   m.define_function<std::string(*)(const MyClass6*)>("pointer", pointer).
@@ -1148,4 +1162,110 @@ TESTCASE(UnsignedLongLongPreferredOverDouble_ForInteger)
   std::string code = R"(run(42))";
   String result = m.module_eval(code);
   ASSERT_EQUAL("run<unsigned long long>", result.str());
+}
+
+namespace
+{
+  class MyClass8
+  {
+  public:
+    MyClass8(std::string name): name_(name)
+    {
+    }
+
+    MyClass8(std::string name, VALUE proc) : name_(name), proc_(proc)
+    {
+    }
+
+    VALUE execute()
+    {
+      return detail::protect(rb_funcallv, this->proc_, Identifier("call"), 0, nullptr);
+    }
+
+    VALUE execute(VALUE proc)
+    {
+      return detail::protect(rb_funcallv, proc, rb_intern("call"), 0, nullptr);
+    }
+
+    std::string name_;
+    VALUE proc_ = Qnil;
+  };
+}
+
+TESTCASE(ConstructorProc)
+{
+  Class c = define_class<MyClass8>("MyClass8")
+    .define_constructor(Constructor<MyClass8, std::string>())
+    .define_constructor(Constructor<MyClass8, std::string, VALUE>(), Arg("name"), Arg("proc").setValue().keepAlive())
+    .define_method<VALUE(MyClass8::*)()>("execute", &MyClass8::execute, Return().setValue())
+    .define_method<VALUE(MyClass8::*)(VALUE)>("execute", &MyClass8::execute, Return().setValue())
+    .define_attr("proc_", &MyClass8::proc_, Rice::AttrAccess::Read);
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(my_proc = Proc.new do
+                                    "Constructor Proc"
+                                  end
+                        myclass = MyClass8.new("proc", my_proc)
+                        myclass.execute)";
+
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("Constructor Proc", result.c_str());
+}
+
+TESTCASE(ConstructorBlock)
+{
+  Class c = define_class<MyClass8>("MyClass8")
+    .define_constructor(Constructor<MyClass8, std::string>())
+    .define_constructor(Constructor<MyClass8, std::string, VALUE>(), Arg("name"), Arg("proc").setValue().keepAlive())
+    .define_method<VALUE(MyClass8::*)()>("execute", &MyClass8::execute, Return().setValue())
+    .define_method<VALUE(MyClass8::*)(VALUE)>("execute", &MyClass8::execute, Arg("proc").setValue(), Return().setValue());
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(myclass = MyClass8.new("block") do
+                                    "Constructor Block"
+                                  end
+                        myclass.execute)";
+
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("Constructor Block", result.c_str());
+}
+
+TESTCASE(ConstructorBlockKeywords)
+{
+  Class c = define_class<MyClass8>("MyClass8")
+    .define_constructor(Constructor<MyClass8, std::string>())
+    .define_constructor(Constructor<MyClass8, std::string, VALUE>(), Arg("name"), Arg("proc").setValue().keepAlive())
+    .define_method<VALUE(MyClass8::*)()>("execute", &MyClass8::execute, Return().setValue())
+    .define_method<VALUE(MyClass8::*)(VALUE)>("execute", &MyClass8::execute, Arg("proc").setValue(), Return().setValue());
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(myclass = MyClass8.new(name: "blockkw") do
+                                    "Constructor Block Keywords"
+                                  end
+                        myclass.execute)";
+
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("Constructor Block Keywords", result.c_str());
+}
+
+TESTCASE(MethodBlock)
+{
+  Class c = define_class<MyClass8>("MyClass8")
+    .define_constructor(Constructor<MyClass8, std::string>())
+    .define_constructor(Constructor<MyClass8, std::string, VALUE>(), Arg("name"), Arg("proc").setValue().keepAlive())
+    .define_method<VALUE(MyClass8::*)()>("execute", &MyClass8::execute, Return().setValue())
+    .define_method<VALUE(MyClass8::*)(VALUE)>("execute", &MyClass8::execute, Arg("proc").setValue(), Return().setValue());
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(myclass = MyClass8.new("MethodBlock")
+                        myclass.execute do
+                          "Method Block"
+                        end)";
+
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("Method Block", result.c_str());
 }

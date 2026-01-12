@@ -65,7 +65,7 @@ TESTCASE(LambdaCallBack)
 TESTCASE(BlockCallBack)
 {
   Module m = define_module("TestingBlock");
-  m.define_module_function("register_callback", registerCallback, Arg("callback").setBlock()).
+  m.define_module_function("register_callback", registerCallback, Arg("callback")).
     define_module_function("trigger_callback", triggerCallback);
 
   std::string code = R"(register_callback do |an_int, a_double, a_bool, a_string, an_intref|
@@ -127,7 +127,7 @@ namespace
 TESTCASE(FunctionArg)
 {
   Module m = define_module("TestingFunctionArg");
-  m.define_module_function("function_arg", functionArg, Arg("i"), Arg("block").setBlock());
+  m.define_module_function("function_arg", functionArg, Arg("i"), Arg("block"));
 
   std::string code = R"(function_arg(4) do |i|
                           i * i

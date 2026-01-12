@@ -48,18 +48,6 @@ namespace Rice
     return isValue_;
   }
 
-  inline Arg& Arg::setBlock()
-  {
-    isBlock_ = true;
-    isValue_ = true;
-    return *this;
-  }
-
-  inline bool Arg::isBlock() const
-  {
-    return isBlock_;
-  }
-
   inline Arg& Arg::setOpaque()
   {
     isOpaque_ = true;

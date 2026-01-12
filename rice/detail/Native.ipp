@@ -313,7 +313,7 @@ namespace Rice::detail
     std::map<std::string, VALUE> result;
 
     // Keyword handling
-    if (rb_keyword_given_p())
+    if (protect(rb_keyword_given_p))
     {
       // Keywords are stored in the last element in a hash
       size_t actualArgc = argc - 1;
@@ -342,6 +342,13 @@ namespace Rice::detail
         std::string key = "arg_" + std::to_string(i);
         result[key] = argv[i];
       }
+    }
+
+    // If a block is given we assume it maps to the last argument
+    if (protect(rb_block_given_p))
+    {
+      std::string key = "arg_" + std::to_string(result.size());
+      result[key] = protect(rb_block_proc);
     }
 
     return result;
@@ -386,10 +393,6 @@ namespace Rice::detail
       else if (arg->hasDefaultValue())
       {
         result[i] = parameter->defaultValueRuby();
-      }
-      else if (arg->isBlock() && rb_block_given_p())
-      {
-        result[i] = protect(rb_block_proc);
       }
       else if (validate)
       {
