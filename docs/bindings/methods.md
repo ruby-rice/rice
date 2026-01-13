@@ -45,6 +45,8 @@ The syntax is `Arg(nameOfParameter)[ = defaultValue]`. If using [keyword argumen
 
 These `Rice::Arg` objects must be in the correct positional order. Thus if the second argument has a default value, then there must be two Arg objects.
 
+Note that Rice stores a copy of default values internally, so the type must be copyable. Types with deleted or private copy constructors cannot be used as default arguments. This includes types that inherit from non-copyable base classes. If you need to wrap a function with a non-copyable default parameter, you'll need to omit the default value and require Ruby callers to always provide that argument explicitly.
+
 Now, Ruby will now know about the default arguments, and this wrapper can be used as expected:
 
 ```ruby

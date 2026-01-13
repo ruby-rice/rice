@@ -42,8 +42,15 @@ namespace Rice::detail
   {
     using Function_T = Return_T(*)(Parameter_Ts...);
   };
-  
-  // C functions passed by pointer that take one or more defined parameter than a variable 
+
+  // noexcept C functions and static member functions passed by pointer
+  template<typename Return_T, typename ...Parameter_Ts>
+  struct function_traits<Return_T(*)(Parameter_Ts...) noexcept> : public function_traits<Return_T(std::nullptr_t, Parameter_Ts...)>
+  {
+    using Function_T = Return_T(*)(Parameter_Ts...) noexcept;
+  };
+
+  // C functions passed by pointer that take one or more defined parameter than a variable
   // number of parameters (the second ...)
   template<typename Return_T, typename ...Parameter_Ts>
   struct function_traits<Return_T(*)(Parameter_Ts..., ...)> : public function_traits<Return_T(std::nullptr_t, Parameter_Ts...)>
@@ -53,6 +60,12 @@ namespace Rice::detail
   // C Functions or static member functions passed by reference
   template<typename Return_T, typename ...Parameter_Ts>
   struct function_traits<Return_T(&)(Parameter_Ts...)> : public function_traits<Return_T(std::nullptr_t, Parameter_Ts...)>
+  {
+  };
+
+  // noexcept C functions or static member functions passed by reference
+  template<typename Return_T, typename ...Parameter_Ts>
+  struct function_traits<Return_T(&)(Parameter_Ts...) noexcept> : public function_traits<Return_T(std::nullptr_t, Parameter_Ts...)>
   {
   };
 

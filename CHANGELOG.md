@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.9.1 (unreleased)
+## 4.9.1 (2026-01-04)
 This release focuses on improving memory management for STL containers and attribute setters.
 
 Enhancements:
