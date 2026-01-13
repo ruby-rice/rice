@@ -26,6 +26,9 @@ Wrapped classes include:
 * std::function
 * std::map
 * std::multimap
+* std::ofstream
+* std::ostream
+* std::ostringstream
 * std::pair
 * std::set
 * std::shared_ptr
