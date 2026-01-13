@@ -30,13 +30,13 @@ namespace Rice
         return !self;
       });
 
-    if constexpr (!std::is_void_v<T>)
+    if constexpr (detail::is_complete_v<T> && !std::is_void_v<T>)
     {
       result.define_constructor(Constructor<SharedPtr_T, typename SharedPtr_T::element_type*>(), Arg("value").takeOwnership());
     }
 
     // Setup delegation to forward T's methods via get (only for non-fundamental, non-void types)
-    if constexpr (!std::is_void_v<T> && !std::is_fundamental_v<T>)
+    if constexpr (detail::is_complete_v<T> && !std::is_void_v<T> && !std::is_fundamental_v<T>)
     {
       detail::define_forwarding(result.klass(), Data_Type<T>::klass());
     }

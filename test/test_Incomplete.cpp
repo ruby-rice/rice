@@ -263,7 +263,7 @@ TESTCASE(OpaqueHandleNotDefined)
   ASSERT_EXCEPTION_CHECK(
     Exception,
     m.module_eval("create_opaque_handle_unregistered()"),
-    ASSERT(std::string(ex.what()).find("OpaqueHandle") != std::string::npos)
+    { bool found = std::string(ex.what()).find("OpaqueHandle") != std::string::npos; ASSERT(found); }
   );
 }
 
@@ -343,4 +343,150 @@ TESTCASE(OpaqueHandlePassToWrapper)
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(777, detail::From_Ruby<int>().convert(result.value()));
+}
+
+// =======================================================================
+// References to Incomplete Types
+//
+// Similar to pointers, but using references. This is common in C++ APIs
+// like OpenCV's getImplRef() methods.
+// =======================================================================
+
+namespace
+{
+  // Forward declaration only - RefImpl is never defined
+  class RefImpl;
+
+  struct RefImplReal
+  {
+    int value = 123;
+  };
+
+  class RefWidget
+  {
+  public:
+    RefWidget() : pImpl_(reinterpret_cast<RefImpl*>(new RefImplReal()))
+    {
+    }
+
+    ~RefWidget()
+    {
+      delete reinterpret_cast<RefImplReal*>(pImpl_);
+    }
+
+    int getValue() const
+    {
+      return reinterpret_cast<RefImplReal*>(pImpl_)->value;
+    }
+
+    // Returns pointer to incomplete type (works)
+    RefImpl* getImpl()
+    {
+      return pImpl_;
+    }
+
+    // Returns reference to incomplete type (needs support)
+    RefImpl& getImplRef()
+    {
+      return *pImpl_;
+    }
+
+    // Returns const reference to incomplete type
+    const RefImpl& getImplConstRef() const
+    {
+      return *pImpl_;
+    }
+
+  private:
+    RefImpl* pImpl_;
+  };
+
+  // Free functions that work with RefImpl references
+  int getRefImplValue(RefImpl& impl)
+  {
+    return reinterpret_cast<RefImplReal&>(impl).value;
+  }
+
+  void setRefImplValue(RefImpl& impl, int value)
+  {
+    reinterpret_cast<RefImplReal&>(impl).value = value;
+  }
+
+  int getRefImplValueConst(const RefImpl& impl)
+  {
+    return reinterpret_cast<const RefImplReal&>(impl).value;
+  }
+}
+
+TESTCASE(IncompleteReference)
+{
+  // Register the incomplete type
+  define_class<RefImpl>("RefImpl");
+
+  // Test returning reference to incomplete type
+  define_class<RefWidget>("RefWidget")
+    .define_constructor(Constructor<RefWidget>())
+    .define_method("get_value", &RefWidget::getValue)
+    .define_method("get_impl", &RefWidget::getImpl)
+    .define_method("get_impl_ref", &RefWidget::getImplRef);
+
+  define_global_function("get_ref_impl_value", &getRefImplValue);
+  define_global_function("set_ref_impl_value", &setRefImplValue);
+
+  Module m = define_module("TestingModule");
+
+  // Get reference, pass to free function
+  std::string code = R"(widget = RefWidget.new
+                        impl_ref = widget.get_impl_ref
+                        get_ref_impl_value(impl_ref))";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(123, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(IncompleteConstReference)
+{
+  // Register the incomplete type
+  define_class<RefImpl>("RefImpl2");
+
+  // Test returning const reference to incomplete type
+  define_class<RefWidget>("RefWidget2")
+    .define_constructor(Constructor<RefWidget>())
+    .define_method("get_value", &RefWidget::getValue)
+    .define_method("get_impl_const_ref", &RefWidget::getImplConstRef);
+
+  define_global_function("get_ref_impl_value_const", &getRefImplValueConst);
+
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(widget = RefWidget2.new
+                        impl_ref = widget.get_impl_const_ref
+                        get_ref_impl_value_const(impl_ref))";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(123, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(IncompleteReferenceModify)
+{
+  // Register the incomplete type
+  define_class<RefImpl>("RefImpl3");
+
+  // Test modifying through reference to incomplete type
+  define_class<RefWidget>("RefWidget3")
+    .define_constructor(Constructor<RefWidget>())
+    .define_method("get_value", &RefWidget::getValue)
+    .define_method("get_impl_ref", &RefWidget::getImplRef);
+
+  define_global_function("set_ref_impl_value", &setRefImplValue);
+
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(widget = RefWidget3.new
+                        impl_ref = widget.get_impl_ref
+                        set_ref_impl_value(impl_ref, 456)
+                        widget.get_value)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(456, detail::From_Ruby<int>().convert(result.value()));
 }

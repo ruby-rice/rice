@@ -197,6 +197,13 @@ namespace Rice::detail
       result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
+    // Incomplete types can't be copied/moved, just wrap as reference
+    else if constexpr (!is_complete_v<T>)
+    {
+      wrapper = new Wrapper<T&>(rb_data_type, data);
+      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+    }
+
     // std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
     else if constexpr (detail::is_std_vector_v<T>)
     {

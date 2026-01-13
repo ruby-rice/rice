@@ -74,6 +74,9 @@ Rice is organized into several subsystems:
 [Enumerators](enumerators.md)
   Implementing Ruby-style iteration for C++ containers.
 
+[Procs and Blocks](procs_and_blocks.md)
+  Bridging Ruby procs/blocks and C++ function pointers.
+
 ## Thread Safety
 
 Rice itself is thread-safe for reading (method invocation). However:

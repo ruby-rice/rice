@@ -20,8 +20,11 @@ TEARDOWN(Proc)
 
 namespace
 {
-  int squareWithBlock(int i)
+  int squareWithBlock(int i, VALUE block)
   {
+    // You must include a value parameter at the end that will be set to a proc
+    // created from the passed in block. You can actually ingore the proc and yield
+    // to the block if you really want too...although not sure that is a good idea
     VALUE result = detail::protect(rb_yield, detail::To_Ruby<int>().convert(i));
     return detail::From_Ruby<int>().convert(result);
   }
@@ -59,7 +62,7 @@ TESTCASE(SquareProc)
 TESTCASE(SquareWithBlock)
 {
   Module m = define_module("TestingModuleMakeBlock");
-  m.define_module_function("square_with_block", squareWithBlock);
+  m.define_module_function("square_with_block", squareWithBlock, Arg("i"), Arg("block").setValue());
 
   std::string code = R"(square_with_block(7) do |i|
                           i * i
@@ -72,7 +75,7 @@ TESTCASE(SquareWithBlock)
 TESTCASE(SquareWithCapturedBlock)
 {
   Module m = define_module("TestingModuleMakeBlock");
-  m.define_module_function("square_with_captured_block", squareWithProc, Arg("i"), Arg("proc").setBlock());
+  m.define_module_function("square_with_captured_block", squareWithProc, Arg("i"), Arg("proc").setValue());
 
   std::string code = R"(square_with_captured_block(4) do |i|
                           i * i
@@ -85,7 +88,7 @@ TESTCASE(SquareWithCapturedBlock)
 TESTCASE(SquareWithProc)
 {
   Module m = define_module("TestingModuleMakeBlock");
-  m.define_module_function("square_with_proc", squareWithProc, Arg("i"), Arg("proc").setBlock());
+  m.define_module_function("square_with_proc", squareWithProc, Arg("i"), Arg("proc").setValue());
 
   std::string code = R"(proc = Proc.new do |i|
                           i * i
@@ -95,4 +98,3 @@ TESTCASE(SquareWithProc)
   Object result = m.module_eval(code);
   ASSERT_EQUAL(16, detail::From_Ruby<int>().convert(result));
 }
-

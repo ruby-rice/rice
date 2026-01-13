@@ -607,3 +607,56 @@ TESTCASE(InheritedForwarding)
   result = m.module_eval(code);
   ASSERT_EQUAL(456, detail::From_Ruby<int>().convert(result));
 }
+
+// Forward declaration only - IncompleteClass is never defined
+class IncompleteClass;
+
+namespace
+{
+  // Function that takes shared_ptr to incomplete type by value
+  bool acceptIncompletePtr(std::shared_ptr<IncompleteClass> ptr)
+  {
+    return ptr == nullptr;
+  }
+
+  // Function that takes shared_ptr to incomplete type by const reference
+  bool acceptIncompletePtrRef(const std::shared_ptr<IncompleteClass>& ptr)
+  {
+    return ptr == nullptr;
+  }
+
+  // Function that returns shared_ptr to incomplete type
+  std::shared_ptr<IncompleteClass> returnIncompletePtr()
+  {
+    return nullptr;
+  }
+}
+
+TESTCASE(IncompleteType)
+{
+  // This test verifies that std::shared_ptr<T> works with incomplete types.
+  // The key is that Rice should NOT try to define a constructor taking T*
+  // for incomplete types, since that would require T to be complete for deletion.
+
+  // Register the incomplete type with Rice (no constructors since type is incomplete)
+  define_class<IncompleteClass>("IncompleteClass");
+
+  Module m = define_module("IncompleteTypeTest").
+    define_module_function("accept_incomplete_ptr", &acceptIncompletePtr).
+    define_module_function("accept_incomplete_ptr_ref", &acceptIncompletePtrRef).
+    define_module_function("return_incomplete_ptr", &returnIncompletePtr);
+
+  // Test returning nullptr shared_ptr of incomplete type
+  std::string code = R"(ptr = return_incomplete_ptr
+                        accept_incomplete_ptr(ptr))";
+
+  Object result = m.instance_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  // Test with const ref parameter
+  code = R"(ptr = return_incomplete_ptr
+            accept_incomplete_ptr_ref(ptr))";
+
+  result = m.instance_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
+}

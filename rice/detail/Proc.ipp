@@ -49,7 +49,7 @@ namespace Rice::detail
 
     double is_convertible(VALUE value)
     {
-      if (protect(rb_obj_is_proc, value) == Qtrue || protect(rb_proc_lambda_p, value) == Qtrue)
+      if (protect(rb_obj_is_proc, value) == Qtrue)
       {
         return Convertible::Exact;
       }
