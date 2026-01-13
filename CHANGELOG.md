@@ -7,6 +7,7 @@ Enhancements:
 * Add support for `noexcept` functions, static members, and static member functions
 * Add support for `Buffer<void*>` and `Pointer<void*>`
 * Add support for `std::function`. Ruby procs, lambdas, and blocks can be wrapped in `std::function` objects and passed to C++ methods. C++ functions returning `std::function` are automatically wrapped.
+* Add support for `std::ostream`, `std::ostringstream`, and `std::ofstream`. Ruby can write to C++ streams and pass them to C++ functions. Standard streams are exposed as `Std::COUT` and `Std::CERR`.
 
 Internal:
 * Refactor type handling by merging `TypeMapper` into `TypeDetail` and simplifying class hierarchy

@@ -124,6 +124,22 @@ TESTCASE(SimplifiedName)
   detail::TypeDetail<std::function<int(int, int)>> typeDetail16;
   className = typeDetail16.simplifiedName();
   ASSERT_EQUAL("std::function<int(int, int)>", className.c_str());
+
+  detail::TypeDetail<std::ostream> typeDetail17;
+  className = typeDetail17.simplifiedName();
+#if defined(__GNUC__) && !defined(__clang__)
+  ASSERT_EQUAL("std::ostream", className.c_str());
+#else
+  ASSERT_EQUAL("std::basic_ostream<char>", className.c_str());
+#endif
+
+  detail::TypeDetail<std::ostringstream> typeDetail18;
+  className = typeDetail18.simplifiedName();
+  ASSERT_EQUAL("std::basic_ostringstream<char>", className.c_str());
+
+  detail::TypeDetail<std::ofstream> typeDetail19;
+  className = typeDetail19.simplifiedName();
+  ASSERT_EQUAL("std::basic_ofstream<char>", className.c_str());
 }
 
 TESTCASE(RubyName)
@@ -204,11 +220,27 @@ TESTCASE(RubyName)
   className = typeDetail19.rubyName();
   ASSERT_EQUAL("SomeClass", className.c_str());
 
+  define_stl_function<short* (std::string, double)>();
   detail::TypeDetail<std::function<short*(std::string, double)>> typeDetail20;
   className = typeDetail20.rubyName();
   ASSERT_EQUAL("Function≺short∗❨string‚ double❩≻", className.c_str());
-  define_stl_function<short* (std::string, double)>();
   detail::TypeDetail<std::function<short* (std::string, double)>> typeDetail31;
+
+  detail::TypeDetail<std::ostream> typeDetail21;
+  className = typeDetail21.rubyName();
+#if defined(__GNUC__) && !defined(__clang__)
+  ASSERT_EQUAL("Ostream", className.c_str());
+#else
+  ASSERT_EQUAL("BasicOstream≺char≻", className.c_str());
+#endif
+
+  detail::TypeDetail<std::ostringstream> typeDetail22;
+  className = typeDetail22.rubyName();
+  ASSERT_EQUAL("BasicOstringstream≺char≻", className.c_str());
+
+  detail::TypeDetail<std::ofstream> typeDetail23;
+  className = typeDetail23.rubyName();
+  ASSERT_EQUAL("BasicOfstream≺char≻", className.c_str());
 }
 
 TESTCASE(RubyKlass)
@@ -367,6 +399,24 @@ TESTCASE(RubyKlass)
   detail::TypeDetail<std::function<short* (std::string, double)>> typeDetail31;
   expected = stdModule.const_get("Function≺short∗❨string‚ double❩≻");
   actual = typeDetail31.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+
+  define_ostream();
+  detail::TypeDetail<std::ostream> typeDetail32;
+  expected = stdModule.const_get("OStream");
+  actual = typeDetail32.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+
+  define_ostringstream();
+  detail::TypeDetail<std::ostringstream> typeDetail33;
+  expected = stdModule.const_get("OStringStream");
+  actual = typeDetail33.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
+
+  define_ofstream();
+  detail::TypeDetail<std::ofstream> typeDetail34;
+  expected = stdModule.const_get("OFStream");
+  actual = typeDetail34.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
 }
 
