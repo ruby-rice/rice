@@ -271,6 +271,12 @@ namespace Rice::detail
       throw std::runtime_error(message);
     }
 
+    if (protect(rb_obj_is_kind_of, value, rb_cProc))
+    {
+      std::string message = "The Ruby object is a proc or lambda and does not wrap a C++ object";
+      throw std::runtime_error(message);
+    }
+
     WrapperBase* wrapper = static_cast<WrapperBase*>(RTYPEDDATA_DATA(value));
 
     if (wrapper == nullptr)

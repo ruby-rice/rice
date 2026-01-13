@@ -6,6 +6,7 @@ Enhancements:
 * Add support for incomplete types (PIMPL/opaque handle patterns). Rice now uses `typeid(T*)` for forward-declared types that are never fully defined.
 * Add support for `noexcept` functions, static members, and static member functions
 * Add support for `Buffer<void*>` and `Pointer<void*>`
+* Add support for `std::function`. Ruby procs, lambdas, and blocks can be wrapped in `std::function` objects and passed to C++ methods. C++ functions returning `std::function` are automatically wrapped.
 
 Internal:
 * Refactor type handling by merging `TypeMapper` into `TypeDetail` and simplifying class hierarchy
