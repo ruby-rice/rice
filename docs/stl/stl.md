@@ -23,6 +23,7 @@ Wrapped classes include:
 
 * std::exception
 * std::exception_ptr
+* std::function
 * std::map
 * std::multimap
 * std::pair
@@ -52,13 +53,15 @@ Starting in version 4.5, Rice makes use of unicode characters to create class na
 
 The unicode characters are:
 
-| Character | Code Point | Name                        |
-|:---------:|:----------:|:----------------------------|
-| :         | U+A789     | Modified Letter Colon       |
-| ≺         | U+227A     | Precedes                    |
-| ≻         | U+227B     | Succeeds                    |
-| ,         | U+066C     | Arabic Thousands Separator  |
-|           | U+u00A0    | Non breaking Space          |
+| Character | Code Point | Name                               |
+|:---------:|:----------:|:-----------------------------------|
+| ꞉         | U+A789     | Modified Letter Colon              |
+| ≺         | U+227A     | Precedes                           |
+| ≻         | U+227B     | Succeeds                           |
+| ‚         | U+066C     | Arabic Thousands Separator         |
+|           | U+00A0     | Non breaking Space                 |
+| ❨         | U+2768     | Medium Left Parenthesis Ornament   |
+| ❩         | U+2769     | Medium Right Parenthesis Ornament  |
 
 To use this class in Ruby:
 

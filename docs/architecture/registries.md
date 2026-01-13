@@ -20,7 +20,28 @@ public:
 
 ## TypeRegistry
 
-Maps C++ types to Ruby classes.
+Maps C++ types to Ruby classes. The TypeRegistry serves two important purposes:
+
+### 1. Polymorphism Support
+
+When a C++ method returns a base class pointer that actually points to a derived class, Rice uses RTTI (`typeid`) to look up the derived type in the registry and wrap it as the correct Ruby class. For example:
+
+```cpp
+class Base { virtual ~Base() = default; };
+class Derived : public Base {};
+
+Base* create() { return new Derived(); }  // Returns Derived* as Base*
+```
+
+When `create()` is called from Ruby, Rice uses `typeid(*result)` to discover the object is actually a `Derived`, looks it up in the TypeRegistry, and wraps it as `Rb::Derived` instead of `Rb::Base`.
+
+> **Note:** This requires [RTTI](../packaging/build_settings.md#rtti) to be enabled.
+
+### 2. Unregistered Type Detection
+
+As Rice processes `define_class`, `define_constructor`, `define_method`, `define_attr`, etc., it tracks every C++ type it encounters. Types that are used but not yet registered are added to an "unverified" list. At the end of extension initialization, Rice can report which types were referenced but never registered with `define_class<T>()`.
+
+This helps developers catch errors early. Without this, an unregistered type would only fail at runtime when Ruby code actually calls a method that uses that type.
 
 ```cpp
 class TypeRegistry
@@ -34,6 +55,9 @@ public:
 
   // Check if a type is registered
   bool isDefined(std::type_index type);
+
+  // Verify all encountered types are registered
+  void verify();
 };
 ```
 
@@ -41,12 +65,15 @@ public:
 
 - `To_Ruby<T>` needs to find the Ruby class to wrap an object
 - `From_Ruby<T>` validates that a Ruby object is the correct type
+- Polymorphic returns need to find the derived class
 - Introspection APIs list all wrapped classes
+- Extension loading verifies all types are registered
 
 **Key design:**
 
 - Uses `std::type_index` as the key (from `typeid(T)`)
 - Stores both the Ruby class VALUE and the `rb_data_type_t` pointer
+- Tracks unverified types for developer feedback
 - Thread-safe for reads after initialization
 
 ## NativeRegistry

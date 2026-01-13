@@ -3,6 +3,7 @@
 
 #include "stl/exception.hpp"
 #include "stl/exception_ptr.hpp"
+#include "stl/function.hpp"
 #include "stl/string.hpp"
 #include "stl/string_view.hpp"
 #include "stl/complex.hpp"

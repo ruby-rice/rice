@@ -120,6 +120,10 @@ TESTCASE(SimplifiedName)
   detail::TypeDetail<Outer::Inner::UnorderedMap1> typeDetail15;
   className = typeDetail15.simplifiedName();
   ASSERT_EQUAL("std::unordered_map<std::string, std::complex<float>>", className.c_str());
+
+  detail::TypeDetail<std::function<int(int, int)>> typeDetail16;
+  className = typeDetail16.simplifiedName();
+  ASSERT_EQUAL("std::function<int(int, int)>", className.c_str());
 }
 
 TESTCASE(RubyName)
@@ -199,6 +203,12 @@ TESTCASE(RubyName)
   detail::TypeDetail<Outer::Inner::SomeClass*> typeDetail19;
   className = typeDetail19.rubyName();
   ASSERT_EQUAL("SomeClass", className.c_str());
+
+  detail::TypeDetail<std::function<short*(std::string, double)>> typeDetail20;
+  className = typeDetail20.rubyName();
+  ASSERT_EQUAL("Function≺short∗❨string‚ double❩≻", className.c_str());
+  define_stl_function<short* (std::string, double)>();
+  detail::TypeDetail<std::function<short* (std::string, double)>> typeDetail31;
 }
 
 TESTCASE(RubyKlass)
@@ -352,6 +362,12 @@ TESTCASE(RubyKlass)
   detail::TypeDetail<std::string_view> typeDetail30;
   actual = typeDetail30.rubyKlass();
   ASSERT_EQUAL(rb_cString, actual);
+
+  define_stl_function<short*(std::string, double)>();
+  detail::TypeDetail<std::function<short* (std::string, double)>> typeDetail31;
+  expected = stdModule.const_get("Function≺short∗❨string‚ double❩≻");
+  actual = typeDetail31.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
 }
 
 TESTCASE(MakeRubyClass)

@@ -152,9 +152,17 @@ namespace Rice::detail
     std::regex ptrRegex = std::regex(R"(\s+\*)");
     base = std::regex_replace(base, ptrRegex, "*");
 
+    // Remove spaces before left parentheses
+    std::regex parenRegex = std::regex(R"(\s+\()");
+    base = std::regex_replace(base, parenRegex, "(");
+
     // Remove __ptr64
     std::regex ptr64Regex(R"(\s*__ptr64\s*)");
     base = std::regex_replace(base, ptr64Regex, "");
+
+    // Remove calling conventions (__cdecl, __stdcall, __fastcall, etc.)
+    std::regex callingConventionRegex(R"(\s*__cdecl|__stdcall|__fastcall)");
+    base = std::regex_replace(base, callingConventionRegex, "");
 
     // Replace " >" with ">"
     std::regex trailingAngleBracketSpaceRegex = std::regex(R"(\s+>)");
@@ -226,6 +234,16 @@ namespace Rice::detail
     auto greaterThanRegex = std::regex(">");
     //replaceAll(base, greaterThanRegex, "≻");
     this->replaceAll(base, greaterThanRegex, "\u227B");
+
+    // Replace ( with Unicode Character (U+2768) - Medium Left Parenthesis Ornament
+    // This happens in std::function
+    auto leftParenRegex = std::regex(R"(\()");
+    this->replaceAll(base, leftParenRegex, "\u2768");
+
+    // Replace ) with Unicode Character (U+2769) - Medium Right Parenthesis Ornament
+    // This happens in std::function
+    auto rightParenRegex = std::regex(R"(\))");
+    this->replaceAll(base, rightParenRegex, "\u2769");
 
     // Replace , with Unicode Character (U+066C) - Arabic Thousands Separator
     auto commaRegex = std::regex(R"(,\s*)");
