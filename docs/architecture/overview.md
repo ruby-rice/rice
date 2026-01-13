@@ -77,6 +77,9 @@ Rice is organized into several subsystems:
 [Procs and Blocks](procs_and_blocks.md)
   Bridging Ruby procs/blocks and C++ function pointers.
 
+[Incomplete Types](incomplete_types.md)
+  Support for forward-declared types (PIMPL idiom, opaque handles).
+
 ## Thread Safety
 
 Rice itself is thread-safe for reading (method invocation). However:

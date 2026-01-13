@@ -44,6 +44,15 @@ For Visual C++, the default exception [model](https://learn.microsoft.com/en-us/
 
 For g++, you must set `-ftemplate-backtrace-limit=0` to avoid compilation errors.
 
+### RTTI
+
+Rice requires RTTI (Run-Time Type Information) to be enabled. RTTI is enabled by default on all major compilers, but if you have explicitly disabled it, you must re-enable it:
+
+- **GCC/Clang**: `-frtti` (default is enabled; do not use `-fno-rtti`)
+- **MSVC**: `/GR` (default is enabled; do not use `/GR-`)
+
+RTTI is essential for Rice's polymorphism support. When a C++ method returns a base class pointer that actually points to a derived class, Rice uses `typeid` to determine the correct Ruby class to wrap it as. Without RTTI, all objects would be wrapped as their static (declared) type rather than their actual runtime type.
+
 ## Linker Settings
 
 Ruby extensions are shared libraries that the Ruby interpreter loads at runtime using `dlopen`. These extensions reference symbols from the Ruby C API (such as `rb_define_class`, `rb_funcall`, etc.) that are provided by the Ruby interpreter itself. Since these symbols are not available at link time, the linker must be told to allow unresolved symbols.

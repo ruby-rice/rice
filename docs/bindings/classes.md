@@ -115,6 +115,8 @@ void Init_test()
 
 The second template parameter tells Rice about the inheritance relationship, enabling proper type conversions and polymorphic behavior.
 
+> **Note:** Rice requires RTTI to be enabled for polymorphism to work correctly. When a C++ method returns a `Base*` that actually points to a `Derived` object, Rice uses RTTI to wrap it as the correct Ruby class. See [RTTI](../packaging/build_settings.md#rtti) for details.
+
 If you want to create Ruby classes that inherit from wrapped C++ classes and override virtual methods, see the [Directors](directors.md) section.
 
 ## Method Chaining

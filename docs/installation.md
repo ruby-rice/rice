@@ -28,4 +28,4 @@ When copying headers, use a specific release tag rather than the master branch t
 
 ## Compiler Requirements
 
-Rice requires a C++17 compliant compiler. See [Compiler Settings](packaging/build_settings.md#compiler-settings) for the specific flags needed for each compiler.
+Rice requires a C++17 compliant compiler and RTTI to be enabled. See [Compiler Settings](packaging/build_settings.md#compiler-settings) for the specific flags needed for each compiler.

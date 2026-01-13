@@ -70,6 +70,56 @@ end
 
 Where the result will be `[6, 4, 2]`.
 
+## Iterator Requirements
+
+Rice uses `std::iterator_traits` to determine the value type, reference type, and other properties of iterators. This means your iterator must either:
+
+1. Define the standard iterator typedefs (`value_type`, `reference`, `pointer`, `difference_type`, `iterator_category`), or
+2. Have a specialization of `std::iterator_traits` defined for it
+
+Most STL iterators and well-designed C++ iterators already satisfy these requirements. However, some libraries define iterators that lack these typedefs.
+
+### Missing Iterator Traits
+
+If you encounter a compiler error like:
+
+```
+error C2039: 'value_type': is not a member of 'std::iterator_traits<MyIterator>'
+```
+
+You need to provide a `std::iterator_traits` specialization for that iterator. For example:
+
+```cpp
+#include <iterator>
+
+// Specialization for an iterator that lacks proper traits
+namespace std
+{
+  template<>
+  struct iterator_traits<MyNamespace::MyIterator>
+  {
+    using iterator_category = forward_iterator_tag;
+    using value_type = MyValueType;
+    using difference_type = ptrdiff_t;
+    using pointer = MyValueType*;
+    using reference = MyValueType&;
+  };
+}
+```
+
+Place this specialization before your Rice bindings code, typically right after the includes.
+
+### Common Iterator Categories
+
+Choose the appropriate `iterator_category` based on your iterator's capabilities:
+
+| Category                     | Operations Supported                                |
+|------------------------------|-----------------------------------------------------|
+| `input_iterator_tag`         | Read-only, single-pass (`++`, `*`, `==`)            |
+| `forward_iterator_tag`       | Read/write, multi-pass (`++`, `*`, `==`)            |
+| `bidirectional_iterator_tag` | Forward + backward (`++`, `--`, `*`, `==`)          |
+| `random_access_iterator_tag` | Bidirectional + random access (`+`, `-`, `[]`, `<`) |
+
 ## Enumerator Support (External Iterators)
 
 Ruby supports external iterators via the [Enumerator](https://ruby-doc.org/3.2.2/Enumerator.html) class. The `define_iterator` method automatically adds support for Enumerators.
