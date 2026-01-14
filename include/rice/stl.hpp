@@ -115,6 +115,114 @@ namespace Rice::detail
 }
 
 
+// =========   function.hpp   =========
+
+namespace Rice
+{
+  template<typename Signature_T>
+  Data_Type<std::function<Signature_T>> define_stl_function(std::string klassName = "");
+}
+
+
+// ---------   function.ipp   ---------
+#include <functional>
+
+namespace Rice::stl
+{
+  template<typename T>
+  class FunctionHelper
+  {
+    using Function_T = T;
+
+  public:
+    FunctionHelper(Data_Type<T> klass) : klass_(klass)
+    {
+      this->define_constructors();
+      this->define_methods();
+    }
+
+  private:
+    void define_constructors()
+    {
+      // Default constructor
+      klass_.define_constructor(Constructor<Function_T>());
+
+      // Constructor from Ruby callable
+      klass_.define_method("initialize", [](VALUE self, VALUE callable) -> void
+      {
+        // Create std::function that wraps the Ruby callable
+        Function_T* data = new Function_T([callable](auto... args)
+        {
+          Object result = Object(callable).call("call", args...);
+
+          using Return_T = typename Function_T::result_type;
+          if constexpr (!std::is_void_v<Return_T>)
+          {
+            return detail::From_Ruby<std::remove_cv_t<Return_T>>().convert(result);
+          }
+        });
+
+        // Wrap the function
+        detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
+      }, Arg("callable").setValue().keepAlive());
+    }
+
+    void define_methods()
+    {
+      klass_.define_method("call", &Function_T::operator());
+      klass_.define_method("callable?", [](const Function_T& func) -> bool
+      {
+        return static_cast<bool>(func);
+      });
+    }
+
+    Data_Type<T> klass_;
+  };
+}
+
+namespace Rice
+{
+  template<typename Signature_T>
+  Data_Type<std::function<Signature_T>> define_stl_function(std::string klassName)
+  {
+    using Function_T = std::function<Signature_T>;
+    using Data_Type_T = Data_Type<Function_T>;
+
+    if (klassName.empty())
+    {
+      detail::TypeDetail<Function_T> typeDetail;
+      klassName = typeDetail.rubyName();
+    }
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type_T::check_defined(klassName, rb_mStd))
+    {
+      return Data_Type_T();
+    }
+
+    Identifier id(klassName);
+    Data_Type_T result = define_class_under<detail::intrinsic_type<Function_T>>(rb_mStd, id);
+
+    stl::FunctionHelper helper(result);
+
+    return result;
+  }
+}
+
+namespace Rice::detail
+{
+  template<typename Signature_T>
+  struct Type<std::function<Signature_T>>
+  {
+    static bool verify()
+    {
+      define_stl_function<Signature_T>();
+      return true;
+    }
+  };
+}
+
+
 // =========   string.hpp   =========
 
 
@@ -735,8 +843,8 @@ namespace Rice::detail
 
     static VALUE rubyKlass()
     {
-      TypeMapper<T> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<T> typeDetail;
+      return typeDetail.rubyKlass();
     }
   };
 
@@ -902,71 +1010,266 @@ namespace Rice::detail
 }
 
 
-// =========   reference_wrapper.hpp   =========
+// =========   ios_base.hpp   =========
+
+#include <ios>
+
+namespace Rice
+{
+  Data_Type<std::ios_base> define_ios_base();
+}
 
 
-// ---------   reference_wrapper.ipp   ---------
-#include <functional>
+// ---------   ios_base.ipp   ---------
+#include <ios>
+
+namespace Rice
+{
+  inline Data_Type<std::ios_base> define_ios_base()
+  {
+    Module rb_mStd = define_module("Std");
+    if (Data_Type<std::ios_base>::check_defined("IOSBase", rb_mStd))
+    {
+      return Data_Type<std::ios_base>();
+    }
+
+    Data_Type<std::ios_base> result = define_class_under<std::ios_base>(rb_mStd, "IOSBase");
+
+    result.const_set("GOODBIT", static_cast<int>(std::ios_base::goodbit));
+    result.const_set("BADBIT", static_cast<int>(std::ios_base::badbit));
+    result.const_set("FAILBIT", static_cast<int>(std::ios_base::failbit));
+    result.const_set("EOFBIT", static_cast<int>(std::ios_base::eofbit));
+
+    return result;
+  }
+}
 
 namespace Rice::detail
 {
-  template<typename T>
-  struct Type<std::reference_wrapper<T>>
+  template<>
+  struct Type<std::ios_base>
   {
-    constexpr static bool verify()
+    static bool verify()
     {
-      return Type<T>::verify();
-    }
-
-    static VALUE rubyKlass()
-    {
-      TypeMapper<T> typeMapper;
-      return typeMapper.rubyKlass();
+      if (!Data_Type<std::ios_base>::is_defined())
+      {
+        define_ios_base();
+      }
+      return true;
     }
   };
+}
 
-  template<typename T>
-  class To_Ruby<std::reference_wrapper<T>>
+
+// =========   ostream.hpp   =========
+
+namespace Rice
+{
+  Data_Type<std::ostream> define_ostream();
+  Data_Type<std::ostringstream> define_ostringstream(std::string klassName = "");
+  Data_Type<std::ofstream> define_ofstream(std::string klassName = "");
+}
+
+
+// ---------   ostream.ipp   ---------
+#include <sstream>
+#include <fstream>
+#include <iostream>
+
+namespace Rice::stl
+{
+  class OStreamHelper
   {
   public:
-    To_Ruby() = default;
-
-    explicit To_Ruby(Arg* arg) : arg_(arg)
+    OStreamHelper(Data_Type<std::ostream> klass) : klass_(klass)
     {
-    }
-
-    VALUE convert(const std::reference_wrapper<T>& data)
-    {
-      return To_Ruby<T&>().convert(data.get());
+      this->define_write_methods();
+      this->define_state_methods();
     }
 
   private:
-    Arg* arg_ = nullptr;
+    void define_write_methods()
+    {
+      klass_.define_method("write", [](std::ostream& stream, VALUE value) -> std::ostream&
+        {
+          stream << Object(value).to_s().c_str();
+          return stream;
+        }, Arg("value").setValue())
+        .define_method<std::ostream& (std::ostream::*)()>("flush", &std::ostream::flush)
+        .define_method("clear", [](std::ostream& stream, int state)
+          {
+            stream.clear(static_cast<std::ios_base::iostate>(state));
+          }, Arg("state") = static_cast<int>(std::ios_base::goodbit));
+
+      rb_define_alias(klass_, "<<", "write");
+    }
+
+    void define_state_methods()
+    {
+      klass_.define_method("good?", &std::ostream::good)
+            .define_method("bad?", &std::ostream::bad)
+            .define_method("fail?", &std::ostream::fail)
+            .define_method("eof?", &std::ostream::eof);
+    }
+
+    Data_Type<std::ostream> klass_;
   };
 
-  template<typename T>
-  class From_Ruby<std::reference_wrapper<T>>
+  class OStringStreamHelper
   {
   public:
-    From_Ruby() = default;
-
-    explicit From_Ruby(Arg* arg) : arg_(arg)
+    OStringStreamHelper(Data_Type<std::ostringstream> klass) : klass_(klass)
     {
-    }
-
-    double is_convertible(VALUE value)
-    {
-      return this->converter_.is_convertible(value);
-    }
-
-    std::reference_wrapper<T> convert(VALUE value)
-    {
-      return this->converter_.convert(value);
+      this->define_constructors();
+      this->define_methods();
     }
 
   private:
-    Arg* arg_ = nullptr;
-    From_Ruby<T&> converter_;
+    void define_constructors()
+    {
+      klass_.define_constructor(Constructor<std::ostringstream>())
+            .define_constructor(Constructor<std::ostringstream, const std::string&>(), Arg("str"));
+    }
+
+    void define_methods()
+    {
+      klass_.define_method<std::string(std::ostringstream::*)() const>("str", &std::ostringstream::str)
+            .define_method("str=", [](std::ostringstream& stream, const std::string& s) { stream.str(s); }, Arg("str"));
+
+      rb_define_alias(klass_, "to_s", "str");
+    }
+
+    Data_Type<std::ostringstream> klass_;
+  };
+
+  class OFStreamHelper
+  {
+  public:
+    OFStreamHelper(Data_Type<std::ofstream> klass) : klass_(klass)
+    {
+      this->define_constructors();
+      this->define_methods();
+    }
+
+  private:
+    void define_constructors()
+    {
+      klass_.define_constructor(Constructor<std::ofstream>())
+            .define_constructor(Constructor<std::ofstream, const std::string&>(), Arg("filename"));
+    }
+
+    void define_methods()
+    {
+      klass_.define_method("open", [](std::ofstream& stream, const std::string& filename) { stream.open(filename); }, Arg("filename"))
+            .define_method("close", &std::ofstream::close)
+            .define_method<bool(std::ofstream::*)() const>("open?", &std::ofstream::is_open);
+    }
+
+    Data_Type<std::ofstream> klass_;
+  };
+}
+
+namespace Rice
+{
+  inline Data_Type<std::ostream> define_ostream()
+  {
+    define_ios_base();
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type<std::ostream>::check_defined("OStream", rb_mStd))
+    {
+      return Data_Type<std::ostream>();
+    }
+
+    Data_Type<std::ostream> result = define_class_under<std::ostream>(rb_mStd, "OStream");
+    stl::OStreamHelper helper(result);
+
+    rb_mStd.const_set("COUT", Data_Object<std::ostream>(&std::cout).value());
+    rb_mStd.const_set("CERR", Data_Object<std::ostream>(&std::cerr).value());
+
+    return result;
+  }
+
+  inline Data_Type<std::ostringstream> define_ostringstream(std::string klassName)
+  {
+    define_ostream();
+
+    if (klassName.empty())
+    {
+      klassName = "OStringStream";
+    }
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type<std::ostringstream>::check_defined(klassName, rb_mStd))
+    {
+      return Data_Type<std::ostringstream>();
+    }
+
+    Data_Type<std::ostringstream> result = define_class_under<std::ostringstream, std::ostream>(rb_mStd, klassName.c_str());
+    stl::OStringStreamHelper helper(result);
+    return result;
+  }
+
+  inline Data_Type<std::ofstream> define_ofstream(std::string klassName)
+  {
+    define_ostream();
+
+    if (klassName.empty())
+    {
+      klassName = "OFStream";
+    }
+
+    Module rb_mStd = define_module("Std");
+    if (Data_Type<std::ofstream>::check_defined(klassName, rb_mStd))
+    {
+      return Data_Type<std::ofstream>();
+    }
+
+    Data_Type<std::ofstream> result = define_class_under<std::ofstream, std::ostream>(rb_mStd, klassName.c_str());
+    stl::OFStreamHelper helper(result);
+    return result;
+  }
+}
+
+namespace Rice::detail
+{
+  template<>
+  struct Type<std::ostream>
+  {
+    static bool verify()
+    {
+      if (!Data_Type<std::ostream>::is_defined())
+      {
+        define_ostream();
+      }
+      return true;
+    }
+  };
+
+  template<>
+  struct Type<std::ostringstream>
+  {
+    static bool verify()
+    {
+      if (!Data_Type<std::ostringstream>::is_defined())
+      {
+        define_ostringstream();
+      }
+      return true;
+    }
+  };
+
+  template<>
+  struct Type<std::ofstream>
+  {
+    static bool verify()
+    {
+      if (!Data_Type<std::ofstream>::is_defined())
+      {
+        define_ofstream();
+      }
+      return true;
+    }
   };
 }
 
@@ -1071,8 +1374,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<Pair_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<Pair_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mStd = define_module("Std");
@@ -1108,6 +1411,75 @@ namespace Rice
   }
 }
 
+
+
+// =========   reference_wrapper.hpp   =========
+
+
+// ---------   reference_wrapper.ipp   ---------
+#include <functional>
+
+namespace Rice::detail
+{
+  template<typename T>
+  struct Type<std::reference_wrapper<T>>
+  {
+    constexpr static bool verify()
+    {
+      return Type<T>::verify();
+    }
+
+    static VALUE rubyKlass()
+    {
+      TypeDetail<T> typeDetail;
+      return typeDetail.rubyKlass();
+    }
+  };
+
+  template<typename T>
+  class To_Ruby<std::reference_wrapper<T>>
+  {
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    VALUE convert(const std::reference_wrapper<T>& data)
+    {
+      return To_Ruby<T&>().convert(data.get());
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<typename T>
+  class From_Ruby<std::reference_wrapper<T>>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    double is_convertible(VALUE value)
+    {
+      return this->converter_.is_convertible(value);
+    }
+
+    std::reference_wrapper<T> convert(VALUE value)
+    {
+      return this->converter_.convert(value);
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    From_Ruby<T&> converter_;
+  };
+}
 
 
 // =========   map.hpp   =========
@@ -1354,8 +1726,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<Map_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<Map_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mStd = define_module("Std");
@@ -1903,8 +2275,8 @@ namespace Rice
               auto iter = multimap.begin();
 
               std::stringstream stream;
-              detail::TypeMapper<T> typeMapper;
-              stream << "<" << typeMapper.rubyName() << ":";
+              detail::TypeDetail<T> typeDetail;
+              stream << "<" << typeDetail.rubyName() << ":";
               stream << "{";
 
               for (; iter != multimap.end(); iter++)
@@ -1942,8 +2314,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<MultiMap_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<MultiMap_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mStd = define_module("Std");
@@ -2381,8 +2753,8 @@ namespace Rice
             auto finish = self.end();
 
             std::stringstream stream;
-            detail::TypeMapper<T> typeMapper;
-            stream << "<" << typeMapper.rubyName() << ":";
+            detail::TypeDetail<T> typeDetail;
+            stream << "<" << typeDetail.rubyName() << ":";
             stream << "{";
 
             for (; iter != finish; iter++)
@@ -2423,8 +2795,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<Set_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<Set_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mStd = define_module("Std");
@@ -2727,8 +3099,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<SharedPtr_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<SharedPtr_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mStd = define_module("Std");
@@ -2747,13 +3119,13 @@ namespace Rice
         return !self;
       });
 
-    if constexpr (!std::is_void_v<T>)
+    if constexpr (detail::is_complete_v<T> && !std::is_void_v<T>)
     {
       result.define_constructor(Constructor<SharedPtr_T, typename SharedPtr_T::element_type*>(), Arg("value").takeOwnership());
     }
 
     // Setup delegation to forward T's methods via get (only for non-fundamental, non-void types)
-    if constexpr (!std::is_void_v<T> && !std::is_fundamental_v<T>)
+    if constexpr (detail::is_complete_v<T> && !std::is_void_v<T> && !std::is_fundamental_v<T>)
     {
       detail::define_forwarding(result.klass(), Data_Type<T>::klass());
     }
@@ -3400,8 +3772,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<UniquePtr_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<UniquePtr_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mStd = define_module("Std");
@@ -3783,8 +4155,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<UnorderedMap_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<UnorderedMap_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mStd = define_module("Std");
@@ -4467,8 +4839,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<Vector_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<Vector_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mStd = define_module("Std");

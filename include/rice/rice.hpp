@@ -265,6 +265,16 @@ namespace Rice
         }, std::forward<Tuple_T>(tuple));
     }
 
+    // Detect if a type is complete (has a known size) or incomplete (forward-declared only)
+    template<typename T, typename = void>
+    struct is_complete : std::false_type {};
+
+    template<typename T>
+    struct is_complete<T, std::void_t<decltype(sizeof(T))>> : std::true_type {};
+
+    template<typename T>
+    constexpr bool is_complete_v = is_complete<T>::value;
+
     template<typename T, typename = void>
     struct is_wrapped : std::true_type {};
 
@@ -480,8 +490,15 @@ namespace Rice::detail
   {
     using Function_T = Return_T(*)(Parameter_Ts...);
   };
-  
-  // C functions passed by pointer that take one or more defined parameter than a variable 
+
+  // noexcept C functions and static member functions passed by pointer
+  template<typename Return_T, typename ...Parameter_Ts>
+  struct function_traits<Return_T(*)(Parameter_Ts...) noexcept> : public function_traits<Return_T(std::nullptr_t, Parameter_Ts...)>
+  {
+    using Function_T = Return_T(*)(Parameter_Ts...) noexcept;
+  };
+
+  // C functions passed by pointer that take one or more defined parameter than a variable
   // number of parameters (the second ...)
   template<typename Return_T, typename ...Parameter_Ts>
   struct function_traits<Return_T(*)(Parameter_Ts..., ...)> : public function_traits<Return_T(std::nullptr_t, Parameter_Ts...)>
@@ -491,6 +508,12 @@ namespace Rice::detail
   // C Functions or static member functions passed by reference
   template<typename Return_T, typename ...Parameter_Ts>
   struct function_traits<Return_T(&)(Parameter_Ts...)> : public function_traits<Return_T(std::nullptr_t, Parameter_Ts...)>
+  {
+  };
+
+  // noexcept C functions or static member functions passed by reference
+  template<typename Return_T, typename ...Parameter_Ts>
+  struct function_traits<Return_T(&)(Parameter_Ts...) noexcept> : public function_traits<Return_T(std::nullptr_t, Parameter_Ts...)>
   {
   };
 
@@ -695,8 +718,6 @@ namespace Rice::detail
  
 // =========   Type.hpp   =========
 
-#include <regex>
-
 namespace Rice::detail
 {
   template<typename T>
@@ -729,6 +750,21 @@ namespace Rice::detail
     static bool verify();
   };
 
+  template<typename T>
+  void verifyType();
+
+  template<typename Tuple_T>
+  void verifyTypes();
+}
+
+
+// =========   TypeIndexParser.hpp   =========
+
+#include <regex>
+#include <typeindex>
+
+namespace Rice::detail
+{
   class TypeIndexParser
   {
   public:
@@ -740,37 +776,38 @@ namespace Rice::detail
     // public only for testing
     std::string findGroup(std::string& string, size_t start = 0);
 
-  private:
+  protected:
     std::string demangle(char const* mangled_name);
     void removeGroup(std::string& string, std::regex regex);
     void replaceGroup(std::string& string, std::regex regex, std::string replacement);
     void capitalizeHelper(std::string& content, std::regex& regex);
     void replaceAll(std::string& string, std::regex regex, std::string replacement);
 
-  private:
+  protected:
     const std::type_index typeIndex_;
     bool isFundamental_ = false;
   };
 
   template<typename T>
-  class TypeMapper
+  class TypeDetail
   {
   public:
+    // From TypeIndexParser
+    std::string name();
+    std::string simplifiedName();
+
+    // From TypeMapper
     VALUE rubyKlass();
     std::string rubyName();
 
   private:
+    static std::type_index typeIndex();
+    static bool isFundamental();
     std::string rubyTypeName();
-  
+
   private:
-    TypeIndexParser typeIndexParser_{ typeid(T), std::is_fundamental_v<intrinsic_type<T>> };
+    TypeIndexParser typeIndexParser_{ typeIndex(), isFundamental() };
   };
-
-  template<typename T>
-  void verifyType();
-
-  template<typename Tuple_T>
-  void verifyTypes();
 }
 
 
@@ -1324,12 +1361,6 @@ namespace Rice
     //! Returns if the argument should be treated as a value
     bool isValue() const;
 
-    //! Specifies if the argument should capture a block
-    virtual Arg& setBlock();
-
-    //! Returns if the argument should capture a block
-    bool isBlock() const;
-
     //! Specifies if the argument is opaque and Rice should not convert it from Ruby to C++ or vice versa.
     //! This is useful for callbacks and user provided data paramameters.
     virtual Arg& setOpaque();
@@ -1348,7 +1379,6 @@ namespace Rice
     //! Our saved default value
     std::any defaultValue_;
     bool isValue_ = false;
-    bool isBlock_ = false;
     bool isKeepAlive_ = false;
     bool isOwner_ = false;
     bool isOpaque_ = false;
@@ -3693,7 +3723,10 @@ namespace Rice::detail
     VALUE klasses();
 
   private:
-    std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(const std::type_info& typeInfo);
+    template <typename T>
+    std::type_index key();
+
+    std::optional<std::pair<VALUE, rb_data_type_t*>> lookup(std::type_index typeIndex);
     void raiseUnverifiedType(const std::string& typeName);
 
     std::unordered_map<std::type_index, std::pair<VALUE, rb_data_type_t*>> registry_{};
@@ -3897,18 +3930,6 @@ namespace Rice
     return isValue_;
   }
 
-  inline Arg& Arg::setBlock()
-  {
-    isBlock_ = true;
-    isValue_ = true;
-    return *this;
-  }
-
-  inline bool Arg::isBlock() const
-  {
-    return isBlock_;
-  }
-
   inline Arg& Arg::setOpaque()
   {
     isOpaque_ = true;
@@ -4037,6 +4058,11 @@ namespace Rice::detail
         }
       }
     }
+    // Incomplete types can't have default values (std::any requires complete types)
+    else if constexpr (!is_complete_v<intrinsic_type<T>>)
+    {
+      // No default value possible for incomplete types
+    }
     else if constexpr (std::is_copy_constructible_v<T>)
     {
       if (this->arg()->hasDefaultValue())
@@ -4062,7 +4088,11 @@ namespace Rice::detail
   template<typename T>
   inline VALUE Parameter<T>::defaultValueRuby()
   {
-    if constexpr (std::is_constructible_v<std::remove_cv_t<T>, std::remove_cv_t<std::remove_reference_t<T>>&>)
+    if constexpr (!is_complete_v<intrinsic_type<T>>)
+    {
+      // Incomplete types can't have default values (std::any requires complete types)
+    }
+    else if constexpr (std::is_constructible_v<std::remove_cv_t<T>, std::remove_cv_t<std::remove_reference_t<T>>&>)
     {
       // Remember std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
       // So special case vector handling
@@ -4084,21 +4114,21 @@ namespace Rice::detail
       }
     }
 
-    throw std::runtime_error("No default value set for parameter " + this->arg()->name);
+    throw std::runtime_error("No default value set or allowed for parameter " + this->arg()->name);
   }
 
   template<typename T>
   inline std::string Parameter<T>::cppTypeName()
   {
-    detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-    return typeIndexParser.simplifiedName();
+    detail::TypeDetail<T> typeDetail;
+    return typeDetail.simplifiedName();
   }
 
   template<typename T>
   inline VALUE Parameter<T>::klass()
   {
-    TypeMapper<T> typeMapper;
-    return typeMapper.rubyKlass();
+    TypeDetail<T> typeDetail;
+    return typeDetail.rubyKlass();
   }
 }
 
@@ -4224,7 +4254,7 @@ namespace Rice
   };
 
   template<typename T>
-  class Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>
+  class Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>
   {
   public:
     Buffer(T** pointer);
@@ -4322,7 +4352,7 @@ namespace Rice
     Buffer& operator=(Buffer&& other);
 
     size_t size() const;
-      
+
     VALUE bytes(size_t count) const;
     VALUE bytes() const;
 
@@ -4333,6 +4363,31 @@ namespace Rice
     bool m_owner = false;
     size_t m_size = 0;
     T* m_buffer = nullptr;
+  };
+
+  // Specialization for void* - can't create arrays of void, so this is a minimal wrapper
+  template<typename T>
+  class Buffer<T*, std::enable_if_t<std::is_void_v<T>>>
+  {
+  public:
+    Buffer(T** pointer);
+    Buffer(T** pointer, size_t size);
+
+    Buffer(const Buffer& other) = delete;
+    Buffer(Buffer&& other);
+
+    Buffer& operator=(const Buffer& other) = delete;
+    Buffer& operator=(Buffer&& other);
+
+    size_t size() const;
+
+    T** ptr();
+    T** release();
+
+  private:
+    bool m_owner = false;
+    size_t m_size = 0;
+    T** m_buffer = nullptr;
   };
 
   template<typename T>
@@ -4527,8 +4582,8 @@ namespace Rice
         }
         else
         {
-          detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-          std::string typeName = typeIndexParser.name();
+          detail::TypeDetail<T> typeDetail;
+          std::string typeName = typeDetail.name();
           throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
             detail::protect(rb_obj_classname, value), typeName.c_str());
         }
@@ -4567,9 +4622,9 @@ namespace Rice
           }
           else
           {
-            detail::TypeIndexParser typeIndexParser(typeid(Intrinsic_T), std::is_fundamental_v<Intrinsic_T>);
+            detail::TypeDetail<Intrinsic_T> typeDetail;
             throw Exception(rb_eTypeError, "Cannot construct object of type %s - type is not move or copy constructible",
-              typeIndexParser.name().c_str());
+              typeDetail.name().c_str());
           }
         }
         break;
@@ -4609,8 +4664,8 @@ namespace Rice
       }
       default:
       {
-        detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-        std::string typeName = typeIndexParser.name();
+        detail::TypeDetail<T> typeDetail;
+        std::string typeName = typeDetail.name();
         throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
@@ -4680,8 +4735,8 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T, std::enable_if_t<!std::is_pointer_v<T> && !std::is_void_v<T>>>::toString() const
   {
-    detail::TypeIndexParser typeIndexParser(typeid(T*), std::is_fundamental_v<detail::intrinsic_type<T>>);
-    std::string description = "Buffer<type: " + typeIndexParser.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
+    detail::TypeDetail<T*> typeDetail;
+    std::string description = "Buffer<type: " + typeDetail.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -4753,22 +4808,22 @@ namespace Rice
 
   // ----  Buffer<T*> - Builtin ------- 
   template<typename T>
-  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Buffer(T** pointer) : m_buffer(pointer)
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::Buffer(T** pointer) : m_buffer(pointer)
   {
   }
 
   template<typename T>
-  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Buffer(T** pointer, size_t size) : m_size(size), m_buffer(pointer)
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::Buffer(T** pointer, size_t size) : m_size(size), m_buffer(pointer)
   {
   }
 
   template <typename T>
-  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Buffer(VALUE value) : Buffer(value, 0)
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::Buffer(VALUE value) : Buffer(value, 0)
   {
   }
  
   template <typename T>
-  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Buffer(VALUE value, size_t size)
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::Buffer(VALUE value, size_t size)
   {
     using Intrinsic_T = typename detail::intrinsic_type<T>;
 
@@ -4803,7 +4858,7 @@ namespace Rice
             if (inner.size() != 1)
             {
               throw Exception(rb_eTypeError, "Expected inner array size 1 for type %s* but got %ld",
-                detail::TypeIndexParser(typeid(T)).name().c_str(), inner.size());
+                detail::TypeDetail<T>().name().c_str(), inner.size());
             }
             this->m_buffer[i] = fromRuby.convert(inner[0].value());
           }
@@ -4825,8 +4880,8 @@ namespace Rice
       }
       default:
       {
-        detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-        std::string typeName = typeIndexParser.name();
+        detail::TypeDetail<T> typeDetail;
+        std::string typeName = typeDetail.name();
         throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
@@ -4834,7 +4889,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::~Buffer()
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::~Buffer()
   {
     if (this->m_owner)
     {
@@ -4848,7 +4903,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::Buffer(Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>&& other) : m_owner(other.m_owner), m_size(other.m_size),
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::Buffer(Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>&& other) : m_owner(other.m_owner), m_size(other.m_size),
                                                   m_buffer(other.m_buffer)
   {
     other.m_buffer = nullptr;
@@ -4857,7 +4912,7 @@ namespace Rice
   }
 
   template <typename T>
-  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>& Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::operator=(Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>&& other)
+  inline Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>& Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::operator=(Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>&& other)
   {
     this->m_buffer = other.m_buffer;
     other.m_buffer = nullptr;
@@ -4872,54 +4927,54 @@ namespace Rice
   }
 
   template <typename T>
-  inline T* Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::operator[](size_t index)
+  inline T* Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::operator[](size_t index)
   {
     return this->m_buffer[index];
   }
 
   template <typename T>
-  inline size_t Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::size() const
+  inline size_t Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::size() const
   {
     return this->m_size;
   }
 
   template <typename T>
-  inline T** Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::ptr()
+  inline T** Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::ptr()
   {
     return this->m_buffer;
   }
 
   template <typename T>
-  inline T** Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::release()
+  inline T** Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::release()
   {
     this->m_owner = false;
     return this->m_buffer;
   }
 
   template <typename T>
-  inline bool Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::isOwner() const
+  inline bool Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::isOwner() const
   {
     return this->m_owner;
   }
 
   template <typename T>
-  inline void Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::setOwner(bool value)
+  inline void Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::setOwner(bool value)
   {
     this->m_owner = value;
   }
 
   template<typename T>
-  inline VALUE Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::toString() const
+  inline VALUE Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::toString() const
   {
-    detail::TypeIndexParser typeIndexParser(typeid(T*), std::is_fundamental_v<detail::intrinsic_type<T>>);
-    std::string description = "Buffer<type: " + typeIndexParser.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
+    detail::TypeDetail<T*> typeDetail;
+    std::string description = "Buffer<type: " + typeDetail.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
   }
 
   template<typename T>
-  inline VALUE Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::bytes(size_t count) const
+  inline VALUE Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::bytes(size_t count) const
   {
     if (!this->m_buffer)
     {
@@ -4934,13 +4989,13 @@ namespace Rice
   }
 
   template<typename T>
-  inline VALUE Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::bytes() const
+  inline VALUE Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::bytes() const
   {
     return this->bytes(this->m_size);
   }
 
   template<typename T>
-  inline Array Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::toArray(size_t count) const
+  inline Array Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::toArray(size_t count) const
   {
     if (!this->m_buffer)
     {
@@ -4963,7 +5018,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline Array Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T>>>::toArray() const
+  inline Array Buffer<T*, std::enable_if_t<!detail::is_wrapped_v<T> && !std::is_void_v<T>>>::toArray() const
   {
     return this->toArray(this->m_size);
   }
@@ -5018,8 +5073,8 @@ namespace Rice
       }
       default:
       {
-        detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-        std::string typeName = typeIndexParser.name();
+        detail::TypeDetail<T> typeDetail;
+        std::string typeName = typeDetail.name();
         throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
@@ -5103,8 +5158,8 @@ namespace Rice
   template<typename T>
   inline VALUE Buffer<T*, std::enable_if_t<detail::is_wrapped_v<T>>>::toString() const
   {
-    detail::TypeIndexParser typeIndexParser(typeid(T*), std::is_fundamental_v<detail::intrinsic_type<T>>);
-    std::string description = "Buffer<type: " + typeIndexParser.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
+    detail::TypeDetail<T*> typeDetail;
+    std::string description = "Buffer<type: " + typeDetail.simplifiedName() + ", size: " + std::to_string(this->m_size) + ">";
 
     // We can't use To_Ruby because To_Ruby depends on Buffer - ie a circular reference
     return detail::protect(rb_utf8_str_new_cstr, description.c_str());
@@ -5183,8 +5238,8 @@ namespace Rice
       }
       default:
       {
-        detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-        std::string typeName = typeIndexParser.name();
+        detail::TypeDetail<T> typeDetail;
+        std::string typeName = typeDetail.name();
         throw Exception(rb_eTypeError, "wrong argument type %s (expected %s*)",
           detail::protect(rb_obj_classname, value), typeName.c_str());
       }
@@ -5251,6 +5306,57 @@ namespace Rice
     return this->bytes(this->m_size);
   }
 
+  // ----  Buffer<void*> -------
+  template<typename T>
+  inline Buffer<T*, std::enable_if_t<std::is_void_v<T>>>::Buffer(T** pointer) : m_buffer(pointer)
+  {
+  }
+
+  template<typename T>
+  inline Buffer<T*, std::enable_if_t<std::is_void_v<T>>>::Buffer(T** pointer, size_t size) : m_size(size), m_buffer(pointer)
+  {
+  }
+
+  template<typename T>
+  inline Buffer<T*, std::enable_if_t<std::is_void_v<T>>>::Buffer(Buffer<T*, std::enable_if_t<std::is_void_v<T>>>&& other) : m_owner(other.m_owner), m_size(other.m_size), m_buffer(other.m_buffer)
+  {
+    other.m_buffer = nullptr;
+    other.m_size = 0;
+    other.m_owner = false;
+  }
+
+  template<typename T>
+  inline Buffer<T*, std::enable_if_t<std::is_void_v<T>>>& Buffer<T*, std::enable_if_t<std::is_void_v<T>>>::operator=(Buffer<T*, std::enable_if_t<std::is_void_v<T>>>&& other)
+  {
+    this->m_buffer = other.m_buffer;
+    this->m_size = other.m_size;
+    this->m_owner = other.m_owner;
+    other.m_buffer = nullptr;
+    other.m_size = 0;
+    other.m_owner = false;
+
+    return *this;
+  }
+
+  template<typename T>
+  inline size_t Buffer<T*, std::enable_if_t<std::is_void_v<T>>>::size() const
+  {
+    return this->m_size;
+  }
+
+  template<typename T>
+  inline T** Buffer<T*, std::enable_if_t<std::is_void_v<T>>>::ptr()
+  {
+    return this->m_buffer;
+  }
+
+  template <typename T>
+  inline T** Buffer<T*, std::enable_if_t<std::is_void_v<T>>>::release()
+  {
+    this->m_owner = false;
+    return this->m_buffer;
+  }
+
   // ------  define_buffer ----------
   template<typename T>
   inline Data_Type<Buffer<T>> define_buffer(std::string klassName)
@@ -5260,8 +5366,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<Buffer_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<Buffer_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mRice = define_module("Rice");
@@ -5279,6 +5385,14 @@ namespace Rice
         define_method("size", &Buffer_T::size).
         template define_method<VALUE(Buffer_T::*)(size_t) const>("bytes", &Buffer_T::bytes, Return().setValue()).
         template define_method<VALUE(Buffer_T::*)() const>("bytes", &Buffer_T::bytes, Return().setValue()).
+        define_method("data", &Buffer_T::ptr, ReturnBuffer()).
+        define_method("release", &Buffer_T::release, ReturnBuffer());
+    }
+    // void* - minimal wrapper, no Ruby array conversion support
+    else if constexpr (std::is_void_v<detail::intrinsic_type<T>>)
+    {
+      return define_class_under<Buffer_T>(rb_mRice, klassName).
+        define_method("size", &Buffer_T::size).
         define_method("data", &Buffer_T::ptr, ReturnBuffer()).
         define_method("release", &Buffer_T::release, ReturnBuffer());
     }
@@ -5342,8 +5456,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<Pointer_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<Pointer_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mRice = define_module("Rice");
@@ -7040,8 +7154,8 @@ namespace Rice::detail
         }
         default:
         {
-          detail::TypeMapper<Pointer<T>> typeMapper;
-          std::string expected = typeMapper.rubyName();
+          detail::TypeDetail<Pointer<T>> typeDetail;
+          std::string expected = typeDetail.rubyName();
           throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }
@@ -7098,8 +7212,8 @@ namespace Rice::detail
         }
         default:
         {
-          detail::TypeMapper<Pointer<T*>> typeMapper;
-          std::string expected = typeMapper.rubyName();
+          detail::TypeDetail<Pointer<T*>> typeDetail;
+          std::string expected = typeDetail.rubyName();
           throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
             detail::protect(rb_obj_classname, value), expected.c_str());
         }
@@ -8621,8 +8735,8 @@ namespace Rice
 
     if (klassName.empty())
     {
-      detail::TypeMapper<Reference_T> typeMapper;
-      klassName = typeMapper.rubyName();
+      detail::TypeDetail<Reference_T> typeDetail;
+      klassName = typeDetail.rubyName();
     }
 
     Module rb_mRice = define_module("Rice");
@@ -8669,39 +8783,48 @@ namespace Rice::detail
 namespace Rice::detail
 {
   template <typename T>
+  inline std::type_index TypeRegistry::key()
+  {
+    if constexpr (is_complete_v<T>)
+    {
+      return std::type_index(typeid(T));
+    }
+    else
+    {
+      return std::type_index(typeid(T*));
+    }
+  }
+
+  template <typename T>
   inline void TypeRegistry::add(VALUE klass, rb_data_type_t* rbType)
   {
-    std::type_index key(typeid(T));
-    registry_[key] = std::pair(klass, rbType);
+    registry_[key<T>()] = std::pair(klass, rbType);
   }
 
   template <typename T>
   inline void TypeRegistry::remove()
   {
-    std::type_index key(typeid(T));
-    registry_.erase(key);
+    registry_.erase(key<T>());
   }
 
   template <typename T>
   inline bool TypeRegistry::isDefined()
   {
-    std::type_index key(typeid(T));
-    auto iter = registry_.find(key);
+    auto iter = registry_.find(key<T>());
     return iter != registry_.end();
   }
 
   template <typename T>
   std::pair<VALUE, rb_data_type_t*> TypeRegistry::getType()
   {
-    std::type_index key(typeid(T));
-    auto iter = registry_.find(key);
+    auto iter = registry_.find(key<T>());
     if (iter != registry_.end())
     {
       return iter->second;
     }
     else
     {
-      this->raiseUnverifiedType(typeid(T).name());
+      this->raiseUnverifiedType(TypeDetail<T>().name());
       // Make compiler happy
       return std::make_pair(Qnil, nullptr);
     }
@@ -8716,17 +8839,14 @@ namespace Rice::detail
     }
     else
     {
-      const std::type_info& typeInfo = typeid(T);
-      std::type_index key(typeInfo);
-      this->unverified_.insert(key);
+      this->unverified_.insert(key<T>());
       return false;
     }
   }
 
-  inline std::optional<std::pair<VALUE, rb_data_type_t*>> TypeRegistry::lookup(const std::type_info& typeInfo)
+  inline std::optional<std::pair<VALUE, rb_data_type_t*>> TypeRegistry::lookup(std::type_index typeIndex)
   {
-    std::type_index key(typeInfo);
-    auto iter = registry_.find(key);
+    auto iter = registry_.find(typeIndex);
 
     if (iter == registry_.end())
     {
@@ -8741,26 +8861,30 @@ namespace Rice::detail
   template <typename T>
   inline std::pair<VALUE, rb_data_type_t*> TypeRegistry::figureType(const T& object)
   {
-    // First check and see if the actual type of the object is registered
-    std::optional<std::pair<VALUE, rb_data_type_t*>> result = lookup(typeid(object));
+    std::optional<std::pair<VALUE, rb_data_type_t*>> result;
 
-    if (result)
+    // First check and see if the actual type of the object is registered.
+    // This requires a complete type for typeid to work.
+    if constexpr (is_complete_v<T>)
     {
-      return result.value();
+      result = lookup(std::type_index(typeid(object)));
+
+      if (result)
+      {
+        return result.value();
+      }
     }
 
     // If not, then we are willing to accept an ancestor class specified by T. This is needed
     // to support Directors. Classes inherited from Directors are never actually registered
     // with Rice - and what we really want it to return the C++ class they inherit from.
-    const std::type_info& typeInfo = typeid(T);
-    result = lookup(typeInfo);
+    result = lookup(key<T>());
     if (result)
     {
       return result.value();
     }
 
-    detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-    raiseUnverifiedType(typeIndexParser.name());
+    raiseUnverifiedType(TypeDetail<T>().name());
 
     // Make the compiler happy
     return std::pair<VALUE, rb_data_type_t*>(Qnil, nullptr);
@@ -8794,8 +8918,8 @@ namespace Rice::detail
 
     for (const std::type_index& typeIndex : this->unverified_)
     {
-      detail::TypeIndexParser typeIndexParser(typeIndex);
-      stream << "  " << typeIndexParser.name() << "\n";
+      detail::TypeIndexParser typeDetail(typeIndex);
+      stream << "  " << typeDetail.name() << "\n";
     }
 
     throw std::invalid_argument(stream.str());
@@ -9048,12 +9172,6 @@ namespace Rice::detail
 
 
 // =========   Type.ipp   =========
-#ifdef __GNUC__
-#include <cxxabi.h>
-#include <cstdlib>
-#include <cstring>
-#endif
-
 // Rice saves types either as the intrinsic type (MyObject) or pointer (MyObject*).
 // It strips out references, const and volatile to avoid an explosion of template classes.
 // Pointers are used for C function pointers used in callbacks and for the Buffer class.
@@ -9120,7 +9238,17 @@ namespace Rice::detail
   struct has_ruby_klass<T, std::void_t<decltype(T::rubyKlass())>> : std::true_type
   {
   };
+}
 
+// =========   TypeIndexParser.ipp   =========
+#ifdef __GNUC__
+#include <cxxabi.h>
+#include <cstdlib>
+#include <cstring>
+#endif
+
+namespace Rice::detail
+{
   // ---------- TypeIndexParser ------------
   inline TypeIndexParser::TypeIndexParser(const std::type_index& typeIndex, bool isFundamental) :
     typeIndex_(typeIndex), isFundamental_(isFundamental)
@@ -9151,9 +9279,9 @@ namespace Rice::detail
   }
 
   // Find text inside of < > taking into account nested groups.
-  // 
+  //
   // Example:
-  //  
+  //
   //   std::vector<std::vector<int>, std::allocator<std::vector, std::allocator<int>>>
   inline std::string TypeIndexParser::findGroup(std::string& string, size_t offset)
   {
@@ -9267,9 +9395,17 @@ namespace Rice::detail
     std::regex ptrRegex = std::regex(R"(\s+\*)");
     base = std::regex_replace(base, ptrRegex, "*");
 
+    // Remove spaces before left parentheses
+    std::regex parenRegex = std::regex(R"(\s+\()");
+    base = std::regex_replace(base, parenRegex, "(");
+
     // Remove __ptr64
     std::regex ptr64Regex(R"(\s*__ptr64\s*)");
     base = std::regex_replace(base, ptr64Regex, "");
+
+    // Remove calling conventions (__cdecl, __stdcall, __fastcall, etc.)
+    std::regex callingConventionRegex(R"(\s*__cdecl|__stdcall|__fastcall)");
+    base = std::regex_replace(base, callingConventionRegex, "");
 
     // Replace " >" with ">"
     std::regex trailingAngleBracketSpaceRegex = std::regex(R"(\s+>)");
@@ -9342,6 +9478,16 @@ namespace Rice::detail
     //replaceAll(base, greaterThanRegex, "≻");
     this->replaceAll(base, greaterThanRegex, "\u227B");
 
+    // Replace ( with Unicode Character (U+2768) - Medium Left Parenthesis Ornament
+    // This happens in std::function
+    auto leftParenRegex = std::regex(R"(\()");
+    this->replaceAll(base, leftParenRegex, "\u2768");
+
+    // Replace ) with Unicode Character (U+2769) - Medium Right Parenthesis Ornament
+    // This happens in std::function
+    auto rightParenRegex = std::regex(R"(\))");
+    this->replaceAll(base, rightParenRegex, "\u2769");
+
     // Replace , with Unicode Character (U+066C) - Arabic Thousands Separator
     auto commaRegex = std::regex(R"(,\s*)");
     this->replaceAll(base, commaRegex, "\u201A");
@@ -9359,7 +9505,7 @@ namespace Rice::detail
     while (std::regex_search(content, match, regex))
     {
       std::string replacement = match[1];
-      std::transform(replacement.begin(), replacement.end(), replacement.begin(), 
+      std::transform(replacement.begin(), replacement.end(), replacement.begin(),
         [](unsigned char c) -> char
         {
           return static_cast<char>(std::toupper(c));
@@ -9368,9 +9514,53 @@ namespace Rice::detail
     }
   }
 
-  // ---------- TypeMapper ------------
+  // ---------- TypeDetail<T> ------------
   template<typename T>
-  inline std::string TypeMapper<T>::rubyTypeName()
+  inline std::type_index TypeDetail<T>::typeIndex()
+  {
+    if constexpr (is_complete_v<T>)
+    {
+      return typeid(T);
+    }
+    else if constexpr (std::is_reference_v<T>)
+    {
+      // For incomplete reference types, strip the reference and use pointer.
+      // Can't use typeid(T&) because it still requires complete type on MSVC.
+      return typeid(std::remove_reference_t<T>*);
+    }
+    else
+    {
+      return typeid(T*);
+    }
+  }
+
+  template<typename T>
+  inline bool TypeDetail<T>::isFundamental()
+  {
+    if constexpr (is_complete_v<T>)
+    {
+      return std::is_fundamental_v<intrinsic_type<T>>;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  template<typename T>
+  inline std::string TypeDetail<T>::name()
+  {
+    return this->typeIndexParser_.name();
+  }
+
+  template<typename T>
+  inline std::string TypeDetail<T>::simplifiedName()
+  {
+    return this->typeIndexParser_.simplifiedName();
+  }
+
+  template<typename T>
+  inline std::string TypeDetail<T>::rubyTypeName()
   {
     using Intrinsic_T = detail::intrinsic_type<T>;
 
@@ -9384,20 +9574,20 @@ namespace Rice::detail
     }
     else
     {
-      detail::TypeIndexParser typeIndexParser(typeid(Intrinsic_T), std::is_fundamental_v<detail::intrinsic_type<Intrinsic_T>>);
-      return typeIndexParser.simplifiedName();
+      TypeDetail<Intrinsic_T> typeDetail;
+      return typeDetail.simplifiedName();
     }
   }
 
   template<typename T>
-  inline std::string TypeMapper<T>::rubyName()
+  inline std::string TypeDetail<T>::rubyName()
   {
     std::string base = this->rubyTypeName();
     return this->typeIndexParser_.rubyName(base);
   }
 
   template<typename T>
-  inline VALUE TypeMapper<T>::rubyKlass()
+  inline VALUE TypeDetail<T>::rubyKlass()
   {
     using Type_T = Type<std::remove_reference_t<detail::remove_cv_recursive_t<T>>>;
     using Intrinsic_T = detail::intrinsic_type<T>;
@@ -9408,7 +9598,7 @@ namespace Rice::detail
     }
     else if constexpr (std::is_fundamental_v<Intrinsic_T> && std::is_pointer_v<T>)
     {
-			using Pointer_T = Pointer<std::remove_pointer_t<remove_cv_recursive_t<T>>>;
+      using Pointer_T = Pointer<std::remove_pointer_t<remove_cv_recursive_t<T>>>;
       std::pair<VALUE, rb_data_type_t*> pair = Registries::instance.types.getType<Pointer_T>();
       return pair.first;
     }
@@ -9419,6 +9609,7 @@ namespace Rice::detail
     }
   }
 }
+
 // Code for Ruby to call C++
 
 // =========   Exception.ipp   =========
@@ -9700,11 +9891,14 @@ namespace Rice::detail
   {
     Registries::instance.instances.remove(this->get(this->rb_data_type_));
 
-    if constexpr (std::is_destructible_v<T>)
+    if constexpr (is_complete_v<T>)
     {
-      if (this->isOwner_)
+      if constexpr (std::is_destructible_v<T>)
       {
-        delete this->data_;
+        if (this->isOwner_)
+        {
+          delete this->data_;
+        }
       }
     }
   }
@@ -9779,6 +9973,13 @@ namespace Rice::detail
       result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
     }
 
+    // Incomplete types can't be copied/moved, just wrap as reference
+    else if constexpr (!is_complete_v<T>)
+    {
+      wrapper = new Wrapper<T&>(rb_data_type, data);
+      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+    }
+
     // std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
     else if constexpr (detail::is_std_vector_v<T>)
     {
@@ -9810,9 +10011,9 @@ namespace Rice::detail
 
     else
     {
-      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
+      detail::TypeDetail<T> typeDetail;
       std::string message = "Rice was directed to take ownership of a C++ object but it does not have an accessible copy or move constructor. Type: " +
-        typeIndexParser.name();
+        typeDetail.name();
       throw std::runtime_error(message);
     }
 
@@ -9843,6 +10044,12 @@ namespace Rice::detail
     {
       std::string message = "The Ruby object does not wrap a C++ object. It is actually a " +
         std::string(detail::protect(rb_obj_classname, value)) + ".";
+      throw std::runtime_error(message);
+    }
+
+    if (protect(rb_obj_is_kind_of, value, rb_cProc))
+    {
+      std::string message = "The Ruby object is a proc or lambda and does not wrap a C++ object";
       throw std::runtime_error(message);
     }
 
@@ -10233,7 +10440,7 @@ namespace Rice::detail
     std::map<std::string, VALUE> result;
 
     // Keyword handling
-    if (rb_keyword_given_p())
+    if (protect(rb_keyword_given_p))
     {
       // Keywords are stored in the last element in a hash
       size_t actualArgc = argc - 1;
@@ -10262,6 +10469,13 @@ namespace Rice::detail
         std::string key = "arg_" + std::to_string(i);
         result[key] = argv[i];
       }
+    }
+
+    // If a block is given we assume it maps to the last argument
+    if (protect(rb_block_given_p))
+    {
+      std::string key = "arg_" + std::to_string(result.size());
+      result[key] = protect(rb_block_proc);
     }
 
     return result;
@@ -10306,10 +10520,6 @@ namespace Rice::detail
       else if (arg->hasDefaultValue())
       {
         result[i] = parameter->defaultValueRuby();
-      }
-      else if (arg->isBlock() && rb_block_given_p())
-      {
-        result[i] = protect(rb_block_proc);
       }
       else if (validate)
       {
@@ -10529,13 +10739,13 @@ namespace Rice::detail
     bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
     if (isBuffer)
     {
-      TypeMapper<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Attr_T>>>> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Attr_T>>>> typeDetail;
+      return typeDetail.rubyKlass();
     }
     else
     {
-      TypeMapper<Attr_T> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Attr_T> typeDetail;
+      return typeDetail.rubyKlass();
     }
   }
 }
@@ -10646,8 +10856,8 @@ namespace Rice::detail
   template<typename Attribute_T>
   inline VALUE NativeAttributeSet<Attribute_T>::returnKlass()
   {
-    TypeMapper<Attr_T> typeMapper;
-    return typeMapper.rubyKlass();
+    TypeDetail<Attr_T> typeDetail;
+    return typeDetail.rubyKlass();
   }
 }
 
@@ -10795,8 +11005,8 @@ namespace Rice::detail
   {
     std::ostringstream result;
 
-    detail::TypeIndexParser typeIndexParser(typeid(Return_T), std::is_fundamental_v<detail::intrinsic_type<Return_T>>);
-    result << typeIndexParser.simplifiedName() << " ";
+    detail::TypeDetail<Return_T> typeDetail;
+    result << typeDetail.simplifiedName() << " ";
     result << this->name();
 
     result << "(";
@@ -10904,13 +11114,13 @@ namespace Rice::detail
     bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
     if (isBuffer)
     {
-      TypeMapper<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Return_T>>>> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Return_T>>>> typeDetail;
+      return typeDetail.rubyKlass();
     }
     else
     {
-      TypeMapper<Return_T> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Return_T> typeDetail;
+      return typeDetail.rubyKlass();
     }
   }
 }
@@ -11081,13 +11291,13 @@ namespace Rice::detail
     bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
     if (isBuffer)
     {
-      TypeMapper<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Value_T>>>> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Value_T>>>> typeDetail;
+      return typeDetail.rubyKlass();
     }
     else
     {
-      TypeMapper<Value_T> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Value_T> typeDetail;
+      return typeDetail.rubyKlass();
     }
   }
 }
@@ -11241,13 +11451,13 @@ namespace Rice::detail
   {
     std::ostringstream result;
 
-    detail::TypeIndexParser typeIndexParserReturn(typeid(Return_T), std::is_fundamental_v<detail::intrinsic_type<Return_T>>);
-    result << typeIndexParserReturn.simplifiedName() << " ";
-    
+    detail::TypeDetail<Return_T> typeDetailReturn;
+    result << typeDetailReturn.simplifiedName() << " ";
+
     if (!std::is_null_pointer_v<Receiver_T>)
     {
-      detail::TypeIndexParser typeIndexParserReceiver(typeid(Receiver_T), std::is_fundamental_v<detail::intrinsic_type<Receiver_T>>);
-      result << typeIndexParserReceiver.simplifiedName() << "::";
+      detail::TypeDetail<Receiver_T> typeDetailReceiver;
+      result << typeDetailReceiver.simplifiedName() << "::";
     }
     
     result << this->name();
@@ -11443,13 +11653,13 @@ namespace Rice::detail
     bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
     if (isBuffer)
     {
-      TypeMapper<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Return_T>>>> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Return_T>>>> typeDetail;
+      return typeDetail.rubyKlass();
     }
     else
     {
-      TypeMapper<Return_T> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Return_T> typeDetail;
+      return typeDetail.rubyKlass();
     }
   }
 }
@@ -11637,13 +11847,13 @@ namespace Rice::detail
     bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
     if (isBuffer)
     {
-      TypeMapper<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Return_T>>>> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Return_T>>>> typeDetail;
+      return typeDetail.rubyKlass();
     }
     else
     {
-      TypeMapper<Return_T> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Return_T> typeDetail;
+      return typeDetail.rubyKlass();
     }
   }
 }
@@ -11994,13 +12204,13 @@ namespace Rice::detail
     bool isBuffer = dynamic_cast<ReturnBuffer*>(this->returnInfo_.get()) ? true : false;
     if (isBuffer)
     {
-      TypeMapper<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Return_T>>>> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Pointer<detail::remove_cv_recursive_t<std::remove_pointer_t<Return_T>>>> typeDetail;
+      return typeDetail.rubyKlass();
     }
     else
     {
-      TypeMapper<Return_T> typeMapper;
-      return typeMapper.rubyKlass();
+      TypeDetail<Return_T> typeDetail;
+      return typeDetail.rubyKlass();
     }
   }
 }
@@ -12057,7 +12267,7 @@ namespace Rice::detail
 
     double is_convertible(VALUE value)
     {
-      if (protect(rb_obj_is_proc, value) == Qtrue || protect(rb_proc_lambda_p, value) == Qtrue)
+      if (protect(rb_obj_is_proc, value) == Qtrue)
       {
         return Convertible::Exact;
       }
@@ -14223,7 +14433,14 @@ namespace Rice
   template<typename T>
   inline size_t ruby_size_internal(const T*)
   {
-    return sizeof(T);
+    if constexpr (detail::is_complete_v<T>)
+    {
+      return sizeof(T);
+    }
+    else
+    {
+      return 0;
+    }
   }
 
   template<>
@@ -14238,8 +14455,7 @@ namespace Rice
   {
     if (is_bound())
     {
-      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-      std::string message = "Type " + typeIndexParser.name() + " is already bound to a different type";
+      std::string message = "Type " + detail::TypeDetail<T>().name() + " is already bound to a different type";
       throw std::runtime_error(message.c_str());
     }
 
@@ -14270,14 +14486,17 @@ namespace Rice
 
     // Add a method to get the source C++ class name from Ruby
     Data_Type<T> dataType;
-    dataType.define_singleton_method("cpp_class", [](VALUE) -> VALUE
+    if constexpr (detail::is_complete_v<T>)
     {
-      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-      std::string cppClassName = typeIndexParser.simplifiedName();
-      Return returnInfo;
-      returnInfo.takeOwnership();
-      return detail::To_Ruby<char*>(&returnInfo).convert(cppClassName.c_str());
-    }, Arg("klass").setValue(), Return().setValue());
+      dataType.define_singleton_method("cpp_class", [](VALUE) -> VALUE
+      {
+        detail::TypeDetail<T> typeDetail;
+        std::string cppClassName = typeDetail.simplifiedName();
+        Return returnInfo;
+        returnInfo.takeOwnership();
+        return detail::To_Ruby<char*>(&returnInfo).convert(cppClassName.c_str());
+      }, Arg("klass").setValue(), Return().setValue());
+    }
 
     return dataType;
   }
@@ -14431,8 +14650,7 @@ namespace Rice
   {
     if (!is_bound())
     {
-      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
-      std::string message = "Type is not defined with Rice: " + typeIndexParser.name();
+      std::string message = "Type is not defined with Rice: " + detail::TypeDetail<T>().name();
       throw std::invalid_argument(message.c_str());
     }
   }
@@ -14469,7 +14687,7 @@ namespace Rice
     }
     else
     {
-      // This gives a chance for to auto-register classes such as std::exception
+      // This gives a chance to auto-register classes such as std::exception
       detail::verifyType<Base_T>();
       result = Data_Type<Base_T>::klass();
     }
@@ -14733,9 +14951,8 @@ namespace Rice
     }
     else
     {
-      detail::TypeIndexParser typeIndexParser(typeid(T), std::is_fundamental_v<detail::intrinsic_type<T>>);
       return Exception(rb_eTypeError, "Wrong argument type. Expected %s. Received %s.",
-        typeIndexParser.simplifiedName().c_str(),
+        detail::TypeDetail<T>().name().c_str(),
         detail::protect(rb_obj_classname, value));
     }
   }
