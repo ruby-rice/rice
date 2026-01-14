@@ -180,21 +180,30 @@ TESTCASE(Lambda)
     .include_module(rb_mEnumerable)
     .define_method("each", [](VALUE self, VALUE proc)->VALUE
     {
-      ContainerValues* container = detail::From_Ruby<ContainerValues*>().convert(self);
-
-      // The iterator returns references - we do NOT want to create a copy
-      detail::To_Ruby<Data&> toRuby;
-
-      auto it = container->begin();
-      auto end = container->end();
-
-      for (; it != end; ++it)
+      if (!detail::protect(rb_block_given_p))
       {
-        detail::protect(rb_yield, toRuby.convert(*it));
+        static Identifier identifier("each");
+        VALUE enumerator = detail::protect(rb_enumeratorize_with_size, self, identifier.to_sym(), 0, nullptr, nullptr);
+        return enumerator;
       }
+      else
+      {
+        ContainerValues* container = detail::From_Ruby<ContainerValues*>().convert(self);
 
-      return self;
-    }, Arg("proc").setValue());
+        // The iterator returns references - we do NOT want to create a copy
+        detail::To_Ruby<Data&> toRuby;
+
+        auto it = container->begin();
+        auto end = container->end();
+
+        for (; it != end; ++it)
+        {
+          detail::protect(rb_yield, toRuby.convert(*it));
+        }
+
+        return self;
+      }
+    }, Arg("proc").setValue() = Qnil, Return().setValue());
 
   ContainerValues* container = new ContainerValues();
   Data_Object<ContainerValues> wrapper(container);
@@ -211,6 +220,22 @@ TESTCASE(Lambda)
   ASSERT_EQUAL(3, result.size());
 
   Data_Object<Data> wrappedData(result[0]);
+  ASSERT_EQUAL(1u, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)result[1];
+  ASSERT_EQUAL(2u, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)result[2];
+  ASSERT_EQUAL(3u, wrappedData->index);
+
+  code = R"(container = ContainerValues.new
+            enumerator = container.each
+            enumerator.to_a)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(3, result.size());
+
+  wrappedData = (Data_Object<Data>)result[0];
   ASSERT_EQUAL(1u, wrappedData->index);
 
   wrappedData = (Data_Object<Data>)result[1];
