@@ -12,6 +12,16 @@ Enhancements:
 Internal:
 * Refactor type handling by merging `TypeMapper` into `TypeDetail` and simplifying class hierarchy
 
+Incomptatible Changes:
+* Rice converts Ruby blocks to procs. Thus if you have a method that expects a block, you must add
+  a VALUE parameter and tell Rice it is a value. For example:
+
+  define_method("my_method", [](VALUE self, VALUE proc)
+  {
+  }, Arg("proc").setValue())
+
+  Think of this as similar to how you would capture a block in Ruby using the &block syntax.
+
 ## 4.9.1 (2026-01-04)
 This release focuses on improving memory management for STL containers and attribute setters.
 

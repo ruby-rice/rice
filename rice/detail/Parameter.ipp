@@ -127,9 +127,27 @@ namespace Rice::detail
   template<typename T>
   inline VALUE Parameter<T>::defaultValueRuby()
   {
+    using To_Ruby_T = remove_cv_recursive_t<T>;
+
+    if (!this->arg()->hasDefaultValue())
+    {
+      throw std::runtime_error("No default value set for " + this->arg()->name);
+    }
+
     if constexpr (!is_complete_v<intrinsic_type<T>>)
     {
-      // Incomplete types can't have default values (std::any requires complete types)
+      // Only pointers to incomplete types can have
+      // default values (e.g., void* or Impl*), since the pointer itself is complete.
+      // References and values of incomplete types cannot be stored in std::any.
+      if constexpr (std::is_pointer_v<std::remove_reference_t<T>>)
+      {
+        T defaultValue = this->arg()->template defaultValue<T>();
+        return this->toRuby_.convert((To_Ruby_T)defaultValue);
+      }
+      else
+      {
+        throw std::runtime_error("Default value not allowed for incomple type. Parameter " + this->arg()->name);
+      }
     }
     else if constexpr (std::is_constructible_v<std::remove_cv_t<T>, std::remove_cv_t<std::remove_reference_t<T>>&>)
     {
@@ -139,21 +157,20 @@ namespace Rice::detail
       {
         if constexpr (std::is_copy_constructible_v<typename detail::intrinsic_type<T>::value_type>)
         {
-          if (this->arg()->hasDefaultValue())
-          {
-            T defaultValue = this->arg()->template defaultValue<T>();
-            return this->toRuby_.convert(defaultValue);
-          }
+          T defaultValue = this->arg()->template defaultValue<T>();
+          return this->toRuby_.convert(defaultValue);
         }
       }
-      else if (this->arg()->hasDefaultValue())
+      else
       {
         T defaultValue = this->arg()->template defaultValue<T>();
-        return this->toRuby_.convert((remove_cv_recursive_t<T>)defaultValue);
+        return this->toRuby_.convert((To_Ruby_T)defaultValue);
       }
     }
-
-    throw std::runtime_error("No default value set or allowed for parameter " + this->arg()->name);
+    else
+    {
+      throw std::runtime_error("Default value not allowed for parameter " + this->arg()->name);
+    }
   }
 
   template<typename T>

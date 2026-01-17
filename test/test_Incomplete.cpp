@@ -490,3 +490,104 @@ TESTCASE(IncompleteReferenceModify)
   Object result = m.module_eval(code);
   ASSERT_EQUAL(456, detail::From_Ruby<int>().convert(result.value()));
 }
+
+// =======================================================================
+// Default Values with Incomplete Types
+//
+// Test that incomplete types can have default values (pointers only -
+// references and values can't have meaningful defaults for incomplete types)
+// =======================================================================
+
+namespace
+{
+  // Forward declaration only - DefaultImpl is never defined
+  class DefaultImpl;
+
+  struct DefaultImplReal
+  {
+    int value = 999;
+  };
+
+  // Static instance for non-null default
+  static DefaultImplReal defaultImplInstance{ 777 };
+  static DefaultImpl* defaultImplPtr = reinterpret_cast<DefaultImpl*>(&defaultImplInstance);
+
+  // Function with pointer to incomplete type and non-null default value
+  int processDefaultImpl(DefaultImpl* impl = defaultImplPtr)
+  {
+    return reinterpret_cast<DefaultImplReal*>(impl)->value;
+  }
+
+  // Function with pointer to incomplete type, default value, and other params
+  int processDefaultImplWithSize(DefaultImpl* impl = defaultImplPtr, int multiplier = 1)
+  {
+    return reinterpret_cast<DefaultImplReal*>(impl)->value * multiplier;
+  }
+
+  DefaultImpl* createDefaultImpl()
+  {
+    return reinterpret_cast<DefaultImpl*>(new DefaultImplReal());
+  }
+
+  void destroyDefaultImpl(DefaultImpl* impl)
+  {
+    delete reinterpret_cast<DefaultImplReal*>(impl);
+  }
+}
+
+TESTCASE(IncompletePointerDefaultValue)
+{
+  // Register the incomplete type
+  define_class<DefaultImpl>("DefaultImpl");
+
+  // Test function with pointer to incomplete type and non-null default
+  define_global_function("process_default_impl", &processDefaultImpl,
+    Arg("impl") = defaultImplPtr);
+
+  define_global_function("create_default_impl", &createDefaultImpl);
+  define_global_function("destroy_default_impl", &destroyDefaultImpl);
+
+  Module m = define_module("TestingModule");
+
+  // Call with no arguments - should use default (777)
+  std::string code = R"(process_default_impl())";
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(777, detail::From_Ruby<int>().convert(result.value()));
+
+  // Call with actual impl (999)
+  code = R"(impl = create_default_impl()
+            result = process_default_impl(impl)
+            destroy_default_impl(impl)
+            result)";
+  result = m.module_eval(code);
+  ASSERT_EQUAL(999, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(IncompletePointerDefaultValueWithOtherParams)
+{
+  // Register the incomplete type
+  define_class<DefaultImpl>("DefaultImpl2");
+
+  // Test function with pointer to incomplete type, default value, and other params
+  define_global_function("process_default_impl_with_size", &processDefaultImplWithSize,
+    Arg("impl") = defaultImplPtr,
+    Arg("multiplier") = 1);
+
+  define_global_function("create_default_impl", &createDefaultImpl);
+  define_global_function("destroy_default_impl", &destroyDefaultImpl);
+
+  Module m = define_module("TestingModule");
+
+  // Call with no arguments - should use defaults (777 * 1)
+  std::string code = R"(process_default_impl_with_size())";
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(777, detail::From_Ruby<int>().convert(result.value()));
+
+  // Call with impl and multiplier (999 * 2)
+  code = R"(impl = create_default_impl()
+            result = process_default_impl_with_size(impl, 2)
+            destroy_default_impl(impl)
+            result)";
+  result = m.module_eval(code);
+  ASSERT_EQUAL(1998, detail::From_Ruby<int>().convert(result.value()));
+}

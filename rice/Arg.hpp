@@ -97,6 +97,7 @@ namespace Rice
   {
   public:
     ArgBuffer(std::string name);
+    using Arg::operator=;  // Inherit the templated operator=
   };
 } // Rice
 
