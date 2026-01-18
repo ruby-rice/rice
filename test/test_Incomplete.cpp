@@ -591,3 +591,149 @@ TESTCASE(IncompletePointerDefaultValueWithOtherParams)
   result = m.module_eval(code);
   ASSERT_EQUAL(1998, detail::From_Ruby<int>().convert(result.value()));
 }
+
+namespace
+{
+  // Forward declaration only - ExtraData is never defined
+  struct ExtraData;
+
+  struct ExtraDataReal
+  {
+    int value = 42;
+  };
+
+  // Similar to OpenCV's cv::utils::trace::details::TraceArg
+  struct TraceArg
+  {
+    ExtraData** ppExtra;
+    const char* name;
+    int flags;
+
+    TraceArg() : ppExtra(nullptr), name("default"), flags(0)
+    {
+    }
+
+    TraceArg(const char* n, int f) : ppExtra(nullptr), name(n), flags(f)
+    {
+    }
+  };
+
+  // Helper functions for double pointer operations
+  ExtraData** createExtraDataPtr()
+  {
+    ExtraData** pp = new ExtraData*;
+    *pp = reinterpret_cast<ExtraData*>(new ExtraDataReal());
+    return pp;
+  }
+
+  void destroyExtraDataPtr(ExtraData** pp)
+  {
+    if (pp)
+    {
+      delete reinterpret_cast<ExtraDataReal*>(*pp);
+      delete pp;
+    }
+  }
+
+  int getExtraDataValue(ExtraData** pp)
+  {
+    if (pp && *pp)
+    {
+      return reinterpret_cast<ExtraDataReal*>(*pp)->value;
+    }
+    return -1;
+  }
+
+  void setExtraDataValue(ExtraData** pp, int value)
+  {
+    if (pp && *pp)
+    {
+      reinterpret_cast<ExtraDataReal*>(*pp)->value = value;
+    }
+  }
+}
+
+TESTCASE(DoublePointerIncomplete)
+{
+  // Register the incomplete type
+  define_class<ExtraData>("ExtraData");
+
+  // Test struct with double pointer to incomplete type as field
+  define_class<TraceArg>("TraceArg")
+    .define_constructor(Constructor<TraceArg>())
+    .define_attr("pp_extra", &TraceArg::ppExtra)
+    .define_attr("flags", &TraceArg::flags);
+
+  define_global_function("create_extra_data_ptr", &createExtraDataPtr);
+  define_global_function("destroy_extra_data_ptr", &destroyExtraDataPtr);
+  define_global_function("get_extra_data_value", &getExtraDataValue);
+  define_global_function("set_extra_data_value", &setExtraDataValue);
+
+  Module m = define_module("TestingModule");
+
+  // Test basic struct creation and field access
+  std::string code = R"(arg = TraceArg.new
+                        arg.flags)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(0, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(DoublePointerIncompleteAssign)
+{
+  // Register the incomplete type
+  define_class<ExtraData>("ExtraData2");
+
+  // Test assigning double pointer to incomplete type
+  define_class<TraceArg>("TraceArg2")
+    .define_constructor(Constructor<TraceArg>())
+    .define_attr("pp_extra", &TraceArg::ppExtra);
+
+  define_global_function("create_extra_data_ptr", &createExtraDataPtr);
+  define_global_function("destroy_extra_data_ptr", &destroyExtraDataPtr);
+  define_global_function("get_extra_data_value", &getExtraDataValue);
+  define_global_function("set_extra_data_value", &setExtraDataValue);
+
+  Module m = define_module("TestingModule");
+
+  // Create double pointer, assign to struct, read back
+  std::string code = R"(pp = create_extra_data_ptr()
+                        arg = TraceArg2.new
+                        arg.pp_extra = pp
+                        value = get_extra_data_value(arg.pp_extra)
+                        destroy_extra_data_ptr(pp)
+                        value)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result.value()));
+}
+
+TESTCASE(DoublePointerIncompleteModify)
+{
+  // Register the incomplete type
+  define_class<ExtraData>("ExtraData3");
+
+  // Test modifying through double pointer to incomplete type
+  define_class<TraceArg>("TraceArg3")
+    .define_constructor(Constructor<TraceArg>())
+    .define_attr("pp_extra", &TraceArg::ppExtra);
+
+  define_global_function("create_extra_data_ptr", &createExtraDataPtr);
+  define_global_function("destroy_extra_data_ptr", &destroyExtraDataPtr);
+  define_global_function("get_extra_data_value", &getExtraDataValue);
+  define_global_function("set_extra_data_value", &setExtraDataValue);
+
+  Module m = define_module("TestingModule");
+
+  // Create, assign, modify, read back
+  std::string code = R"(pp = create_extra_data_ptr()
+                        arg = TraceArg3.new
+                        arg.pp_extra = pp
+                        set_extra_data_value(arg.pp_extra, 999)
+                        value = get_extra_data_value(arg.pp_extra)
+                        destroy_extra_data_ptr(pp)
+                        value)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(999, detail::From_Ruby<int>().convert(result.value()));
+}

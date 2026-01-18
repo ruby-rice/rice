@@ -944,19 +944,22 @@ namespace Rice
         define_method("data", &Buffer_T::ptr, ReturnBuffer()).
         define_method("release", &Buffer_T::release, ReturnBuffer());
 
-      if constexpr (!std::is_pointer_v<T> && !std::is_void_v<T> && !std::is_const_v<T> && std::is_copy_assignable_v<T>)
+      if constexpr (detail::is_complete_v<detail::intrinsic_type<T>>)
       {
-        klass.define_method("[]=", [](Buffer_T& self, size_t index, T& value) -> void
+        if constexpr (!std::is_pointer_v<T> && !std::is_void_v<T> && !std::is_const_v<T> && std::is_copy_assignable_v<T>)
         {
-          self[index] = value;
-        });
-      }
-      else if constexpr (std::is_pointer_v<T> && !std::is_const_v<std::remove_pointer_t<T>> && std::is_copy_assignable_v<std::remove_pointer_t<T>>)
-      {
-        klass.define_method("[]=", [](Buffer_T& self, size_t index, T value) -> void
+          klass.define_method("[]=", [](Buffer_T& self, size_t index, T& value) -> void
+          {
+            self[index] = value;
+          });
+        }
+        else if constexpr (std::is_pointer_v<T> && !std::is_const_v<std::remove_pointer_t<T>> && std::is_copy_assignable_v<std::remove_pointer_t<T>>)
         {
-          *self[index] = *value;
-        });
+          klass.define_method("[]=", [](Buffer_T& self, size_t index, T value) -> void
+          {
+            *self[index] = *value;
+          });
+        }
       }
 
       return klass;

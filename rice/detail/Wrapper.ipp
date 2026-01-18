@@ -155,11 +155,14 @@ namespace Rice::detail
   {
     Registries::instance.instances.remove(this->get(this->rb_data_type_));
 
-    if constexpr (std::is_destructible_v<T>)
+    if constexpr (is_complete_v<T>)
     {
-      if (this->isOwner_)
+      if constexpr (std::is_destructible_v<T>)
       {
-        delete this->data_;
+        if (this->isOwner_)
+        {
+          delete this->data_;
+        }
       }
     }
   }

@@ -634,15 +634,13 @@ namespace Rice::detail
 
     double is_convertible(VALUE value)
     {
-      bool isBuffer = dynamic_cast<ArgBuffer*>(this->arg_) ? true : false;
-
       switch (rb_type(value))
       {
         case RUBY_T_NIL:
           return Convertible::Exact;
           break;
         case RUBY_T_DATA:
-          if (Data_Type<Pointer_T>::is_descendant(value) && isBuffer)
+          if (Data_Type<Pointer_T>::is_descendant(value))
           {
             return Convertible::Exact;
           }
@@ -655,7 +653,6 @@ namespace Rice::detail
     T** convert(VALUE value)
     {
       bool isOwner = this->arg_ && this->arg_->isOwner();
-      bool isBuffer = dynamic_cast<ArgBuffer*>(this->arg_) ? true : false;
 
       switch (rb_type(value))
       {
@@ -666,7 +663,7 @@ namespace Rice::detail
         }
         case RUBY_T_DATA:
         {
-          if (Data_Type<Pointer_T>::is_descendant(value) && isBuffer)
+          if (Data_Type<Pointer_T>::is_descendant(value))
           {
             T** result = detail::unwrap<Intrinsic_T*>(value, Data_Type<Pointer_T>::ruby_data_type(), isOwner);
             return result;
@@ -675,14 +672,7 @@ namespace Rice::detail
         }
         default:
         {
-          if (isBuffer)
-          {
-            throw create_type_exception<Pointer_T>(value);
-          }
-          else
-          {
-            throw create_type_exception<T**>(value);
-          }
+          throw create_type_exception<Pointer_T>(value);
         }
       }
     }
