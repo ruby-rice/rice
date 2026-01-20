@@ -40,6 +40,47 @@ namespace
     uint32_t index;
   };
 
+  // Iterator that returns by value, not by reference (like cv::FileNodeIterator).
+  // This tests the fix for MSVC warning C4239.
+  class ValueReturningIterator
+  {
+  public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = Data;
+    using difference_type = std::ptrdiff_t;
+    using pointer = Data*;
+    using reference = Data&;  // Note: standard expects reference, but we return by value
+
+    ValueReturningIterator(std::vector<Data>* data, size_t index) : data_(data), index_(index) {}
+
+    // Returns by VALUE, not by reference - this is the key characteristic being tested
+    Data operator*() const { return (*data_)[index_]; }
+
+    ValueReturningIterator& operator++() { ++index_; return *this; }
+    ValueReturningIterator operator++(int) { auto tmp = *this; ++index_; return tmp; }
+    bool operator==(const ValueReturningIterator& other) const { return index_ == other.index_; }
+    bool operator!=(const ValueReturningIterator& other) const { return index_ != other.index_; }
+
+  private:
+    std::vector<Data>* data_;
+    size_t index_;
+  };
+
+  class ContainerWithValueIterator
+  {
+  public:
+    ContainerWithValueIterator()
+    {
+      this->data_ = { {10}, {20}, {30} };
+    }
+
+    ValueReturningIterator begin() { return ValueReturningIterator(&data_, 0); }
+    ValueReturningIterator end() { return ValueReturningIterator(&data_, data_.size()); }
+
+  private:
+    std::vector<Data> data_;
+  };
+
   class ContainerValues
   {
   public:
@@ -121,8 +162,10 @@ TEARDOWN(Iterator)
 {
   Data_Type<Data>::unbind();
   Data_Type<ContainerValues>::unbind();
+  Data_Type<ContainerWithValueIterator>::unbind();
   Rice::detail::Registries::instance.types.remove<Data>();
   Rice::detail::Registries::instance.types.remove<ContainerValues>();
+  Rice::detail::Registries::instance.types.remove<ContainerWithValueIterator>();
 
   rb_gc_start();
 }
@@ -178,7 +221,7 @@ TESTCASE(Lambda)
   define_class<ContainerValues>("ContainerValues")
     .define_constructor(Constructor<ContainerValues>())
     .include_module(rb_mEnumerable)
-    .define_method("each", [](VALUE self, VALUE proc)->VALUE
+    .define_method("each", [](VALUE self, VALUE /*proc*/)->VALUE
     {
       if (!detail::protect(rb_block_given_p))
       {
@@ -472,4 +515,33 @@ TESTCASE(IterateNoCopy)
     Data_Object<Data> actual(a[(long)i]);
     ASSERT_EQUAL(&expected, &(*actual));
   }
+}
+
+// Test iterator that returns by value (like cv::FileNodeIterator).
+// This previously caused MSVC warning C4239 about binding rvalue to non-const reference.
+TESTCASE(ValueReturningIterator)
+{
+  define_class<Data>("Data")
+    .define_constructor(Constructor<Data, uint32_t>())
+    .define_attr("index", &Data::index, Rice::AttrAccess::Read);
+
+  define_class<ContainerWithValueIterator>("ContainerWithValueIterator")
+    .define_constructor(Constructor<ContainerWithValueIterator>())
+    .define_iterator(&ContainerWithValueIterator::begin, &ContainerWithValueIterator::end);
+
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(result = []
+                        container = ContainerWithValueIterator.new
+                        container.each do |x|
+                          result << x.index
+                        end
+                        result)";
+
+  Array a = m.module_eval(code);
+
+  ASSERT_EQUAL(3, a.size());
+  ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(a[0].value()));
+  ASSERT_EQUAL(20, detail::From_Ruby<int>().convert(a[1].value()));
+  ASSERT_EQUAL(30, detail::From_Ruby<int>().convert(a[2].value()));
 }

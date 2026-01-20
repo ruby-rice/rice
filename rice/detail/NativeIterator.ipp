@@ -89,7 +89,12 @@ namespace Rice::detail
       detail::To_Ruby<To_Ruby_T> toRuby;
       for (; it != end; ++it)
       {
-        protect(rb_yield, toRuby.convert(*it));
+        // Use auto&& to accept both reference- and value-returning iterators.
+        // - If *it is an lvalue (T&), auto&& deduces to T&, no copy made.
+        // - If *it is a prvalue (T), auto&& deduces to T&&, value binds to the temporary for the scope of this loop iteration.
+        // This also avoids MSVC C4239 when convert expects a non-const lvalue reference.
+        auto&& value = *it;
+        protect(rb_yield, toRuby.convert(value));
       }
 
       return self;
