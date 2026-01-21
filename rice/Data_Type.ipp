@@ -5,16 +5,13 @@ namespace Rice
   template<typename T>
   inline void ruby_mark_internal(detail::WrapperBase* wrapper)
   {
-    detail::cpp_protect([&]
-    {
-      // Tell the wrapper to mark the objects its keeping alive
-      wrapper->ruby_mark();
+    // Tell the wrapper to mark the objects its keeping alive
+    wrapper->ruby_mark();
 
-      // Get the underlying data and call custom mark function (if any)
-      // Use the wrapper's stored rb_data_type to avoid type mismatch
-      T* data = static_cast<T*>(wrapper->get(Data_Type<T>::ruby_data_type()));
-      ruby_mark<T>(data);
-    });
+    // Get the underlying data and call custom mark function (if any)
+    // Use the wrapper's stored rb_data_type to avoid type mismatch
+    T* data = static_cast<T*>(wrapper->get(Data_Type<T>::ruby_data_type()));
+    ruby_mark<T>(data);
   }
 
   template<typename T>
