@@ -10,6 +10,11 @@ namespace Rice::detail
   template<typename Callback_T>
   class NativeCallback;
 
+  // NativeCallback instances are never freed because there is no way for us to know
+  // when they can be freed. At the same time, the Pin prevents the Ruby proc from being
+  // garbage collected, which is necessary because C code may call the callback
+  // at any time. This supports passing blocks to C callbacks without requiring the Ruby
+  // user to manually hold a reference to a proc.
   template<typename Return_T, typename ...Parameter_Ts>
   class NativeCallback<Return_T(*)(Parameter_Ts...)> : public Native
   {
@@ -17,8 +22,6 @@ namespace Rice::detail
     using Callback_T = Return_T(*)(Parameter_Ts...);
     using NativeCallback_T = NativeCallback<Callback_T>;
     using Tuple_T = std::tuple<Parameter_Ts...>;
-
-    static VALUE finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
 
     template<typename ...Arg_Ts>
     static void define(Arg_Ts&& ...args);
@@ -59,7 +62,7 @@ namespace Rice::detail
     template<std::size_t... I>
     Return_T callRuby(std::index_sequence<I...>& indices, Parameter_Ts...args);
 
-    VALUE proc_;
+    Pin proc_;
     From_Ruby<Return_T> fromRuby_;
 
 #ifdef HAVE_LIBFFI

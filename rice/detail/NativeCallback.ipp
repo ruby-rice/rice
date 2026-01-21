@@ -160,14 +160,6 @@ namespace Rice::detail
     return std::forward_as_tuple(extractArg<Parameter_Ts>(args[I])...);
   }
 
-  template<typename Return_T, typename ...Parameter_Ts>
-  VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::finalizerCallback(VALUE, VALUE callback_arg, int, const VALUE*, VALUE)
-  {
-    NativeCallback_T* nativeCallback = (NativeCallback_T*)callback_arg;
-    delete nativeCallback;
-    return Qnil;
-  }
-
   template<typename Return_T, typename...Parameter_Ts>
   template<typename ...Arg_Ts>
   inline void NativeCallback<Return_T(*)(Parameter_Ts...)>::define(Arg_Ts&& ...args)
@@ -185,10 +177,6 @@ namespace Rice::detail
     Native("callback", copyReturnInfo(), copyParameters()),
       proc_(proc), fromRuby_(returnInfo_.get())
   {
-    // Tie the lifetime of the NativeCallback C++ instance to the lifetime of the Ruby proc object
-    VALUE finalizer = rb_proc_new(NativeCallback_T::finalizerCallback, (VALUE)this);
-    rb_define_finalizer(proc, finalizer);
-
 #ifdef HAVE_LIBFFI
     // First setup description of callback
     if (cif_.bytes == 0)
@@ -215,8 +203,6 @@ namespace Rice::detail
 
     NativeCallback_T::callback_ = nullptr;
     NativeCallback_T::native_ = nullptr;
-
-    this->proc_ = Qnil;
   }
 
   template<typename Return_T, typename ...Parameter_Ts>
@@ -235,7 +221,7 @@ namespace Rice::detail
                convertToRuby(args)... };
 
     static Identifier id("call");
-    VALUE result = detail::protect(rb_funcallv, this->proc_, id.id(), (int)sizeof...(Parameter_Ts), values.data());
+    VALUE result = detail::protect(rb_funcallv, this->proc_.get(), id.id(), (int)sizeof...(Parameter_Ts), values.data());
     if constexpr (!std::is_void_v<Return_T>)
     {
       return this->fromRuby_.convert(result);
