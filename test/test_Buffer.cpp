@@ -624,3 +624,60 @@ TESTCASE(void_pointer_function)
   void** result = getVoidPtrs();
   ASSERT_EQUAL(&value1, result[0]);
 }
+
+namespace
+{
+  static int defaultIntBuffer[] = { 10, 20, 30 };
+  static int secretNumber = 42;
+
+  int processIntBuffer(int* buffer, size_t size)
+  {
+    int sum = 0;
+    for (size_t i = 0; i < size; i++)
+    {
+      sum += buffer[i];
+    }
+    return sum;
+  }
+
+  int processIntBufferWithDefault(int* buffer = defaultIntBuffer, size_t size = 3)
+  {
+    return processIntBuffer(buffer, size);
+  }
+
+  int processVoidPtrWithDefault(void* ptr = &secretNumber)
+  {
+    return *static_cast<int*>(ptr);
+  }
+}
+
+TESTCASE(arg_buffer_int_default)
+{
+  define_buffer<int>();
+  Module m = define_module("Testing");
+  m.define_module_function("process_int_buffer", &processIntBufferWithDefault,
+    ArgBuffer("buffer") = static_cast<int*>(defaultIntBuffer), Arg("size") = static_cast<size_t>(3));
+
+  // Call with no arguments - should use defaults (10 + 20 + 30 = 60)
+  std::string code = R"(process_int_buffer())";
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(60, detail::From_Ruby<int>().convert(result));
+
+  // Call with buffer
+  code = R"(buffer = Rice::Buffer≺int≻.new([1, 2, 3])
+            process_int_buffer(buffer.data, buffer.size))";
+  result = m.module_eval(code);
+  ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(arg_buffer_void_default)
+{
+  Module m = define_module("Testing");
+  m.define_module_function("process_void_ptr", &processVoidPtrWithDefault,
+    ArgBuffer("ptr") = static_cast<void*>(&secretNumber));
+
+  // Call with no arguments - should use default (42)
+  std::string code = R"(process_void_ptr())";
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
+}

@@ -20,7 +20,7 @@ TEARDOWN(Data_Type)
   rb_gc_start();
 }
 
-/*namespace
+namespace
 {
   class MyClass
   {
@@ -499,7 +499,7 @@ TESTCASE(null_ptrs)
 
   result = o.call("set", nullptr);
   ASSERT_EQUAL(Qnil, result.value());
-}*/
+}
 
 namespace
 {

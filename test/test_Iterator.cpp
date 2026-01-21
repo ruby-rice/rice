@@ -6,16 +6,6 @@ using namespace Rice;
 
 TESTSUITE(Iterator);
 
-SETUP(Iterator)
-{
-  embed_ruby();
-}
-
-TEARDOWN(Iterator)
-{
-  rb_gc_start();
-}
-
 namespace
 {
   class Container
@@ -36,24 +26,6 @@ namespace
     int* array_;
     size_t length_;
   };
-} // namespace
-
-TESTCASE(define_array_iterator)
-{
-  define_class<Container>("Container")
-    .define_constructor(Constructor<Container, int*, size_t>())
-    .define_iterator(&Container::beginFoo, &Container::endBar);
-
-  int array[] = { 1, 2, 3 };
-  Container* container = new Container(array, 3);
-
-  Object wrapped_container = Data_Object<Container>(container);
-
-  Array a = wrapped_container.instance_eval("a = []; each() { |x| a << x }; a");
-  ASSERT_EQUAL(3, a.size());
-  ASSERT_EQUAL(Object(detail::to_ruby(1)), a[0]);
-  ASSERT_EQUAL(Object(detail::to_ruby(2)), a[1]);
-  ASSERT_EQUAL(Object(detail::to_ruby(3)), a[2]);
 }
 
 namespace
@@ -66,6 +38,47 @@ namespace
     }
 
     uint32_t index;
+  };
+
+  // Iterator that returns by value, not by reference (like cv::FileNodeIterator).
+  // This tests the fix for MSVC warning C4239.
+  class ValueReturningIterator
+  {
+  public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = Data;
+    using difference_type = std::ptrdiff_t;
+    using pointer = Data*;
+    using reference = Data&;  // Note: standard expects reference, but we return by value
+
+    ValueReturningIterator(std::vector<Data>* data, size_t index) : data_(data), index_(index) {}
+
+    // Returns by VALUE, not by reference - this is the key characteristic being tested
+    Data operator*() const { return (*data_)[index_]; }
+
+    ValueReturningIterator& operator++() { ++index_; return *this; }
+    ValueReturningIterator operator++(int) { auto tmp = *this; ++index_; return tmp; }
+    bool operator==(const ValueReturningIterator& other) const { return index_ == other.index_; }
+    bool operator!=(const ValueReturningIterator& other) const { return index_ != other.index_; }
+
+  private:
+    std::vector<Data>* data_;
+    size_t index_;
+  };
+
+  class ContainerWithValueIterator
+  {
+  public:
+    ContainerWithValueIterator()
+    {
+      this->data_ = { {10}, {20}, {30} };
+    }
+
+    ValueReturningIterator begin() { return ValueReturningIterator(&data_, 0); }
+    ValueReturningIterator end() { return ValueReturningIterator(&data_, data_.size()); }
+
+  private:
+    std::vector<Data> data_;
   };
 
   class ContainerValues
@@ -139,7 +152,44 @@ namespace
   };
 }
 
-TESTCASE(iterator_value)
+
+SETUP(Iterator)
+{
+  embed_ruby();
+
+  Data_Type<Data>::unbind();
+  Data_Type<ContainerValues>::unbind();
+  Data_Type<ContainerWithValueIterator>::unbind();
+
+  Rice::detail::Registries::instance.types.remove<Data>();
+  Rice::detail::Registries::instance.types.remove<ContainerValues>();
+  Rice::detail::Registries::instance.types.remove<ContainerWithValueIterator>();
+}
+
+TEARDOWN(Iterator)
+{
+  rb_gc_start();
+}
+
+TESTCASE(ArrayIterator)
+{
+  define_class<Container>("Container")
+    .define_constructor(Constructor<Container, int*, size_t>())
+    .define_iterator(&Container::beginFoo, &Container::endBar);
+
+  int array[] = { 1, 2, 3 };
+  Container* container = new Container(array, 3);
+
+  Object wrapped_container = Data_Object<Container>(container);
+
+  Array a = wrapped_container.instance_eval("a = []; each() { |x| a << x }; a");
+  ASSERT_EQUAL(3, a.size());
+  ASSERT_EQUAL(Object(detail::to_ruby(1)), a[0]);
+  ASSERT_EQUAL(Object(detail::to_ruby(2)), a[1]);
+  ASSERT_EQUAL(Object(detail::to_ruby(3)), a[2]);
+}
+
+TESTCASE(Standard)
 {
   define_class<Data>("Data")
     .define_constructor(Constructor<Data, uint32_t>());
@@ -164,7 +214,82 @@ TESTCASE(iterator_value)
   ASSERT_EQUAL(3u, wrappedData->index);
 }
 
-TESTCASE(const_iterator_value)
+TESTCASE(Lambda)
+{
+  define_class<Data>("Data")
+    .define_constructor(Constructor<Data, uint32_t>());
+
+  define_class<ContainerValues>("ContainerValues")
+    .define_constructor(Constructor<ContainerValues>())
+    .include_module(rb_mEnumerable)
+    .define_method("each", [](VALUE self, VALUE /*proc*/)->VALUE
+    {
+      if (!detail::protect(rb_block_given_p))
+      {
+        static Identifier identifier("each");
+        VALUE enumerator = detail::protect(rb_enumeratorize_with_size, self, identifier.to_sym(), 0, nullptr, nullptr);
+        return enumerator;
+      }
+      else
+      {
+        ContainerValues* container = detail::From_Ruby<ContainerValues*>().convert(self);
+
+        // The iterator returns references - we do NOT want to create a copy
+        detail::To_Ruby<Data&> toRuby;
+
+        auto it = container->begin();
+        auto end = container->end();
+
+        for (; it != end; ++it)
+        {
+          detail::protect(rb_yield, toRuby.convert(*it));
+        }
+
+        return self;
+      }
+    }, Arg("proc").setValue() = Qnil, Return().setValue());
+
+  ContainerValues* container = new ContainerValues();
+  Data_Object<ContainerValues> wrapper(container);
+
+  Module m = define_module("TestIterator");
+  std::string code = R"(result = []
+                        container = ContainerValues.new
+                        container.each do |data|
+                          result << data
+                        end
+                        result)";
+
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(3, result.size());
+
+  Data_Object<Data> wrappedData(result[0]);
+  ASSERT_EQUAL(1u, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)result[1];
+  ASSERT_EQUAL(2u, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)result[2];
+  ASSERT_EQUAL(3u, wrappedData->index);
+
+  code = R"(container = ContainerValues.new
+            enumerator = container.each
+            enumerator.to_a)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(3, result.size());
+
+  wrappedData = (Data_Object<Data>)result[0];
+  ASSERT_EQUAL(1u, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)result[1];
+  ASSERT_EQUAL(2u, wrappedData->index);
+
+  wrappedData = (Data_Object<Data>)result[2];
+  ASSERT_EQUAL(3u, wrappedData->index);
+}
+
+TESTCASE(ConstValue)
 {
   define_class<Data>("Data")
       .define_constructor(Constructor<Data, uint32_t>());
@@ -194,7 +319,7 @@ TESTCASE(const_iterator_value)
   ASSERT_EQUAL(3u, wrappedData->index);
 }
 
-TESTCASE(iterator_pointer)
+TESTCASE(Pointer)
 {
   define_class<Data>("Data")
     .define_constructor(Constructor<Data, uint32_t>());
@@ -227,7 +352,7 @@ TESTCASE(iterator_pointer)
   ASSERT_EQUAL(3u, wrappedData->index);
 }
 
-TESTCASE(two_iterator_pointer)
+TESTCASE(TwoIteratorPointers)
 {
   define_class<Data>("Data")
     .define_constructor(Constructor<Data, uint32_t>());
@@ -275,7 +400,7 @@ TESTCASE(two_iterator_pointer)
   ASSERT_EQUAL(1u, wrappedData->index);
 }
 
-TESTCASE(map)
+TESTCASE(Map)
 {
   define_class<Data>("Data")
     .define_constructor(Constructor<Data, uint32_t>())
@@ -305,10 +430,11 @@ TESTCASE(map)
   ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(element));
 }
 
-TESTCASE(to_enum)
+TESTCASE(Enum)
 {
   define_class<Data>("Data")
-    .define_constructor(Constructor<Data, uint32_t>());
+    .define_constructor(Constructor<Data, uint32_t>())
+    .define_attr("index", &Data::index, Rice::AttrAccess::Read);
 
   define_class<ContainerPointers>("ContainerPointers")
     .define_constructor(Constructor<ContainerPointers>())
@@ -335,7 +461,7 @@ TESTCASE(to_enum)
   ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(element));
 }
 
-TESTCASE(to_a)
+TESTCASE(ToArray)
 {
   define_class<Data>("Data")
     .define_constructor(Constructor<Data, uint32_t>())
@@ -372,9 +498,9 @@ TESTCASE(IterateNoCopy)
   define_class<Data>("Data")
     .define_constructor(Constructor<Data, uint32_t>());
 
-  define_class<ContainerPointers>("ContainerValues")
+  define_class<ContainerValues>("ContainerValues")
     .define_constructor(Constructor<ContainerValues>())
-    .define_iterator(&ContainerPointers::begin, &ContainerPointers::end);
+    .define_iterator(&ContainerValues::begin, &ContainerValues::end);
 
   Module m = define_module("Testing");
 
@@ -390,4 +516,33 @@ TESTCASE(IterateNoCopy)
     Data_Object<Data> actual(a[(long)i]);
     ASSERT_EQUAL(&expected, &(*actual));
   }
+}
+
+// Test iterator that returns by value (like cv::FileNodeIterator).
+// This previously caused MSVC warning C4239 about binding rvalue to non-const reference.
+TESTCASE(ValueReturningIterator)
+{
+  define_class<Data>("Data")
+    .define_constructor(Constructor<Data, uint32_t>())
+    .define_attr("index", &Data::index, Rice::AttrAccess::Read);
+
+  define_class<ContainerWithValueIterator>("ContainerWithValueIterator")
+    .define_constructor(Constructor<ContainerWithValueIterator>())
+    .define_iterator(&ContainerWithValueIterator::begin, &ContainerWithValueIterator::end);
+
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(result = []
+                        container = ContainerWithValueIterator.new
+                        container.each do |x|
+                          result << x.index
+                        end
+                        result)";
+
+  Array a = m.module_eval(code);
+
+  ASSERT_EQUAL(3, a.size());
+  ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(a[0].value()));
+  ASSERT_EQUAL(20, detail::From_Ruby<int>().convert(a[1].value()));
+  ASSERT_EQUAL(30, detail::From_Ruby<int>().convert(a[2].value()));
 }
