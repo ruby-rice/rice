@@ -156,17 +156,18 @@ namespace
 SETUP(Iterator)
 {
   embed_ruby();
+
+  Data_Type<Data>::unbind();
+  Data_Type<ContainerValues>::unbind();
+  Data_Type<ContainerWithValueIterator>::unbind();
+
+  Rice::detail::Registries::instance.types.remove<Data>();
+  Rice::detail::Registries::instance.types.remove<ContainerValues>();
+  Rice::detail::Registries::instance.types.remove<ContainerWithValueIterator>();
 }
 
 TEARDOWN(Iterator)
 {
-  Data_Type<Data>::unbind();
-  Data_Type<ContainerValues>::unbind();
-  Data_Type<ContainerWithValueIterator>::unbind();
-  Rice::detail::Registries::instance.types.remove<Data>();
-  Rice::detail::Registries::instance.types.remove<ContainerValues>();
-  Rice::detail::Registries::instance.types.remove<ContainerWithValueIterator>();
-
   rb_gc_start();
 }
 

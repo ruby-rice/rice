@@ -8,11 +8,6 @@ using namespace Rice;
 
 TESTSUITE(Overloads);
 
-SETUP(Overloads)
-{
-  embed_ruby();
-}
-
 namespace
 {
   class MyClass;
@@ -25,8 +20,10 @@ namespace
   class MyClass8;
 }
 
-TEARDOWN(Overloads)
+SETUP(Overloads)
 {
+  embed_ruby();
+
   Data_Type<MyClass>::unbind();
   Data_Type<MyClass2>::unbind();
   Data_Type<MyClass3>::unbind();
@@ -44,7 +41,10 @@ TEARDOWN(Overloads)
   Rice::detail::Registries::instance.types.remove<MyClass7>();
   Rice::detail::Registries::instance.types.remove<MyClass8>();
   Rice::detail::Registries::instance.natives.reset(Module(rb_mKernel));
+}
 
+TEARDOWN(Overloads)
+{
   rb_gc_start();
 }
 
