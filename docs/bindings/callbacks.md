@@ -111,3 +111,14 @@ abort "libffi not found" unless have_libffi
 ```
 
 If you are using CMake, you will need to add a C++ preprocessor define called `HAVE_LIBFFI` and link to libffi.
+
+## Memory Management
+
+Callback wrappers (NativeCallback instances) are intentionally never freed. This is because:
+
+1. C code may call the callback at any time, even after the Ruby code that registered it has finished executing
+2. Ruby users commonly pass blocks to C callbacks, which Rice converts to Procs internally. Without special handling, these Procs would be garbage collected and the callback would crash when invoked
+
+Rice uses `Pin` internally to prevent the Ruby Proc from being garbage collected, ensuring the callback remains valid for the lifetime of the program.
+
+In practice, this means each unique callback registration consumes a small amount of memory that is never reclaimed. For most applications this is not a concern, as callbacks are typically registered once during initialization.

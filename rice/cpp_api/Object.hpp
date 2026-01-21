@@ -52,9 +52,7 @@ namespace Rice
     operator VALUE() const { return value_; }
 
     //! Explicitly get the encapsulated VALUE.
-    // Returns a const ref so that Address_Registration_Guard can access
-    // the address where the VALUE is stored
-    VALUE const volatile& value() const { return value_; }
+    VALUE value() const { return value_; }
 
     //! Get the class of an object.
     /*! \return the object's Class.

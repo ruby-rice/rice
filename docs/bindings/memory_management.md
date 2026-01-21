@@ -217,7 +217,49 @@ If you are working with VALUEs or Objects stored on the stack, the Ruby garbage 
 
 ### Heap
 
-If you allocate an Object on the heap or if it is a member of an object that might be allocated on the heap, use `Rice::Address_Registration_Guard` to register the object with the garbage collector.
+If a C++ object holds a Ruby VALUE and that C++ object is *not* wrapped by Ruby (i.e., it's allocated on the heap or is a standalone object), use `Rice::Pin` to prevent the garbage collector from collecting the Ruby object.
+
+```cpp
+class Container
+{
+public:
+  Container(VALUE value) : pin_(value) {}
+  VALUE getValue() const { return pin_.get(); }
+  void setValue(VALUE value) { pin_.set(value); }
+
+private:
+  Rice::Pin pin_;
+};
+```
+
+#### Pin API
+
+* `Pin(VALUE value)` - Construct a Pin that protects the given VALUE from garbage collection
+* `VALUE get() const` - Retrieve the pinned VALUE
+* `void set(VALUE value)` - Replace the pinned VALUE
+
+#### Copy Semantics
+
+`Pin` uses shared ownership internally. When you copy a `Pin`, both copies share the same underlying GC anchor:
+
+```cpp
+Pin pin1(some_value);
+Pin pin2 = pin1;       // pin1 and pin2 share the same anchor
+
+pin1.set(other_value); // Both pin1.get() and pin2.get() now return other_value
+```
+
+This is useful when multiple C++ objects need to reference the same Ruby object - only one GC registration is needed.
+
+#### When to Use Pin vs ruby_mark
+
+Use `Pin` when:
+* The C++ object is **not** wrapped by Ruby (e.g., created with `new` in C++, stored in a global, or part of a C++ library's internal data structures)
+* You want self-contained protection without manual GC registration
+
+Use `ruby_mark` (see below) when:
+* The C++ object **is** wrapped by Ruby via `Data_Type`
+* Ruby owns the C++ object and will call the mark function during garbage collection
 
 ### Member Variables
 

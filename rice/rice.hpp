@@ -117,6 +117,10 @@
 #include "detail/NativeMethod.ipp"
 #include "detail/NativeProc.hpp"
 #include "detail/NativeProc.ipp"
+#include "detail/Anchor.hpp"
+#include "detail/Anchor.ipp"
+#include "Pin.hpp"
+#include "Pin.ipp"
 #include "detail/NativeCallback.hpp"
 #include "detail/NativeCallback.ipp"
 #include "detail/Proc.ipp"
@@ -134,9 +138,6 @@
 #include "cpp_api/Class.ipp"
 #include "cpp_api/Struct.hpp"
 #include "cpp_api/Struct.ipp"
-
-#include "Address_Registration_Guard.hpp"
-#include "Address_Registration_Guard.ipp"
 #include "global_function.hpp"
 #include "global_function.ipp"
 
