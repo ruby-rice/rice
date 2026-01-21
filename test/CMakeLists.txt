@@ -8,12 +8,14 @@ project(unittest LANGUAGES CXX)
 add_executable(${PROJECT_NAME})
 
 # ----- Dependencies ------
-#target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Ruby
-#find_package(Ruby Required)
 include("../FindRuby.cmake")
 target_link_libraries(${PROJECT_NAME} PRIVATE Ruby::Ruby)
+
+# Rice
+include("../Rice.cmake")
+target_link_libraries(${PROJECT_NAME} PRIVATE Rice::Rice)
 
 # FFI
 if (MSVC) # This will include Clang on Windows
@@ -33,15 +35,17 @@ else()
 endif()
 target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_LIBFFI)
 
-# Rice
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+# ----- Defines ------
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+  $<$<CONFIG:Debug>:RICE_DEBUG>
+  $<$<CONFIG:Release>:RICE_RELEASE>
+)
 
 # ----- Sources ------
 # Add source to this project's executable.
 target_sources(${PROJECT_NAME} PRIVATE
                "unittest.cpp"
                "embed_ruby.cpp"
-               "test_Address_Registration_Guard.cpp"
                "test_Array.cpp"
                "test_Attribute.cpp"
                "test_Buffer.cpp"
@@ -72,6 +76,7 @@ target_sources(${PROJECT_NAME} PRIVATE
                "test_Object.cpp"
                "test_Overloads.cpp"
                "test_Ownership.cpp"
+               "test_Pin.cpp"
                "test_Proc.cpp"
                "test_Reference.cpp"
                "test_Self.cpp"
