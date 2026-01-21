@@ -12,7 +12,26 @@ Enhancements:
 Internal:
 * Refactor type handling by merging `TypeMapper` into `TypeDetail` and simplifying class hierarchy
 
-Incomptatible Changes:
+Incompatible Changes:
+* `Address_Registration_Guard` has been replaced by `Pin`. If you are using `Address_Registration_Guard`
+  to protect Ruby VALUEs from garbage collection, update your code to use `Pin` instead:
+
+  Before:
+  ```cpp
+  VALUE value_;
+  Address_Registration_Guard guard_;
+  MyClass() : value_(rb_str_new2("test")), guard_(&value_) {}
+  ```
+
+  After:
+  ```cpp
+  Pin pin_;
+  MyClass() : pin_(rb_str_new2("test")) {}
+  VALUE getValue() { return pin_.get(); }
+  ```
+
+  `Pin` is self-contained and provides `get()` and `set()` methods to access the pinned VALUE.
+
 * Rice converts Ruby blocks to procs. Thus if you have a method that expects a block, you must add
   a VALUE parameter and tell Rice it is a value. For example:
 

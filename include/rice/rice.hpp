@@ -1388,6 +1388,7 @@ namespace Rice
   {
   public:
     ArgBuffer(std::string name);
+    using Arg::operator=;  // Inherit the templated operator=
   };
 } // Rice
 
@@ -1687,9 +1688,7 @@ namespace Rice
     operator VALUE() const { return value_; }
 
     //! Explicitly get the encapsulated VALUE.
-    // Returns a const ref so that Address_Registration_Guard can access
-    // the address where the VALUE is stored
-    VALUE const volatile& value() const { return value_; }
+    VALUE value() const { return value_; }
 
     //! Get the class of an object.
     /*! \return the object's Class.
@@ -4088,9 +4087,27 @@ namespace Rice::detail
   template<typename T>
   inline VALUE Parameter<T>::defaultValueRuby()
   {
+    using To_Ruby_T = remove_cv_recursive_t<T>;
+
+    if (!this->arg()->hasDefaultValue())
+    {
+      throw std::runtime_error("No default value set for " + this->arg()->name);
+    }
+
     if constexpr (!is_complete_v<intrinsic_type<T>>)
     {
-      // Incomplete types can't have default values (std::any requires complete types)
+      // Only pointers to incomplete types can have
+      // default values (e.g., void* or Impl*), since the pointer itself is complete.
+      // References and values of incomplete types cannot be stored in std::any.
+      if constexpr (std::is_pointer_v<std::remove_reference_t<T>>)
+      {
+        T defaultValue = this->arg()->template defaultValue<T>();
+        return this->toRuby_.convert((To_Ruby_T)defaultValue);
+      }
+      else
+      {
+        throw std::runtime_error("Default value not allowed for incomple type. Parameter " + this->arg()->name);
+      }
     }
     else if constexpr (std::is_constructible_v<std::remove_cv_t<T>, std::remove_cv_t<std::remove_reference_t<T>>&>)
     {
@@ -4100,21 +4117,20 @@ namespace Rice::detail
       {
         if constexpr (std::is_copy_constructible_v<typename detail::intrinsic_type<T>::value_type>)
         {
-          if (this->arg()->hasDefaultValue())
-          {
-            T defaultValue = this->arg()->template defaultValue<T>();
-            return this->toRuby_.convert(defaultValue);
-          }
+          T defaultValue = this->arg()->template defaultValue<T>();
+          return this->toRuby_.convert(defaultValue);
         }
       }
-      else if (this->arg()->hasDefaultValue())
+      else
       {
         T defaultValue = this->arg()->template defaultValue<T>();
-        return this->toRuby_.convert((remove_cv_recursive_t<T>)defaultValue);
+        return this->toRuby_.convert((To_Ruby_T)defaultValue);
       }
     }
-
-    throw std::runtime_error("No default value set or allowed for parameter " + this->arg()->name);
+    else
+    {
+      throw std::runtime_error("Default value not allowed for parameter " + this->arg()->name);
+    }
   }
 
   template<typename T>
@@ -5411,19 +5427,22 @@ namespace Rice
         define_method("data", &Buffer_T::ptr, ReturnBuffer()).
         define_method("release", &Buffer_T::release, ReturnBuffer());
 
-      if constexpr (!std::is_pointer_v<T> && !std::is_void_v<T> && !std::is_const_v<T> && std::is_copy_assignable_v<T>)
+      if constexpr (detail::is_complete_v<detail::intrinsic_type<T>>)
       {
-        klass.define_method("[]=", [](Buffer_T& self, size_t index, T& value) -> void
+        if constexpr (!std::is_pointer_v<T> && !std::is_void_v<T> && !std::is_const_v<T> && std::is_copy_assignable_v<T>)
         {
-          self[index] = value;
-        });
-      }
-      else if constexpr (std::is_pointer_v<T> && !std::is_const_v<std::remove_pointer_t<T>> && std::is_copy_assignable_v<std::remove_pointer_t<T>>)
-      {
-        klass.define_method("[]=", [](Buffer_T& self, size_t index, T value) -> void
+          klass.define_method("[]=", [](Buffer_T& self, size_t index, T& value) -> void
+          {
+            self[index] = value;
+          });
+        }
+        else if constexpr (std::is_pointer_v<T> && !std::is_const_v<std::remove_pointer_t<T>> && std::is_copy_assignable_v<std::remove_pointer_t<T>>)
         {
-          *self[index] = *value;
-        });
+          klass.define_method("[]=", [](Buffer_T& self, size_t index, T value) -> void
+          {
+            *self[index] = *value;
+          });
+        }
       }
 
       return klass;
@@ -9931,11 +9950,14 @@ namespace Rice::detail
   {
     Registries::instance.instances.remove(this->get(this->rb_data_type_));
 
-    if constexpr (std::is_destructible_v<T>)
+    if constexpr (is_complete_v<T>)
     {
-      if (this->isOwner_)
+      if constexpr (std::is_destructible_v<T>)
       {
-        delete this->data_;
+        if (this->isOwner_)
+        {
+          delete this->data_;
+        }
       }
     }
   }
@@ -11265,7 +11287,12 @@ namespace Rice::detail
       detail::To_Ruby<To_Ruby_T> toRuby;
       for (; it != end; ++it)
       {
-        protect(rb_yield, toRuby.convert(*it));
+        // Use auto&& to accept both reference- and value-returning iterators.
+        // - If *it is an lvalue (T&), auto&& deduces to T&, no copy made.
+        // - If *it is a prvalue (T), auto&& deduces to T&&, value binds to the temporary for the scope of this loop iteration.
+        // This also avoids MSVC C4239 when convert expects a non-const lvalue reference.
+        auto&& value = *it;
+        protect(rb_yield, toRuby.convert(value));
       }
 
       return self;
@@ -11857,6 +11884,168 @@ namespace Rice::detail
     }
   }
 }
+// =========   Anchor.hpp   =========
+
+#include <ruby.h>
+
+namespace Rice
+{
+  namespace detail
+  {
+    //! Internal GC anchor for a Ruby VALUE.
+    /*!
+     *  Anchor is a low-level adapter around the Ruby GC API.
+     *  It owns a stable VALUE slot whose address is registered
+     *  with the Ruby garbage collector.
+     *
+     *  This class encapsulates all GC registration logic and is
+     *  not part of the public Rice API.
+     */
+    class Anchor
+    {
+    public:
+      //! Construct an anchor for the given Ruby VALUE.
+      /*!
+       *  The address of the internal VALUE is registered with the
+       *  Ruby GC, preventing collection while this Anchor exists.
+       */
+      explicit Anchor(VALUE value);
+
+      //! Unregister the VALUE from the Ruby GC.
+      ~Anchor();
+
+      Anchor(const Anchor&) = delete;
+      Anchor& operator=(const Anchor&) = delete;
+
+      //! Retrieve the currently anchored VALUE.
+      VALUE get() const;
+
+      //! Replace the anchored VALUE.
+      /*!
+       *  The GC root (address) remains unchanged; only the VALUE
+       *  stored at that address is updated.
+       */
+      void set(VALUE value);
+
+    private:
+      static void disable(VALUE);
+      static void registerExitHandler();
+
+      inline static bool enabled_ = true;
+      inline static bool exitHandlerRegistered_ = false;
+
+    private:
+      //! GC-visible Ruby VALUE slot.
+      VALUE value_;
+    };
+  }
+}
+
+// =========   Anchor.ipp   =========
+namespace Rice
+{
+  namespace detail
+  {
+    inline Anchor::Anchor(VALUE value) : value_(value)
+    {
+      Anchor::registerExitHandler();
+      detail::protect(rb_gc_register_address, &this->value_);
+    }
+
+    inline Anchor::~Anchor()
+    {
+      if (Anchor::enabled_)
+      {
+        detail::protect(rb_gc_unregister_address, &this->value_);
+      }
+    }
+
+    inline VALUE Anchor::get() const
+    {
+      return this->value_;
+    }
+
+    inline void Anchor::set(VALUE value)
+    {
+      this->value_ = value;
+    }
+
+    // This will be called by ruby at exit - we want to disable further unregistering
+    inline void Anchor::disable(VALUE)
+    {
+      Anchor::enabled_ = false;
+    }
+
+    inline void Anchor::registerExitHandler()
+    {
+      if (!Anchor::exitHandlerRegistered_)
+      {
+        detail::protect(rb_set_end_proc, &Anchor::disable, Qnil);
+        Anchor::exitHandlerRegistered_ = true;
+      }
+    }
+  }
+}
+// =========   Pin.hpp   =========
+
+namespace Rice
+{
+  //! Strong lifetime policy for a Ruby VALUE.
+  /*!
+   *  Pin represents a Ruby VALUE whose lifetime is explicitly
+   *  extended by C++ code.
+   *
+   *  Internally, Pin uses a GC Anchor to keep the VALUE alive.
+   *  Copying a Pin shares the underlying anchor; moving is cheap.
+   *
+   *  This type is intended for C++-owned objects that store Ruby
+   *  values but are not themselves owned by Ruby and thus do not
+   *  participate in the GC via a mark function.
+   */
+  class Pin
+  {
+  public:
+    //! Construct a strong pin for a Ruby VALUE.
+    explicit Pin(VALUE value);
+
+    // Shared-anchor semantics.
+    Pin(const Pin&) = default;
+    Pin& operator=(const Pin&) = default;
+
+    Pin(Pin&&) noexcept = default;
+    Pin& operator=(Pin&&) noexcept = default;
+
+    //! Replace the pinned Ruby VALUE.
+    void set(VALUE value);
+
+    //! Retrieve the pinned Ruby VALUE.
+    VALUE get() const;
+
+  private:
+    //! Shared ownership of the internal GC anchor.
+    std::shared_ptr<detail::Anchor> anchor_;
+  };
+}
+
+// =========   Pin.ipp   =========
+namespace Rice
+{
+  inline Pin::Pin(VALUE value)
+    : anchor_(std::make_shared<detail::Anchor>(value))
+  {
+  }
+
+  inline void Pin::set(VALUE value)
+  {
+    this->anchor_->set(value);
+  }
+
+  inline VALUE Pin::get() const
+  {
+    return this->anchor_->get();
+  }
+}
+
 // =========   NativeCallback.hpp   =========
 
 #ifdef HAVE_LIBFFI
@@ -11868,6 +12057,11 @@ namespace Rice::detail
   template<typename Callback_T>
   class NativeCallback;
 
+  // NativeCallback instances are never freed because there is no way for us to know
+  // when they can be freed. At the same time, the Pin prevents the Ruby proc from being
+  // garbage collected, which is necessary because C code may call the callback
+  // at any time. This supports passing blocks to C callbacks without requiring the Ruby
+  // user to manually hold a reference to a proc.
   template<typename Return_T, typename ...Parameter_Ts>
   class NativeCallback<Return_T(*)(Parameter_Ts...)> : public Native
   {
@@ -11875,8 +12069,6 @@ namespace Rice::detail
     using Callback_T = Return_T(*)(Parameter_Ts...);
     using NativeCallback_T = NativeCallback<Callback_T>;
     using Tuple_T = std::tuple<Parameter_Ts...>;
-
-    static VALUE finalizerCallback(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE* argv, VALUE blockarg);
 
     template<typename ...Arg_Ts>
     static void define(Arg_Ts&& ...args);
@@ -11917,7 +12109,7 @@ namespace Rice::detail
     template<std::size_t... I>
     Return_T callRuby(std::index_sequence<I...>& indices, Parameter_Ts...args);
 
-    VALUE proc_;
+    Pin proc_;
     From_Ruby<Return_T> fromRuby_;
 
 #ifdef HAVE_LIBFFI
@@ -12096,14 +12288,6 @@ namespace Rice::detail
     return std::forward_as_tuple(extractArg<Parameter_Ts>(args[I])...);
   }
 
-  template<typename Return_T, typename ...Parameter_Ts>
-  VALUE NativeCallback<Return_T(*)(Parameter_Ts...)>::finalizerCallback(VALUE, VALUE callback_arg, int, const VALUE*, VALUE)
-  {
-    NativeCallback_T* nativeCallback = (NativeCallback_T*)callback_arg;
-    delete nativeCallback;
-    return Qnil;
-  }
-
   template<typename Return_T, typename...Parameter_Ts>
   template<typename ...Arg_Ts>
   inline void NativeCallback<Return_T(*)(Parameter_Ts...)>::define(Arg_Ts&& ...args)
@@ -12121,10 +12305,6 @@ namespace Rice::detail
     Native("callback", copyReturnInfo(), copyParameters()),
       proc_(proc), fromRuby_(returnInfo_.get())
   {
-    // Tie the lifetime of the NativeCallback C++ instance to the lifetime of the Ruby proc object
-    VALUE finalizer = rb_proc_new(NativeCallback_T::finalizerCallback, (VALUE)this);
-    rb_define_finalizer(proc, finalizer);
-
 #ifdef HAVE_LIBFFI
     // First setup description of callback
     if (cif_.bytes == 0)
@@ -12151,8 +12331,6 @@ namespace Rice::detail
 
     NativeCallback_T::callback_ = nullptr;
     NativeCallback_T::native_ = nullptr;
-
-    this->proc_ = Qnil;
   }
 
   template<typename Return_T, typename ...Parameter_Ts>
@@ -12171,7 +12349,7 @@ namespace Rice::detail
                convertToRuby(args)... };
 
     static Identifier id("call");
-    VALUE result = detail::protect(rb_funcallv, this->proc_, id.id(), (int)sizeof...(Parameter_Ts), values.data());
+    VALUE result = detail::protect(rb_funcallv, this->proc_.get(), id.id(), (int)sizeof...(Parameter_Ts), values.data());
     if constexpr (!std::is_void_v<Return_T>)
     {
       return this->fromRuby_.convert(result);
@@ -14149,163 +14327,6 @@ namespace Rice::detail
     }
   };
 }
-
-// =========   Address_Registration_Guard.hpp   =========
-
-namespace Rice
-{
-  //! A guard to register a given address with the GC.
-  /*! Calls rb_gc_register_address upon construction and
-   *  rb_gc_unregister_address upon destruction.
-   *  For example:
-   *  \code
-   *    Class Foo
-   *    {
-   *    public:
-   *      Foo()
-   *        : string_(rb_str_new2())
-   *        , guard_(&string_);
-   *
-   *    private:
-   *      VALUE string_;
-   *      Address_Registration_Guard guard_;
-   *    };
-   *  \endcode
-   */
-  class Address_Registration_Guard
-  {
-  public:
-    //! Register an address with the GC.
-    /*  \param address The address to register with the GC.  The address
-     *  must point to a valid ruby object (RObject).
-     */
-    Address_Registration_Guard(VALUE* address);
-
-    //! Register an Object with the GC.
-    /*! \param object The Object to register with the GC.  The object must
-     *  not be destroyed before the Address_Registration_Guard is
-     *  destroyed.
-     */
-    Address_Registration_Guard(Object* object);
-
-    //! Unregister an address/Object with the GC.
-    /*! Destruct an Address_Registration_Guard.  The address registered
-     *  with the Address_Registration_Guard when it was constructed will
-     *  be unregistered from the GC.
-     */
-    ~Address_Registration_Guard();
-
-    // Disable copying
-    Address_Registration_Guard(Address_Registration_Guard const& other) = delete;
-    Address_Registration_Guard& operator=(Address_Registration_Guard const& other) = delete;
-
-    // Enable moving
-    Address_Registration_Guard(Address_Registration_Guard&& other);
-    Address_Registration_Guard& operator=(Address_Registration_Guard&& other);
-
-    //! Get the address that is registered with the GC.
-    VALUE* address() const;
-
-    /** Called during Ruby's exit process since we should not call
-     * rb_gc unregister_address there
-     */
-    static void disable();
-
-  private:
-    inline static bool enabled = true;
-    inline static bool exit_handler_registered = false;
-    static void registerExitHandler();
-
-  private:
-    void registerAddress() const;
-    void unregisterAddress();
-
-    VALUE* address_ = nullptr;
-  };
-} // namespace Rice
-
-
-// =========   Address_Registration_Guard.ipp   =========
-namespace Rice
-{
-  inline Address_Registration_Guard::Address_Registration_Guard(VALUE* address) : address_(address)
-  {
-    registerExitHandler();
-    registerAddress();
-  }
-
-  inline Address_Registration_Guard::Address_Registration_Guard(Object* object)
-    : address_(const_cast<VALUE*>(&object->value()))
-  {
-    registerExitHandler();
-    registerAddress();
-  }
-
-  inline Address_Registration_Guard::~Address_Registration_Guard()
-  {
-    unregisterAddress();
-  }
-
-  inline Address_Registration_Guard::Address_Registration_Guard(Address_Registration_Guard&& other)
-  {
-    // We don't use the constructor because we don't want to double register this address
-    address_ = other.address_;
-    other.address_ = nullptr;
-  }
-
-  inline Address_Registration_Guard& Address_Registration_Guard::operator=(Address_Registration_Guard&& other)
-  {
-    this->unregisterAddress();
-
-    this->address_ = other.address_;
-    other.address_ = nullptr;
-    return *this;
-  }
-
-  inline void Address_Registration_Guard::registerAddress() const
-  {
-    if (enabled)
-    {
-      detail::protect(rb_gc_register_address, address_);
-    }
-  }
-
-  inline void Address_Registration_Guard::unregisterAddress()
-  {
-    if (enabled && address_)
-    {
-      detail::protect(rb_gc_unregister_address, address_);
-    }
-
-    address_ = nullptr;
-  }
-
-  inline VALUE* Address_Registration_Guard::address() const
-  {
-    return address_;
-  }
-
-  static void disable_all_guards(VALUE)
-  {
-    Address_Registration_Guard::disable();
-  }
-
-  inline void Address_Registration_Guard::registerExitHandler()
-  {
-    if (exit_handler_registered)
-    {
-      return;
-    }
-
-    detail::protect(rb_set_end_proc, &disable_all_guards, Qnil);
-    exit_handler_registered = true;
-  }
-
-  inline void Address_Registration_Guard::disable()
-  {
-    enabled = false;
-  }
-} // Rice
 // =========   global_function.hpp   =========
 
 namespace Rice
@@ -14411,16 +14432,13 @@ namespace Rice
   template<typename T>
   inline void ruby_mark_internal(detail::WrapperBase* wrapper)
   {
-    detail::cpp_protect([&]
-    {
-      // Tell the wrapper to mark the objects its keeping alive
-      wrapper->ruby_mark();
+    // Tell the wrapper to mark the objects its keeping alive
+    wrapper->ruby_mark();
 
-      // Get the underlying data and call custom mark function (if any)
-      // Use the wrapper's stored rb_data_type to avoid type mismatch
-      T* data = static_cast<T*>(wrapper->get(Data_Type<T>::ruby_data_type()));
-      ruby_mark<T>(data);
-    });
+    // Get the underlying data and call custom mark function (if any)
+    // Use the wrapper's stored rb_data_type to avoid type mismatch
+    T* data = static_cast<T*>(wrapper->get(Data_Type<T>::ruby_data_type()));
+    ruby_mark<T>(data);
   }
 
   template<typename T>
@@ -15571,15 +15589,13 @@ namespace Rice::detail
 
     double is_convertible(VALUE value)
     {
-      bool isBuffer = dynamic_cast<ArgBuffer*>(this->arg_) ? true : false;
-
       switch (rb_type(value))
       {
         case RUBY_T_NIL:
           return Convertible::Exact;
           break;
         case RUBY_T_DATA:
-          if (Data_Type<Pointer_T>::is_descendant(value) && isBuffer)
+          if (Data_Type<Pointer_T>::is_descendant(value))
           {
             return Convertible::Exact;
           }
@@ -15592,7 +15608,6 @@ namespace Rice::detail
     T** convert(VALUE value)
     {
       bool isOwner = this->arg_ && this->arg_->isOwner();
-      bool isBuffer = dynamic_cast<ArgBuffer*>(this->arg_) ? true : false;
 
       switch (rb_type(value))
       {
@@ -15603,7 +15618,7 @@ namespace Rice::detail
         }
         case RUBY_T_DATA:
         {
-          if (Data_Type<Pointer_T>::is_descendant(value) && isBuffer)
+          if (Data_Type<Pointer_T>::is_descendant(value))
           {
             T** result = detail::unwrap<Intrinsic_T*>(value, Data_Type<Pointer_T>::ruby_data_type(), isOwner);
             return result;
@@ -15612,14 +15627,7 @@ namespace Rice::detail
         }
         default:
         {
-          if (isBuffer)
-          {
-            throw create_type_exception<Pointer_T>(value);
-          }
-          else
-          {
-            throw create_type_exception<T**>(value);
-          }
+          throw create_type_exception<Pointer_T>(value);
         }
       }
     }

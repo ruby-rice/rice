@@ -20,7 +20,7 @@ TEARDOWN(Proc)
 
 namespace
 {
-  int squareWithBlock(int i, VALUE block)
+  int squareWithBlock(int i, VALUE /*block*/)
   {
     // You must include a value parameter at the end that will be set to a proc
     // created from the passed in block. You can actually ingore the proc and yield
