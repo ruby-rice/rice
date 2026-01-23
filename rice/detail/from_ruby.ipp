@@ -455,13 +455,25 @@ namespace Rice::detail
         }
         case RUBY_T_STRING:
         {
-          // WARNING - this shares the Ruby string memory directly with C++. value really should be frozen.
-          // Maybe we should enforce that? Note the user can always create a Buffer to allocate new memory.
-          return rb_string_value_cstr(&value);
+            if (this->arg_->isOwner())
+            {
+              // Warning - the receiver needs to free this string!
+              // TODO - raise an exception if the string has null values?
+              long len = RSTRING_LEN(value);
+              char* result = (char*)malloc(len + 1);
+              memcpy(result, RSTRING_PTR(value), len);
+              result[len] = '\0';
+              return result;
+            }
+            else
+            {
+              // WARNING - this shares the Ruby string memory directly with C++. value really should be frozen.
+              // Maybe we should enforce that? Note the user can always create a Buffer to allocate new memory.
+              return rb_string_value_cstr(&value);
+            }
         }
         default:
         {
-          char* rb_string_value_cstr(volatile VALUE * ptr);
           return FromRubyFundamental<char*>::convert(value);
         }
       }

@@ -271,16 +271,18 @@ namespace Rice
         }
         else if (this->arg_ && this->arg_->isOwner())
         {
-          // This copies the buffer but does not free it. So Ruby is not really
-          // taking ownership of it. But there isn't a Ruby API for creating a string
-          // from an existing buffer and later freeing it.
-          return protect(rb_usascii_str_new_cstr, data);
+          // This copies the buffer but does not free it
+          VALUE result = protect(rb_usascii_str_new_cstr, data);
+          // And free the char* since we were told to take "ownership"
+          // TODO - is this a good idea?
+          //free(data);
+          return result;
         }
         else
         {
           // Does NOT copy the passed in buffer and does NOT free it when the string is GCed
-          long size = (long)strlen(data);
-          VALUE result = protect(rb_str_new_static, data, size);
+          long len = (long)strlen(data);
+          VALUE result = protect(rb_str_new_static, data, len);
           // Freeze the object so Ruby can't modify the C string
           return rb_obj_freeze(result);
         }
