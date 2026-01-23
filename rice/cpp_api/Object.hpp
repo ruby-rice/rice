@@ -39,20 +39,20 @@ namespace Rice
     // Having this conversion also prevents accidental conversion to
     // undesired integral types (e.g. long or int) by making the
     // conversion ambiguous.
-    bool test() const { return RTEST(value_); }
+    bool test() const;
 
     //! Returns false if the object is nil or false; returns true
     //! otherwise.
-    operator bool() const { return test(); }
+    operator bool() const;
 
     //! Returns true if the object is nil, false otherwise.
-    bool is_nil() const { return NIL_P(value_); }
+    bool is_nil() const;
 
     //! Implicit conversion to VALUE.
-    operator VALUE() const { return value_; }
+    operator VALUE() const;
 
     //! Explicitly get the encapsulated VALUE.
-    VALUE value() const { return value_; }
+    VALUE value() const;
 
     //! Get the class of an object.
     /*! \return the object's Class.
@@ -254,7 +254,7 @@ namespace Rice
 
   protected:
     //! Set the encapsulated value.
-    void set_value(VALUE v);
+    void set_value(VALUE value);
 
   private:
     volatile VALUE value_;
