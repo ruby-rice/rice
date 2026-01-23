@@ -4,16 +4,21 @@ namespace Rice
   {
     inline Anchor::Anchor(VALUE value) : value_(value)
     {
-      Anchor::registerExitHandler();
-      detail::protect(rb_gc_register_address, &this->value_);
+      if (value != Qnil)
+      {
+        Anchor::registerExitHandler();
+        detail::protect(rb_gc_register_address, &this->value_);
+      }
     }
 
     inline Anchor::~Anchor()
     {
-      if (Anchor::enabled_)
+      if (Anchor::enabled_ && this->value_ != Qnil)
       {
         detail::protect(rb_gc_unregister_address, &this->value_);
       }
+      // Ruby auto detects VALUEs in the stack, so make sure up in case this object is on the stack
+      this->value_ = Qnil;
     }
 
     inline VALUE Anchor::get() const

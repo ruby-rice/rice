@@ -28,11 +28,8 @@ namespace Rice
     Pin(Pin&&) noexcept = default;
     Pin& operator=(Pin&&) noexcept = default;
 
-    //! Replace the pinned Ruby VALUE.
-    void set(VALUE value);
-
     //! Retrieve the pinned Ruby VALUE.
-    VALUE get() const;
+    VALUE value() const;
 
   private:
     //! Shared ownership of the internal GC anchor.

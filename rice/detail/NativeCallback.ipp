@@ -221,7 +221,7 @@ namespace Rice::detail
                convertToRuby(args)... };
 
     static Identifier id("call");
-    VALUE result = detail::protect(rb_funcallv, this->proc_.get(), id.id(), (int)sizeof...(Parameter_Ts), values.data());
+    VALUE result = detail::protect(rb_funcallv, this->proc_.value(), id.id(), (int)sizeof...(Parameter_Ts), values.data());
     if constexpr (!std::is_void_v<Return_T>)
     {
       return this->fromRuby_.convert(result);
