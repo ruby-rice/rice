@@ -1525,6 +1525,168 @@ namespace Rice::detail
   };
 }
 
+// Code to register Ruby objects with GC
+
+// =========   Anchor.hpp   =========
+
+#include <ruby.h>
+
+namespace Rice
+{
+  namespace detail
+  {
+    //! Internal GC anchor for a Ruby VALUE.
+    /*!
+     *  Anchor is a low-level adapter around the Ruby GC API.
+     *  It owns a stable VALUE slot whose address is registered
+     *  with the Ruby garbage collector.
+     *
+     *  This class encapsulates all GC registration logic and is
+     *  not part of the public Rice API.
+     */
+    class Anchor
+    {
+    public:
+      //! Construct an anchor for the given Ruby VALUE.
+      /*!
+       *  The address of the internal VALUE is registered with the
+       *  Ruby GC, preventing collection while this Anchor exists.
+       */
+      explicit Anchor(VALUE value);
+
+      //! Unregister the VALUE from the Ruby GC.
+      ~Anchor();
+
+      Anchor(const Anchor&) = delete;
+      Anchor& operator=(const Anchor&) = delete;
+
+      //! Retrieve the currently anchored VALUE.
+      VALUE get() const;
+
+      //! Replace the anchored VALUE.
+      /*!
+       *  The GC root (address) remains unchanged; only the VALUE
+       *  stored at that address is updated.
+       */
+      void set(VALUE value);
+
+    private:
+      static void disable(VALUE);
+      static void registerExitHandler();
+
+      inline static bool enabled_ = true;
+      inline static bool exitHandlerRegistered_ = false;
+
+    private:
+      //! GC-visible Ruby VALUE slot.
+      VALUE value_ = Qnil;
+    };
+  }
+}
+
+// =========   Anchor.ipp   =========
+namespace Rice
+{
+  namespace detail
+  {
+    inline Anchor::Anchor(VALUE value) : value_(value)
+    {
+      if (value != Qnil)
+      {
+        Anchor::registerExitHandler();
+        detail::protect(rb_gc_register_address, &this->value_);
+      }
+    }
+
+    inline Anchor::~Anchor()
+    {
+      if (Anchor::enabled_ && this->value_ != Qnil)
+      {
+        detail::protect(rb_gc_unregister_address, &this->value_);
+      }
+      // Ruby auto detects VALUEs in the stack, so make sure up in case this object is on the stack
+      this->value_ = Qnil;
+    }
+
+    inline VALUE Anchor::get() const
+    {
+      return this->value_;
+    }
+
+    inline void Anchor::set(VALUE value)
+    {
+      this->value_ = value;
+    }
+
+    // This will be called by ruby at exit - we want to disable further unregistering
+    inline void Anchor::disable(VALUE)
+    {
+      Anchor::enabled_ = false;
+    }
+
+    inline void Anchor::registerExitHandler()
+    {
+      if (!Anchor::exitHandlerRegistered_)
+      {
+        detail::protect(rb_set_end_proc, &Anchor::disable, Qnil);
+        Anchor::exitHandlerRegistered_ = true;
+      }
+    }
+  }
+}
+// =========   Pin.hpp   =========
+
+namespace Rice
+{
+  //! Strong lifetime policy for a Ruby VALUE.
+  /*!
+   *  Pin represents a Ruby VALUE whose lifetime is explicitly
+   *  extended by C++ code.
+   *
+   *  Internally, Pin uses a GC Anchor to keep the VALUE alive.
+   *  Copying a Pin shares the underlying anchor; moving is cheap.
+   *
+   *  This type is intended for C++-owned objects that store Ruby
+   *  values but are not themselves owned by Ruby and thus do not
+   *  participate in the GC via a mark function.
+   */
+  class Pin
+  {
+  public:
+    //! Construct a pin from a Ruby VALUE.
+    Pin(VALUE value);
+
+    // Copying
+    Pin(const Pin&) = default;
+    Pin& operator=(const Pin&) = default;
+
+    // Moving
+    Pin(Pin&&) noexcept = default;
+    Pin& operator=(Pin&&) noexcept = default;
+
+    //! Retrieve the pinned Ruby VALUE.
+    VALUE value() const;
+
+  private:
+    //! Shared ownership of the internal GC anchor.
+    std::shared_ptr<detail::Anchor> anchor_;
+  };
+}
+
+// =========   Pin.ipp   =========
+namespace Rice
+{
+  inline Pin::Pin(VALUE value)
+    : anchor_(std::make_shared<detail::Anchor>(value))
+  {
+  }
+
+  inline VALUE Pin::value() const
+  {
+    return this->anchor_->get();
+  }
+}
+
 // C++ API declarations
 
 // =========   Encoding.hpp   =========
@@ -1675,20 +1837,20 @@ namespace Rice
     // Having this conversion also prevents accidental conversion to
     // undesired integral types (e.g. long or int) by making the
     // conversion ambiguous.
-    bool test() const { return RTEST(value_); }
+    bool test() const;
 
     //! Returns false if the object is nil or false; returns true
     //! otherwise.
-    operator bool() const { return test(); }
+    operator bool() const;
 
     //! Returns true if the object is nil, false otherwise.
-    bool is_nil() const { return NIL_P(value_); }
+    bool is_nil() const;
 
     //! Implicit conversion to VALUE.
-    operator VALUE() const { return value_; }
+    operator VALUE() const;
 
     //! Explicitly get the encapsulated VALUE.
-    VALUE value() const { return value_; }
+    VALUE value() const;
 
     //! Get the class of an object.
     /*! \return the object's Class.
@@ -1890,7 +2052,7 @@ namespace Rice
 
   protected:
     //! Set the encapsulated value.
-    void set_value(VALUE v);
+    void set_value(VALUE value);
 
   private:
     volatile VALUE value_;
@@ -2521,7 +2683,7 @@ namespace Rice
     //! Construct a Module from an existing Module object.
     Module(VALUE v);
 
-    //! Construct a Module from an string that references a Module
+    //! Construct a Module from a string that references a Module
     Module(std::string name, Object under = rb_cObject);
 
     //! Return the name of the module.
@@ -6220,16 +6382,18 @@ namespace Rice
         }
         else if (this->arg_ && this->arg_->isOwner())
         {
-          // This copies the buffer but does not free it. So Ruby is not really
-          // taking ownership of it. But there isn't a Ruby API for creating a string
-          // from an existing buffer and later freeing it.
-          return protect(rb_usascii_str_new_cstr, data);
+          // This copies the buffer but does not free it
+          VALUE result = protect(rb_usascii_str_new_cstr, data);
+          // And free the char* since we were told to take "ownership"
+          // TODO - is this a good idea?
+          //free(data);
+          return result;
         }
         else
         {
           // Does NOT copy the passed in buffer and does NOT free it when the string is GCed
-          long size = (long)strlen(data);
-          VALUE result = protect(rb_str_new_static, data, size);
+          long len = (long)strlen(data);
+          VALUE result = protect(rb_str_new_static, data, len);
           // Freeze the object so Ruby can't modify the C string
           return rb_obj_freeze(result);
         }
@@ -7452,13 +7616,25 @@ namespace Rice::detail
         }
         case RUBY_T_STRING:
         {
-          // WARNING - this shares the Ruby string memory directly with C++. value really should be frozen.
-          // Maybe we should enforce that? Note the user can always create a Buffer to allocate new memory.
-          return rb_string_value_cstr(&value);
+            if (this->arg_ && this->arg_->isOwner())
+            {
+              // Warning - the receiver needs to free this string!
+              // TODO - raise an exception if the string has null values?
+              long len = RSTRING_LEN(value);
+              char* result = (char*)malloc(len + 1);
+              memcpy(result, RSTRING_PTR(value), len);
+              result[len] = '\0';
+              return result;
+            }
+            else
+            {
+              // WARNING - this shares the Ruby string memory directly with C++. value really should be frozen.
+              // Maybe we should enforce that? Note the user can always create a Buffer to allocate new memory.
+              return rb_string_value_cstr(&value);
+            }
         }
         default:
         {
-          char* rb_string_value_cstr(volatile VALUE * ptr);
           return FromRubyFundamental<char*>::convert(value);
         }
       }
@@ -11884,168 +12060,6 @@ namespace Rice::detail
     }
   }
 }
-// =========   Anchor.hpp   =========
-
-#include <ruby.h>
-
-namespace Rice
-{
-  namespace detail
-  {
-    //! Internal GC anchor for a Ruby VALUE.
-    /*!
-     *  Anchor is a low-level adapter around the Ruby GC API.
-     *  It owns a stable VALUE slot whose address is registered
-     *  with the Ruby garbage collector.
-     *
-     *  This class encapsulates all GC registration logic and is
-     *  not part of the public Rice API.
-     */
-    class Anchor
-    {
-    public:
-      //! Construct an anchor for the given Ruby VALUE.
-      /*!
-       *  The address of the internal VALUE is registered with the
-       *  Ruby GC, preventing collection while this Anchor exists.
-       */
-      explicit Anchor(VALUE value);
-
-      //! Unregister the VALUE from the Ruby GC.
-      ~Anchor();
-
-      Anchor(const Anchor&) = delete;
-      Anchor& operator=(const Anchor&) = delete;
-
-      //! Retrieve the currently anchored VALUE.
-      VALUE get() const;
-
-      //! Replace the anchored VALUE.
-      /*!
-       *  The GC root (address) remains unchanged; only the VALUE
-       *  stored at that address is updated.
-       */
-      void set(VALUE value);
-
-    private:
-      static void disable(VALUE);
-      static void registerExitHandler();
-
-      inline static bool enabled_ = true;
-      inline static bool exitHandlerRegistered_ = false;
-
-    private:
-      //! GC-visible Ruby VALUE slot.
-      VALUE value_;
-    };
-  }
-}
-
-// =========   Anchor.ipp   =========
-namespace Rice
-{
-  namespace detail
-  {
-    inline Anchor::Anchor(VALUE value) : value_(value)
-    {
-      Anchor::registerExitHandler();
-      detail::protect(rb_gc_register_address, &this->value_);
-    }
-
-    inline Anchor::~Anchor()
-    {
-      if (Anchor::enabled_)
-      {
-        detail::protect(rb_gc_unregister_address, &this->value_);
-      }
-    }
-
-    inline VALUE Anchor::get() const
-    {
-      return this->value_;
-    }
-
-    inline void Anchor::set(VALUE value)
-    {
-      this->value_ = value;
-    }
-
-    // This will be called by ruby at exit - we want to disable further unregistering
-    inline void Anchor::disable(VALUE)
-    {
-      Anchor::enabled_ = false;
-    }
-
-    inline void Anchor::registerExitHandler()
-    {
-      if (!Anchor::exitHandlerRegistered_)
-      {
-        detail::protect(rb_set_end_proc, &Anchor::disable, Qnil);
-        Anchor::exitHandlerRegistered_ = true;
-      }
-    }
-  }
-}
-// =========   Pin.hpp   =========
-
-namespace Rice
-{
-  //! Strong lifetime policy for a Ruby VALUE.
-  /*!
-   *  Pin represents a Ruby VALUE whose lifetime is explicitly
-   *  extended by C++ code.
-   *
-   *  Internally, Pin uses a GC Anchor to keep the VALUE alive.
-   *  Copying a Pin shares the underlying anchor; moving is cheap.
-   *
-   *  This type is intended for C++-owned objects that store Ruby
-   *  values but are not themselves owned by Ruby and thus do not
-   *  participate in the GC via a mark function.
-   */
-  class Pin
-  {
-  public:
-    //! Construct a strong pin for a Ruby VALUE.
-    explicit Pin(VALUE value);
-
-    // Shared-anchor semantics.
-    Pin(const Pin&) = default;
-    Pin& operator=(const Pin&) = default;
-
-    Pin(Pin&&) noexcept = default;
-    Pin& operator=(Pin&&) noexcept = default;
-
-    //! Replace the pinned Ruby VALUE.
-    void set(VALUE value);
-
-    //! Retrieve the pinned Ruby VALUE.
-    VALUE get() const;
-
-  private:
-    //! Shared ownership of the internal GC anchor.
-    std::shared_ptr<detail::Anchor> anchor_;
-  };
-}
-
-// =========   Pin.ipp   =========
-namespace Rice
-{
-  inline Pin::Pin(VALUE value)
-    : anchor_(std::make_shared<detail::Anchor>(value))
-  {
-  }
-
-  inline void Pin::set(VALUE value)
-  {
-    this->anchor_->set(value);
-  }
-
-  inline VALUE Pin::get() const
-  {
-    return this->anchor_->get();
-  }
-}
-
 // =========   NativeCallback.hpp   =========
 
 #ifdef HAVE_LIBFFI
@@ -12349,7 +12363,7 @@ namespace Rice::detail
                convertToRuby(args)... };
 
     static Identifier id("call");
-    VALUE result = detail::protect(rb_funcallv, this->proc_.get(), id.id(), (int)sizeof...(Parameter_Ts), values.data());
+    VALUE result = detail::protect(rb_funcallv, this->proc_.value(), id.id(), (int)sizeof...(Parameter_Ts), values.data());
     if constexpr (!std::is_void_v<Return_T>)
     {
       return this->fromRuby_.convert(result);
@@ -12559,6 +12573,31 @@ namespace Rice
     return *this;
   }
 
+  inline bool Object::test() const
+  {
+    return RTEST(this->value());
+  }
+
+  inline Object::operator bool() const
+  {
+    return this->test();
+  }
+
+  inline bool Object::is_nil() const
+  {
+    return NIL_P(this->value());
+  }
+
+  inline Object::operator VALUE() const
+  {
+    return this->value();
+  }
+
+  inline VALUE Object::value() const
+  {
+    return this->value_;
+  }
+
   template<typename ...Parameter_Ts>
   inline Object Object::call(Identifier id, Parameter_Ts... args) const
   {
@@ -12595,13 +12634,13 @@ namespace Rice
 
   inline bool Object::is_equal(const Object& other) const
   {
-    VALUE result = detail::protect(rb_equal, this->value_, other.value_);
+    VALUE result = detail::protect(rb_equal, this->value(), other.value());
     return RB_TEST(result);
   }
 
   inline bool Object::is_eql(const Object& other) const
   {
-    VALUE result = detail::protect(rb_eql, this->value_, other.value_);
+    VALUE result = detail::protect(rb_eql, this->value(), other.value());
     return RB_TEST(result);
   }
 
@@ -12657,9 +12696,9 @@ namespace Rice
     return detail::protect(rb_attr_get, this->value(), name.id());
   }
 
-  inline void Object::set_value(VALUE v)
+  inline void Object::set_value(VALUE value)
   {
-    value_ = v;
+    value_ = value;
   }
 
   inline Object Object::const_get(Identifier name) const
@@ -13870,7 +13909,7 @@ namespace Rice
     }
   }
 
-  //! Construct a Module from an string that references a Module
+  //! Construct a Module from a string that references a Module
   inline Module::Module(std::string name, Object under)
   {
     VALUE result = under.const_get(name);
@@ -15946,7 +15985,7 @@ namespace Rice
   // These methods cannot be defined where they are declared due to circular dependencies
   inline Class Object::class_of() const
   {
-    return detail::protect(rb_class_of, value_);
+    return detail::protect(rb_class_of, this->value());
   }
 
   inline String Object::to_s() const
