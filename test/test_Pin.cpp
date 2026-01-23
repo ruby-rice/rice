@@ -28,12 +28,7 @@ namespace
 
     VALUE getValue() const
     {
-      return pin_.get();
-    }
-
-    void setValue(VALUE value)
-    {
-      pin_.set(value);
+      return pin_.value();
     }
 
   private:
@@ -45,7 +40,7 @@ TESTCASE(prevents_gc_collection)
 {
   Container* container = nullptr;
 
-  // Create container with a Ruby string in a nested scope
+  // Create a Container with a Ruby string in a nested scope
   {
     VALUE str = rb_str_new_cstr("prevent gc test");
     container = new Container(str);
@@ -59,19 +54,6 @@ TESTCASE(prevents_gc_collection)
   ASSERT_EQUAL("prevent gc test", detail::From_Ruby<char*>().convert(retrieved));
 
   delete container;
-}
-
-TESTCASE(update_pinned_value)
-{
-  Container container(rb_str_new_cstr("first"));
-
-  rb_gc_start();
-  ASSERT_EQUAL("first", detail::From_Ruby<char*>().convert(container.getValue()));
-
-  container.setValue(rb_str_new_cstr("second"));
-
-  rb_gc_start();
-  ASSERT_EQUAL("second", detail::From_Ruby<char*>().convert(container.getValue()));
 }
 
 TESTCASE(copy_container)
