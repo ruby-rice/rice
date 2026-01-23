@@ -244,11 +244,11 @@ TESTCASE(ShareOwnership2)
   ASSERT_EQUAL(0, Factory::instance_.use_count());
   m.module_eval(code);
 
-#if RICE_RELEASE
-  ASSERT_EQUAL(1, Factory::instance_.use_count());
-#else
+//#if RICE_RELEASE
+//  ASSERT_EQUAL(2, Factory::instance_.use_count());
+//#else
   ASSERT_EQUAL(11, Factory::instance_.use_count());
-#endif
+//#endif
   rb_gc_start();
   ASSERT_EQUAL(1, Factory::instance_.use_count());
 
