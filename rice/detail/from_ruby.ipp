@@ -455,7 +455,7 @@ namespace Rice::detail
         }
         case RUBY_T_STRING:
         {
-            if (this->arg_->isOwner())
+            if (this->arg_ && this->arg_->isOwner())
             {
               // Warning - the receiver needs to free this string!
               // TODO - raise an exception if the string has null values?
