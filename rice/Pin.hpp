@@ -18,13 +18,14 @@ namespace Rice
   class Pin
   {
   public:
-    //! Construct a strong pin for a Ruby VALUE.
-    explicit Pin(VALUE value);
+    //! Construct a pin from a Ruby VALUE.
+    Pin(VALUE value);
 
-    // Shared-anchor semantics.
+    // Copying
     Pin(const Pin&) = default;
     Pin& operator=(const Pin&) = default;
 
+    // Moving
     Pin(Pin&&) noexcept = default;
     Pin& operator=(Pin&&) noexcept = default;
 
