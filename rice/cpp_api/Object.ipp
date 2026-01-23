@@ -27,6 +27,31 @@ namespace Rice
     return *this;
   }
 
+  inline bool Object::test() const
+  {
+    return RTEST(this->value());
+  }
+
+  inline Object::operator bool() const
+  {
+    return this->test();
+  }
+
+  inline bool Object::is_nil() const
+  {
+    return NIL_P(this->value());
+  }
+
+  inline Object::operator VALUE() const
+  {
+    return this->value();
+  }
+
+  inline VALUE Object::value() const
+  {
+    return this->value_;
+  }
+
   template<typename ...Parameter_Ts>
   inline Object Object::call(Identifier id, Parameter_Ts... args) const
   {
@@ -63,13 +88,13 @@ namespace Rice
 
   inline bool Object::is_equal(const Object& other) const
   {
-    VALUE result = detail::protect(rb_equal, this->value_, other.value_);
+    VALUE result = detail::protect(rb_equal, this->value(), other.value());
     return RB_TEST(result);
   }
 
   inline bool Object::is_eql(const Object& other) const
   {
-    VALUE result = detail::protect(rb_eql, this->value_, other.value_);
+    VALUE result = detail::protect(rb_eql, this->value(), other.value());
     return RB_TEST(result);
   }
 
@@ -125,9 +150,9 @@ namespace Rice
     return detail::protect(rb_attr_get, this->value(), name.id());
   }
 
-  inline void Object::set_value(VALUE v)
+  inline void Object::set_value(VALUE value)
   {
-    value_ = v;
+    value_ = value;
   }
 
   inline Object Object::const_get(Identifier name) const

@@ -244,7 +244,11 @@ TESTCASE(ShareOwnership2)
   ASSERT_EQUAL(0, Factory::instance_.use_count());
   m.module_eval(code);
 
+//#if RICE_RELEASE
+//  ASSERT_EQUAL(2, Factory::instance_.use_count());
+//#else
   ASSERT_EQUAL(11, Factory::instance_.use_count());
+//#endif
   rb_gc_start();
   ASSERT_EQUAL(1, Factory::instance_.use_count());
 
@@ -253,7 +257,6 @@ TESTCASE(ShareOwnership2)
   ASSERT_EQUAL(0, MyClass::moveConstructorCalls);
   ASSERT_EQUAL(0, MyClass::destructorCalls);
   ASSERT_EQUAL(9, Factory::instance_->flag);
-
 }
 
 TESTCASE(PtrParameter)

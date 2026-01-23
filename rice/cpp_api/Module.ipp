@@ -16,7 +16,7 @@ namespace Rice
     }
   }
 
-  //! Construct a Module from an string that references a Module
+  //! Construct a Module from a string that references a Module
   inline Module::Module(std::string name, Object under)
   {
     VALUE result = under.const_get(name);

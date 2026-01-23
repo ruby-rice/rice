@@ -4,6 +4,9 @@ require 'rbconfig'
 
 abort "libffi not found" unless have_libffi
 
+# Specify release mode
+append_cppflags("-DRICE_RELEASE")
+
 # Totally hack mkmf to make a unittest executable instead of a shared library
 target_exe = "unittest#{RbConfig::CONFIG['EXEEXT']}"
 $cleanfiles << target_exe

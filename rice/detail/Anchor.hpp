@@ -51,7 +51,7 @@ namespace Rice
 
     private:
       //! GC-visible Ruby VALUE slot.
-      VALUE value_;
+      VALUE value_ = Qnil;
     };
   }
 }

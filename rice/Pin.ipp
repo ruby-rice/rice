@@ -5,12 +5,7 @@ namespace Rice
   {
   }
 
-  inline void Pin::set(VALUE value)
-  {
-    this->anchor_->set(value);
-  }
-
-  inline VALUE Pin::get() const
+  inline VALUE Pin::value() const
   {
     return this->anchor_->get();
   }

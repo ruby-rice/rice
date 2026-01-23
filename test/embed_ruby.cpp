@@ -24,6 +24,11 @@ void embed_ruby()
     ruby_options(2, (char**)opts);
 #endif
 
+    // Enable GC stress to help catch GC-related bugs
+#if RICE_RELEASE
+   // rb_funcall(rb_mGC, rb_intern("stress="), 1, Qtrue);
+#endif
+
     initialized__ = true;
   }
 }

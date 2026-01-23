@@ -43,6 +43,12 @@
 #include "detail/RubyType.hpp"
 #include "detail/Parameter.hpp"
 
+// Code to register Ruby objects with GC
+#include "detail/Anchor.hpp"
+#include "detail/Anchor.ipp"
+#include "Pin.hpp"
+#include "Pin.ipp"
+
 // C++ API declarations
 #include "cpp_api/Encoding.hpp"
 #include "cpp_api/Identifier.hpp"
@@ -117,10 +123,6 @@
 #include "detail/NativeMethod.ipp"
 #include "detail/NativeProc.hpp"
 #include "detail/NativeProc.ipp"
-#include "detail/Anchor.hpp"
-#include "detail/Anchor.ipp"
-#include "Pin.hpp"
-#include "Pin.ipp"
 #include "detail/NativeCallback.hpp"
 #include "detail/NativeCallback.ipp"
 #include "detail/Proc.ipp"

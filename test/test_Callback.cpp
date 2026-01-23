@@ -151,7 +151,8 @@ namespace
   char* triggerCallback(int callBackIndex)
   {
     Callback_T2 callback = callbacks[callBackIndex];
-    return callback();
+    char* result = callback();
+    return result;
   }
 }
 
@@ -160,13 +161,17 @@ TESTCASE(MultipleCallbacks)
 {
   Module m = define_module("TestingMultipleCallbacks");
   m.define_module_function<void(*)(Callback_T2, Callback_T2)>("register_callback", registerTwoCallbacks).
-    define_module_function<char*(*)(int)>("trigger_callback", triggerCallback);
+    define_module_function<char*(*)(int)>("trigger_callback", triggerCallback, Return().takeOwnership());
 
-  std::string code = R"(proc1 = Proc.new do 
+  // The callback returns char* which we need to take ownership of otherwise it will be freed
+  // when the Ruby string from the proc gets GCed.
+  define_callback<Callback_T2>(Return().takeOwnership());
+
+  std::string code = R"(proc1 = Proc.new do
                                   "Proc 1"
                                 end
 
-                        proc2 = Proc.new do 
+                        proc2 = Proc.new do
                                   "Proc 2"
                                 end
 

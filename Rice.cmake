@@ -4,8 +4,8 @@ if(NOT TARGET Rice)
   add_library(Rice INTERFACE)
 
   target_include_directories(Rice INTERFACE
-    $<BUILD_INTERFACE:$<$<CONFIG:Debug>:${CMAKE_CURRENT_SOURCE_DIR}>>
-    $<BUILD_INTERFACE:$<$<CONFIG:Release>:${CMAKE_CURRENT_SOURCE_DIR}/include>>
+    $<BUILD_INTERFACE:$<$<CONFIG:Debug>:${CMAKE_CURRENT_LIST_DIR}>>
+    $<BUILD_INTERFACE:$<$<CONFIG:Release>:${CMAKE_CURRENT_LIST_DIR}/include>>
     $<INSTALL_INTERFACE:include>
   )
 
