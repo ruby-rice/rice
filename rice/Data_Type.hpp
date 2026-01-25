@@ -133,11 +133,11 @@ namespace Rice
     template<typename Iterator_Func_T>
     Data_Type<T>& define_iterator(Iterator_Func_T begin, Iterator_Func_T end, std::string name = "each");
 
-    template <typename Attribute_T, typename...Arg_Ts>
-    Data_Type<T>& define_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite, const Arg_Ts&...args);
-  
-    template <typename Attribute_T, typename...Arg_Ts>
-    Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite, const Arg_Ts&...args);
+    template <typename Attribute_T, typename Access_T = AttrAccess::ReadWriteType, typename...Arg_Ts>
+    Data_Type<T>& define_attr(std::string name, Attribute_T attribute, Access_T access = {}, const Arg_Ts&...args);
+
+    template <typename Attribute_T, typename Access_T = AttrAccess::ReadWriteType, typename...Arg_Ts>
+    Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attribute, Access_T access = {}, const Arg_Ts&...args);
 
     #include "cpp_api/shared_methods.hpp"
   protected:
@@ -163,8 +163,8 @@ namespace Rice
     template<typename Method_T, typename...Arg_Ts>
     void wrap_native_method(VALUE klass, std::string name, Method_T&& function, const Arg_Ts&...args);
 
-    template <typename Attribute_T, typename...Arg_Ts>
-    Data_Type<T>& define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access, const Arg_Ts&...args);
+    template <typename Attribute_T, typename Access_T, typename...Arg_Ts>
+    Data_Type<T>& define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, Access_T access, const Arg_Ts&...args);
 
   private:
     template<typename T_>

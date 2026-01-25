@@ -242,11 +242,12 @@ TESTCASE(const_attribute)
   Data_Type<DataStruct> c = define_class<DataStruct>("DataStruct")
     .define_constructor(Constructor<DataStruct>());
 
-  ASSERT_EXCEPTION_CHECK(
-    std::exception,
-    c.define_attr("const_int", &DataStruct::constInt),
-    ASSERT_EQUAL(ex.what(), "Cannot define attribute writer for a const attribute: const_int")
-  );
+  // This now fails at compile time
+  // ASSERT_EXCEPTION_CHECK(
+  //  std::exception,
+  //  c.define_attr("const_int", &DataStruct::constInt),
+  //  ASSERT_EQUAL(ex.what(), "Cannot define attribute writer for a const attribute: const_int")
+  //);
 
   c.define_attr("const_int", &DataStruct::constInt, AttrAccess::Read);
   Data_Object<DataStruct> o = c.call("new");
@@ -269,11 +270,12 @@ TESTCASE(not_assignable)
   Data_Type<DataStruct> c = define_class<DataStruct>("DataStruct")
     .define_constructor(Constructor<DataStruct>());
 
-  ASSERT_EXCEPTION_CHECK(
-    std::exception,
-    c.define_attr("not_assignable", &DataStruct::notAssignable),
-    ASSERT_EQUAL(ex.what(), "Cannot define attribute writer for a non assignable attribute: not_assignable")
-  );
+  // Now fails at compile time
+  // ASSERT_EXCEPTION_CHECK(
+  //  std::exception,
+  //  c.define_attr("not_assignable", &DataStruct::notAssignable),
+  //  ASSERT_EQUAL(ex.what(), "Cannot define attribute writer for a non assignable attribute: not_assignable")
+  //);
 
   c.define_attr("not_assignable", &DataStruct::notAssignable, AttrAccess::Read);
   Data_Object<NotAssignable> notAssignable = notAssignableClass.call("new");
@@ -298,11 +300,12 @@ TESTCASE(not_copyable)
   Data_Type<DataStruct> c = define_class<DataStruct>("DataStruct")
     .define_constructor(Constructor<DataStruct>());
 
-  ASSERT_EXCEPTION_CHECK(
-    std::exception,
-    c.define_attr("not_copyable", &DataStruct::notCopyable),
-    ASSERT_EQUAL(ex.what(), "Cannot define attribute writer for a non copy constructible attribute: not_copyable")
-  );
+  // This is now  a compile time error
+  //ASSERT_EXCEPTION_CHECK(
+  //  std::exception,
+  //  c.define_attr("not_copyable", &DataStruct::notCopyable),
+  //  ASSERT_EQUAL(ex.what(), "Cannot define attribute writer for a non copy constructible attribute: not_copyable")
+  //);
 
   c.define_attr("not_copyable", &DataStruct::notCopyable, AttrAccess::Read);
   Data_Object<NotCopyable> notCopyable = notCopyableClass.call("new");
