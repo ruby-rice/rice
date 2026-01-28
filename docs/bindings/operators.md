@@ -70,7 +70,7 @@ Ruby allows the `!` operator to be overridden but not `&&` or `||`.
 |:------:|:----------------:|:------------|
 | &&     | Not overridable  | logical_and |
 | \|\|   | Not overridable  | logical_or  |
-| !      | !                | decrement_pre |
+| !      | !                |             |
 
 ## Increment / Decrement Operators
 
@@ -78,10 +78,10 @@ C++ supports increment and decrement operators while Ruby does not. Thus these o
 
 | C++  | Ruby             | Ruby Method    |
 |:----:|:----------------:|:---------------|
-| ++a  | Not overridable  | increment_pre  |
-| a++  | Not overridable  | increment      |
-| --a  | Not overridable  | decrement_pre  |
-| a--  | Not overridable  | decrement      |
+| ++a  | Not overridable  | increment      |
+| a++  | Not overridable  | increment_post |
+| --a  | Not overridable  | decrement      |
+| a--  | Not overridable  | decrement_post |
 
 ## Other Operators
 
