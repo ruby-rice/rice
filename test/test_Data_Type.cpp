@@ -9,6 +9,11 @@ using namespace Rice;
 
 TESTSUITE(Data_Type);
 
+namespace
+{
+  class KlassTestClass;
+}
+
 SETUP(Data_Type)
 {
   embed_ruby();
@@ -17,6 +22,7 @@ SETUP(Data_Type)
 TEARDOWN(Data_Type)
 {
   Rice::detail::Registries::instance.types.clearUnverifiedTypes();
+  Data_Type<KlassTestClass>::unbind();
   rb_gc_start();
 }
 
@@ -969,4 +975,35 @@ TESTCASE(pointer_of_pointer_ranges)
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(21, detail::From_Ruby<int>().convert(result));
+}
+
+namespace
+{
+  class KlassTestClass
+  {
+  };
+}
+
+TESTCASE(klass)
+{
+  Class c = define_class<KlassTestClass>("KlassTestClass")
+    .define_constructor(Constructor<KlassTestClass>());
+
+  Class klass = Data_Type<KlassTestClass>::klass();
+  ASSERT_EQUAL(c, klass);
+
+  String name = klass.name();
+  ASSERT_EQUAL("KlassTestClass", name.str());
+}
+
+TESTCASE(dataType)
+{
+  Class c = define_class<KlassTestClass>("KlassTestClass")
+    .define_constructor(Constructor<KlassTestClass>());
+
+  Data_Type<KlassTestClass> dataType = Data_Type<KlassTestClass>();
+  ASSERT_EQUAL(c, dataType);
+
+  String name = dataType.name();
+  ASSERT_EQUAL("KlassTestClass", name.str());
 }
