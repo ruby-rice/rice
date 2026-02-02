@@ -41,6 +41,8 @@ Incompatible Changes:
 
   Think of this as similar to how you would capture a block in Ruby using the &block syntax.
 
+* The `Data_Type<T>::define()` method has been removed. See the [Class Templates](docs/bindings/class_templates.md) documentation for the recommended approach.
+
 ## 4.9.1 (2026-01-04)
 This release focuses on improving memory management for STL containers and attribute setters.
 

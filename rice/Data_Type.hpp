@@ -62,27 +62,6 @@ namespace Rice
     template<typename Constructor_T, typename...Rice_Arg_Ts>
     Data_Type<T>& define_constructor(Constructor_T constructor, Rice_Arg_Ts const& ...args);
 
-    /*! Runs a function that should define this Data_Types methods and attributes.
-     *  This is useful when creating classes from a C++ class template.
-     *
-     *  \param builder A function that addes methods/attributes to this class
-     *
-     *  For example:
-     *  \code
-     *    void builder(Data_Type<Matrix<T, R, C>>& klass)
-     *    {
-     *      klass.define_method...
-     *      return klass;
-     *    }
-     *
-     *    define_class<<Matrix<T, R, C>>>("Matrix")
-     *      .build(&builder);
-     *
-     *  \endcode
-     */
-    template<typename Func_T>
-    Data_Type<T>& define(Func_T func);
-
     //! Register a Director class for this class.
     /*! For any class that uses Rice::Director to enable polymorphism
      *  across the languages, you need to register that director proxy

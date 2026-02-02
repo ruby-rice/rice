@@ -44,10 +44,11 @@ namespace
   };
 }
 
-template<typename Data_Type_T, typename T>
-void MyVector_builder(Data_Type_T& klass)
+template<typename T>
+Data_Type<T> MyVector_instantiate(const char* name)
 {
-  klass.define_constructor(Constructor<MyVector<T>>())
+  return Rice::define_class<MyVector<T>>(name)
+    .define_constructor(Constructor<MyVector<T>>())
     .define_method("add", &MyVector<T>::add)
     .define_method("size", &MyVector<T>::size)
     .define_attr("empty", &MyVector<T>::empty, Rice::AttrAccess::Read);
@@ -55,8 +56,7 @@ void MyVector_builder(Data_Type_T& klass)
 
 TESTCASE(my_vector)
 {
-  Class C1 = define_class<MyVector<int>>("MyVecInt").
-             define(&MyVector_builder<Data_Type<MyVector<int>>, int>);
+  Class C1 = MyVector_instantiate<int>("MyVecInt");
 
   Object o1 = C1.create();
   Object result1 = o1.instance_eval("empty");
@@ -72,8 +72,7 @@ TESTCASE(my_vector)
   result1 = o1.instance_eval("size");
   ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result1.value()));
 
-  Class C2 = define_class<MyVector< std::string>>("MyVecInt").
-             define(&MyVector_builder<Data_Type<MyVector<std::string>>, std::string>);
+  Class C2 = MyVector_instantiate<std::string>("MyVecInt");
 
   Object o2 = C2.create();
   Object result2 = o2.instance_eval("empty");
@@ -118,25 +117,26 @@ namespace
   };
 }
 
-template<typename Data_Type_T, typename T, int Rows, int Columns>
-void Matrix_builder(Data_Type_T& klass)
+template<typename T, int Rows, int Columns>
+Data_Type<Matrix<T, Rows, Columns>> Matrix_instantiate(const char* name)
 {
-  klass.define_constructor(Constructor<Matrix<T, Rows, Columns>>())
+  return Rice::define_class<Matrix<T, Rows, Columns>>(name)
+    .define_constructor(Constructor<Matrix<T, Rows, Columns>>())
     .define_method("rows", &Matrix<T, Rows, Columns>::rows)
     .define_method("cols", &Matrix<T, Rows, Columns>::cols);
 }
 
-template<typename Data_Type_T, typename T, int N>
-void Scalar_builder(Data_Type_T& klass)
+template<typename T, int N>
+Data_Type<Scalar<T, N>> Scalar_instantiate(const char* name)
 {
-  klass.define_constructor(Constructor<Scalar<T, N>>())
+  return Rice::define_class<Scalar<T, N>, Matrix<T, N, 1>>(name)
+    .define_constructor(Constructor<Scalar<T, N>>())
     .define_method("size", &Scalar<T, N>::size);
 }
 
 TESTCASE(matrix)
 {
-  Class C = define_class<Matrix<float, 5, 4>>("Matrixf54").
-    define(&Matrix_builder<Data_Type<Matrix<float, 5, 4>>, float, 5, 4>);
+  Class C = Matrix_instantiate<float, 5, 4>("Matrixf54");
 
   Object o = C.create();
 
@@ -146,8 +146,7 @@ TESTCASE(matrix)
 
 TESTCASE(duplicate_template)
 {
-  Class C1 = define_class<Matrix<float, 6, 4>>("MatrixFirst").
-    define(&Matrix_builder<Data_Type<Matrix<float, 6, 4>>, float, 6, 4>);
+  Class C1 = Matrix_instantiate<float, 6, 4>("MatrixFirst");
 
   String name = C1.name();
   ASSERT_EQUAL("MatrixFirst", name.str());
@@ -156,8 +155,7 @@ TESTCASE(duplicate_template)
   bool result = aClass1.is_equal(C1);
   ASSERT(result);
 
-  Class C2 = define_class<Matrix<float, 6, 4>>("MatrixSecond").
-    define(&Matrix_builder<Data_Type<Matrix<float, 6, 4>>, float, 6, 4>);
+  Class C2 = Matrix_instantiate<float, 6, 4>("MatrixSecond");
 
   // The first definition name is the one that wins!
   name = C2.name();
@@ -173,11 +171,9 @@ TESTCASE(duplicate_template)
 
 TESTCASE(template_inheritance)
 {
-  Class MatrixClass = define_class<Matrix<float, 5, 1>>("Matrixf51").
-    define(&Matrix_builder<Data_Type<Matrix<float, 5, 1>>, float, 5, 1>);
+  Class MatrixClass = Matrix_instantiate<float, 5, 1>("Matrixf51");
 
-  Class ScalarClass = define_class<Scalar<float, 5>, Matrix<float, 5, 1>>("Scalarf5").
-    define(&Scalar_builder<Data_Type<Scalar<float, 5>>, float, 5>);
+  Class ScalarClass = Scalar_instantiate<float, 5>("Scalarf5");
 
   Object o = ScalarClass.create();
 

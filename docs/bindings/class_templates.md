@@ -46,47 +46,46 @@ typedef Mat_<Vec4i> Mat4i;
 
 A naive approach to wrapping these classes is to define each one separately. Don't do that!
 
-Instead, write a function to create wrappers. A simplified version looks like this:
+Instead, write a function template that creates and returns the wrapper:
 
 ```cpp
-template<typename Data_Type_T, typename _Tp>
-inline void Mat__builder(Data_Type_T& klass)
+template<typename _Tp>
+inline Data_Type<cv::Mat_<_Tp>> Mat__instantiate(VALUE module, const char* name)
 {
-  klass.define_constructor(Constructor<cv::Mat_::Mat_<_Tp>>()).
-    define_constructor(Constructor<cv::Mat_::Mat_<_Tp>, int, int>(), Arg("_rows"), Arg("_cols")).
+  return define_class_under<cv::Mat_<_Tp>, cv::Mat>(module, name)
+    .define_constructor(Constructor<cv::Mat_::Mat_<_Tp>>())
+    .define_constructor(Constructor<cv::Mat_::Mat_<_Tp>, int, int>(), Arg("_rows"), Arg("_cols"))
 
-    template define_iterator<cv::Mat_<_Tp>::iterator(cv::Mat_<_Tp>::*)()>(&cv::Mat_<_Tp>::begin, &cv::Mat_<_Tp>::end, "each").
-    template define_method<_Tp&(cv::Mat_<_Tp>::*)(int, int)>("[]", &cv::Mat_<_Tp>::operator(), Arg("row"), Arg("col")).
+    .template define_iterator<typename cv::Mat_<_Tp>::iterator(cv::Mat_<_Tp>::*)()>(&cv::Mat_<_Tp>::begin, &cv::Mat_<_Tp>::end, "each")
+    .template define_method<_Tp&(cv::Mat_<_Tp>::*)(int, int)>("[]", &cv::Mat_<_Tp>::operator(), Arg("row"), Arg("col"))
 
-    define_method("[]=", [](cv::Mat_<_Tp>& self, int row, int column, _Tp& value)
+    .define_method("[]=", [](cv::Mat_<_Tp>& self, int row, int column, _Tp& value)
     {
       self(row, column) = value;
     });
-};
+}
 ```
 
-Then call this function using the `define` method Rice provides:
+Then call this function to instantiate each concrete class:
 
 ```cpp
-VALUE rb_cMat1b = define_class_under<cv::Mat_<unsigned char>, cv::Mat>(rb_mCv, "Mat1b").
-  define(&Mat__builder<Data_Type<cv::Mat_<unsigned char>>, unsigned char>);
+VALUE rb_cMat1b = Mat__instantiate<unsigned char>(rb_mCv, "Mat1b");
 
-VALUE rb_cMat2b = define_class_under<cv::Mat_<cv::Vec<unsigned char, 2>>, cv::Mat>(rb_mCv, "Mat2b").
-  define(&Mat__builder<Data_Type<cv::Mat_<cv::Vec<unsigned char, 2>>>, cv::Vec<unsigned char, 2>>);
+VALUE rb_cMat2b = Mat__instantiate<cv::Vec<unsigned char, 2>>(rb_mCv, "Mat2b");
 
 ...
 ```
 
 There are few things to notice about the above code.
 
-First, by convention, the method is named `"#{template_name}_builder"`. So in this case `Mat__builder`. You may of course name the method anything you want.
+First, by convention, the function is named `"#{template_name}_instantiate"`. So in this case `Mat__instantiate`. You may of course name the function anything you want.
 
 Second, the `template` keyword needs to be used in front of methods:
 
 ```cpp
- template define_iterator<cv::Mat_<_Tp>::iterator(cv::Mat_<_Tp>::*)()>(&cv::Mat_<_Tp>::begin, &cv::Mat_<_Tp>::end, "each").
+.template define_iterator<typename cv::Mat_<_Tp>::iterator(cv::Mat_<_Tp>::*)()>(&cv::Mat_<_Tp>::begin, &cv::Mat_<_Tp>::end, "each")
 
- template define_method<_Tp&(cv::Mat_<_Tp>::*)(int, int)>("[]", &cv::Mat_<_Tp>::operator(), Arg("row"), Arg("col")).
+.template define_method<_Tp&(cv::Mat_<_Tp>::*)(int, int)>("[]", &cv::Mat_<_Tp>::operator(), Arg("row"), Arg("col"))
 ```
 
 Third, the array constructor cannot be wrapped because it uses a template parameter that is not defined:
@@ -99,11 +98,12 @@ explicit Mat_(const std::array<_Tp, _Nm>& arr, bool copyData=false);
 Fourth, the `operator()` is mapped to two Ruby methods, `[]` and `[]=`.
 
 ```cpp
-    template define_method<_Tp&(cv::Mat_<_Tp>::*)(int, int)>("[]", &cv::Mat_<_Tp>::operator(), Arg("row"), Arg("col")).
-    define_method("[]=", [](cv::Mat_<_Tp>& self, int row, int column, _Tp& value)
-    {
-      self(row, column) = value;
-    });
+.template define_method<_Tp&(cv::Mat_<_Tp>::*)(int, int)>("[]", &cv::Mat_<_Tp>::operator(), Arg("row"), Arg("col"))
+
+.define_method("[]=", [](cv::Mat_<_Tp>& self, int row, int column, _Tp& value)
+{
+  self(row, column) = value;
+});
 ```
 
-Once you have created a class builder function it is easy to create new C++ classes from class templates and wrap them in Ruby.
+Once you have created an instantiation function it is easy to create new C++ classes from class templates and wrap them in Ruby.

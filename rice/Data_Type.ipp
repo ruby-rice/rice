@@ -195,14 +195,6 @@ namespace Rice
   }
 
   template<typename T>
-  template<typename Function_T>
-  inline Data_Type<T>& Data_Type<T>::define(Function_T func)
-  {
-    func(*this);
-    return *this;
-  }
-
-  template<typename T>
   template<typename Director_T>
   inline Data_Type<T>& Data_Type<T>::define_director()
   {
