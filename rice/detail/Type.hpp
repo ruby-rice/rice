@@ -33,6 +33,12 @@ namespace Rice::detail
     static bool verify();
   };
 
+  template <typename T, int N>
+  struct Type<T[N]>
+  {
+    static bool verify();
+  };
+    
   template<typename T>
   void verifyType();
 

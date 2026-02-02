@@ -83,6 +83,7 @@ namespace
     NotAssignable notAssignable;
     NotCopyable notCopyable;
     char buf[2] = { '0', '1' };
+    std::vector<int> vectors[2] = { std::vector<int>{2}, std::vector<int>{3} };
     OldEnum oldEnum = OldValue1;
     NewEnum newEnum = NewEnum::NewValue1;
     MyClass2* myClass2 = nullptr;
@@ -183,6 +184,8 @@ TESTCASE(Enums)
     .define_attr("oldEnum", &DataStruct::oldEnum)
     .define_attr("newEnum", &DataStruct::newEnum);
 
+  Rice::detail::Registries::instance.types.validateTypes();
+
   Object o = c.call("new");
   DataStruct* dataStruct = detail::From_Ruby<DataStruct*>().convert(o);
   ASSERT_NOT_EQUAL(nullptr, dataStruct);
@@ -210,6 +213,8 @@ TESTCASE(Array)
     .define_constructor(Constructor<DataStruct>())
     .define_attr("buf", &DataStruct::buf, Rice::AttrAccess::Read);
 
+  Rice::detail::Registries::instance.types.validateTypes();
+
   Object o = c.call("new");
   DataStruct* dataStruct = detail::From_Ruby<DataStruct*>().convert(o);
   ASSERT_NOT_EQUAL(nullptr, dataStruct);
@@ -228,6 +233,8 @@ TESTCASE(vector)
     .define_attr("vector", &VecStruct::vector, Rice::AttrAccess::Read)
     .define_method("vector_size", &VecStruct::vecSize);
 
+  Rice::detail::Registries::instance.types.validateTypes();
+
   std::string code = R"(struct = VecStruct.new([1, 2])
                         # Access the attribute
                         array =  struct.vector.to_a
@@ -235,6 +242,35 @@ TESTCASE(vector)
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(arrayOfvector)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_class<DataStruct>("DataStruct")
+    .define_constructor(Constructor<DataStruct>())
+    .define_attr("vectors", &DataStruct::vectors, Rice::AttrAccess::Read);
+
+  Rice::detail::Registries::instance.types.validateTypes();
+
+  std::string code = R"(struct = DataStruct.new
+                        struct.vectors.class.name)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL("Rice::Buffer≺vector≺int≻≻", detail::From_Ruby<char*>().convert(result));
+
+  code = R"(struct = DataStruct.new
+            struct.vectors[0].class.name)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL("Std::Vector≺int≻", detail::From_Ruby<char*>().convert(result));
+
+  code = R"(struct = DataStruct.new
+            struct.vectors[1].first)";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(3, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(const_attribute)
