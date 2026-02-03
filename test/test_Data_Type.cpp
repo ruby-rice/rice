@@ -11,6 +11,9 @@ TESTSUITE(Data_Type);
 
 namespace
 {
+  class MyClass;
+  class MyClass2;
+  class MyClass3;
   class KlassTestClass;
 }
 
@@ -22,6 +25,9 @@ SETUP(Data_Type)
 TEARDOWN(Data_Type)
 {
   Rice::detail::Registries::instance.types.clearUnverifiedTypes();
+  Data_Type<MyClass>::unbind();
+  Data_Type<MyClass2>::unbind();
+  Data_Type<MyClass3>::unbind();
   Data_Type<KlassTestClass>::unbind();
   rb_gc_start();
 }
@@ -298,7 +304,31 @@ TESTCASE(static_singleton_function_lambda)
   ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 }
 
-namespace {
+namespace
+{
+  class MyClass3
+  {
+  };
+}
+
+TESTCASE(not_bound)
+{
+  Module m = define_module("Testing");
+
+  Data_Type<MyClass3> dataType;
+  dataType.
+    define_method("something", [](MyClass3&) -> std::string
+    {
+      return "Should raise error";
+    });
+
+  std::string code = R"(Object.new.something)";
+  String result = m.module_eval(code);
+  ASSERT_EQUAL("foo", result.c_str());
+}
+
+namespace
+{
   class BaseClass
   {
   public:
@@ -366,7 +396,8 @@ TESTCASE(subclass_override_initializer)
   );
 }
 
-namespace {
+namespace
+{
   float with_reference_defaults_x;
   std::string with_reference_defaults_str;
 
