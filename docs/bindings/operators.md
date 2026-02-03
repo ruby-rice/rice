@@ -24,6 +24,40 @@ C++ and Ruby support overriding the same arithmetic operators.
 | /   | /    |
 | %   | %    |
 
+## Unary Operators
+
+C++ supports unary versions of `+`, `-`, `~`, and `!`. Ruby uses special method names for unary `+` and `-` to distinguish them from their binary counterparts.
+
+| C++ | Ruby | Notes |
+|:---:|:----:|:------|
+| +a  | +@   | Unary plus |
+| -a  | -@   | Unary minus (negation) |
+| ~a  | ~    | Bitwise NOT |
+| !a  | !    | Logical NOT |
+
+Example:
+
+```cpp
+class Vector
+{
+public:
+    Vector operator-() const;  // Unary minus
+    Vector operator+() const;  // Unary plus
+};
+```
+
+```cpp
+define_method("-@", &Vector::operator-);
+define_method("+@", &Vector::operator+);
+```
+
+In Ruby:
+
+```ruby
+v = Vector.new(1, 2, 3)
+negated = -v  # Calls -@
+```
+
 ## Assignment Operators
 
 C++ supports overriding assignment operators while Ruby does not. Thus these operators must be mapped to Ruby methods.
@@ -35,7 +69,7 @@ C++ supports overriding assignment operators while Ruby does not. Thus these ope
 | -=   | Not overridable  | assign_minus    |
 | *=   | Not overridable  | assign_multiply |
 | /=   | Not overridable  | assign_divide   |
-| %=   | Not overridable  | assign_plus     |
+| %=   | Not overridable  | assign_modulus  |
 
 ## Bitwise Operators
 
@@ -57,8 +91,8 @@ C++ and Ruby support overriding the same comparison operators.
 |:---:|:----:|
 | ==  | ==   |
 | !=  | !=   |
-| >   | <    |
-| <   | >    |
+| >   | >    |
+| <   | <    |
 | >=  | >=   |
 | <=  | <=   |
 
