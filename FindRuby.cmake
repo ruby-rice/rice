@@ -17,7 +17,8 @@ supported.
 
 Components
 ^^^^^^^^^^
-  .. versionadded:: 4.2.2
+
+.. versionadded:: 4.3
 
 This module supports the following components:
 
@@ -32,7 +33,8 @@ are searched for.
 
 Imported Targets
 ^^^^^^^^^^^^^^^^
-  .. versionadded:: 4.2.2
+
+.. versionadded:: 4.3
 
 This module defines the following :prop_tgt:`IMPORTED` targets:
 
@@ -146,7 +148,7 @@ Finding Ruby and specifying the minimum required version:
   find_package(Ruby 3.2)
 #]=======================================================================]
 
-#cmake_policy(GET CMP0185 _Ruby_CMP0185)
+cmake_policy(GET CMP0185 _Ruby_CMP0185)
 
 if(NOT _Ruby_CMP0185 STREQUAL "NEW")
   # Backwards compatibility
@@ -175,14 +177,14 @@ set(_Ruby_POSSIBLE_EXECUTABLE_NAMES ruby)
 # If the user has not specified a Ruby version, create a list of Ruby versions
 # to search (newest to oldest). Based on https://www.ruby-lang.org/en/downloads/releases/
 if (NOT Ruby_FIND_VERSION_EXACT)
-  set(_Ruby_SUPPORTED_VERSIONS 40 35 34 33 32)
+  set(_Ruby_SUPPORTED_VERSIONS 40 34 33 32)
   set(_Ruby_UNSUPPORTED_VERSIONS 31 30 27 26 25 24 23 22 21 20)
   foreach (_ruby_version IN LISTS _Ruby_SUPPORTED_VERSIONS _Ruby_UNSUPPORTED_VERSIONS)
     string(SUBSTRING "${_ruby_version}" 0 1 _ruby_major_version)
     string(SUBSTRING "${_ruby_version}" 1 1 _ruby_minor_version)
     # Append both rubyX.Y and rubyXY (eg: ruby3.4 ruby34)
-    list(APPEND _Ruby_POSSIBLE_EXECUTABLE_NAMES 
-         ruby${_ruby_major_version}.${_ruby_minor_version} 
+    list(APPEND _Ruby_POSSIBLE_EXECUTABLE_NAMES
+         ruby${_ruby_major_version}.${_ruby_minor_version}
          ruby${_ruby_major_version}${_ruby_minor_version})
   endforeach ()
 endif ()

@@ -62,27 +62,6 @@ namespace Rice
     template<typename Constructor_T, typename...Rice_Arg_Ts>
     Data_Type<T>& define_constructor(Constructor_T constructor, Rice_Arg_Ts const& ...args);
 
-    /*! Runs a function that should define this Data_Types methods and attributes.
-     *  This is useful when creating classes from a C++ class template.
-     *
-     *  \param builder A function that addes methods/attributes to this class
-     *
-     *  For example:
-     *  \code
-     *    void builder(Data_Type<Matrix<T, R, C>>& klass)
-     *    {
-     *      klass.define_method...
-     *      return klass;
-     *    }
-     *
-     *    define_class<<Matrix<T, R, C>>>("Matrix")
-     *      .build(&builder);
-     *
-     *  \endcode
-     */
-    template<typename Func_T>
-    Data_Type<T>& define(Func_T func);
-
     //! Register a Director class for this class.
     /*! For any class that uses Rice::Director to enable polymorphism
      *  across the languages, you need to register that director proxy
@@ -133,11 +112,11 @@ namespace Rice
     template<typename Iterator_Func_T>
     Data_Type<T>& define_iterator(Iterator_Func_T begin, Iterator_Func_T end, std::string name = "each");
 
-    template <typename Attribute_T, typename...Arg_Ts>
-    Data_Type<T>& define_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite, const Arg_Ts&...args);
-  
-    template <typename Attribute_T, typename...Arg_Ts>
-    Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite, const Arg_Ts&...args);
+    template <typename Attribute_T, typename Access_T = AttrAccess::ReadWriteType, typename...Arg_Ts>
+    Data_Type<T>& define_attr(std::string name, Attribute_T attribute, Access_T access = {}, const Arg_Ts&...args);
+
+    template <typename Attribute_T, typename Access_T = AttrAccess::ReadWriteType, typename...Arg_Ts>
+    Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attribute, Access_T access = {}, const Arg_Ts&...args);
 
     #include "cpp_api/shared_methods.hpp"
   protected:
@@ -163,8 +142,8 @@ namespace Rice
     template<typename Method_T, typename...Arg_Ts>
     void wrap_native_method(VALUE klass, std::string name, Method_T&& function, const Arg_Ts&...args);
 
-    template <typename Attribute_T, typename...Arg_Ts>
-    Data_Type<T>& define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access, const Arg_Ts&...args);
+    template <typename Attribute_T, typename Access_T, typename...Arg_Ts>
+    Data_Type<T>& define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, Access_T access, const Arg_Ts&...args);
 
   private:
     template<typename T_>

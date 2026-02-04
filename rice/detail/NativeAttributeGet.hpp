@@ -3,11 +3,15 @@
 
 namespace Rice
 {
-  enum class AttrAccess
+  struct AttrAccess
   {
-    ReadWrite,
-    Read,
-    Write
+    struct ReadWriteType {};
+    struct ReadType {};
+    struct WriteType {};
+
+    static constexpr ReadWriteType ReadWrite{};
+    static constexpr ReadType Read{};
+    static constexpr WriteType Write{};
   };
 
   namespace detail

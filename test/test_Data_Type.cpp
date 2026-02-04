@@ -9,6 +9,14 @@ using namespace Rice;
 
 TESTSUITE(Data_Type);
 
+namespace
+{
+  class MyClass;
+  class MyClass2;
+  class MyClass3;
+  class KlassTestClass;
+}
+
 SETUP(Data_Type)
 {
   embed_ruby();
@@ -17,6 +25,10 @@ SETUP(Data_Type)
 TEARDOWN(Data_Type)
 {
   Rice::detail::Registries::instance.types.clearUnverifiedTypes();
+  Data_Type<MyClass>::unbind();
+  Data_Type<MyClass2>::unbind();
+  Data_Type<MyClass3>::unbind();
+  Data_Type<KlassTestClass>::unbind();
   rb_gc_start();
 }
 
@@ -292,7 +304,41 @@ TESTCASE(static_singleton_function_lambda)
   ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
 }
 
-namespace {
+namespace
+{
+  class MyClass3
+  {
+  };
+}
+
+TESTCASE(not_bound)
+{
+  Module m = define_module("Testing");
+
+  Data_Type<MyClass3> dataType;
+  dataType.
+    define_method("something", [](MyClass3&) -> std::string
+      {
+        return "Should raise error";
+      });
+
+  std::string code = R"(Object.new.something)";
+
+#ifdef _MSC_VER
+  std::string message = "Type is not defined with Rice: class `anonymous namespace'::MyClass3";
+#else
+  std::string message = "Type is not defined with Rice: (anonymous namespace)::MyClass3";
+#endif
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval(code),
+    ASSERT_EQUAL(message, ex.what())
+  );
+}  
+
+namespace
+{
   class BaseClass
   {
   public:
@@ -360,7 +406,8 @@ TESTCASE(subclass_override_initializer)
   );
 }
 
-namespace {
+namespace
+{
   float with_reference_defaults_x;
   std::string with_reference_defaults_str;
 
@@ -969,4 +1016,35 @@ TESTCASE(pointer_of_pointer_ranges)
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(21, detail::From_Ruby<int>().convert(result));
+}
+
+namespace
+{
+  class KlassTestClass
+  {
+  };
+}
+
+TESTCASE(klass)
+{
+  Class c = define_class<KlassTestClass>("KlassTestClass")
+    .define_constructor(Constructor<KlassTestClass>());
+
+  Class klass = Data_Type<KlassTestClass>::klass();
+  ASSERT_EQUAL(c, klass);
+
+  String name = klass.name();
+  ASSERT_EQUAL("KlassTestClass", name.str());
+}
+
+TESTCASE(dataType)
+{
+  Class c = define_class<KlassTestClass>("KlassTestClass")
+    .define_constructor(Constructor<KlassTestClass>());
+
+  Data_Type<KlassTestClass> dataType = Data_Type<KlassTestClass>();
+  ASSERT_EQUAL(c, dataType);
+
+  String name = dataType.name();
+  ASSERT_EQUAL("KlassTestClass", name.str());
 }

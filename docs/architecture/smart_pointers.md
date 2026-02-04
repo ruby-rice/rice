@@ -412,3 +412,7 @@ namespace Rice
   }
 }
 ```
+
+## See Also
+
+- [Incomplete Types](incomplete_types.md) - Handling forward-declared types, including smart pointers to incomplete types

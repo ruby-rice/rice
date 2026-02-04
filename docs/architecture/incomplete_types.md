@@ -182,8 +182,92 @@ Since Rice only stores pointers and never copies incomplete types by value, it d
 - Cannot access members of incomplete types directly
 - The incomplete type must be registered before any function using it is called
 
+## Smart Pointers to Incomplete Types
+
+While Rice supports raw pointers and references to incomplete types, **smart pointers** (`std::shared_ptr`, `std::unique_ptr`, etc.) require special handling.
+
+### The Problem
+
+Smart pointers need to instantiate their deleter at compile time. When you create a `std::shared_ptr<T>` from a raw `T*`, the template must generate code to `delete` the pointer - which requires `T` to be a complete type:
+
+```cpp
+class Impl;  // Forward declaration - incomplete
+
+// This will cause a compiler warning/error:
+// "deletion of pointer to incomplete type; no destructor called"
+std::shared_ptr<Impl> ptr(new Impl);  // Can't instantiate deleter!
+```
+
+### Rice's Solution
+
+Rice's `define_shared_ptr<T>()` function uses `is_complete_v<T>` to detect incomplete types and skip registering constructors that would require the complete type:
+
+```cpp
+// From rice/stl/shared_ptr.ipp
+if constexpr (detail::is_complete_v<T> && !std::is_void_v<T>)
+{
+    result.define_constructor(Constructor<SharedPtr_T, T*>(),
+        Arg("value").takeOwnership());
+}
+```
+
+This means:
+- **Complete types**: Full smart pointer support including construction from raw pointers
+- **Incomplete types**: Smart pointer type is registered, but constructors taking `T*` are skipped
+
+### Passing Existing Smart Pointers
+
+Even without the `T*` constructor, you can still pass around existing smart pointers that were created on the C++ side (where the complete type is available):
+
+```cpp
+class Widget {
+public:
+    struct Impl;
+    std::shared_ptr<Impl> getImpl();  // Returns existing shared_ptr - OK!
+    void setImpl(std::shared_ptr<Impl> impl);  // Accepts existing shared_ptr - OK!
+private:
+    std::shared_ptr<Impl> pImpl_;
+};
+```
+
+### Custom Smart Pointer Types
+
+If you're wrapping a library with its own smart pointer type (like OpenCV's `cv::Ptr`), apply the same pattern:
+
+```cpp
+template<typename T>
+Data_Type<CustomPtr<T>> define_custom_ptr()
+{
+    // ... setup ...
+
+    // Only define T* constructor for complete types
+    if constexpr (detail::is_complete_v<T> && !std::is_void_v<T>)
+    {
+        result.define_constructor(Constructor<CustomPtr<T>, T*>(),
+            Arg("ptr").takeOwnership());
+    }
+
+    return result;
+}
+```
+
+### Using is_complete_v
+
+Rice provides the `detail::is_complete_v<T>` trait for detecting incomplete types:
+
+```cpp
+#include <rice/rice.hpp>
+
+class Complete { int x; };
+class Incomplete;
+
+static_assert(Rice::detail::is_complete_v<Complete> == true);
+static_assert(Rice::detail::is_complete_v<Incomplete> == false);
+```
+
 ## See Also
 
+- [Smart Pointers](smart_pointers.md) - Implementing support for custom smart pointer types
 - [Pointers](../bindings/pointers.md) - General pointer handling in Rice
 - [References](../bindings/references.md) - Reference handling in Rice
 - [Memory Management](../bindings/memory_management.md) - Object lifetime management

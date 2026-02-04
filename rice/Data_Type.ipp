@@ -195,14 +195,6 @@ namespace Rice
   }
 
   template<typename T>
-  template<typename Function_T>
-  inline Data_Type<T>& Data_Type<T>::define(Function_T func)
-  {
-    func(*this);
-    return *this;
-  }
-
-  template<typename T>
   template<typename Director_T>
   inline Data_Type<T>& Data_Type<T>::define_director()
   {
@@ -337,61 +329,36 @@ namespace Rice
   }
 
   template <typename T>
-  template <typename Attribute_T, typename...Arg_Ts>
-  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attribute_T attribute, AttrAccess access, const Arg_Ts&...args)
+  template <typename Attribute_T, typename Access_T, typename...Arg_Ts>
+  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attribute_T attribute, Access_T access, const Arg_Ts&...args)
   {
-    return this->define_attr_internal<Attribute_T>(this->klass_, name, std::forward<Attribute_T>(attribute), access, args...);
+    return this->define_attr_internal<Attribute_T, Access_T>(this->klass_, name, std::forward<Attribute_T>(attribute), access, args...);
   }
 
   template <typename T>
-  template <typename Attribute_T, typename...Arg_Ts>
-  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access, const Arg_Ts&...args)
+  template <typename Attribute_T, typename Access_T, typename...Arg_Ts>
+  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attribute_T attribute, Access_T access, const Arg_Ts&...args)
   {
     VALUE singleton = detail::protect(rb_singleton_class, this->value());
-    return this->define_attr_internal<Attribute_T>(singleton, name, std::forward<Attribute_T>(attribute), access, args...);
+    return this->define_attr_internal<Attribute_T, Access_T>(singleton, name, std::forward<Attribute_T>(attribute), access, args...);
   }
 
   template <typename T>
-  template <typename Attribute_T, typename...Arg_Ts>
-  inline Data_Type<T>& Data_Type<T>::define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access, const Arg_Ts&...args)
+  template <typename Attribute_T, typename Access_T, typename...Arg_Ts>
+  inline Data_Type<T>& Data_Type<T>::define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, Access_T, const Arg_Ts&...args)
   {
     using Attr_T = typename detail::attribute_traits<Attribute_T>::attr_type;
 
     // Define attribute getter
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
+    if constexpr (std::is_same_v<Access_T, AttrAccess::ReadWriteType> || std::is_same_v<Access_T, AttrAccess::ReadType>)
     {
       detail::NativeAttributeGet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute), args...);
     }
 
     // Define attribute setter
-    // Define attribute setter
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
+    if constexpr (std::is_same_v<Access_T, AttrAccess::ReadWriteType> || std::is_same_v<Access_T, AttrAccess::WriteType>)
     {
-      // This seems super hacky - must be a better way?
-      constexpr bool checkWriteAccess = !std::is_reference_v<Attr_T> && 
-                                        !std::is_pointer_v<Attr_T> &&
-                                        !std::is_fundamental_v<Attr_T> &&
-                                        !std::is_enum_v<Attr_T>;
-      
-      if constexpr (std::is_const_v<Attr_T>)
-      {
-        throw std::runtime_error("Cannot define attribute writer for a const attribute: " + name);
-      }
-      // Attributes are set using assignment operator like this:
-      //   myInstance.attribute = newvalue
-      else if constexpr (checkWriteAccess && !std::is_assignable_v<Attr_T, Attr_T>)
-      {
-        throw std::runtime_error("Cannot define attribute writer for a non assignable attribute: " + name);
-      }
-      // From_Ruby returns a copy of the value for non-reference and non-pointers, thus needs to be copy constructable
-      else if constexpr (checkWriteAccess && !std::is_copy_constructible_v<Attr_T>)
-      {
-        throw std::runtime_error("Cannot define attribute writer for a non copy constructible attribute: " + name);
-      }
-      else
-      {
-        detail::NativeAttributeSet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute), args...);
-      }
+      detail::NativeAttributeSet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute), args...);
     }
 
     return *this;

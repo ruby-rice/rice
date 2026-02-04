@@ -34,6 +34,12 @@ namespace Rice::detail
     return Type<T>::verify();
   }
 
+  template <typename T, int N>
+  inline bool Type<T[N]>::verify()
+  {
+    return Type<T>::verify();
+  }
+  
   template<typename T>
   void verifyType()
   {

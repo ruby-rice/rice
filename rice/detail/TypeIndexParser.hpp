@@ -33,11 +33,9 @@ namespace Rice::detail
   class TypeDetail
   {
   public:
-    // From TypeIndexParser
     std::string name();
     std::string simplifiedName();
 
-    // From TypeMapper
     VALUE rubyKlass();
     std::string rubyName();
 
