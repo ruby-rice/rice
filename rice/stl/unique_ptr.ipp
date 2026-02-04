@@ -31,10 +31,18 @@ namespace Rice
         return !self;
       });
 
-    // Setup delegation to forward T's methods via get (only for non-fundamental, non-void types)
+    // Forward methods to wrapped T
     if constexpr (!std::is_void_v<T> && !std::is_fundamental_v<T>)
     {
-      detail::define_forwarding(result.klass(), Data_Type<T>::klass());
+      result.instance_eval(R"(
+        define_method(:method_missing) do |method_name, *args, &block|
+          self.get.send(method_name, *args, &block)
+        end
+
+        define_method(:respond_to_missing?) do |method_name, include_private = false|
+          self.get.send(method_name, *args, &block)
+        end
+      )");
     }
 
     return result;
