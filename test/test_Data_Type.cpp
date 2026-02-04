@@ -318,14 +318,24 @@ TESTCASE(not_bound)
   Data_Type<MyClass3> dataType;
   dataType.
     define_method("something", [](MyClass3&) -> std::string
-    {
-      return "Should raise error";
-    });
+      {
+        return "Should raise error";
+      });
 
   std::string code = R"(Object.new.something)";
-  String result = m.module_eval(code);
-  ASSERT_EQUAL("foo", result.c_str());
-}
+
+#ifdef _MSC_VER
+  std::string message = "Type is not defined with Rice: class `anonymous namespace'::MyClass3";
+#else
+  std::string message = "Type is not defined with Rice: (anonymous namespace)::MyClass3";
+#endif
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    m.module_eval(code),
+    ASSERT_EQUAL(message, ex.what())
+  );
+}  
 
 namespace
 {
