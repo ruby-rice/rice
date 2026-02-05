@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.9.2 (unreleased)
+## 4.10.0 (2026-02-05)
 
 Enhancements:
 * Add support for incomplete types (PIMPL/opaque handle patterns). Rice now uses `typeid(T*)` for forward-declared types that are never fully defined.
@@ -8,9 +8,12 @@ Enhancements:
 * Add support for `Buffer<void*>` and `Pointer<void*>`
 * Add support for `std::function`. Ruby procs, lambdas, and blocks can be wrapped in `std::function` objects and passed to C++ methods. C++ functions returning `std::function` are automatically wrapped.
 * Add support for `std::ostream`, `std::ostringstream`, and `std::ofstream`. Ruby can write to C++ streams and pass them to C++ functions. Standard streams are exposed as `Std::COUT` and `Std::CERR`.
+* Add support for verifying arrays of non-fundamental types (e.g., `MyClass[2]`)
+* Delegate method calls for smart pointers to their wrapped objects via method_missing?
 
 Internal:
 * Refactor type handling by merging `TypeMapper` into `TypeDetail` and simplifying class hierarchy
+* Greatly simplify define_attr
 
 Incompatible Changes:
 * `Address_Registration_Guard` has been replaced by `Pin`. If you are using `Address_Registration_Guard`
