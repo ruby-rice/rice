@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <iostream>
+#include <regex>
 
 class Failure
 {
@@ -221,7 +222,7 @@ template<typename S, typename T>
 struct is_streamable<S, T, std::void_t<decltype(std::declval<S&>()<<std::declval<T>())>>: std::true_type {};
 
 template<typename T, typename U>
-void assert_equal(
+inline void assert_equal(
     T const & t,
     U const & u,
     std::string const & s_t,
@@ -244,7 +245,7 @@ void assert_equal(
 }
 
 template<typename T, typename U>
-void assert_not_equal(
+inline void assert_not_equal(
     T const & t,
     U const & u,
     std::string const & s_t,
@@ -290,6 +291,26 @@ void assert_in_delta(
   }
 }
 
+inline void assert_match(
+  const char* pattern,
+  const char* string,
+  std::string const&,
+  std::string const&,
+  std::string const& file,
+  size_t line)
+{
+  std::regex regex_pattern(pattern, std::regex::ECMAScript | std::regex::icase);
+
+  if (!std::regex_search(string, regex_pattern))
+  {
+    std::stringstream strm;
+    strm << "Assertion failed: "
+      << string << " should match \"" << pattern << "\""
+      << " at " << file << ":" << line;
+    throw Assertion_Failed(strm.str());
+  }
+}
+
 #define FAIL(message, expect, got) \
   do \
   { \
@@ -319,6 +340,12 @@ void assert_in_delta(
     assert_in_delta((x), (y), (delta), #x, #y, #delta, __FILE__, __LINE__); \
   } while(0)
 
+#define ASSERT_MATCH(pattern, string) \
+  do \
+  { \
+    ++assertions; \
+    assert_match((pattern), (string), #pattern, #string, __FILE__, __LINE__); \
+  } while(0)
 
 #define ASSERT(x) \
   ASSERT_EQUAL(true, !!x);
