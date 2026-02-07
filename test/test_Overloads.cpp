@@ -689,7 +689,7 @@ TESTCASE(int_conversion_4)
 
 #ifdef _WIN32
 
-#if RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR >= 4
+#if (RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR >= 4) || RUBY_API_VERSION_MAJOR >= 4
   const char* expected = "bignum too big to convert into 'long'";
 #else
   const char* expected = "bignum too big to convert into `long'";
