@@ -39,9 +39,8 @@ namespace Rice::detail
     // Check with FromRuby if the VALUE is convertible to C++
     double result = this->fromRuby_.is_convertible(value);
 
-    // If this is an exact match check if the const-ness of the value and the parameter match.
-    // One caveat - procs are also RUBY_T_DATA so don't check if this is a function type
-    if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA && !std::is_function_v<std::remove_pointer_t<T>>)
+    // Some Ruby objects like Proc and Set (in Ruby 4+) are also RUBY_T_DATA so we have to check for them
+    if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA && Data_Type<remove_cv_recursive_t<T>>::is_descendant(value))
     {
       bool isConst = WrapperBase::isConst(value);
 

@@ -22,6 +22,7 @@
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #endif
 
+#include <ruby/version.h>
 #include <ruby.h>
 #include <ruby/encoding.h>
 #include <ruby/thread.h>

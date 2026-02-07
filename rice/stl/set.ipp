@@ -312,8 +312,17 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
+          {
+          #if RUBY_API_VERSION_MAJOR >= 4
+            if (detail::protect(rb_obj_is_instance_of, value, rb_cSet))
+            {
+              return Convertible::Exact;
+            }
+          #endif
             return Data_Type<std::set<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
+          }
+          #if RUBY_API_VERSION_MAJOR < 4
           case RUBY_T_OBJECT:
           {
             Object object(value);
@@ -322,6 +331,7 @@ namespace Rice
               return Convertible::Exact;
             }
           }
+          #endif
           default:
             return Convertible::None;
         }
@@ -333,9 +343,19 @@ namespace Rice
         {
           case RUBY_T_DATA:
           {
-            // This is a wrapped self (hopefully!)
-            return *detail::unwrap<std::set<T>>(value, Data_Type<std::set<T>>::ruby_data_type(), false);
+            #if RUBY_API_VERSION_MAJOR >= 4
+            if (detail::protect(rb_obj_is_instance_of, value, rb_cSet))
+            {
+              return toSet<T>(value);
+            }
+            #endif
+
+            if (Data_Type<std::set<T>>::is_descendant(value))
+            {
+              return *detail::unwrap<std::set<T>>(value, Data_Type<std::set<T>>::ruby_data_type(), false);
+            }
           }
+          #if RUBY_API_VERSION_MAJOR < 4
           case RUBY_T_OBJECT:
           {
             Object object(value);
@@ -346,6 +366,7 @@ namespace Rice
             throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
+          #endif
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
@@ -376,8 +397,15 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
+            #if RUBY_API_VERSION_MAJOR >= 4
+            if (detail::protect(rb_obj_is_instance_of, value, rb_cSet))
+            {
+              return Convertible::Exact;
+            }
+            #endif
             return Data_Type<std::set<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
+          #if RUBY_API_VERSION_MAJOR < 4
           case RUBY_T_OBJECT:
           {
             Object object(value);
@@ -386,6 +414,7 @@ namespace Rice
               return Convertible::Exact;
             }
           }
+          #endif
           default:
             return Convertible::None;
         }
@@ -397,9 +426,24 @@ namespace Rice
         {
           case RUBY_T_DATA:
           {
-            // This is a wrapped self (hopefully!)
-            return *detail::unwrap<std::set<T>>(value, Data_Type<std::set<T>>::ruby_data_type(), false);
+            #if RUBY_API_VERSION_MAJOR >= 4
+            if (detail::protect(rb_obj_is_instance_of, value, rb_cSet))
+            {
+              // If this an Ruby array and the vector type is copyable
+              if constexpr (std::is_default_constructible_v<T>)
+              {
+                this->converted_ = toSet<T>(value);
+                return this->converted_;
+              }
+            }
+            #endif
+
+            if (Data_Type<std::set<T>>::is_descendant(value))
+            {
+              return *detail::unwrap<std::set<T>>(value, Data_Type<std::set<T>>::ruby_data_type(), false);
+            }
           }
+          #if RUBY_API_VERSION_MAJOR < 4
           case RUBY_T_OBJECT:
           {
             Object object(value);
@@ -415,6 +459,7 @@ namespace Rice
             throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
+          #endif
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
@@ -445,11 +490,18 @@ namespace Rice
         switch (rb_type(value))
         {
           case RUBY_T_DATA:
+            #if RUBY_API_VERSION_MAJOR >= 4
+            if (detail::protect(rb_obj_is_instance_of, value, rb_cSet))
+            {
+              return Convertible::Exact;
+            }
+            #endif
             return Data_Type<std::set<T>>::is_descendant(value) ? Convertible::Exact : Convertible::None;
             break;
           case RUBY_T_NIL:
             return Convertible::Exact;
             break;
+          #if RUBY_API_VERSION_MAJOR < 4
           case RUBY_T_OBJECT:
           {
             Object object(value);
@@ -458,6 +510,7 @@ namespace Rice
               return Convertible::Exact;
             }
           }
+          #endif
           default:
             return Convertible::None;
         }
@@ -469,9 +522,24 @@ namespace Rice
         {
           case RUBY_T_DATA:
           {
-            // This is a wrapped self (hopefully!)
-            return detail::unwrap<std::set<T>>(value, Data_Type<std::set<T>>::ruby_data_type(), false);
+            #if RUBY_API_VERSION_MAJOR >= 4
+            if (detail::protect(rb_obj_is_instance_of, value, rb_cSet))
+            {
+              // If this an Ruby array and the vector type is copyable
+              if constexpr (std::is_default_constructible_v<T>)
+              {
+                this->converted_ = toSet<T>(value);
+                return &this->converted_;
+              }
+            }
+            #endif
+
+            if (Data_Type<std::set<T>>::is_descendant(value))
+            {
+              return detail::unwrap<std::set<T>>(value, Data_Type<std::set<T>>::ruby_data_type(), false);
+            }
           }
+          #if RUBY_API_VERSION_MAJOR < 4
           case RUBY_T_OBJECT:
           {
             Object object(value);
@@ -487,6 +555,7 @@ namespace Rice
             throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
               detail::protect(rb_obj_classname, value), "std::set");
           }
+          #endif
           default:
           {
             throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
