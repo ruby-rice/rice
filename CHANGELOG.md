@@ -38,13 +38,15 @@ Incompatible Changes:
 * Rice converts Ruby blocks to procs. Thus if you have a method that expects a block, you must add
   a VALUE parameter and tell Rice it is a value. For example:
 
+  ```cpp
   define_method("my_method", [](VALUE self, VALUE proc)
   {
   }, Arg("proc").setValue())
+  ```
 
   Think of this as similar to how you would capture a block in Ruby using the &block syntax.
 
-* The `Data_Type<T>::define()` method has been removed. See the [Class Templates](docs/bindings/class_templates.md) documentation for the recommended approach.
+* The `Data_Type<T>::define()` method has been removed. See the [Class Templates](bindings/class_templates.md) documentation for the recommended approach.
 
 ## 4.9.1 (2026-01-04)
 This release focuses on improving memory management for STL containers and attribute setters.
