@@ -5,7 +5,6 @@
 #include "embed_ruby.hpp"
 #include <rice/rice.hpp>
 #include <rice/stl.hpp>
-#include <ruby/version.h>
 
 using namespace Rice;
 
@@ -255,7 +254,7 @@ TESTCASE(Iterate)
   ASSERT_EQUAL(3u, result.size());
 
   std::string result_string = result.to_s().str();
-#if RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR >= 4
+#if (RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR >= 4) || RUBY_API_VERSION_MAJOR >= 4
   ASSERT_EQUAL("{\"five\" => 10, \"seven\" => 14, \"six\" => 12}", result_string);
 #else
   ASSERT_EQUAL("{\"five\"=>10, \"seven\"=>14, \"six\"=>12}", result_string);
@@ -283,7 +282,7 @@ TESTCASE(ToEnum)
 
   std::string result_string = result.to_s().str();
 
-#if RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR >= 4
+#if (RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR >= 4) || RUBY_API_VERSION_MAJOR >= 4
   ASSERT_EQUAL("{\"five\" => 10, \"seven\" => 14, \"six\" => 12}", result_string);
 #else
   ASSERT_EQUAL("{\"five\"=>10, \"seven\"=>14, \"six\"=>12}", result_string);
