@@ -1,14 +1,15 @@
 # Changelog
 
-## 4.10.0 (2026-02-05)
+## 4.10.0 (2026-02-07)
 
 Enhancements:
-* Add support for incomplete types (PIMPL/opaque handle patterns). Rice now uses `typeid(T*)` for forward-declared types that are never fully defined.
-* Add support for `noexcept` functions, static members, and static member functions
-* Add support for `Buffer<void*>` and `Pointer<void*>`
-* Add support for `std::function`. Ruby procs, lambdas, and blocks can be wrapped in `std::function` objects and passed to C++ methods. C++ functions returning `std::function` are automatically wrapped.
-* Add support for `std::ostream`, `std::ostringstream`, and `std::ofstream`. Ruby can write to C++ streams and pass them to C++ functions. Standard streams are exposed as `Std::COUT` and `Std::CERR`.
-* Add support for verifying arrays of non-fundamental types (e.g., `MyClass[2]`)
+* Ruby 4.0 support
+* Support incomplete types (PIMPL/opaque handle patterns). Rice now uses `typeid(T*)` for forward-declared types that are never fully defined.
+* Support `noexcept` functions, static members, and static member functions
+* Support for `Buffer<void*>` and `Pointer<void*>`
+* Add `std::function`. Ruby procs, lambdas, and blocks can be wrapped in `std::function` objects and passed to C++ methods. C++ functions returning `std::function` are automatically wrapped.
+* Add `std::ostream`, `std::ostringstream`, and `std::ofstream`. Ruby can write to C++ streams and pass them to C++ functions. Standard streams are exposed as `Std::COUT` and `Std::CERR`.
+* Support verifying arrays of non-fundamental types (e.g., `MyClass[2]`)
 * Delegate method calls for smart pointers to their wrapped objects via method_missing?
 
 Internal:
