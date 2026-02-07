@@ -39,6 +39,7 @@
 // Code for Ruby to call C++
 #include "Arg.hpp"
 #include "Return.hpp"
+#include "Pointer.hpp"
 #include "detail/from_ruby.hpp"
 #include "detail/RubyType.hpp"
 #include "detail/Parameter.hpp"
@@ -86,7 +87,6 @@
 #include "Return.ipp"
 #include "Constructor.hpp"
 #include "Buffer.hpp"
-#include "Pointer.hpp"
 #include "Reference.hpp"
 #include "Buffer.ipp"
 #include "Pointer.ipp"
