@@ -24,7 +24,7 @@ jobs:
             ruby: '3.1'
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
@@ -35,7 +35,7 @@ jobs:
     - name: Build and test
       run: rake test
     - name: Mkmf.log
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: mkmf-${{ matrix.os }}-${{ matrix.version }}-${{ matrix.ruby }}
