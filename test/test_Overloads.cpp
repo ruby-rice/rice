@@ -687,27 +687,15 @@ TESTCASE(int_conversion_4)
             my_class.run(value))";
 
 #ifdef _WIN32
-
-#if (RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR >= 4) || RUBY_API_VERSION_MAJOR >= 4
-  const char* expected = "bignum too big to convert into 'long'";
+  const char* pattern = "bignum too big to convert into ('|`)long'";
 #else
-  const char* expected = "bignum too big to convert into `long'";
-#endif
-
-#else
-
-#if RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR >= 4
-  const char* expected = "integer 4398046511104 too big to convert to 'short'";
-#else
-  const char* expected = "integer 4398046511104 too big to convert to `short'";
-#endif
-
+  const char* pattern = "integer 4398046511104 too big to convert to ('|`)short'";
 #endif
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
     result = m.module_eval(code),
-    ASSERT_EQUAL(expected, ex.what()));
+    ASSERT_MATCH(pattern, ex.what()));
 }
 
 TESTCASE(int_conversion_5)
