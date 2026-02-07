@@ -162,6 +162,17 @@ namespace Rice
     template<typename T>
     constexpr bool is_wrapped_v = is_wrapped<T>::value;
 
+    // ---------- RubyKlass ------------
+    template<typename, typename = std::void_t<>>
+    struct has_ruby_klass : std::false_type
+    {
+    };
+
+    template<typename T>
+    struct has_ruby_klass<T, std::void_t<decltype(T::rubyKlass())>> : std::true_type
+    {
+    };
+
     // -- Tuple Helpers ---
     template<typename T>
     struct tuple_shift;

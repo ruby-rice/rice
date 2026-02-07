@@ -37,6 +37,7 @@ namespace Rice::detail
   struct Type<T[N]>
   {
     static bool verify();
+    static VALUE rubyKlass();
   };
     
   template<typename T>
