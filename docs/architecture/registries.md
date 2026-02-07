@@ -27,10 +27,19 @@ Maps C++ types to Ruby classes. The TypeRegistry serves two important purposes:
 When a C++ method returns a base class pointer that actually points to a derived class, Rice uses RTTI (`typeid`) to look up the derived type in the registry and wrap it as the correct Ruby class. For example:
 
 ```cpp
-class Base { virtual ~Base() = default; };
-class Derived : public Base {};
+class Base
+{
+  virtual ~Base() = default;
+};
 
-Base* create() { return new Derived(); }  // Returns Derived* as Base*
+class Derived : public Base
+{
+};
+
+Base* create()
+{
+  return new Derived();
+}  // Returns Derived* as Base*
 ```
 
 When `create()` is called from Ruby, Rice uses `typeid(*result)` to discover the object is actually a `Derived`, looks it up in the TypeRegistry, and wraps it as `Rb::Derived` instead of `Rb::Base`.
