@@ -112,10 +112,8 @@ namespace Rice::detail
         result = result && Type<T>::verify();
       }
 
-      if (result)
-      {
-        define_unique_ptr<T>();
-      }
+      // We ALWAYS need to define the std::unique_ptr<T>, even if T is not bound, because it could be bound after this call
+      define_unique_ptr<T>();
 
       return result;
     }

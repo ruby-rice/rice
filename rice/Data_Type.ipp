@@ -81,14 +81,28 @@ namespace Rice
     {
       dataType.define_singleton_method("cpp_class", [](VALUE) -> VALUE
       {
-        detail::TypeDetail<T> typeDetail;
-        std::string cppClassName = typeDetail.simplifiedName();
         Return returnInfo;
         returnInfo.takeOwnership();
+
+        detail::TypeDetail<T> typeDetail;
+        std::string cppClassName = typeDetail.simplifiedName();
+
         return detail::To_Ruby<char*>(&returnInfo).convert(cppClassName.c_str());
       }, Arg("klass").setValue(), Return().setValue());
     }
+    else
+    {
+      VALUE klass_value = klass.value();
+      dataType.define_singleton_method("cpp_class", [klass_value](VALUE) -> VALUE
+      {
+        Return returnInfo;
+        returnInfo.takeOwnership();
 
+        Rice::String cppClassName = detail::protect(rb_class_path, klass_value);
+
+        return detail::To_Ruby<char*>(&returnInfo).convert(cppClassName.c_str());
+      }, Arg("klass").setValue(), Return().setValue());
+    }
     return dataType;
   }
 

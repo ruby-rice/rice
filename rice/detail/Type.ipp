@@ -40,6 +40,13 @@ namespace Rice::detail
     return Type<T>::verify();
   }
   
+  template <typename T, int N>
+  inline VALUE Type<T[N]>::rubyKlass()
+  {
+    detail::TypeDetail<Pointer<T>> typeDetail;
+    return typeDetail.rubyKlass();
+  }
+
   template<typename T>
   void verifyType()
   {
@@ -58,16 +65,4 @@ namespace Rice::detail
     std::make_index_sequence<std::tuple_size_v<Tuple_T>> indexes;
     verifyTypesImpl<Tuple_T>(indexes);
   }
-
-  // ---------- RubyKlass ------------
-  // Helper template to see if the method rubyKlass is defined on a Type specialization
-  template<typename, typename = std::void_t<>>
-  struct has_ruby_klass : std::false_type
-  {
-  };
-
-  template<typename T>
-  struct has_ruby_klass<T, std::void_t<decltype(T::rubyKlass())>> : std::true_type
-  {
-  };
 }

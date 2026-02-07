@@ -115,10 +115,8 @@ namespace Rice::detail
         result = result && Type<T>::verify();
       }
 
-      if (result)
-      {
-        define_shared_ptr<T>();
-      }
+      // We ALWAYS need to define the std::shared_ptr<T>, even if T is not bound, because it could be bound after this call
+      define_shared_ptr<T>();
 
       return result;
     }

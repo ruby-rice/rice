@@ -418,6 +418,16 @@ TESTCASE(RubyKlass)
   expected = stdModule.const_get("OFStream");
   actual = typeDetail34.rubyKlass();
   ASSERT_EQUAL(expected.value(), actual);
+
+  detail::TypeDetail<std::string[2]> typeDetail35;
+  actual = typeDetail35.rubyKlass();
+  ASSERT_EQUAL(rb_cString, actual);
+
+  define_pointer<std::vector<int>>();
+  detail::TypeDetail<std::vector<int>[2]> typeDetail36;
+  expected = riceModule.const_get("Pointer≺vector≺int≻≻");
+  actual = typeDetail36.rubyKlass();
+  ASSERT_EQUAL(expected.value(), actual);
 }
 
 TESTCASE(MakeRubyClass)
