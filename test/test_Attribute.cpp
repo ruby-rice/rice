@@ -138,27 +138,22 @@ TESTCASE(attributes)
   result = o.call("read_chars");
   ASSERT_EQUAL("Read some chars!", detail::From_Ruby<char*>().convert(result));
 
-  if constexpr (!oldRuby)
-  {
-    ASSERT_EXCEPTION_CHECK(
-      Exception,
-      o.call("read_char=", "some text"),
-      ASSERT(std::string(ex.what()).find("undefined method `read_char='") == 0)
-    );
-  }
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    o.call("read_char=", "some text"),
+    ASSERT_MATCH(R"(undefined method (`|')read_char=')", ex.what())
+  );
+  
   // Test writeonly attribute
   result = o.call("write_int=", 5);
   ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result.value()));
   ASSERT_EQUAL(5, dataStruct->writeInt);
 
-  if constexpr (!oldRuby)
-  {
-    ASSERT_EXCEPTION_CHECK(
-      Exception,
-      o.call("write_int", 3),
-      ASSERT(std::string(ex.what()).find("undefined method `write_int'") == 0)
-    );
-  }
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    o.call("write_int", 3),
+    ASSERT_MATCH(R"(undefined method (`|')write_int')", ex.what())
+  );
 
   // Test readwrite attribute
   result = o.call("read_write_string=", "Set a string");
@@ -288,14 +283,11 @@ TESTCASE(const_attribute)
   c.define_attr("const_int", &DataStruct::constInt, AttrAccess::Read);
   Data_Object<DataStruct> o = c.call("new");
     
-  if constexpr (!oldRuby)
-  {
-    ASSERT_EXCEPTION_CHECK(
-      Exception,
-      o.call("const_int=", 5),
-      ASSERT(std::string(ex.what()).find("undefined method `const_int='") == 0)
-    );
-  }
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    o.call("const_int=", 5),
+    ASSERT_MATCH(R"(undefined method (`|')const_int=')", ex.what())
+  );
 }
 
 TESTCASE(not_assignable)
@@ -318,14 +310,11 @@ TESTCASE(not_assignable)
 
   Data_Object<DataStruct> o = c.call("new");
   
-  if constexpr (!oldRuby)
-  {
-    ASSERT_EXCEPTION_CHECK(
-      Exception,
-      o.call("not_assignable=", notAssignable),
-      ASSERT(std::string(ex.what()).find("undefined method `not_assignable='") == 0)
-    );
-  }
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    o.call("not_assignable=", notAssignable),
+    ASSERT_MATCH(R"(undefined method (`|')not_assignable=')", ex.what())
+  );
 }
 
 TESTCASE(not_copyable)
@@ -348,14 +337,11 @@ TESTCASE(not_copyable)
 
   Data_Object<DataStruct> o = c.call("new");
 
-  if constexpr (!oldRuby)
-  {
-    ASSERT_EXCEPTION_CHECK(
-      Exception,
-      o.call("not_assignable=", notCopyable),
-      ASSERT(std::string(ex.what()).find("undefined method `not_copyable='") == 0)
-    );
-  }
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    o.call("not_assignable=", notCopyable),
+    ASSERT_MATCH(R"(undefined method (`|')not_assignable=')", ex.what())
+  );
 }
 
 TESTCASE(static_attributes)
@@ -375,14 +361,11 @@ TESTCASE(static_attributes)
   result = c.call("static_string");
   ASSERT_EQUAL("Static string", detail::From_Ruby<std::string>().convert(result.value()));
 
-  if constexpr (!oldRuby)
-  {
-    ASSERT_EXCEPTION_CHECK(
-      Exception,
-      c.call("static_string=", true),
-      ASSERT(std::string(ex.what()).find("undefined method `static_string='") == 0)
-    );
-  }
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    c.call("static_string=", true),
+    ASSERT_MATCH(R"(undefined method (`|')static_string=')", ex.what())
+  );
 }
 
 TESTCASE(global_attributes)

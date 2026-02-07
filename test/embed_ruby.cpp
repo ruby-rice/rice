@@ -1,5 +1,4 @@
 #include <rice/rice.hpp>
-#include <ruby/version.h>
 
 void embed_ruby()
 {
