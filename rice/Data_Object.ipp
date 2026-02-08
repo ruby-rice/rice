@@ -514,9 +514,13 @@ namespace Rice::detail
           {
             return Convertible::Exact;
           }
-          else if (Data_Type<Pointer_T>::is_descendant(value))
+          else if (Data_Type<Pointer_T>::is_descendant(value) && isBuffer)
           {
             return Convertible::Exact;
+          }
+          else if (Data_Type<Pointer_T>::is_descendant(value) && !isBuffer)
+          {
+            return Convertible::Exact * 0.99;
           }
           [[fallthrough]];
         default:
