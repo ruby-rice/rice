@@ -53,6 +53,7 @@
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #endif
 
+#include <ruby/version.h>
 #include <ruby.h>
 #include <ruby/encoding.h>
 #include <ruby/thread.h>
@@ -88,23 +89,6 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 # undef RUBY_METHOD_FUNC
   extern "C" typedef VALUE (*RUBY_METHOD_FUNC)(ANYARGS);
 #endif
-
-// This is a terrible hack for Ruby 3.1 and maybe earlier to avoid crashes when test_Attribute unit cases
-// are run. If ruby_options is called to initialize the interpeter (previously it was not), when
-// the attribute unit tests intentionally cause exceptions to happen, the exception is correctly processed.
-// However any calls back to Ruby, for example to get the exception message, crash because the ruby 
-// execution context tag has been set to null. This does not happen in newer versions of Ruby. It is
-// unknown if this happens in real life or just the test caes.
-// Should be removed when Rice no longer supports Ruby 3.1
-#if RUBY_API_VERSION_MAJOR == 3 && RUBY_API_VERSION_MINOR < 2
-  constexpr bool oldRuby = true;
-#elif RUBY_API_VERSION_MAJOR < 3
-  constexpr bool oldRuby = true;
-#else
-  constexpr bool oldRuby = false;
-#endif 
-
-
 
 
 
@@ -285,6 +269,17 @@ namespace Rice
 
     template<typename T>
     constexpr bool is_wrapped_v = is_wrapped<T>::value;
+
+    // ---------- RubyKlass ------------
+    template<typename, typename = std::void_t<>>
+    struct has_ruby_klass : std::false_type
+    {
+    };
+
+    template<typename T>
+    struct has_ruby_klass<T, std::void_t<decltype(T::rubyKlass())>> : std::true_type
+    {
+    };
 
     // -- Tuple Helpers ---
     template<typename T>
@@ -750,6 +745,13 @@ namespace Rice::detail
     static bool verify();
   };
 
+  template <typename T, int N>
+  struct Type<T[N]>
+  {
+    static bool verify();
+    static VALUE rubyKlass();
+  };
+    
   template<typename T>
   void verifyType();
 
@@ -792,11 +794,9 @@ namespace Rice::detail
   class TypeDetail
   {
   public:
-    // From TypeIndexParser
     std::string name();
     std::string simplifiedName();
 
-    // From TypeMapper
     VALUE rubyKlass();
     std::string rubyName();
 
@@ -3149,11 +3149,15 @@ namespace Rice::detail
 
 namespace Rice
 {
-  enum class AttrAccess
+  struct AttrAccess
   {
-    ReadWrite,
-    Read,
-    Write
+    struct ReadWriteType {};
+    struct ReadType {};
+    struct WriteType {};
+
+    static constexpr ReadWriteType ReadWrite{};
+    static constexpr ReadType Read{};
+    static constexpr WriteType Write{};
   };
 
   namespace detail
@@ -3309,27 +3313,6 @@ namespace Rice
     template<typename Constructor_T, typename...Rice_Arg_Ts>
     Data_Type<T>& define_constructor(Constructor_T constructor, Rice_Arg_Ts const& ...args);
 
-    /*! Runs a function that should define this Data_Types methods and attributes.
-     *  This is useful when creating classes from a C++ class template.
-     *
-     *  \param builder A function that addes methods/attributes to this class
-     *
-     *  For example:
-     *  \code
-     *    void builder(Data_Type<Matrix<T, R, C>>& klass)
-     *    {
-     *      klass.define_method...
-     *      return klass;
-     *    }
-     *
-     *    define_class<<Matrix<T, R, C>>>("Matrix")
-     *      .build(&builder);
-     *
-     *  \endcode
-     */
-    template<typename Func_T>
-    Data_Type<T>& define(Func_T func);
-
     //! Register a Director class for this class.
     /*! For any class that uses Rice::Director to enable polymorphism
      *  across the languages, you need to register that director proxy
@@ -3380,11 +3363,11 @@ namespace Rice
     template<typename Iterator_Func_T>
     Data_Type<T>& define_iterator(Iterator_Func_T begin, Iterator_Func_T end, std::string name = "each");
 
-    template <typename Attribute_T, typename...Arg_Ts>
-    Data_Type<T>& define_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite, const Arg_Ts&...args);
-  
-    template <typename Attribute_T, typename...Arg_Ts>
-    Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access = AttrAccess::ReadWrite, const Arg_Ts&...args);
+    template <typename Attribute_T, typename Access_T = AttrAccess::ReadWriteType, typename...Arg_Ts>
+    Data_Type<T>& define_attr(std::string name, Attribute_T attribute, Access_T access = {}, const Arg_Ts&...args);
+
+    template <typename Attribute_T, typename Access_T = AttrAccess::ReadWriteType, typename...Arg_Ts>
+    Data_Type<T>& define_singleton_attr(std::string name, Attribute_T attribute, Access_T access = {}, const Arg_Ts&...args);
 
     // Include these methods to call methods from Module but return
 // an instance of the current classes. This is an alternative to
@@ -3539,8 +3522,8 @@ inline auto& define_constant(std::string name, Constant_T value)
     template<typename Method_T, typename...Arg_Ts>
     void wrap_native_method(VALUE klass, std::string name, Method_T&& function, const Arg_Ts&...args);
 
-    template <typename Attribute_T, typename...Arg_Ts>
-    Data_Type<T>& define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access, const Arg_Ts&...args);
+    template <typename Attribute_T, typename Access_T, typename...Arg_Ts>
+    Data_Type<T>& define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, Access_T access, const Arg_Ts&...args);
 
   private:
     template<typename T_>
@@ -4038,344 +4021,6 @@ namespace Rice::detail
 }
 
 
-// To / From Ruby
-
-// =========   Arg.ipp   =========
-namespace Rice
-{
-  inline Arg::Arg(std::string name) : name(name)
-  {
-  }
-
-  template<typename Arg_Type>
-  inline Arg& Arg::operator=(Arg_Type val)
-  {
-    this->defaultValue_ = val;
-    return *this;
-  }
-
-  //! Check if this Arg has a default value associated with it
-  inline bool Arg::hasDefaultValue() const
-  {
-    return this->defaultValue_.has_value();
-  }
-
-  //! Return a reference to the default value associated with this Arg
-  /*! \return the type saved to this Arg
-    */
-  template<typename Arg_Type>
-  inline Arg_Type Arg::defaultValue()
-  {
-    return std::any_cast<Arg_Type>(this->defaultValue_);
-  }
-
-  inline Arg& Arg::keepAlive()
-  {
-    this->isKeepAlive_ = true;
-    return *this;
-  }
-
-  inline bool Arg::isKeepAlive() const
-  {
-    return this->isKeepAlive_;
-  }
-
-  inline Arg& Arg::setValue()
-  {
-    isValue_ = true;
-    return *this;
-  }
-
-  inline bool Arg::isValue() const
-  {
-    return isValue_;
-  }
-
-  inline Arg& Arg::setOpaque()
-  {
-    isOpaque_ = true;
-    return *this;
-  }
-
-  inline bool Arg::isOpaque() const
-  {
-    return isOpaque_;
-  }
-
-  inline Arg& Arg::takeOwnership()
-  {
-    this->isOwner_ = true;
-    return *this;
-  }
-
-  inline bool Arg::isOwner()
-  {
-    return this->isOwner_;
-  }
-
-  inline ArgBuffer::ArgBuffer(std::string name) : Arg(name)
-  {
-  }
-
-
-} // Rice
-// =========   Parameter.ipp   =========
-namespace Rice::detail
-{
-  // -----------  ParameterAbstract ----------------
-  inline ParameterAbstract::ParameterAbstract(std::unique_ptr<Arg>&& arg) : arg_(std::move(arg))
-  {
-  }
-
-  inline ParameterAbstract::ParameterAbstract(const ParameterAbstract& other)
-  {
-    this->arg_ = std::make_unique<Arg>(*other.arg_);
-  }
-
-  inline Arg* ParameterAbstract::arg()
-  {
-    return this->arg_.get();
-  }
-
-  // -----------  Parameter ----------------
-  template<typename T>
-  inline Parameter<T>::Parameter(std::unique_ptr<Arg>&& arg) : ParameterAbstract(std::move(arg)), 
-    fromRuby_(this->arg()), toRuby_(this->arg())
-  {
-  }
-
-  template<typename T>
-  inline double Parameter<T>::matches(std::optional<VALUE>& valueOpt)
-  {
-    if (!valueOpt.has_value())
-    {
-      return Convertible::None;
-    }
-    else if (this->arg()->isValue())
-    {
-      return Convertible::Exact;
-    }
-
-    VALUE value = valueOpt.value();
-
-    // Check with FromRuby if the VALUE is convertible to C++
-    double result = this->fromRuby_.is_convertible(value);
-
-    // If this is an exact match check if the const-ness of the value and the parameter match.
-    // One caveat - procs are also RUBY_T_DATA so don't check if this is a function type
-    if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA && !std::is_function_v<std::remove_pointer_t<T>>)
-    {
-      bool isConst = WrapperBase::isConst(value);
-
-      // Do not send a const value to a non-const parameter
-      if (isConst && !is_const_any_v<T>)
-      {
-        result = Convertible::None;
-      }
-      // It is ok to send a non-const value to a const parameter but
-      // prefer non-const to non-const by slightly decreasing the score
-      else if (!isConst && is_const_any_v<T>)
-      {
-        result = Convertible::ConstMismatch;
-      }
-    }
-
-    return result;
-  }
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4702)  // unreachable code
-#endif
-
-  template<typename T>
-  inline T Parameter<T>::convertToNative(std::optional<VALUE>& valueOpt)
-  {
-    /* In general the compiler will convert T to const T, but that does not work for converting
-       T** to const T** (see see https://isocpp.org/wiki/faq/const-correctness#constptrptr-conversion)
-       which comes up in the OpenCV bindings.
-
-       An alternative solution is updating From_Ruby#convert to become a templated function that specifies
-       the return type. That works but requires a lot more code changes for this one case and is not
-       backwards compatible. */
-
-    if constexpr (is_pointer_pointer_v<T> && !std::is_convertible_v<remove_cv_recursive_t<T>, T>)
-    {
-      return (T)this->fromRuby_.convert(valueOpt.value());
-    }
-    else if (valueOpt.has_value())
-    {
-      return this->fromRuby_.convert(valueOpt.value());
-    }
-    // Remember std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
-    // So special case vector handling
-    else if constexpr (detail::is_std_vector_v<detail::intrinsic_type<T>>)
-    {
-      if constexpr (std::is_copy_constructible_v<typename detail::intrinsic_type<T>::value_type>)
-      {
-        if (this->arg()->hasDefaultValue())
-        {
-          return this->arg()->template defaultValue<T>();
-        }
-      }
-    }
-    // Incomplete types can't have default values (std::any requires complete types)
-    else if constexpr (!is_complete_v<intrinsic_type<T>>)
-    {
-      // No default value possible for incomplete types
-    }
-    else if constexpr (std::is_copy_constructible_v<T>)
-    {
-      if (this->arg()->hasDefaultValue())
-      {
-        return this->arg()->template defaultValue<T>();
-      }
-    }
-
-    // This can be unreachable code
-    throw std::invalid_argument("Could not convert Ruby value");
-  }
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
-  template<typename T>
-  inline VALUE Parameter<T>::convertToRuby(T& object)
-  {
-    return this->toRuby_.convert(object);
-  }
-
-  template<typename T>
-  inline VALUE Parameter<T>::defaultValueRuby()
-  {
-    using To_Ruby_T = remove_cv_recursive_t<T>;
-
-    if (!this->arg()->hasDefaultValue())
-    {
-      throw std::runtime_error("No default value set for " + this->arg()->name);
-    }
-
-    if constexpr (!is_complete_v<intrinsic_type<T>>)
-    {
-      // Only pointers to incomplete types can have
-      // default values (e.g., void* or Impl*), since the pointer itself is complete.
-      // References and values of incomplete types cannot be stored in std::any.
-      if constexpr (std::is_pointer_v<std::remove_reference_t<T>>)
-      {
-        T defaultValue = this->arg()->template defaultValue<T>();
-        return this->toRuby_.convert((To_Ruby_T)defaultValue);
-      }
-      else
-      {
-        throw std::runtime_error("Default value not allowed for incomple type. Parameter " + this->arg()->name);
-      }
-    }
-    else if constexpr (std::is_constructible_v<std::remove_cv_t<T>, std::remove_cv_t<std::remove_reference_t<T>>&>)
-    {
-      // Remember std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
-      // So special case vector handling
-      if constexpr (detail::is_std_vector_v<detail::intrinsic_type<T>>)
-      {
-        if constexpr (std::is_copy_constructible_v<typename detail::intrinsic_type<T>::value_type>)
-        {
-          T defaultValue = this->arg()->template defaultValue<T>();
-          return this->toRuby_.convert(defaultValue);
-        }
-      }
-      else
-      {
-        T defaultValue = this->arg()->template defaultValue<T>();
-        return this->toRuby_.convert((To_Ruby_T)defaultValue);
-      }
-    }
-    else
-    {
-      throw std::runtime_error("Default value not allowed for parameter " + this->arg()->name);
-    }
-  }
-
-  template<typename T>
-  inline std::string Parameter<T>::cppTypeName()
-  {
-    detail::TypeDetail<T> typeDetail;
-    return typeDetail.simplifiedName();
-  }
-
-  template<typename T>
-  inline VALUE Parameter<T>::klass()
-  {
-    TypeDetail<T> typeDetail;
-    return typeDetail.rubyKlass();
-  }
-}
-
-// =========   NoGVL.hpp   =========
-
-namespace Rice
-{
-  class NoGVL
-  {
-  public:
-    NoGVL() = default;
-  };
-} // Rice
-
-
-// =========   Return.ipp   =========
-#include <any>
-
-namespace Rice
-{
-  inline Return::Return(): Arg("Return")
-  {
-  }
-
-  inline Return& Return::keepAlive()
-  {
-    Arg::keepAlive();
-    return *this;
-  }
-
-  inline Return& Return::setValue()
-  {
-    Arg::setValue();
-    return *this;
-  }
-
-  inline Return& Return::setOpaque()
-  {
-    Arg::setOpaque();
-    return *this;
-  }
-
-  inline Return& Return::takeOwnership()
-  {
-    Arg::takeOwnership();
-    return *this;
-  }
-}  // Rice
-
-// =========   Constructor.hpp   =========
-
-namespace Rice
-{
-  //! Define a Type's Constructor and it's arguments.
-  /*! E.g. for the default constructor on a Type:
-      \code
-        define_class<Test>()
-          .define_constructor(Constructor<Test>());
-      \endcode
-  *
-  *  The first template argument must be the type being wrapped.
-  *  Additional arguments must be the types of the parameters sent
-  *  to the constructor.
-  *
-  *  For more information, see Rice::Data_Type::define_constructor.
-  */
-  template<typename T, typename...Parameter_Ts>
-  class Constructor;
-}
 
 // =========   Buffer.hpp   =========
 
@@ -4641,6 +4286,350 @@ namespace Rice
   Data_Type<Reference<T>> define_reference(std::string klassName = "");
 }
 
+
+// To / From Ruby
+
+// =========   Arg.ipp   =========
+namespace Rice
+{
+  inline Arg::Arg(std::string name) : name(name)
+  {
+  }
+
+  template<typename Arg_Type>
+  inline Arg& Arg::operator=(Arg_Type val)
+  {
+    this->defaultValue_ = val;
+    return *this;
+  }
+
+  //! Check if this Arg has a default value associated with it
+  inline bool Arg::hasDefaultValue() const
+  {
+    return this->defaultValue_.has_value();
+  }
+
+  //! Return a reference to the default value associated with this Arg
+  /*! \return the type saved to this Arg
+    */
+  template<typename Arg_Type>
+  inline Arg_Type Arg::defaultValue()
+  {
+    return std::any_cast<Arg_Type>(this->defaultValue_);
+  }
+
+  inline Arg& Arg::keepAlive()
+  {
+    this->isKeepAlive_ = true;
+    return *this;
+  }
+
+  inline bool Arg::isKeepAlive() const
+  {
+    return this->isKeepAlive_;
+  }
+
+  inline Arg& Arg::setValue()
+  {
+    isValue_ = true;
+    return *this;
+  }
+
+  inline bool Arg::isValue() const
+  {
+    return isValue_;
+  }
+
+  inline Arg& Arg::setOpaque()
+  {
+    isOpaque_ = true;
+    return *this;
+  }
+
+  inline bool Arg::isOpaque() const
+  {
+    return isOpaque_;
+  }
+
+  inline Arg& Arg::takeOwnership()
+  {
+    this->isOwner_ = true;
+    return *this;
+  }
+
+  inline bool Arg::isOwner()
+  {
+    return this->isOwner_;
+  }
+
+  inline ArgBuffer::ArgBuffer(std::string name) : Arg(name)
+  {
+  }
+
+
+} // Rice
+// =========   Parameter.ipp   =========
+namespace Rice::detail
+{
+  // -----------  ParameterAbstract ----------------
+  inline ParameterAbstract::ParameterAbstract(std::unique_ptr<Arg>&& arg) : arg_(std::move(arg))
+  {
+  }
+
+  inline ParameterAbstract::ParameterAbstract(const ParameterAbstract& other)
+  {
+    this->arg_ = std::make_unique<Arg>(*other.arg_);
+  }
+
+  inline Arg* ParameterAbstract::arg()
+  {
+    return this->arg_.get();
+  }
+
+  // -----------  Parameter ----------------
+  template<typename T>
+  inline Parameter<T>::Parameter(std::unique_ptr<Arg>&& arg) : ParameterAbstract(std::move(arg)), 
+    fromRuby_(this->arg()), toRuby_(this->arg())
+  {
+  }
+
+  template<typename T>
+  inline double Parameter<T>::matches(std::optional<VALUE>& valueOpt)
+  {
+    if (!valueOpt.has_value())
+    {
+      return Convertible::None;
+    }
+    else if (this->arg()->isValue())
+    {
+      return Convertible::Exact;
+    }
+
+    VALUE value = valueOpt.value();
+
+    // Check with FromRuby if the VALUE is convertible to C++
+    double result = this->fromRuby_.is_convertible(value);
+
+    // TODO this is ugly and hacky and probably doesn't belong here.
+    // Some Ruby objects like Proc and Set (in Ruby 4+) are also RUBY_T_DATA so we have to check for them
+    if (result == Convertible::Exact && rb_type(value) == RUBY_T_DATA)
+    {
+      bool isBuffer = dynamic_cast<ArgBuffer*>(this->arg()) ? true : false;
+      if ((!isBuffer && Data_Type<detail::intrinsic_type<T>>::is_descendant(value)) ||
+          (isBuffer && Data_Type<Pointer<detail::intrinsic_type<T>>>::is_descendant(value)))
+      {
+        bool isConst = WrapperBase::isConst(value);
+
+        // Do not send a const value to a non-const parameter
+        if (isConst && !is_const_any_v<T>)
+        {
+          result = Convertible::None;
+        }
+        // It is ok to send a non-const value to a const parameter but
+        // prefer non-const to non-const by slightly decreasing the score
+        else if (!isConst && is_const_any_v<T>)
+        {
+          result = Convertible::ConstMismatch;
+        }
+      }
+    }
+
+    return result;
+  }
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4702)  // unreachable code
+#endif
+
+  template<typename T>
+  inline T Parameter<T>::convertToNative(std::optional<VALUE>& valueOpt)
+  {
+    /* In general the compiler will convert T to const T, but that does not work for converting
+       T** to const T** (see see https://isocpp.org/wiki/faq/const-correctness#constptrptr-conversion)
+       which comes up in the OpenCV bindings.
+
+       An alternative solution is updating From_Ruby#convert to become a templated function that specifies
+       the return type. That works but requires a lot more code changes for this one case and is not
+       backwards compatible. */
+
+    if constexpr (is_pointer_pointer_v<T> && !std::is_convertible_v<remove_cv_recursive_t<T>, T>)
+    {
+      return (T)this->fromRuby_.convert(valueOpt.value());
+    }
+    else if (valueOpt.has_value())
+    {
+      return this->fromRuby_.convert(valueOpt.value());
+    }
+    // Remember std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
+    // So special case vector handling
+    else if constexpr (detail::is_std_vector_v<detail::intrinsic_type<T>>)
+    {
+      if constexpr (std::is_copy_constructible_v<typename detail::intrinsic_type<T>::value_type>)
+      {
+        if (this->arg()->hasDefaultValue())
+        {
+          return this->arg()->template defaultValue<T>();
+        }
+      }
+    }
+    // Incomplete types can't have default values (std::any requires complete types)
+    else if constexpr (!is_complete_v<intrinsic_type<T>>)
+    {
+      // No default value possible for incomplete types
+    }
+    else if constexpr (std::is_copy_constructible_v<T>)
+    {
+      if (this->arg()->hasDefaultValue())
+      {
+        return this->arg()->template defaultValue<T>();
+      }
+    }
+
+    // This can be unreachable code
+    throw std::invalid_argument("Could not convert Ruby value");
+  }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+  template<typename T>
+  inline VALUE Parameter<T>::convertToRuby(T& object)
+  {
+    return this->toRuby_.convert(object);
+  }
+
+  template<typename T>
+  inline VALUE Parameter<T>::defaultValueRuby()
+  {
+    using To_Ruby_T = remove_cv_recursive_t<T>;
+
+    if (!this->arg()->hasDefaultValue())
+    {
+      throw std::runtime_error("No default value set for " + this->arg()->name);
+    }
+
+    if constexpr (!is_complete_v<intrinsic_type<T>>)
+    {
+      // Only pointers to incomplete types can have
+      // default values (e.g., void* or Impl*), since the pointer itself is complete.
+      // References and values of incomplete types cannot be stored in std::any.
+      if constexpr (std::is_pointer_v<std::remove_reference_t<T>>)
+      {
+        T defaultValue = this->arg()->template defaultValue<T>();
+        return this->toRuby_.convert((To_Ruby_T)defaultValue);
+      }
+      else
+      {
+        throw std::runtime_error("Default value not allowed for incomple type. Parameter " + this->arg()->name);
+      }
+    }
+    else if constexpr (std::is_constructible_v<std::remove_cv_t<T>, std::remove_cv_t<std::remove_reference_t<T>>&>)
+    {
+      // Remember std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
+      // So special case vector handling
+      if constexpr (detail::is_std_vector_v<detail::intrinsic_type<T>>)
+      {
+        if constexpr (std::is_copy_constructible_v<typename detail::intrinsic_type<T>::value_type>)
+        {
+          T defaultValue = this->arg()->template defaultValue<T>();
+          return this->toRuby_.convert(defaultValue);
+        }
+      }
+      else
+      {
+        T defaultValue = this->arg()->template defaultValue<T>();
+        return this->toRuby_.convert((To_Ruby_T)defaultValue);
+      }
+    }
+    else
+    {
+      throw std::runtime_error("Default value not allowed for parameter " + this->arg()->name);
+    }
+  }
+
+  template<typename T>
+  inline std::string Parameter<T>::cppTypeName()
+  {
+    detail::TypeDetail<T> typeDetail;
+    return typeDetail.simplifiedName();
+  }
+
+  template<typename T>
+  inline VALUE Parameter<T>::klass()
+  {
+    TypeDetail<T> typeDetail;
+    return typeDetail.rubyKlass();
+  }
+}
+
+// =========   NoGVL.hpp   =========
+
+namespace Rice
+{
+  class NoGVL
+  {
+  public:
+    NoGVL() = default;
+  };
+} // Rice
+
+
+// =========   Return.ipp   =========
+#include <any>
+
+namespace Rice
+{
+  inline Return::Return(): Arg("Return")
+  {
+  }
+
+  inline Return& Return::keepAlive()
+  {
+    Arg::keepAlive();
+    return *this;
+  }
+
+  inline Return& Return::setValue()
+  {
+    Arg::setValue();
+    return *this;
+  }
+
+  inline Return& Return::setOpaque()
+  {
+    Arg::setOpaque();
+    return *this;
+  }
+
+  inline Return& Return::takeOwnership()
+  {
+    Arg::takeOwnership();
+    return *this;
+  }
+}  // Rice
+
+// =========   Constructor.hpp   =========
+
+namespace Rice
+{
+  //! Define a Type's Constructor and it's arguments.
+  /*! E.g. for the default constructor on a Type:
+      \code
+        define_class<Test>()
+          .define_constructor(Constructor<Test>());
+      \endcode
+  *
+  *  The first template argument must be the type being wrapped.
+  *  Additional arguments must be the types of the parameters sent
+  *  to the constructor.
+  *
+  *  For more information, see Rice::Data_Type::define_constructor.
+  */
+  template<typename T, typename...Parameter_Ts>
+  class Constructor;
+}
 
 // =========   Buffer.ipp   =========
 namespace Rice
@@ -9403,6 +9392,19 @@ namespace Rice::detail
     return Type<T>::verify();
   }
 
+  template <typename T, int N>
+  inline bool Type<T[N]>::verify()
+  {
+    return Type<T>::verify();
+  }
+  
+  template <typename T, int N>
+  inline VALUE Type<T[N]>::rubyKlass()
+  {
+    detail::TypeDetail<Pointer<T>> typeDetail;
+    return typeDetail.rubyKlass();
+  }
+
   template<typename T>
   void verifyType()
   {
@@ -9421,18 +9423,6 @@ namespace Rice::detail
     std::make_index_sequence<std::tuple_size_v<Tuple_T>> indexes;
     verifyTypesImpl<Tuple_T>(indexes);
   }
-
-  // ---------- RubyKlass ------------
-  // Helper template to see if the method rubyKlass is defined on a Type specialization
-  template<typename, typename = std::void_t<>>
-  struct has_ruby_klass : std::false_type
-  {
-  };
-
-  template<typename T>
-  struct has_ruby_klass<T, std::void_t<decltype(T::rubyKlass())>> : std::true_type
-  {
-  };
 }
 
 // =========   TypeIndexParser.ipp   =========
@@ -14547,14 +14537,28 @@ namespace Rice
     {
       dataType.define_singleton_method("cpp_class", [](VALUE) -> VALUE
       {
-        detail::TypeDetail<T> typeDetail;
-        std::string cppClassName = typeDetail.simplifiedName();
         Return returnInfo;
         returnInfo.takeOwnership();
+
+        detail::TypeDetail<T> typeDetail;
+        std::string cppClassName = typeDetail.simplifiedName();
+
         return detail::To_Ruby<char*>(&returnInfo).convert(cppClassName.c_str());
       }, Arg("klass").setValue(), Return().setValue());
     }
+    else
+    {
+      VALUE klass_value = klass.value();
+      dataType.define_singleton_method("cpp_class", [klass_value](VALUE) -> VALUE
+      {
+        Return returnInfo;
+        returnInfo.takeOwnership();
 
+        Rice::String cppClassName = detail::protect(rb_class_path, klass_value);
+
+        return detail::To_Ruby<char*>(&returnInfo).convert(cppClassName.c_str());
+      }, Arg("klass").setValue(), Return().setValue());
+    }
     return dataType;
   }
 
@@ -14657,14 +14661,6 @@ namespace Rice
       this->define_method("initialize", &Constructor_T::initialize, args...);
     }
 
-    return *this;
-  }
-
-  template<typename T>
-  template<typename Function_T>
-  inline Data_Type<T>& Data_Type<T>::define(Function_T func)
-  {
-    func(*this);
     return *this;
   }
 
@@ -14803,61 +14799,36 @@ namespace Rice
   }
 
   template <typename T>
-  template <typename Attribute_T, typename...Arg_Ts>
-  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attribute_T attribute, AttrAccess access, const Arg_Ts&...args)
+  template <typename Attribute_T, typename Access_T, typename...Arg_Ts>
+  inline Data_Type<T>& Data_Type<T>::define_attr(std::string name, Attribute_T attribute, Access_T access, const Arg_Ts&...args)
   {
-    return this->define_attr_internal<Attribute_T>(this->klass_, name, std::forward<Attribute_T>(attribute), access, args...);
+    return this->define_attr_internal<Attribute_T, Access_T>(this->klass_, name, std::forward<Attribute_T>(attribute), access, args...);
   }
 
   template <typename T>
-  template <typename Attribute_T, typename...Arg_Ts>
-  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attribute_T attribute, AttrAccess access, const Arg_Ts&...args)
+  template <typename Attribute_T, typename Access_T, typename...Arg_Ts>
+  inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attribute_T attribute, Access_T access, const Arg_Ts&...args)
   {
     VALUE singleton = detail::protect(rb_singleton_class, this->value());
-    return this->define_attr_internal<Attribute_T>(singleton, name, std::forward<Attribute_T>(attribute), access, args...);
+    return this->define_attr_internal<Attribute_T, Access_T>(singleton, name, std::forward<Attribute_T>(attribute), access, args...);
   }
 
   template <typename T>
-  template <typename Attribute_T, typename...Arg_Ts>
-  inline Data_Type<T>& Data_Type<T>::define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, AttrAccess access, const Arg_Ts&...args)
+  template <typename Attribute_T, typename Access_T, typename...Arg_Ts>
+  inline Data_Type<T>& Data_Type<T>::define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, Access_T, const Arg_Ts&...args)
   {
     using Attr_T = typename detail::attribute_traits<Attribute_T>::attr_type;
 
     // Define attribute getter
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Read)
+    if constexpr (std::is_same_v<Access_T, AttrAccess::ReadWriteType> || std::is_same_v<Access_T, AttrAccess::ReadType>)
     {
       detail::NativeAttributeGet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute), args...);
     }
 
     // Define attribute setter
-    // Define attribute setter
-    if (access == AttrAccess::ReadWrite || access == AttrAccess::Write)
+    if constexpr (std::is_same_v<Access_T, AttrAccess::ReadWriteType> || std::is_same_v<Access_T, AttrAccess::WriteType>)
     {
-      // This seems super hacky - must be a better way?
-      constexpr bool checkWriteAccess = !std::is_reference_v<Attr_T> && 
-                                        !std::is_pointer_v<Attr_T> &&
-                                        !std::is_fundamental_v<Attr_T> &&
-                                        !std::is_enum_v<Attr_T>;
-      
-      if constexpr (std::is_const_v<Attr_T>)
-      {
-        throw std::runtime_error("Cannot define attribute writer for a const attribute: " + name);
-      }
-      // Attributes are set using assignment operator like this:
-      //   myInstance.attribute = newvalue
-      else if constexpr (checkWriteAccess && !std::is_assignable_v<Attr_T, Attr_T>)
-      {
-        throw std::runtime_error("Cannot define attribute writer for a non assignable attribute: " + name);
-      }
-      // From_Ruby returns a copy of the value for non-reference and non-pointers, thus needs to be copy constructable
-      else if constexpr (checkWriteAccess && !std::is_copy_constructible_v<Attr_T>)
-      {
-        throw std::runtime_error("Cannot define attribute writer for a non copy constructible attribute: " + name);
-      }
-      else
-      {
-        detail::NativeAttributeSet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute), args...);
-      }
+      detail::NativeAttributeSet<Attribute_T>::define(klass, name, std::forward<Attribute_T>(attribute), args...);
     }
 
     return *this;
@@ -15508,9 +15479,13 @@ namespace Rice::detail
           {
             return Convertible::Exact;
           }
-          else if (Data_Type<Pointer_T>::is_descendant(value))
+          else if (Data_Type<Pointer_T>::is_descendant(value) && isBuffer)
           {
             return Convertible::Exact;
+          }
+          else if (Data_Type<Pointer_T>::is_descendant(value) && !isBuffer)
+          {
+            return Convertible::Exact * 0.99;
           }
           [[fallthrough]];
         default:
@@ -16064,86 +16039,6 @@ namespace Rice
     return detail::protect(rb_mod_module_eval, 1, &argv[0], this->value());
   }
 }
-
-// Dependent on Module, Array, Symbol - used by stl smart pointers
-
-// =========   Forwards.hpp   =========
-
-namespace Rice::detail
-{
-  // Setup method forwarding from a wrapper class to its wrapped type using Ruby's Forwardable.
-  // This allows calling methods on the wrapper that get delegated to the wrapped object via
-  // a "get" method that returns the wrapped object.
-  //
-  // Parameters:
-  //   wrapper_klass - The Ruby class to add forwarding to (e.g., SharedPtr_MyClass)
-  //   wrapped_klass - The Ruby class whose methods should be forwarded (e.g., MyClass)
-  void define_forwarding(VALUE wrapper_klass, VALUE wrapped_klass);
-}
-
-
-// ---------   Forwards.ipp   ---------
-namespace Rice::detail
-{
-  inline void define_forwarding(VALUE wrapper_klass, VALUE wrapped_klass)
-  {
-    protect(rb_require, "forwardable");
-    Object forwardable = Object(rb_cObject).const_get("Forwardable");
-    Object(wrapper_klass).extend(forwardable.value());
-
-    // Get wrapper class's method names to avoid conflicts
-    std::set<std::string> wrapperMethodSet;
-    for (Native* native : Registries::instance.natives.lookup(wrapper_klass, NativeKind::Method))
-    {
-      wrapperMethodSet.insert(native->name());
-    }
-    for (Native* native : Registries::instance.natives.lookup(wrapper_klass, NativeKind::AttributeReader))
-    {
-      wrapperMethodSet.insert(native->name());
-    }
-    for (Native* native : Registries::instance.natives.lookup(wrapper_klass, NativeKind::AttributeWriter))
-    {
-      wrapperMethodSet.insert(native->name() + "=");
-    }
-
-    // Get wrapped class's method names from the registry, including ancestor classes
-    std::set<std::string> wrappedMethodSet;
-    Class klass(wrapped_klass);
-    while (klass.value() != rb_cObject && klass.value() != Qnil)
-    {
-      for (Native* native : Registries::instance.natives.lookup(klass.value(), NativeKind::Method))
-      {
-        wrappedMethodSet.insert(native->name());
-      }
-      for (Native* native : Registries::instance.natives.lookup(klass.value(), NativeKind::AttributeReader))
-      {
-        wrappedMethodSet.insert(native->name());
-      }
-      for (Native* native : Registries::instance.natives.lookup(klass.value(), NativeKind::AttributeWriter))
-      {
-        wrappedMethodSet.insert(native->name() + "=");
-      }
-
-      klass = klass.superclass();
-    }
-
-    // Build the arguments array for def_delegators: [:get, :method1, :method2, ...]
-    // Skip methods that are already defined on the wrapper class
-    Array args;
-    args.push(Symbol("get"));
-    for (const std::string& method : wrappedMethodSet)
-    {
-      if (wrapperMethodSet.find(method) == wrapperMethodSet.end())
-      {
-        args.push(Symbol(method));
-      }
-    }
-
-    // Call def_delegators(*args)
-    Object(wrapper_klass).vcall("def_delegators", args);
-  }
-}
-
 
 // For now include libc support - maybe should be separate header file someday
 
