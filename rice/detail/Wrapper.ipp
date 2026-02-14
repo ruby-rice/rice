@@ -36,6 +36,16 @@ namespace Rice::detail
     this->keepAlive_.push_back(value);
   }
 
+  inline const std::vector<VALUE>& WrapperBase::getKeepAlive() const
+  {
+    return this->keepAlive_;
+  }
+
+  inline void WrapperBase::setKeepAlive(const std::vector<VALUE>& keepAlive)
+  {
+    this->keepAlive_ = keepAlive;
+  }
+
   inline void WrapperBase::setOwner(bool value)
   {
     this->isOwner_ = value;
@@ -330,7 +340,7 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data)
+  inline Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, VALUE source)
   {
     using Wrapper_T = Wrapper<T*>;
 
@@ -346,6 +356,14 @@ namespace Rice::detail
     RTYPEDDATA_DATA(value) = wrapper;
 
     Registries::instance.instances.add(data, value);
+
+    // Copy keepAlive references from the source object (used by initialize_copy
+    // so that cloned containers directly protect the same Ruby objects)
+    if (source != Qnil)
+    {
+      WrapperBase* sourceWrapper = getWrapper(source);
+      wrapper->setKeepAlive(sourceWrapper->getKeepAlive());
+    }
 
     return wrapper;
   }
