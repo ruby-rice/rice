@@ -41,7 +41,7 @@ Class makeVectorClass()
 
   return c;
 }
-/*
+
 TESTCASE(StringVector)
 {
   Module m = define_module("Testing");
@@ -1144,7 +1144,7 @@ TESTCASE(StringPointerVector)
   ASSERT_EQUAL(1, array.size());
   ASSERT_EQUAL("World", detail::From_Ruby<std::string>().convert(array[0].value()).c_str());
 }
-*/
+
 namespace
 {
   class MyClass2
