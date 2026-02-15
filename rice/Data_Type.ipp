@@ -192,8 +192,23 @@ namespace Rice
 
     if constexpr (Constructor_T::isCopyConstructor())
     {
-      // Define initialize_copy that will copy the C++ object
-      this->define_method("initialize_copy", &Constructor_T::initialize_copy, args...);
+      // Define initialize_copy that will copy the C++ object and its keepAlive references.
+      // We use setValue() so Rice passes the raw VALUE without conversion - this gives
+      // initialize_copy access to both wrappers so it can copy the keepAlive list.
+      using Rice_Arg_Tuple = std::tuple<Rice_Arg_Ts...>;
+      constexpr std::size_t arg_index = detail::tuple_element_index_v<Rice_Arg_Tuple, Arg>;
+
+      if constexpr (arg_index < sizeof...(Rice_Arg_Ts))
+      {
+        // User provided an Arg - extract it and ensure setValue is set
+        Arg arg = std::get<arg_index>(std::forward_as_tuple(args...));
+        arg.setValue();
+        this->define_method("initialize_copy", &Constructor_T::initialize_copy, arg);
+      }
+      else
+      {
+        this->define_method("initialize_copy", &Constructor_T::initialize_copy, Arg("other").setValue());
+      }
     }
     else if constexpr (Constructor_T::isMoveConstructor())
     {

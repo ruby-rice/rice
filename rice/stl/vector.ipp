@@ -59,7 +59,7 @@ namespace Rice
         if constexpr (std::is_copy_constructible_v<Value_T>)
         {
           klass_.define_constructor(Constructor<T, const T&>(), Arg("other"))
-                .define_constructor(Constructor<T, Size_T, const Parameter_T>(), Arg("count"), Arg("value"));
+                .define_constructor(Constructor<T, Size_T, const Parameter_T>(), Arg("count"), Arg("value").keepAlive());
         }
 
         if constexpr (std::is_default_constructible_v<Value_T>)
@@ -125,7 +125,7 @@ namespace Rice
         if constexpr (!std::is_same_v<Value_T, bool>)
         {
           // Access methods
-          klass_.define_method("first", [](T& vector) -> std::optional<std::reference_wrapper<Value_T>>
+          auto first_func = [](T& vector) -> std::optional<std::reference_wrapper<Value_T>>
           {
             if (vector.size() > 0)
             {
@@ -135,8 +135,9 @@ namespace Rice
             {
               return std::nullopt;
             }
-          })
-          .define_method("last", [](T& vector) -> std::optional<std::reference_wrapper<Value_T>>
+          };
+
+          auto last_func = [](T& vector) -> std::optional<std::reference_wrapper<Value_T>>
           {
             if (vector.size() > 0)
             {
@@ -146,8 +147,9 @@ namespace Rice
             {
               return std::nullopt;
             }
-          })
-          .define_method("[]", [this](T& vector, Difference_T index) -> std::optional<std::reference_wrapper<Value_T>>
+          };
+
+          auto index_func = [this](T& vector, Difference_T index) -> std::optional<std::reference_wrapper<Value_T>>
           {
             index = normalizeIndex(vector.size(), index);
             if (index < 0 || index >= (Difference_T)vector.size())
@@ -158,8 +160,22 @@ namespace Rice
             {
               return vector[index];
             }
-          }, Arg("pos"))
-          .template define_method<Value_T*(T::*)()>("data", &T::data, ReturnBuffer());
+          };
+
+          if constexpr (detail::is_wrapped_v<Value_T>)
+          {
+            klass_.define_method("first", first_func, Return().keepAlive())
+                  .define_method("last", last_func, Return().keepAlive())
+                  .define_method("[]", index_func, Arg("pos"), Return().keepAlive());
+          }
+          else
+          {
+            klass_.define_method("first", first_func)
+                  .define_method("last", last_func)
+                  .define_method("[]", index_func, Arg("pos"));
+          }
+
+          klass_.template define_method<Value_T*(T::*)()>("data", &T::data, ReturnBuffer());
         }
         else
         {

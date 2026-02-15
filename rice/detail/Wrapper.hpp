@@ -17,6 +17,8 @@ namespace Rice::detail
 
     void ruby_mark();
     void addKeepAlive(VALUE value);
+    const std::vector<VALUE>& getKeepAlive() const;
+    void setKeepAlive(const std::vector<VALUE>& keepAlive);
     void setOwner(bool value);
 
   protected:
@@ -37,7 +39,7 @@ namespace Rice::detail
   public:
     Wrapper(rb_data_type_t* rb_data_type, T& data);
     Wrapper(rb_data_type_t* rb_data_type, T&& data);
-    ~Wrapper();
+    ~Wrapper() = default;
     void* get(rb_data_type_t* requestedType) override;
 
   private:
@@ -82,7 +84,7 @@ namespace Rice::detail
 
   // ---- Helper Functions ---------
   template <typename T>
-  Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data);
+  Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, VALUE source = Qnil);
 
   template <typename T>
   VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner);

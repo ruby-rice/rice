@@ -41,7 +41,7 @@ Class makeVectorClass()
 
   return c;
 }
-/*
+
 TESTCASE(StringVector)
 {
   Module m = define_module("Testing");
@@ -1144,7 +1144,7 @@ TESTCASE(StringPointerVector)
   ASSERT_EQUAL(1, array.size());
   ASSERT_EQUAL("World", detail::From_Ruby<std::string>().convert(array[0].value()).c_str());
 }
-*/
+
 namespace
 {
   class MyClass2
@@ -1254,6 +1254,110 @@ TESTCASE(KeepAlive)
   ASSERT_EQUAL("inserted", detail::From_Ruby<std::string>().convert(result[1].value()));
   ASSERT_EQUAL("instance2", detail::From_Ruby<std::string>().convert(result[2].value()));
   ASSERT_EQUAL("instance3", detail::From_Ruby<std::string>().convert(result[3].value()));
+}
+
+TESTCASE(KeepAliveArgConstructors)
+{
+  Class c = define_class<MyClass2>("MyClass2").
+    define_constructor(Constructor<MyClass2, std::string>()).
+    define_attr("name", &MyClass2::name, AttrAccess::Read);
+
+  define_vector<MyClass2*>("MyClass2PointerVector");
+
+  Module m = define_module("Testing");
+
+  // Test copy constructor keepAlive (copy constructor is registered as initialize_copy for dup/clone)
+  std::string code = R"(
+    vector1 = Std::MyClass2PointerVector.new
+    3.times do |i|
+      vector1.push(MyClass2.new("instance#{i + 1}"))
+    end
+
+    vector2 = vector1.dup
+    vector1 = nil
+    GC.start
+
+    names = []
+    vector2.each do |instance|
+      names << instance.name
+    end
+    names
+  )";
+
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL("instance1", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("instance2", detail::From_Ruby<std::string>().convert(result[1].value()));
+  ASSERT_EQUAL("instance3", detail::From_Ruby<std::string>().convert(result[2].value()));
+
+  // Test fill constructor keepAlive
+  code = R"(
+    instance = MyClass2.new("filled")
+    vector = Std::MyClass2PointerVector.new(3, instance)
+    instance = nil
+    GC.start
+
+    names = []
+    vector.each do |item|
+      names << item.name
+    end
+    names
+  )";
+
+  result = m.module_eval(code);
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL("filled", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("filled", detail::From_Ruby<std::string>().convert(result[1].value()));
+  ASSERT_EQUAL("filled", detail::From_Ruby<std::string>().convert(result[2].value()));
+}
+
+TESTCASE(KeepAliveReturn)
+{
+  Class c = define_class<MyClass2>("MyClass2").
+    define_constructor(Constructor<MyClass2, std::string>()).
+    define_attr("name", &MyClass2::name, AttrAccess::ReadWrite);
+
+  define_vector<MyClass2>("MyClass2Vector");
+
+  Module m = define_module("Testing");
+
+  // Use a method to ensure vector goes out of scope
+  std::string code = R"(
+    def self.get_first
+      vector = Std::MyClass2Vector.new
+      vector.push(MyClass2.new("first_value"))
+      vector.push(MyClass2.new("last_value"))
+      vector.first
+    end
+
+    def self.get_last
+      vector = Std::MyClass2Vector.new
+      vector.push(MyClass2.new("first_value"))
+      vector.push(MyClass2.new("last_value"))
+      vector.last
+    end
+
+    def self.get_index
+      vector = Std::MyClass2Vector.new
+      vector.push(MyClass2.new("first_value"))
+      vector.push(MyClass2.new("middle_value"))
+      vector.push(MyClass2.new("last_value"))
+      vector[1]
+    end
+
+    item1 = self.get_first
+    item2 = self.get_last
+    item3 = self.get_index
+    GC.start
+
+    [item1.name, item2.name, item3.name]
+  )";
+
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL("first_value", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("last_value", detail::From_Ruby<std::string>().convert(result[1].value()));
+  ASSERT_EQUAL("middle_value", detail::From_Ruby<std::string>().convert(result[2].value()));
 }
 
 namespace

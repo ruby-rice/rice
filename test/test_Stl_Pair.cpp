@@ -150,6 +150,15 @@ namespace
   {
     int32_t value = 5;
   };
+
+  class PairClass
+  {
+  public:
+    PairClass(std::string name) : name(name)
+    {
+    }
+    std::string name;
+  };
 }
 
 TESTCASE(ReferenceReturned)
@@ -184,4 +193,30 @@ TESTCASE(ReferenceReturned)
   rubyStruct = rubyPair.call("second");
   result = rubyStruct.call("value");
   ASSERT_EQUAL(8, detail::From_Ruby<int32_t>().convert(result));
+}
+
+TESTCASE(KeepAliveCopyConstructor)
+{
+  define_class<PairClass>("PairClass").
+    define_constructor(Constructor<PairClass, std::string>()).
+    define_attr("name", &PairClass::name, AttrAccess::Read);
+
+  define_pair<PairClass*, PairClass*>("PairClassPtrPair");
+
+  Module m = define_module("Testing");
+
+  // Copy constructor is registered as initialize_copy (dup/clone)
+  std::string code = R"(
+    pair1 = Std::PairClassPtrPair.new(PairClass.new("first_val"), PairClass.new("second_val"))
+    pair2 = pair1.dup
+    pair1 = nil
+    GC.start
+
+    [pair2.first.name, pair2.second.name]
+  )";
+
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(2, result.size());
+  ASSERT_EQUAL("first_val", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("second_val", detail::From_Ruby<std::string>().convert(result[1].value()));
 }

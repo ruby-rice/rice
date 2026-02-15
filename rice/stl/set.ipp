@@ -79,11 +79,22 @@ namespace Rice
             self.insert(value);
             return self;
           }, Arg("value").keepAlive())
-          .define_method("merge", [](T& self, T& other) -> T&
+          .define_method("merge", [](VALUE self, VALUE source)
           {
-            self.merge(other);
+            T* selfPtr = detail::unwrap<T>(self, Data_Type<T>::ruby_data_type(), false);
+            T* sourcePtr = detail::unwrap<T>(source, Data_Type<T>::ruby_data_type(), false);
+            selfPtr->merge(*sourcePtr);
+
+            // Merge moves elements from source to self, so copy keepAlive references.
+            // This is conservative — duplicate elements that remain in source will also
+            // have their keepAlive references copied, keeping them alive longer than
+            // strictly necessary. This is safe (better than premature GC).
+            detail::WrapperBase* selfWrapper = detail::getWrapper(self);
+            detail::WrapperBase* sourceWrapper = detail::getWrapper(source);
+            selfWrapper->setKeepAlive(sourceWrapper->getKeepAlive());
+
             return self;
-          }, Arg("source"));
+          }, Arg("self").setValue(), Arg("source").setValue());
 
         rb_define_alias(klass_, "erase", "delete");
       }

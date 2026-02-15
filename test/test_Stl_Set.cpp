@@ -822,3 +822,74 @@ TESTCASE(KeepAlive)
   ASSERT_EQUAL("instance2", detail::From_Ruby<std::string>().convert(result[1].value()));
   ASSERT_EQUAL("instance3", detail::From_Ruby<std::string>().convert(result[2].value()));
 }
+
+TESTCASE(KeepAliveCopyConstructor)
+{
+  Class c = define_class<MyClass2>("MyClass2").
+    define_constructor(Constructor<MyClass2, std::string>()).
+    define_attr("name", &MyClass2::name, AttrAccess::Read);
+
+  define_set<MyClass2*>("MyClass2PointerSet");
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(
+    def self.make_dup
+      set1 = Std::MyClass2PointerSet.new
+      set1.insert(MyClass2.new("instance1"))
+      set1.insert(MyClass2.new("instance2"))
+      set1.dup
+    end
+
+    set2 = self.make_dup
+    GC.start
+
+    names = []
+    set2.each do |instance|
+      names << instance.name
+    end
+    names.sort
+  )";
+
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(2, result.size());
+  ASSERT_EQUAL("instance1", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("instance2", detail::From_Ruby<std::string>().convert(result[1].value()));
+}
+
+TESTCASE(KeepAliveMerge)
+{
+  Class c = define_class<MyClass2>("MyClass2").
+    define_constructor(Constructor<MyClass2, std::string>()).
+    define_attr("name", &MyClass2::name, AttrAccess::Read);
+
+  define_set<MyClass2*>("MyClass2PointerSet");
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(
+    def self.make_merged
+      set1 = Std::MyClass2PointerSet.new
+      set1.insert(MyClass2.new("instance1"))
+      set1.insert(MyClass2.new("instance2"))
+
+      set2 = Std::MyClass2PointerSet.new
+      set2.merge(set1)
+      set2
+    end
+
+    set = self.make_merged
+    GC.start
+
+    names = []
+    set.each do |instance|
+      names << instance.name
+    end
+    names.sort
+  )";
+
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(2, result.size());
+  ASSERT_EQUAL("instance1", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("instance2", detail::From_Ruby<std::string>().convert(result[1].value()));
+}
