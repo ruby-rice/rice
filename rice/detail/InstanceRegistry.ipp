@@ -3,39 +3,26 @@
 namespace Rice::detail
 {
   template <typename T>
-  inline VALUE InstanceRegistry::lookup(T& cppInstance)
+  inline VALUE InstanceRegistry::lookup(T* cppInstance, bool isOwner)
   {
-    return this->lookup((void*)&cppInstance);
+    if (!this->shouldTrack(isOwner))
+    {
+      return Qnil;
+    }
+
+    auto it = this->objectMap_.find((void*)cppInstance);
+    return it != this->objectMap_.end() ? it->second : Qnil;
   }
 
   template <typename T>
-  inline VALUE InstanceRegistry::lookup(T* cppInstance)
+  inline void InstanceRegistry::add(T* cppInstance, VALUE rubyInstance, bool isOwner)
   {
-    return this->lookup((void*)cppInstance);
-  }
-
-  inline VALUE InstanceRegistry::lookup(void* cppInstance)
-  {
-    if (!this->isEnabled)
-      return Qnil;
-
-    auto it = this->objectMap_.find(cppInstance);
-    if (it != this->objectMap_.end())
+    if (!this->shouldTrack(isOwner))
     {
-      return it->second;
+      return;
     }
-    else
-    {
-      return Qnil;
-    }
-  }
 
-  inline void InstanceRegistry::add(void* cppInstance, VALUE rubyInstance)
-  {
-    if (this->isEnabled)
-    {
-      this->objectMap_[cppInstance] = rubyInstance;
-    }
+    this->objectMap_[(void*)cppInstance] = rubyInstance;
   }
 
   inline void InstanceRegistry::remove(void* cppInstance)
@@ -47,4 +34,19 @@ namespace Rice::detail
   {
     this->objectMap_.clear();
   }
-} // namespace
+
+  inline bool InstanceRegistry::shouldTrack(bool isOwner) const
+  {
+    switch (this->mode)
+    {
+      case Mode::Off:
+        return false;
+      case Mode::Owned:
+        return isOwner;
+      case Mode::All:
+        return true;
+      default:
+        return false;
+    }
+  }
+}
