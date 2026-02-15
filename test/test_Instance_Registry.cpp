@@ -5,12 +5,20 @@
 
 using namespace Rice;
 
-TESTSUITE(Tracking);
+TESTSUITE(Instance_Registry);
 
 namespace
 {
   class MyClass
   {
+  public:
+    int flag()
+    {
+      return flag_;
+    }
+
+  private:
+    int flag_ = 123;
   };
 
   class Factory
@@ -70,14 +78,16 @@ namespace
   };
 }
 
-SETUP(Tracking)
+SETUP(Instance_Registry)
 {
   embed_ruby();
 
-  define_class<MyClass>("MyClass");
+  define_class<MyClass>("MyClass")
+    .define_method("flag", &MyClass::flag);
 
   define_class<Factory>("Factory").
     define_constructor(Constructor<Factory>()).
+    define_singleton_function("reset", &Factory::reset).
     define_method("factory", &Factory::factory).
     define_method("value", &Factory::value).
     define_method("move_value", &Factory::moveValue).
@@ -87,15 +97,15 @@ SETUP(Tracking)
     define_method("keep_reference", &Factory::keepReference);
 }
 
-TEARDOWN(Tracking)
+TEARDOWN(Instance_Registry)
 {
-  detail::Registries::instance.instances.isEnabled = true;
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::Owned;
   rb_gc_start();
 }
 
 TESTCASE(TransferPointer)
 {
-  detail::Registries::instance.instances.isEnabled = true;
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::Owned;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -108,9 +118,25 @@ TESTCASE(TransferPointer)
   ASSERT_NOT_EQUAL(my_class1.get(), my_class2.get());
 }
 
-TESTCASE(KeepPointer)
+TESTCASE(KeepPointerOwnedMode)
 {
-  detail::Registries::instance.instances.isEnabled = true;
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::Owned;
+  Factory::reset();
+
+  Module m = define_module("TestingModule");
+
+  Object factory = m.module_eval("Factory.new");
+
+  Data_Object<MyClass> my_class1 = factory.call("keep_pointer");
+  Data_Object<MyClass> my_class2 = factory.call("keep_pointer");
+
+  ASSERT(!my_class1.is_equal(my_class2));
+  ASSERT_EQUAL(my_class1.get(), my_class2.get());
+}
+
+TESTCASE(KeepPointerAllMode)
+{
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::All;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -126,7 +152,7 @@ TESTCASE(KeepPointer)
 
 TESTCASE(KeepPointerWithoutTracking)
 {
-  detail::Registries::instance.instances.isEnabled = false;
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::Off;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -140,9 +166,25 @@ TESTCASE(KeepPointerWithoutTracking)
   ASSERT_EQUAL(my_class1.get(), my_class2.get());
 }
 
-TESTCASE(KeepReference)
+TESTCASE(KeepReferenceOwnedMode)
 {
-  detail::Registries::instance.instances.isEnabled = true;
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::Owned;
+  Factory::reset();
+
+  Module m = define_module("TestingModule");
+
+  Object factory = m.module_eval("Factory.new");
+
+  Data_Object<MyClass> my_class1 = factory.call("keep_reference");
+  Data_Object<MyClass> my_class2 = factory.call("keep_reference");
+
+  ASSERT(!my_class1.is_equal(my_class2));
+  ASSERT_EQUAL(my_class1.get(), my_class2.get());
+}
+
+TESTCASE(KeepReferenceAllMode)
+{
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::All;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -158,7 +200,7 @@ TESTCASE(KeepReference)
 
 TESTCASE(KeepReferenceWithoutTracking)
 {
-  detail::Registries::instance.instances.isEnabled = false;
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::Off;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -174,7 +216,7 @@ TESTCASE(KeepReferenceWithoutTracking)
 
 TESTCASE(CopyReference)
 {
-  detail::Registries::instance.instances.isEnabled = true;
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::Owned;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -189,7 +231,7 @@ TESTCASE(CopyReference)
 
 TESTCASE(TransferValue)
 {
-  detail::Registries::instance.instances.isEnabled = true;
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::Owned;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -204,7 +246,7 @@ TESTCASE(TransferValue)
 
 TESTCASE(MoveValue)
 {
-  detail::Registries::instance.instances.isEnabled = true;
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::Owned;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -219,7 +261,7 @@ TESTCASE(MoveValue)
 
 TESTCASE(RubyObjectGced)
 {
-  detail::Registries::instance.instances.isEnabled = true;
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::All;
   Factory::reset();
 
   Module m = define_module("TestingModule");
@@ -240,4 +282,23 @@ TESTCASE(RubyObjectGced)
   // Call a method on the ruby object
   String className = my_class2.class_name();
   ASSERT_EQUAL(std::string("MyClass"), className.str());
+}
+
+TESTCASE(AllMode_CppFreeUnderRubyWrapper_CrashRepro)
+{
+  Factory::reset();
+
+  Module m = define_module("TestingModule");
+  std::string code = R"(
+    factory = Factory.new
+    obj = factory.keep_pointer
+    # Simulate C++ freeing the object out from under Ruby by resetting the Factory, which deletes the MyClass instance.
+    Factory.reset
+    obj.flag
+  )";
+
+  // C++ frees the object out from under Ruby while Ruby still holds a wrapper.
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::All;
+  Object result = m.module_eval(code);
+  ASSERT_NOT_EQUAL(99, detail::From_Ruby<int>().convert(result.value()));
 }

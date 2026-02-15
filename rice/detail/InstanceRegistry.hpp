@@ -1,29 +1,37 @@
 #ifndef Rice__detail__InstanceRegistry__hpp_
 #define Rice__detail__InstanceRegistry__hpp_
 
+#include <type_traits>
+
 namespace Rice::detail
 {
   class InstanceRegistry
   {
   public:
-    template <typename T>
-    VALUE lookup(T& cppInstance);
+    enum class Mode
+    {
+      Off,
+      Owned,
+      All
+    };
 
     template <typename T>
-    VALUE lookup(T* cppInstance);
-    VALUE lookup(void* cppInstance);
+    VALUE lookup(T* cppInstance, bool isOwner);
 
-    void add(void* cppInstance, VALUE rubyInstance);
+    template <typename T>
+    void add(T* cppInstance, VALUE rubyInstance, bool isOwner);
+
     void remove(void* cppInstance);
     void clear();
 
   public:
-    bool isEnabled = false;
+    Mode mode = Mode::Owned;
 
   private:
+    bool shouldTrack(bool isOwner) const;
+
     std::map<void*, VALUE> objectMap_;
   };
 } // namespace Rice::detail
 
 #endif // Rice__detail__InstanceRegistry__hpp_
-

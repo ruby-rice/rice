@@ -3,6 +3,7 @@
 #include <rice/rice.hpp>
 
 #include <memory>
+#include <unordered_set>
 
 using namespace Rice;
 
@@ -17,6 +18,7 @@ namespace
     static inline int copyConstructorCalls = 0;
     static inline int destructorCalls = 0;
     static inline int methodCalls = 0;
+    static inline std::unordered_set<MyCopyableClass*> liveInstances;
 
     static void reset()
     {
@@ -24,38 +26,63 @@ namespace
       copyConstructorCalls = 0;
       destructorCalls = 0;
       methodCalls = 0;
+      liveInstances.clear();
     }
 
   public:
     int flag = 0;
+    char* payload = nullptr;
 
   public:
     MyCopyableClass()
     {
       constructorCalls++;
+      payload = new char[8];
+      payload[0] = 0;
+      liveInstances.insert(this);
     }
 
     ~MyCopyableClass()
     {
+      liveInstances.erase(this);
+      delete[] payload;
+      payload = (char*)0x1;
       destructorCalls++;
     }
 
     MyCopyableClass(const MyCopyableClass& other): flag(other.flag)
     {
       copyConstructorCalls++;
+      payload = new char[8];
+      payload[0] = other.payload ? other.payload[0] : 0;
+      liveInstances.insert(this);
     }
 
     MyCopyableClass(MyCopyableClass&& other) = delete;
 
     int32_t process()
     {
+      this->assertAlive();
+      payload[0] = (char)flag;
       methodCalls++;
       return methodCalls;
     }
 
     void setFlag(int value)
     {
+      this->assertAlive();
       this->flag = value;
+      payload[0] = (char)value;
+    }
+
+  private:
+    void assertAlive()
+    {
+      if (liveInstances.find(this) == liveInstances.end())
+      {
+        volatile int* p = nullptr;
+        *p = 1;
+      }
     }
   };
 
@@ -160,6 +187,99 @@ namespace
   public:
     static inline MyCopyableClass* instance_ = nullptr;
   };
+
+  class OwnerBox;
+
+  class AliasBox
+  {
+  public:
+    explicit AliasBox(OwnerBox* owner) : owner_(owner)
+    {}
+
+    OwnerBox* owner()
+    {
+      return owner_;
+    }
+
+  private:
+    OwnerBox* owner_ = nullptr;
+  };
+
+  class OwnerBox
+  {
+  public:
+    OwnerBox() : alias_(std::make_unique<AliasBox>(this))
+    {
+    }
+
+    AliasBox* alias()
+    {
+      return alias_.get();
+    }
+
+    void setFlag(int value)
+    {
+      this->flag_ = value;
+    }
+
+    int flag() const
+    {
+      return this->flag_;
+    }
+
+  private:
+    int flag_ = 0;
+    std::unique_ptr<AliasBox> alias_;
+  };
+
+  class RotatingStore
+  {
+  public:
+    RotatingStore() : current_(std::make_unique<MyCopyableClass>())
+    {
+    }
+
+    MyCopyableClass* current()
+    {
+      return current_.get();
+    }
+
+    void rotate()
+    {
+      current_.reset(new MyCopyableClass());
+    }
+
+    void clear()
+    {
+      current_.reset();
+    }
+
+  private:
+    std::unique_ptr<MyCopyableClass> current_;
+  };
+
+  class SharedFactory
+  {
+  public:
+    SharedFactory() : shared_(new MyCopyableClass())
+    {
+    }
+
+    ~SharedFactory() = default;
+
+    MyCopyableClass* createOwned()
+    {
+      return shared_;
+    }
+
+    MyCopyableClass* getBorrowed()
+    {
+      return shared_;
+    }
+
+  private:
+    MyCopyableClass* shared_ = nullptr;
+  };
 }
 
 SETUP(Ownership)
@@ -185,6 +305,27 @@ SETUP(Ownership)
     define_method("keep_pointer", &Factory::keepPointer).
     define_method("copy_reference", &Factory::keepReference, Return().takeOwnership()).
     define_method("keep_reference", &Factory::keepReference);
+
+  define_class<OwnerBox>("OwnerBox")
+    .define_constructor(Constructor<OwnerBox>())
+    .define_method("set_flag", &OwnerBox::setFlag)
+    .define_method("flag", &OwnerBox::flag);
+
+  define_class<AliasBox>("AliasBox")
+    .define_method("owner", &AliasBox::owner);
+
+  Data_Type<OwnerBox>().define_method("alias", &OwnerBox::alias);
+
+  define_class<RotatingStore>("RotatingStore")
+    .define_constructor(Constructor<RotatingStore>())
+    .define_method("current", &RotatingStore::current)
+    .define_method("rotate", &RotatingStore::rotate)
+    .define_method("clear", &RotatingStore::clear);
+
+  define_class<SharedFactory>("SharedFactory")
+    .define_constructor(Constructor<SharedFactory>())
+    .define_method("create_owned", &SharedFactory::createOwned, Return().takeOwnership())
+    .define_method("get_borrowed", &SharedFactory::getBorrowed);
 }
 
 TEARDOWN(Ownership)
@@ -377,4 +518,27 @@ TESTCASE(NotCopyable)
     Data_Object<MyClassNotCopyable>(instance, true),
     ASSERT_EQUAL(expected, ex.what())
   );
+}
+
+TESTCASE(MultipleOwnerReferences)
+{
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::All;
+
+  Module m = define_module("TestingModule");
+  std::string code = R"(
+    box1 = OwnerBox.new
+    alias_obj = box1.alias
+    box2 = alias_obj.owner
+    box2.set_flag(99)
+    box1 = nil
+    GC.start
+    box2.flag
+  )";
+  
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(99, detail::From_Ruby<int>().convert(result.value()));
+
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::Off;
+  result = m.module_eval(code);
+  ASSERT_NOT_EQUAL(99, detail::From_Ruby<int>().convert(result.value()));
 }

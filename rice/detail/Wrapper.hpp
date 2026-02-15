@@ -39,7 +39,7 @@ namespace Rice::detail
   public:
     Wrapper(rb_data_type_t* rb_data_type, T& data);
     Wrapper(rb_data_type_t* rb_data_type, T&& data);
-    ~Wrapper();
+    ~Wrapper() = default;
     void* get(rb_data_type_t* requestedType) override;
 
   private:

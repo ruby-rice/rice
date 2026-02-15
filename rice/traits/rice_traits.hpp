@@ -1,6 +1,7 @@
 #ifndef Rice__detail__traits__hpp_
 #define Rice__detail__traits__hpp_
 
+#include <complex>
 #include <ostream>
 #include <tuple>
 #include <type_traits>
@@ -113,6 +114,15 @@ namespace Rice
     template <typename T>
     constexpr bool is_std_vector_v = is_std_vector<T>::value;
 
+    template<typename>
+    struct is_std_complex : std::false_type {};
+
+    template<typename T>
+    struct is_std_complex<std::complex<T>> : std::true_type {};
+
+    template <typename T>
+    constexpr bool is_std_complex_v = is_std_complex<T>::value;
+
     template<class T>
     struct is_pointer_pointer : std::false_type {};
 
@@ -156,7 +166,8 @@ namespace Rice
 
     template<typename T>
     struct is_wrapped<T, std::enable_if_t<std::is_fundamental_v<detail::intrinsic_type<T>> ||
-                                          std::is_same_v<detail::intrinsic_type<T>, std::string>>
+                                          std::is_same_v<detail::intrinsic_type<T>, std::string> ||
+                                          is_std_complex_v<T>>
                      >: std::false_type {};
 
     template<typename T>
