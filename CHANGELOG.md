@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+Incompatible Changes:
+* `InstanceRegistry.isEnabled` (boolean) has been replaced by an `InstanceRegistry.isEnabled` which is an enum (`Off`, `Owned`, `All`).
+* `InstanceRegistry` now defaults to `Owned` - previously it was disabled. The goal of this change is to ensure C++ objects owned by Ruby are only wrapped once to avoid double free errors.
+
 ## 4.10.0 (2026-02-07)
 
 Enhancements:

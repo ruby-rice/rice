@@ -45,11 +45,14 @@ namespace Rice
       detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
     }
 
-    static void initialize_copy(VALUE self, const T& other)
+    // Takes VALUE (via Arg.setValue()) instead of const T& so we have access to
+    // both Ruby wrappers and can copy the keepAlive list from the original to the clone.
+    static VALUE initialize_copy(VALUE self, VALUE other)
     {
-      // Call C++ copy constructor
-      T* data = new T(other);
-      detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
+      T* otherData = detail::unwrap<T>(other, Data_Type<T>::ruby_data_type(), false);
+      T* data = new T(*otherData);
+      detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data, other);
+      return self;
     }
 
   };

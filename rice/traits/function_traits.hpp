@@ -36,6 +36,14 @@ namespace Rice::detail
     using class_type = std::nullptr_t;
   };
 
+  // Lvalue references to functors and lambdas - strip the reference and defer
+  // to the base functor specialization. This allows named lambda variables (lvalues)
+  // to be passed to define_method in addition to inline temporaries (rvalues).
+  template<typename Function_T>
+  struct function_traits<Function_T&> : public function_traits<Function_T>
+  {
+  };
+
   // C functions and static member functions passed by pointer
   template<typename Return_T, typename ...Parameter_Ts>
   struct function_traits<Return_T(*)(Parameter_Ts...)> : public function_traits<Return_T(std::nullptr_t, Parameter_Ts...)>

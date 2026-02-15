@@ -36,6 +36,16 @@ namespace Rice::detail
     this->keepAlive_.push_back(value);
   }
 
+  inline const std::vector<VALUE>& WrapperBase::getKeepAlive() const
+  {
+    return this->keepAlive_;
+  }
+
+  inline void WrapperBase::setKeepAlive(const std::vector<VALUE>& keepAlive)
+  {
+    this->keepAlive_ = keepAlive;
+  }
+
   inline void WrapperBase::setOwner(bool value)
   {
     this->isOwner_ = value;
@@ -51,12 +61,6 @@ namespace Rice::detail
   template <typename T>
   inline Wrapper<T>::Wrapper(rb_data_type_t* rb_data_type, T&& data) : WrapperBase(rb_data_type), data_(std::move(data))
   {
-  }
-
-  template <typename T>
-  inline Wrapper<T>::~Wrapper()
-  {
-    Registries::instance.instances.remove(this->get(this->rb_data_type_));
   }
 
   template <typename T>
@@ -184,56 +188,68 @@ namespace Rice::detail
 
   // ---- Helper Functions -------
   template <typename T>
+  inline VALUE wrapLvalue(VALUE klass, rb_data_type_t* rb_data_type, T& data)
+  {
+    WrapperBase* wrapper = new Wrapper<T>(rb_data_type, data);
+    return TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+  }
+
+  template <typename T>
+  inline VALUE wrapRvalue(VALUE klass, rb_data_type_t* rb_data_type, T& data)
+  {
+    WrapperBase* wrapper = new Wrapper<T>(rb_data_type, std::move(data));
+    return TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+  }
+
+  template <typename T>
+  inline VALUE wrapReference(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner)
+  {
+    VALUE result = Registries::instance.instances.lookup(&data, isOwner);
+    if (result == Qnil)
+    {
+      WrapperBase* wrapper = new Wrapper<T&>(rb_data_type, data);
+      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+      Registries::instance.instances.add(&data, result, isOwner);
+    }
+    return result;
+  }
+
+  template <typename T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner)
   {
-    VALUE result = Registries::instance.instances.lookup(&data);
-
-    if (result != Qnil)
-      return result;
-
-    WrapperBase* wrapper = nullptr;
-
-    // If Ruby is not the owner then wrap the reference
-    if (!isOwner)
-    {
-      wrapper = new Wrapper<T&>(rb_data_type, data);
-      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
-    }
-
     // Incomplete types can't be copied/moved, just wrap as reference
-    else if constexpr (!is_complete_v<T>)
+    if constexpr (!is_complete_v<T>)
     {
-      wrapper = new Wrapper<T&>(rb_data_type, data);
-      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+      return wrapReference(klass, rb_data_type, data, isOwner);
     }
-
+    // If Ruby is not the owner then wrap the reference
+    else if (!isOwner)
+    {
+      return wrapReference(klass, rb_data_type, data, isOwner);
+    }
     // std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
     else if constexpr (detail::is_std_vector_v<T>)
     {
       if constexpr (std::is_copy_constructible_v<typename T::value_type>)
       {
-        wrapper = new Wrapper<T>(rb_data_type, data);
-        result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+        return wrapLvalue(klass, rb_data_type, data);
       }
       else
       {
-        wrapper = new Wrapper<T>(rb_data_type, std::move(data));
-        result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+        return wrapRvalue(klass, rb_data_type, data);
       }
     }
 
     // Ruby is the owner so copy data
     else if constexpr (std::is_copy_constructible_v<T>)
     {
-      wrapper = new Wrapper<T>(rb_data_type, data);
-      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+      return wrapLvalue(klass, rb_data_type, data);
     }
 
     // Ruby is the owner so move data
     else if constexpr (std::is_move_constructible_v<T>)
     {
-      wrapper = new Wrapper<T>(rb_data_type, std::move(data));
-      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+      return wrapRvalue(klass, rb_data_type, data);
     }
 
     else
@@ -243,16 +259,12 @@ namespace Rice::detail
         typeDetail.name();
       throw std::runtime_error(message);
     }
-
-    Registries::instance.instances.add(wrapper->get(rb_data_type), result);
-
-    return result;
   };
 
   template <typename T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T* data, bool isOwner)
   {
-    VALUE result = Registries::instance.instances.lookup(data);
+    VALUE result = Registries::instance.instances.lookup(data, isOwner);
 
     if (result != Qnil)
       return result;
@@ -260,7 +272,7 @@ namespace Rice::detail
     WrapperBase* wrapper = new Wrapper<T*>(rb_data_type, data, isOwner);
     result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
 
-    Registries::instance.instances.add(wrapper->get(rb_data_type), result);
+    Registries::instance.instances.add(data, result, isOwner);
     return result;
   };
 
@@ -330,7 +342,7 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data)
+  inline Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, VALUE source)
   {
     using Wrapper_T = Wrapper<T*>;
 
@@ -345,7 +357,15 @@ namespace Rice::detail
     wrapper = new Wrapper_T(rb_data_type, data, true);
     RTYPEDDATA_DATA(value) = wrapper;
 
-    Registries::instance.instances.add(data, value);
+    Registries::instance.instances.add(data, value, true);
+
+    // Copy keepAlive references from the source object (used by initialize_copy
+    // so that cloned containers directly protect the same Ruby objects)
+    if (source != Qnil)
+    {
+      WrapperBase* sourceWrapper = getWrapper(source);
+      wrapper->setKeepAlive(sourceWrapper->getKeepAlive());
+    }
 
     return wrapper;
   }

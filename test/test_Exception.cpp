@@ -280,3 +280,20 @@ TESTCASE(subclasses)
     ASSERT_EQUAL("My custom exception occurred!", ex.what())
   );
 }
+
+TESTCASE(memory)
+{
+  Module m = define_module("Testing");
+
+  define_global_function("hello", [](int i)
+  {
+    throw std::runtime_error("error");
+  });
+
+  std::string code = R"(10_000.times do |i|
+                          hello(i) rescue nil
+                        end)";
+
+  m.instance_eval(code);
+  ASSERT(true);
+}

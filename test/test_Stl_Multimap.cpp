@@ -736,3 +736,37 @@ TESTCASE(KeepAlive)
   ASSERT_EQUAL("instance2", detail::From_Ruby<std::string>().convert(result[1].value()));
   ASSERT_EQUAL("instance3", detail::From_Ruby<std::string>().convert(result[2].value()));
 }
+
+TESTCASE(KeepAliveCopyConstructor)
+{
+  Class c = define_class<MyClass2>("MyClass2").
+    define_constructor(Constructor<MyClass2, std::string>()).
+    define_attr("name", &MyClass2::name, AttrAccess::Read);
+
+  define_multimap<std::string, MyClass2*>("MyClass2PointerMultimap");
+
+  Module m = define_module("Testing");
+
+  std::string code = R"(
+    def self.make_dup
+      map1 = Std::MyClass2PointerMultimap.new
+      map1.insert("one", MyClass2.new("instance1"))
+      map1.insert("two", MyClass2.new("instance2"))
+      map1.dup
+    end
+
+    map2 = self.make_dup
+    GC.start
+
+    names = []
+    map2.each do |pair|
+      names << pair.second.name
+    end
+    names.sort
+  )";
+
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(2, result.size());
+  ASSERT_EQUAL("instance1", detail::From_Ruby<std::string>().convert(result[0].value()));
+  ASSERT_EQUAL("instance2", detail::From_Ruby<std::string>().convert(result[1].value()));
+}
