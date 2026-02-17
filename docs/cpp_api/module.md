@@ -12,11 +12,13 @@
 
 ### Module()
 
-Construct a Module wrapping `rb_cObject`.
+Default-construct an empty Module wrapper (wraps `Qnil`).
 
 ```cpp
-Module m;  // wraps Object
+Module m;  // wraps nil
 ```
+
+This constructor does not bind the wrapper to a Ruby module. Initialize it before calling module APIs.
 
 ---
 

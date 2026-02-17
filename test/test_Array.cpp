@@ -76,7 +76,7 @@ TESTCASE(push_no_items)
 TESTCASE(push_one_item)
 {
   Array a;
-  a.push(Rice::True, false);
+  a.push(Object(Qtrue), false);
   ASSERT_EQUAL(1, a.size());
   ASSERT_EQUAL(Qtrue, a[0]);
 }

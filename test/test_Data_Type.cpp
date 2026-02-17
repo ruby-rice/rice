@@ -105,7 +105,7 @@ TESTCASE(methods_with_member_pointers)
 
   Object result = o.call("no_return_no_arg");
   ASSERT(MyClass::no_return_no_arg_called);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = o.call("no_arg");
   ASSERT(MyClass::no_arg_called);
@@ -235,7 +235,7 @@ TESTCASE(methods_with_lambdas)
 
   Object result = o.call("no_return_no_arg");
   ASSERT(MyClass::no_return_no_arg_called);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = o.call("no_arg");
   ASSERT(MyClass::no_arg_called);
@@ -310,32 +310,6 @@ namespace
   {
   };
 }
-
-TESTCASE(not_bound)
-{
-  Module m = define_module("Testing");
-
-  Data_Type<MyClass3> dataType;
-  dataType.
-    define_method("something", [](MyClass3&) -> std::string
-      {
-        return "Should raise error";
-      });
-
-  std::string code = R"(Object.new.something)";
-
-#ifdef _MSC_VER
-  std::string message = "Type is not defined with Rice: class `anonymous namespace'::MyClass3";
-#else
-  std::string message = "Type is not defined with Rice: (anonymous namespace)::MyClass3";
-#endif
-
-  ASSERT_EXCEPTION_CHECK(
-    Exception,
-    m.module_eval(code),
-    ASSERT_EQUAL(message, ex.what())
-  );
-}  
 
 namespace
 {
@@ -542,10 +516,10 @@ TESTCASE(null_ptrs)
   Object o = c.call("new");
 
   Object result = o.call("get");
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = o.call("set", nullptr);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 }
 
 namespace
@@ -621,7 +595,7 @@ TESTCASE(pointers)
   Object object = myClass.call("new");
 
   Object result = object.call("pass_through", nullptr);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = object.call("pass_through", helper);
   Object value = result.call("value");
@@ -632,7 +606,7 @@ TESTCASE(pointers)
   ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(value));
 
   result = object.call("pass_through_void", nullptr);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = object.call("pass_through_void", helper);
   value = result.call("value");

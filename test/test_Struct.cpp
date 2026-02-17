@@ -61,9 +61,9 @@ TESTCASE(new_instance_no_args)
 {
   Struct s(define_3d_point());
   Struct::Instance p(s.new_instance());
-  ASSERT_EQUAL(Rice::Nil, Object(rb_struct_getmember(p, rb_intern("x"))));
-  ASSERT_EQUAL(Rice::Nil, Object(rb_struct_getmember(p, rb_intern("y"))));
-  ASSERT_EQUAL(Rice::Nil, Object(rb_struct_getmember(p, rb_intern("z"))));
+  ASSERT_EQUAL(Qnil, rb_struct_getmember(p, rb_intern("x")));
+  ASSERT_EQUAL(Qnil, rb_struct_getmember(p, rb_intern("y")));
+  ASSERT_EQUAL(Qnil, rb_struct_getmember(p, rb_intern("z")));
 }
 
 TESTCASE(new_instance_with_args)

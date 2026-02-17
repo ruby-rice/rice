@@ -15,7 +15,7 @@ namespace Rice
 
   inline Struct& Struct::define_member(Identifier name)
   {
-    if (value() != rb_cObject)
+    if (!this->is_nil())
     {
       throw std::runtime_error("struct is already initialized");
     }
@@ -27,7 +27,7 @@ namespace Rice
 
   inline Array Struct::members() const
   {
-    if (value() == rb_cObject)
+    if (this->is_nil())
     {
       // Struct is not yet defined
       return Array(members_.begin(), members_.end());

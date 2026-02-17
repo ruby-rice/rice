@@ -18,8 +18,8 @@ namespace Rice
   class Module : public Object
   {
   public:
-    //! Default construct a Module and initialize it to rb_cObject.
-    Module();
+    //! Default construct an empty Module wrapper.
+    Module() = default;
 
     //! Construct a Module from an existing Module object.
     Module(VALUE v);

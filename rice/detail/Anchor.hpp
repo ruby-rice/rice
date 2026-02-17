@@ -35,13 +35,6 @@ namespace Rice
       //! Retrieve the currently anchored VALUE.
       VALUE get() const;
 
-      //! Replace the anchored VALUE.
-      /*!
-       *  The GC root (address) remains unchanged; only the VALUE
-       *  stored at that address is updated.
-       */
-      void set(VALUE value);
-
     private:
       static void disable(VALUE);
       static void registerExitHandler();
@@ -50,6 +43,8 @@ namespace Rice
       inline static bool exitHandlerRegistered_ = false;
 
     private:
+      bool registered_ = false;
+
       //! GC-visible Ruby VALUE slot.
       VALUE value_ = Qnil;
     };

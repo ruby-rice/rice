@@ -84,7 +84,7 @@ namespace Rice
   template<typename T>
   inline T* Data_Object<T>::get() const
   {
-    if (this->value() == Qnil)
+    if (this->is_nil())
     {
       return nullptr;
     }

@@ -20,30 +20,26 @@ namespace Rice
   class Object
   {
   public:
+    //! Construct an empty Object wrapper.
+    Object();
+
     //! Encapsulate an existing ruby object.
-    Object(VALUE value = Qnil) : value_(value) {}
+    Object(VALUE value);
 
     //! Destructor
-    virtual ~Object();
+    virtual ~Object() = default;
 
     // Enable copying
     Object(const Object& other) = default;
     Object& operator=(const Object& other) = default;
 
     // Enable moving
-    Object(Object&& other);
-    Object& operator=(Object&& other);
+    Object(Object&& other) = default;
+    Object& operator=(Object&& other) = default;
 
     //! Returns false if the object is nil or false; returns true
     //! otherwise.
-    // Having this conversion also prevents accidental conversion to
-    // undesired integral types (e.g. long or int) by making the
-    // conversion ambiguous.
-    bool test() const;
-
-    //! Returns false if the object is nil or false; returns true
-    //! otherwise.
-    operator bool() const;
+    explicit operator bool() const;
 
     //! Returns true if the object is nil, false otherwise.
     bool is_nil() const;
@@ -257,7 +253,7 @@ namespace Rice
     void set_value(VALUE value);
 
   private:
-    volatile VALUE value_;
+    Pin value_;
   };
 
   std::ostream& operator<<(std::ostream& out, Object const& obj);
@@ -266,11 +262,6 @@ namespace Rice
   bool operator!=(Object const& lhs, Object const& rhs);
   bool operator<(Object const& lhs, Object const& rhs);
   bool operator>(Object const& lhs, Object const& rhs);
-
-  extern Object const Nil;
-  extern Object const True;
-  extern Object const False;
-  extern Object const Undef;
-} // namespace Rice
+}
 
 #endif // Rice__Object__hpp_

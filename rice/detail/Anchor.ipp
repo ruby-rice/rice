@@ -4,31 +4,28 @@ namespace Rice
   {
     inline Anchor::Anchor(VALUE value) : value_(value)
     {
-      if (value != Qnil)
+      if (!RB_SPECIAL_CONST_P(value))
       {
         Anchor::registerExitHandler();
         detail::protect(rb_gc_register_address, &this->value_);
+        this->registered_ = true;
       }
     }
 
     inline Anchor::~Anchor()
     {
-      if (Anchor::enabled_ && this->value_ != Qnil)
+      if (Anchor::enabled_ && this->registered_)
       {
         detail::protect(rb_gc_unregister_address, &this->value_);
       }
       // Ruby auto detects VALUEs in the stack, so make sure up in case this object is on the stack
+      this->registered_ = false;
       this->value_ = Qnil;
     }
 
     inline VALUE Anchor::get() const
     {
       return this->value_;
-    }
-
-    inline void Anchor::set(VALUE value)
-    {
-      this->value_ = value;
     }
 
     // This will be called by ruby at exit - we want to disable further unregistering

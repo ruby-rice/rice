@@ -31,7 +31,7 @@ TESTCASE(CreatePair)
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
   result = pair.call("second");
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = pair.call("first=", 77);
   ASSERT_EQUAL(77, detail::From_Ruby<int32_t>().convert(result));

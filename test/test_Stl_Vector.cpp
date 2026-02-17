@@ -161,10 +161,10 @@ TESTCASE(Empty)
   ASSERT_EQUAL(Qtrue, result.value());
 
   result = vec.call("first");
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = vec.call("last");
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 }
 
 TESTCASE(BoolVector)
@@ -230,7 +230,7 @@ TESTCASE(Indexing)
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("[]", 3);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = vec.call("[]", -1);
   ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
@@ -242,10 +242,10 @@ TESTCASE(Indexing)
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("[]", -4);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = vec.call("[]", -7);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 }
 
 TESTCASE(IndexingEmptyVector)
@@ -259,13 +259,13 @@ TESTCASE(IndexingEmptyVector)
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("[]", 0);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = vec.call("[]", 1);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = vec.call("[]", -1);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 }
 
 TESTCASE(Slice)
@@ -416,7 +416,7 @@ TESTCASE(Modify)
   ASSERT_EQUAL(0, detail::From_Ruby<int32_t>().convert(result));
 
   result = vec.call("pop");
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 }
 
 TESTCASE(Clone)
@@ -505,7 +505,7 @@ TESTCASE(NotComparable)
   vec.call("push", NotComparable(3));
 
   Object result = vec.call("delete", NotComparable(1));
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = vec.call("length");
   ASSERT_EQUAL(3u, detail::From_Ruby<size_t>().convert(result));
@@ -514,7 +514,7 @@ TESTCASE(NotComparable)
   ASSERT_EQUAL(Qfalse, result.value());
 
   result = vec.call("index", NotComparable(3));
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 }
 
 TESTCASE(NotDefaultConstructable)
@@ -526,7 +526,7 @@ TESTCASE(NotDefaultConstructable)
   Object vec = c.call("new");
 
   Object result = vec.call("resize", 10);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = vec.call("length");
   ASSERT_EQUAL(0u, detail::From_Ruby<size_t>().convert(result));
@@ -666,7 +666,7 @@ TESTCASE(ComparableButNotBool)
   vec.call("push", ComparableButNotBool(3));
 
   Object result = vec.call("delete", ComparableButNotBool(1));
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = vec.call("length");
   ASSERT_EQUAL(3u, detail::From_Ruby<size_t>().convert(result));
@@ -675,7 +675,7 @@ TESTCASE(ComparableButNotBool)
   ASSERT_EQUAL(Qfalse, result.value());
 
   result = vec.call("index", ComparableButNotBool(3));
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 }
 
 TESTCASE(DefaultConstructable)
@@ -687,7 +687,7 @@ TESTCASE(DefaultConstructable)
   Object vec = c.call("new");
 
   Object result = vec.call("resize", 10);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 
   result = vec.call("length");
   ASSERT_EQUAL(0u, detail::From_Ruby<size_t>().convert(result));

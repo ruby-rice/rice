@@ -28,9 +28,7 @@ TESTCASE(CreateOStringStream)
 
   Module m = define_module("TestOStream");
 
-  std::string code = R"(
-    Std::OStringStream.new
-  )";
+  std::string code = R"(Std::OStringStream.new)";
   Object result = m.module_eval(code);
   ASSERT_EQUAL("Std::OStringStream", result.class_name().c_str());
 }

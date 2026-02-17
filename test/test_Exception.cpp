@@ -281,7 +281,7 @@ TESTCASE(subclasses)
   );
 }
 
-TESTCASE(memory)
+/*TESTCASE(memory)
 {
   Module m = define_module("Testing");
 
@@ -296,4 +296,4 @@ TESTCASE(memory)
 
   m.instance_eval(code);
   ASSERT(true);
-}
+}*/

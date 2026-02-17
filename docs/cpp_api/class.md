@@ -12,11 +12,13 @@
 
 ### Class()
 
-Construct a Class wrapping `rb_cObject`.
+Default-construct an empty Class wrapper (wraps `Qnil`).
 
 ```cpp
-Class c;  // wraps Object class
+Class c;  // wraps nil
 ```
+
+This constructor does not bind the wrapper to a Ruby class. Initialize it before calling class APIs.
 
 ---
 

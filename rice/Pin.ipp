@@ -7,6 +7,14 @@ namespace Rice
 
   inline VALUE Pin::value() const
   {
-    return this->anchor_->get();
+    // Anchor can be nil after a move
+    if (this->anchor_)
+    {
+      return this->anchor_->get();
+    }
+    else
+    {
+      return Qnil;
+    }
   }
 }

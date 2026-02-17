@@ -1,10 +1,14 @@
 # Changelog
 
-## Unreleased
+## 4.11.0 (Unreleased)
 
 Incompatible Changes:
 * `InstanceRegistry.isEnabled` (boolean) has been replaced by an `InstanceRegistry.isEnabled` which is an enum (`Off`, `Owned`, `All`).
 * `InstanceRegistry` now defaults to `Owned` - previously it was disabled. The goal of this change is to ensure C++ objects owned by Ruby are only wrapped once to avoid double free errors.
+* `Object()` now defaults to `Qnil` instead of `rb_cObject`. This avoids accidentally manipulating `rb_cObject` when a wrapper is not explicitly initialized. Calling methods on wrappers that point to `Qnil` will generally raise an exception. Use `object.is_nil()` to check for `nil` before using a wrapper as a receiver.
+* C++ API wrappers now store their Ruby `VALUE` in a `Pin` instead of a raw `VALUE` field. Previously, wrappers were not GC-safe and Ruby could reclaim wrapped objects while C++ still referenced them. This is now fixed, and wrappers such as `Object` can be stored safely in containers like `std::vector`.
+* The global `Object` constants (`Rice::Nil`, `Rice::True`, `Rice::False`, `Rice::Undef`) have been removed.
+* `Object::test()` has been removed. Use `operator bool()` or `is_nil()` depending on the desired semantics.
 
 ## 4.10.0 (2026-02-07)
 

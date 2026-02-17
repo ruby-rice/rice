@@ -287,5 +287,5 @@ TESTCASE(VoidReturn)
   m.module_eval(code);
 
   Object result = m.call("trigger_callback4");
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 }
