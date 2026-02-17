@@ -258,9 +258,9 @@ TESTCASE(find_if)
   rubyValues.push(44, false);
 
   auto iter = std::find_if(rubyValues.begin(), rubyValues.end(),
-    [&rubyValues](const Object& object)
+    [&rubyValues](VALUE object)
     {
-      return object == rubyValues[1];
+      return object == (VALUE)rubyValues[1];
     });
 
   ASSERT_EQUAL(43, detail::From_Ruby<int>().convert(iter->value()));
@@ -272,6 +272,31 @@ TESTCASE(assign_int)
   a.push(42, false);
   a[0] = 10;
   ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(a[0].value()));
+}
+
+TESTCASE(proxy_to_value)
+{
+  Array a;
+  a.push(42, false);
+
+  // Proxy should implicitly convert to VALUE
+  VALUE v = a[0];
+  ASSERT_EQUAL(detail::to_ruby(42), v);
+}
+
+TESTCASE(proxy_to_wrapper_type)
+{
+  // Create an inner array and push it into an outer array
+  Array inner;
+  inner.push(42, false);
+
+  Array outer;
+  outer.push(inner, false);
+
+  // Proxy -> VALUE -> Array should compile and work
+  Array retrieved(outer[0]);
+  ASSERT_EQUAL(1, retrieved.size());
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(retrieved[0].value()));
 }
 
 /**
@@ -496,7 +521,7 @@ TESTCASE(iterator_std_sort)
       if (val1 > val2)
       {
         // Swap using array subscript operator
-        Object temp = a[j];
+        Object temp(a[j]);
         a[j] = detail::From_Ruby<int>().convert(a[j + 1].value());
         a[j + 1] = detail::From_Ruby<int>().convert(temp.value());
       }
@@ -528,7 +553,7 @@ TESTCASE(iterator_std_reverse)
   {
     long i = begin.index();
     long j = end.index();
-    Object temp = a[i];
+    Object temp(a[i]);
     a[i] = detail::From_Ruby<int>().convert(a[j].value());
     a[j] = detail::From_Ruby<int>().convert(temp.value());
     ++begin;
