@@ -32,7 +32,8 @@ namespace Rice
     #endif
 
     // Now create the Ruby exception
-    this->exception_ = detail::protect(rb_exc_new2, exceptionClass, this->message_.c_str());
+    VALUE exception = detail::protect(rb_exc_new2, exceptionClass, this->message_.c_str());
+    this->exception_ = Pin(exception);
   }
 
   inline char const* Exception::what() const noexcept
@@ -41,7 +42,7 @@ namespace Rice
     {
       // This isn't protected because if it fails then either we could eat the exception
       // (not good) or crash the program (better)
-      VALUE rubyMessage = rb_funcall(this->exception_, rb_intern("message"), 0);
+      VALUE rubyMessage = rb_funcall(this->exception_.value(), rb_intern("message"), 0);
       this->message_ = std::string(RSTRING_PTR(rubyMessage), RSTRING_LEN(rubyMessage));
     }
     return this->message_.c_str();
@@ -49,11 +50,11 @@ namespace Rice
 
   inline VALUE Exception::class_of() const
   {
-    return detail::protect(rb_class_of, this->exception_);
+    return detail::protect(rb_class_of, this->exception_.value());
   }
 
   inline VALUE Exception::value() const
   {
-    return this->exception_;
+    return this->exception_.value();
   }
 }
