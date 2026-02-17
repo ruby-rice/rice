@@ -26,15 +26,8 @@ namespace
   public:
     static void reset()
     {
-      if (Factory::instance_)
-      {
-        // Zero out freed memory so AllMode_CppFreeUnderRubyWrapper_CrashRepro
-        // can reliably detect the dangling pointer across all platforms.
-        void* mem = Factory::instance_;
-        delete Factory::instance_;
-        std::memset(mem, 0, sizeof(MyClass));
-        Factory::instance_ = nullptr;
-      }
+      delete Factory::instance_;
+      Factory::instance_ = nullptr;
     }
 
   public:
@@ -291,6 +284,11 @@ TESTCASE(RubyObjectGced)
   ASSERT_EQUAL(std::string("MyClass"), className.str());
 }
 
+// Disabled: This test demonstrates that Ruby has no control over C++ managed
+// object lifetimes. After Factory.reset deletes the C++ object, obj.flag reads
+// freed memory. The result is undefined behavior — there is no portable way to
+// assert on the value, so the test is unreliable across platforms.
+/*
 TESTCASE(AllMode_CppFreeUnderRubyWrapper_CrashRepro)
 {
   Factory::reset();
@@ -307,3 +305,4 @@ TESTCASE(AllMode_CppFreeUnderRubyWrapper_CrashRepro)
   Object result = m.module_eval(code);
   ASSERT_NOT_EQUAL(123, detail::From_Ruby<int>().convert(result.value()));
 }
+*/
