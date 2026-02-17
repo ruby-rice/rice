@@ -26,8 +26,15 @@ namespace
   public:
     static void reset()
     {
-      delete Factory::instance_;
-      Factory::instance_ = nullptr;
+      if (Factory::instance_)
+      {
+        // Zero out freed memory so AllMode_CppFreeUnderRubyWrapper_CrashRepro
+        // can reliably detect the dangling pointer across all platforms.
+        void* mem = Factory::instance_;
+        delete Factory::instance_;
+        std::memset(mem, 0, sizeof(MyClass));
+        Factory::instance_ = nullptr;
+      }
     }
 
   public:
@@ -289,16 +296,14 @@ TESTCASE(AllMode_CppFreeUnderRubyWrapper_CrashRepro)
   Factory::reset();
 
   Module m = define_module("TestingModule");
-  std::string code = R"(
-    factory = Factory.new
-    obj = factory.keep_pointer
-    # Simulate C++ freeing the object out from under Ruby by resetting the Factory, which deletes the MyClass instance.
-    Factory.reset
-    obj.flag
-  )";
+  std::string code = R"(factory = Factory.new
+                        obj = factory.keep_pointer
+                        # Simulate C++ freeing the object out from under Ruby by resetting the Factory, which deletes the MyClass instance.
+                        Factory.reset
+                        obj.flag)";
 
   // C++ frees the object out from under Ruby while Ruby still holds a wrapper.
   detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::All;
   Object result = m.module_eval(code);
-  ASSERT_NOT_EQUAL(99, detail::From_Ruby<int>().convert(result.value()));
+  ASSERT_NOT_EQUAL(123, detail::From_Ruby<int>().convert(result.value()));
 }
