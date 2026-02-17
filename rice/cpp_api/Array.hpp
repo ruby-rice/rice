@@ -155,8 +155,8 @@ namespace Rice
     //! Construct a new Proxy
     Proxy(Array array, long index);
 
-    //! Implicit conversions
-    operator Object() const;
+    //! Implicit conversion to VALUE.
+    operator VALUE() const;
 
     //! Explicit conversion to VALUE.
     VALUE value() const;

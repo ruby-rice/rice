@@ -93,8 +93,8 @@ namespace Rice
     //! Construct a new Proxy.
     Proxy(Hash* hash, Object key);
 
-    //! Implicit conversion to Object.
-    operator Object() const;
+    //! Implicit conversion to VALUE.
+    operator VALUE() const;
 
     //! Explicit conversion to VALUE.
     VALUE value() const;

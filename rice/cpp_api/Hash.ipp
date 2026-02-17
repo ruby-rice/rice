@@ -19,7 +19,7 @@ namespace Rice
   {
   }
 
-  inline Hash::Proxy::operator Object() const
+  inline Hash::Proxy::operator VALUE() const
   {
     return value();
   }
@@ -51,7 +51,7 @@ namespace Rice
   inline Value_T Hash::get(Key_T const& key)
   {
     Object ruby_key(detail::To_Ruby<Key_T>().convert(key));
-    Object value = operator[](ruby_key);
+    Object value(operator[](ruby_key));
     try
     {
       return detail::From_Ruby<Value_T>().convert(value);
@@ -155,7 +155,7 @@ namespace Rice
   template<typename Hash_Ptr_T, typename Value_T>
   inline Object Hash::Iterator<Hash_Ptr_T, Value_T>::current_key()
   {
-    return hash_keys()[current_index_];
+    return Object(hash_keys()[current_index_]);
   }
 
   template<typename Hash_Ptr_T, typename Value_T>

@@ -1,45 +1,23 @@
 namespace Rice
 {
-  inline const Object Nil(Qnil);
-  inline const Object True(Qtrue);
-  inline const Object False(Qfalse);
-  inline const Object Undef(Qundef);
-
-  // Ruby auto detects VALUEs in the stack, so when an Object gets deleted make sure
-  // to clean up in case it is on the stack
-  inline Object::~Object()
+  inline Object::Object() : value_(Qnil)
   {
-    this->value_ = Qnil;
   }
 
-  // Move constructor
-  inline Object::Object(Object&& other)
+  inline Object::Object(VALUE value) : value_(value)
   {
-    this->value_ = other.value_;
-    other.value_ = Qnil;
-  }
-
-  // Move assignment
-  inline Object& Object::operator=(Object&& other)
-  {
-    this->value_ = other.value_;
-    other.value_ = Qnil;
-    return *this;
-  }
-
-  inline bool Object::test() const
-  {
-    return RTEST(this->value());
   }
 
   inline Object::operator bool() const
   {
-    return this->test();
+    // Bypass getter to not raise exception
+    return RTEST(this->value_.value());
   }
 
   inline bool Object::is_nil() const
   {
-    return NIL_P(this->value());
+    // Bypass getter to not raise exception
+    return NIL_P(this->value_.value());
   }
 
   inline Object::operator VALUE() const
@@ -49,7 +27,15 @@ namespace Rice
 
   inline VALUE Object::value() const
   {
-    return this->value_;
+    VALUE result = this->value_.value();
+
+    if (result == Qnil)
+    {
+      std::string message = "Rice Object does not wrap a Ruby object";
+      throw std::runtime_error(message.c_str());
+    }
+
+    return result;
   }
 
   template<typename ...Parameter_Ts>
@@ -88,6 +74,11 @@ namespace Rice
 
   inline bool Object::is_equal(const Object& other) const
   {
+    if (this->is_nil() || other.is_nil())
+    {
+      return this->is_nil() && other.is_nil();
+    }
+
     VALUE result = detail::protect(rb_equal, this->value(), other.value());
     return RB_TEST(result);
   }
@@ -152,7 +143,7 @@ namespace Rice
 
   inline void Object::set_value(VALUE value)
   {
-    value_ = value;
+    this->value_ = Pin(value);
   }
 
   inline Object Object::const_get(Identifier name) const
@@ -168,7 +159,9 @@ namespace Rice
 
   inline Object Object::const_set(Identifier name, Object value)
   {
-    detail::protect(rb_const_set, this->value(), name.id(), value.value());
+    // We will allow setting constants to Qnil, or the decimal value of 4. This happens
+    // in C++ libraries with enums. Thus skip the value() method that raises excptions
+    detail::protect(rb_const_set, this->value(), name.id(), value.value_.value());
     return value;
   }
 
@@ -188,8 +181,7 @@ namespace Rice
 
   inline bool operator==(Object const& lhs, Object const& rhs)
   {
-    VALUE result = detail::protect(rb_equal, lhs.value(), rhs.value());
-    return result == Qtrue ? true : false;
+    return lhs.is_equal(rhs);
   }
 
   inline bool operator!=(Object const& lhs, Object const& rhs)
@@ -200,13 +192,13 @@ namespace Rice
   inline bool operator<(Object const& lhs, Object const& rhs)
   {
     Object result = lhs.call("<", rhs);
-    return result.test();
+    return result;
   }
 
   inline bool operator>(Object const& lhs, Object const& rhs)
   {
     Object result = lhs.call(">", rhs);
-    return result.test();
+    return result;
   }
 }
 

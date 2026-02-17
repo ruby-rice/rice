@@ -201,7 +201,7 @@ TESTCASE(ReturnVoid)
     function.call(4.3)
   )";
   Object result = m.module_eval(code);
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 }
 
 namespace

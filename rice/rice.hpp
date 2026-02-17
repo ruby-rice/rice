@@ -28,6 +28,10 @@
 #include "detail/Type.hpp"
 #include "detail/TypeIndexParser.hpp"
 
+// Code to register Ruby objects with GC (declarations)
+#include "detail/Anchor.hpp"
+#include "Pin.hpp"
+
 // Code for C++ to call Ruby
 #include "Exception.hpp"
 #include "JumpException.hpp"
@@ -43,10 +47,8 @@
 #include "detail/RubyType.hpp"
 #include "detail/Parameter.hpp"
 
-// Code to register Ruby objects with GC
-#include "detail/Anchor.hpp"
+// Code to register Ruby objects with GC (implementations)
 #include "detail/Anchor.ipp"
-#include "Pin.hpp"
 #include "Pin.ipp"
 
 // C++ API declarations

@@ -134,9 +134,9 @@ namespace Rice
     return detail::protect(rb_ary_entry, array_.value(), index_);
   }
 
-  inline Array::Proxy::operator Object() const
+  inline Array::Proxy::operator VALUE() const
   {
-    return Object(this->value());
+    return this->value();
   }
 
   template<typename T>
@@ -194,7 +194,7 @@ namespace Rice
   template<typename Array_Ptr_T, typename Value_T>
   inline Object* Array::Iterator<Array_Ptr_T, Value_T>::operator->()
   {
-    tmp_ = (*array_)[index_];
+    tmp_ = Object((*array_)[index_]);
     return &tmp_;
   }
 

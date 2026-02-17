@@ -19,7 +19,7 @@ TEARDOWN(Object)
 TESTCASE(default_construct)
 {
   Object o;
-  ASSERT_EQUAL(Qnil, o.value());
+  ASSERT(o.is_nil());
 }
 
 TESTCASE(construct_with_value)
@@ -48,7 +48,7 @@ TESTCASE(move_construct)
   Object o1(INT2NUM(42));
   Object o2(std::move(o1));
   ASSERT_EQUAL(o2.value(), INT2NUM(42));
-  ASSERT_EQUAL(o1.value(), Qnil);
+  ASSERT(o1.is_nil());
 }
 
 TESTCASE(move_assign)
@@ -57,16 +57,16 @@ TESTCASE(move_assign)
   Object o2(INT2NUM(43));
   o2 = std::move(o1);
   ASSERT_EQUAL(o2.value(), INT2NUM(42));
-  ASSERT_EQUAL(o1.value(), Qnil);
+  ASSERT(o1.is_nil());
 }
 
 TESTCASE(test)
 {
-  ASSERT_EQUAL(true, Object(Qtrue).test());
-  ASSERT_EQUAL(true, Object(INT2NUM(42)).test());
-  ASSERT_EQUAL(false, Object(Qfalse).test());
-  ASSERT_EQUAL(false, Object(Qnil).test());
-  ASSERT_EQUAL(true, Object(Qundef).test());
+  ASSERT_EQUAL(true, (bool)Object(Qtrue));
+  ASSERT_EQUAL(true, (bool)Object(INT2NUM(42)));
+  ASSERT_EQUAL(false, (bool)Object(Qfalse));
+  ASSERT_EQUAL(false, (bool)Object(Qnil));
+  ASSERT_EQUAL(true, (bool)Object(Qundef));
 }
 
 TESTCASE(explicit_conversion_to_bool)
@@ -96,8 +96,13 @@ TESTCASE(implicit_conversion_to_value)
   ASSERT_EQUAL(Qtrue, (VALUE)Object(Qtrue));
   ASSERT_EQUAL(INT2NUM(42), (VALUE)Object(INT2NUM(42)));
   ASSERT_EQUAL(Qfalse, (VALUE)Object(Qfalse));
-  ASSERT_EQUAL(Qnil, (VALUE)Object(Qnil));
   ASSERT_EQUAL(Qundef, (VALUE)Object(Qundef));
+
+  ASSERT_EXCEPTION_CHECK(
+    std::runtime_error,
+    (VALUE)Object(Qnil),
+    ASSERT_EQUAL("Rice Object does not wrap a Ruby object", ex.what())
+  );
 }
 
 TESTCASE(explicit_conversion_to_value)
@@ -105,8 +110,13 @@ TESTCASE(explicit_conversion_to_value)
   ASSERT_EQUAL(Qtrue, Object(Qtrue).value());
   ASSERT_EQUAL(INT2NUM(42), Object(INT2NUM(42)).value());
   ASSERT_EQUAL(Qfalse, Object(Qfalse).value());
-  ASSERT_EQUAL(Qnil, Object(Qnil).value());
   ASSERT_EQUAL(Qundef, Object(Qundef).value());
+
+  ASSERT_EXCEPTION_CHECK(
+    std::runtime_error,
+    Object(Qnil).value(),
+    ASSERT_EQUAL("Rice Object does not wrap a Ruby object", ex.what())
+  );
 }
 
 TESTCASE(class_of)
@@ -120,6 +130,11 @@ TESTCASE(compare)
   ASSERT_EQUAL(0, Object(INT2NUM(42)).compare(Object(INT2NUM(42))));
   ASSERT_EQUAL(-1, Object(INT2NUM(42)).compare(Object(INT2NUM(43))));
   ASSERT_EQUAL(1, Object(INT2NUM(42)).compare(Object(INT2NUM(41))));
+}
+
+TESTCASE(equality_nil_objects)
+{
+  ASSERT_EQUAL(true, Object(Qnil) == Object(Qnil));
 }
 
 TESTCASE(to_s)
@@ -161,8 +176,13 @@ TESTCASE(rb_type)
   ASSERT_EQUAL(T_TRUE, Object(Qtrue).rb_type());
   ASSERT_EQUAL(T_FIXNUM, Object(INT2NUM(42)).rb_type());
   ASSERT_EQUAL(T_FALSE, Object(Qfalse).rb_type());
-  ASSERT_EQUAL(T_NIL, Object(Qnil).rb_type());
   ASSERT_EQUAL(T_UNDEF, Object(Qundef).rb_type());
+
+  ASSERT_EXCEPTION_CHECK(
+    std::runtime_error,
+    Object(Qnil).rb_type(),
+    ASSERT_EQUAL("Rice Object does not wrap a Ruby object", ex.what())
+  );
 }
 
 TESTCASE(call_no_arguments)

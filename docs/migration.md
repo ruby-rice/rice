@@ -1,5 +1,241 @@
 # Migration
 
+## Version 4.10 to 4.11
+
+Version 4.11 introduces several breaking changes in instance tracking and the C++ API wrappers.
+
+### InstanceRegistry setting changed from boolean to mode enum
+
+`InstanceRegistry.isEnabled` no longer takes/returns a boolean-style state. It now uses a mode enum:
+`Off`, `Owned`, `All`.
+
+Before:
+
+```ruby
+Rice::InstanceRegistry.isEnabled = true
+Rice::InstanceRegistry.isEnabled = false
+```
+
+After:
+
+```ruby
+Rice::InstanceRegistry.isEnabled = Rice::InstanceRegistry::Owned
+Rice::InstanceRegistry.isEnabled = Rice::InstanceRegistry::Off
+Rice::InstanceRegistry.isEnabled = Rice::InstanceRegistry::All
+```
+
+Also note the default changed from disabled to `Owned`. If your code depended on registry-off behavior, set it explicitly to `Off`.
+
+### `Object()` now defaults to `Qnil` (not `rb_cObject`)
+
+Default-constructed wrappers are now nil wrappers.
+
+Before:
+
+```cpp
+Object obj;
+obj.call("some_method"); // could accidentally target rb_cObject
+```
+
+After:
+
+```cpp
+Object obj;
+if (!obj.is_nil())
+{
+  obj.call("some_method");
+}
+```
+
+Or initialize explicitly:
+
+```cpp
+Object obj(rb_cObject);
+obj.call("some_method");
+```
+
+### `Object::test()` removed
+
+Replace calls to `test()` with either `operator bool()` or `is_nil()`, depending on intent.
+
+Before:
+
+```cpp
+if (obj.test())
+{
+  // truthy
+}
+```
+
+After:
+
+```cpp
+if (obj)
+{
+  // truthy
+}
+```
+
+Or, if you specifically need nil checks:
+
+```cpp
+if (obj.is_nil())
+{
+  // nil
+}
+```
+
+### Global `Object` constants removed
+
+The convenience globals were removed:
+`Rice::Nil`, `Rice::True`, `Rice::False`, `Rice::Undef`.
+
+Before:
+
+```cpp
+Object value = Rice::Nil;
+```
+
+After:
+
+```cpp
+Object value(Qnil);
+Object truthy(Qtrue);
+Object falsy(Qfalse);
+Object undef_value(Qundef);
+```
+
+### C++ API wrappers now use `Pin` internally
+
+Wrapper classes (such as `Object`) now pin their wrapped Ruby value internally for GC safety.
+
+Most users do not need code changes for this update. The primary behavior change is improved safety for long-lived wrappers, including wrappers stored in containers:
+
+```cpp
+std::vector<Object> values;
+values.push_back(Object(rb_str_new_cstr("hello")));
+```
+
+If you previously added ad-hoc GC guards only to protect wrapper objects, those guards may no longer be necessary for the wrappers themselves.
+
+## Version 4.7 to 4.10
+
+Versions 4.8, 4.9, and 4.10 introduced several incompatible C++ API changes.
+
+### Buffer/GVL API renames (4.8)
+
+Before:
+
+```cpp
+define_method("read", &MyClass::read, Arg("buffer").isBuffer());
+define_method("write", &MyClass::write, Return().isBuffer());
+define_method("compute", &MyClass::compute, Function().noGVL());
+```
+
+After:
+
+```cpp
+define_method("read", &MyClass::read, ArgBuffer("buffer"));
+define_method("write", &MyClass::write, ReturnBuffer());
+define_method("compute", &MyClass::compute, NoGvL());
+```
+
+### `is_convertible` return type changed (4.8)
+
+`From_Ruby<T>::is_convertible` must return `double` instead of `Convertible`.
+
+Before:
+
+```cpp
+Convertible is_convertible(VALUE value)
+{
+  return Convertible::Exact;
+}
+```
+
+After:
+
+```cpp
+double is_convertible(VALUE value)
+{
+  return Convertible::Exact;
+}
+```
+
+### Method/default argument verification is stricter (4.8)
+
+Rice now validates default arguments and type registrations more aggressively. Code that previously compiled but had mismatched/default argument types may now raise errors during binding setup.
+
+Migration step:
+1. Ensure every default argument value matches the bound C++ parameter type.
+2. Ensure all custom/opaque types are registered before using them in defaults.
+
+### Smart pointer wrapper internals changed (4.9)
+
+If you implemented custom Rice-side smart pointer wrappers, update them to the current `Std::SharedPtr<T>` / `Std::UniquePtr<T>` model and forwarding behavior.
+
+Most users who only consume smart pointers through `define_method`/`define_constructor` do not need code changes.
+
+### `Address_Registration_Guard` replaced by `Pin` (4.10)
+
+Before:
+
+```cpp
+VALUE value_;
+Address_Registration_Guard guard_;
+
+MyClass()
+  : value_(rb_str_new2("test")), guard_(&value_)
+{
+}
+```
+
+After:
+
+```cpp
+Pin pin_;
+
+MyClass()
+  : pin_(rb_str_new2("test"))
+{
+}
+
+VALUE value() const
+{
+  return pin_.value();
+}
+```
+
+### Blocks are converted to Procs in C++ bindings (4.10)
+
+If your C++ method expects a Ruby block, explicitly receive it as a `VALUE`/`Object` parameter and mark it as a value arg.
+
+Before:
+
+```cpp
+define_method("run_with_block", [](VALUE self)
+{
+  // expected implicit block handling
+});
+```
+
+After:
+
+```cpp
+define_method("run_with_block", [](VALUE self, VALUE proc)
+{
+  // proc is the Ruby block converted to Proc
+}, Arg("proc").setValue());
+```
+
+### `Data_Type<T>::define()` removed (4.10)
+
+Use class template binding helpers / explicit factory functions instead of `Data_Type<T>::define()`.
+
+Migration step:
+1. Remove `Data_Type<T>::define()` calls.
+2. Replace with `define_class`/`define_class_under` flows documented in [Class Templates](bindings/class_templates.md).
+
 ## Version 4.6 to 4.7
 
 Version 4.7 has a couple of breaking changes.

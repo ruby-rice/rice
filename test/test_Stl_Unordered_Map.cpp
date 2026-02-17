@@ -110,7 +110,7 @@ TESTCASE(Include)
   ASSERT_EQUAL(Qfalse, result.value());
 
   result = unordered_map.call("[]", "three");
-  ASSERT_EQUAL(Qnil, result.value());
+  ASSERT(result.is_nil());
 }
 
 TESTCASE(Value)

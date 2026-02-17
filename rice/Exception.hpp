@@ -58,8 +58,7 @@ namespace Rice
     VALUE value() const;
 
   private:
-    // TODO: Do we need to tell the Ruby gc about an exception instance?
-    mutable VALUE exception_ = Qnil;
+    Pin exception_ = Qnil;
     mutable std::string message_;
   };
 } // namespace Rice

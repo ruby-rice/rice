@@ -31,7 +31,7 @@ TESTCASE(undef_creation_funcs)
       Exception,
       c.call("new"),
       ASSERT_EQUAL(rb_eTypeError, ex.class_of())
-      );
+  );
 }
 
 TESTCASE(include_module)
@@ -127,6 +127,29 @@ TESTCASE(module_function)
     std::runtime_error,
     c.define_module_function("some_function", &some_function),
     ASSERT_EQUAL("can only define module functions for modules", ex.what())
+  );
+}
+
+TESTCASE(methods_no_class)
+{
+  Class c;
+
+  ASSERT_EXCEPTION_CHECK(
+    std::runtime_error,
+    c.define_function("some_function", &some_function),
+    ASSERT_EQUAL("Rice Object does not wrap a Ruby object", ex.what())
+  );
+
+  ASSERT_EXCEPTION_CHECK(
+    std::runtime_error,
+    c.define_method("some_method", &some_method),
+    ASSERT_EQUAL("Rice Object does not wrap a Ruby object", ex.what())
+  );
+
+  ASSERT_EXCEPTION_CHECK(
+    std::runtime_error,
+    Object o = c.call("new"),
+    ASSERT_EQUAL("Rice Object does not wrap a Ruby object", ex.what())
   );
 }
 

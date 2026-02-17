@@ -30,9 +30,9 @@ namespace
 
 namespace
 {
-  struct Data
+  struct Element
   {
-    Data(uint32_t value)
+    Element(uint32_t value)
     {
       this->index = value;
     }
@@ -46,15 +46,15 @@ namespace
   {
   public:
     using iterator_category = std::input_iterator_tag;
-    using value_type = Data;
+    using value_type = Element;
     using difference_type = std::ptrdiff_t;
-    using pointer = Data*;
-    using reference = Data&;  // Note: standard expects reference, but we return by value
+    using pointer = Element*;
+    using reference = Element&;  // Note: standard expects reference, but we return by value
 
-    ValueReturningIterator(std::vector<Data>* data, size_t index) : data_(data), index_(index) {}
+    ValueReturningIterator(std::vector<Element>* data, size_t index) : data_(data), index_(index) {}
 
     // Returns by VALUE, not by reference - this is the key characteristic being tested
-    Data operator*() const { return (*data_)[index_]; }
+    Element operator*() const { return (*data_)[index_]; }
 
     ValueReturningIterator& operator++() { ++index_; return *this; }
     ValueReturningIterator operator++(int) { auto tmp = *this; ++index_; return tmp; }
@@ -62,7 +62,7 @@ namespace
     bool operator!=(const ValueReturningIterator& other) const { return index_ != other.index_; }
 
   private:
-    std::vector<Data>* data_;
+    std::vector<Element>* data_;
     size_t index_;
   };
 
@@ -78,7 +78,7 @@ namespace
     ValueReturningIterator end() { return ValueReturningIterator(&data_, data_.size()); }
 
   private:
-    std::vector<Data> data_;
+    std::vector<Element> data_;
   };
 
   class ContainerValues
@@ -89,27 +89,27 @@ namespace
       this->data_ = { {1}, {2}, {3} };
     }
 
-    std::vector<Data>::iterator begin()
+    std::vector<Element>::iterator begin()
     {
       return this->data_.begin();
     }
 
-    std::vector<Data>::iterator end()
+    std::vector<Element>::iterator end()
     {
       return this->data_.end();
     }
 
-    std::vector<Data>::const_iterator cbegin() const
+    std::vector<Element>::const_iterator cbegin() const
     {
       return this->data_.cbegin();
     }
 
-    std::vector<Data>::const_iterator cend() const
+    std::vector<Element>::const_iterator cend() const
     {
       return this->data_.cend();
     }
 
-    std::vector<Data> data_;
+    std::vector<Element> data_;
   };
 
   class ContainerPointers
@@ -117,38 +117,38 @@ namespace
   public:
     ContainerPointers()
     {
-      this->data_ = { new Data{1}, new Data{2},  new Data{3} };
+      this->data_ = { new Element{1}, new Element{2},  new Element{3} };
     }
 
     ~ContainerPointers()
     {
-      for (Data* data : this->data_)
+      for (Element* data : this->data_)
       {
         delete data;
       }
     }
 
-    std::vector<Data*>::iterator begin()
+    std::vector<Element*>::iterator begin()
     {
       return this->data_.begin();
     }
 
-    std::vector<Data*>::iterator end()
+    std::vector<Element*>::iterator end()
     {
       return this->data_.end();
     }
 
-    std::vector<Data*>::reverse_iterator rbegin()
+    std::vector<Element*>::reverse_iterator rbegin()
     {
       return this->data_.rbegin();
     }
 
-    std::vector<Data*>::reverse_iterator rend()
+    std::vector<Element*>::reverse_iterator rend()
     {
       return this->data_.rend();
     }
 
-    std::vector<Data*> data_;
+    std::vector<Element*> data_;
   };
 }
 
@@ -156,14 +156,6 @@ namespace
 SETUP(Iterator)
 {
   embed_ruby();
-
-  Data_Type<Data>::unbind();
-  Data_Type<ContainerValues>::unbind();
-  Data_Type<ContainerWithValueIterator>::unbind();
-
-  Rice::detail::Registries::instance.types.remove<Data>();
-  Rice::detail::Registries::instance.types.remove<ContainerValues>();
-  Rice::detail::Registries::instance.types.remove<ContainerWithValueIterator>();
 }
 
 TEARDOWN(Iterator)
@@ -191,8 +183,8 @@ TESTCASE(ArrayIterator)
 
 TESTCASE(Standard)
 {
-  define_class<Data>("Data")
-    .define_constructor(Constructor<Data, uint32_t>());
+  define_class<Element>("Element")
+    .define_constructor(Constructor<Element, uint32_t>());
 
   define_class<ContainerValues>("ContainerValues")
       .define_constructor(Constructor<ContainerValues>())
@@ -204,20 +196,20 @@ TESTCASE(Standard)
   Array a = wrapper.instance_eval("each.to_a");
   ASSERT_EQUAL(3, a.size());
 
-  Data_Object<Data> wrappedData(a[0]);
+  Data_Object<Element> wrappedData(a[0]);
   ASSERT_EQUAL(1u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)a[1];
+  wrappedData = (Data_Object<Element>)a[1];
   ASSERT_EQUAL(2u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)a[2];
+  wrappedData = (Data_Object<Element>)a[2];
   ASSERT_EQUAL(3u, wrappedData->index);
 }
 
 TESTCASE(Lambda)
 {
-  define_class<Data>("Data")
-    .define_constructor(Constructor<Data, uint32_t>());
+  define_class<Element>("Element")
+    .define_constructor(Constructor<Element, uint32_t>());
 
   define_class<ContainerValues>("ContainerValues")
     .define_constructor(Constructor<ContainerValues>())
@@ -235,7 +227,7 @@ TESTCASE(Lambda)
         ContainerValues* container = detail::From_Ruby<ContainerValues*>().convert(self);
 
         // The iterator returns references - we do NOT want to create a copy
-        detail::To_Ruby<Data&> toRuby;
+        detail::To_Ruby<Element&> toRuby;
 
         auto it = container->begin();
         auto end = container->end();
@@ -258,41 +250,49 @@ TESTCASE(Lambda)
                         container.each do |data|
                           result << data
                         end
-                        result)";
+                        # Return container to keep it alive
+                        [container, result])";
 
   Array result = m.module_eval(code);
-  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL(2, result.size());
 
-  Data_Object<Data> wrappedData(result[0]);
+  Array elements(result[1]);
+  ASSERT_EQUAL(3, elements.size());
+
+  Data_Object<Element> wrappedData(elements[0]);
   ASSERT_EQUAL(1u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)result[1];
+  wrappedData = (Data_Object<Element>)elements[1];
   ASSERT_EQUAL(2u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)result[2];
+  wrappedData = (Data_Object<Element>)elements[2];
   ASSERT_EQUAL(3u, wrappedData->index);
 
   code = R"(container = ContainerValues.new
             enumerator = container.each
-            enumerator.to_a)";
+            # Return container to keep it alive
+            [container, enumerator.to_a])";
 
   result = m.module_eval(code);
-  ASSERT_EQUAL(3, result.size());
+  ASSERT_EQUAL(2, result.size());
 
-  wrappedData = (Data_Object<Data>)result[0];
+  elements = Array(result[1]);
+  ASSERT_EQUAL(3, elements.size());
+
+  wrappedData = (Data_Object<Element>)elements[0];
   ASSERT_EQUAL(1u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)result[1];
+  wrappedData = (Data_Object<Element>)elements[1];
   ASSERT_EQUAL(2u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)result[2];
+  wrappedData = (Data_Object<Element>)elements[2];
   ASSERT_EQUAL(3u, wrappedData->index);
 }
 
 TESTCASE(ConstValue)
 {
-  define_class<Data>("Data")
-      .define_constructor(Constructor<Data, uint32_t>());
+  define_class<Element>("Element")
+      .define_constructor(Constructor<Element, uint32_t>());
     
   define_class<ContainerValues>("ContainerValues")
     .define_constructor(Constructor<ContainerValues>())
@@ -305,24 +305,29 @@ TESTCASE(ConstValue)
                         container.each do |x|
                           result << x
                         end
-                        result)";
+                        # Return container to keep it alive
+                        [container, result])";
 
-  Array a = m.module_eval(code);
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(2, result.size());
 
-  Data_Object<Data> wrappedData(a[0]);
+  Array elements = Array(result[1]);
+  ASSERT_EQUAL(3, elements.size());
+
+  Data_Object<Element> wrappedData(elements[0]);
   ASSERT_EQUAL(1u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)a[1];
+  wrappedData = (Data_Object<Element>)elements[1];
   ASSERT_EQUAL(2u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)a[2];
+  wrappedData = (Data_Object<Element>)elements[2];
   ASSERT_EQUAL(3u, wrappedData->index);
 }
 
 TESTCASE(Pointer)
 {
-  define_class<Data>("Data")
-    .define_constructor(Constructor<Data, uint32_t>());
+  define_class<Element>("Element")
+    .define_constructor(Constructor<Element, uint32_t>());
     
   define_class<ContainerPointers>("ContainerPointers")
     .define_constructor(Constructor<ContainerPointers>())
@@ -338,24 +343,31 @@ TESTCASE(Pointer)
                         container.each do |x|
                           result << x
                         end
-                        result)";
+                        # Return container to keep it alive
+                        [container, result])";
 
   Array a = m.module_eval(code);
 
-  Data_Object<Data> wrappedData(a[0]);
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(2, result.size());
+
+  Array elements = Array(result[1]);
+  ASSERT_EQUAL(3, elements.size());
+
+  Data_Object<Element> wrappedData(elements[0]);
   ASSERT_EQUAL(1u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)a[1];
+  wrappedData = (Data_Object<Element>)elements[1];
   ASSERT_EQUAL(2u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)a[2];
+  wrappedData = (Data_Object<Element>)elements[2];
   ASSERT_EQUAL(3u, wrappedData->index);
 }
 
 TESTCASE(TwoIteratorPointers)
 {
-  define_class<Data>("Data")
-    .define_constructor(Constructor<Data, uint32_t>());
+  define_class<Element>("Element")
+    .define_constructor(Constructor<Element, uint32_t>());
 
   define_class<ContainerPointers>("ContainerPointers")
     .define_constructor(Constructor<ContainerPointers>())
@@ -375,36 +387,41 @@ TESTCASE(TwoIteratorPointers)
                         container.reach do |x|
                           result << x
                         end
-                        result)";
+                        # Return container to keep it alive
+                        [container, result])";
 
   Array a = m.module_eval(code);
 
-  ASSERT_EQUAL(6, a.size());
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(2, result.size());
 
-  Data_Object<Data> wrappedData(a[0]);
+  Array elements = Array(result[1]);
+  ASSERT_EQUAL(6, elements.size());
+
+  Data_Object<Element> wrappedData(elements[0]);
   ASSERT_EQUAL(1u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)a[1];
+  wrappedData = (Data_Object<Element>)elements[1];
   ASSERT_EQUAL(2u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)a[2];
+  wrappedData = (Data_Object<Element>)elements[2];
   ASSERT_EQUAL(3u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)a[3];
+  wrappedData = (Data_Object<Element>)elements[3];
   ASSERT_EQUAL(3u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)a[4];
+  wrappedData = (Data_Object<Element>)elements[4];
   ASSERT_EQUAL(2u, wrappedData->index);
 
-  wrappedData = (Data_Object<Data>)a[5];
+  wrappedData = (Data_Object<Element>)elements[5];
   ASSERT_EQUAL(1u, wrappedData->index);
 }
 
 TESTCASE(Map)
 {
-  define_class<Data>("Data")
-    .define_constructor(Constructor<Data, uint32_t>())
-    .define_attr("index", &Data::index, Rice::AttrAccess::Read);
+  define_class<Element>("Element")
+    .define_constructor(Constructor<Element, uint32_t>())
+    .define_attr("index", &Element::index, Rice::AttrAccess::Read);
 
   define_class<ContainerPointers>("ContainerPointers")
     .define_constructor(Constructor<ContainerPointers>())
@@ -420,21 +437,21 @@ TESTCASE(Map)
   Array a = m.module_eval(code);
   ASSERT_EQUAL(3, a.size());
 
-  Object element = a[0];
+  Object element(a[0]);
   ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(element));
 
-  element = a[1];
+  element = Object(a[1]);
   ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(element));
 
-  element = a[2];
+  element = Object(a[2]);
   ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(element));
 }
 
 TESTCASE(Enum)
 {
-  define_class<Data>("Data")
-    .define_constructor(Constructor<Data, uint32_t>())
-    .define_attr("index", &Data::index, Rice::AttrAccess::Read);
+  define_class<Element>("Element")
+    .define_constructor(Constructor<Element, uint32_t>())
+    .define_attr("index", &Element::index, Rice::AttrAccess::Read);
 
   define_class<ContainerPointers>("ContainerPointers")
     .define_constructor(Constructor<ContainerPointers>())
@@ -451,21 +468,21 @@ TESTCASE(Enum)
 
   ASSERT_EQUAL(3, a.size());
 
-  Object element = a[0];
+  Object element(a[0]);
   ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(element));
 
-  element = a[1];
+  element = Object(a[1]);
   ASSERT_EQUAL(4, detail::From_Ruby<int>().convert(element));
 
-  element = a[2];
+  element = Object(a[2]);
   ASSERT_EQUAL(6, detail::From_Ruby<int>().convert(element));
 }
 
 TESTCASE(ToArray)
 {
-  define_class<Data>("Data")
-    .define_constructor(Constructor<Data, uint32_t>())
-    .define_attr("index", &Data::index, Rice::AttrAccess::Read);
+  define_class<Element>("Element")
+    .define_constructor(Constructor<Element, uint32_t>())
+    .define_attr("index", &Element::index, Rice::AttrAccess::Read);
 
   define_class<ContainerPointers>("ContainerPointers")
     .define_constructor(Constructor<ContainerPointers>())
@@ -474,29 +491,33 @@ TESTCASE(ToArray)
   Module m = define_module("TestingModule");
 
   std::string code = R"(container = ContainerPointers.new
-                        container.to_a)";
+                        # We have to return the container so it is not GCed
+                        [container, container.to_a])";
 
-  Array a = m.module_eval(code);
+  Array result = m.module_eval(code);
+  ASSERT_EQUAL(2, result.size());
 
-  ASSERT_EQUAL(3, a.size());
+  Array elements(result[1]);
 
-  Object element = a[0];
+  ASSERT_EQUAL(3, elements.size());
+
+  Object element(elements[0]);
   Object index = element.call("index");
   ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(index));
 
-  element = a[1];
+  element = Object(elements[1]);
   index = element.call("index");
   ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(index));
 
-  element = a[2];
+  element = Object(elements[2]);
   index = element.call("index");
   ASSERT_EQUAL(3, detail::From_Ruby<int>().convert(index));
 }
 
 TESTCASE(IterateNoCopy)
 {
-  define_class<Data>("Data")
-    .define_constructor(Constructor<Data, uint32_t>());
+  define_class<Element>("Element")
+    .define_constructor(Constructor<Element, uint32_t>());
 
   define_class<ContainerValues>("ContainerValues")
     .define_constructor(Constructor<ContainerValues>())
@@ -512,8 +533,8 @@ TESTCASE(IterateNoCopy)
 
   for (size_t i = 0; i < container.data_.size(); i++)
   {
-    Data& expected = container.data_[i];
-    Data_Object<Data> actual(a[(long)i]);
+    Element& expected = container.data_[i];
+    Data_Object<Element> actual(a[(long)i]);
     ASSERT_EQUAL(&expected, &(*actual));
   }
 }
@@ -522,9 +543,9 @@ TESTCASE(IterateNoCopy)
 // This previously caused MSVC warning C4239 about binding rvalue to non-const reference.
 TESTCASE(ValueReturningIterator)
 {
-  define_class<Data>("Data")
-    .define_constructor(Constructor<Data, uint32_t>())
-    .define_attr("index", &Data::index, Rice::AttrAccess::Read);
+  define_class<Element>("Element")
+    .define_constructor(Constructor<Element, uint32_t>())
+    .define_attr("index", &Element::index, Rice::AttrAccess::Read);
 
   define_class<ContainerWithValueIterator>("ContainerWithValueIterator")
     .define_constructor(Constructor<ContainerWithValueIterator>())

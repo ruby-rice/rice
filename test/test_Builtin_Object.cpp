@@ -56,8 +56,8 @@ TESTCASE(move_constructor)
   Builtin_Object<T_OBJECT> b1(c.call("new"));
   Builtin_Object<T_OBJECT> b2(std::move(b1));
 
-  ASSERT_NOT_EQUAL(b2.value(), b1.value());
-  ASSERT_EQUAL(b1.value(), Qnil);
+  ASSERT(!b2.is_nil());
+  ASSERT(b1.is_nil());
 }
 
 TESTCASE(move_assign)
@@ -68,8 +68,8 @@ TESTCASE(move_assign)
 
   b2 = std::move(b1);
 
-  ASSERT_NOT_EQUAL(b2.value(), b1.value());
-  ASSERT_EQUAL(b1.value(), Qnil);
+  ASSERT(!b2.is_nil());
+  ASSERT(b1.is_nil());
 }
 
 TESTCASE(dereference)

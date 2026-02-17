@@ -1,10 +1,6 @@
 
 namespace Rice
 {
-  inline Module::Module() : Object(rb_cObject)
-  {
-  }
-
   inline Module::Module(VALUE value) : Object(value)
   {
     if (::rb_type(value) != T_CLASS && ::rb_type(value) != T_MODULE)

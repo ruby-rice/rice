@@ -6,6 +6,8 @@
 
 `Rice::Object` is the base class for all Rice wrapper classes. It wraps a Ruby `VALUE` and provides a C++-style interface to Ruby's object system.
 
+Note: `Object` stores its wrapped Ruby value using an internal `Pin`, so wrapper instances keep their Ruby `VALUE` protected from GC while the wrapper is alive. This makes long-lived C++ wrappers (including wrappers stored in STL containers) GC-safe.
+
 ---
 
 ## Constructors
@@ -17,6 +19,8 @@ Construct a new Object wrapping `Qnil`.
 ```cpp
 Object obj;  // wraps nil
 ```
+
+This is an intentionally "empty/nil" default state. It avoids accidentally targeting `rb_cObject` when a wrapper is default-constructed and later used without explicit initialization.
 
 ---
 
@@ -63,28 +67,17 @@ Object obj(some_value);
 VALUE v = obj.value();
 ```
 
----
-
-### test() const → bool
-
-Test if the object is truthy.
-
-**Returns:**
-
-`false` if the object is `nil` or `false`; `true` otherwise.
-
-```cpp
-Object obj(Qtrue);
-if (obj.test()) {
-  // ...
-}
-```
+If the wrapper does not contain a usable receiver, Rice will raise an exception when the value is used by APIs that require a receiver. Check `is_nil()` before calling receiver-style methods.
 
 ---
 
 ### operator bool() const
 
-Implicit conversion to bool. Same as `test()`.
+Implicit conversion to bool.
+
+**Returns:**
+
+`false` if the object is `nil` or `false`; `true` otherwise.
 
 ```cpp
 Object obj(some_value);
@@ -109,6 +102,8 @@ if (obj.is_nil()) {
   // object is nil
 }
 ```
+
+Use this to guard receiver-style operations when a wrapper may be empty/nil.
 
 ---
 

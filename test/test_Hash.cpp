@@ -96,6 +96,16 @@ TESTCASE(get)
   ASSERT_EQUAL(1, h.get<int>(6));
 }
 
+TESTCASE(proxy_to_value)
+{
+  Hash h;
+  h[1] = 5;
+
+  // Proxy should implicitly convert to VALUE
+  VALUE v = h[1];
+  ASSERT_EQUAL(detail::to_ruby(5), v);
+}
+
 TESTCASE(construct_vector_from_hash_iterators)
 {
   Hash h;

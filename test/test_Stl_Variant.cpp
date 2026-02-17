@@ -320,7 +320,7 @@ TESTCASE(Roundtrip)
   ASSERT_EQUAL("Hi from MyClass2", detail::From_Ruby<std::string>().convert(hello));
 
   instance2 = m.call("roundtrip_variant", nullptr);
-  ASSERT_EQUAL(Qnil, instance2.value());
+  ASSERT(instance2.is_nil());
 }
 
 /* This test case runs successfully on MSVC but not g++. Having stepped through the code with
@@ -350,7 +350,7 @@ TESTCASE(RoundtripRef)
   ASSERT_EQUAL("Hi from MyClass2", detail::From_Ruby<std::string>().convert(hello));
 
   instance2 = m.call("roundtrip_variant_ref", nullptr);
-  ASSERT_EQUAL(Qnil, instance2.value());
+  ASSERT(instance2.is_nil());
 }
 #endif
 
@@ -369,7 +369,7 @@ TESTCASE(RoundtripConstRef)
   ASSERT_EQUAL("Hi from MyClass2", detail::From_Ruby<std::string>().convert(hello));
 
   instance2 = m.call("roundtrip_const_variant_ref", nullptr);
-  ASSERT_EQUAL(Qnil, instance2.value());
+  ASSERT(instance2.is_nil());
 }
 
 TESTCASE(Klass)
