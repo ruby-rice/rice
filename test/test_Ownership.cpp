@@ -524,23 +524,20 @@ TESTCASE(NotCopyable)
 
 TESTCASE(MultipleOwnerReferences)
 {
-  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::All;
-
   Module m = define_module("TestingModule");
-  std::string code = R"(
-    box1 = OwnerBox.new
-    alias_obj = box1.alias
-    box2 = alias_obj.owner
-    box2.set_flag(99)
-    box1 = nil
-    GC.start
-    box2.flag
-  )";
-  
-  Object result = m.module_eval(code);
-  ASSERT_EQUAL(99, detail::From_Ruby<int>().convert(result.value()));
 
+  std::string code = R"(box1 = OwnerBox.new
+                        alias_obj = box1.alias
+                        box2 = alias_obj.owner
+                        box1.object_id == box2.object_id)";
+
+  // With InstanceRegistry on, box2 should be the same Ruby object as box1.
+  detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::All;
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
+
+  // With InstanceRegistry off, box2 should be a different Ruby object than box1.
   detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::Off;
   result = m.module_eval(code);
-  ASSERT_NOT_EQUAL(99, detail::From_Ruby<int>().convert(result.value()));
+  ASSERT_EQUAL(Qfalse, result.value());
 }
