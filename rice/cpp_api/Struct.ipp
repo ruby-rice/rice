@@ -46,13 +46,15 @@ namespace Rice
   }
 
   inline Struct::Instance::Instance(Struct const& type, Array args) :
-    Builtin_Object<T_STRUCT>(type.new_instance(args)), type_(type)
+    Object(type.new_instance(args)), type_(type)
   {
+    detail::protect(rb_check_type, this->value(), T_STRUCT);
   }
 
   inline Struct::Instance::Instance(Struct const& type, Object s) :
-    Builtin_Object<T_STRUCT>(s), type_(type)
+    Object(s), type_(type)
   {
+    detail::protect(rb_check_type, this->value(), T_STRUCT);
   }
 
   inline Struct define_struct()

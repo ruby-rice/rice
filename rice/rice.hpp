@@ -56,7 +56,6 @@
 #include "cpp_api/Identifier.hpp"
 #include "cpp_api/Identifier.ipp"
 #include "cpp_api/Object.hpp"
-#include "cpp_api/Builtin_Object.hpp"
 #include "cpp_api/String.hpp"
 #include "cpp_api/Symbol.hpp"
 #include "cpp_api/Array.hpp"
@@ -133,7 +132,6 @@
 // C++ API definitions
 #include "cpp_api/Encoding.ipp"
 #include "cpp_api/Object.ipp"
-#include "cpp_api/Builtin_Object.ipp"
 #include "cpp_api/String.ipp"
 #include "cpp_api/Array.ipp"
 #include "cpp_api/Hash.ipp"

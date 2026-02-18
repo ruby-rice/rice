@@ -240,7 +240,7 @@ Struct inherits from [Class](class.md), which means it has access to:
 * `define_singleton_method` - Add class methods
 * `create` - Create instances
 
-Struct::Instance inherits from `Builtin_Object<T_STRUCT>`, providing access to [Object](object.md) methods.
+Struct::Instance inherits from [Object](object.md) and validates that wrapped values are Ruby structs (`T_STRUCT`).
 
 ---
 

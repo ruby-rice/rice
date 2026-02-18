@@ -2,12 +2,13 @@
 
 namespace Rice
 {
-  inline Hash::Hash() : Builtin_Object<T_HASH>(detail::protect(rb_hash_new))
+  inline Hash::Hash() : Object(detail::protect(rb_hash_new))
   {
   }
 
-  inline Hash::Hash(Object v) : Builtin_Object<T_HASH>(v)
+  inline Hash::Hash(Object v) : Object(v)
   {
+    detail::protect(rb_check_type, this->value(), T_HASH);
   }
 
   inline size_t Hash::size() const

@@ -3,24 +3,26 @@
 
 namespace Rice
 {
-  inline Array::Array() : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
+  inline Array::Array() : Object(detail::protect(rb_ary_new))
   {
   }
 
-  inline Array::Array(long capacity) : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new_capa, capacity))
+  inline Array::Array(long capacity) : Object(detail::protect(rb_ary_new_capa, capacity))
   {
   }
 
-  inline Array::Array(Object v) : Builtin_Object<T_ARRAY>(v)
+  inline Array::Array(Object v) : Object(v)
   {
+    detail::protect(rb_check_type, this->value(), T_ARRAY);
   }
 
-  inline Array::Array(VALUE v) : Builtin_Object<T_ARRAY>(v)
+  inline Array::Array(VALUE v) : Object(v)
   {
+    detail::protect(rb_check_type, this->value(), T_ARRAY);
   }
 
   template<typename Iter_T>
-  inline Array::Array(Iter_T it, Iter_T end) : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
+  inline Array::Array(Iter_T it, Iter_T end) : Object(detail::protect(rb_ary_new))
   {
     for (; it != end; ++it)
     {
@@ -29,7 +31,7 @@ namespace Rice
   }
 
   template<typename T, long n>
-  inline Array::Array(T (&a)[n]) : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
+  inline Array::Array(T (&a)[n]) : Object(detail::protect(rb_ary_new))
   {
     for (long j = 0; j < n; ++j)
     {

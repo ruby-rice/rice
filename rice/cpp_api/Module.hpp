@@ -13,8 +13,7 @@ namespace Rice
    *  Many of the methods are defined in Module_impl.hpp so that they can
    *  return a reference to the most derived type.
    */
-   // TODO: we can't inherit from Builtin_Object, because Class needs
-   // type T_CLASS and Module needs type T_MODULE
+   // Module and Class both derive from Object to preserve Ruby's hierarchy.
   class Module : public Object
   {
   public:

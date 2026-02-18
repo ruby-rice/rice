@@ -78,7 +78,7 @@ namespace Rice
 
   //! An instance of a Struct
   //! \sa Struct
-  class Struct::Instance : public Builtin_Object<T_STRUCT>
+  class Struct::Instance : public Object
   {
   public:
     //! Create a new Instance of a Struct.
