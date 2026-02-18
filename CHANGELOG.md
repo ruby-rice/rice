@@ -2,13 +2,16 @@
 
 ## 4.11.0 (2026-02-17)
 
-Enhancements:
-This release focuses on improving memory management:
+This release focuses on improving memory management.
+
+### Enhancements
+
 * C++ API is now GC safe
 * C++ API wrappers no longer default to rb_cObject, avoiding unintended Object changes
-* Enable Instance Registry for Ruby owned C++ objects to avoid double frees 
+* Enable Instance Registry for Ruby owned C++ objects to avoid double frees
 
-Incompatible Changes:
+### Breaking Changes
+
 * `InstanceRegistry.isEnabled` (boolean) has been replaced by an `InstanceRegistry.isEnabled` which is an enum (`Off`, `Owned`, `All`).
 * `InstanceRegistry` now defaults to `Owned` - previously it was disabled. The goal of this change is to ensure C++ objects owned by Ruby are only wrapped once to avoid double free errors.
 * `Object()` now defaults to `Qnil` instead of `rb_cObject`. This avoids accidentally manipulating `rb_cObject` when a wrapper is not explicitly initialized. Calling methods on wrappers that point to `Qnil` will generally raise an exception. Use `object.is_nil()` to check for `nil` before using a wrapper as a receiver.
@@ -19,7 +22,8 @@ Incompatible Changes:
 
 ## 4.10.0 (2026-02-07)
 
-Enhancements:
+### Enhancements
+
 * Ruby 4.0 support
 * Support incomplete types (PIMPL/opaque handle patterns). Rice now uses `typeid(T*)` for forward-declared types that are never fully defined.
 * Support `noexcept` functions, static members, and static member functions
@@ -28,12 +32,11 @@ Enhancements:
 * Add `std::ostream`, `std::ostringstream`, and `std::ofstream`. Ruby can write to C++ streams and pass them to C++ functions. Standard streams are exposed as `Std::COUT` and `Std::CERR`.
 * Support verifying arrays of non-fundamental types (e.g., `MyClass[2]`)
 * Delegate method calls for smart pointers to their wrapped objects via method_missing?
-
-Internal:
 * Refactor type handling by merging `TypeMapper` into `TypeDetail` and simplifying class hierarchy
 * Greatly simplify define_attr
 
-Incompatible Changes:
+### Breaking Changes
+
 * `Address_Registration_Guard` has been replaced by `Pin`. If you are using `Address_Registration_Guard`
   to protect Ruby VALUEs from garbage collection, update your code to use `Pin` instead:
 
@@ -67,15 +70,18 @@ Incompatible Changes:
 * The `Data_Type<T>::define()` method has been removed. See the [Class Templates](bindings/class_templates.md) documentation for the recommended approach.
 
 ## 4.9.1 (2026-01-04)
+
 This release focuses on improving memory management for STL containers and attribute setters.
 
-Enhancements:
+### Enhancements
+
 * Support `takeOwnership` and `keepAlive` when setting attributes via `Arg("value").takeOwnership()` and `Arg("value").keepAlive()`
 * Add `Arg` parameter names to all STL container methods for keyword argument support
 * Add `keepAlive` support for STL container operations (vector push/insert, set insert, map/multimap store)
 * Add `keepAlive` for map/unordered_map/multimap keys to prevent GC of pointer-type keys
 
-Bug Fixes:
+### Fixes
+
 * Fix error when multiple overloaded methods take different types of vectors
 * Fix type unknown errors when using `std::shared_ptr` with g++
 * Fix CMake `_Ruby_DLEXT` variable type (string, not path)
@@ -83,6 +89,7 @@ Bug Fixes:
 * Fix incorrect attribute overloading behavior
 
 ## 4.9.0 (2026-01-01)
+
 This release revamps smart pointer support for `std::shared_ptr` and `std::unique_ptr`.
 
 Rice now always creates wrapper classes for smart pointers under the `Std` module (e.g., `Std::SharedPtr≺MyClass≻`, `Std::UniquePtr≺MyClass≻`). These wrapper classes expose methods like `empty?`, `get`, `swap`, and for shared_ptr, `use_count`. Methods defined on the managed type are automatically forwarded to the wrapper class using Ruby's `Forwardable` module.
@@ -90,7 +97,10 @@ Rice now always creates wrapper classes for smart pointers under the `Std` modul
 This change is backwards compatible for Ruby code but not C++ code. If you have implemented your own Smart Pointer wrapper then please read the Smart Pointer documentation for more information on how to update it.
 
 ## 4.8.0 (2025-12-29)
-This release focuses on making Rice easier to use:
+
+This release focuses on making Rice easier to use.
+
+### Enhancements
 
 * Compilation times are approximately 2x faster than version 4.7
 * Compiled library sizes are about 30% smaller
@@ -108,7 +118,7 @@ This release focuses on making Rice easier to use:
 * Fixed Ruby detection for Homebrew installations on macOS
 * Added support for references to fundamental types
 
-However, these changes did require some breaking changes, which include:
+### Breaking Changes
 
 * `Return().isBuffer()` is replaced by `ReturnBuffer()`
 * `Arg("").isBuffer()` is replaced by `ArgBuffer("")`
@@ -117,13 +127,17 @@ However, these changes did require some breaking changes, which include:
 * All function/method parameter default values are verified. You may see errors like "ArgumentError: Type is not registered with Rice" or "Invalid AnyCast". In either case, make sure to check that specified default values are correct.
 
 ## 4.7.1 (2025-10-28)
-Updates:
+
+### Enhancements
+
 * Update overload resolution to take into account function arguments that are tagged as buffers via Arg("").setBuffer().
 * Make second parameter optional for Array#push and update docs
 * Remove ostruct runtime dependency
 
 ## 4.7.0 (2025-10-22)
-Updates:
+
+### Enhancements
+
 * Refactor Native wrappers - functions, methods, attributes and procs - to enable introspection API
 * Introduce Pointer<T> class to wrap pointers to fundamental types and arrays.
 * Add new methods Arg#setBuffer and Return#setBuffer to indicate that a C++ pointer references an array of objects versus a single object
@@ -141,13 +155,14 @@ Updates:
 * Correctly encode UTF8 Ruby class names in exception messages
 * Add support for disabling Ruby's global interpreter lock (GIL) when calling native functions
 
-Breaking Changes:
+### Breaking Changes
+
 * Custom implementations of From_Ruby must include a custom constructor:
-    ```
+    ```cpp
     explicit From_Ruby(Arg* arg)
    ```
 * Custom implementations of To_Ruby must include a custom constructor:
-    ```
+    ```cpp
     explicit To_Ruby(Return* returnInfo)
    ```
 * You can no longer pass a Buffer<T> to an API that takes a pointer. Instead use Buffer<T>#data or Buffer<T>::release
@@ -155,6 +170,7 @@ Breaking Changes:
 * Array#push requires a second argument.
 
 ## 4.6.1 (2025-06-25)
+
 * Improve attribute handling. Correctly deal with non-copyable/assignable attributes and return references instead of copies of objects
 * Improve Buffer implementation to deal with 4 cases:
 	- array of fundamental types (int*)
@@ -165,6 +181,7 @@ Breaking Changes:
 * Fix header check on Ubuntu 22.04
 
 ## 4.6.0 (2025-06-09)
+
 Rice 4.6 is a major release that adds significant new functionality based on wrapping the OpenCV library, including:
 
 * Add a new Buffer class to provide Ruby API support for pointers sent to or returned by C++
@@ -188,6 +205,7 @@ Rice 4.6 is a major release that adds significant new functionality based on wra
 * Make Enums more useful by adding coerce method to enable stringing together bitwise operators - for example Season::Winter | Season::Spring | Season::Summer.
 
 ## 4.5 (2025-02-09)
+
 Rice 4.5 is a major release that adds significant new functionality, including:
 
 * Support method overloading
@@ -195,7 +213,7 @@ Rice 4.5 is a major release that adds significant new functionality, including:
 * Support rvalues
 * Support using keyword arguments in Ruby to call C++ methods
 * Support C style callbacks, including adding a new define_callback method
-* Support wrapping C/C++ functions as Ruby procs 
+* Support wrapping C/C++ functions as Ruby procs
 * Support calling methods that take pointers
 * Add Data_Type#define method to more easily support C++ template classes
 * Adds #define_constant method
@@ -261,7 +279,7 @@ Rice 4.1 builds on the 4.0 release and has a number of improvements that both po
 
 * Exception handlers are now registered globally versus per module. This requires updating code that calls Class#add_handler to use register_handler instead.
 * Rename Arg#isValue to Arg#setValue and then Arg#getIsValue to Arg#isValue
-* Rename Return#isValue to Return#setValue and Return#getIsValue to Return#isValue 
+* Rename Return#isValue to Return#setValue and Return#getIsValue to Return#isValue
 
 New or improved functionality includes:
 
@@ -283,7 +301,6 @@ New or improved functionality includes:
 * And lots of other fixes and code improvements
 
 Rice also includes experimental support for instance tracking so that Rice maps the same C++ instance to the same Ruby instance each time it is passed to Ruby. See the documentation for more information.
-
 
 ## 4.0 (2021-4-8)
 
@@ -330,10 +347,10 @@ There are a ton of changes, but some of the most important ones:
 
 ## 2.1.0 (2016-1-1)
 
-* Fix compliation issues related to g++ and Ruby 2.3.0
+* Fix compliation issues related to g++ and Ruby 2.3.0.
   To do this, I had to remove Array::to_c_array which was exposing the internals of a
-	Ruby RArray type to the system. This is not something that we should support going forward
-	as these internals are going to change.
+  Ruby RArray type to the system. This is not something that we should support going forward
+  as these internals are going to change.
 
 ## 2.0.0 (2015-11-27)
 
@@ -350,7 +367,7 @@ There are a ton of changes, but some of the most important ones:
 
 ## 1.7.0 (2015-1-6)
 
-* Ruby 2.2 support
+* Ruby 2.2 support.
   Potential breaking changes. Ruby 2.2 removed RHash as a public accessible struct
   and as such I changed all of the Builtin_Objects to work directly off of RObject
   instead of the specifics (RArray, RStruct, RString, etc). If you've been using these
