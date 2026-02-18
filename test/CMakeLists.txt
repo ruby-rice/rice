@@ -49,7 +49,6 @@ target_sources(${PROJECT_NAME} PRIVATE
                "test_Array.cpp"
                "test_Attribute.cpp"
                "test_Buffer.cpp"
-               "test_Builtin_Object.cpp"
                "test_Callback.cpp"
                "test_Class.cpp"
                "test_Constructor.cpp"

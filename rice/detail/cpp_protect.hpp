@@ -20,6 +20,9 @@ namespace Rice::detail
   template <typename Callable_T>
   auto cpp_protect(Callable_T&& func)
   {
+    VALUE excValue = Qnil;
+    int jumpTag = 0;
+
     try
     {
       return func();
@@ -33,69 +36,76 @@ namespace Rice::detail
       }
       catch (::Rice::Exception const& ex)
       {
-        rb_exc_raise(ex.value());
+        excValue = ex.value();
       }
       catch (::Rice::JumpException const& ex)
       {
-        rb_jump_tag(ex.tag);
+        jumpTag = ex.tag;
       }
       catch (std::bad_alloc const& ex)
       {
         /* This won't work quite right if the rb_exc_new2 fails; not
            much we can do about that, since Ruby doesn't give us access
            to a pre-allocated NoMemoryError object */
-        rb_exc_raise(rb_exc_new2(rb_eNoMemError, ex.what()));
+        excValue = rb_exc_new2(rb_eNoMemError, ex.what());
       }
       catch (std::domain_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eFloatDomainError, ex.what()));
+        excValue = rb_exc_new2(rb_eFloatDomainError, ex.what());
       }
       catch (std::invalid_argument const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eArgError, ex.what()));
+        excValue = rb_exc_new2(rb_eArgError, ex.what());
       }
       catch (fs::filesystem_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eIOError, ex.what()));
+        excValue = rb_exc_new2(rb_eIOError, ex.what());
       }
       catch (std::length_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eIndexError, ex.what()));
+        excValue = rb_exc_new2(rb_eIndexError, ex.what());
       }
       catch (std::out_of_range const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eIndexError, ex.what()));
+        excValue = rb_exc_new2(rb_eIndexError, ex.what());
       }
       catch (std::overflow_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRangeError, ex.what()));
+        excValue = rb_exc_new2(rb_eRangeError, ex.what());
       }
       catch (std::range_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRangeError, ex.what()));
+        excValue = rb_exc_new2(rb_eRangeError, ex.what());
       }
       catch (std::regex_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRegexpError, ex.what()));
+        excValue = rb_exc_new2(rb_eRegexpError, ex.what());
       }
       catch (std::system_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eSystemCallError, ex.what()));
+        excValue = rb_exc_new2(rb_eSystemCallError, ex.what());
       }
       catch (std::underflow_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRangeError, ex.what()));
+        excValue = rb_exc_new2(rb_eRangeError, ex.what());
       }
       catch (std::exception const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRuntimeError, ex.what()));
+        excValue = rb_exc_new2(rb_eRuntimeError, ex.what());
       }
       catch (...)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRuntimeError, "Unknown C++ exception thrown"));
+        excValue = rb_exc_new2(rb_eRuntimeError, "Unknown C++ exception thrown");
       }
-      throw std::runtime_error("Should never get here - just making compilers happy");
     }
+    // All C++ exception objects and the handler are now destroyed.
+    // It is safe to call rb_jump_tag/rb_exc_raise which use longjmp.
+    if (jumpTag)
+      rb_jump_tag(jumpTag);
+    else
+      rb_exc_raise(excValue);
+
+    throw std::runtime_error("Should never get here - just making compilers happy");
   }
 }
 #endif // Rice__detail__cpp_protect__hpp_

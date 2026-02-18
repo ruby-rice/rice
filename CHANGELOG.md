@@ -1,6 +1,12 @@
 # Changelog
 
-## 4.11.0 (Unreleased)
+## 4.11.0 (2026-02-17)
+
+Enhancements:
+This release focuses on improving memory management:
+* C++ API is now GC safe
+* C++ API wrappers no longer default to rb_cObject, avoiding unintended Object changes
+* Enable Instance Registry for Ruby owned C++ objects to avoid double frees 
 
 Incompatible Changes:
 * `InstanceRegistry.isEnabled` (boolean) has been replaced by an `InstanceRegistry.isEnabled` which is an enum (`Off`, `Owned`, `All`).
@@ -9,6 +15,7 @@ Incompatible Changes:
 * C++ API wrappers now store their Ruby `VALUE` in a `Pin` instead of a raw `VALUE` field. Previously, wrappers were not GC-safe and Ruby could reclaim wrapped objects while C++ still referenced them. This is now fixed, and wrappers such as `Object` can be stored safely in containers like `std::vector`.
 * The global `Object` constants (`Rice::Nil`, `Rice::True`, `Rice::False`, `Rice::Undef`) have been removed.
 * `Object::test()` has been removed. Use `operator bool()` or `is_nil()` depending on the desired semantics.
+* Remove `Builtin_Object` since it didn't serve a useful purpose
 
 ## 4.10.0 (2026-02-07)
 

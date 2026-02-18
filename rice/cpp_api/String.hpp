@@ -13,7 +13,7 @@ namespace Rice
    *    std::cout << s.length() << std::endl;
    *  \endcode
    */
-  class String : public Builtin_Object<T_STRING>
+  class String : public Object
   {
   public:
     //! Construct a new string.

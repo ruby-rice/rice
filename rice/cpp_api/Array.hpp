@@ -17,7 +17,7 @@ namespace Rice
    *  \endcode
    */
   class Array
-    : public Builtin_Object<T_ARRAY>
+    : public Object
   {
   public:
     //! Construct a new array

@@ -1,30 +1,32 @@
 namespace Rice
 {
-  inline String::String() : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, ""))
+  inline String::String() : Object(detail::protect(rb_str_new2, ""))
   {
   }
 
-  inline String::String(VALUE v) : Builtin_Object<T_STRING>(v)
+  inline String::String(VALUE v) : Object(v)
+  {
+    detail::protect(rb_check_type, this->value(), T_STRING);
+  }
+
+  inline String::String(Object v) : Object(v)
+  {
+    detail::protect(rb_check_type, this->value(), T_STRING);
+  }
+
+  inline String::String(char const* s) : Object(detail::protect(rb_utf8_str_new_cstr, s))
   {
   }
 
-  inline String::String(Object v) : Builtin_Object<T_STRING>(v)
+  inline String::String(std::string const& s) : Object(detail::protect(rb_utf8_str_new, s.data(), (long)s.length()))
   {
   }
 
-  inline String::String(char const* s) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new_cstr, s))
+  inline String::String(std::string_view const& s) : Object(detail::protect(rb_utf8_str_new, s.data(), (long)s.length()))
   {
   }
 
-  inline String::String(std::string const& s) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new, s.data(), (long)s.length()))
-  {
-  }
-
-  inline String::String(std::string_view const& s) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new, s.data(), (long)s.length()))
-  {
-  }
-
-  inline String::String(Identifier id) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new_cstr, id.c_str()))
+  inline String::String(Identifier id) : Object(detail::protect(rb_utf8_str_new_cstr, id.c_str()))
   {
   }
 

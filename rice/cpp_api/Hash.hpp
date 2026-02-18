@@ -16,7 +16,7 @@ namespace Rice
   //!   h[10] = String("bar");
   //!   std::cout << String(h[42]) << std::endl;
   //! \endcode
-  class Hash: public Builtin_Object<T_HASH>
+  class Hash: public Object
   {
   public:
     //! Construct a new hash.
@@ -191,4 +191,3 @@ namespace Rice
 } // namespace Rice
 
 #endif // Rice__Hash__hpp_
-
