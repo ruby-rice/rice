@@ -16,12 +16,12 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install mkdocs and dependencies
+      - name: Install zensical
         run: |
-          pip install mkdocs-material
+          pip install zensical
 
       - name: Build documentation
-        run: mkdocs build --strict
+        run: zensical build --clean
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

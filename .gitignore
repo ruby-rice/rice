@@ -32,3 +32,4 @@ msvc
 .cmake
 cmake-build-mingw
 build
+/site
