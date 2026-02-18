@@ -110,7 +110,11 @@ TESTCASE(exposes_worker_as_instantiatable_class)
     .define_method("get_number", &Worker::getNumber);
 
   Module m = define_module("Testing");
-  Object result = m.module_eval("worker = Worker.new; worker.get_number");
+
+  std::string code = R"(worker = Worker.new
+                        worker.get_number)";
+
+  Object result = m.module_eval(code);
 
   ASSERT_EQUAL(12, detail::From_Ruby<int>().convert(result.value()));
 }
@@ -125,7 +129,10 @@ TESTCASE(can_call_virtual_methods_on_base_class)
 
   Module m = define_module("Testing");
 
-  Object result = m.module_eval("worker = Worker.new; worker.do_something(4)");
+  std::string code = R"(worker = Worker.new
+                        worker.do_something(4))";
+
+  Object result = m.module_eval(code);
 
   ASSERT_EQUAL(16, detail::From_Ruby<int>().convert(result.value()));
 }
@@ -138,9 +145,19 @@ TESTCASE(super_calls_pass_execution_up_the_inheritance_chain)
     .define_method("do_something", &WorkerDirector::default_doSomething);
 
   Module m = define_module("Testing");
-  m.module_eval("class RubyWorker < Worker; def do_something(num); super * num; end; end");
 
-  Object result = m.module_eval("worker = RubyWorker.new; worker.do_something(10)");
+  std::string code = R"(class RubyWorker < Worker
+                          def do_something(num)
+                            super * num
+                          end
+                        end)";
+
+  m.module_eval(code);
+
+  code = R"(worker = RubyWorker.new
+            worker.do_something(10))";
+
+  Object result = m.module_eval(code);
 
   ASSERT_EQUAL(400, detail::From_Ruby<int>().convert(result.value()));
 }
@@ -153,16 +170,23 @@ TESTCASE(super_calls_on_pure_virtual_raise_error)
     .define_method("process", &WorkerDirector::default_process);
 
   Module m = define_module("Testing");
-  m.module_eval("class RubyWorker < Worker; def process(num); super; end; end");
+
+  std::string code = R"(class RubyWorker < Worker
+                          def process(num)
+                            super
+                          end
+                        end)";
+
+  m.module_eval(code);
+
+  code = R"(worker = RubyWorker.new
+            worker.process(10))";
 
   ASSERT_EXCEPTION_CHECK(
       Exception,
-      m.module_eval("worker = RubyWorker.new; worker.process(10)"),
-      ASSERT_EQUAL(
-          Object(rb_eNotImpError),
-          Object(CLASS_OF(ex.value()))
-          )
-      );
+      m.module_eval(code),
+      ASSERT_EQUAL(rb_eNotImpError, rb_class_of(ex.value()))
+  );
 }
 
 TESTCASE(polymorphic_calls_head_down_the_call_chain)
@@ -179,13 +203,23 @@ TESTCASE(polymorphic_calls_head_down_the_call_chain)
 
   Module m = define_module("Testing");
 
-  m.module_eval(
-      "class EchoWorker < Worker; def process(num); num + 2; end; end;"
-      "class DoubleWorker < Worker; def process(num); num * 2; end; end;"
-      "$handler = Handler.new;"
-      "$handler.add_worker(EchoWorker.new);"
-      "$handler.add_worker(DoubleWorker.new);"
-  );
+  std::string code = R"(class EchoWorker < Worker
+                          def process(num)
+                            num + 2
+                          end
+                        end
+
+                        class DoubleWorker < Worker
+                          def process(num)
+                            num * 2
+                          end
+                        end
+
+                        $handler = Handler.new
+                        $handler.add_worker(EchoWorker.new)
+                        $handler.add_worker(DoubleWorker.new))";
+
+  m.module_eval(code);
 
   Object result = m.module_eval("$handler.process_workers(5)");
 
@@ -263,10 +297,16 @@ TESTCASE(mix_of_polymorphic_calls_and_inheritance_dont_cause_infinite_loops)
 
   Module m = define_module("Testing");
 
-  Object result = m.module_eval(
-      "class MySelf < CallsSelf; def do_it_impl(num); num * 10; end; end;"
-      "c = MySelf.new; c.do_it(10)"
-      );
+  std::string code = R"(class MySelf < CallsSelf
+                          def do_it_impl(num)
+                            num * 10
+                          end
+                        end
+
+                        c = MySelf.new
+                        c.do_it(10))";
+
+  Object result = m.module_eval(code);
 
   ASSERT_EQUAL(100, detail::From_Ruby<int>().convert(result.value()));
 }
@@ -298,11 +338,16 @@ TESTCASE(director_allows_abstract_types_used_as_parameters_pointers)
     .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
     .define_method("do_it", &CallsSelf::doIt);
 
-  Object result = m.module_eval(
-      "class MySelf < CallsSelf; def do_it_impl(num); num * 10; end; end;"
-      "c = MySelf.new;"
-      "Testing::do_it_on_pointer(c, 5)"
-      );
+  std::string code = R"(class MySelf < CallsSelf
+                          def do_it_impl(num)
+                            num * 10
+                          end
+                        end
+
+                        c = MySelf.new
+                        Testing::do_it_on_pointer(c, 5))";
+
+  Object result = m.module_eval(code);
 
   ASSERT_EQUAL(50, detail::From_Ruby<int>().convert(result.value()));
 }
@@ -318,11 +363,16 @@ TESTCASE(director_allows_abstract_types_used_as_parameters_reference)
     .define_method("do_it_impl", &CallsSelfDirector::default_doItImpl)
     .define_method("do_it", &CallsSelf::doIt);
 
-  Object result = m.module_eval(
-      "class MySelf < CallsSelf; def do_it_impl(num); num * 10; end; end;"
-      "c = MySelf.new;"
-      "Testing::do_it_on_ref(c, 3)"
-      );
+  std::string code = R"(class MySelf < CallsSelf
+                          def do_it_impl(num)
+                            num * 10
+                          end
+                        end
+
+                        c = MySelf.new
+                        Testing::do_it_on_ref(c, 3))";
+
+  Object result = m.module_eval(code);
 
   ASSERT_EQUAL(30, detail::From_Ruby<int>().convert(result.value()));
 }

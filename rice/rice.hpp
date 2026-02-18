@@ -150,6 +150,7 @@
 #include "ruby_mark.hpp"
 #include "detail/default_allocation_func.hpp"
 #include "Director.hpp"
+#include "Director.ipp"
 #include "Data_Type.ipp"
 #include "detail/default_allocation_func.ipp"
 #include "Constructor.ipp"
