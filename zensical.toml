@@ -1,0 +1,173 @@
+[project]
+
+site_name = "Rice - Ruby Interface for C++"
+site_description = "Rice is a C++ header-only library that makes it easy to create Ruby bindings for C++ libraries"
+site_url = "https://ruby-rice.github.io/rice/"
+
+repo_url = "https://github.com/ruby-rice/rice"
+repo_name = "ruby-rice/rice"
+
+nav = [
+  { "Home" = [
+    "index.md",
+    { "Installation" = "installation.md" },
+    { "Why Rice?" = "why_rice.md" },
+    { "Ecosystem" = "ecosystem.md" },
+    { "Projects" = "projects.md" },
+    { "History" = "history.md" },
+    { "Migration" = "migration.md" },
+    { "Changelog" = "changelog.md" },
+  ]},
+  { "Getting Started" = "tutorial.md" },
+  { "Type Conversion" = [
+    { "Overview" = "types/overview.md" },
+    { "Type Conversion" = "types/conversion.md" },
+    { "Wrapping Types" = "types/wrapping.md" },
+    { "Strings" = "types/strings.md" },
+    { "Type Naming" = "types/naming.md" },
+    { "Custom Converters" = "types/converters.md" },
+    { "Type Verification" = "types/verification.md" },
+  ]},
+  { "Wrapping C++" = [
+    { "Overview" = "bindings/overview.md" },
+    { "Classes" = "bindings/classes.md" },
+    { "Constructors" = "bindings/constructors.md" },
+    { "Methods" = "bindings/methods.md" },
+    { "Overloaded Methods" = "bindings/overloaded_methods.md" },
+    { "Attributes" = "bindings/attributes.md" },
+    { "Constants" = "bindings/constants.md" },
+    { "Iterators" = "bindings/iterators.md" },
+    { "Enums" = "bindings/enums.md" },
+    { "Operators" = "bindings/operators.md" },
+    { "Exceptions" = "bindings/exceptions.md" },
+    { "Callbacks" = "bindings/callbacks.md" },
+    { "Advanced" = [
+      { "Directors" = "bindings/directors.md" },
+      { "GVL" = "bindings/gvl.md" },
+      { "Class Templates" = "bindings/class_templates.md" },
+      { "References" = "bindings/references.md" },
+      { "Pointers" = "bindings/pointers.md" },
+      { "Buffers" = "bindings/buffers.md" },
+      { "Memory Management" = "bindings/memory_management.md" },
+      { "Instance Registry" = "bindings/instance_registry.md" },
+    ]},
+  ]},
+  { "STL Support" = [
+    { "Overview" = "stl/stl.md" },
+    { "std::complex" = "stl/complex.md" },
+    { "std::exception" = "stl/exception.md" },
+    { "std::exception_ptr" = "stl/exception_ptr.md" },
+    { "std::function" = "stl/function.md" },
+    { "std::map" = "stl/map.md" },
+    { "std::multimap" = "stl/multimap.md" },
+    { "std::optional" = "stl/optional.md" },
+    { "std::ostream" = "stl/ostream.md" },
+    { "std::pair" = "stl/pair.md" },
+    { "std::reference_wrapper" = "stl/reference_wrapper.md" },
+    { "std::set" = "stl/set.md" },
+    { "std::shared_ptr" = "stl/shared_ptr.md" },
+    { "std::string" = "stl/string.md" },
+    { "std::string_view" = "stl/string_view.md" },
+    { "std::tuple" = "stl/tuple.md" },
+    { "std::type_index" = "stl/type_index.md" },
+    { "std::type_info" = "stl/type_info.md" },
+    { "std::unique_ptr" = "stl/unique_ptr.md" },
+    { "std::unordered_map" = "stl/unordered_map.md" },
+    { "std::variant" = "stl/variant.md" },
+    { "std::vector" = "stl/vector.md" },
+  ]},
+  { "Rice Classes" = [
+    { "Overview" = "cpp_api/overview.md" },
+    { "Object" = "cpp_api/object.md" },
+    { "Module" = "cpp_api/module.md" },
+    { "Class" = "cpp_api/class.md" },
+    { "String" = "cpp_api/string.md" },
+    { "Array" = "cpp_api/array.md" },
+    { "Hash" = "cpp_api/hash.md" },
+    { "Symbol" = "cpp_api/symbol.md" },
+    { "Struct" = "cpp_api/struct.md" },
+    { "Identifier" = "cpp_api/identifier.md" },
+  ]},
+  { "Ruby Runtime" = [
+    { "Overview" = "ruby_api/overview.md" },
+    { "Buffer" = "ruby_api/buffer.md" },
+    { "Pointer" = "ruby_api/pointer.md" },
+    { "Reference" = "ruby_api/reference.md" },
+    { "Registries" = "ruby_api/registries.md" },
+    { "Native Registry" = "ruby_api/native_registry.md" },
+    { "Type Registry" = "ruby_api/type_registry.md" },
+    { "Native" = "ruby_api/native.md" },
+    { "Parameter" = "ruby_api/parameter.md" },
+    { "Arg" = "ruby_api/arg.md" },
+  ]},
+  { "Packaging" = [
+    { "Overview" = "packaging/packaging.md" },
+    { "Build Settings" = "packaging/build_settings.md" },
+    { "extconf.rb" = "packaging/extconf.rb.md" },
+    { "CMake" = "packaging/cmake.md" },
+    { "RBS" = "packaging/rbs.md" },
+    { "Documentation" = "packaging/documentation.md" },
+  ]},
+  { "Architecture" = [
+    { "Overview" = "architecture/overview.md" },
+    { "Type Binding" = "architecture/type_binding.md" },
+    { "Method Binding" = "architecture/method_binding.md" },
+    { "Overload Resolution" = "architecture/overload_resolution.md" },
+    { "Registries" = "architecture/registries.md" },
+    { "Enumerators" = "architecture/enumerators.md" },
+    { "Incomplete Types" = "architecture/incomplete_types.md" },
+    { "Procs and Blocks" = "architecture/procs_and_blocks.md" },
+    { "Smart Pointers" = "architecture/smart_pointers.md" },
+  ]},
+]
+
+[project.theme]
+
+variant = "classic"
+
+features = [
+  "navigation.tabs",
+  "navigation.tabs.sticky",
+  "navigation.top",
+  "search.highlight",
+  "content.code.copy",
+  "toc.integrate",
+]
+
+# Palette toggle for light mode
+[[project.theme.palette]]
+scheme = "default"
+primary = "red"
+accent = "red"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+# Palette toggle for dark mode
+[[project.theme.palette]]
+scheme = "slate"
+primary = "red"
+accent = "red"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+# Extensions
+[project.markdown_extensions.admonition]
+
+[project.markdown_extensions.pymdownx.details]
+
+[project.markdown_extensions.pymdownx.superfences]
+custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
+
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+
+[project.markdown_extensions.pymdownx.inlinehilite]
+
+[project.markdown_extensions.pymdownx.snippets]
+
+[project.markdown_extensions.tables]
+
+[project.markdown_extensions.toc]
+permalink = true
