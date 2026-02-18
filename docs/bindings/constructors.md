@@ -85,7 +85,7 @@ end
 
 ### KeepAlive
 
-When an object is cloned or duped, Rice automatically copies its [keepAlive](keep_alive.md) references to the new object. This ensures that the clone directly protects the same Ruby objects as the original. For example, if a `std::vector<MyClass*>` holds pointers to Ruby-wrapped objects, cloning the vector will ensure those objects are kept alive by both the original and the clone independently.
+When an object is cloned or duped, Rice automatically copies its [keepAlive](memory_management.md#ruby-to-c) references to the new object. This ensures that the clone directly protects the same Ruby objects as the original. For example, if a `std::vector<MyClass*>` holds pointers to Ruby-wrapped objects, cloning the vector will ensure those objects are kept alive by both the original and the clone independently.
 
 ## Move Constructors
 

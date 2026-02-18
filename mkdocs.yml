@@ -89,9 +89,11 @@ nav:
     - std::complex: stl/complex.md
     - std::exception: stl/exception.md
     - std::exception_ptr: stl/exception_ptr.md
+    - std::function: stl/function.md
     - std::map: stl/map.md
     - std::multimap: stl/multimap.md
     - std::optional: stl/optional.md
+    - std::ostream: stl/ostream.md
     - std::pair: stl/pair.md
     - std::reference_wrapper: stl/reference_wrapper.md
     - std::set: stl/set.md
@@ -141,4 +143,6 @@ nav:
     - Overload Resolution: architecture/overload_resolution.md
     - Registries: architecture/registries.md
     - Enumerators: architecture/enumerators.md
+    - Incomplete Types: architecture/incomplete_types.md
+    - Procs and Blocks: architecture/procs_and_blocks.md
     - Smart Pointers: architecture/smart_pointers.md
