@@ -109,6 +109,7 @@ extern "C" typedef VALUE (*RUBY_VALUE_FUNC)(VALUE);
 
 // =========   rice_traits.hpp   =========
 
+#include <complex>
 #include <ostream>
 #include <tuple>
 #include <type_traits>
@@ -221,6 +222,15 @@ namespace Rice
     template <typename T>
     constexpr bool is_std_vector_v = is_std_vector<T>::value;
 
+    template<typename>
+    struct is_std_complex : std::false_type {};
+
+    template<typename T>
+    struct is_std_complex<std::complex<T>> : std::true_type {};
+
+    template <typename T>
+    constexpr bool is_std_complex_v = is_std_complex<T>::value;
+
     template<class T>
     struct is_pointer_pointer : std::false_type {};
 
@@ -264,7 +274,8 @@ namespace Rice
 
     template<typename T>
     struct is_wrapped<T, std::enable_if_t<std::is_fundamental_v<detail::intrinsic_type<T>> ||
-                                          std::is_same_v<detail::intrinsic_type<T>, std::string>>
+                                          std::is_same_v<detail::intrinsic_type<T>, std::string> ||
+                                          is_std_complex_v<T>>
                      >: std::false_type {};
 
     template<typename T>
@@ -479,6 +490,14 @@ namespace Rice::detail
     using class_type = std::nullptr_t;
   };
 
+  // Lvalue references to functors and lambdas - strip the reference and defer
+  // to the base functor specialization. This allows named lambda variables (lvalues)
+  // to be passed to define_method in addition to inline temporaries (rvalues).
+  template<typename Function_T>
+  struct function_traits<Function_T&> : public function_traits<Function_T>
+  {
+  };
+
   // C functions and static member functions passed by pointer
   template<typename Return_T, typename ...Parameter_Ts>
   struct function_traits<Return_T(*)(Parameter_Ts...)> : public function_traits<Return_T(std::nullptr_t, Parameter_Ts...)>
@@ -629,6 +648,8 @@ namespace Rice::detail
 
     void ruby_mark();
     void addKeepAlive(VALUE value);
+    const std::vector<VALUE>& getKeepAlive() const;
+    void setKeepAlive(const std::vector<VALUE>& keepAlive);
     void setOwner(bool value);
 
   protected:
@@ -649,7 +670,7 @@ namespace Rice::detail
   public:
     Wrapper(rb_data_type_t* rb_data_type, T& data);
     Wrapper(rb_data_type_t* rb_data_type, T&& data);
-    ~Wrapper();
+    ~Wrapper() = default;
     void* get(rb_data_type_t* requestedType) override;
 
   private:
@@ -694,7 +715,7 @@ namespace Rice::detail
 
   // ---- Helper Functions ---------
   template <typename T>
-  Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data);
+  Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, VALUE source = Qnil);
 
   template <typename T>
   VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner);
@@ -711,6 +732,7 @@ namespace Rice::detail
   WrapperBase* getWrapper(VALUE value);
 }
  
+
 // =========   Type.hpp   =========
 
 namespace Rice::detail
@@ -811,6 +833,99 @@ namespace Rice::detail
 }
 
 
+// Code to register Ruby objects with GC (declarations)
+
+// =========   Anchor.hpp   =========
+
+#include <ruby.h>
+
+namespace Rice
+{
+  namespace detail
+  {
+    //! Internal GC anchor for a Ruby VALUE.
+    /*!
+     *  Anchor is a low-level adapter around the Ruby GC API.
+     *  It owns a stable VALUE slot whose address is registered
+     *  with the Ruby garbage collector.
+     *
+     *  This class encapsulates all GC registration logic and is
+     *  not part of the public Rice API.
+     */
+    class Anchor
+    {
+    public:
+      //! Construct an anchor for the given Ruby VALUE.
+      /*!
+       *  The address of the internal VALUE is registered with the
+       *  Ruby GC, preventing collection while this Anchor exists.
+       */
+      explicit Anchor(VALUE value);
+
+      //! Unregister the VALUE from the Ruby GC.
+      ~Anchor();
+
+      Anchor(const Anchor&) = delete;
+      Anchor& operator=(const Anchor&) = delete;
+
+      //! Retrieve the currently anchored VALUE.
+      VALUE get() const;
+
+    private:
+      static void disable(VALUE);
+      static void registerExitHandler();
+
+      inline static bool enabled_ = true;
+      inline static bool exitHandlerRegistered_ = false;
+
+    private:
+      bool registered_ = false;
+
+      //! GC-visible Ruby VALUE slot.
+      VALUE value_ = Qnil;
+    };
+  }
+}
+
+// =========   Pin.hpp   =========
+
+namespace Rice
+{
+  //! Strong lifetime policy for a Ruby VALUE.
+  /*!
+   *  Pin represents a Ruby VALUE whose lifetime is explicitly
+   *  extended by C++ code.
+   *
+   *  Internally, Pin uses a GC Anchor to keep the VALUE alive.
+   *  Copying a Pin shares the underlying anchor; moving is cheap.
+   *
+   *  This type is intended for C++-owned objects that store Ruby
+   *  values but are not themselves owned by Ruby and thus do not
+   *  participate in the GC via a mark function.
+   */
+  class Pin
+  {
+  public:
+    //! Construct a pin from a Ruby VALUE.
+    Pin(VALUE value);
+
+    // Copying
+    Pin(const Pin&) = default;
+    Pin& operator=(const Pin&) = default;
+
+    // Moving
+    Pin(Pin&&) noexcept = default;
+    Pin& operator=(Pin&&) noexcept = default;
+
+    //! Retrieve the pinned Ruby VALUE.
+    VALUE value() const;
+
+  private:
+    //! Shared ownership of the internal GC anchor.
+    std::shared_ptr<detail::Anchor> anchor_;
+  };
+}
+
 // Code for C++ to call Ruby
 
 // =========   Exception.hpp   =========
@@ -872,8 +987,7 @@ namespace Rice
     VALUE value() const;
 
   private:
-    // TODO: Do we need to tell the Ruby gc about an exception instance?
-    mutable VALUE exception_ = Qnil;
+    Pin exception_ = Qnil;
     mutable std::string message_;
   };
 } // namespace Rice
@@ -1525,64 +1639,7 @@ namespace Rice::detail
   };
 }
 
-// Code to register Ruby objects with GC
-
-// =========   Anchor.hpp   =========
-
-#include <ruby.h>
-
-namespace Rice
-{
-  namespace detail
-  {
-    //! Internal GC anchor for a Ruby VALUE.
-    /*!
-     *  Anchor is a low-level adapter around the Ruby GC API.
-     *  It owns a stable VALUE slot whose address is registered
-     *  with the Ruby garbage collector.
-     *
-     *  This class encapsulates all GC registration logic and is
-     *  not part of the public Rice API.
-     */
-    class Anchor
-    {
-    public:
-      //! Construct an anchor for the given Ruby VALUE.
-      /*!
-       *  The address of the internal VALUE is registered with the
-       *  Ruby GC, preventing collection while this Anchor exists.
-       */
-      explicit Anchor(VALUE value);
-
-      //! Unregister the VALUE from the Ruby GC.
-      ~Anchor();
-
-      Anchor(const Anchor&) = delete;
-      Anchor& operator=(const Anchor&) = delete;
-
-      //! Retrieve the currently anchored VALUE.
-      VALUE get() const;
-
-      //! Replace the anchored VALUE.
-      /*!
-       *  The GC root (address) remains unchanged; only the VALUE
-       *  stored at that address is updated.
-       */
-      void set(VALUE value);
-
-    private:
-      static void disable(VALUE);
-      static void registerExitHandler();
-
-      inline static bool enabled_ = true;
-      inline static bool exitHandlerRegistered_ = false;
-
-    private:
-      //! GC-visible Ruby VALUE slot.
-      VALUE value_ = Qnil;
-    };
-  }
-}
+// Code to register Ruby objects with GC (implementations)
 
 // =========   Anchor.ipp   =========
 namespace Rice
@@ -1591,31 +1648,28 @@ namespace Rice
   {
     inline Anchor::Anchor(VALUE value) : value_(value)
     {
-      if (value != Qnil)
+      if (!RB_SPECIAL_CONST_P(value))
       {
         Anchor::registerExitHandler();
         detail::protect(rb_gc_register_address, &this->value_);
+        this->registered_ = true;
       }
     }
 
     inline Anchor::~Anchor()
     {
-      if (Anchor::enabled_ && this->value_ != Qnil)
+      if (Anchor::enabled_ && this->registered_)
       {
         detail::protect(rb_gc_unregister_address, &this->value_);
       }
       // Ruby auto detects VALUEs in the stack, so make sure up in case this object is on the stack
+      this->registered_ = false;
       this->value_ = Qnil;
     }
 
     inline VALUE Anchor::get() const
     {
       return this->value_;
-    }
-
-    inline void Anchor::set(VALUE value)
-    {
-      this->value_ = value;
     }
 
     // This will be called by ruby at exit - we want to disable further unregistering
@@ -1634,44 +1688,6 @@ namespace Rice
     }
   }
 }
-// =========   Pin.hpp   =========
-
-namespace Rice
-{
-  //! Strong lifetime policy for a Ruby VALUE.
-  /*!
-   *  Pin represents a Ruby VALUE whose lifetime is explicitly
-   *  extended by C++ code.
-   *
-   *  Internally, Pin uses a GC Anchor to keep the VALUE alive.
-   *  Copying a Pin shares the underlying anchor; moving is cheap.
-   *
-   *  This type is intended for C++-owned objects that store Ruby
-   *  values but are not themselves owned by Ruby and thus do not
-   *  participate in the GC via a mark function.
-   */
-  class Pin
-  {
-  public:
-    //! Construct a pin from a Ruby VALUE.
-    Pin(VALUE value);
-
-    // Copying
-    Pin(const Pin&) = default;
-    Pin& operator=(const Pin&) = default;
-
-    // Moving
-    Pin(Pin&&) noexcept = default;
-    Pin& operator=(Pin&&) noexcept = default;
-
-    //! Retrieve the pinned Ruby VALUE.
-    VALUE value() const;
-
-  private:
-    //! Shared ownership of the internal GC anchor.
-    std::shared_ptr<detail::Anchor> anchor_;
-  };
-}
 
 // =========   Pin.ipp   =========
 namespace Rice
@@ -1683,7 +1699,15 @@ namespace Rice
 
   inline VALUE Pin::value() const
   {
-    return this->anchor_->get();
+    // Anchor can be nil after a move
+    if (this->anchor_)
+    {
+      return this->anchor_->get();
+    }
+    else
+    {
+      return Qnil;
+    }
   }
 }
 
@@ -1818,30 +1842,26 @@ namespace Rice
   class Object
   {
   public:
+    //! Construct an empty Object wrapper.
+    Object();
+
     //! Encapsulate an existing ruby object.
-    Object(VALUE value = Qnil) : value_(value) {}
+    Object(VALUE value);
 
     //! Destructor
-    virtual ~Object();
+    virtual ~Object() = default;
 
     // Enable copying
     Object(const Object& other) = default;
     Object& operator=(const Object& other) = default;
 
     // Enable moving
-    Object(Object&& other);
-    Object& operator=(Object&& other);
+    Object(Object&& other) = default;
+    Object& operator=(Object&& other) = default;
 
     //! Returns false if the object is nil or false; returns true
     //! otherwise.
-    // Having this conversion also prevents accidental conversion to
-    // undesired integral types (e.g. long or int) by making the
-    // conversion ambiguous.
-    bool test() const;
-
-    //! Returns false if the object is nil or false; returns true
-    //! otherwise.
-    operator bool() const;
+    explicit operator bool() const;
 
     //! Returns true if the object is nil, false otherwise.
     bool is_nil() const;
@@ -2055,7 +2075,7 @@ namespace Rice
     void set_value(VALUE value);
 
   private:
-    volatile VALUE value_;
+    Pin value_;
   };
 
   std::ostream& operator<<(std::ostream& out, Object const& obj);
@@ -2064,42 +2084,7 @@ namespace Rice
   bool operator!=(Object const& lhs, Object const& rhs);
   bool operator<(Object const& lhs, Object const& rhs);
   bool operator>(Object const& lhs, Object const& rhs);
-
-  extern Object const Nil;
-  extern Object const True;
-  extern Object const False;
-  extern Object const Undef;
-} // namespace Rice
-
-
-// =========   Builtin_Object.hpp   =========
-
-namespace Rice
-{
-  //! A smartpointer-like wrapper for Ruby builtin objects.
-  /*! A builtin object is one of Ruby's internal types, e.g. RArray or
-   *  RString.  Every builtin type structure has a corresponding integer
-   *  type number (e.g T_ARRAY for RArray or T_STRING for RString).  This
-   *  class is a wrapper for those types of objects, primarily useful as a
-   *  base class for other wrapper classes like Array and Hash.
-   */
-  template<int Builtin_Type>
-  class Builtin_Object
-    : public Object
-  {
-  public:
-    //! Wrap an already allocated Ruby object.
-    /*! Checks to see if the object is an object of type Builtin_Type; a
-     *  C++ exception is thrown if this is not the case.
-     *  \param value the object to be wrapped.
-     */
-    Builtin_Object(Object value);
-
-    RObject& operator*() const; //!< Return a reference to obj_
-    RObject* operator->() const; //!< Return a pointer to obj_
-    RObject* get() const;       //!< Return a pointer to obj_
-  };
-} // namespace Rice
+}
 
 
 // =========   String.hpp   =========
@@ -2116,7 +2101,7 @@ namespace Rice
    *    std::cout << s.length() << std::endl;
    *  \endcode
    */
-  class String : public Builtin_Object<T_STRING>
+  class String : public Object
   {
   public:
     //! Construct a new string.
@@ -2237,7 +2222,7 @@ namespace Rice
    *  \endcode
    */
   class Array
-    : public Builtin_Object<T_ARRAY>
+    : public Object
   {
   public:
     //! Construct a new array
@@ -2375,8 +2360,8 @@ namespace Rice
     //! Construct a new Proxy
     Proxy(Array array, long index);
 
-    //! Implicit conversions
-    operator Object() const;
+    //! Implicit conversion to VALUE.
+    operator VALUE() const;
 
     //! Explicit conversion to VALUE.
     VALUE value() const;
@@ -2481,7 +2466,7 @@ namespace Rice
   //!   h[10] = String("bar");
   //!   std::cout << String(h[42]) << std::endl;
   //! \endcode
-  class Hash: public Builtin_Object<T_HASH>
+  class Hash: public Object
   {
   public:
     //! Construct a new hash.
@@ -2558,8 +2543,8 @@ namespace Rice
     //! Construct a new Proxy.
     Proxy(Hash* hash, Object key);
 
-    //! Implicit conversion to Object.
-    operator Object() const;
+    //! Implicit conversion to VALUE.
+    operator VALUE() const;
 
     //! Explicit conversion to VALUE.
     VALUE value() const;
@@ -2657,7 +2642,6 @@ namespace Rice
 
 
 
-
 // =========   Module.hpp   =========
 
 namespace Rice
@@ -2672,13 +2656,12 @@ namespace Rice
    *  Many of the methods are defined in Module_impl.hpp so that they can
    *  return a reference to the most derived type.
    */
-   // TODO: we can't inherit from Builtin_Object, because Class needs
-   // type T_CLASS and Module needs type T_MODULE
+   // Module and Class both derive from Object to preserve Ruby's hierarchy.
   class Module : public Object
   {
   public:
-    //! Default construct a Module and initialize it to rb_cObject.
-    Module();
+    //! Default construct an empty Module wrapper.
+    Module() = default;
 
     //! Construct a Module from an existing Module object.
     Module(VALUE v);
@@ -3881,30 +3864,38 @@ namespace Rice::detail
 
 // =========   InstanceRegistry.hpp   =========
 
+#include <type_traits>
+
 namespace Rice::detail
 {
   class InstanceRegistry
   {
   public:
-    template <typename T>
-    VALUE lookup(T& cppInstance);
+    enum class Mode
+    {
+      Off,
+      Owned,
+      All
+    };
 
     template <typename T>
-    VALUE lookup(T* cppInstance);
-    VALUE lookup(void* cppInstance);
+    VALUE lookup(T* cppInstance, bool isOwner);
 
-    void add(void* cppInstance, VALUE rubyInstance);
+    template <typename T>
+    void add(T* cppInstance, VALUE rubyInstance, bool isOwner);
+
     void remove(void* cppInstance);
     void clear();
 
   public:
-    bool isEnabled = false;
+    Mode mode = Mode::Owned;
 
   private:
+    bool shouldTrack(bool isOwner) const;
+
     std::map<void*, VALUE> objectMap_;
   };
 } // namespace Rice::detail
-
 
 
 // =========   DefaultHandler.hpp   =========
@@ -9139,39 +9130,26 @@ namespace Rice::detail
 namespace Rice::detail
 {
   template <typename T>
-  inline VALUE InstanceRegistry::lookup(T& cppInstance)
+  inline VALUE InstanceRegistry::lookup(T* cppInstance, bool isOwner)
   {
-    return this->lookup((void*)&cppInstance);
+    if (!this->shouldTrack(isOwner))
+    {
+      return Qnil;
+    }
+
+    auto it = this->objectMap_.find((void*)cppInstance);
+    return it != this->objectMap_.end() ? it->second : Qnil;
   }
 
   template <typename T>
-  inline VALUE InstanceRegistry::lookup(T* cppInstance)
+  inline void InstanceRegistry::add(T* cppInstance, VALUE rubyInstance, bool isOwner)
   {
-    return this->lookup((void*)cppInstance);
-  }
-
-  inline VALUE InstanceRegistry::lookup(void* cppInstance)
-  {
-    if (!this->isEnabled)
-      return Qnil;
-
-    auto it = this->objectMap_.find(cppInstance);
-    if (it != this->objectMap_.end())
+    if (!this->shouldTrack(isOwner))
     {
-      return it->second;
+      return;
     }
-    else
-    {
-      return Qnil;
-    }
-  }
 
-  inline void InstanceRegistry::add(void* cppInstance, VALUE rubyInstance)
-  {
-    if (this->isEnabled)
-    {
-      this->objectMap_[cppInstance] = rubyInstance;
-    }
+    this->objectMap_[(void*)cppInstance] = rubyInstance;
   }
 
   inline void InstanceRegistry::remove(void* cppInstance)
@@ -9183,7 +9161,22 @@ namespace Rice::detail
   {
     this->objectMap_.clear();
   }
-} // namespace
+
+  inline bool InstanceRegistry::shouldTrack(bool isOwner) const
+  {
+    switch (this->mode)
+    {
+      case Mode::Off:
+        return false;
+      case Mode::Owned:
+        return isOwner;
+      case Mode::All:
+        return true;
+      default:
+        return false;
+    }
+  }
+}
 
 // =========   DefaultHandler.ipp   =========
 namespace Rice::detail
@@ -9832,7 +9825,8 @@ namespace Rice
     #endif
 
     // Now create the Ruby exception
-    this->exception_ = detail::protect(rb_exc_new2, exceptionClass, this->message_.c_str());
+    VALUE exception = detail::protect(rb_exc_new2, exceptionClass, this->message_.c_str());
+    this->exception_ = Pin(exception);
   }
 
   inline char const* Exception::what() const noexcept
@@ -9841,7 +9835,7 @@ namespace Rice
     {
       // This isn't protected because if it fails then either we could eat the exception
       // (not good) or crash the program (better)
-      VALUE rubyMessage = rb_funcall(this->exception_, rb_intern("message"), 0);
+      VALUE rubyMessage = rb_funcall(this->exception_.value(), rb_intern("message"), 0);
       this->message_ = std::string(RSTRING_PTR(rubyMessage), RSTRING_LEN(rubyMessage));
     }
     return this->message_.c_str();
@@ -9849,12 +9843,12 @@ namespace Rice
 
   inline VALUE Exception::class_of() const
   {
-    return detail::protect(rb_class_of, this->exception_);
+    return detail::protect(rb_class_of, this->exception_.value());
   }
 
   inline VALUE Exception::value() const
   {
-    return this->exception_;
+    return this->exception_.value();
   }
 }
 
@@ -9879,6 +9873,9 @@ namespace Rice::detail
   template <typename Callable_T>
   auto cpp_protect(Callable_T&& func)
   {
+    VALUE excValue = Qnil;
+    int jumpTag = 0;
+
     try
     {
       return func();
@@ -9892,69 +9889,76 @@ namespace Rice::detail
       }
       catch (::Rice::Exception const& ex)
       {
-        rb_exc_raise(ex.value());
+        excValue = ex.value();
       }
       catch (::Rice::JumpException const& ex)
       {
-        rb_jump_tag(ex.tag);
+        jumpTag = ex.tag;
       }
       catch (std::bad_alloc const& ex)
       {
         /* This won't work quite right if the rb_exc_new2 fails; not
            much we can do about that, since Ruby doesn't give us access
            to a pre-allocated NoMemoryError object */
-        rb_exc_raise(rb_exc_new2(rb_eNoMemError, ex.what()));
+        excValue = rb_exc_new2(rb_eNoMemError, ex.what());
       }
       catch (std::domain_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eFloatDomainError, ex.what()));
+        excValue = rb_exc_new2(rb_eFloatDomainError, ex.what());
       }
       catch (std::invalid_argument const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eArgError, ex.what()));
+        excValue = rb_exc_new2(rb_eArgError, ex.what());
       }
       catch (fs::filesystem_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eIOError, ex.what()));
+        excValue = rb_exc_new2(rb_eIOError, ex.what());
       }
       catch (std::length_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eIndexError, ex.what()));
+        excValue = rb_exc_new2(rb_eIndexError, ex.what());
       }
       catch (std::out_of_range const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eIndexError, ex.what()));
+        excValue = rb_exc_new2(rb_eIndexError, ex.what());
       }
       catch (std::overflow_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRangeError, ex.what()));
+        excValue = rb_exc_new2(rb_eRangeError, ex.what());
       }
       catch (std::range_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRangeError, ex.what()));
+        excValue = rb_exc_new2(rb_eRangeError, ex.what());
       }
       catch (std::regex_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRegexpError, ex.what()));
+        excValue = rb_exc_new2(rb_eRegexpError, ex.what());
       }
       catch (std::system_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eSystemCallError, ex.what()));
+        excValue = rb_exc_new2(rb_eSystemCallError, ex.what());
       }
       catch (std::underflow_error const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRangeError, ex.what()));
+        excValue = rb_exc_new2(rb_eRangeError, ex.what());
       }
       catch (std::exception const& ex)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRuntimeError, ex.what()));
+        excValue = rb_exc_new2(rb_eRuntimeError, ex.what());
       }
       catch (...)
       {
-        rb_exc_raise(rb_exc_new2(rb_eRuntimeError, "Unknown C++ exception thrown"));
+        excValue = rb_exc_new2(rb_eRuntimeError, "Unknown C++ exception thrown");
       }
-      throw std::runtime_error("Should never get here - just making compilers happy");
     }
+    // All C++ exception objects and the handler are now destroyed.
+    // It is safe to call rb_jump_tag/rb_exc_raise which use longjmp.
+    if (jumpTag)
+      rb_jump_tag(jumpTag);
+    else
+      rb_exc_raise(excValue);
+
+    throw std::runtime_error("Should never get here - just making compilers happy");
   }
 }
 
@@ -9997,6 +10001,16 @@ namespace Rice::detail
     this->keepAlive_.push_back(value);
   }
 
+  inline const std::vector<VALUE>& WrapperBase::getKeepAlive() const
+  {
+    return this->keepAlive_;
+  }
+
+  inline void WrapperBase::setKeepAlive(const std::vector<VALUE>& keepAlive)
+  {
+    this->keepAlive_ = keepAlive;
+  }
+
   inline void WrapperBase::setOwner(bool value)
   {
     this->isOwner_ = value;
@@ -10012,12 +10026,6 @@ namespace Rice::detail
   template <typename T>
   inline Wrapper<T>::Wrapper(rb_data_type_t* rb_data_type, T&& data) : WrapperBase(rb_data_type), data_(std::move(data))
   {
-  }
-
-  template <typename T>
-  inline Wrapper<T>::~Wrapper()
-  {
-    Registries::instance.instances.remove(this->get(this->rb_data_type_));
   }
 
   template <typename T>
@@ -10145,56 +10153,68 @@ namespace Rice::detail
 
   // ---- Helper Functions -------
   template <typename T>
+  inline VALUE wrapLvalue(VALUE klass, rb_data_type_t* rb_data_type, T& data)
+  {
+    WrapperBase* wrapper = new Wrapper<T>(rb_data_type, data);
+    return TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+  }
+
+  template <typename T>
+  inline VALUE wrapRvalue(VALUE klass, rb_data_type_t* rb_data_type, T& data)
+  {
+    WrapperBase* wrapper = new Wrapper<T>(rb_data_type, std::move(data));
+    return TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+  }
+
+  template <typename T>
+  inline VALUE wrapReference(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner)
+  {
+    VALUE result = Registries::instance.instances.lookup(&data, isOwner);
+    if (result == Qnil)
+    {
+      WrapperBase* wrapper = new Wrapper<T&>(rb_data_type, data);
+      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+      Registries::instance.instances.add(&data, result, isOwner);
+    }
+    return result;
+  }
+
+  template <typename T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T& data, bool isOwner)
   {
-    VALUE result = Registries::instance.instances.lookup(&data);
-
-    if (result != Qnil)
-      return result;
-
-    WrapperBase* wrapper = nullptr;
-
-    // If Ruby is not the owner then wrap the reference
-    if (!isOwner)
-    {
-      wrapper = new Wrapper<T&>(rb_data_type, data);
-      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
-    }
-
     // Incomplete types can't be copied/moved, just wrap as reference
-    else if constexpr (!is_complete_v<T>)
+    if constexpr (!is_complete_v<T>)
     {
-      wrapper = new Wrapper<T&>(rb_data_type, data);
-      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+      return wrapReference(klass, rb_data_type, data, isOwner);
     }
-
+    // If Ruby is not the owner then wrap the reference
+    else if (!isOwner)
+    {
+      return wrapReference(klass, rb_data_type, data, isOwner);
+    }
     // std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
     else if constexpr (detail::is_std_vector_v<T>)
     {
       if constexpr (std::is_copy_constructible_v<typename T::value_type>)
       {
-        wrapper = new Wrapper<T>(rb_data_type, data);
-        result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+        return wrapLvalue(klass, rb_data_type, data);
       }
       else
       {
-        wrapper = new Wrapper<T>(rb_data_type, std::move(data));
-        result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+        return wrapRvalue(klass, rb_data_type, data);
       }
     }
 
     // Ruby is the owner so copy data
     else if constexpr (std::is_copy_constructible_v<T>)
     {
-      wrapper = new Wrapper<T>(rb_data_type, data);
-      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+      return wrapLvalue(klass, rb_data_type, data);
     }
 
     // Ruby is the owner so move data
     else if constexpr (std::is_move_constructible_v<T>)
     {
-      wrapper = new Wrapper<T>(rb_data_type, std::move(data));
-      result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
+      return wrapRvalue(klass, rb_data_type, data);
     }
 
     else
@@ -10204,16 +10224,12 @@ namespace Rice::detail
         typeDetail.name();
       throw std::runtime_error(message);
     }
-
-    Registries::instance.instances.add(wrapper->get(rb_data_type), result);
-
-    return result;
   };
 
   template <typename T>
   inline VALUE wrap(VALUE klass, rb_data_type_t* rb_data_type, T* data, bool isOwner)
   {
-    VALUE result = Registries::instance.instances.lookup(data);
+    VALUE result = Registries::instance.instances.lookup(data, isOwner);
 
     if (result != Qnil)
       return result;
@@ -10221,7 +10237,7 @@ namespace Rice::detail
     WrapperBase* wrapper = new Wrapper<T*>(rb_data_type, data, isOwner);
     result = TypedData_Wrap_Struct(klass, rb_data_type, wrapper);
 
-    Registries::instance.instances.add(wrapper->get(rb_data_type), result);
+    Registries::instance.instances.add(data, result, isOwner);
     return result;
   };
 
@@ -10291,7 +10307,7 @@ namespace Rice::detail
   }
 
   template <typename T>
-  inline Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data)
+  inline Wrapper<T*>* wrapConstructed(VALUE value, rb_data_type_t* rb_data_type, T* data, VALUE source)
   {
     using Wrapper_T = Wrapper<T*>;
 
@@ -10306,7 +10322,15 @@ namespace Rice::detail
     wrapper = new Wrapper_T(rb_data_type, data, true);
     RTYPEDDATA_DATA(value) = wrapper;
 
-    Registries::instance.instances.add(data, value);
+    Registries::instance.instances.add(data, value, true);
+
+    // Copy keepAlive references from the source object (used by initialize_copy
+    // so that cloned containers directly protect the same Ruby objects)
+    if (source != Qnil)
+    {
+      WrapperBase* sourceWrapper = getWrapper(source);
+      wrapper->setKeepAlive(sourceWrapper->getKeepAlive());
+    }
 
     return wrapper;
   }
@@ -12536,46 +12560,24 @@ namespace Rice
 // =========   Object.ipp   =========
 namespace Rice
 {
-  inline const Object Nil(Qnil);
-  inline const Object True(Qtrue);
-  inline const Object False(Qfalse);
-  inline const Object Undef(Qundef);
-
-  // Ruby auto detects VALUEs in the stack, so when an Object gets deleted make sure
-  // to clean up in case it is on the stack
-  inline Object::~Object()
+  inline Object::Object() : value_(Qnil)
   {
-    this->value_ = Qnil;
   }
 
-  // Move constructor
-  inline Object::Object(Object&& other)
+  inline Object::Object(VALUE value) : value_(value)
   {
-    this->value_ = other.value_;
-    other.value_ = Qnil;
-  }
-
-  // Move assignment
-  inline Object& Object::operator=(Object&& other)
-  {
-    this->value_ = other.value_;
-    other.value_ = Qnil;
-    return *this;
-  }
-
-  inline bool Object::test() const
-  {
-    return RTEST(this->value());
   }
 
   inline Object::operator bool() const
   {
-    return this->test();
+    // Bypass getter to not raise exception
+    return RTEST(this->value_.value());
   }
 
   inline bool Object::is_nil() const
   {
-    return NIL_P(this->value());
+    // Bypass getter to not raise exception
+    return NIL_P(this->value_.value());
   }
 
   inline Object::operator VALUE() const
@@ -12585,7 +12587,15 @@ namespace Rice
 
   inline VALUE Object::value() const
   {
-    return this->value_;
+    VALUE result = this->value_.value();
+
+    if (result == Qnil)
+    {
+      std::string message = "Rice Object does not wrap a Ruby object";
+      throw std::runtime_error(message.c_str());
+    }
+
+    return result;
   }
 
   template<typename ...Parameter_Ts>
@@ -12624,6 +12634,11 @@ namespace Rice
 
   inline bool Object::is_equal(const Object& other) const
   {
+    if (this->is_nil() || other.is_nil())
+    {
+      return this->is_nil() && other.is_nil();
+    }
+
     VALUE result = detail::protect(rb_equal, this->value(), other.value());
     return RB_TEST(result);
   }
@@ -12688,7 +12703,7 @@ namespace Rice
 
   inline void Object::set_value(VALUE value)
   {
-    value_ = value;
+    this->value_ = Pin(value);
   }
 
   inline Object Object::const_get(Identifier name) const
@@ -12704,7 +12719,9 @@ namespace Rice
 
   inline Object Object::const_set(Identifier name, Object value)
   {
-    detail::protect(rb_const_set, this->value(), name.id(), value.value());
+    // We will allow setting constants to Qnil, or the decimal value of 4. This happens
+    // in C++ libraries with enums. Thus skip the value() method that raises excptions
+    detail::protect(rb_const_set, this->value(), name.id(), value.value_.value());
     return value;
   }
 
@@ -12724,8 +12741,7 @@ namespace Rice
 
   inline bool operator==(Object const& lhs, Object const& rhs)
   {
-    VALUE result = detail::protect(rb_equal, lhs.value(), rhs.value());
-    return result == Qtrue ? true : false;
+    return lhs.is_equal(rhs);
   }
 
   inline bool operator!=(Object const& lhs, Object const& rhs)
@@ -12736,13 +12752,13 @@ namespace Rice
   inline bool operator<(Object const& lhs, Object const& rhs)
   {
     Object result = lhs.call("<", rhs);
-    return result.test();
+    return result;
   }
 
   inline bool operator>(Object const& lhs, Object const& rhs)
   {
     Object result = lhs.call(">", rhs);
-    return result.test();
+    return result;
   }
 }
 
@@ -12832,73 +12848,36 @@ namespace Rice::detail
   };
 }
 
-// =========   Builtin_Object.ipp   =========
-#include <algorithm>
-
-namespace Rice
-{
-  namespace detail
-  {
-    inline VALUE check_type(Object value, int type)
-    {
-      detail::protect(rb_check_type, value.value(), type);
-      return Qnil;
-    }
-  }
-
-  template<int Builtin_Type>
-  inline Builtin_Object<Builtin_Type>::Builtin_Object(Object value) : Object(value)
-  {
-    detail::check_type(value, Builtin_Type);
-  }
-
-  template<int Builtin_Type>
-  inline RObject& Builtin_Object<Builtin_Type>::operator*() const
-  {
-    return *ROBJECT(this->value());
-  }
-
-  template<int Builtin_Type>
-  inline RObject* Builtin_Object<Builtin_Type>::operator->() const
-  {
-    return ROBJECT(this->value());
-  }
-
-  template<int Builtin_Type>
-  inline RObject* Builtin_Object<Builtin_Type>::get() const
-  {
-    return ROBJECT(this->value());
-  }
-} // namespace Rice
-
 // =========   String.ipp   =========
 namespace Rice
 {
-  inline String::String() : Builtin_Object<T_STRING>(detail::protect(rb_str_new2, ""))
+  inline String::String() : Object(detail::protect(rb_str_new2, ""))
   {
   }
 
-  inline String::String(VALUE v) : Builtin_Object<T_STRING>(v)
+  inline String::String(VALUE v) : Object(v)
+  {
+    detail::protect(rb_check_type, this->value(), T_STRING);
+  }
+
+  inline String::String(Object v) : Object(v)
+  {
+    detail::protect(rb_check_type, this->value(), T_STRING);
+  }
+
+  inline String::String(char const* s) : Object(detail::protect(rb_utf8_str_new_cstr, s))
   {
   }
 
-  inline String::String(Object v) : Builtin_Object<T_STRING>(v)
+  inline String::String(std::string const& s) : Object(detail::protect(rb_utf8_str_new, s.data(), (long)s.length()))
   {
   }
 
-  inline String::String(char const* s) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new_cstr, s))
+  inline String::String(std::string_view const& s) : Object(detail::protect(rb_utf8_str_new, s.data(), (long)s.length()))
   {
   }
 
-  inline String::String(std::string const& s) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new, s.data(), (long)s.length()))
-  {
-  }
-
-  inline String::String(std::string_view const& s) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new, s.data(), (long)s.length()))
-  {
-  }
-
-  inline String::String(Identifier id) : Builtin_Object<T_STRING>(detail::protect(rb_utf8_str_new_cstr, id.c_str()))
+  inline String::String(Identifier id) : Object(detail::protect(rb_utf8_str_new_cstr, id.c_str()))
   {
   }
 
@@ -13015,28 +12994,31 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 }
+
 // =========   Array.ipp   =========
 
 namespace Rice
 {
-  inline Array::Array() : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
+  inline Array::Array() : Object(detail::protect(rb_ary_new))
   {
   }
 
-  inline Array::Array(long capacity) : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new_capa, capacity))
+  inline Array::Array(long capacity) : Object(detail::protect(rb_ary_new_capa, capacity))
   {
   }
 
-  inline Array::Array(Object v) : Builtin_Object<T_ARRAY>(v)
+  inline Array::Array(Object v) : Object(v)
   {
+    detail::protect(rb_check_type, this->value(), T_ARRAY);
   }
 
-  inline Array::Array(VALUE v) : Builtin_Object<T_ARRAY>(v)
+  inline Array::Array(VALUE v) : Object(v)
   {
+    detail::protect(rb_check_type, this->value(), T_ARRAY);
   }
 
   template<typename Iter_T>
-  inline Array::Array(Iter_T it, Iter_T end) : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
+  inline Array::Array(Iter_T it, Iter_T end) : Object(detail::protect(rb_ary_new))
   {
     for (; it != end; ++it)
     {
@@ -13045,7 +13027,7 @@ namespace Rice
   }
 
   template<typename T, long n>
-  inline Array::Array(T (&a)[n]) : Builtin_Object<T_ARRAY>(detail::protect(rb_ary_new))
+  inline Array::Array(T (&a)[n]) : Object(detail::protect(rb_ary_new))
   {
     for (long j = 0; j < n; ++j)
     {
@@ -13150,9 +13132,9 @@ namespace Rice
     return detail::protect(rb_ary_entry, array_.value(), index_);
   }
 
-  inline Array::Proxy::operator Object() const
+  inline Array::Proxy::operator VALUE() const
   {
-    return Object(this->value());
+    return this->value();
   }
 
   template<typename T>
@@ -13210,7 +13192,7 @@ namespace Rice
   template<typename Array_Ptr_T, typename Value_T>
   inline Object* Array::Iterator<Array_Ptr_T, Value_T>::operator->()
   {
-    tmp_ = (*array_)[index_];
+    tmp_ = Object((*array_)[index_]);
     return &tmp_;
   }
 
@@ -13464,12 +13446,13 @@ namespace Rice::detail
 
 namespace Rice
 {
-  inline Hash::Hash() : Builtin_Object<T_HASH>(detail::protect(rb_hash_new))
+  inline Hash::Hash() : Object(detail::protect(rb_hash_new))
   {
   }
 
-  inline Hash::Hash(Object v) : Builtin_Object<T_HASH>(v)
+  inline Hash::Hash(Object v) : Object(v)
   {
+    detail::protect(rb_check_type, this->value(), T_HASH);
   }
 
   inline size_t Hash::size() const
@@ -13481,7 +13464,7 @@ namespace Rice
   {
   }
 
-  inline Hash::Proxy::operator Object() const
+  inline Hash::Proxy::operator VALUE() const
   {
     return value();
   }
@@ -13513,7 +13496,7 @@ namespace Rice
   inline Value_T Hash::get(Key_T const& key)
   {
     Object ruby_key(detail::To_Ruby<Key_T>().convert(key));
-    Object value = operator[](ruby_key);
+    Object value(operator[](ruby_key));
     try
     {
       return detail::From_Ruby<Value_T>().convert(value);
@@ -13617,7 +13600,7 @@ namespace Rice
   template<typename Hash_Ptr_T, typename Value_T>
   inline Object Hash::Iterator<Hash_Ptr_T, Value_T>::current_key()
   {
-    return hash_keys()[current_index_];
+    return Object(hash_keys()[current_index_]);
   }
 
   template<typename Hash_Ptr_T, typename Value_T>
@@ -13884,10 +13867,6 @@ namespace Rice::detail
 
 namespace Rice
 {
-  inline Module::Module() : Object(rb_cObject)
-  {
-  }
-
   inline Module::Module(VALUE value) : Object(value)
   {
     if (::rb_type(value) != T_CLASS && ::rb_type(value) != T_MODULE)
@@ -14225,7 +14204,7 @@ namespace Rice
 
   //! An instance of a Struct
   //! \sa Struct
-  class Struct::Instance : public Builtin_Object<T_STRUCT>
+  class Struct::Instance : public Object
   {
   public:
     //! Create a new Instance of a Struct.
@@ -14276,7 +14255,7 @@ namespace Rice
 
   inline Struct& Struct::define_member(Identifier name)
   {
-    if (value() != rb_cObject)
+    if (!this->is_nil())
     {
       throw std::runtime_error("struct is already initialized");
     }
@@ -14288,7 +14267,7 @@ namespace Rice
 
   inline Array Struct::members() const
   {
-    if (value() == rb_cObject)
+    if (this->is_nil())
     {
       // Struct is not yet defined
       return Array(members_.begin(), members_.end());
@@ -14307,13 +14286,15 @@ namespace Rice
   }
 
   inline Struct::Instance::Instance(Struct const& type, Array args) :
-    Builtin_Object<T_STRUCT>(type.new_instance(args)), type_(type)
+    Object(type.new_instance(args)), type_(type)
   {
+    detail::protect(rb_check_type, this->value(), T_STRUCT);
   }
 
   inline Struct::Instance::Instance(Struct const& type, Object s) :
-    Builtin_Object<T_STRUCT>(s), type_(type)
+    Object(s), type_(type)
   {
+    detail::protect(rb_check_type, this->value(), T_STRUCT);
   }
 
   inline Struct define_struct()
@@ -14356,6 +14337,7 @@ namespace Rice::detail
     }
   };
 }
+
 // =========   global_function.hpp   =========
 
 namespace Rice
@@ -14426,9 +14408,7 @@ namespace Rice
     public:
       //! Construct new Director. Needs the Ruby object so that the
       //  proxy class can call methods on that object.
-      Director(Object self) : self_(self)
-      {
-      }
+      Director(Object self);
 
       virtual ~Director() = default;
 
@@ -14437,13 +14417,10 @@ namespace Rice
        *  method, use this method to throw an exception in this case.
        */
       [[noreturn]]
-      void raisePureVirtual() const
-      {
-        rb_raise(rb_eNotImpError, "Cannot call super() into a pure-virtual C++ method");
-      }
+      void raisePureVirtual() const;
 
       //! Get the Ruby object linked to this C++ instance
-      Object getSelf() const { return self_; }
+      Object getSelf() const;
 
     private:
 
@@ -14451,6 +14428,25 @@ namespace Rice
       Object self_;
 
   };
+}
+
+// =========   Director.ipp   =========
+
+namespace Rice
+{
+  inline Director::Director(Object self) : self_(self)
+  {
+  }
+
+  inline void Director::raisePureVirtual() const
+  {
+    rb_raise(rb_eNotImpError, "Cannot call super() into a pure-virtual C++ method");
+  }
+
+  inline Object Director::getSelf() const
+  {
+    return self_;
+  }
 }
 
 // =========   Data_Type.ipp   =========
@@ -14648,8 +14644,23 @@ namespace Rice
 
     if constexpr (Constructor_T::isCopyConstructor())
     {
-      // Define initialize_copy that will copy the C++ object
-      this->define_method("initialize_copy", &Constructor_T::initialize_copy, args...);
+      // Define initialize_copy that will copy the C++ object and its keepAlive references.
+      // We use setValue() so Rice passes the raw VALUE without conversion - this gives
+      // initialize_copy access to both wrappers so it can copy the keepAlive list.
+      using Rice_Arg_Tuple = std::tuple<Rice_Arg_Ts...>;
+      constexpr std::size_t arg_index = detail::tuple_element_index_v<Rice_Arg_Tuple, Arg>;
+
+      if constexpr (arg_index < sizeof...(Rice_Arg_Ts))
+      {
+        // User provided an Arg - extract it and ensure setValue is set
+        Arg arg = std::get<arg_index>(std::forward_as_tuple(args...));
+        arg.setValue();
+        this->define_method("initialize_copy", &Constructor_T::initialize_copy, arg);
+      }
+      else
+      {
+        this->define_method("initialize_copy", &Constructor_T::initialize_copy, Arg("other").setValue());
+      }
     }
     else if constexpr (Constructor_T::isMoveConstructor())
     {
@@ -14901,11 +14912,14 @@ namespace Rice
       detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
     }
 
-    static void initialize_copy(VALUE self, const T& other)
+    // Takes VALUE (via Arg.setValue()) instead of const T& so we have access to
+    // both Ruby wrappers and can copy the keepAlive list from the original to the clone.
+    static VALUE initialize_copy(VALUE self, VALUE other)
     {
-      // Call C++ copy constructor
-      T* data = new T(other);
-      detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
+      T* otherData = detail::unwrap<T>(other, Data_Type<T>::ruby_data_type(), false);
+      T* data = new T(*otherData);
+      detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data, other);
+      return self;
     }
 
   };
@@ -15049,7 +15063,7 @@ namespace Rice
   template<typename T>
   inline T* Data_Object<T>::get() const
   {
-    if (this->value() == Qnil)
+    if (this->is_nil())
     {
       return nullptr;
     }

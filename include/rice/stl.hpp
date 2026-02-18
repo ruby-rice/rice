@@ -2637,11 +2637,22 @@ namespace Rice
             self.insert(value);
             return self;
           }, Arg("value").keepAlive())
-          .define_method("merge", [](T& self, T& other) -> T&
+          .define_method("merge", [](VALUE self, VALUE source)
           {
-            self.merge(other);
+            T* selfPtr = detail::unwrap<T>(self, Data_Type<T>::ruby_data_type(), false);
+            T* sourcePtr = detail::unwrap<T>(source, Data_Type<T>::ruby_data_type(), false);
+            selfPtr->merge(*sourcePtr);
+
+            // Merge moves elements from source to self, so copy keepAlive references.
+            // This is conservative — duplicate elements that remain in source will also
+            // have their keepAlive references copied, keeping them alive longer than
+            // strictly necessary. This is safe (better than premature GC).
+            detail::WrapperBase* selfWrapper = detail::getWrapper(self);
+            detail::WrapperBase* sourceWrapper = detail::getWrapper(source);
+            selfWrapper->setKeepAlive(sourceWrapper->getKeepAlive());
+
             return self;
-          }, Arg("source"));
+          }, Arg("self").setValue(), Arg("source").setValue());
 
         rb_define_alias(klass_, "erase", "delete");
       }
@@ -4542,7 +4553,7 @@ namespace Rice
         if constexpr (std::is_copy_constructible_v<Value_T>)
         {
           klass_.define_constructor(Constructor<T, const T&>(), Arg("other"))
-                .define_constructor(Constructor<T, Size_T, const Parameter_T>(), Arg("count"), Arg("value"));
+                .define_constructor(Constructor<T, Size_T, const Parameter_T>(), Arg("count"), Arg("value").keepAlive());
         }
 
         if constexpr (std::is_default_constructible_v<Value_T>)
@@ -4608,7 +4619,7 @@ namespace Rice
         if constexpr (!std::is_same_v<Value_T, bool>)
         {
           // Access methods
-          klass_.define_method("first", [](T& vector) -> std::optional<std::reference_wrapper<Value_T>>
+          auto first_func = [](T& vector) -> std::optional<std::reference_wrapper<Value_T>>
           {
             if (vector.size() > 0)
             {
@@ -4618,8 +4629,9 @@ namespace Rice
             {
               return std::nullopt;
             }
-          })
-          .define_method("last", [](T& vector) -> std::optional<std::reference_wrapper<Value_T>>
+          };
+
+          auto last_func = [](T& vector) -> std::optional<std::reference_wrapper<Value_T>>
           {
             if (vector.size() > 0)
             {
@@ -4629,8 +4641,9 @@ namespace Rice
             {
               return std::nullopt;
             }
-          })
-          .define_method("[]", [this](T& vector, Difference_T index) -> std::optional<std::reference_wrapper<Value_T>>
+          };
+
+          auto index_func = [this](T& vector, Difference_T index) -> std::optional<std::reference_wrapper<Value_T>>
           {
             index = normalizeIndex(vector.size(), index);
             if (index < 0 || index >= (Difference_T)vector.size())
@@ -4641,8 +4654,22 @@ namespace Rice
             {
               return vector[index];
             }
-          }, Arg("pos"))
-          .template define_method<Value_T*(T::*)()>("data", &T::data, ReturnBuffer());
+          };
+
+          if constexpr (detail::is_wrapped_v<Value_T>)
+          {
+            klass_.define_method("first", first_func, Return().keepAlive())
+                  .define_method("last", last_func, Return().keepAlive())
+                  .define_method("[]", index_func, Arg("pos"), Return().keepAlive());
+          }
+          else
+          {
+            klass_.define_method("first", first_func)
+                  .define_method("last", last_func)
+                  .define_method("[]", index_func, Arg("pos"));
+          }
+
+          klass_.template define_method<Value_T*(T::*)()>("data", &T::data, ReturnBuffer());
         }
         else
         {
