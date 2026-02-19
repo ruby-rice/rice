@@ -9,7 +9,7 @@
 */
 inline auto& include_module(Module const& inc)
 {
-  detail::protect(rb_include_module, this->value(), inc.value());
+  detail::protect(rb_include_module, this->validated_value(), inc.value());
   return *this;
 }
 
@@ -33,7 +33,7 @@ inline auto& include_module(Module const& inc)
 template<typename Method_T, typename...Arg_Ts>
 inline auto& define_method(std::string name, Method_T&& method, const Arg_Ts&...args)
 {
-  this->wrap_native_method(this->value(), name, std::forward<Method_T>(method), args...);
+  this->wrap_native_method(this->validated_value(), name, std::forward<Method_T>(method), args...);
   return *this;
 }
 
@@ -51,7 +51,7 @@ inline auto& define_method(std::string name, Method_T&& method, const Arg_Ts&...
 template<typename Function_T, typename...Arg_Ts>
 inline auto& define_function(std::string name, Function_T&& func, const Arg_Ts&...args)
 {
-  this->wrap_native_function(this->value(), name, std::forward<Function_T>(func), args...);
+  this->wrap_native_function(this->validated_value(), name, std::forward<Function_T>(func), args...);
   return *this;
 }
 
@@ -125,6 +125,6 @@ template<typename Constant_T>
 inline auto& define_constant(std::string name, Constant_T value)
 {
   using Base_T = detail::remove_cv_recursive_t<Constant_T>;
-  detail::protect(rb_define_const, this->value(), name.c_str(), detail::To_Ruby<Base_T>().convert(value));
+  detail::protect(rb_define_const, this->validated_value(), name.c_str(), detail::To_Ruby<Base_T>().convert(value));
   return *this;
 }

@@ -8,16 +8,9 @@ namespace Rice
   {
   }
 
-  inline Object::operator bool() const
+  inline VALUE Object::value() const
   {
-    // Bypass getter to not raise exception
-    return RTEST(this->value_.value());
-  }
-
-  inline bool Object::is_nil() const
-  {
-    // Bypass getter to not raise exception
-    return NIL_P(this->value_.value());
+    return this->value_.value();
   }
 
   inline Object::operator VALUE() const
@@ -25,9 +18,9 @@ namespace Rice
     return this->value();
   }
 
-  inline VALUE Object::value() const
+  inline VALUE Object::validated_value() const
   {
-    VALUE result = this->value_.value();
+    VALUE result = this->value();
 
     if (result == Qnil)
     {
@@ -36,6 +29,16 @@ namespace Rice
     }
 
     return result;
+  }
+
+  inline Object::operator bool() const
+  {
+    return RTEST(this->value());
+  }
+
+  inline bool Object::is_nil() const
+  {
+    return NIL_P(this->value());
   }
 
   template<typename ...Parameter_Ts>
@@ -49,7 +52,7 @@ namespace Rice
        easy to duplicate by setting GC.stress to true and calling a constructor
        that takes multiple values like a std::pair wrapper. */
     std::array<VALUE, sizeof...(Parameter_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Parameter_Ts>>().convert(std::forward<Parameter_Ts>(args))... };
-    return detail::protect(rb_funcallv, value(), id.id(), (int)values.size(), (const VALUE*)values.data());
+    return detail::protect(rb_funcallv, this->validated_value(), id.id(), (int)values.size(), (const VALUE*)values.data());
   }
 
   template<typename ...Parameter_Ts>
@@ -57,13 +60,13 @@ namespace Rice
   {
     /* IMPORTANT - See call() above */
     std::array<VALUE, sizeof...(Parameter_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Parameter_Ts>>().convert(args)... };
-    return detail::protect(rb_funcallv_kw, value(), id.id(), (int)values.size(), (const VALUE*)values.data(), RB_PASS_KEYWORDS);
+    return detail::protect(rb_funcallv_kw, this->validated_value(), id.id(), (int)values.size(), (const VALUE*)values.data(), RB_PASS_KEYWORDS);
   }
 
   template<typename T>
   inline void Object::iv_set(Identifier name, T const& value)
   {
-    detail::protect(rb_ivar_set, this->value(), name.id(), detail::To_Ruby<T>().convert(value));
+    detail::protect(rb_ivar_set, this->validated_value(), name.id(), detail::To_Ruby<T>().convert(value));
   }
 
   inline int Object::compare(Object const& other) const
@@ -79,66 +82,71 @@ namespace Rice
       return this->is_nil() && other.is_nil();
     }
 
-    VALUE result = detail::protect(rb_equal, this->value(), other.value());
+    VALUE result = detail::protect(rb_equal, this->validated_value(), other.validated_value());
     return RB_TEST(result);
   }
 
   inline bool Object::is_eql(const Object& other) const
   {
-    VALUE result = detail::protect(rb_eql, this->value(), other.value());
+    if (this->is_nil() || other.is_nil())
+    {
+      return this->is_nil() && other.is_nil();
+    }
+
+    VALUE result = detail::protect(rb_eql, this->validated_value(), other.validated_value());
     return RB_TEST(result);
   }
 
   inline void Object::freeze()
   {
-    detail::protect(rb_obj_freeze, value());
+    detail::protect(rb_obj_freeze, this->validated_value());
   }
 
   inline bool Object::is_frozen() const
   {
-    return RB_OBJ_FROZEN(value());
+    return RB_OBJ_FROZEN(this->validated_value());
   }
 
   inline int Object::rb_type() const
   {
-    return ::rb_type(this->value());
+    return ::rb_type(this->validated_value());
   }
 
   inline VALUE Object::object_id() const
   {
-    return detail::protect(rb_obj_id, this->value());
+    return detail::protect(rb_obj_id, this->validated_value());
   }
 
   inline bool Object::is_a(Object klass) const
   {
-    VALUE result = detail::protect(rb_obj_is_kind_of, this->value(), klass.value());
+    VALUE result = detail::protect(rb_obj_is_kind_of, this->validated_value(), klass.validated_value());
     return RB_TEST(result);
   }
 
   inline void Object::extend(Module const& mod)
   {
-    detail::protect(rb_extend_object, this->value(), mod.value());
+    detail::protect(rb_extend_object, this->validated_value(), mod.validated_value());
   }
 
   inline bool Object::respond_to(Identifier id) const
   {
-    return bool(rb_respond_to(this->value(), id.id()));
+    return bool(rb_respond_to(this->validated_value(), id.id()));
   }
 
   inline bool Object::is_instance_of(Object klass) const
   {
-    VALUE result = detail::protect(rb_obj_is_instance_of, this->value(), klass.value());
+    VALUE result = detail::protect(rb_obj_is_instance_of, this->validated_value(), klass.validated_value());
     return RB_TEST(result);
   }
 
   inline Object Object::iv_get(Identifier name) const
   {
-    return detail::protect(rb_ivar_get, this->value(), name.id());
+    return detail::protect(rb_ivar_get, this->validated_value(), name.id());
   }
 
   inline Object Object::attr_get(Identifier name) const
   {
-    return detail::protect(rb_attr_get, this->value(), name.id());
+    return detail::protect(rb_attr_get, this->validated_value(), name.id());
   }
 
   inline void Object::set_value(VALUE value)
@@ -148,20 +156,20 @@ namespace Rice
 
   inline Object Object::const_get(Identifier name) const
   {
-    return detail::protect(rb_const_get, this->value(), name.id());
+    return detail::protect(rb_const_get, this->validated_value(), name.id());
   }
 
   inline bool Object::const_defined(Identifier name) const
   {
-    size_t result = detail::protect(rb_const_defined, this->value(), name.id());
+    size_t result = detail::protect(rb_const_defined, this->validated_value(), name.id());
     return bool(result);
   }
 
   inline Object Object::const_set(Identifier name, Object value)
   {
     // We will allow setting constants to Qnil, or the decimal value of 4. This happens
-    // in C++ libraries with enums. Thus skip the value() method that raises excptions
-    detail::protect(rb_const_set, this->value(), name.id(), value.value_.value());
+    // in C++ libraries with enums. Thus use value() instead of validated_value
+    detail::protect(rb_const_set, this->validated_value(), name.id(), value.value());
     return value;
   }
 
@@ -176,7 +184,7 @@ namespace Rice
 
   inline void Object::remove_const(Identifier name)
   {
-    detail::protect(rb_mod_remove_const, this->value(), name.to_sym());
+    detail::protect(rb_mod_remove_const, this->validated_value(), name.to_sym());
   }
 
   inline bool operator==(Object const& lhs, Object const& rhs)
