@@ -47,22 +47,22 @@ namespace Rice
 
   inline size_t String::length() const
   {
-    return RSTRING_LEN(value());
+    return RSTRING_LEN(this->value());
   }
 
   inline char String::operator[](ptrdiff_t index) const
   {
-    return RSTRING_PTR(value())[index];
+    return RSTRING_PTR(this->value())[index];
   }
 
   inline char const* String::c_str() const
   {
-    return RSTRING_PTR(value());
+    return RSTRING_PTR(this->value());
   }
 
   inline std::string String::str() const
   {
-    return std::string(RSTRING_PTR(value()), length());
+    return std::string(RSTRING_PTR(this->value()), length());
   }
 
   template<typename T>

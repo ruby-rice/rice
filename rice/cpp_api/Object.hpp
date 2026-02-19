@@ -37,6 +37,12 @@ namespace Rice
     Object(Object&& other) = default;
     Object& operator=(Object&& other) = default;
 
+    //! Implicit conversion to VALUE.
+    operator VALUE() const;
+
+    //! Explicitly get the encapsulated VALUE.
+    VALUE value() const;
+
     //! Returns false if the object is nil or false; returns true
     //! otherwise.
     explicit operator bool() const;
@@ -44,11 +50,6 @@ namespace Rice
     //! Returns true if the object is nil, false otherwise.
     bool is_nil() const;
 
-    //! Implicit conversion to VALUE.
-    operator VALUE() const;
-
-    //! Explicitly get the encapsulated VALUE.
-    VALUE value() const;
 
     //! Get the class of an object.
     /*! \return the object's Class.
@@ -249,6 +250,10 @@ namespace Rice
     void remove_const(Identifier name);
 
   protected:
+    //! Checks the encapsulated VALUE is not nil and returns it. If it is nil 
+    //! an exception is thrown.
+    VALUE validated_value() const;
+
     //! Set the encapsulated value.
     void set_value(VALUE value);
 

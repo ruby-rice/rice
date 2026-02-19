@@ -97,12 +97,7 @@ TESTCASE(implicit_conversion_to_value)
   ASSERT_EQUAL(INT2NUM(42), (VALUE)Object(INT2NUM(42)));
   ASSERT_EQUAL(Qfalse, (VALUE)Object(Qfalse));
   ASSERT_EQUAL(Qundef, (VALUE)Object(Qundef));
-
-  ASSERT_EXCEPTION_CHECK(
-    std::runtime_error,
-    (VALUE)Object(Qnil),
-    ASSERT_EQUAL("Rice Object does not wrap a Ruby object", ex.what())
-  );
+  ASSERT_EQUAL(Qnil, (VALUE)Object(Qnil));
 }
 
 TESTCASE(explicit_conversion_to_value)
@@ -111,12 +106,7 @@ TESTCASE(explicit_conversion_to_value)
   ASSERT_EQUAL(INT2NUM(42), Object(INT2NUM(42)).value());
   ASSERT_EQUAL(Qfalse, Object(Qfalse).value());
   ASSERT_EQUAL(Qundef, Object(Qundef).value());
-
-  ASSERT_EXCEPTION_CHECK(
-    std::runtime_error,
-    Object(Qnil).value(),
-    ASSERT_EQUAL("Rice Object does not wrap a Ruby object", ex.what())
-  );
+  ASSERT_EQUAL(Qnil, Object(Qnil).value());
 }
 
 TESTCASE(class_of)

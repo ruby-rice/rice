@@ -368,7 +368,7 @@ namespace Rice
   template <typename Attribute_T, typename Access_T, typename...Arg_Ts>
   inline Data_Type<T>& Data_Type<T>::define_singleton_attr(std::string name, Attribute_T attribute, Access_T access, const Arg_Ts&...args)
   {
-    VALUE singleton = detail::protect(rb_singleton_class, this->value());
+    VALUE singleton = detail::protect(rb_singleton_class, this->validated_value());
     return this->define_attr_internal<Attribute_T, Access_T>(singleton, name, std::forward<Attribute_T>(attribute), access, args...);
   }
 
