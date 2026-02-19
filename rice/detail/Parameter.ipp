@@ -165,6 +165,10 @@ namespace Rice::detail
           T defaultValue = this->arg()->template defaultValue<T>();
           return this->toRuby_.convert(defaultValue);
         }
+        else
+        {
+          throw std::runtime_error("Default value not allowed for parameter " + this->arg()->name);
+        }
       }
       else
       {
