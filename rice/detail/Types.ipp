@@ -405,6 +405,35 @@ namespace Rice::detail
   };
 
   template<>
+  struct Type<long double>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cFloat;
+    }
+  };
+
+  template<int N>
+  struct Type<long double[N]>
+  {
+    static bool verify()
+    {
+      define_buffer<long double>();
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
+  template<>
   struct Type<void>
   {
     static bool verify()

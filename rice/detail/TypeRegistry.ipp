@@ -13,6 +13,12 @@ namespace Rice::detail
     {
       return std::type_index(typeid(T));
     }
+    else if constexpr (std::is_reference_v<T>)
+    {
+      // For incomplete reference types, strip the reference and use pointer.
+      // Can't form T* when T is a reference type (pointer-to-reference is illegal).
+      return std::type_index(typeid(std::remove_reference_t<T>*));
+    }
     else
     {
       return std::type_index(typeid(T*));

@@ -729,6 +729,86 @@ namespace Rice::detail
     Reference<double> reference_;
   };
 
+  // ===========  long double  ============
+  template<>
+  class From_Ruby<long double>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {}
+
+    long double is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<long double>::is_convertible(value);
+    }
+
+    long double convert(VALUE value)
+    {
+      return FromRubyFundamental<long double>::convert(value);
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class From_Ruby<long double&>
+  {
+  public:
+    using Reference_T = Reference<long double>;
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {}
+
+    long double is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Reference_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<long double>::is_convertible(value);
+        }
+      }
+    }
+
+    long double& convert(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Reference_T>::is_descendant(value))
+          {
+            Reference_T* reference = unwrap<Reference_T>(value, Data_Type<Reference_T>::ruby_data_type(), false);
+            return reference->get();
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->reference_ = Reference<long double>(value);
+          return this->reference_.get();
+        }
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    Reference<long double> reference_;
+  };
+
   // ===========  float  ============
   template<>
   class From_Ruby<float>

@@ -501,6 +501,62 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
+    // ===========  long double  ============
+    template<>
+    class To_Ruby<long double>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {}
+
+      VALUE convert(const long double& native)
+      {
+        return protect(rb_float_new, native);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<long double&>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {}
+
+      VALUE convert(const long double& native)
+      {
+        return protect(rb_float_new, native);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<int N>
+    class To_Ruby<long double[N]>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {}
+
+      VALUE convert(long double data[N])
+      {
+        Buffer<long double> buffer(data, N);
+        Data_Object<Buffer<long double>> dataObject(std::move(buffer));
+        return dataObject.value();
+      }
+    private:
+      Arg* arg_ = nullptr;
+    };
+
     // ===========  float  ============
     template<>
     class To_Ruby<float>
