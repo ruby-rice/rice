@@ -155,6 +155,17 @@ namespace Rice::detail
   };
 
   template<>
+  class RubyType<long double>
+  {
+  public:
+    using FromRuby_T = double(*)(VALUE);
+
+    static inline FromRuby_T fromRuby = rb_num2dbl;
+    static inline std::string packTemplate = "d*";
+    static inline std::string name = "Float";
+  };
+
+  template<>
   class RubyType<void>
   {
   public:
