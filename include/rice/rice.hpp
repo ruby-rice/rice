@@ -3798,6 +3798,17 @@ namespace Rice::detail
   };
 
   template<>
+  class RubyType<long double>
+  {
+  public:
+    using FromRuby_T = double(*)(VALUE);
+
+    static inline FromRuby_T fromRuby = rb_num2dbl;
+    static inline std::string packTemplate = "d*";
+    static inline std::string name = "Float";
+  };
+
+  template<>
   class RubyType<void>
   {
   public:
@@ -6074,6 +6085,35 @@ namespace Rice::detail
   };
 
   template<>
+  struct Type<long double>
+  {
+    static bool verify()
+    {
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cFloat;
+    }
+  };
+
+  template<int N>
+  struct Type<long double[N]>
+  {
+    static bool verify()
+    {
+      define_buffer<long double>();
+      return true;
+    }
+
+    static VALUE rubyKlass()
+    {
+      return rb_cString;
+    }
+  };
+
+  template<>
   struct Type<void>
   {
     static bool verify()
@@ -6595,6 +6635,62 @@ namespace Rice
       {
         Buffer<double> buffer(data, N);
         Data_Object<Buffer<double>> dataObject(std::move(buffer));
+        return dataObject.value();
+      }
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    // ===========  long double  ============
+    template<>
+    class To_Ruby<long double>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {}
+
+      VALUE convert(const long double& native)
+      {
+        return protect(rb_float_new, native);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<long double&>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {}
+
+      VALUE convert(const long double& native)
+      {
+        return protect(rb_float_new, native);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<int N>
+    class To_Ruby<long double[N]>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {}
+
+      VALUE convert(long double data[N])
+      {
+        Buffer<long double> buffer(data, N);
+        Data_Object<Buffer<long double>> dataObject(std::move(buffer));
         return dataObject.value();
       }
     private:
@@ -7879,6 +7975,86 @@ namespace Rice::detail
     Reference<double> reference_;
   };
 
+  // ===========  long double  ============
+  template<>
+  class From_Ruby<long double>
+  {
+  public:
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {}
+
+    long double is_convertible(VALUE value)
+    {
+      return FromRubyFundamental<long double>::is_convertible(value);
+    }
+
+    long double convert(VALUE value)
+    {
+      return FromRubyFundamental<long double>::convert(value);
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class From_Ruby<long double&>
+  {
+  public:
+    using Reference_T = Reference<long double>;
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {}
+
+    long double is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Reference_T>::is_descendant(value))
+          {
+            return Convertible::Exact;
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          return FromRubyFundamental<long double>::is_convertible(value);
+        }
+      }
+    }
+
+    long double& convert(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+        {
+          if (Data_Type<Reference_T>::is_descendant(value))
+          {
+            Reference_T* reference = unwrap<Reference_T>(value, Data_Type<Reference_T>::ruby_data_type(), false);
+            return reference->get();
+          }
+          [[fallthrough]];
+        }
+        default:
+        {
+          this->reference_ = Reference<long double>(value);
+          return this->reference_.get();
+        }
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    Reference<long double> reference_;
+  };
+
   // ===========  float  ============
   template<>
   class From_Ruby<float>
@@ -8972,6 +9148,12 @@ namespace Rice::detail
     if constexpr (is_complete_v<T>)
     {
       return std::type_index(typeid(T));
+    }
+    else if constexpr (std::is_reference_v<T>)
+    {
+      // For incomplete reference types, strip the reference and use pointer.
+      // Can't form T* when T is a reference type (pointer-to-reference is illegal).
+      return std::type_index(typeid(std::remove_reference_t<T>*));
     }
     else
     {
@@ -14845,8 +15027,6 @@ namespace Rice
   template <typename Attribute_T, typename Access_T, typename...Arg_Ts>
   inline Data_Type<T>& Data_Type<T>::define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, Access_T, const Arg_Ts&...args)
   {
-    using Attr_T = typename detail::attribute_traits<Attribute_T>::attr_type;
-
     // Define attribute getter
     if constexpr (std::is_same_v<Access_T, AttrAccess::ReadWriteType> || std::is_same_v<Access_T, AttrAccess::ReadType>)
     {
