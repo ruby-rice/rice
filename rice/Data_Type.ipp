@@ -376,8 +376,6 @@ namespace Rice
   template <typename Attribute_T, typename Access_T, typename...Arg_Ts>
   inline Data_Type<T>& Data_Type<T>::define_attr_internal(VALUE klass, std::string name, Attribute_T attribute, Access_T, const Arg_Ts&...args)
   {
-    using Attr_T = typename detail::attribute_traits<Attribute_T>::attr_type;
-
     // Define attribute getter
     if constexpr (std::is_same_v<Access_T, AttrAccess::ReadWriteType> || std::is_same_v<Access_T, AttrAccess::ReadType>)
     {
