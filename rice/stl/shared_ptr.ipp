@@ -32,7 +32,11 @@ namespace Rice
 
     if constexpr (detail::is_complete_v<T> && !std::is_void_v<T>)
     {
-      result.define_constructor(Constructor<SharedPtr_T, typename SharedPtr_T::element_type*>(), Arg("value").takeOwnership());
+      // is_abstract_v requires a complete type, so it must be nested inside the is_complete_v check
+      if constexpr (!std::is_abstract_v<T>)
+      {
+        result.define_constructor(Constructor<SharedPtr_T, typename SharedPtr_T::element_type*>(), Arg("value").takeOwnership());
+      }
     }
 
     // Forward methods to wrapped T

@@ -656,6 +656,52 @@ TESTCASE(SharedPtrConstT)
   ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result.value()));
 }
 
+// Abstract class with non-virtual destructor - like cv::cudacodec::NVSurfaceToColorConverter
+namespace
+{
+  class AbstractClass
+  {
+  public:
+    virtual bool compute(int value) const = 0;
+    ~AbstractClass() {}  // non-virtual destructor
+  };
+
+  class ConcreteImpl : public AbstractClass
+  {
+  public:
+    bool compute(int value) const override { return value > 0; }
+  };
+
+  std::shared_ptr<AbstractClass> createAbstract()
+  {
+    return std::make_shared<ConcreteImpl>();
+  }
+
+  bool useAbstract(std::shared_ptr<AbstractClass> ptr, int value)
+  {
+    return ptr->compute(value);
+  }
+}
+
+TESTCASE(SharedPtrAbstractT)
+{
+  // shared_ptr<T> where T is abstract should NOT define a constructor taking T*,
+  // because deleting through a non-virtual destructor on an abstract class is UB.
+  define_class<AbstractClass>("AbstractClass").
+    define_method("compute", &AbstractClass::compute,
+      Arg("value"));
+
+  Module m = define_module("SharedPtrAbstractTest").
+    define_module_function("create_abstract", &createAbstract).
+    define_module_function("use_abstract", &useAbstract);
+
+  std::string code = R"(ptr = create_abstract
+                        use_abstract(ptr, 5))";
+
+  Object result = m.instance_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
+}
+
 // Forward declaration only - IncompleteClass is never defined
 class IncompleteClass;
 
