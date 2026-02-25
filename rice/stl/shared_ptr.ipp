@@ -87,7 +87,7 @@ namespace Rice::detail
     }
     else if (rb_typeddata_inherited_p(this->inner_rb_data_type_, requestedType))
     {
-      return this->data_.get();
+      return (void*)this->data_.get();
     }
     else
     {
