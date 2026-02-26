@@ -253,3 +253,50 @@ TESTCASE(Release)
     m.module_eval(code),
     ASSERT(std::string(ex.what()).find("undefined method") == 0));
 }
+
+// --- unique_ptr<const T> tests ---
+// When unique_ptr wraps a const T, the Wrapper::get() method must handle
+// the const-to-void* conversion. Without a cast, data_.get() returns
+// const T* which cannot implicitly convert to void*.
+namespace
+{
+  class ConstTarget
+  {
+  public:
+    int value;
+
+    ConstTarget() : value(0) {}
+    ConstTarget(int v) : value(v) {}
+
+    int getValue() const { return value; }
+  };
+
+  std::unique_ptr<const ConstTarget> createConstTarget(int v)
+  {
+    return std::make_unique<const ConstTarget>(v);
+  }
+
+  int extractConstTargetValue(const std::unique_ptr<const ConstTarget>& ptr)
+  {
+    return ptr->getValue();
+  }
+}
+
+TESTCASE(UniquePtrConstT)
+{
+  define_class<ConstTarget>("ConstTarget").
+    define_constructor(Constructor<ConstTarget, int>(),
+      Arg("v")).
+    define_method("get_value", &ConstTarget::getValue);
+
+  Module m = define_module("UniquePtrConstTest").
+    define_module_function("create_const_target", &createConstTarget).
+    define_module_function("extract_const_target_value", &extractConstTargetValue);
+
+  // Test that unique_ptr<const T> can be unwrapped to access the inner T
+  std::string code = R"(ptr = create_const_target(42)
+                        extract_const_target_value(ptr))";
+
+  Object result = m.instance_eval(code);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result.value()));
+}

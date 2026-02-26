@@ -615,3 +615,17 @@ TESTCASE(void_pointer_array)
   Object result = m.module_eval(code);
   ASSERT_EQUAL("[4, 3, 2, 1]", detail::From_Ruby<std::string>().convert(result.value()));
 }
+
+TESTCASE(nullptr_t)
+{
+  detail::From_Ruby<std::nullptr_t> fromRuby;
+
+  std::nullptr_t result = fromRuby.convert(Qnil);
+  ASSERT_EQUAL(nullptr, result);
+
+  ASSERT_EXCEPTION_CHECK(
+    Exception,
+    fromRuby.convert(rb_str_new2("not nil")),
+    ASSERT_EQUAL("wrong argument type String (expected nil)", ex.what())
+  );
+}

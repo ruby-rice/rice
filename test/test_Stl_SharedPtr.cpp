@@ -609,6 +609,99 @@ TESTCASE(InheritedForwarding)
   ASSERT_EQUAL(456, detail::From_Ruby<int>().convert(result));
 }
 
+// --- shared_ptr<const T> tests ---
+// When shared_ptr wraps a const T, the Wrapper::get() method must handle
+// the const-to-void* conversion. Without a cast, data_.get() returns
+// const T* which cannot implicitly convert to void*.
+namespace
+{
+  class ConstTarget
+  {
+  public:
+    int value;
+
+    ConstTarget() : value(0) {}
+    ConstTarget(int v) : value(v) {}
+
+    int getValue() const { return value; }
+  };
+
+  std::shared_ptr<const ConstTarget> createConstTarget(int v)
+  {
+    return std::make_shared<const ConstTarget>(v);
+  }
+
+  int extractConstTargetValue(std::shared_ptr<const ConstTarget> ptr)
+  {
+    return ptr->getValue();
+  }
+}
+
+TESTCASE(SharedPtrConstT)
+{
+  define_class<ConstTarget>("ConstTarget").
+    define_constructor(Constructor<ConstTarget, int>(),
+      Arg("v")).
+    define_method("get_value", &ConstTarget::getValue);
+
+  Module m = define_module("SharedPtrConstTest").
+    define_module_function("create_const_target", &createConstTarget).
+    define_module_function("extract_const_target_value", &extractConstTargetValue);
+
+  // Test that shared_ptr<const T> can be unwrapped to access the inner T
+  std::string code = R"(ptr = create_const_target(42)
+                        extract_const_target_value(ptr))";
+
+  Object result = m.instance_eval(code);
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result.value()));
+}
+
+// Abstract class with non-virtual destructor - like cv::cudacodec::NVSurfaceToColorConverter
+namespace
+{
+  class AbstractClass
+  {
+  public:
+    virtual bool compute(int value) const = 0;
+    ~AbstractClass() {}  // non-virtual destructor
+  };
+
+  class ConcreteImpl : public AbstractClass
+  {
+  public:
+    bool compute(int value) const override { return value > 0; }
+  };
+
+  std::shared_ptr<AbstractClass> createAbstract()
+  {
+    return std::make_shared<ConcreteImpl>();
+  }
+
+  bool useAbstract(std::shared_ptr<AbstractClass> ptr, int value)
+  {
+    return ptr->compute(value);
+  }
+}
+
+TESTCASE(SharedPtrAbstractT)
+{
+  // shared_ptr<T> where T is abstract should NOT define a constructor taking T*,
+  // because deleting through a non-virtual destructor on an abstract class is UB.
+  define_class<AbstractClass>("AbstractClass").
+    define_method("compute", &AbstractClass::compute,
+      Arg("value"));
+
+  Module m = define_module("SharedPtrAbstractTest").
+    define_module_function("create_abstract", &createAbstract).
+    define_module_function("use_abstract", &useAbstract);
+
+  std::string code = R"(ptr = create_abstract
+                        use_abstract(ptr, 5))";
+
+  Object result = m.instance_eval(code);
+  ASSERT_EQUAL(Qtrue, result.value());
+}
+
 // Forward declaration only - IncompleteClass is never defined
 class IncompleteClass;
 

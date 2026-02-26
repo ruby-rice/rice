@@ -1608,31 +1608,15 @@ namespace Rice::detail
       }
     }
 
-    void* convert(VALUE value)
+    std::nullptr_t convert(VALUE value)
     {
       if (value == Qnil)
       {
         return nullptr;
       }
 
-      if (this->arg_ && this->arg_->isOpaque())
-      {
-        return (void*)value;
-      }
-
-      switch (rb_type(value))
-      {
-        case RUBY_T_NIL:
-        {
-          return nullptr;
-          break;
-        }
-        default:
-        {
-          throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
-            detail::protect(rb_obj_classname, value), "nil");
-        }
-      }
+      throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+        detail::protect(rb_obj_classname, value), "nil");
     }
   private:
     Arg* arg_ = nullptr;

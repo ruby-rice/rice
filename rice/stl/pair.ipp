@@ -24,8 +24,12 @@ namespace Rice
     private:
       void define_constructors()
       {
-        klass_.define_constructor(Constructor<T>())
-              .define_constructor(Constructor<T, First_Parameter_T, Second_Parameter_T>(), Arg("x").keepAlive(), Arg("y").keepAlive());
+        if constexpr (std::is_default_constructible_v<T>)
+        {
+          klass_.define_constructor(Constructor<T>());
+        }
+
+        klass_.define_constructor(Constructor<T, First_Parameter_T, Second_Parameter_T>(), Arg("x").keepAlive(), Arg("y").keepAlive());
 
         if constexpr (std::is_copy_constructible_v<First_T> && std::is_copy_constructible_v<Second_T>)
         {

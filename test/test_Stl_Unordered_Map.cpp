@@ -359,6 +359,62 @@ TESTCASE(NotPrintable)
 
 namespace
 {
+  // Type with no default constructor - verifies insert_or_assign works in []=
+  class NoDefaultUnorderedMap
+  {
+  public:
+    NoDefaultUnorderedMap(int value) : value_(value) {}
+    int value() const { return value_; }
+
+    bool operator==(const NoDefaultUnorderedMap& other) const
+    {
+      return this->value_ == other.value_;
+    }
+
+  private:
+    int value_;
+  };
+}
+
+TESTCASE(NoDefaultConstructor)
+{
+  define_class<NoDefaultUnorderedMap>("NoDefaultUnorderedMap").
+    define_constructor(Constructor<NoDefaultUnorderedMap, int>(), Arg("value")).
+    define_method("value", &NoDefaultUnorderedMap::value);
+
+  Class c = define_unordered_map<std::string, NoDefaultUnorderedMap>("NoDefaultUnorderedMap_Map");
+
+  Object map = c.call("new");
+
+  // Test []= (insert_or_assign) with non-default-constructible value
+  map.call("[]=", "one", NoDefaultUnorderedMap(1));
+  map.call("[]=", "two", NoDefaultUnorderedMap(2));
+
+  Object result = map.call("size");
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
+
+  // Test [] access
+  result = map.call("[]", "one");
+  ASSERT_EQUAL(1, detail::From_Ruby<int>().convert(result.call("value")));
+
+  // Test update existing key
+  map.call("[]=", "one", NoDefaultUnorderedMap(10));
+  result = map.call("[]", "one");
+  ASSERT_EQUAL(10, detail::From_Ruby<int>().convert(result.call("value")));
+
+  result = map.call("size");
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
+
+  // Test delete
+  result = map.call("delete", "two");
+  ASSERT_EQUAL(2, detail::From_Ruby<int>().convert(result.call("value")));
+
+  result = map.call("size");
+  ASSERT_EQUAL(1, detail::From_Ruby<int32_t>().convert(result));
+}
+
+namespace
+{
   class Comparable
   {
   public:

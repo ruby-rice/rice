@@ -146,6 +146,38 @@ TESTCASE(AutoRegister)
 
 namespace
 {
+  // Type with no default constructor - like cv::detail::tracking::tbm::Track
+  class NoDefault
+  {
+  public:
+    NoDefault(int value) : value_(value) {}
+    int value() const { return value_; }
+  private:
+    int value_;
+  };
+}
+
+TESTCASE(PairNoDefaultConstructor)
+{
+  define_class<NoDefault>("NoDefault").
+    define_constructor(Constructor<NoDefault, int>(), Arg("value")).
+    define_method("value", &NoDefault::value);
+
+  // This should compile and work even though NoDefault has no default constructor.
+  // The pair's default constructor should be skipped, but the two-argument constructor should work.
+  Class c = define_pair<const int, NoDefault>("IntNoDefaultPair");
+
+  Object pair = c.call("new", 42, NoDefault(7));
+
+  Object result = pair.call("first");
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(result));
+
+  result = pair.call("second");
+  ASSERT_EQUAL(7, detail::From_Ruby<int>().convert(result.call("value")));
+}
+
+namespace
+{
   struct SomeStruct
   {
     int32_t value = 5;

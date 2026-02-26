@@ -1,11 +1,25 @@
 # Changelog
 
+## 4.11.3 (?)
+
+### Enhancements
+
+* Add support for `std::shared_ptr<const T>`
+* Add support for `std::unique_ptr<const T>`
+
+
+## 4.11.2 (2026-02-21)
+
+### Enhancements
+
+* Add support for `long double`
+* Improve support for references to incomplete types
+
 ## 4.11.1 (2026-02-18)
 
 ### Enhancements
 
 * Be more lenient on wrapp Qnil values in the C++ API
-
 
 ## 4.11.0 (2026-02-17)
 

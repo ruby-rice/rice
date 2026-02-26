@@ -156,7 +156,7 @@ namespace Rice
             }, Arg("key"))
           .define_method("[]=", [](T& map, Key_T key, Mapped_Parameter_T value) -> Mapped_T
             {
-              map[key] = value;
+              map.insert_or_assign(key, value);
               return value;
             }, Arg("key").keepAlive(), Arg("value").keepAlive());
 
@@ -278,7 +278,7 @@ namespace Rice
         // exceptions propogate back to Ruby
         return cpp_protect([&]
         {
-          result->operator[](From_Ruby<T>().convert(key)) = From_Ruby<U>().convert(value);
+          result->insert_or_assign(From_Ruby<T>().convert(key), From_Ruby<U>().convert(value));
           return ST_CONTINUE;
         });
       }
