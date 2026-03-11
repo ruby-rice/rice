@@ -116,7 +116,7 @@
       "toolchainFile": "$env{VCPKG_ROOT}\\scripts\\buildsystems\\vcpkg.cmake",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CMAKE_CXX_FLAGS": "/EHs /W4 /bigobj /utf-8 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE"
+        "CMAKE_CXX_FLAGS": "/EHs /W4 /bigobj /utf-8 /Zc:__cplusplus /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE"
       },
       "condition": {
         "type": "equals",
@@ -155,7 +155,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_COMPILER": "clang-cl.exe",
-        "CMAKE_CXX_FLAGS": "/EHs /W4 /bigobj /utf-8 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /clang:-Wno-unused-private-field",
+        "CMAKE_CXX_FLAGS": "/EHs /W4 /bigobj /utf-8 /Zc:__cplusplus /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /clang:-Wno-unused-private-field",
         "CMAKE_CXX_FLAGS_DEBUG": "/Od /Zi"
       }
     },
@@ -166,7 +166,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_CXX_COMPILER": "clang-cl.exe",
-        "CMAKE_CXX_FLAGS": "/EHs /W4 /bigobj /utf-8 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /clang:-Wno-unused-private-field",
+        "CMAKE_CXX_FLAGS": "/EHs /W4 /bigobj /utf-8 /Zc:__cplusplus /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /clang:-Wno-unused-private-field",
         "CMAKE_CXX_FLAGS_RELEASE": "/O2 /DNDEBUG",
         "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
       }

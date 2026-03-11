@@ -19,7 +19,7 @@ For MINGW:
 For Microsoft Visual C++ and Windows Clang:
 
 ```bash
-/std:c++17 /EHs /permissive- /bigobj /utf-8 -D_ALLOW_KEYWORD_MACROS -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE
+/std:c++17 /EHs /permissive- /bigobj /utf-8 /Zc:__cplusplus -D_ALLOW_KEYWORD_MACROS -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE
 ```
 
 These options are described below:
@@ -35,6 +35,10 @@ Second, bigobject support needs to enabled. This tells the compiler to increase 
 ### UTF-8
 
 Rice uses UTF-8 characters when [mapping](../stl/stl.md#automatically-generated-ruby-classes) instantiated STL templates to Ruby class names.
+
+### __cplusplus Macro
+
+By default, MSVC does not update the `__cplusplus` preprocessor macro to reflect the actual C++ standard in use — it always reports `199711L`. The `/Zc:__cplusplus` flag fixes this so that Rice's `#if __cplusplus` checks work correctly.
 
 ### Exception Handling Model
 
