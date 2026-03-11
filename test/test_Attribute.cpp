@@ -591,3 +591,34 @@ TESTCASE(KeepAlive)
   ASSERT_NOT_EQUAL(nullptr, dataStruct->myClass2);
   ASSERT_EQUAL(43, dataStruct->myClass2->value);
 }
+
+namespace
+{
+  struct FuncPtrStruct
+  {
+    int (*callback)(int) = nullptr;
+  };
+}
+
+TESTCASE(function_pointer_attribute)
+{
+  Module m = define_module("Testing");
+
+  Class c = define_class<FuncPtrStruct>("FuncPtrStruct")
+    .define_constructor(Constructor<FuncPtrStruct>())
+    .define_attr("callback", &FuncPtrStruct::callback);
+
+  Object o = c.call("new");
+
+  // Set the callback via Ruby using a lambda
+  std::string code = R"(struct = FuncPtrStruct.new
+                        struct.callback = lambda { |x| x * 2 }
+                        struct)";
+
+  Data_Object<FuncPtrStruct> funcPtrStruct = m.module_eval(code);
+
+  // Invoke the callback from C++ to verify it works
+  ASSERT_NOT_EQUAL(nullptr, funcPtrStruct->callback);
+  int result = funcPtrStruct->callback(5);
+  ASSERT_EQUAL(10, result);
+}
