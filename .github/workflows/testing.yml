@@ -7,7 +7,8 @@ on:
     branches: [ master ]
 
 jobs:
-  tests:
+  mkmf:
+    name: mkmf (${{ matrix.os }}, ${{ matrix.ruby }}, C++17)
     strategy:
       fail-fast: false
       matrix:
@@ -32,7 +33,8 @@ jobs:
         name: mkmf-${{ matrix.os }}-${{ matrix.version }}-${{ matrix.ruby }}
         path: test/mkmf.log
 
-  cpp-standard:
+  cmake:
+    name: cmake (${{ matrix.os }}, 4.0, C++${{ matrix.cpp_standard }})
     strategy:
       fail-fast: false
       matrix:
