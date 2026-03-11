@@ -13,9 +13,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2025]
         ruby: ['3.2', '3.3', '3.4', '4.0']
-        include:
-          - os: ubuntu-22.04
-            ruby: '3.2'
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v6
