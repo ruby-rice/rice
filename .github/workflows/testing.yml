@@ -34,3 +34,40 @@ jobs:
       with:
         name: mkmf-${{ matrix.os }}-${{ matrix.version }}-${{ matrix.ruby }}
         path: test/mkmf.log
+
+  cpp-standard:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-2025]
+        cpp_standard: ['17', '20', '23']
+        include:
+          - os: ubuntu-latest
+            preset: linux-debug
+          - os: macos-latest
+            preset: macos-debug
+          - os: windows-2025
+            preset: msvc-debug
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '4.0'
+    - name: Install libffi (Ubuntu)
+      if: runner.os == 'Linux'
+      run: sudo apt-get install -y libffi-dev
+    - name: Install libffi (macOS)
+      if: runner.os == 'macOS'
+      run: brew install libffi
+    - name: Install libffi (Windows)
+      if: runner.os == 'Windows'
+      run: vcpkg install libffi:x64-windows
+    - name: Configure
+      run: cmake --preset ${{ matrix.preset }} -DCMAKE_CXX_STANDARD=${{ matrix.cpp_standard }}
+    - name: Build
+      run: cmake --build --preset ${{ matrix.preset }}
+    - name: Test
+      run: ./build/${{ matrix.preset }}/test/unittest
+      shell: bash
