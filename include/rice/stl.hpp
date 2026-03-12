@@ -1133,8 +1133,12 @@ namespace Rice::stl
 
     void define_methods()
     {
+#if __cplusplus >= 202002L
+      klass_.define_method<std::string(std::ostringstream::*)() const&>("str", &std::ostringstream::str)
+#else
       klass_.define_method<std::string(std::ostringstream::*)() const>("str", &std::ostringstream::str)
-            .define_method("str=", [](std::ostringstream& stream, const std::string& s) { stream.str(s); }, Arg("str"));
+#endif
+      .define_method("str=", [](std::ostringstream& stream, const std::string& s) { stream.str(s); }, Arg("str"));
 
       rb_define_alias(klass_, "to_s", "str");
     }
