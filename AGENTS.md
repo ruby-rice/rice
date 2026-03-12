@@ -27,3 +27,7 @@ Run specific test suites by passing suite names as arguments:
 ```bash
 ./build/linux-debug/test/unittest Array Hash Iterator
 ```
+
+## Quick Compile Testing
+
+To quickly test if a single test file compiles, temporarily edit `test/CMakeLists.txt` to include only that file (plus `unittest.cpp` and `embed_ruby.cpp`). Revert the change when done.

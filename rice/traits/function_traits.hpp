@@ -102,6 +102,27 @@ namespace Rice::detail
   {
   };
 
+  // ref-qualified member Functions on C++ classes (C++20 uses these for std library types)
+  template<typename Return_T, typename Class_T, typename...Parameter_Ts>
+  struct function_traits<Return_T(Class_T::*)(Parameter_Ts...) &> : public function_traits<Return_T(Class_T*, Parameter_Ts...)>
+  {
+  };
+
+  template<typename Return_T, typename Class_T, typename...Parameter_Ts>
+  struct function_traits<Return_T(Class_T::*)(Parameter_Ts...) const&> : public function_traits<Return_T(Class_T*, Parameter_Ts...)>
+  {
+  };
+
+  template<typename Return_T, typename Class_T, typename...Parameter_Ts>
+  struct function_traits<Return_T(Class_T::*)(Parameter_Ts...) & noexcept> : public function_traits<Return_T(Class_T*, Parameter_Ts...)>
+  {
+  };
+
+  template<typename Return_T, typename Class_T, typename...Parameter_Ts>
+  struct function_traits<Return_T(Class_T::*)(Parameter_Ts...) const& noexcept> : public function_traits<Return_T(Class_T*, Parameter_Ts...)>
+  {
+  };
+
   /*// Functors and lambdas
   template<class Function_T>
   struct function_traits<Function_T&> : public function_traits<Function_T>

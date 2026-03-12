@@ -7,15 +7,13 @@ on:
     branches: [ master ]
 
 jobs:
-  tests:
+  mkmf:
+    name: mkmf (${{ matrix.os }}, ${{ matrix.ruby }}, C++17)
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2025]
         ruby: ['3.2', '3.3', '3.4', '4.0']
-        include:
-          - os: ubuntu-22.04
-            ruby: '3.2'
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v6
@@ -34,3 +32,53 @@ jobs:
       with:
         name: mkmf-${{ matrix.os }}-${{ matrix.version }}-${{ matrix.ruby }}
         path: test/mkmf.log
+
+  cmake:
+    name: cmake (${{ matrix.os }}, C++${{ matrix.cpp_standard }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-2025]
+        cpp_standard: ['17', '20', '23']
+        include:
+          - os: ubuntu-latest
+            preset: linux-debug
+            ruby: '4.0'
+          - os: macos-latest
+            preset: macos-debug
+            ruby: '4.0'
+          - os: windows-2025
+            preset: msvc-debug
+            ruby: mswin
+  
+    runs-on: ${{ matrix.os }}
+  
+    steps:
+      - uses: actions/checkout@v4
+  
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+  
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libffi-dev
+  
+      - if: runner.os == 'macOS'
+        run: brew install libffi
+  
+      - if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+  
+      - if: runner.os == 'Windows'
+        uses: seanmiddleditch/gha-setup-ninja@v6
+  
+      - if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$env:RUNNER_TEMP\vcpkg"
+          & "$env:RUNNER_TEMP\vcpkg\bootstrap-vcpkg.bat"
+          echo "VCPKG_ROOT=$env:RUNNER_TEMP\vcpkg" >> $env:GITHUB_ENV
+          & "$env:RUNNER_TEMP\vcpkg\vcpkg.exe" install libffi:x64-windows
+  
+      - run: cmake --preset ${{ matrix.preset }} -DCMAKE_CXX_STANDARD=${{ matrix.cpp_standard }}
+      - run: cmake --build --preset ${{ matrix.preset }}

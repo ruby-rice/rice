@@ -1310,8 +1310,12 @@ namespace Rice
     private:
       void define_constructors()
       {
-        klass_.define_constructor(Constructor<T>())
-              .define_constructor(Constructor<T, First_Parameter_T, Second_Parameter_T>(), Arg("x").keepAlive(), Arg("y").keepAlive());
+        if constexpr (std::is_default_constructible_v<T>)
+        {
+          klass_.define_constructor(Constructor<T>());
+        }
+
+        klass_.define_constructor(Constructor<T, First_Parameter_T, Second_Parameter_T>(), Arg("x").keepAlive(), Arg("y").keepAlive());
 
         if constexpr (std::is_copy_constructible_v<First_T> && std::is_copy_constructible_v<Second_T>)
         {
@@ -1650,7 +1654,7 @@ namespace Rice
             }, Arg("key"))
           .define_method("[]=", [](T& map, Key_T key, Mapped_Parameter_T value) -> Mapped_T
             {
-              map[key] = value;
+              map.insert_or_assign(key, value);
               return value;
             }, Arg("key").keepAlive(), Arg("value").keepAlive());
 
@@ -1772,7 +1776,7 @@ namespace Rice
         // exceptions propogate back to Ruby
         return cpp_protect([&]
         {
-          result->operator[](From_Ruby<T>().convert(key)) = From_Ruby<U>().convert(value);
+          result->insert_or_assign(From_Ruby<T>().convert(key), From_Ruby<U>().convert(value));
           return ST_CONTINUE;
         });
       }
@@ -3201,7 +3205,11 @@ namespace Rice
 
     if constexpr (detail::is_complete_v<T> && !std::is_void_v<T>)
     {
-      result.define_constructor(Constructor<SharedPtr_T, typename SharedPtr_T::element_type*>(), Arg("value").takeOwnership());
+      // is_abstract_v requires a complete type, so it must be nested inside the is_complete_v check
+      if constexpr (!std::is_abstract_v<T>)
+      {
+        result.define_constructor(Constructor<SharedPtr_T, typename SharedPtr_T::element_type*>(), Arg("value").takeOwnership());
+      }
     }
 
     // Forward methods to wrapped T
@@ -3256,7 +3264,7 @@ namespace Rice::detail
     }
     else if (rb_typeddata_inherited_p(this->inner_rb_data_type_, requestedType))
     {
-      return this->data_.get();
+      return (void*)this->data_.get();
     }
     else
     {
@@ -3931,7 +3939,7 @@ namespace Rice::detail
     }
     else if (rb_typeddata_inherited_p(this->inner_rb_data_type_, requestedType))
     {
-      return this->data_.get();
+      return (void*)this->data_.get();
     }
     else
     {
@@ -4171,7 +4179,7 @@ namespace Rice
             }, Arg("key"))
           .define_method("[]=", [](T& unordered_map, Key_T key, Mapped_Parameter_T value) -> Mapped_T
             {
-              unordered_map[key] = value;
+              unordered_map.insert_or_assign(key, value);
               return value;
             }, Arg("key").keepAlive(), Arg("value").keepAlive());
 
@@ -4293,7 +4301,7 @@ namespace Rice
         // exceptions propogate back to Ruby
         return cpp_protect([&]
         {
-          result->operator[](From_Ruby<T>().convert(key)) = From_Ruby<U>().convert(value);
+          result->insert_or_assign(From_Ruby<T>().convert(key), From_Ruby<U>().convert(value));
           return ST_CONTINUE;
         });
       }

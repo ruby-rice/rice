@@ -1,12 +1,14 @@
 # Changelog
 
-## 4.11.3 (?)
+## 4.11.3 (2026-02-25)
 
 ### Enhancements
 
 * Add support for `std::shared_ptr<const T>`
 * Add support for `std::unique_ptr<const T>`
-
+* Add support for non-constructible objects in std::pair, std::map, std::multimap
+* Add support for wrapping pointers to abstract types that cannot be created nor destroyed
+* Fix converting std::nullptr_t to Ruby
 
 ## 4.11.2 (2026-02-21)
 

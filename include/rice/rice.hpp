@@ -8854,31 +8854,15 @@ namespace Rice::detail
       }
     }
 
-    void* convert(VALUE value)
+    std::nullptr_t convert(VALUE value)
     {
       if (value == Qnil)
       {
         return nullptr;
       }
 
-      if (this->arg_ && this->arg_->isOpaque())
-      {
-        return (void*)value;
-      }
-
-      switch (rb_type(value))
-      {
-        case RUBY_T_NIL:
-        {
-          return nullptr;
-          break;
-        }
-        default:
-        {
-          throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
-            detail::protect(rb_obj_classname, value), "nil");
-        }
-      }
+      throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+        detail::protect(rb_obj_classname, value), "nil");
     }
   private:
     Arg* arg_ = nullptr;
@@ -10277,7 +10261,9 @@ namespace Rice::detail
 
     if constexpr (is_complete_v<T>)
     {
-      if constexpr (std::is_destructible_v<T>)
+      // is_abstract_v requires a complete type, so nest inside is_complete_v.
+      // Deleting an abstract class through a non-virtual destructor is UB.
+      if constexpr (std::is_destructible_v<T> && !std::is_abstract_v<T>)
       {
         if (this->isOwner_)
         {

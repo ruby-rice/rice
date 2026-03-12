@@ -24,14 +24,16 @@ end
 # Now pull in the C++ support
 include MakeMakefile['C++']
 
-# Rice needs c++17.
+# Rice needs c++17 or higher. Use --with-cxx-standard=20 to override.
+std = with_config('cxx-standard', '17')
+
 if IS_MSWIN
-  $CXXFLAGS += " /std:c++17 /EHs /permissive- /bigobj /utf-8"
+  $CXXFLAGS += " /std:c++#{std} /EHs /permissive- /bigobj /utf-8 /Zc:__cplusplus"
   $CPPFLAGS += " -D_ALLOW_KEYWORD_MACROS -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE"
 elsif IS_MINGW
-  $CXXFLAGS += " -std=c++17 -Wa,-mbig-obj"
+  $CXXFLAGS += " -std=c++#{std} -Wa,-mbig-obj"
 else
-  $CXXFLAGS += " -std=c++17"
+  $CXXFLAGS += " -std=c++#{std}"
 end
 
 # Rice needs to include its header. Let's setup the include path
