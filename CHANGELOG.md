@@ -1,9 +1,19 @@
 # Changelog
 
-## 4.11.3 (2026-02-25)
+## 4.11.3 (2026-03-11)
+
+### Bug Fixes
+
+* Fix C++20 compilation error with `std::ostringstream::str` overload (#395)
+* Add `function_traits` specializations for ref-qualified member functions (`&`, `const&`)
 
 ### Enhancements
 
+* Support C++20 and C++23 compilation
+* Make C++ standard version configurable via `--with-cxx-standard` in mkmf-rice
+* Add `/Zc:__cplusplus` to MSVC build flags
+* Add CMake-based CI job testing C++17, C++20, and C++23
+* Add test case for function pointer struct attributes
 * Add support for `std::shared_ptr<const T>`
 * Add support for `std::unique_ptr<const T>`
 * Add support for non-constructible objects in std::pair, std::map, std::multimap
