@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.11.4 (2026-03-13)
+
+### Bug Fixes
+
+* Fix memory leak (#397)
+
 ## 4.11.3 (2026-03-11)
 
 ### Bug Fixes
