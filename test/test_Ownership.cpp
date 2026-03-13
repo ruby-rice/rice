@@ -188,6 +188,36 @@ namespace
     static inline MyCopyableClass* instance_ = nullptr;
   };
 
+  // Abstract class with virtual destructor - deletion through base pointer is safe
+  class AbstractVirtualDtor
+  {
+  public:
+    static inline int destructorCalls = 0;
+
+    static void reset()
+    {
+      destructorCalls = 0;
+    }
+
+    virtual ~AbstractVirtualDtor()
+    {
+      destructorCalls++;
+    }
+
+    virtual int compute() const = 0;
+  };
+
+  class ConcreteChild : public AbstractVirtualDtor
+  {
+  public:
+    int compute() const override { return 42; }
+  };
+
+  AbstractVirtualDtor* createChild()
+  {
+    return new ConcreteChild();
+  }
+
   class OwnerBox;
 
   class AliasBox
@@ -327,6 +357,14 @@ SETUP(Ownership)
     .define_constructor(Constructor<SharedFactory>())
     .define_method("create_owned", &SharedFactory::createOwned, Return().takeOwnership())
     .define_method("get_borrowed", &SharedFactory::getBorrowed);
+
+  define_class<AbstractVirtualDtor>("AbstractVirtualDtor")
+    .define_method("compute", &AbstractVirtualDtor::compute);
+
+  define_class<ConcreteChild, AbstractVirtualDtor>("ConcreteChild");
+
+  define_module("AbstractVirtualDtorTest")
+    .define_module_function("create_child", &createChild, Return().takeOwnership());
 }
 
 TEARDOWN(Ownership)
@@ -540,4 +578,24 @@ TESTCASE(MultipleOwnerReferences)
   detail::Registries::instance.instances.mode = detail::InstanceRegistry::Mode::Off;
   result = m.module_eval(code);
   ASSERT_EQUAL(Qfalse, result.value());
+}
+
+TESTCASE(AbstractVirtualDestructor)
+{
+  AbstractVirtualDtor::reset();
+
+  Module m = define_module("TestingModule");
+
+  std::string code = R"(child = AbstractVirtualDtorTest.create_child
+                        child.compute)";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(detail::To_Ruby<int>().convert(42), result.value());
+
+  // Force GC to clean up the object - destructor should be called
+  // since AbstractVirtualDtor has a virtual destructor
+  rb_gc_start();
+  rb_gc_start();
+
+  ASSERT_EQUAL(1, AbstractVirtualDtor::destructorCalls);
 }
