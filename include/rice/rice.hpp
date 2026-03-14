@@ -1667,14 +1667,20 @@ namespace Rice
 {
   namespace detail
   {
-    inline Anchor::Anchor(VALUE value) : value_(value)
+    inline Anchor::Anchor(VALUE value)
     {
+      // rb_gc_register_address() can trigger GC, so we must register the
+      // empty this->value_ slot before storing a heap VALUE in it.
+      // RB_GC_GUARD(value) keeps the ctor argument alive through the end of
+      // this method until the registered slot has been updated.
       if (!RB_SPECIAL_CONST_P(value))
       {
         Anchor::registerExitHandler();
         detail::protect(rb_gc_register_address, &this->value_);
         this->registered_ = true;
       }
+      this->value_ = value;
+      RB_GC_GUARD(value);
     }
 
     inline Anchor::~Anchor()
