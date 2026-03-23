@@ -7,13 +7,13 @@ Rice extensions requires several compiler settings to be set. These are captured
 For Clang and GCC:
 
 ```bash
--std=c++17 -Wa,-mbig-obj -ftemplate-backtrace-limit=0
+-std=c++17 -Wno-array-bounds -Wa,-mbig-obj -ftemplate-backtrace-limit=0
 ```
 
 For MINGW:
 
 ```bash
--std=c++17, -Wa,-mbig-obj
+-std=c++17 -Wno-array-bounds -Wa,-mbig-obj
 ```
 
 For Microsoft Visual C++ and Windows Clang:
@@ -43,6 +43,14 @@ By default, MSVC does not update the `__cplusplus` preprocessor macro to reflect
 ### Exception Handling Model
 
 For Visual C++, the default exception [model](https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model?view=msvc-170) setting of `/EHsc` crashes Ruby when calling longjmp with optimizations enabled (/O2). Therefore you must `/EHs` instead.
+
+### Array Bounds Warning
+
+g++ 15 produces false positive `-Warray-bounds` warnings when inlining through Ruby's `RSTRING` macro (in `ruby/internal/core/rstring.h`). This is not a bug in Rice or Ruby. The warning is harmless but becomes a build failure if `-Werror` is enabled. Rice suppresses it with:
+
+```bash
+-Wno-array-bounds
+```
 
 ### Template Backtrace
 
@@ -124,6 +132,16 @@ For MSVC:
 $CXXFLAGS << " /GL"
 $LDFLAGS << " /LTCG"
 ```
+
+### GCC 15 LTO Assembler Bug
+
+g++ 15.2.1 with binutils 2.45.1 (shipped in Fedora 43) can trigger an internal assembler segfault when LTO is enabled. If you hit this, disable LTO as a workaround:
+
+```ruby
+$CXXFLAGS += " -fno-lto"
+```
+
+Or with CMake, set `CMAKE_INTERPROCEDURAL_OPTIMIZATION` to `OFF`. This only affects the specific GCC/binutils version combination and should be resolved in a future binutils release.
 
 ### Debug Symbol Splitting (GCC/Clang)
 

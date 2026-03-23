@@ -31,9 +31,9 @@ if IS_MSWIN
   $CXXFLAGS += " /std:c++#{std} /EHs /permissive- /bigobj /utf-8 /Zc:__cplusplus"
   $CPPFLAGS += " -D_ALLOW_KEYWORD_MACROS -D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE"
 elsif IS_MINGW
-  $CXXFLAGS += " -std=c++#{std} -Wa,-mbig-obj"
+  $CXXFLAGS += " -std=c++#{std} -Wa,-mbig-obj -Wno-array-bounds"
 else
-  $CXXFLAGS += " -std=c++#{std}"
+  $CXXFLAGS += " -std=c++#{std} -Wno-array-bounds"
 end
 
 # Rice needs to include its header. Let's setup the include path
