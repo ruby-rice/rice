@@ -859,6 +859,7 @@ namespace Rice::detail
 // =========   Anchor.hpp   =========
 
 #include <ruby.h>
+#include <ruby/vm.h>
 
 namespace Rice
 {
@@ -893,7 +894,6 @@ namespace Rice
       VALUE get() const;
 
     private:
-      static void disable(VALUE);
       static void registerExitHandler();
 
       inline static bool enabled_ = true;
@@ -1687,9 +1687,8 @@ namespace Rice
     {
       if (Anchor::enabled_ && this->registered_)
       {
-        detail::protect(rb_gc_unregister_address, &this->value_);
+        rb_gc_unregister_address(&this->value_);
       }
-      // Ruby auto detects VALUEs in the stack, so make sure up in case this object is on the stack
       this->registered_ = false;
       this->value_ = Qnil;
     }
@@ -1699,17 +1698,18 @@ namespace Rice
       return this->value_;
     }
 
-    // This will be called by ruby at exit - we want to disable further unregistering
-    inline void Anchor::disable(VALUE)
-    {
-      Anchor::enabled_ = false;
-    }
-
     inline void Anchor::registerExitHandler()
     {
       if (!Anchor::exitHandlerRegistered_)
       {
-        detail::protect(rb_set_end_proc, &Anchor::disable, Qnil);
+        // Use ruby_vm_at_exit which fires AFTER the VM is destroyed,
+        // not rb_set_end_proc which fires BEFORE. rb_set_end_proc
+        // runs as an end_proc in LIFO order alongside at_exit blocks,
+        // so its timing depends on require order — if the extension
+        // loads after minitest/autorun, the disable callback runs
+        // before tests execute, causing Anchor destructors to skip
+        // rb_gc_unregister_address and leave dangling root pointers.
+        ruby_vm_at_exit([](ruby_vm_t*) { Anchor::enabled_ = false; });
         Anchor::exitHandlerRegistered_ = true;
       }
     }
