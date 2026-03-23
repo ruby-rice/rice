@@ -2,6 +2,7 @@
 #define Rice__detail__Anchor__hpp_
 
 #include <ruby.h>
+#include <ruby/vm.h>
 
 namespace Rice
 {
@@ -36,7 +37,6 @@ namespace Rice
       VALUE get() const;
 
     private:
-      static void disable(VALUE);
       static void registerExitHandler();
 
       inline static bool enabled_ = true;
