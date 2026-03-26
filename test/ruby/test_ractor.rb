@@ -84,60 +84,75 @@ class RactorSafetyTest < Minitest::Test
     assert_equal 1001, r.take
   end
 
-  # --- Heavy concurrency test ---
+  # --- Heavy concurrency tests ---
   #
-  # Calibrates HeavyObject constructor to take ~1 second, then launches
-  # two Ractors creating objects simultaneously. Each new() spends ~1s
-  # inside Rice's InstanceRegistry, making concurrent collisions certain.
-  # Without RICE_RACTOR_SAFE this would segfault.
+  # Two strategies to maximize InstanceRegistry contention:
+  #
+  # 1. Few heavy objects: each HeavyObject.new takes ~1s, so the thread
+  #    spends a long time inside Rice's wrapping code per object.
+  #
+  # 2. Many fast objects: calibrate how many Counter.new fit in ~1s,
+  #    then create that many concurrently — thousands of rapid-fire
+  #    registry writes overlapping between Ractors.
 
-  TARGET_SECONDS = 1.0
-  OBJECTS_PER_RACTOR = 3
+  HEAVY_TARGET_SECONDS = 1.0
+  HEAVY_OBJECTS_PER_RACTOR = 3
+  FAST_TARGET_SECONDS = 1.0
 
   def test_concurrent_heavy_objects
     size = calibrate_heavy_object_size
 
     r1 = Ractor.new(size) do |sz|
-      OBJECTS_PER_RACTOR.times.map { HeavyObject.new(sz).sum }
+      HEAVY_OBJECTS_PER_RACTOR.times.map { HeavyObject.new(sz).sum }
     end
 
     r2 = Ractor.new(size) do |sz|
-      OBJECTS_PER_RACTOR.times.map { HeavyObject.new(sz).sum }
+      HEAVY_OBJECTS_PER_RACTOR.times.map { HeavyObject.new(sz).sum }
     end
 
     results1 = r1.take
     results2 = r2.take
 
-    assert_equal OBJECTS_PER_RACTOR, results1.size
-    assert_equal OBJECTS_PER_RACTOR, results2.size
+    assert_equal HEAVY_OBJECTS_PER_RACTOR, results1.size
+    assert_equal HEAVY_OBJECTS_PER_RACTOR, results2.size
 
-    # All sums must be identical (same size → same computation)
     expected_sum = results1.first
-    (results1 + results2).each do |s|
-      assert_equal expected_sum, s
+    (results1 + results2).each { |s| assert_equal expected_sum, s }
+  end
+
+  def test_concurrent_many_fast_objects
+    count = calibrate_fast_object_count
+
+    r1 = Ractor.new(count) do |n|
+      n.times { Counter.new(0) }
+      :ok
     end
+
+    r2 = Ractor.new(count) do |n|
+      n.times { Counter.new(0) }
+      :ok
+    end
+
+    assert_equal :ok, r1.take
+    assert_equal :ok, r2.take
   end
 
   private
 
-  # Find the size parameter that makes HeavyObject.new take ~TARGET_SECONDS.
-  # Uses exponential search then binary refinement.
+  # Find the size parameter that makes HeavyObject.new take ~1 second.
   def calibrate_heavy_object_size
-    # Exponential search for upper bound
     size = 1_000
     loop do
       elapsed = measure_seconds { HeavyObject.new(size) }
-      break if elapsed >= TARGET_SECONDS
+      break if elapsed >= HEAVY_TARGET_SECONDS
       size *= 2
     end
 
-    # Binary search between size/2 and size
     lo = size / 2
     hi = size
-    while hi - lo > lo / 10  # ~10% precision is enough
+    while hi - lo > lo / 10
       mid = (lo + hi) / 2
-      elapsed = measure_seconds { HeavyObject.new(mid) }
-      if elapsed < TARGET_SECONDS
+      if measure_seconds { HeavyObject.new(mid) } < HEAVY_TARGET_SECONDS
         lo = mid
       else
         hi = mid
@@ -145,6 +160,16 @@ class RactorSafetyTest < Minitest::Test
     end
 
     (lo + hi) / 2
+  end
+
+  # Find how many Counter.new(0) fit in ~1 second.
+  def calibrate_fast_object_count
+    count = 1_000
+    loop do
+      elapsed = measure_seconds { count.times { Counter.new(0) } }
+      return count if elapsed >= FAST_TARGET_SECONDS
+      count *= 2
+    end
   end
 
   def measure_seconds
