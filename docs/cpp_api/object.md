@@ -6,7 +6,7 @@
 
 `Rice::Object` is the base class for all Rice wrapper classes. It wraps a Ruby `VALUE` and provides a C++-style interface to Ruby's object system.
 
-Note: `Object` stores its wrapped Ruby value using an internal `Pin`, so wrapper instances keep their Ruby `VALUE` protected from GC while the wrapper is alive. This makes long-lived C++ wrappers (including wrappers stored in STL containers) GC-safe.
+Note: `Object` stores its wrapped Ruby value using an internal [`Pin`](pin.md), so wrapper instances keep their Ruby `VALUE` protected from GC while the wrapper is alive. This makes long-lived C++ wrappers (including wrappers stored in STL containers) GC-safe.
 
 ---
 

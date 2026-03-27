@@ -217,26 +217,19 @@ If you are working with VALUEs or Objects stored on the stack, the Ruby garbage 
 
 ### Heap
 
-If a C++ object holds a Ruby VALUE and that C++ object is *not* wrapped by Ruby (i.e., it's allocated on the heap or is a standalone object), use `Rice::Pin` to prevent the garbage collector from collecting the Ruby object.
+If a C++ object holds a Ruby VALUE and that C++ object is *not* wrapped by Ruby (i.e., it's allocated on the heap or is a standalone object), use [`Rice::Pin`](../cpp_api/pin.md) to prevent the garbage collector from collecting the Ruby object.
 
 ```cpp
 class Container
 {
 public:
   Container(VALUE value) : pin_(value) {}
-  VALUE getValue() const { return pin_.get(); }
-  void setValue(VALUE value) { pin_.set(value); }
+  VALUE value() const { return pin_.value(); }
 
 private:
   Rice::Pin pin_;
 };
 ```
-
-#### Pin API
-
-* `Pin(VALUE value)` - Construct a Pin that protects the given VALUE from garbage collection
-* `VALUE get() const` - Retrieve the pinned VALUE
-* `void set(VALUE value)` - Replace the pinned VALUE
 
 #### Copy Semantics
 
@@ -246,10 +239,11 @@ private:
 Pin pin1(some_value);
 Pin pin2 = pin1;       // pin1 and pin2 share the same anchor
 
-pin1.set(other_value); // Both pin1.get() and pin2.get() now return other_value
+VALUE value = pin1.value();
+VALUE same_value = pin2.value();
 ```
 
-This is useful when multiple C++ objects need to reference the same Ruby object - only one GC registration is needed.
+This is useful when multiple C++ objects need to reference the same Ruby object. For the full API, see the dedicated [`Pin`](../cpp_api/pin.md) reference.
 
 #### When to Use Pin vs ruby_mark
 
