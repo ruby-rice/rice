@@ -188,3 +188,66 @@ TESTCASE(constructor_move)
   // This intentionally will not compile due to a static_assert
   //c.define_constructor(Constructor<MyClass, MyClass&&>());
 }
+
+namespace
+{
+  class MoveOnlyValue
+  {
+  public:
+    MoveOnlyValue() = default;
+    MoveOnlyValue(const MoveOnlyValue&) = delete;
+
+    MoveOnlyValue(MoveOnlyValue&& other) noexcept
+      : moved_from_(other.moved_from_)
+    {
+      other.moved_from_ = true;
+    }
+
+    bool movedFrom() const
+    {
+      return moved_from_;
+    }
+
+  private:
+    bool moved_from_ = false;
+  };
+
+  class TakesMoveOnlyValue
+  {
+  public:
+    explicit TakesMoveOnlyValue(MoveOnlyValue&& value)
+      : value_(std::move(value))
+    {
+    }
+
+    bool hasValue() const
+    {
+      return !value_.movedFrom();
+    }
+
+  private:
+    MoveOnlyValue value_;
+  };
+}
+
+TESTCASE(constructor_forwards_rvalue_arguments)
+{
+  define_class<MoveOnlyValue>("MoveOnlyValue")
+    .define_constructor(Constructor<MoveOnlyValue>())
+    .define_method("moved_from?", &MoveOnlyValue::movedFrom);
+
+  define_class<TakesMoveOnlyValue>("TakesMoveOnlyValue")
+    .define_constructor(Constructor<TakesMoveOnlyValue, MoveOnlyValue&&>())
+    .define_method("has_value?", &TakesMoveOnlyValue::hasValue);
+
+  Module m(anonymous_module());
+  Array result = m.module_eval(R"(
+    value = MoveOnlyValue.new
+    consumer = TakesMoveOnlyValue.new(value)
+    [value.moved_from?, consumer.has_value?, consumer.class.name]
+  )");
+
+  ASSERT_EQUAL(Qtrue, result[0].value());
+  ASSERT_EQUAL(Qtrue, result[1].value());
+  ASSERT_EQUAL("TakesMoveOnlyValue", String(result[2].value()).str());
+}
