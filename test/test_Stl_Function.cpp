@@ -180,12 +180,8 @@ TESTCASE(RawProc)
     invoke(proc, 5, 1)
   )";
 
-  ASSERT_EXCEPTION_CHECK(
-    Exception,
-    m.module_eval(code),
-    ASSERT_EQUAL("The Ruby object is a proc or lambda and does not wrap a C++ object", 
-                 ex.what())
-  );
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(ReturnVoid)
@@ -258,6 +254,22 @@ TESTCASE(ConstFunctionReference)
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(9, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(RawProcConstFunctionReference)
+{
+  Module m = define_module("TestConstFunctionRaw");
+  m.define_module_function("invoke_const", invokeConst);
+
+  std::string code = R"(
+    proc = Proc.new do |value|
+      value * 2
+    end
+    invoke_const(proc, 9)
+  )";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(18, detail::From_Ruby<int>().convert(result));
 }
 
 namespace

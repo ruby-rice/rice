@@ -1,5 +1,11 @@
 # Changelog
 
+## Next Release
+
+### Enhancements
+
+* Allow raw Ruby procs and lambdas to convert directly to `std::function` parameters while keeping the callable alive with `Pin`
+
 ## 4.11.4 (2026-03-13)
 
 ### Bug Fixes

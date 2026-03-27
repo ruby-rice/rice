@@ -57,7 +57,8 @@ func.call(10, 3)  # => 7
 
 ### Passing std::function to C++
 
-When a C++ function accepts a `std::function` parameter, you must first wrap your Ruby callable in an `std::function` object:
+When a C++ function accepts a `std::function` parameter, you can pass either a
+wrapped `Std::Function...` object or a raw Ruby proc/lambda directly:
 
 ```cpp
 // C++ side
@@ -68,18 +69,17 @@ int invokeFunction(std::function<int(int, int)> func, int a, int b)
 ```
 
 ```ruby
-# Ruby side - correct approach
+# Ruby side - wrapped callable
 func = Std::FunctionInt.new { |a, b| a * b }
 result = invoke_function(func, 5, 3)  # => 15
-```
 
-**Important:** You cannot pass a raw Ruby proc, lambda, or block directly to a C++ function that expects a `std::function`. This design simplifies memory management by ensuring the Ruby callable's lifetime is properly tracked.
-
-```ruby
-# This will NOT work
 proc = Proc.new { |a, b| a * b }
-invoke_function(proc, 5, 3)  # Raises an exception
+result = invoke_function(proc, 5, 3)  # => 15
 ```
+
+When Rice converts a raw proc or lambda, it synthesizes a C++ `std::function`
+that captures the Ruby callable in a `Pin`. That keeps the proc alive for as
+long as the C++ `std::function` exists.
 
 ## Manual Registration
 

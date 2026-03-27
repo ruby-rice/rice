@@ -84,6 +84,146 @@ namespace Rice
 
 namespace Rice::detail
 {
+  template<typename Return_T, typename ...Parameter_Ts>
+  inline std::function<Return_T(Parameter_Ts...)> makeRubyFunction(VALUE value)
+  {
+    Pin proc(value);
+
+    return [proc = std::move(proc)](Parameter_Ts... args) -> Return_T
+    {
+      Object result = Object(proc.value()).call("call", std::forward<Parameter_Ts>(args)...);
+
+      if constexpr (!std::is_void_v<Return_T>)
+      {
+        return From_Ruby<std::remove_cv_t<Return_T>>().convert(result);
+      }
+    };
+  }
+
+  template<typename Return_T, typename ...Parameter_Ts>
+  class From_Ruby<std::function<Return_T(Parameter_Ts...)>>
+  {
+  public:
+    using Function_T = std::function<Return_T(Parameter_Ts...)>;
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    double is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Data_Type<Function_T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+        default:
+          return protect(rb_obj_is_proc, value) == Qtrue ? Convertible::ConstMismatch : Convertible::None;
+      }
+    }
+
+    Function_T convert(VALUE value)
+    {
+      if (Data_Type<Function_T>::is_descendant(value))
+      {
+        return *detail::unwrap<Function_T>(value, Data_Type<Function_T>::ruby_data_type(), false);
+      }
+      else if (protect(rb_obj_is_proc, value) == Qtrue)
+      {
+        return makeRubyFunction<Return_T, Parameter_Ts...>(value);
+      }
+      else
+      {
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+          detail::protect(rb_obj_classname, value), "std::function");
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<typename Return_T, typename ...Parameter_Ts>
+  class From_Ruby<std::function<Return_T(Parameter_Ts...)>&>
+  {
+  public:
+    using Function_T = std::function<Return_T(Parameter_Ts...)>;
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    double is_convertible(VALUE value)
+    {
+      return From_Ruby<Function_T>(arg_).is_convertible(value);
+    }
+
+    Function_T& convert(VALUE value)
+    {
+      if (Data_Type<Function_T>::is_descendant(value))
+      {
+        return *detail::unwrap<Function_T>(value, Data_Type<Function_T>::ruby_data_type(), false);
+      }
+      else if (protect(rb_obj_is_proc, value) == Qtrue)
+      {
+        converted_ = makeRubyFunction<Return_T, Parameter_Ts...>(value);
+        return converted_;
+      }
+      else
+      {
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+          detail::protect(rb_obj_classname, value), "std::function");
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    Function_T converted_;
+  };
+
+  template<typename Return_T, typename ...Parameter_Ts>
+  class From_Ruby<std::function<Return_T(Parameter_Ts...)>&&>
+  {
+  public:
+    using Function_T = std::function<Return_T(Parameter_Ts...)>;
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    double is_convertible(VALUE value)
+    {
+      return From_Ruby<Function_T>(arg_).is_convertible(value);
+    }
+
+    Function_T&& convert(VALUE value)
+    {
+      if (Data_Type<Function_T>::is_descendant(value))
+      {
+        return std::move(*detail::unwrap<Function_T>(value, Data_Type<Function_T>::ruby_data_type(), false));
+      }
+      else if (protect(rb_obj_is_proc, value) == Qtrue)
+      {
+        converted_ = makeRubyFunction<Return_T, Parameter_Ts...>(value);
+        return std::move(converted_);
+      }
+      else
+      {
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+          detail::protect(rb_obj_classname, value), "std::function");
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    Function_T converted_;
+  };
+
   template<typename Signature_T>
   struct Type<std::function<Signature_T>>
   {
