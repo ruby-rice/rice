@@ -74,7 +74,24 @@ Rice automatically converts common exceptions and provides a mechanism for conve
 
 ## Thread Safety
 
-Rice provides no mechanisms for dealing with thread safety. Many common thread safety issues should be alleviated by YARV, which supports POSIX threads.
+Rice provides no mechanisms for dealing with thread safety by default. Many common thread safety issues should be alleviated by YARV, which supports POSIX threads.
+
+### Ractor Support (opt-in)
+
+Ruby 3.4 introduced Ractors for true parallel execution. C extensions can declare themselves Ractor-safe via `rb_ext_ractor_safe(true)`, but Rice's internal `InstanceRegistry` — a `std::map` that tracks C++ object wrappers — is not thread-safe. Concurrent access from multiple Ractors corrupts the map, causing segfaults or hangs.
+
+To enable Ractor-safe operation, define `RICE_RACTOR_SAFE` before compilation:
+
+```ruby
+# In your extconf.rb:
+$CXXFLAGS << " -DRICE_RACTOR_SAFE"
+```
+
+This adds a `std::recursive_mutex` to `InstanceRegistry`, protecting all `lookup`, `add`, `remove`, and `clear` operations. Only `InstanceRegistry` requires this protection — the other Rice registries (`TypeRegistry`, `NativeRegistry`, `HandlerRegistry`, `ModuleRegistry`) are written once during initialization and are read-only at runtime.
+
+Without the define, the generated code is identical to the current Rice — no mutex, no overhead, no behavior change.
+
+**Compatibility:** Tested with Ruby 3.4.x Ractors. Ruby 4.x compatibility is pending validation.
 
 ## C++ Based API
 
