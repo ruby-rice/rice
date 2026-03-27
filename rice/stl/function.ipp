@@ -24,9 +24,9 @@ namespace Rice::stl
       klass_.define_method("initialize", [](VALUE self, VALUE callable) -> void
       {
         // Create std::function that wraps the Ruby callable
-        Function_T* data = new Function_T([callable](auto... args)
+        Function_T* data = new Function_T([callable](auto&&... args)
         {
-          Object result = Object(callable).call("call", args...);
+          Object result = Object(callable).call("call", std::forward<decltype(args)>(args)...);
 
           using Return_T = typename Function_T::result_type;
           if constexpr (!std::is_void_v<Return_T>)
