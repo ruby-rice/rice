@@ -108,6 +108,25 @@ namespace Rice::detail
       return x.value();
     }
 
+    private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class To_Ruby<String&>
+  {
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    VALUE convert(String const& x)
+    {
+      return x.value();
+    }
+
   private:
     Arg* arg_ = nullptr;
   };

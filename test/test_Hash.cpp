@@ -227,3 +227,11 @@ namespace {
 TESTCASE(use_hash_in_wrapped_function) {
   define_global_function("test_hash_arg", &testHashArg);
 }
+
+TESTCASE(hash_lvalue_to_ruby)
+{
+  Hash value;
+  value["foo"] = 42;
+
+  ASSERT_EQUAL(value.value(), detail::to_ruby(value));
+}

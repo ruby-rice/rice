@@ -127,3 +127,10 @@ TESTCASE(use_string_in_wrapped_function)
 {
   define_global_function("test_string_arg", &testStringArg);
 }
+
+TESTCASE(string_lvalue_to_ruby)
+{
+  String value("foo");
+
+  ASSERT_EQUAL(value.value(), detail::to_ruby(value));
+}

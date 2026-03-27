@@ -249,6 +249,25 @@ namespace Rice::detail
   };
 
   template<>
+  class To_Ruby<Hash&>
+  {
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    VALUE convert(Hash const& x)
+    {
+      return x.value();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
   class From_Ruby<Hash>
   {
   public:
