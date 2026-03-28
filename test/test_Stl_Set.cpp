@@ -333,6 +333,18 @@ TESTCASE(Equal)
 
   result = m.instance_eval(code);
   ASSERT_EQUAL(Qfalse, result.value());
+
+  code = R"(set = Std::NotPrintableSet.new
+            set.method(:==).owner == set.class)";
+
+  result = m.instance_eval(code);
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  code = R"(set = Std::NotPrintableSet.new
+            set.method(:eql?).owner == set.class)";
+
+  result = m.instance_eval(code);
+  ASSERT_EQUAL(Qfalse, result.value());
 }
 
 TESTCASE(ToArray)

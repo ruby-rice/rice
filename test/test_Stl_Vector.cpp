@@ -504,17 +504,23 @@ TESTCASE(NotComparable)
   vec.call("push", NotComparable(2));
   vec.call("push", NotComparable(3));
 
-  Object result = vec.call("delete", NotComparable(1));
-  ASSERT(result.is_nil());
+  Object result = vec.instance_eval("respond_to?(:delete)");
+  ASSERT_EQUAL(Qfalse, result.value());
 
   result = vec.call("length");
   ASSERT_EQUAL(3u, detail::From_Ruby<size_t>().convert(result));
 
-  result = vec.call("include?", NotComparable(2));
+  result = vec.instance_eval("method(:include?).owner == self.class");
   ASSERT_EQUAL(Qfalse, result.value());
 
-  result = vec.call("index", NotComparable(3));
-  ASSERT(result.is_nil());
+  result = vec.instance_eval("respond_to?(:index)");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = vec.instance_eval("method(:==).owner == self.class");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = vec.instance_eval("method(:eql?).owner == self.class");
+  ASSERT_EQUAL(Qfalse, result.value());
 }
 
 TESTCASE(NotDefaultConstructable)
@@ -665,17 +671,23 @@ TESTCASE(ComparableButNotBool)
   vec.call("push", ComparableButNotBool(2));
   vec.call("push", ComparableButNotBool(3));
 
-  Object result = vec.call("delete", ComparableButNotBool(1));
-  ASSERT(result.is_nil());
+  Object result = vec.instance_eval("respond_to?(:delete)");
+  ASSERT_EQUAL(Qfalse, result.value());
 
   result = vec.call("length");
   ASSERT_EQUAL(3u, detail::From_Ruby<size_t>().convert(result));
 
-  result = vec.call("include?", ComparableButNotBool(2));
+  result = vec.instance_eval("method(:include?).owner == self.class");
   ASSERT_EQUAL(Qfalse, result.value());
 
-  result = vec.call("index", ComparableButNotBool(3));
-  ASSERT(result.is_nil());
+  result = vec.instance_eval("respond_to?(:index)");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = vec.instance_eval("method(:==).owner == self.class");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = vec.instance_eval("method(:eql?).owner == self.class");
+  ASSERT_EQUAL(Qfalse, result.value());
 }
 
 TESTCASE(DefaultConstructable)

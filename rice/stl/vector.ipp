@@ -296,21 +296,6 @@ namespace Rice
           }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
         }
-        else
-        {
-          klass_.define_method("delete", [](T&, Parameter_T) -> std::optional<Value_T>
-          {
-            return std::nullopt;
-          }, Arg("value"))
-          .define_method("include?", [](const T&, Parameter_T)
-          {
-            return false;
-          }, Arg("value"))
-          .define_method("index", [](const T&, Parameter_T) -> std::optional<Difference_T>
-          {
-            return std::nullopt;
-          }, Arg("value"));
-        }
       }
 
       void define_modify_methods()

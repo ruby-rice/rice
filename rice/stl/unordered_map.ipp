@@ -124,16 +124,8 @@ namespace Rice
               return it != unordered_map.end();
           }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
+          rb_define_alias(klass_, "has_value", "value?");
         }
-        else
-        {
-          klass_.define_method("value?", [](T&, Mapped_Parameter_T) -> bool
-          {
-              return false;
-          }, Arg("value"));
-        }
-
-        rb_define_alias(klass_, "has_value", "value?");
       }
 
       void define_modify_methods()

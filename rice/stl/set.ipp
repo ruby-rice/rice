@@ -101,23 +101,23 @@ namespace Rice
 
       void define_operators()
       {
+        klass_.define_method("<<", [](T& self, Parameter_T value) -> T&
+        {
+          self.insert(value);
+          return self;
+        }, Arg("value").keepAlive());
+
+        if constexpr (detail::is_comparable_v<Value_T>)
+        {
+          klass_.define_method("==", [](const T& self, const T& other) -> bool
+          {
+            return self == other;
+          }, Arg("other"));
+
+          rb_define_alias(klass_, "eql?", "==");
+        }
+
         klass_
-          .define_method("<<", [](T& self, Parameter_T value) -> T&
-          {
-            self.insert(value);
-            return self;
-          }, Arg("value").keepAlive())
-          .define_method("==", [](const T& self, const T& other) -> bool
-          {
-            if constexpr (detail::is_comparable_v<Value_T>)
-            {
-              return self == other;
-            }
-            else
-            {
-              return false;
-            }
-          }, Arg("other"))
           .define_method("&", [](const T& self, const T& other) -> T
           {
             T result;
@@ -164,15 +164,14 @@ namespace Rice
             return std::includes(self.begin(), self.end(),
                                  other.begin(), other.end());
           }, Arg("other"));
-        
-          rb_define_alias(klass_, "eql?", "==");
-          rb_define_alias(klass_, "intersection", "&");
-          rb_define_alias(klass_, "union", "|");
-          rb_define_alias(klass_, "difference", "-");
-          rb_define_alias(klass_, "proper_subset?", "<");
-          rb_define_alias(klass_, "subset?", "<");
-          rb_define_alias(klass_, "proper_superset?", ">");
-          rb_define_alias(klass_, "superset?", ">");
+
+        rb_define_alias(klass_, "intersection", "&");
+        rb_define_alias(klass_, "union", "|");
+        rb_define_alias(klass_, "difference", "-");
+        rb_define_alias(klass_, "proper_subset?", "<");
+        rb_define_alias(klass_, "subset?", "<");
+        rb_define_alias(klass_, "proper_superset?", ">");
+        rb_define_alias(klass_, "superset?", ">");
       }
 
       void define_enumerable()

@@ -52,9 +52,12 @@ First, the following methods only work if the map type is copyable (copying is d
 
 * Map#copy(other)
 
-Second, the following methods only work if the map type implements C++'s equal operator, `operator==`:
+Second, the following methods are only added if the mapped type implements C++ equality comparison:
 
+* Map#==
+* Map#eql?
 * Map#value?
+* Map#has_value
 
 Third, if the map type supports C++ streams, then the following method will work, otherwise it will return "Not Printable"
 
