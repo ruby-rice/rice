@@ -1094,6 +1094,7 @@ namespace Rice
         break;
       case RUBY_TAG_THROW:
         this->message_ = "Unexpected throw";
+        break;
       case RUBY_TAG_RAISE:
         this->message_ = "Ruby exception was thrown";
         break;
