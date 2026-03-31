@@ -81,6 +81,9 @@ namespace Rice
     constexpr bool is_ostreamable_v = is_ostreamable<T>::value;
 
     // Is the type comparable?
+    // Libraries with unconstrained operator== declarations may specialize this
+    // trait to false when equality is not actually usable by Rice's STL
+    // wrappers.
     template<typename T, typename SFINAE = void>
     struct is_comparable : std::false_type {};
 
