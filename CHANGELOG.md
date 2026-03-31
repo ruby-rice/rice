@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### New Features
+
+* Add opt-in Ractor-safe `InstanceRegistry` via `RICE_RACTOR_SAFE` define. When enabled, a `std::recursive_mutex` protects all mutable registry operations, allowing C extensions built with Rice to be used safely from multiple Ruby Ractors (Ruby 3.4.x). Without the define, behavior is unchanged.
+
 ## 4.11.4 (2026-03-13)
 
 ### Bug Fixes

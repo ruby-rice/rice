@@ -3,6 +3,10 @@
 
 #include <type_traits>
 
+#ifdef RICE_RACTOR_SAFE
+#include <mutex>
+#endif
+
 namespace Rice::detail
 {
   class InstanceRegistry
@@ -30,6 +34,9 @@ namespace Rice::detail
   private:
     bool shouldTrack(bool isOwner) const;
 
+#ifdef RICE_RACTOR_SAFE
+    std::recursive_mutex mutex_;
+#endif
     std::map<void*, VALUE> objectMap_;
   };
 } // namespace Rice::detail

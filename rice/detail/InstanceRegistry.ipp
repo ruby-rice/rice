@@ -5,6 +5,10 @@ namespace Rice::detail
   template <typename T>
   inline VALUE InstanceRegistry::lookup(T* cppInstance, bool isOwner)
   {
+#ifdef RICE_RACTOR_SAFE
+    std::lock_guard lock(mutex_);
+#endif
+
     if (!this->shouldTrack(isOwner))
     {
       return Qnil;
@@ -17,6 +21,10 @@ namespace Rice::detail
   template <typename T>
   inline void InstanceRegistry::add(T* cppInstance, VALUE rubyInstance, bool isOwner)
   {
+#ifdef RICE_RACTOR_SAFE
+    std::lock_guard lock(mutex_);
+#endif
+
     if (!this->shouldTrack(isOwner))
     {
       return;
@@ -27,11 +35,17 @@ namespace Rice::detail
 
   inline void InstanceRegistry::remove(void* cppInstance)
   {
+#ifdef RICE_RACTOR_SAFE
+    std::lock_guard lock(mutex_);
+#endif
     this->objectMap_.erase(cppInstance);
   }
 
   inline void InstanceRegistry::clear()
   {
+#ifdef RICE_RACTOR_SAFE
+    std::lock_guard lock(mutex_);
+#endif
     this->objectMap_.clear();
   }
 
