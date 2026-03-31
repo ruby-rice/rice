@@ -28,12 +28,53 @@ namespace
   };
 }
 
+namespace
+{
+  class TakesPointerParameter
+  {
+  public:
+    TakesPointerParameter(int argc, const char *const* argv, bool enabled)
+      : argc_(argc), argv_(argv), enabled_(enabled)
+    {
+    }
+
+    int argc() const
+    {
+      return argc_;
+    }
+
+    const char *firstArg() const
+    {
+      return argv_[0];
+    }
+
+    bool enabled() const
+    {
+      return enabled_;
+    }
+
+  private:
+    int argc_;
+    const char *const *argv_;
+    bool enabled_;
+  };
+}
+
 TESTCASE(default_constructor)
 {
   Data_Type<Default_Constructible> rb_cDefault_Constructible(anonymous_class());
   rb_cDefault_Constructible.define_constructor(Constructor<Default_Constructible>());
   Object o = rb_cDefault_Constructible.call("new");
   ASSERT_EQUAL(rb_cDefault_Constructible, o.class_of());
+}
+
+TESTCASE(constructor_accepts_pointer_parameters)
+{
+  Data_Type<TakesPointerParameter> rb_cTakesPointerParameter(anonymous_class());
+  rb_cTakesPointerParameter.define_constructor(
+    Constructor<TakesPointerParameter, int, const char *const*, bool>(),
+    Arg("argc"), Arg("argv"), Arg("enabled"));
+  ASSERT_EQUAL(rb_cTakesPointerParameter, rb_cTakesPointerParameter);
 }
 
 namespace
