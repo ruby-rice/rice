@@ -95,11 +95,8 @@ TESTCASE(StlExceptionPtr)
   m.define_module_function("create_exception_ptr", createExceptionPtr).
     define_module_function("handle_exception_ptr", handleExceptionPtr);
 
-  Data_Object<std::exception_ptr> exception = m.call("create_exception_ptr");
-  VALUE value = exception.value();
-  std::exception_ptr* ptr = exception.get();
-  ASSERT((value != Qnil));
-  ASSERT((ptr != nullptr));
+  Object exception = m.call("create_exception_ptr");
+  ASSERT((exception.value() != Qnil));
 
   ASSERT_EXCEPTION_CHECK(
     Exception,

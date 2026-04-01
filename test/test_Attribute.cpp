@@ -306,13 +306,13 @@ TESTCASE(not_assignable)
   //);
 
   c.define_attr("not_assignable", &DataStruct::notAssignable, AttrAccess::Read);
-  Data_Object<NotAssignable> notAssignable = notAssignableClass.call("new");
+  Object notAssignable = notAssignableClass.call("new");
 
-  Data_Object<DataStruct> o = c.call("new");
+  Object dataStruct = c.call("new");
   
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    o.call("not_assignable=", notAssignable),
+    dataStruct.call("not_assignable=", notAssignable),
     ASSERT_MATCH(R"(undefined method (`|')not_assignable=')", ex.what())
   );
 }
@@ -333,13 +333,13 @@ TESTCASE(not_copyable)
   //);
 
   c.define_attr("not_copyable", &DataStruct::notCopyable, AttrAccess::Read);
-  Data_Object<NotCopyable> notCopyable = notCopyableClass.call("new");
+  Object notCopyable = notCopyableClass.call("new");
 
-  Data_Object<DataStruct> o = c.call("new");
+  Object dataStruct = c.call("new");
 
   ASSERT_EXCEPTION_CHECK(
     Exception,
-    o.call("not_assignable=", notCopyable),
+    dataStruct.call("not_assignable=", notCopyable),
     ASSERT_MATCH(R"(undefined method (`|')not_assignable=')", ex.what())
   );
 }
