@@ -675,36 +675,4 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
     std::vector<Intrinsic_T*> vector_;
   };
-
-  template<typename T>
-  class From_Ruby<Data_Object<T>>
-  {
-    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
-                  "Data_Object cannot be used with fundamental types");
-
-    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
-                  !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
-                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
-                  !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
-                  !std::is_same_v<T, std::vector<T>>,
-                  "Please include rice/stl.hpp header for STL support");
-
-  public:
-    double is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_DATA:
-          return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
-          break;
-        default:
-          return Convertible::None;
-        }
-    }
-
-    static Data_Object<T> convert(VALUE value)
-    {
-      return Data_Object<T>(value);
-    }
-  };
 }
