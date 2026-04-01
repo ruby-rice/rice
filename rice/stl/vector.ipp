@@ -706,5 +706,23 @@ namespace Rice
     private:
       Arg* arg_ = nullptr;
     };
+
+    template<>
+    class To_Ruby<std::vector<bool>::reference&>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {}
+
+      VALUE convert(const std::vector<bool>::reference& value)
+      {
+        return value ? Qtrue : Qfalse;
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
   }
 }

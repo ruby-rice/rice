@@ -1083,6 +1083,25 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
+    template<>
+    class To_Ruby<std::nullptr_t&>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
+      VALUE convert(std::nullptr_t const)
+      {
+        return Qnil;
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
     // ===========  void  ============
     template<>
     class To_Ruby<void>

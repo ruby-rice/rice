@@ -75,6 +75,17 @@ TESTCASE(Return)
   ASSERT_EQUAL("A ref wrapped string", detail::From_Ruby<std::string>().convert(result));
 }
 
+TESTCASE(LvalueToRuby)
+{
+  MyClass instance;
+  std::reference_wrapper<MyClass> wrapper = std::ref(instance);
+  const std::reference_wrapper<MyClass>& ref = wrapper;
+  using To_Ruby_T = detail::remove_cv_recursive_t<decltype((ref))>;
+
+  VALUE result = detail::To_Ruby<To_Ruby_T>().convert(ref);
+  ASSERT_EQUAL(&instance, detail::unwrap<MyClass>(result, Data_Type<MyClass>::ruby_data_type(), false));
+}
+
 TESTCASE(Argument)
 {
   Module m = define_module("Testing");

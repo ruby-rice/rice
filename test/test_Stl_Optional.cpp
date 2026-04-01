@@ -67,6 +67,15 @@ TESTCASE(OptionalReturn)
   ASSERT(result.is_nil());
 }
 
+TESTCASE(NulloptToRubyReference)
+{
+  const std::nullopt_t& nullopt = std::nullopt;
+  using To_Ruby_T = detail::remove_cv_recursive_t<decltype((nullopt))>;
+
+  VALUE result = detail::To_Ruby<To_Ruby_T>().convert(nullopt);
+  ASSERT_EQUAL(Qnil, result);
+}
+
 TESTCASE(OptionalArgument)
 {
   Module m = define_module("Testing");

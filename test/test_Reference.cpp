@@ -117,7 +117,7 @@ TESTCASE(double_reference_object)
 TESTCASE(float_reference_object)
 {
   Module m = define_module("Testing");
-
+  define_reference<float>();
   std::string code = R"(ref = Rice::Reference≺float≻.new(1.25)
                         ref.value)";
   Object result = m.module_eval(code);

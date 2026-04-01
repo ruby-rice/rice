@@ -83,6 +83,17 @@ TESTCASE(StringVectorData)
   ASSERT_EQUAL("World", detail::From_Ruby<std::string>().convert(array[1].value()).c_str());
 }
 
+TESTCASE(VectorBoolReferenceLvalueToRuby)
+{
+  std::vector<bool> values{ true };
+  auto reference = values[0];
+  const auto& ref = reference;
+  using To_Ruby_T = detail::remove_cv_recursive_t<decltype((ref))>;
+
+  VALUE result = detail::To_Ruby<To_Ruby_T>().convert(ref);
+  ASSERT_EQUAL(Qtrue, result);
+}
+
 TESTCASE(Constructors)
 {
   Module m = define_module("Testing");

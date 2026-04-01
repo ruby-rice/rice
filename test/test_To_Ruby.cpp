@@ -26,6 +26,14 @@ TESTCASE(object_to_ruby)
   ASSERT_EQUAL(o.value(), detail::to_ruby(o));
 }
 
+TESTCASE(nullptr_lvalue_to_ruby)
+{
+  const std::nullptr_t& value = nullptr;
+  using To_Ruby_T = detail::remove_cv_recursive_t<decltype((value))>;
+
+  ASSERT_EQUAL(Qnil, detail::To_Ruby<To_Ruby_T>().convert(value));
+}
+
 TESTCASE(short_to_ruby)
 {
 #undef min

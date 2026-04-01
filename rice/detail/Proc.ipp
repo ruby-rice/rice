@@ -34,6 +34,25 @@ namespace Rice::detail
     }
   };
 
+  // Wraps a C++ function as a Ruby proc
+  template<typename Return_T, typename ...Parameter_Ts>
+  class To_Ruby<Return_T(*&)(Parameter_Ts...)>
+  {
+  public:
+    using Proc_T = Return_T(*&)(Parameter_Ts...);
+
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg*)
+    {}
+
+    VALUE convert(Proc_T proc)
+    {
+      // Wrap the C+++ function pointer as a Ruby Proc
+      return NativeProc<Proc_T>::createRubyProc(std::forward<Proc_T>(proc));
+    }
+  };
+
   // Makes a Ruby proc callable as C callback
   template<typename Return_T, typename ...Parameter_Ts>
   class From_Ruby<Return_T(*)(Parameter_Ts...)>
