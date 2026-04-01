@@ -62,10 +62,9 @@ TESTCASE(File)
     define_module_function("read_file", readFile).
     define_module_function("close_file", closeFile);
 
-  Data_Object<FILE> file = m.call("open_file");
+  Object file = m.call("open_file");
   ASSERT((file.value() != Qnil));
-  ASSERT((file.get() != nullptr));
-
+  
   String string = m.call("read_file", file);
   ASSERT((string.length() > 1300));
 

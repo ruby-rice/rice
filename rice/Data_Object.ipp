@@ -330,16 +330,6 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 
-  template<typename T>
-  class To_Ruby<Data_Object<T>>
-  {
-  public:
-    VALUE convert(const Object& x)
-    {
-      return x.value();
-    }
-  };
-
   template <typename T>
   class From_Ruby
   {
