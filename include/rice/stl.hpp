@@ -151,9 +151,9 @@ namespace Rice::stl
       klass_.define_method("initialize", [](VALUE self, VALUE callable) -> void
       {
         // Create std::function that wraps the Ruby callable
-        Function_T* data = new Function_T([callable](auto... args)
+        Function_T* data = new Function_T([callable](auto&&... args)
         {
-          Object result = Object(callable).call("call", args...);
+          Object result = Object(callable).call("call", std::forward<decltype(args)>(args)...);
 
           using Return_T = typename Function_T::result_type;
           if constexpr (!std::is_void_v<Return_T>)
@@ -211,6 +211,146 @@ namespace Rice
 
 namespace Rice::detail
 {
+  template<typename Return_T, typename ...Parameter_Ts>
+  inline std::function<Return_T(Parameter_Ts...)> makeRubyFunction(VALUE value)
+  {
+    Pin proc(value);
+
+    return [proc = std::move(proc)](Parameter_Ts... args) -> Return_T
+    {
+      Object result = Object(proc.value()).call("call", std::forward<Parameter_Ts>(args)...);
+
+      if constexpr (!std::is_void_v<Return_T>)
+      {
+        return From_Ruby<std::remove_cv_t<Return_T>>().convert(result);
+      }
+    };
+  }
+
+  template<typename Return_T, typename ...Parameter_Ts>
+  class From_Ruby<std::function<Return_T(Parameter_Ts...)>>
+  {
+  public:
+    using Function_T = std::function<Return_T(Parameter_Ts...)>;
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    double is_convertible(VALUE value)
+    {
+      switch (rb_type(value))
+      {
+        case RUBY_T_DATA:
+          return Data_Type<Function_T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
+        default:
+          return protect(rb_obj_is_proc, value) == Qtrue ? Convertible::ConstMismatch : Convertible::None;
+      }
+    }
+
+    Function_T convert(VALUE value)
+    {
+      if (Data_Type<Function_T>::is_descendant(value))
+      {
+        return *detail::unwrap<Function_T>(value, Data_Type<Function_T>::ruby_data_type(), false);
+      }
+      else if (protect(rb_obj_is_proc, value) == Qtrue)
+      {
+        return makeRubyFunction<Return_T, Parameter_Ts...>(value);
+      }
+      else
+      {
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+          detail::protect(rb_obj_classname, value), "std::function");
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<typename Return_T, typename ...Parameter_Ts>
+  class From_Ruby<std::function<Return_T(Parameter_Ts...)>&>
+  {
+  public:
+    using Function_T = std::function<Return_T(Parameter_Ts...)>;
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    double is_convertible(VALUE value)
+    {
+      return From_Ruby<Function_T>(arg_).is_convertible(value);
+    }
+
+    Function_T& convert(VALUE value)
+    {
+      if (Data_Type<Function_T>::is_descendant(value))
+      {
+        return *detail::unwrap<Function_T>(value, Data_Type<Function_T>::ruby_data_type(), false);
+      }
+      else if (protect(rb_obj_is_proc, value) == Qtrue)
+      {
+        converted_ = makeRubyFunction<Return_T, Parameter_Ts...>(value);
+        return converted_;
+      }
+      else
+      {
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+          detail::protect(rb_obj_classname, value), "std::function");
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    Function_T converted_;
+  };
+
+  template<typename Return_T, typename ...Parameter_Ts>
+  class From_Ruby<std::function<Return_T(Parameter_Ts...)>&&>
+  {
+  public:
+    using Function_T = std::function<Return_T(Parameter_Ts...)>;
+
+    From_Ruby() = default;
+
+    explicit From_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    double is_convertible(VALUE value)
+    {
+      return From_Ruby<Function_T>(arg_).is_convertible(value);
+    }
+
+    Function_T&& convert(VALUE value)
+    {
+      if (Data_Type<Function_T>::is_descendant(value))
+      {
+        return std::move(*detail::unwrap<Function_T>(value, Data_Type<Function_T>::ruby_data_type(), false));
+      }
+      else if (protect(rb_obj_is_proc, value) == Qtrue)
+      {
+        converted_ = makeRubyFunction<Return_T, Parameter_Ts...>(value);
+        return std::move(converted_);
+      }
+      else
+      {
+        throw Exception(rb_eTypeError, "wrong argument type %s (expected %s)",
+          detail::protect(rb_obj_classname, value), "std::function");
+      }
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+    Function_T converted_;
+  };
+
   template<typename Signature_T>
   struct Type<std::function<Signature_T>>
   {
@@ -867,6 +1007,24 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 
+  template<>
+  class To_Ruby<std::nullopt_t&>
+  {
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg) : arg_(arg)
+    {}
+
+    VALUE convert(const std::nullopt_t&)
+    {
+      return Qnil;
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
   template<typename T>
   class To_Ruby<std::optional<T>>
   {
@@ -1464,6 +1622,24 @@ namespace Rice::detail
   };
 
   template<typename T>
+  class To_Ruby<std::reference_wrapper<T>&>
+  {
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg) : arg_(arg)
+    {}
+
+    VALUE convert(const std::reference_wrapper<T>& data)
+    {
+      return To_Ruby<T&>().convert(data.get());
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<typename T>
   class From_Ruby<std::reference_wrapper<T>>
   {
   public:
@@ -1626,16 +1802,8 @@ namespace Rice
             return it != map.end();
           }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
+          rb_define_alias(klass_, "has_value", "value?");
         }
-        else
-        {
-          klass_.define_method("value?", [](T&, Mapped_Parameter_T) -> bool
-          {
-              return false;
-          }, Arg("value"));
-        }
-
-        rb_define_alias(klass_, "has_value", "value?");
       }
 
       void define_modify_methods()
@@ -1969,6 +2137,7 @@ namespace Rice
   }
 }
 
+
 // =========   monostate.hpp   =========
 
 
@@ -2230,16 +2399,8 @@ namespace Rice
             return it != multimap.end();
           }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
+          rb_define_alias(klass_, "has_value", "value?");
         }
-        else
-        {
-          klass_.define_method("value?", [](T&, Mapped_Parameter_T) -> bool
-          {
-              return false;
-          }, Arg("value"));
-        }
-
-        rb_define_alias(klass_, "has_value", "value?");
       }
 
       void define_modify_methods()
@@ -2554,6 +2715,7 @@ namespace Rice
   }
 }
 
+
 // =========   set.hpp   =========
 
 namespace Rice
@@ -2667,23 +2829,23 @@ namespace Rice
 
       void define_operators()
       {
+        klass_.define_method("<<", [](T& self, Parameter_T value) -> T&
+        {
+          self.insert(value);
+          return self;
+        }, Arg("value").keepAlive());
+
+        if constexpr (detail::is_comparable_v<Value_T>)
+        {
+          klass_.define_method("==", [](const T& self, const T& other) -> bool
+          {
+            return self == other;
+          }, Arg("other"));
+
+          rb_define_alias(klass_, "eql?", "==");
+        }
+
         klass_
-          .define_method("<<", [](T& self, Parameter_T value) -> T&
-          {
-            self.insert(value);
-            return self;
-          }, Arg("value").keepAlive())
-          .define_method("==", [](const T& self, const T& other) -> bool
-          {
-            if constexpr (detail::is_comparable_v<Value_T>)
-            {
-              return self == other;
-            }
-            else
-            {
-              return false;
-            }
-          }, Arg("other"))
           .define_method("&", [](const T& self, const T& other) -> T
           {
             T result;
@@ -2730,15 +2892,14 @@ namespace Rice
             return std::includes(self.begin(), self.end(),
                                  other.begin(), other.end());
           }, Arg("other"));
-        
-          rb_define_alias(klass_, "eql?", "==");
-          rb_define_alias(klass_, "intersection", "&");
-          rb_define_alias(klass_, "union", "|");
-          rb_define_alias(klass_, "difference", "-");
-          rb_define_alias(klass_, "proper_subset?", "<");
-          rb_define_alias(klass_, "subset?", "<");
-          rb_define_alias(klass_, "proper_superset?", ">");
-          rb_define_alias(klass_, "superset?", ">");
+
+        rb_define_alias(klass_, "intersection", "&");
+        rb_define_alias(klass_, "union", "|");
+        rb_define_alias(klass_, "difference", "-");
+        rb_define_alias(klass_, "proper_subset?", "<");
+        rb_define_alias(klass_, "subset?", "<");
+        rb_define_alias(klass_, "proper_superset?", ">");
+        rb_define_alias(klass_, "superset?", ">");
       }
 
       void define_enumerable()
@@ -3865,6 +4026,9 @@ namespace Rice
   template<typename T>
   Data_Type<std::unique_ptr<T>> define_unique_ptr(std::string klassName)
   {
+    static_assert(detail::is_complete_v<T>,
+      "Rice does not support binding std::unique_ptr<T> when T is incomplete.");
+
     using UniquePtr_T = std::unique_ptr<T>;
     using Data_Type_T = Data_Type<UniquePtr_T>;
 
@@ -4151,16 +4315,8 @@ namespace Rice
               return it != unordered_map.end();
           }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
+          rb_define_alias(klass_, "has_value", "value?");
         }
-        else
-        {
-          klass_.define_method("value?", [](T&, Mapped_Parameter_T) -> bool
-          {
-              return false;
-          }, Arg("value"));
-        }
-
-        rb_define_alias(klass_, "has_value", "value?");
       }
 
       void define_modify_methods()
@@ -4494,6 +4650,7 @@ namespace Rice
   }
 }
 
+
 // =========   vector.hpp   =========
 
 namespace Rice
@@ -4801,21 +4958,6 @@ namespace Rice
             }
           }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
-        }
-        else
-        {
-          klass_.define_method("delete", [](T&, Parameter_T) -> std::optional<Value_T>
-          {
-            return std::nullopt;
-          }, Arg("value"))
-          .define_method("include?", [](const T&, Parameter_T)
-          {
-            return false;
-          }, Arg("value"))
-          .define_method("index", [](const T&, Parameter_T) -> std::optional<Difference_T>
-          {
-            return std::nullopt;
-          }, Arg("value"));
         }
       }
 
@@ -5218,6 +5360,24 @@ namespace Rice
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
       }
+
+      VALUE convert(const std::vector<bool>::reference& value)
+      {
+        return value ? Qtrue : Qfalse;
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<std::vector<bool>::reference&>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {}
 
       VALUE convert(const std::vector<bool>::reference& value)
       {
