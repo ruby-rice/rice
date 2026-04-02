@@ -31,6 +31,28 @@ namespace
       return result;
     }
   };
+
+  class VectorRValueSink
+  {
+  public:
+    explicit VectorRValueSink(std::vector<int>&& values)
+      : values_(std::move(values))
+    {
+    }
+
+    void setValues(std::vector<int>&& values)
+    {
+      values_ = std::move(values);
+    }
+
+    size_t size() const
+    {
+      return values_.size();
+    }
+
+  private:
+    std::vector<int> values_;
+  };
 }
 
 Class makeVectorClass()
@@ -81,6 +103,25 @@ TESTCASE(StringVectorData)
   ASSERT_EQUAL(2, array.size());
   ASSERT_EQUAL("Hello", detail::From_Ruby<std::string>().convert(array[0].value()).c_str());
   ASSERT_EQUAL("World", detail::From_Ruby<std::string>().convert(array[1].value()).c_str());
+}
+
+TESTCASE(VectorRvalueParameters)
+{
+  Module m(anonymous_module());
+  define_vector<int>("IntVector");
+
+  define_class_under<VectorRValueSink>(m, "VectorRValueSink")
+    .define_constructor(Constructor<VectorRValueSink, std::vector<int>&&>(), Arg("values"))
+    .define_method("set_values", &VectorRValueSink::setValues, Arg("values"))
+    .define_method("size", &VectorRValueSink::size);
+
+  Object result = m.module_eval(R"(
+    sink = VectorRValueSink.new(Std::IntVector.new([1, 2, 3]))
+    sink.set_values(Std::IntVector.new([4, 5]))
+    sink.size
+  )");
+
+  ASSERT_EQUAL(2, detail::From_Ruby<int32_t>().convert(result));
 }
 
 TESTCASE(VectorBoolReferenceLvalueToRuby)

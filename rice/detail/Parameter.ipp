@@ -90,6 +90,11 @@ namespace Rice::detail
     {
       return this->fromRuby_.convert(valueOpt.value());
     }
+    else if constexpr (std::is_rvalue_reference_v<T>)
+    {
+      // Rvalue-reference parameters cannot safely use stored default values.
+      // Materializing them from std::any would require moving from shared state.
+    }
     // Remember std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
     // So special case vector handling
     else if constexpr (detail::is_std_vector_v<detail::intrinsic_type<T>>)
