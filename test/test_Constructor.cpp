@@ -28,12 +28,53 @@ namespace
   };
 }
 
+namespace
+{
+  class TakesPointerParameter
+  {
+  public:
+    TakesPointerParameter(int argc, const char *const* argv, bool enabled)
+      : argc_(argc), argv_(argv), enabled_(enabled)
+    {
+    }
+
+    int argc() const
+    {
+      return argc_;
+    }
+
+    const char *firstArg() const
+    {
+      return argv_[0];
+    }
+
+    bool enabled() const
+    {
+      return enabled_;
+    }
+
+  private:
+    int argc_;
+    const char *const *argv_;
+    bool enabled_;
+  };
+}
+
 TESTCASE(default_constructor)
 {
   Data_Type<Default_Constructible> rb_cDefault_Constructible(anonymous_class());
   rb_cDefault_Constructible.define_constructor(Constructor<Default_Constructible>());
   Object o = rb_cDefault_Constructible.call("new");
   ASSERT_EQUAL(rb_cDefault_Constructible, o.class_of());
+}
+
+TESTCASE(constructor_accepts_pointer_parameters)
+{
+  Data_Type<TakesPointerParameter> rb_cTakesPointerParameter(anonymous_class());
+  rb_cTakesPointerParameter.define_constructor(
+    Constructor<TakesPointerParameter, int, const char *const*, bool>(),
+    Arg("argc"), Arg("argv"), Arg("enabled"));
+  ASSERT_EQUAL(rb_cTakesPointerParameter, rb_cTakesPointerParameter);
 }
 
 namespace
@@ -187,4 +228,67 @@ TESTCASE(constructor_move)
 
   // This intentionally will not compile due to a static_assert
   //c.define_constructor(Constructor<MyClass, MyClass&&>());
+}
+
+namespace
+{
+  class MoveOnlyValue
+  {
+  public:
+    MoveOnlyValue() = default;
+    MoveOnlyValue(const MoveOnlyValue&) = delete;
+
+    MoveOnlyValue(MoveOnlyValue&& other) noexcept
+      : moved_from_(other.moved_from_)
+    {
+      other.moved_from_ = true;
+    }
+
+    bool movedFrom() const
+    {
+      return moved_from_;
+    }
+
+  private:
+    bool moved_from_ = false;
+  };
+
+  class TakesMoveOnlyValue
+  {
+  public:
+    explicit TakesMoveOnlyValue(MoveOnlyValue&& value)
+      : value_(std::move(value))
+    {
+    }
+
+    bool hasValue() const
+    {
+      return !value_.movedFrom();
+    }
+
+  private:
+    MoveOnlyValue value_;
+  };
+}
+
+TESTCASE(constructor_forwards_rvalue_arguments)
+{
+  define_class<MoveOnlyValue>("MoveOnlyValue")
+    .define_constructor(Constructor<MoveOnlyValue>())
+    .define_method("moved_from?", &MoveOnlyValue::movedFrom);
+
+  define_class<TakesMoveOnlyValue>("TakesMoveOnlyValue")
+    .define_constructor(Constructor<TakesMoveOnlyValue, MoveOnlyValue&&>())
+    .define_method("has_value?", &TakesMoveOnlyValue::hasValue);
+
+  Module m(anonymous_module());
+  Array result = m.module_eval(R"(
+    value = MoveOnlyValue.new
+    consumer = TakesMoveOnlyValue.new(value)
+    [value.moved_from?, consumer.has_value?, consumer.class.name]
+  )");
+
+  ASSERT_EQUAL(Qtrue, result[0].value());
+  ASSERT_EQUAL(Qtrue, result[1].value());
+  ASSERT_EQUAL("TakesMoveOnlyValue", String(result[2].value()).str());
 }

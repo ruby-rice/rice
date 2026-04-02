@@ -26,6 +26,14 @@ TESTCASE(object_to_ruby)
   ASSERT_EQUAL(o.value(), detail::to_ruby(o));
 }
 
+TESTCASE(nullptr_lvalue_to_ruby)
+{
+  const std::nullptr_t& value = nullptr;
+  using To_Ruby_T = detail::remove_cv_recursive_t<decltype((value))>;
+
+  ASSERT_EQUAL(Qnil, detail::To_Ruby<To_Ruby_T>().convert(value));
+}
+
 TESTCASE(short_to_ruby)
 {
 #undef min
@@ -141,11 +149,26 @@ TESTCASE(char_ptr_to_ruby)
   ASSERT(rb_equal(Qnil, toRuby.convert(nullptr)));
 }
 
+TESTCASE(char_ptr_lvalue_to_ruby)
+{
+  char text[] = "foo";
+  char* value = text;
+
+  ASSERT(rb_equal(String("foo").value(), detail::to_ruby(value)));
+}
+
 TESTCASE(char_const_ptr_to_ruby)
 {
   ASSERT(rb_equal(String("").value(), detail::to_ruby((char const *)"")));
   ASSERT(rb_equal(String("foo").value(), detail::to_ruby((char const *)"foo")));
   ASSERT(rb_equal(String("foo").value(), detail::to_ruby("foo")));
+}
+
+TESTCASE(char_array_lvalue_to_ruby)
+{
+  char value[] = "foo";
+
+  ASSERT(rb_equal(String("foo").value(), detail::to_ruby(value)));
 }
 
 TESTCASE(char_const_array_to_ruby_symbol)

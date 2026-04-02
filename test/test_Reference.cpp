@@ -104,6 +104,26 @@ TESTCASE(double_reference)
   ASSERT_EQUAL(2.5, detail::From_Ruby<double>().convert(result));
 }
 
+TESTCASE(double_reference_object)
+{
+  Module m = define_module("Testing");
+
+  std::string code = R"(ref = Rice::Reference≺double≻.new(2.5)
+                        ref.value)";
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(2.5, detail::From_Ruby<double>().convert(result));
+}
+
+TESTCASE(float_reference_object)
+{
+  Module m = define_module("Testing");
+  define_reference<float>();
+  std::string code = R"(ref = Rice::Reference≺float≻.new(1.25)
+                        ref.value)";
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(1.25f, detail::From_Ruby<float>().convert(result));
+}
+
 TESTCASE(bool_reference)
 {
   Module m = define_module("Testing");
@@ -178,4 +198,3 @@ TESTCASE(unsigned_long_long_reference)
   Object result = m.module_eval(code);
   ASSERT_EQUAL(73ULL, detail::From_Ruby<unsigned long long>().convert(result));
 }
-

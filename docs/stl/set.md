@@ -48,6 +48,11 @@ In this case, Rice will *copy* the Ruby array instead of wrapping it. Thus any m
 
 Rice tries to make a `std::set` look like a Ruby Set by defining an API that is a subset of `Set`. However, there are differences you need to keep in mind.
 
+The following methods are only added if the set element type implements C++ equality comparison:
+
+* Set#==
+* Set#eql?
+
 If the set type supports C++ streams, then the following method will work, otherwise it will return "Not Printable"
 
 * set#to_s

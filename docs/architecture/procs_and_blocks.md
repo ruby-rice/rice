@@ -108,6 +108,38 @@ proc = Proc.new { |i| i * i }
 square_with_proc(4, proc)  # => 16
 ```
 
+## Ruby Procs to std::function
+
+Rice also supports converting a Ruby proc or lambda directly to a `std::function`
+parameter.
+
+```cpp
+int invokeFunction(std::function<int(int, int)> func, int a, int b)
+{
+  return func(a, b);
+}
+
+define_module_function("invoke_function", &invokeFunction);
+```
+
+Ruby code can pass either an explicit `Std::Function...` wrapper or a raw proc:
+
+```ruby
+proc = Proc.new { |a, b| a * b }
+invoke_function(proc, 5, 3)  # => 15
+```
+
+### How It Works
+
+Rice synthesizes a C++ lambda that:
+
+1. Captures the Ruby proc in a `Pin`
+2. Invokes the proc via `Object(proc.value()).call("call", ...)`
+3. Converts the Ruby return value back to the requested C++ type
+
+The captured `Pin` keeps the Ruby proc alive for as long as the synthesized
+`std::function` exists.
+
 ## Callbacks
 
 For more complex callback scenarios where C++ code stores and later invokes Ruby procs (such as event handlers or async callbacks), see the [Callbacks](../bindings/callbacks.md) documentation. This covers:

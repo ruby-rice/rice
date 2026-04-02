@@ -59,6 +59,16 @@ TESTCASE(SquareProc)
   ASSERT_EQUAL(81, detail::From_Ruby<int>().convert(result));
 }
 
+TESTCASE(SquareProcLvalueToRuby)
+{
+  auto proc = square;
+  using To_Ruby_T = detail::remove_cv_recursive_t<decltype((proc))>;
+
+  VALUE value = detail::To_Ruby<To_Ruby_T>().convert(proc);
+  Object result(value);
+  ASSERT_EQUAL(81, detail::From_Ruby<int>().convert(result.call("call", 9)));
+}
+
 TESTCASE(SquareWithBlock)
 {
   Module m = define_module("TestingModuleMakeBlock");

@@ -230,7 +230,7 @@ TESTCASE(char_pointer_const)
 
 TESTCASE(unsigned_char)
 {
-  unsigned char expected = -1;
+  unsigned char expected = static_cast<unsigned char>(-1);
   ASSERT_EQUAL(expected, detail::From_Ruby<unsigned char>().convert(INT2NUM(-1)));
 
   expected = 1;
@@ -518,8 +518,8 @@ TESTCASE(unsigned_long)
 {
   ASSERT_EQUAL(0u, detail::From_Ruby<unsigned long>().convert(ULONG2NUM(0)));
   ASSERT_EQUAL(1u, detail::From_Ruby<unsigned long>().convert(ULONG2NUM(1)));
-  ASSERT_EQUAL((unsigned long)(FIXNUM_MIN),
-    detail::From_Ruby<unsigned long>().convert(ULONG2NUM(FIXNUM_MIN)));
+  ASSERT_EQUAL(static_cast<unsigned long>(FIXNUM_MIN),
+    detail::From_Ruby<unsigned long>().convert(ULONG2NUM(static_cast<unsigned long>(FIXNUM_MIN))));
   ASSERT_EQUAL(std::numeric_limits<unsigned long>::min(),
     detail::From_Ruby<unsigned long>().convert(ULONG2NUM(std::numeric_limits<unsigned long>::min())));
   ASSERT_EQUAL(std::numeric_limits<unsigned long>::max(),

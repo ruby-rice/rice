@@ -56,8 +56,10 @@ First, the following methods only work if the vector type is copyable (copying i
 * Vector#copy(other)
 * Vector#resize
 
-Second, the following methods only work if the vector type implements C++'s equal operator, `operator==`:
+Second, the following methods are only added if the vector element type implements C++ equality comparison:
 
+* Vector#==
+* Vector#eql?
 * Vector#delete
 * Vector#include?
 * Vector#index

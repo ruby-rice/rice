@@ -83,6 +83,17 @@ TESTCASE(StringVectorData)
   ASSERT_EQUAL("World", detail::From_Ruby<std::string>().convert(array[1].value()).c_str());
 }
 
+TESTCASE(VectorBoolReferenceLvalueToRuby)
+{
+  std::vector<bool> values{ true };
+  auto reference = values[0];
+  const auto& ref = reference;
+  using To_Ruby_T = detail::remove_cv_recursive_t<decltype((ref))>;
+
+  VALUE result = detail::To_Ruby<To_Ruby_T>().convert(ref);
+  ASSERT_EQUAL(Qtrue, result);
+}
+
 TESTCASE(Constructors)
 {
   Module m = define_module("Testing");
@@ -504,17 +515,23 @@ TESTCASE(NotComparable)
   vec.call("push", NotComparable(2));
   vec.call("push", NotComparable(3));
 
-  Object result = vec.call("delete", NotComparable(1));
-  ASSERT(result.is_nil());
+  Object result = vec.instance_eval("respond_to?(:delete)");
+  ASSERT_EQUAL(Qfalse, result.value());
 
   result = vec.call("length");
   ASSERT_EQUAL(3u, detail::From_Ruby<size_t>().convert(result));
 
-  result = vec.call("include?", NotComparable(2));
+  result = vec.instance_eval("method(:include?).owner == self.class");
   ASSERT_EQUAL(Qfalse, result.value());
 
-  result = vec.call("index", NotComparable(3));
-  ASSERT(result.is_nil());
+  result = vec.instance_eval("respond_to?(:index)");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = vec.instance_eval("method(:==).owner == self.class");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = vec.instance_eval("method(:eql?).owner == self.class");
+  ASSERT_EQUAL(Qfalse, result.value());
 }
 
 TESTCASE(NotDefaultConstructable)
@@ -665,17 +682,78 @@ TESTCASE(ComparableButNotBool)
   vec.call("push", ComparableButNotBool(2));
   vec.call("push", ComparableButNotBool(3));
 
-  Object result = vec.call("delete", ComparableButNotBool(1));
-  ASSERT(result.is_nil());
+  Object result = vec.instance_eval("respond_to?(:delete)");
+  ASSERT_EQUAL(Qfalse, result.value());
 
   result = vec.call("length");
   ASSERT_EQUAL(3u, detail::From_Ruby<size_t>().convert(result));
 
-  result = vec.call("include?", ComparableButNotBool(2));
+  result = vec.instance_eval("method(:include?).owner == self.class");
   ASSERT_EQUAL(Qfalse, result.value());
 
-  result = vec.call("index", ComparableButNotBool(3));
-  ASSERT(result.is_nil());
+  result = vec.instance_eval("respond_to?(:index)");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = vec.instance_eval("method(:==).owner == self.class");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = vec.instance_eval("method(:eql?).owner == self.class");
+  ASSERT_EQUAL(Qfalse, result.value());
+}
+
+namespace
+{
+  class ComparableButNotComparable
+  {
+  public:
+    ComparableButNotComparable(uint32_t value) : value_(value)
+    {
+    };
+
+    bool operator==(const ComparableButNotComparable& other) const
+    {
+      return this->value_ == other.value_;
+    }
+
+    uint32_t value_;
+  };
+}
+
+namespace Rice::detail
+{
+  template<>
+  struct is_comparable<ComparableButNotComparable> : std::false_type {};
+}
+
+TESTCASE(ComparableButNotComparable)
+{
+  define_class<ComparableButNotComparable>("ComparableButNotComparable").
+    define_constructor(Constructor<ComparableButNotComparable, uint32_t>());
+
+  Class c = define_vector<ComparableButNotComparable>("ComparableButNotComparableVector");
+
+  Object vec = c.call("new");
+  vec.call("push", ComparableButNotComparable(1));
+  vec.call("push", ComparableButNotComparable(2));
+  vec.call("push", ComparableButNotComparable(3));
+
+  Object result = vec.instance_eval("respond_to?(:delete)");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = vec.call("length");
+  ASSERT_EQUAL(3u, detail::From_Ruby<size_t>().convert(result));
+
+  result = vec.instance_eval("method(:include?).owner == self.class");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = vec.instance_eval("respond_to?(:index)");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = vec.instance_eval("method(:==).owner == self.class");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = vec.instance_eval("method(:eql?).owner == self.class");
+  ASSERT_EQUAL(Qfalse, result.value());
 }
 
 TESTCASE(DefaultConstructable)

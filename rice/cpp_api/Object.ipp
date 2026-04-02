@@ -42,7 +42,7 @@ namespace Rice
   }
 
   template<typename ...Parameter_Ts>
-  inline Object Object::call(Identifier id, Parameter_Ts... args) const
+  inline Object Object::call(Identifier id, Parameter_Ts&&... args) const
   {
     /* IMPORTANT - We store VALUEs in an array that is a local variable.
        That allows the Ruby garbage collector to find them when scanning
@@ -56,10 +56,10 @@ namespace Rice
   }
 
   template<typename ...Parameter_Ts>
-  inline Object Object::call_kw(Identifier id, Parameter_Ts... args) const
+  inline Object Object::call_kw(Identifier id, Parameter_Ts&&... args) const
   {
     /* IMPORTANT - See call() above */
-    std::array<VALUE, sizeof...(Parameter_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Parameter_Ts>>().convert(args)... };
+    std::array<VALUE, sizeof...(Parameter_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Parameter_Ts>>().convert(std::forward<Parameter_Ts>(args))... };
     return detail::protect(rb_funcallv_kw, this->validated_value(), id.id(), (int)values.size(), (const VALUE*)values.data(), RB_PASS_KEYWORDS);
   }
 

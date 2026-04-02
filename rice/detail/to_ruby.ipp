@@ -292,6 +292,25 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
+    template<>
+    class To_Ruby<char*&>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
+      VALUE convert(const char* data)
+      {
+        return To_Ruby<char*>(arg_).convert(data);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
     template<int N>
     class To_Ruby<char[N]>
     {
@@ -318,6 +337,25 @@ namespace Rice
           long size = (long)strlen(buffer);
           return protect(rb_usascii_str_new_static, buffer, size);
         }
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<int N>
+    class To_Ruby<char(&)[N]>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
+      VALUE convert(const char (&buffer)[N])
+      {
+        return To_Ruby<char[N]>(arg_).convert(buffer);
       }
 
     private:
@@ -1028,6 +1066,25 @@ namespace Rice
     // ===========  std::nullptr_t  ============
     template<>
     class To_Ruby<std::nullptr_t>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
+      VALUE convert(std::nullptr_t const)
+      {
+        return Qnil;
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<std::nullptr_t&>
     {
     public:
       To_Ruby() = default;

@@ -11,7 +11,7 @@ namespace Rice
 
   public:
     Reference();
-    Reference(T& data);
+    Reference(const T& data);
     Reference(VALUE value);
     T& get();
 
@@ -20,7 +20,7 @@ namespace Rice
   };
 
   // Specialization needed when VALUE type matches T, causing constructor ambiguity
-  // between Reference(T&) and Reference(VALUE). VALUE is unsigned long when
+  // between Reference(const T&) and Reference(VALUE). VALUE is unsigned long when
   // SIZEOF_LONG == SIZEOF_VOIDP (Linux/macOS) and unsigned long long when
   // SIZEOF_LONG_LONG == SIZEOF_VOIDP (Windows x64).
 #if SIZEOF_LONG == SIZEOF_VOIDP

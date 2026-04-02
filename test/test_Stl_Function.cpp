@@ -180,12 +180,8 @@ TESTCASE(RawProc)
     invoke(proc, 5, 1)
   )";
 
-  ASSERT_EXCEPTION_CHECK(
-    Exception,
-    m.module_eval(code),
-    ASSERT_EQUAL("The Ruby object is a proc or lambda and does not wrap a C++ object", 
-                 ex.what())
-  );
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(5, detail::From_Ruby<int>().convert(result));
 }
 
 TESTCASE(ReturnVoid)
@@ -258,4 +254,73 @@ TESTCASE(ConstFunctionReference)
 
   Object result = m.module_eval(code);
   ASSERT_EQUAL(9, detail::From_Ruby<int>().convert(result));
+}
+
+TESTCASE(RawProcConstFunctionReference)
+{
+  Module m = define_module("TestConstFunctionRaw");
+  m.define_module_function("invoke_const", invokeConst);
+
+  std::string code = R"(
+    proc = Proc.new do |value|
+      value * 2
+    end
+    invoke_const(proc, 9)
+  )";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(18, detail::From_Ruby<int>().convert(result));
+}
+
+namespace
+{
+  class NonCopyableReferenceArg
+  {
+  public:
+    NonCopyableReferenceArg() = default;
+    NonCopyableReferenceArg(const NonCopyableReferenceArg&) = delete;
+    NonCopyableReferenceArg& operator=(const NonCopyableReferenceArg&) = delete;
+
+    void setValue(int value)
+    {
+      value_ = value;
+    }
+
+    int value() const
+    {
+      return value_;
+    }
+
+  private:
+    int value_ = 0;
+  };
+
+  void invokeReferenceFunction(std::function<void(NonCopyableReferenceArg&)> func,
+                               NonCopyableReferenceArg& value)
+  {
+    func(value);
+  }
+}
+
+TESTCASE(ReferenceParameter)
+{
+  define_stl_function<void(NonCopyableReferenceArg&)>("FunctionRef");
+
+  define_class<NonCopyableReferenceArg>("NonCopyableReferenceArg")
+    .define_constructor(Constructor<NonCopyableReferenceArg>())
+    .define_method("set_value", &NonCopyableReferenceArg::setValue)
+    .define_method("value", &NonCopyableReferenceArg::value);
+
+  Module m = define_module("TestFunctionReference");
+  m.define_module_function("invoke_reference_function", invokeReferenceFunction);
+
+  std::string code = R"(
+    value = NonCopyableReferenceArg.new
+    func = Std::FunctionRef.new(->(target) { target.set_value(37) })
+    invoke_reference_function(func, value)
+    value.value
+  )";
+
+  Object result = m.module_eval(code);
+  ASSERT_EQUAL(37, detail::From_Ruby<int>().convert(result));
 }

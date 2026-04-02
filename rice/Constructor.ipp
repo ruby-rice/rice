@@ -41,7 +41,7 @@ namespace Rice
     static void initialize(VALUE self, Parameter_Ts...args)
     {
       // Call C++ constructor
-      T* data = new T(args...);
+      T* data = new T(std::forward<Parameter_Ts>(args)...);
       detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
     }
 
@@ -75,7 +75,7 @@ namespace Rice
       static void initialize(Object self, Parameter_Ts...args)
       {
         // Call C++ constructor
-        T* data = new T(self, args...);
+        T* data = new T(self, std::forward<Parameter_Ts>(args)...);
         detail::wrapConstructed<T>(self.value(), Data_Type<T>::ruby_data_type(), data);
       }
   };

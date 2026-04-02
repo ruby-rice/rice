@@ -1,5 +1,12 @@
 # Changelog
 
+## Next Release
+
+### Enhancements
+
+* Allow raw Ruby procs and lambdas to convert directly to `std::function` parameters while keeping the callable alive with `Pin`
+* Only define equality-based STL container methods when the contained type supports C++ equality comparison
+
 ## 4.11.4 (2026-03-13)
 
 ### Bug Fixes

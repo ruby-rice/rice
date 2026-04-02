@@ -28,6 +28,7 @@ Identifier (not an Object - wraps Ruby's internal ID type)
 * [Array](array.md) - Array with STL-compatible random-access iterators
 * [Hash](hash.md) - Hash with STL-compatible iterators
 * [Identifier](identifier.md) - Lightweight ID wrapper (not a Ruby Object)
+* [Pin](pin.md) - GC-safe Ruby VALUE holder for C++-owned references
 * [String](string.md) - String wrapper with C++ string interop
 * [Symbol](symbol.md) - Symbol wrapper (Ruby Object)
 * [Struct](struct.md) - Dynamic struct class creation

@@ -37,6 +37,24 @@ namespace Rice::detail
   };
 
   template<typename T>
+  class To_Ruby<std::reference_wrapper<T>&>
+  {
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg) : arg_(arg)
+    {}
+
+    VALUE convert(const std::reference_wrapper<T>& data)
+    {
+      return To_Ruby<T&>().convert(data.get());
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<typename T>
   class From_Ruby<std::reference_wrapper<T>>
   {
   public:

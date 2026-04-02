@@ -5,6 +5,9 @@ namespace Rice
   template<typename T>
   Data_Type<std::unique_ptr<T>> define_unique_ptr(std::string klassName)
   {
+    static_assert(detail::is_complete_v<T>,
+      "Rice does not support binding std::unique_ptr<T> when T is incomplete.");
+
     using UniquePtr_T = std::unique_ptr<T>;
     using Data_Type_T = Data_Type<UniquePtr_T>;
 

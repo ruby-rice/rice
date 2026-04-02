@@ -6,7 +6,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline Reference<T>::Reference(T& data) : data_(data)
+  inline Reference<T>::Reference(const T& data) : data_(data)
   {
   }
 

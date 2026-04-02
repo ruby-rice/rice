@@ -187,6 +187,38 @@ TESTCASE(call_return_rice_object)
   ASSERT_EQUAL(Object(detail::to_ruby(3)), three);
 }
 
+TESTCASE(call_with_c_string_argument)
+{
+  Module m(anonymous_module());
+
+  m.module_eval(R"(
+    def self.echo(value)
+      value
+    end
+  )");
+
+  const char* value = "charlie";
+  Object result = m.call("echo", value);
+
+  ASSERT_EQUAL("charlie", detail::From_Ruby<char*>().convert(result.value()));
+}
+
+TESTCASE(call_with_string_argument)
+{
+  Module m(anonymous_module());
+
+  m.module_eval(R"(
+    def self.echo(value)
+      value
+    end
+  )");
+
+  String value("charlie");
+  Object result = m.call("echo", value);
+
+  ASSERT_EQUAL("charlie", detail::From_Ruby<char*>().convert(result.value()));
+}
+
 TESTCASE(call_with_keywords)
 {
   Module m(anonymous_module());
@@ -213,6 +245,50 @@ TESTCASE(call_with_keywords)
     m.call_kw("keywords_test", "charlie", keywords),
     ASSERT_EQUAL("An exception!", ex.what())
   );
+}
+
+namespace
+{
+  class NonCopyableObjectCallArg
+  {
+  public:
+    NonCopyableObjectCallArg() = default;
+    NonCopyableObjectCallArg(const NonCopyableObjectCallArg&) = delete;
+    NonCopyableObjectCallArg& operator=(const NonCopyableObjectCallArg&) = delete;
+
+    void setValue(int value)
+    {
+      value_ = value;
+    }
+
+    int value() const
+    {
+      return value_;
+    }
+
+  private:
+    int value_ = 0;
+  };
+}
+
+TESTCASE(call_with_noncopyable_reference_argument)
+{
+  define_class<NonCopyableObjectCallArg>("NonCopyableObjectCallArg")
+    .define_constructor(Constructor<NonCopyableObjectCallArg>())
+    .define_method("set_value", &NonCopyableObjectCallArg::setValue)
+    .define_method("value", &NonCopyableObjectCallArg::value);
+
+  Module m(anonymous_module());
+  m.module_eval(R"(
+    def self.set_value(target)
+      target.set_value(41)
+    end
+  )");
+
+  NonCopyableObjectCallArg value;
+  m.call("set_value", value);
+
+  ASSERT_EQUAL(41, value.value());
 }
 
 TESTCASE(const_set_get_by_id)

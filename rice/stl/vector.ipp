@@ -296,21 +296,6 @@ namespace Rice
           }, Arg("value"));
           rb_define_alias(klass_, "eql?", "==");
         }
-        else
-        {
-          klass_.define_method("delete", [](T&, Parameter_T) -> std::optional<Value_T>
-          {
-            return std::nullopt;
-          }, Arg("value"))
-          .define_method("include?", [](const T&, Parameter_T)
-          {
-            return false;
-          }, Arg("value"))
-          .define_method("index", [](const T&, Parameter_T) -> std::optional<Difference_T>
-          {
-            return std::nullopt;
-          }, Arg("value"));
-        }
       }
 
       void define_modify_methods()
@@ -712,6 +697,24 @@ namespace Rice
       explicit To_Ruby(Arg* arg) : arg_(arg)
       {
       }
+
+      VALUE convert(const std::vector<bool>::reference& value)
+      {
+        return value ? Qtrue : Qfalse;
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<>
+    class To_Ruby<std::vector<bool>::reference&>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {}
 
       VALUE convert(const std::vector<bool>::reference& value)
       {

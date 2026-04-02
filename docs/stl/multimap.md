@@ -45,9 +45,12 @@ First, the following methods only work if the multimap type is copyable (copying
 
 * multimap#copy(other)
 
-Second, the following methods only work if the multimap type implements C++'s equal operator, `operator==`:
+Second, the following methods are only added if the mapped type implements C++ equality comparison:
 
+* Multimap#==
+* Multimap#eql?
 * multimap#value?
+* multimap#has_value
 
 Third, if the multimap type supports C++ streams, then the following method will work, otherwise it will return "Not Printable"
 

@@ -337,7 +337,16 @@ TESTCASE(NotComparable)
   Object result = unordered_map.call("include?", "two");
   ASSERT_EQUAL(Qtrue, result.value());
 
-  result = unordered_map.call("value?", NotComparable(3));
+  result = unordered_map.instance_eval("respond_to?(:value?)");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = unordered_map.instance_eval("respond_to?(:has_value)");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = unordered_map.instance_eval("method(:==).owner == self.class");
+  ASSERT_EQUAL(Qfalse, result.value());
+
+  result = unordered_map.instance_eval("method(:eql?).owner == self.class");
   ASSERT_EQUAL(Qfalse, result.value());
 }
 
