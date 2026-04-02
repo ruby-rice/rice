@@ -54,6 +54,12 @@ namespace Rice::detail
         {
           result = Convertible::None;
         }
+        // Existing wrapped Ruby objects should prefer borrowing overloads to
+        // rvalue-reference overloads so they are not silently moved-from.
+        else if constexpr (std::is_rvalue_reference_v<T>)
+        {
+          result = Convertible::RValueMismatch;
+        }
         // It is ok to send a non-const value to a const parameter but
         // prefer non-const to non-const by slightly decreasing the score
         else if (!isConst && is_const_any_v<T>)

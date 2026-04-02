@@ -17,6 +17,8 @@ namespace
   class MyClass6;
   class MyClass7;
   class MyClass8;
+  class MyClass9;
+  class MyClass10;
 }
 
 SETUP(Overloads)
@@ -31,6 +33,8 @@ SETUP(Overloads)
   Data_Type<MyClass6>::unbind();
   Data_Type<MyClass7>::unbind();
   Data_Type<MyClass8>::unbind();
+  Data_Type<MyClass9>::unbind();
+  Data_Type<MyClass10>::unbind();
   Rice::detail::Registries::instance.types.remove<MyClass>();
   Rice::detail::Registries::instance.types.remove<MyClass2>();
   Rice::detail::Registries::instance.types.remove<MyClass3>();
@@ -39,6 +43,8 @@ SETUP(Overloads)
   Rice::detail::Registries::instance.types.remove<MyClass6>();
   Rice::detail::Registries::instance.types.remove<MyClass7>();
   Rice::detail::Registries::instance.types.remove<MyClass8>();
+  Rice::detail::Registries::instance.types.remove<MyClass9>();
+  Rice::detail::Registries::instance.types.remove<MyClass10>();
   Rice::detail::Registries::instance.natives.reset(Module(rb_mKernel));
 }
 
@@ -824,6 +830,73 @@ TESTCASE(ConstRef)
                         my_class5.result)";
   String result = m.module_eval(code);
   ASSERT_EQUAL("const ref", result.str());
+}
+
+namespace
+{
+  class MyClass9
+  {
+  public:
+    MyClass9() = default;
+    MyClass9(const MyClass9&) = default;
+
+    MyClass9(MyClass9&& other) noexcept
+      : moved_from_(other.moved_from_)
+    {
+      other.moved_from_ = true;
+    }
+
+    bool movedFrom() const
+    {
+      return moved_from_;
+    }
+
+  private:
+    bool moved_from_ = false;
+  };
+
+  class MyClass10
+  {
+  public:
+    MyClass10(const MyClass9&)
+    {
+      this->result = "const ref";
+    }
+
+    MyClass10(MyClass9&& value)
+      : value_(std::move(value))
+    {
+      this->result = "rvalue ref";
+    }
+
+    std::string result = "";
+
+  private:
+    MyClass9 value_;
+  };
+}
+
+TESTCASE(ConstructorRValueRefShouldNotBeatConstRefForWrappedObjects)
+{
+  Class c9 = define_class<MyClass9>("MyClass9")
+    .define_constructor(Constructor<MyClass9>())
+    .define_method("moved_from?", &MyClass9::movedFrom);
+
+  Class c10 = define_class<MyClass10>("MyClass10")
+    .define_constructor(Constructor<MyClass10, const MyClass9&>())
+    .define_constructor(Constructor<MyClass10, MyClass9&&>())
+    .define_attr("result", &MyClass10::result);
+
+  Module m = define_module("Testing");
+
+  Array result = m.module_eval(R"(
+    source = MyClass9.new
+    consumer = MyClass10.new(source)
+    [consumer.result, source.moved_from?]
+  )");
+
+  ASSERT_EQUAL("const ref", String(result[0].value()).str());
+  ASSERT_EQUAL(Qfalse, result[1].value());
 }
 
 namespace

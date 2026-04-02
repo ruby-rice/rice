@@ -1,6 +1,6 @@
 # Overload Resolution
 
-This document explains how Rice resolves C++ method overloads when called from Ruby.
+This document explains how Rice resolves C++ method and constructor overloads when called from Ruby.
 
 ## Overview
 
@@ -19,6 +19,7 @@ struct Convertible
   static constexpr double SignedToUnsigned = 0.5;// Penalty for signed to unsigned (can't represent negatives)
   static constexpr double FloatToInt = 0.5;      // Penalty for float to int conversion
   static constexpr double ConstMismatch = 0.99;  // Penalty for const mismatch
+  static constexpr double RValueMismatch = 0.98; // Prefer borrowing wrapped objects over moving from them
 };
 ```
 
@@ -194,11 +195,48 @@ When a Ruby-wrapped C++ object is passed as an argument:
 - Passing a non-const object to a const parameter: Score *= 0.99 (small penalty)
 - Matching constness: No penalty
 
+## Rvalue References For Wrapped Objects
+
+Rice distinguishes between:
+
+- Ruby values that are converted into temporary C++ objects during argument conversion
+- Ruby objects that already wrap a live C++ object (`RUBY_T_DATA`)
+
+For wrapped objects, Rice prefers borrowing overloads over rvalue-reference overloads:
+
+- Passing a wrapped object to `T&`: Score = 1.0 when constness matches
+- Passing a wrapped object to `const T&`: Score = 0.99 when the wrapped object is non-const
+- Passing a wrapped object to `T&&`: Score = 0.98
+
+This rule exists because moving from an already wrapped C++ object is usually surprising from Ruby. The
+Ruby object remains live after the call, so choosing `T&&` over `const T&` can leave the original object in
+a moved-from state.
+
+Example:
+
+```cpp
+Consumer(const Source&);
+Consumer(Source&&);
+```
+
+Called from Ruby as:
+
+```ruby
+source = Source.new
+consumer = Consumer.new(source)
+```
+
+Rice will prefer `Consumer(const Source&)` over `Consumer(Source&&)` because `source` already wraps a live
+C++ object and should be borrowed rather than consumed.
+
+This penalty only applies to wrapped Ruby objects. If there is no borrowing overload available, `T&&`
+overloads remain callable, which allows move-only constructor and method parameters to continue working.
+
 ## Resolution Process
 
 The resolution happens in `rice/detail/Native.ipp`:
 
-1. `Native::resolve()` is called when Ruby invokes a method
+1. `Native::resolve()` is called when Ruby invokes a method or constructor
 2. For each registered overload, `Native::matches()` computes a score
 3. Overloads are sorted by score (highest first)
 4. The highest-scoring overload is selected

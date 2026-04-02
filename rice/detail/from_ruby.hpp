@@ -39,6 +39,7 @@ namespace Rice::detail
     static constexpr double SignedToUnsigned = 0.5;// Penalty for signed to unsigned (can't represent negatives)
     static constexpr double FloatToInt = 0.5;      // Domain change penalty when converting float to int (lossy)
     static constexpr double ConstMismatch = 0.99;  // Penalty for const mismatch
+    static constexpr double RValueMismatch = 0.98; // Prefer borrowing wrapped objects over moving from them
   };
 }
 
