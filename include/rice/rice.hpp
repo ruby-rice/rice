@@ -189,6 +189,9 @@ namespace Rice
     constexpr bool is_ostreamable_v = is_ostreamable<T>::value;
 
     // Is the type comparable?
+    // Libraries with unconstrained operator== declarations may specialize this
+    // trait to false when equality is not actually usable by Rice's STL
+    // wrappers.
     template<typename T, typename SFINAE = void>
     struct is_comparable : std::false_type {};
 
@@ -1591,6 +1594,7 @@ namespace Rice::detail
     static constexpr double SignedToUnsigned = 0.5;// Penalty for signed to unsigned (can't represent negatives)
     static constexpr double FloatToInt = 0.5;      // Domain change penalty when converting float to int (lossy)
     static constexpr double ConstMismatch = 0.99;  // Penalty for const mismatch
+    static constexpr double RValueMismatch = 0.98; // Prefer borrowing wrapped objects over moving from them
   };
 }
 
@@ -2033,7 +2037,7 @@ namespace Rice
     *  \endcode
     */
     template<typename ...Parameter_Ts>
-    Object call(Identifier id, Parameter_Ts... args) const;
+    Object call(Identifier id, Parameter_Ts&&... args) const;
 
     //! Call the Ruby method specified by 'id' on object 'obj'.
     /*! Pass in arguments (arg1, arg2, ...).  The arguments will be converted to
@@ -2056,7 +2060,7 @@ namespace Rice
     *  \endcode
     */
     template<typename ...Parameter_Ts>
-    Object call_kw(Identifier id, Parameter_Ts... args) const;
+    Object call_kw(Identifier id, Parameter_Ts&&... args) const;
 
     //! Vectorized call.
     /*! Calls the method identified by id with the list of arguments
@@ -4279,7 +4283,7 @@ namespace Rice
 
   public:
     Reference();
-    Reference(T& data);
+    Reference(const T& data);
     Reference(VALUE value);
     T& get();
 
@@ -4288,7 +4292,7 @@ namespace Rice
   };
 
   // Specialization needed when VALUE type matches T, causing constructor ambiguity
-  // between Reference(T&) and Reference(VALUE). VALUE is unsigned long when
+  // between Reference(const T&) and Reference(VALUE). VALUE is unsigned long when
   // SIZEOF_LONG == SIZEOF_VOIDP (Linux/macOS) and unsigned long long when
   // SIZEOF_LONG_LONG == SIZEOF_VOIDP (Windows x64).
 #if SIZEOF_LONG == SIZEOF_VOIDP
@@ -4460,6 +4464,12 @@ namespace Rice::detail
         {
           result = Convertible::None;
         }
+        // Existing wrapped Ruby objects should prefer borrowing overloads to
+        // rvalue-reference overloads so they are not silently moved-from.
+        else if constexpr (std::is_rvalue_reference_v<T>)
+        {
+          result = Convertible::RValueMismatch;
+        }
         // It is ok to send a non-const value to a const parameter but
         // prefer non-const to non-const by slightly decreasing the score
         else if (!isConst && is_const_any_v<T>)
@@ -4495,6 +4505,11 @@ namespace Rice::detail
     else if (valueOpt.has_value())
     {
       return this->fromRuby_.convert(valueOpt.value());
+    }
+    else if constexpr (std::is_rvalue_reference_v<T>)
+    {
+      // Rvalue-reference parameters cannot safely use stored default values.
+      // Materializing them from std::any would require moving from shared state.
     }
     // Remember std::is_copy_constructible_v<std::vector<std::unique_ptr<T>>>> returns true. Sigh.
     // So special case vector handling
@@ -6460,6 +6475,25 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
+    template<>
+    class To_Ruby<char*&>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
+      VALUE convert(const char* data)
+      {
+        return To_Ruby<char*>(arg_).convert(data);
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
     template<int N>
     class To_Ruby<char[N]>
     {
@@ -6486,6 +6520,25 @@ namespace Rice
           long size = (long)strlen(buffer);
           return protect(rb_usascii_str_new_static, buffer, size);
         }
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
+    template<int N>
+    class To_Ruby<char(&)[N]>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
+      VALUE convert(const char (&buffer)[N])
+      {
+        return To_Ruby<char[N]>(arg_).convert(buffer);
       }
 
     private:
@@ -7213,6 +7266,25 @@ namespace Rice
       Arg* arg_ = nullptr;
     };
 
+    template<>
+    class To_Ruby<std::nullptr_t&>
+    {
+    public:
+      To_Ruby() = default;
+
+      explicit To_Ruby(Arg* arg) : arg_(arg)
+      {
+      }
+
+      VALUE convert(std::nullptr_t const)
+      {
+        return Qnil;
+      }
+
+    private:
+      Arg* arg_ = nullptr;
+    };
+
     // ===========  void  ============
     template<>
     class To_Ruby<void>
@@ -7271,6 +7343,7 @@ namespace Rice
     };
  }
 }
+
 // =========   from_ruby.ipp   =========
 #include <limits>
 #include <optional>
@@ -9051,7 +9124,7 @@ namespace Rice
   }
 
   template<typename T>
-  inline Reference<T>::Reference(T& data) : data_(data)
+  inline Reference<T>::Reference(const T& data) : data_(data)
   {
   }
 
@@ -12664,6 +12737,25 @@ namespace Rice::detail
     }
   };
 
+  // Wraps a C++ function as a Ruby proc
+  template<typename Return_T, typename ...Parameter_Ts>
+  class To_Ruby<Return_T(*&)(Parameter_Ts...)>
+  {
+  public:
+    using Proc_T = Return_T(*&)(Parameter_Ts...);
+
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg*)
+    {}
+
+    VALUE convert(Proc_T proc)
+    {
+      // Wrap the C+++ function pointer as a Ruby Proc
+      return NativeProc<Proc_T>::createRubyProc(std::forward<Proc_T>(proc));
+    }
+  };
+
   // Makes a Ruby proc callable as C callback
   template<typename Return_T, typename ...Parameter_Ts>
   class From_Ruby<Return_T(*)(Parameter_Ts...)>
@@ -12716,53 +12808,6 @@ namespace Rice
   }
 }
 
-/*namespace Rice::detail
-{
-  template<>
-  struct Type<Encoding>
-  {
-    static bool verify()
-    {
-      return true;
-    }
-  };
-  
-  template<>
-  class To_Ruby<Encoding>
-  {
-  public:
-    VALUE convert(const Encoding& encoding)
-    {
-    //  return x.value();
-    }
-  };
-
-  template<>
-  class From_Ruby<Encoding>
-  {
-  public:
-    Convertible is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_SYMBOL:
-          return Convertible::Exact;
-          break;
-      case RUBY_T_STRING:
-          return Convertible::Cast;
-          break;
-        default:
-          return Convertible::None;
-        }
-    }
-
-    Encoding convert(VALUE value)
-    {
-     // return Symbol(value);
-    }
-  };
-}
-*/
 // =========   Object.ipp   =========
 namespace Rice
 {
@@ -12808,7 +12853,7 @@ namespace Rice
   }
 
   template<typename ...Parameter_Ts>
-  inline Object Object::call(Identifier id, Parameter_Ts... args) const
+  inline Object Object::call(Identifier id, Parameter_Ts&&... args) const
   {
     /* IMPORTANT - We store VALUEs in an array that is a local variable.
        That allows the Ruby garbage collector to find them when scanning
@@ -12822,10 +12867,10 @@ namespace Rice
   }
 
   template<typename ...Parameter_Ts>
-  inline Object Object::call_kw(Identifier id, Parameter_Ts... args) const
+  inline Object Object::call_kw(Identifier id, Parameter_Ts&&... args) const
   {
     /* IMPORTANT - See call() above */
-    std::array<VALUE, sizeof...(Parameter_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Parameter_Ts>>().convert(args)... };
+    std::array<VALUE, sizeof...(Parameter_Ts)> values = { detail::To_Ruby<detail::remove_cv_recursive_t<Parameter_Ts>>().convert(std::forward<Parameter_Ts>(args))... };
     return detail::protect(rb_funcallv_kw, this->validated_value(), id.id(), (int)values.size(), (const VALUE*)values.data(), RB_PASS_KEYWORDS);
   }
 
@@ -13160,6 +13205,25 @@ namespace Rice::detail
   
   template<>
   class To_Ruby<String>
+  {
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    VALUE convert(String const& x)
+    {
+      return x.value();
+    }
+
+    private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class To_Ruby<String&>
   {
   public:
     To_Ruby() = default;
@@ -13889,6 +13953,25 @@ namespace Rice::detail
 
   template<>
   class To_Ruby<Hash>
+  {
+  public:
+    To_Ruby() = default;
+
+    explicit To_Ruby(Arg* arg) : arg_(arg)
+    {
+    }
+
+    VALUE convert(Hash const& x)
+    {
+      return x.value();
+    }
+
+  private:
+    Arg* arg_ = nullptr;
+  };
+
+  template<>
+  class To_Ruby<Hash&>
   {
   public:
     To_Ruby() = default;
@@ -15120,7 +15203,7 @@ namespace Rice
     static void initialize(VALUE self, Parameter_Ts...args)
     {
       // Call C++ constructor
-      T* data = new T(args...);
+      T* data = new T(std::forward<Parameter_Ts>(args)...);
       detail::wrapConstructed<T>(self, Data_Type<T>::ruby_data_type(), data);
     }
 
@@ -15154,11 +15237,12 @@ namespace Rice
       static void initialize(Object self, Parameter_Ts...args)
       {
         // Call C++ constructor
-        T* data = new T(self, args...);
+        T* data = new T(self, std::forward<Parameter_Ts>(args)...);
         detail::wrapConstructed<T>(self.value(), Data_Type<T>::ruby_data_type(), data);
       }
   };
 }
+
 // =========   Callback.hpp   =========
 
 namespace Rice
@@ -15521,16 +15605,6 @@ namespace Rice::detail
     Arg* arg_ = nullptr;
   };
 
-  template<typename T>
-  class To_Ruby<Data_Object<T>>
-  {
-  public:
-    VALUE convert(const Object& x)
-    {
-      return x.value();
-    }
-  };
-
   template <typename T>
   class From_Ruby
   {
@@ -15875,38 +15949,6 @@ namespace Rice::detail
   private:
     Arg* arg_ = nullptr;
     std::vector<Intrinsic_T*> vector_;
-  };
-
-  template<typename T>
-  class From_Ruby<Data_Object<T>>
-  {
-    static_assert(!std::is_fundamental_v<intrinsic_type<T>>,
-                  "Data_Object cannot be used with fundamental types");
-
-    static_assert(!std::is_same_v<T, std::map<T, T>> && !std::is_same_v<T, std::unordered_map<T, T>> &&
-                  !std::is_same_v<T, std::monostate> && !std::is_same_v<T, std::multimap<T, T>> &&
-                  !std::is_same_v<T, std::optional<T>> && !std::is_same_v<T, std::pair<T, T>> &&
-                  !std::is_same_v<T, std::set<T>> && !std::is_same_v<T, std::string> &&
-                  !std::is_same_v<T, std::vector<T>>,
-                  "Please include rice/stl.hpp header for STL support");
-
-  public:
-    double is_convertible(VALUE value)
-    {
-      switch (rb_type(value))
-      {
-        case RUBY_T_DATA:
-          return Data_Type<T>::is_descendant(value) ? Convertible::Exact : Convertible::None;
-          break;
-        default:
-          return Convertible::None;
-        }
-    }
-
-    static Data_Object<T> convert(VALUE value)
-    {
-      return Data_Object<T>(value);
-    }
   };
 }
 
