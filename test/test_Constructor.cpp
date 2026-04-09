@@ -232,6 +232,41 @@ TESTCASE(constructor_move)
 
 namespace
 {
+  // Polymorphic (has virtual methods) but non-virtual destructor.
+  // Deleting through a pointer is UB in this case. Rice's
+  // Wrapper<T*>::~Wrapper should not delete such objects.
+  class PolymorphicNonVirtualDtor
+  {
+  public:
+    PolymorphicNonVirtualDtor() : value_(42) {}
+    ~PolymorphicNonVirtualDtor() = default;
+
+    virtual int value()
+    {
+      return value_;
+    }
+
+  private:
+    int value_;
+  };
+}
+
+TESTCASE(constructor_polymorphic_non_virtual_dtor)
+{
+  Data_Type<PolymorphicNonVirtualDtor> rb_cPolymorphicNonVirtualDtor(anonymous_class());
+  rb_cPolymorphicNonVirtualDtor
+    .define_constructor(Constructor<PolymorphicNonVirtualDtor>())
+    .define_method("value", &PolymorphicNonVirtualDtor::value);
+
+  Object o = rb_cPolymorphicNonVirtualDtor.call("new");
+  ASSERT_EQUAL(rb_cPolymorphicNonVirtualDtor, o.class_of());
+
+  Object value = o.call("value");
+  ASSERT_EQUAL(42, detail::From_Ruby<int>().convert(value));
+}
+
+namespace
+{
   class MoveOnlyValue
   {
   public:

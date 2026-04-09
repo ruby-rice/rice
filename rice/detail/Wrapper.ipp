@@ -121,10 +121,10 @@ namespace Rice::detail
 
     if constexpr (is_complete_v<T>)
     {
-      // is_abstract_v requires a complete type, so nest inside is_complete_v.
-      // Deleting an abstract class through a non-virtual destructor is UB,
+      // is_polymorphic_v requires a complete type, so nest inside is_complete_v.
+      // Deleting a polymorphic class through a non-virtual destructor is UB,
       // but it is safe if the destructor is virtual.
-      if constexpr (std::is_destructible_v<T> && (!std::is_abstract_v<T> || std::has_virtual_destructor_v<T>))
+      if constexpr (std::is_destructible_v<T> && (!std::is_polymorphic_v<T> || std::has_virtual_destructor_v<T>))
       {
         if (this->isOwner_)
         {
