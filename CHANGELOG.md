@@ -1,11 +1,30 @@
 # Changelog
 
-## Next Release
+## 4.12.0 (2026-04-09)
+
+### Bug Fixes
+
+* Fix undefined behavior when deleting polymorphic classes with non-virtual destructors
+* Fix overload resolution to prefer `T&` or `const T&` over `T&&` after perfect forwarding changes
+* Fix `Reference<T>` constructor overload resolution so forwarded arguments bind to the typed overload instead of falling through to `Reference(VALUE)`
+* Reject incomplete `std::unique_ptr` bindings at compile time
 
 ### Enhancements
 
+* Forward `Object::call` arguments without copying
+* Forward Rice constructor rvalue arguments
+* Forward `std::function` callback arguments
+* Add support for `To_Ruby<T&>` for types missing it
 * Allow raw Ruby procs and lambdas to convert directly to `std::function` parameters while keeping the callable alive with `Pin`
 * Only define equality-based STL container methods when the contained type supports C++ equality comparison
+
+## 4.11.5 (2026-03-24)
+
+### Bug Fixes
+
+* Fix Valgrind invalid reads caused by stale GC root addresses (#399)
+* Fix `rb_gc_register_address()` triggering GC before Anchor stores heap object — use `RB_GC_GUARD` to keep VALUE alive
+* Fix gem packaging warning
 
 ## 4.11.4 (2026-03-13)
 
