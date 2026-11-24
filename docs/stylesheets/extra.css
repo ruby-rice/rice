@@ -1,0 +1,14 @@
+/* Larger, more readable top navigation tabs. */
+.md-tabs__link {
+  font-size: 0.88rem;
+  opacity: 0.9;
+}
+
+.md-tabs__item--active .md-tabs__link {
+  font-weight: 700;
+}
+
+/* Larger left navigation. */
+.md-nav {
+  font-size: 0.8rem;
+}
