@@ -24,15 +24,13 @@ This documentation and the `master` branch are for Rice 4.x and later, which is 
 header-only version of this library. Use the `3.x` branch for the docs and code for that
 line of releases.
 
-The docs for the 3.x line of Rice is at https://ruby-rice.github.io/3.x.
-
 # Project Details
 
 The source is hosted on GitHub: http://github.com/ruby-rice/rice
 
 Bug tracking: http://github.com/ruby-rice/rice/issues
 
-API documentation: http://ruby-rice.github.io/
+API documentation: https://ruby-rice.github.io/rice/
 
 # Installation
 

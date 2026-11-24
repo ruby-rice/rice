@@ -19,7 +19,7 @@ Ruby extensions with C++ easier.
   s.metadata = {
     "bug_tracker_uri"   => "https://github.com/ruby-rice/rice/issues",
     "changelog_uri"     => "https://github.com/ruby-rice/rice/blob/master/CHANGELOG.md",
-    "documentation_uri" => "https://ruby-rice.github.io",
+    "documentation_uri" => "https://ruby-rice.github.io/rice/",
     "source_code_uri"   => "https://github.com/ruby-rice/rice",
   }
 

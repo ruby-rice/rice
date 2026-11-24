@@ -20,7 +20,7 @@ Source code is hosted on GitHub: <https://github.com/ruby-rice/rice>
 
 Bug tracking is also hosted on GitHub: <https://github.com/ruby-rice/rice/issues>
 
-API documentation: <https://ruby-rice.github.io/4.x>
+API documentation: <https://ruby-rice.github.io/rice/>
 
 ## Example Project
 
