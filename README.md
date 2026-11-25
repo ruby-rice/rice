@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/assets/logo.svg" alt="Rice: C++ and Ruby" width="400"></p>
+
 # Rice - Ruby Interface for C++ Extensions
 
 # Introduction

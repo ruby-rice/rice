@@ -12,3 +12,17 @@
 .md-nav {
   font-size: 0.8rem;
 }
+
+/* The logo is wide, so give it more height than the default 1.2rem. */
+.md-header__button.md-logo img {
+  height: 1.8rem;
+}
+
+/* Dark red header so the red Ruby gem and white arrows in the logo stand out.
+   Links stay bright red. Used by both schemes (primary = "custom" in zensical.toml). */
+:root > * {
+  --md-primary-fg-color:        #5A1A1F;
+  --md-primary-fg-color--light: #8E2A2F;
+  --md-primary-fg-color--dark:  #2E0F11;
+  --md-typeset-a-color:         #EF5350;
+}

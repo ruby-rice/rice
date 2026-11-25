@@ -126,6 +126,7 @@ nav = [
 [project.theme]
 
 variant = "classic"
+logo = "assets/logo-on-dark.svg"
 
 features = [
   "navigation.tabs",
@@ -139,7 +140,7 @@ features = [
 # Palette toggle for light mode
 [[project.theme.palette]]
 scheme = "default"
-primary = "red"
+primary = "custom"
 accent = "red"
 toggle.icon = "lucide/sun"
 toggle.name = "Switch to dark mode"
@@ -147,7 +148,7 @@ toggle.name = "Switch to dark mode"
 # Palette toggle for dark mode
 [[project.theme.palette]]
 scheme = "slate"
-primary = "red"
+primary = "custom"
 accent = "red"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"
